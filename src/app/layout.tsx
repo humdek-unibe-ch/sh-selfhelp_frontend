@@ -4,6 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
+import '@mantine/dropzone/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/schedule/styles.css';
 import '@mantine/carousel/styles.css';

@@ -22,6 +22,7 @@ import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import type {
+    IAdminPluginAvailableResponse,
     IAdminPluginDetail,
     IAdminPluginDoctorReport,
     IAdminPluginFeatureFlag,
@@ -34,6 +35,11 @@ import type {
 export const AdminPluginApi = {
     async listPlugins(): Promise<IBaseApiResponse<IAdminPluginListResponse>> {
         const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_LIST);
+        return response.data;
+    },
+
+    async listAvailable(): Promise<IBaseApiResponse<IAdminPluginAvailableResponse>> {
+        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_AVAILABLE);
         return response.data;
     },
 
@@ -87,8 +93,11 @@ export const AdminPluginApi = {
     },
 
     async repair(pluginId?: string): Promise<IBaseApiResponse<unknown>> {
-        const target = pluginId ?? 'all';
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_REPAIR, undefined, target);
+        if (pluginId) {
+            const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_REPAIR, undefined, pluginId);
+            return response.data;
+        }
+        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_REPAIR_ALL);
         return response.data;
     },
 

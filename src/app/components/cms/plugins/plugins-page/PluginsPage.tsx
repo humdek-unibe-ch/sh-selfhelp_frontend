@@ -14,17 +14,17 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Alert,
     Anchor,
     Badge,
     Button,
+    FileButton,
     Group,
-    JsonInput,
     Loader,
-    Modal,
+    Paper,
     ScrollArea,
     Stack,
     Switch,
@@ -35,8 +35,11 @@ import {
     Title,
     Tooltip,
 } from '@mantine/core';
-import { IconDownload } from '@tabler/icons-react';
+import { Dropzone, type FileWithPath } from '@mantine/dropzone';
+import { IconDownload, IconFileUpload, IconUpload, IconX } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
+import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
+import { MonacoFieldEditor } from '../../shared/monaco-field-editor/MonacoFieldEditor';
 import {
     useAdminPluginDisable,
     useAdminPluginEnable,
@@ -48,9 +51,15 @@ import {
     useAdminPlugins,
 } from '../hooks/useAdminPlugins';
 import { PluginSourcesPanel } from '../plugin-sources-panel/PluginSourcesPanel';
+import { AvailablePluginsPanel } from '../available-plugins-panel/AvailablePluginsPanel';
+
+type TPluginsTab = 'installed' | 'available' | 'sources';
+const PLUGINS_TABS: readonly TPluginsTab[] = ['installed', 'available', 'sources'];
 
 export function PluginsPage() {
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { data: pluginList, isLoading, error } = useAdminPlugins();
     const { data: sources } = useAdminPluginSources();
     const [purgeFor, setPurgeFor] = useState<string | null>(null);
@@ -60,6 +69,43 @@ export function PluginsPage() {
     const [installManifest, setInstallManifest] = useState('');
     const [installEnableOnSuccess, setInstallEnableOnSuccess] = useState(true);
     const [installPendingOperationId, setInstallPendingOperationId] = useState<number | null>(null);
+    const [installManifestFileName, setInstallManifestFileName] = useState<string | null>(null);
+
+    // Tabs are persisted to the URL so refresh / bookmark / share all
+    // land on the same tab. Mantine's `Tabs` is controlled here against
+    // the `?tab=` search param.
+    const activeTab: TPluginsTab = useMemo(() => {
+        const raw = searchParams.get('tab');
+        return PLUGINS_TABS.includes(raw as TPluginsTab) ? (raw as TPluginsTab) : 'installed';
+    }, [searchParams]);
+
+    const setActiveTab = useCallback((next: string | null) => {
+        const tab = (next ?? 'installed') as TPluginsTab;
+        const sp = new URLSearchParams(searchParams);
+        if (tab === 'installed') sp.delete('tab');
+        else sp.set('tab', tab);
+        router.replace(`${pathname}${sp.toString() ? `?${sp.toString()}` : ''}`, { scroll: false });
+    }, [pathname, router, searchParams]);
+
+    const onManifestFile = useCallback(async (file: File | null) => {
+        if (!file) return;
+        try {
+            const text = await file.text();
+            // Pretty-print so Monaco's JSON validator can give nicer
+            // gutter hints. If the file isn't valid JSON, leave it as
+            // typed so the user can see the parse error inline.
+            try {
+                const parsed = JSON.parse(text);
+                setInstallManifest(JSON.stringify(parsed, null, 4));
+            } catch {
+                setInstallManifest(text);
+            }
+            setInstallManifestFileName(file.name);
+            notifications.show({ color: 'blue', title: 'Manifest loaded', message: file.name });
+        } catch (err) {
+            notifications.show({ color: 'red', title: 'Could not read file', message: err instanceof Error ? err.message : String(err) });
+        }
+    }, []);
 
     const enableMutation = useAdminPluginEnable();
     const disableMutation = useAdminPluginDisable();
@@ -152,12 +198,12 @@ export function PluginsPage() {
             notifications.show({ color: 'red', title: 'Manifest is not valid JSON', message: err instanceof Error ? err.message : String(err) });
             return;
         }
+        const manifestPluginId = typeof parsed?.id === 'string' ? parsed.id : null;
+        if (!manifestPluginId) {
+            notifications.show({ color: 'red', title: 'Manifest missing id', message: 'The manifest must contain a top-level "id" field.' });
+            return;
+        }
         try {
-            const manifestPluginId = typeof parsed?.id === 'string' ? parsed.id : null;
-            if (!manifestPluginId) {
-                notifications.show({ color: 'red', title: 'Manifest missing id', message: 'The manifest must contain a top-level "id" field.' });
-                return;
-            }
             const result = await finalizeInstall.mutateAsync({ pluginId: manifestPluginId, operationId: installPendingOperationId, manifest: parsed });
             notifications.show({ color: 'green', title: 'Plugin installed', message: result.data?.pluginId ?? 'unknown' });
             if (installEnableOnSuccess && result.data?.pluginId) {
@@ -202,9 +248,10 @@ export function PluginsPage() {
                 </Alert>
             )}
 
-            <Tabs defaultValue="installed">
+            <Tabs value={activeTab} onChange={setActiveTab} keepMounted={false}>
                 <Tabs.List>
                     <Tabs.Tab value="installed">Installed</Tabs.Tab>
+                    <Tabs.Tab value="available">Available</Tabs.Tab>
                     <Tabs.Tab value="sources">Sources</Tabs.Tab>
                 </Tabs.List>
 
@@ -297,12 +344,26 @@ export function PluginsPage() {
                     </ScrollArea>
                 </Tabs.Panel>
 
+                <Tabs.Panel value="available" pt="md">
+                    <AvailablePluginsPanel sourcesCount={sources?.length ?? 0} />
+                </Tabs.Panel>
+
                 <Tabs.Panel value="sources" pt="md">
                     <PluginSourcesPanel />
                 </Tabs.Panel>
             </Tabs>
 
-            <Modal opened={purgeFor !== null} onClose={() => { setPurgeFor(null); setPurgeConfirm(''); }} title={`Purge ${purgeFor ?? ''}`}>
+            <ModalWrapper
+                opened={purgeFor !== null}
+                onClose={() => { setPurgeFor(null); setPurgeConfirm(''); }}
+                title={`Purge ${purgeFor ?? ''}`}
+                size="md"
+                onDelete={onPurgeConfirm}
+                deleteLabel="Purge plugin"
+                onCancel={() => { setPurgeFor(null); setPurgeConfirm(''); }}
+                isLoading={purgeMutation.isPending}
+                disabled={purgeConfirm !== purgeFor}
+            >
                 <Stack gap="sm">
                     <Alert color="red" title="Destructive operation">
                         Purging drops every plugin-owned table and deletes every row tagged with this plugin. Plugin data is unrecoverable unless you took a backup first.
@@ -312,36 +373,94 @@ export function PluginsPage() {
                         value={purgeConfirm}
                         onChange={(e) => setPurgeConfirm(e.currentTarget.value)}
                     />
-                    <Group justify="flex-end">
-                        <Button variant="default" onClick={() => { setPurgeFor(null); setPurgeConfirm(''); }}>Cancel</Button>
-                        <Button color="red" disabled={purgeConfirm !== purgeFor} loading={purgeMutation.isPending} onClick={onPurgeConfirm}>
-                            Purge plugin
-                        </Button>
-                    </Group>
                 </Stack>
-            </Modal>
+            </ModalWrapper>
 
-            <Modal
+            <ModalWrapper
                 opened={installOpen}
-                onClose={() => { setInstallOpen(false); setInstallManifest(''); setInstallPendingOperationId(null); }}
+                onClose={() => {
+                    setInstallOpen(false);
+                    setInstallManifest('');
+                    setInstallPendingOperationId(null);
+                    setInstallManifestFileName(null);
+                }}
                 title="Install plugin"
                 size="xl"
+                scrollAreaHeight={560}
+                onCancel={() => {
+                    setInstallOpen(false);
+                    setInstallManifest('');
+                    setInstallPendingOperationId(null);
+                    setInstallManifestFileName(null);
+                }}
+                customActions={
+                    installPendingOperationId === null ? (
+                        <Button loading={requestInstall.isPending} onClick={onInstallRequest} disabled={!installManifest.trim()}>
+                            Request install
+                        </Button>
+                    ) : (
+                        <Button color="green" loading={finalizeInstall.isPending} onClick={onInstallFinalize}>
+                            Finalize
+                        </Button>
+                    )
+                }
             >
                 <Stack gap="sm">
-                    <Alert color="blue">
-                        Paste the plugin&apos;s <strong>plugin.json</strong> manifest. The host validates it against the manifest schema,
+                    <Alert color="blue" title="Two ways to load the manifest">
+                        Drop the plugin&apos;s <strong>plugin.json</strong> on the upload area below, click <strong>Choose file</strong>,
+                        or paste the JSON directly into the editor. The host validates it against the manifest schema,
                         runs the install-policy check, and creates a staged operation. Click <strong>Finalize</strong> to apply.
                     </Alert>
-                    <JsonInput
-                        label="Plugin manifest (plugin.json)"
-                        placeholder='{ "pluginId": "sh2-shp-...", "version": "1.0.0", ... }'
-                        value={installManifest}
-                        onChange={setInstallManifest}
-                        minRows={14}
-                        autosize
-                        validationError="Invalid JSON"
-                        formatOnBlur
-                    />
+
+                    <Dropzone
+                        onDrop={(files: FileWithPath[]) => onManifestFile(files[0] ?? null)}
+                        onReject={() => notifications.show({ color: 'red', title: 'Rejected', message: 'Only .json files are accepted.' })}
+                        accept={{ 'application/json': ['.json'] }}
+                        maxFiles={1}
+                        multiple={false}
+                        maxSize={2 * 1024 * 1024}
+                    >
+                        <Group justify="center" gap="md" mih={80} style={{ pointerEvents: 'none' }}>
+                            <Dropzone.Accept>
+                                <IconUpload size={32} stroke={1.5} />
+                            </Dropzone.Accept>
+                            <Dropzone.Reject>
+                                <IconX size={32} stroke={1.5} />
+                            </Dropzone.Reject>
+                            <Dropzone.Idle>
+                                <IconFileUpload size={32} stroke={1.5} />
+                            </Dropzone.Idle>
+                            <Stack gap={2} align="flex-start">
+                                <Text size="sm" fw={600}>
+                                    {installManifestFileName ?? 'Drop plugin.json here or click to browse'}
+                                </Text>
+                                <Text size="xs" c="dimmed">
+                                    Accepts a single .json file up to 2&nbsp;MB.
+                                </Text>
+                            </Stack>
+                        </Group>
+                    </Dropzone>
+
+                    <Group justify="space-between" align="center">
+                        <Text size="sm" fw={600}>Plugin manifest (plugin.json)</Text>
+                        <FileButton onChange={onManifestFile} accept="application/json,.json">
+                            {(props) => (
+                                <Button {...props} size="xs" variant="light" leftSection={<IconFileUpload size={14} />}>
+                                    Choose file…
+                                </Button>
+                            )}
+                        </FileButton>
+                    </Group>
+
+                    <Paper withBorder p={0} style={{ overflow: 'hidden' }}>
+                        <MonacoFieldEditor
+                            value={installManifest}
+                            onChange={setInstallManifest}
+                            language="json"
+                            height={360}
+                        />
+                    </Paper>
+
                     <Switch
                         label="Enable plugin after install succeeds"
                         checked={installEnableOnSuccess}
@@ -349,19 +468,11 @@ export function PluginsPage() {
                     />
                     {installPendingOperationId !== null && (
                         <Alert color="green">
-                            Operation #{installPendingOperationId} created. Click <strong>Finalize</strong> below to apply.
+                            Operation #{installPendingOperationId} created. Click <strong>Finalize</strong> above to apply.
                         </Alert>
                     )}
-                    <Group justify="flex-end">
-                        <Button variant="default" onClick={() => { setInstallOpen(false); setInstallManifest(''); setInstallPendingOperationId(null); }}>Cancel</Button>
-                        {installPendingOperationId === null ? (
-                            <Button loading={requestInstall.isPending} onClick={onInstallRequest}>Request install</Button>
-                        ) : (
-                            <Button color="green" loading={finalizeInstall.isPending} onClick={onInstallFinalize}>Finalize</Button>
-                        )}
-                    </Group>
                 </Stack>
-            </Modal>
+            </ModalWrapper>
         </Stack>
     );
 }

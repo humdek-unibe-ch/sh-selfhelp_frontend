@@ -674,6 +674,10 @@ export const API_CONFIG = {
             route: '/admin/plugins',
             permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
         },
+        ADMIN_PLUGINS_AVAILABLE: {
+            route: '/admin/plugins/available',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
         ADMIN_PLUGIN_DETAIL: {
             route: (pluginId: string) => `/admin/plugins/${pluginId}`,
             permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
@@ -712,6 +716,10 @@ export const API_CONFIG = {
         },
         ADMIN_PLUGIN_REPAIR: {
             route: (pluginId: string) => `/admin/plugins/${pluginId}/repair`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_REPAIR_ALL: {
+            route: '/admin/plugins/repair',
             permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
         },
 

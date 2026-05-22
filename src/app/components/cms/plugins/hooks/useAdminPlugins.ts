@@ -26,6 +26,24 @@ export function useAdminPlugins() {
     });
 }
 
+/**
+ * Returns the plugins advertised by every enabled `PluginSource` that
+ * are not yet installed. Powers the admin UI's "Available" tab so an
+ * admin can install registry-listed plugins with one click.
+ *
+ * Staleness is controlled by Mercure invalidations on the
+ * `selfhelp/plugins/state` topic plus an explicit "Refresh" button in
+ * the Available tab; no background polling.
+ */
+export function useAdminPluginsAvailable(enabled: boolean = true) {
+    return useQuery({
+        queryKey: [...KEY, 'available'],
+        queryFn: async () => (await AdminPluginApi.listAvailable()).data,
+        staleTime: Infinity,
+        enabled,
+    });
+}
+
 export function useAdminPlugin(pluginId: string | null) {
     return useQuery({
         queryKey: [...KEY, 'detail', pluginId ?? ''],

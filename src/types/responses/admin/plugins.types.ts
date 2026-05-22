@@ -60,12 +60,21 @@ export interface IAdminPluginOperation {
 export interface IAdminPluginSource {
     id: number;
     name: string;
-    kind: 'public' | 'private' | 'self-hosted';
+    kind: 'public-registry' | 'private-registry' | 'git' | 'local';
     url: string;
     channel?: string;
+    trustLevel?: 'official' | 'reviewed' | 'untrusted';
     authHeaderName?: string | null;
     authSecretEnvVar?: string | null;
     enabled: boolean;
+    /**
+     * Host-managed source (e.g. the default `humdek-public` registry).
+     * System sources are read-only via the admin API except for the
+     * `enabled` toggle. The UI hides every destructive action and
+     * disables every non-enabled field for these rows.
+     */
+    isSystem?: boolean;
+    lastSyncedAt?: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -97,6 +106,29 @@ export interface IAdminPluginListResponse {
     plugins: IAdminPluginSummary[];
     installMode: 'development' | 'managed' | 'trusted';
     safeMode: boolean;
+}
+
+/**
+ * One entry returned by `GET /admin/plugins/available`. Aggregates
+ * registry-advertised plugins from every enabled `PluginSource`. The
+ * UI exposes a one-click "Install" action that pre-fills the install
+ * modal with `manifest` (or fetches `manifestUrl` if `manifest` is
+ * not embedded).
+ */
+export interface IAdminPluginAvailable {
+    sourceName: string;
+    pluginId: string;
+    name: string;
+    description?: string | null;
+    version: string;
+    trustLevel: string;
+    homepage?: string | null;
+    manifest?: Record<string, unknown> | null;
+    manifestUrl?: string | null;
+}
+
+export interface IAdminPluginAvailableResponse {
+    plugins: IAdminPluginAvailable[];
 }
 
 export interface IAdminPluginHealthReport {
