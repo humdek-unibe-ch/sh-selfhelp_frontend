@@ -203,6 +203,37 @@ If docs conflict with implementation, flag the conflict instead of assuming the 
 - Keep imports consistent with nearby files. The code mostly uses relative imports; confirm aliases before introducing `@/...`.
 - Use `@tabler/icons-react` for icons because that is the installed icon set.
 
+## Modal Rules
+- **Always use the shared `ModalWrapper`** from
+  `src/app/components/shared/common/CustomModal/CustomModal.tsx` for
+  every modal in the admin UI. Do not build new modals on top of raw
+  `Mantine.Modal` — `ModalWrapper` already wires the standard header,
+  scrollable body, save/update/delete/cancel buttons, loading state,
+  and styling.
+- If you need a fully custom footer, pass a `customActions` slot to
+  `ModalWrapper`; do not fall back to a raw Modal just because of one
+  button.
+- Confirmation/destructive dialogs (purge, force delete) use
+  `ModalWrapper` with `onDelete` + the `deleteLabel` prop and a red
+  alert in the body — see `PluginsPage` purge modal and
+  `DeleteUserModal` for the canonical patterns.
+- Form modals (Add/Edit) use `onSave`/`onUpdate` and pass
+  `isLoading={mutation.isPending}` so the primary button shows the
+  loader during submission.
+
+## Plugin Registry Rules
+- The host ships with `humdek-public` (https://humdek-unibe-ch.github.io/sh2-plugin-registry/)
+  as the seeded default plugin source. The UI marks it with a lock
+  icon, hides destructive actions, and only allows toggling the
+  `Enabled` switch.
+- Treat `IAdminPluginSource.isSystem === true` as the only signal a
+  source row is host-managed; never hard-code the `humdek-public`
+  name in UI logic — additional system sources may be added later.
+- When the user opens `Admin → Plugins → Available`, the host calls
+  `/cms-api/v1/admin/plugins/available`. That endpoint walks every
+  enabled `PluginSource` server-side, so no extra logic is needed
+  client-side beyond rendering the `AvailablePluginsPanel`.
+
 ## Type Safety Rules
 - Prefer narrowing and explicit typing over assertions.
 - Avoid introducing `any`, double-casts, or unsafe non-null assertions.

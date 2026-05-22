@@ -16,7 +16,69 @@ No engineering diary, no implementation detail — that belongs in
 
 ## Unreleased
 
+### Fixed
+- Plugin manager API client now matches the backend route table. The
+  previous routes (`/admin/plugins/install`, `/admin/plugins/{id}` for
+  DELETE, `/admin/plugins/{id}/update`, …) returned 405/404 because
+  the canonical routes are `POST /admin/plugins`,
+  `POST /admin/plugins/{id}/uninstall`,
+  `POST /admin/plugins/{id}/request-update`,
+  `POST /admin/plugins/{id}/finalize-install`, and
+  `POST /admin/plugins/{id}/finalize-update`. `api.config.ts`,
+  `plugins.api.ts`, the React Query hooks, and the install/update
+  callers have all been updated to use the canonical routes.
+- `PluginsProvider` no longer calls `/cms-api/v1/plugins/manifest`
+  directly from the browser (which 404s because Next.js doesn't
+  route the upstream prefix client-side). The default `apiBaseUrl` is
+  now `/api` so the call flows through the BFF proxy. SSR / server
+  components can still pass an explicit `/cms-api/v1` override.
+
 ### Added
+- Plugins page tabs (`Installed` / `Available` / `Sources`) are now
+  persisted to the URL via `?tab=` so refresh / bookmark / share
+  open on the selected tab. The default tab (`installed`) keeps the
+  URL clean.
+- Install plugin modal: Monaco JSON editor with inline validation
+  replaces the plain JSON textarea, and a Mantine `Dropzone` plus a
+  **Choose file…** button accept a drag-and-dropped or picked
+  `plugin.json`. The loaded manifest is auto-formatted into the
+  editor so reviewers can scan it before submitting.
+- Add/Edit source modal: every field now has a descriptive helper
+  text, plus an inline alert explaining that auth fields are only
+  needed for private registries and that the token value is never
+  stored in the database (only the env-var name is). Modal height
+  bumped so the Name field is visible without scrolling.
+- `@mantine/dropzone/styles.css` registered globally in `layout.tsx`
+  so the new Dropzone renders correctly out of the box.
+
+### Changed
+- Install plugin, Purge plugin, and Add/Edit source modals now use the
+  shared `ModalWrapper` from
+  `src/app/components/shared/common/CustomModal/CustomModal.tsx` per
+  the new modal rule in `AGENTS.md`. No more raw `Mantine.Modal` for
+  these flows; standard header/footer/actions are consistent across
+  the plugin admin.
+- `IAdminPluginSource` gains `isSystem`, `trustLevel`, and
+  `lastSyncedAt` fields, and the kind enum now mirrors the backend
+  (`public-registry`, `private-registry`, `git`, `local`).
+- The Sources panel marks host-managed rows with a lock icon, disables
+  the delete button, and only allows toggling `Enabled` on system
+  sources. The default `humdek-public` registry pointing to
+  https://humdek-unibe-ch.github.io/sh2-plugin-registry/ ships with
+  every install and is rendered exactly this way.
+
+### Added
+- New **Available** tab on `Admin → Plugins` (`PluginsPage` + new
+  `AvailablePluginsPanel`). Lists every plugin advertised by the
+  enabled `PluginSource`s and exposes a one-click **Install** button
+  that runs the staged-install + finalize-install + enable flow with
+  one tap. No additional restart or rebuild needed on the host —
+  Symfony picks up the new bundle on the next request and Next.js
+  HMR picks up the npm package on the next render.
+- New API client helpers + React Query hook: `AdminPluginApi.listAvailable()`,
+  `useAdminPluginsAvailable()`. Bound to the new
+  `/cms-api/v1/admin/plugins/available` backend endpoint and the
+  existing `admin.plugins.manage` permission.
 - Two new BFF routes for the user impersonation feature:
   `POST /api/admin/users/[userId]/impersonate` (start) and
   `POST /api/admin/users/stop-impersonate` (stop). Both routes match the
