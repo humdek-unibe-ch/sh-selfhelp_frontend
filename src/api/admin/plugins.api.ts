@@ -43,28 +43,108 @@ export const AdminPluginApi = {
         return response.data;
     },
 
+    async listUpdates(): Promise<IBaseApiResponse<{
+        updates: Array<{
+            pluginId: string;
+            name: string;
+            installedVersion: string;
+            availableVersion: string;
+            diffKind: 'patch' | 'minor' | 'major' | 'unknown';
+            sourceName: string;
+            trustLevel: string;
+            manifestUrl?: string | null;
+            manifest?: Record<string, unknown> | null;
+            registryEntry: Record<string, unknown>;
+        }>;
+    }>> {
+        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_UPDATES);
+        return response.data;
+    },
+
     async getPlugin(pluginId: string): Promise<IBaseApiResponse<IAdminPluginDetail>> {
         const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_DETAIL, pluginId);
         return response.data;
     },
 
-    async requestInstall(body: { manifest: Record<string, unknown>; registryEntry?: Record<string, unknown> | null }): Promise<IBaseApiResponse<IAdminPluginOperation>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_REQUEST_INSTALL, body);
+    /**
+     * Unified install endpoint. Dispatches a single `InstallPluginMessage`
+     * regardless of the source (registry, url, paste, archive).
+     *
+     * For `source ∈ {registry, url, paste}` pass a JSON body with the
+     * source-specific fields. For `source = 'archive'` pass the
+     * `.shplugin` file as a `File` and the helper sends multipart.
+     */
+    async install(body:
+        | { source: 'registry'; registryEntry: Record<string, unknown>; sourceName?: string }
+        | { source: 'url'; manifestUrl: string; registryEntry?: Record<string, unknown> | null }
+        | { source: 'paste'; manifest: Record<string, unknown>; registryEntry?: Record<string, unknown> | null }
+        | { source: 'archive'; archive: File; forceMajor?: boolean; backupBefore?: boolean }
+    ): Promise<IBaseApiResponse<IAdminPluginOperation>> {
+        if (body.source === 'archive') {
+            const formData = new FormData();
+            formData.append('source', 'archive');
+            formData.append('archive', body.archive);
+            if (body.forceMajor !== undefined) formData.append('forceMajor', String(body.forceMajor));
+            if (body.backupBefore !== undefined) formData.append('backupBefore', String(body.backupBefore));
+            const response = await permissionAwareApiClient.post(
+                API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_INSTALL,
+                formData,
+                { headers: { 'Content-Type': 'multipart/form-data' } },
+            );
+            return response.data;
+        }
+        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_INSTALL, body);
         return response.data;
     },
 
-    async finalizeInstall(pluginId: string, body: { operationId: number; manifest: Record<string, unknown> }): Promise<IBaseApiResponse<IAdminPluginDetail>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_FINALIZE_INSTALL, body, pluginId);
+    /**
+     * Pre-install inspection for `.shplugin` uploads. Returns the parsed
+     * manifest + compatibility / capabilities / signature status so the
+     * UI can render a preview card before committing.
+     */
+    async inspectArchive(archive: File): Promise<IBaseApiResponse<{
+        manifest: Record<string, unknown>;
+        compatibility: { severity: 'ok' | 'warning' | 'blocking'; reasons: string[] };
+        capabilities: string[];
+        signatureStatus: 'verified' | 'missing' | 'invalid';
+    }>> {
+        const formData = new FormData();
+        formData.append('archive', archive);
+        const response = await permissionAwareApiClient.post(
+            API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_INSPECT_ARCHIVE,
+            formData,
+            { headers: { 'Content-Type': 'multipart/form-data' } },
+        );
         return response.data;
     },
 
-    async requestUpdate(pluginId: string, body: { manifest: Record<string, unknown>; forceMajor?: boolean }): Promise<IBaseApiResponse<IAdminPluginOperation>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_REQUEST_UPDATE, body, pluginId);
-        return response.data;
-    },
-
-    async finalizeUpdate(pluginId: string, body: { operationId: number; manifest: Record<string, unknown> }): Promise<IBaseApiResponse<IAdminPluginDetail>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_FINALIZE_UPDATE, body, pluginId);
+    /**
+     * Unified update endpoint. Same body shape as `install` except the
+     * plugin id is encoded in the URL.
+     */
+    async update(
+        pluginId: string,
+        body:
+            | { source: 'registry'; registryEntry: Record<string, unknown>; sourceName?: string; forceMajor?: boolean; backupBefore?: boolean }
+            | { source: 'url'; manifestUrl: string; registryEntry?: Record<string, unknown> | null; forceMajor?: boolean; backupBefore?: boolean }
+            | { source: 'paste'; manifest: Record<string, unknown>; registryEntry?: Record<string, unknown> | null; forceMajor?: boolean; backupBefore?: boolean }
+            | { source: 'archive'; archive: File; forceMajor?: boolean; backupBefore?: boolean },
+    ): Promise<IBaseApiResponse<IAdminPluginOperation>> {
+        if (body.source === 'archive') {
+            const formData = new FormData();
+            formData.append('source', 'archive');
+            formData.append('archive', body.archive);
+            if (body.forceMajor !== undefined) formData.append('forceMajor', String(body.forceMajor));
+            if (body.backupBefore !== undefined) formData.append('backupBefore', String(body.backupBefore));
+            const response = await permissionAwareApiClient.post(
+                API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_UPDATE,
+                formData,
+                pluginId,
+                { headers: { 'Content-Type': 'multipart/form-data' } },
+            );
+            return response.data;
+        }
+        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_UPDATE, body, pluginId);
         return response.data;
     },
 

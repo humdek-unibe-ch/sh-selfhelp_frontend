@@ -3,25 +3,29 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 /**
- * `PluginRuntime` — the client-side host that loads plugin packages,
- * calls their exported `register()` function, and merges their
- * contributions (styles, admin pages, menu items, health checks,
- * feature flags) into the shared registries.
+ * `PluginRuntime` — the client-side host that loads plugin ESM
+ * bundles at runtime from URLs, calls their exported `register()`
+ * function, and merges their contributions (styles, admin pages,
+ * menu items, health checks, feature flags, realtime topics) into
+ * the shared registries.
  *
  * Contract:
- *   - Each plugin npm package exports a `register(api)` function.
- *   - The runtime resolves the package name from the live plugin
- *     manifest (`/cms-api/v1/plugins/manifest`) and dynamically imports
- *     it via `import(/* webpackIgnore: true *\/ packageName)`. Plugin
- *     packages are bundled separately under `node_modules` and listed
- *     in `selfhelp.plugins.lock.json` so production deployments stay
- *     deterministic.
+ *   - Each plugin ships a runtime ESM bundle (`plugin.esm.js`) plus
+ *     an optional stylesheet (`plugin.css`). Both URLs come from the
+ *     host manifest entry (`frontendRuntimeUrl` /
+ *     `frontendRuntimeStylesheetUrl`). The runtime injects the
+ *     stylesheet with `subresource-integrity` when provided, then
+ *     `import()`s the entrypoint and calls the exported `register()`
+ *     function.
+ *   - No npm package is involved. The host never rebuilds on plugin
+ *     publish; everything is fetched from the public URL declared
+ *     in `frontendRuntimeUrl`.
  *   - Style contributions are registered into the shared
  *     `extendStyleRegistry()` so `BasicStyle` (web) and
  *     `BasicMobileStyle` (RN) can dispatch on plugin styles without
  *     any extra config.
- *   - The runtime is *idempotent*: calling `boot()` more than once with
- *     the same manifest is a no-op; calling it with a different
+ *   - The runtime is *idempotent*: calling `boot()` more than once
+ *     with the same manifest is a no-op; calling it with a different
  *     manifest disposes the previous registrations first.
  */
 
@@ -52,8 +56,10 @@ export interface IPluginManifestEntry {
     name: string;
     version: string;
     pluginApiVersion: string;
-    frontendPackage?: string | null;
-    frontendPackageVersion?: string | null;
+    frontendRuntimeUrl?: string | null;
+    frontendRuntimeStylesheetUrl?: string | null;
+    frontendRuntimeIntegrity?: string | null;
+    frontendRuntimeFormat?: string | null;
     enabled: boolean;
     trustLevel?: string;
     capabilities?: string[];
@@ -97,6 +103,8 @@ interface IRegisteredPlugin {
     realtimeTopics: IPluginRealtimeTopic[];
     /** Last-known runtime feature-flag values, supplied by the host. */
     featureFlagValues: Record<string, boolean>;
+    /** DOM <link> node injected for this plugin's stylesheet (if any). */
+    stylesheetNode: HTMLLinkElement | null;
 }
 
 /**
@@ -110,7 +118,8 @@ export type TPluginVersionWarningKind =
     | 'importFailed'
     | 'registerThrew'
     | 'styleRegistryFailed'
-    | 'missingRegister';
+    | 'missingRegister'
+    | 'missingRuntimeUrl';
 
 export interface IPluginVersionWarning {
     pluginId: string;
@@ -146,12 +155,18 @@ export interface IPluginRuntimeOptions {
     /**
      * Override the dynamic import. Tests inject a stub here; production
      * leaves this `undefined` so the runtime uses the actual
-     * `import()` expression.
+     * `import(<url>)` expression.
      */
-    importPlugin?: (packageName: string) => Promise<{
+    importPlugin?: (runtimeUrl: string) => Promise<{
         register?: (api: IPluginApi) => IPluginRegistration | Promise<IPluginRegistration>;
         default?: { register?: (api: IPluginApi) => IPluginRegistration | Promise<IPluginRegistration> };
     }>;
+    /**
+     * Override the stylesheet injector. Tests inject a stub; production
+     * leaves this undefined so the runtime appends a `<link rel="stylesheet">`
+     * to `document.head`.
+     */
+    injectStylesheet?: (href: string, integrity?: string | null) => HTMLLinkElement | null;
     /** Optional logger injected by the host. */
     logger?: {
         debug(message: string, context?: Record<string, unknown>): void;
@@ -193,6 +208,30 @@ const DEFAULT_LOGGER = {
 };
 
 /**
+ * Default stylesheet injector. Creates a `<link rel="stylesheet">`
+ * element with optional `subresource-integrity` and `crossOrigin`
+ * attributes and appends it to `document.head`. Returns the node so
+ * the runtime can remove it when the plugin is disposed. In
+ * non-browser test environments where `document` is undefined this
+ * silently returns `null`.
+ */
+function defaultInjectStylesheet(href: string, integrity?: string | null): HTMLLinkElement | null {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    if (integrity && integrity !== '') {
+        link.integrity = integrity;
+        link.crossOrigin = 'anonymous';
+    }
+    link.dataset.pluginRuntime = '1';
+    document.head.appendChild(link);
+    return link;
+}
+
+/**
  * Soft no-op rich-text adapter. Plugins that don't use rich text never
  * touch it; plugins that DO get a friendly warning the first time
  * they try to mount instead of a hard exception. Tests + production
@@ -223,7 +262,8 @@ function createStubRichTextAdapter(logger: NonNullable<IPluginRuntimeOptions['lo
 
 export class PluginRuntime {
     private readonly logger: NonNullable<IPluginRuntimeOptions['logger']>;
-    private readonly importPlugin: (packageName: string) => Promise<unknown>;
+    private readonly importPlugin: (runtimeUrl: string) => Promise<unknown>;
+    private readonly injectStylesheet: (href: string, integrity?: string | null) => HTMLLinkElement | null;
     private readonly richTextEditor: IRichTextEditorAdapter;
     private snapshot: IPluginRuntimeSnapshot = {
         plugins: [],
@@ -240,9 +280,10 @@ export class PluginRuntime {
 
     constructor(options: IPluginRuntimeOptions = {}) {
         this.logger = options.logger ?? DEFAULT_LOGGER;
-        this.importPlugin = options.importPlugin ?? ((packageName: string) =>
+        this.importPlugin = options.importPlugin ?? ((runtimeUrl: string) =>
             // eslint-disable-next-line @typescript-eslint/no-implied-eval
-            (Function('p', 'return import(/* webpackIgnore: true */ p)') as (p: string) => Promise<unknown>)(packageName));
+            (Function('p', 'return import(/* webpackIgnore: true */ p)') as (p: string) => Promise<unknown>)(runtimeUrl));
+        this.injectStylesheet = options.injectStylesheet ?? defaultInjectStylesheet;
         this.richTextEditor = options.richTextEditor ?? createStubRichTextAdapter(this.logger);
     }
 
@@ -265,13 +306,13 @@ export class PluginRuntime {
             p.pluginId,
             p.version,
             p.enabled,
-            p.frontendPackage ?? '',
-            p.frontendPackageVersion ?? '',
+            p.frontendRuntimeUrl ?? '',
+            p.frontendRuntimeStylesheetUrl ?? '',
+            p.frontendRuntimeIntegrity ?? '',
         ]));
         if (signature === this.lastManifestSignature) {
             return this.snapshot;
         }
-        // Serialize concurrent boots; only the first one runs to completion.
         if (this.booting) {
             await this.booting;
         }
@@ -331,6 +372,9 @@ export class PluginRuntime {
                     error: error instanceof Error ? error.message : String(error),
                 });
             }
+            if (plugin.stylesheetNode && plugin.stylesheetNode.parentNode) {
+                plugin.stylesheetNode.parentNode.removeChild(plugin.stylesheetNode);
+            }
         }
         this.snapshot = {
             plugins: [],
@@ -343,7 +387,7 @@ export class PluginRuntime {
         };
         this.pendingWarnings = [];
 
-        const enabled = manifest.plugins.filter((p) => p.enabled && p.frontendPackage);
+        const enabled = manifest.plugins.filter((p) => p.enabled);
         for (const entry of enabled) {
             if (!isPluginApiCompatible(entry.pluginApiVersion, PLUGIN_API_VERSION)) {
                 this.logger.warn('Skipping plugin: incompatible pluginApiVersion', {
@@ -378,15 +422,37 @@ export class PluginRuntime {
     }
 
     private async registerOne(entry: IPluginManifestEntry): Promise<void> {
-        const packageName = entry.frontendPackage as string;
+        const runtimeUrl = entry.frontendRuntimeUrl;
+        if (!runtimeUrl || runtimeUrl === '') {
+            this.logger.warn('Skipping plugin: no frontendRuntimeUrl', {
+                pluginId: entry.pluginId,
+            });
+            this.recordWarning({
+                pluginId: entry.pluginId,
+                pluginName: entry.name,
+                kind: 'missingRuntimeUrl',
+                expectedVersion: entry.version,
+                message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: manifest entry has no frontendRuntimeUrl. Skipping.`,
+            });
+            return;
+        }
+
+        let stylesheetNode: HTMLLinkElement | null = null;
+        if (entry.frontendRuntimeStylesheetUrl) {
+            stylesheetNode = this.injectStylesheet(
+                entry.frontendRuntimeStylesheetUrl,
+                entry.frontendRuntimeIntegrity ?? null,
+            );
+        }
+
         let mod: { register?: (api: IPluginApi) => IPluginRegistration | Promise<IPluginRegistration>;
                     default?: { register?: (api: IPluginApi) => IPluginRegistration | Promise<IPluginRegistration> } };
         try {
-            mod = (await this.importPlugin(packageName)) as typeof mod;
+            mod = (await this.importPlugin(runtimeUrl)) as typeof mod;
         } catch (error) {
             this.logger.error('Plugin import failed', {
                 pluginId: entry.pluginId,
-                packageName,
+                runtimeUrl,
                 error: error instanceof Error ? error.message : String(error),
             });
             this.recordWarning({
@@ -394,8 +460,11 @@ export class PluginRuntime {
                 pluginName: entry.name,
                 kind: 'importFailed',
                 expectedVersion: entry.version,
-                message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: import of "${packageName}" failed (${error instanceof Error ? error.message : String(error)}). The installed npm package version probably does not match ${entry.frontendPackageVersion ?? entry.version}. Re-run \`pnpm install\` (or its equivalent) on the host.`,
+                message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: import of "${runtimeUrl}" failed (${error instanceof Error ? error.message : String(error)}). Verify the URL is reachable and serves a valid ESM module.`,
             });
+            if (stylesheetNode && stylesheetNode.parentNode) {
+                stylesheetNode.parentNode.removeChild(stylesheetNode);
+            }
             return;
         }
 
@@ -403,15 +472,18 @@ export class PluginRuntime {
         if (typeof register !== 'function') {
             this.logger.warn('Plugin package does not export register()', {
                 pluginId: entry.pluginId,
-                packageName,
+                runtimeUrl,
             });
             this.recordWarning({
                 pluginId: entry.pluginId,
                 pluginName: entry.name,
                 kind: 'missingRegister',
                 expectedVersion: entry.version,
-                message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: npm package "${packageName}" does not export a register() function. The installed package version may be outdated.`,
+                message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: runtime bundle at "${runtimeUrl}" does not export a register() function.`,
             });
+            if (stylesheetNode && stylesheetNode.parentNode) {
+                stylesheetNode.parentNode.removeChild(stylesheetNode);
+            }
             return;
         }
 
@@ -431,6 +503,9 @@ export class PluginRuntime {
                 expectedVersion: entry.version,
                 message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: register() threw (${error instanceof Error ? error.message : String(error)}). The plugin was not mounted.`,
             });
+            if (stylesheetNode && stylesheetNode.parentNode) {
+                stylesheetNode.parentNode.removeChild(stylesheetNode);
+            }
             return;
         }
 
@@ -447,8 +522,11 @@ export class PluginRuntime {
                 kind: 'registrationMismatch',
                 expectedVersion: entry.version,
                 actualVersion: registration.version,
-                message: `Plugin "${entry.name ?? entry.pluginId}": host expected v${entry.version} but the installed npm package reports v${registration.version}. Run \`pnpm install\` (or equivalent) to align the npm dependency with the host manifest.`,
+                message: `Plugin "${entry.name ?? entry.pluginId}": host expected v${entry.version} but the runtime bundle reports v${registration.version}. The publisher\'s archive is out of sync with the registry entry.`,
             });
+            if (stylesheetNode && stylesheetNode.parentNode) {
+                stylesheetNode.parentNode.removeChild(stylesheetNode);
+            }
             return;
         }
 
@@ -483,6 +561,9 @@ export class PluginRuntime {
                     expectedVersion: entry.version,
                     message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: style registry extension failed (${error instanceof Error ? error.message : String(error)}). Plugin styles may already be claimed by another plugin.`,
                 });
+                if (stylesheetNode && stylesheetNode.parentNode) {
+                    stylesheetNode.parentNode.removeChild(stylesheetNode);
+                }
                 return;
             }
         }
@@ -499,6 +580,7 @@ export class PluginRuntime {
             featureFlags: registration.featureFlags ?? [],
             realtimeTopics: registration.realtimeTopics ?? [],
             featureFlagValues: entry.featureFlags ?? {},
+            stylesheetNode,
         };
 
         this.snapshot = {
@@ -553,9 +635,6 @@ export class PluginRuntime {
             realtime: undefined,
             // Rich-text adapter is injected by the host through
             // `IPluginRuntimeOptions.richTextEditor` (or `setRichTextEditor`).
-            // Plugins that don't use rich text never touch this; plugins
-            // that DO get a friendly warning when no adapter is wired,
-            // not a hard exception.
             richTextEditor: this.richTextEditor,
             log: this.logger,
         };

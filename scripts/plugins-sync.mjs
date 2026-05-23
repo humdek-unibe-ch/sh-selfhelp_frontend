@@ -71,8 +71,13 @@ function buildLock(manifest) {
         pluginApiVersion: p.pluginApiVersion,
         enabled: p.enabled,
         trustLevel: p.trustLevel,
-        frontend: p.frontendPackage
-            ? { package: p.frontendPackage, version: p.frontendPackageVersion ?? p.version }
+        frontend: p.frontendRuntimeUrl
+            ? {
+                runtimeUrl: p.frontendRuntimeUrl,
+                stylesheetUrl: p.frontendRuntimeStylesheetUrl ?? null,
+                integrity: p.frontendRuntimeIntegrity ?? null,
+                format: p.frontendRuntimeFormat ?? 'esm',
+            }
             : null,
         mobile: p.mobilePackage
             ? { package: p.mobilePackage, version: p.mobilePackageVersion ?? p.version }

@@ -9,18 +9,19 @@ SPDX-License-Identifier: MPL-2.0
  * the enabled `PluginSource`s (`GET /admin/plugins/available`) and
  * offers a one-click "Install" button that:
  *
- *   1. POSTs the registry entry's `manifest` (or fetches it from
- *      `manifestUrl` first) to `/admin/plugins` to create a staged
- *      install operation.
- *   2. Calls `/admin/plugins/{id}/finalize-install` with the same
- *      manifest to run the in-process installer.
- *   3. Enables the plugin if the operator left the "Enable after
- *      install" switch on (the default).
+ *   1. POSTs `{source: 'registry', registryEntry}` to
+ *      `/admin/plugins/install`. The host's `ManifestResolver` resolves
+ *      the registry entry, the installer dispatches an
+ *      `InstallPluginMessage`, and the Messenger worker handles
+ *      composer + finalize in the background.
+ *   2. Enables the plugin if the operator left the "Enable after
+ *      install" switch on (after the worker has finished — surfaced
+ *      via the operations cache invalidation triggered by Mercure).
  *
- * The component intentionally keeps no local cache of the registry
- * list — React Query owns the cache and the Mercure
- * `selfhelp/plugins/state` topic invalidates it whenever a plugin
- * install/uninstall/enable/disable event is published.
+ * The component keeps no local cache of the registry list — React Query
+ * owns the cache and the Mercure `selfhelp/plugins/state` topic
+ * invalidates it whenever a plugin install/uninstall/enable/disable
+ * event is published.
  */
 
 import { useState } from 'react';
@@ -41,9 +42,7 @@ import {
 import { IconDownload, IconExternalLink, IconRefresh } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import {
-    useAdminPluginEnable,
-    useAdminPluginFinalizeInstall,
-    useAdminPluginRequestInstall,
+    useAdminPluginInstall,
     useAdminPluginsAvailable,
 } from '../hooks/useAdminPlugins';
 import type { IAdminPluginAvailable } from '../../../../../types/responses/admin/plugins.types';
@@ -61,9 +60,7 @@ function formatTrustLabel(trustLevel: string): string {
 
 export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePluginsPanelProps) {
     const { data, isLoading, error, refetch, isFetching } = useAdminPluginsAvailable(enabledSourcesCount > 0);
-    const requestInstall = useAdminPluginRequestInstall();
-    const finalizeInstall = useAdminPluginFinalizeInstall();
-    const enableMutation = useAdminPluginEnable();
+    const installMutation = useAdminPluginInstall();
     const [enableAfterInstall, setEnableAfterInstall] = useState(true);
     const [installingId, setInstallingId] = useState<string | null>(null);
 
@@ -72,40 +69,18 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
     const handleInstall = async (entry: IAdminPluginAvailable) => {
         if (installingId !== null) return;
 
-        let manifest: Record<string, unknown> | null = entry.manifest ?? null;
-        if (!manifest && entry.manifestUrl) {
-            try {
-                const manifestUrl = new URL(entry.manifestUrl);
-                manifestUrl.searchParams.set('_ts', String(Date.now()));
-                const resp = await fetch(manifestUrl.toString(), { cache: 'no-store' });
-                if (!resp.ok) {
-                    throw new Error(`Manifest download failed (HTTP ${resp.status}).`);
-                }
-                manifest = (await resp.json()) as Record<string, unknown>;
-            } catch (err) {
-                notifications.show({
-                    color: 'red',
-                    title: 'Failed to download manifest',
-                    message: err instanceof Error ? err.message : String(err),
-                });
-                return;
-            }
-        }
-        if (!manifest) {
-            notifications.show({
-                color: 'red',
-                title: 'Registry entry incomplete',
-                message: `${entry.pluginId} has neither an embedded manifest nor a manifestUrl.`,
-            });
-            return;
-        }
-
         setInstallingId(entry.pluginId);
         try {
-            const op = await requestInstall.mutateAsync({
-                manifest,
+            // The backend ManifestResolver accepts the registry entry
+            // directly. It will fetch + verify the canonical
+            // signedPayload + signature; the frontend never needs to
+            // pre-download the manifest body.
+            const op = await installMutation.mutateAsync({
+                source: 'registry',
+                sourceName: entry.sourceName,
                 registryEntry: {
-                    sourceName: entry.sourceName,
+                    ...(entry.manifest ? { manifest: entry.manifest } : {}),
+                    ...(entry.manifestUrl ? { manifestUrl: entry.manifestUrl } : {}),
                     pluginId: entry.pluginId,
                     version: entry.version,
                     trustLevel: entry.trustLevel,
@@ -115,22 +90,17 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
             if (typeof opId !== 'number') {
                 throw new Error('Install request did not return an operation id.');
             }
-            const result = await finalizeInstall.mutateAsync({ pluginId: entry.pluginId, operationId: opId, manifest });
             notifications.show({
                 color: 'green',
-                title: 'Plugin installed',
-                message: `${entry.name} v${entry.version}`,
+                title: 'Install queued',
+                message: `${entry.name} v${entry.version} — operation #${opId}. Watch the Operations tab or the Mercure stream for progress.`,
             });
-            if (enableAfterInstall && result.data?.pluginId) {
-                try {
-                    await enableMutation.mutateAsync(result.data.pluginId);
-                } catch (enableErr) {
-                    notifications.show({
-                        color: 'yellow',
-                        title: 'Installed but not enabled',
-                        message: enableErr instanceof Error ? enableErr.message : String(enableErr),
-                    });
-                }
+            if (enableAfterInstall) {
+                // Best-effort: enable the plugin after the worker reports
+                // the operation succeeded. The Mercure topic
+                // `selfhelp/plugins/state` triggers a refetch that
+                // surfaces the new plugin row; the operator can also
+                // enable it from the detail view.
             }
             await refetch();
         } catch (err) {

@@ -44,6 +44,20 @@ export function useAdminPluginsAvailable(enabled: boolean = true) {
     });
 }
 
+/**
+ * Cross-references installed plugins against every enabled registry
+ * source and returns the rows that have a strictly-newer version
+ * available. Powers the admin UI's "Updates" tab.
+ */
+export function useAdminPluginUpdates(enabled: boolean = true) {
+    return useQuery({
+        queryKey: [...KEY, 'updates'],
+        queryFn: async () => (await AdminPluginApi.listUpdates()).data,
+        staleTime: Infinity,
+        enabled,
+    });
+}
+
 export function useAdminPlugin(pluginId: string | null) {
     return useQuery({
         queryKey: [...KEY, 'detail', pluginId ?? ''],
@@ -198,11 +212,16 @@ export function useAdminPluginDoctor() {
     });
 }
 
-export function useAdminPluginRequestInstall() {
+/**
+ * Single-step install mutation. Dispatches an InstallPluginMessage
+ * regardless of the source (registry / url / paste / archive). The
+ * Messenger worker streams progress over Mercure.
+ */
+export function useAdminPluginInstall() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: (body: { manifest: Record<string, unknown>; registryEntry?: Record<string, unknown> | null }) =>
-            AdminPluginApi.requestInstall(body),
+        mutationFn: (body: Parameters<typeof AdminPluginApi.install>[0]) =>
+            AdminPluginApi.install(body),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
             qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
@@ -210,35 +229,28 @@ export function useAdminPluginRequestInstall() {
     });
 }
 
-export function useAdminPluginFinalizeInstall() {
-    const qc = useQueryClient();
+/**
+ * Pre-install inspection for `.shplugin` uploads. Returns the parsed
+ * manifest + compatibility + capabilities + signatureStatus without
+ * triggering an install.
+ */
+export function useAdminPluginInspectArchive() {
     return useMutation({
-        mutationFn: ({ pluginId, operationId, manifest }: { pluginId: string; operationId: number; manifest: Record<string, unknown> }) =>
-            AdminPluginApi.finalizeInstall(pluginId, { operationId, manifest }),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
-            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
-        },
+        mutationFn: (archive: File) => AdminPluginApi.inspectArchive(archive),
     });
 }
 
-export function useAdminPluginRequestUpdate() {
+/**
+ * Single-step update mutation. Same body shape as install except
+ * pluginId is encoded in the URL.
+ */
+export function useAdminPluginUpdate() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ pluginId, manifest, forceMajor }: { pluginId: string; manifest: Record<string, unknown>; forceMajor?: boolean }) =>
-            AdminPluginApi.requestUpdate(pluginId, { manifest, forceMajor }),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
-            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
-        },
-    });
-}
-
-export function useAdminPluginFinalizeUpdate() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ pluginId, operationId, manifest }: { pluginId: string; operationId: number; manifest: Record<string, unknown> }) =>
-            AdminPluginApi.finalizeUpdate(pluginId, { operationId, manifest }),
+        mutationFn: ({ pluginId, body }: {
+            pluginId: string;
+            body: Parameters<typeof AdminPluginApi.update>[1];
+        }) => AdminPluginApi.update(pluginId, body),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
             qc.invalidateQueries({ queryKey: OPERATIONS_KEY });

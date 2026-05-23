@@ -63,7 +63,6 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
-    IconActivity,
     IconAlertTriangle,
     IconApi,
     IconArrowLeft,
@@ -92,13 +91,12 @@ import {
     useAdminPluginDisable,
     useAdminPluginEnable,
     useAdminPluginFeatureFlagSet,
-    useAdminPluginFinalizeUpdate,
     useAdminPluginHealth,
     useAdminPluginOperations,
     useAdminPluginPurge,
-    useAdminPluginRequestUpdate,
     useAdminPluginRollback,
     useAdminPluginUninstall,
+    useAdminPluginUpdate,
 } from '../hooks/useAdminPlugins';
 import type {
     IAdminPluginCompatibility,
@@ -152,8 +150,7 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
     const uninstallMutation = useAdminPluginUninstall();
     const purgeMutation = useAdminPluginPurge();
     const rollbackMutation = useAdminPluginRollback();
-    const requestUpdate = useAdminPluginRequestUpdate();
-    const finalizeUpdate = useAdminPluginFinalizeUpdate();
+    const updateMutation = useAdminPluginUpdate();
     const setFlag = useAdminPluginFeatureFlagSet();
 
     const [purgeOpen, setPurgeOpen] = useState(false);
@@ -161,7 +158,6 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
     const [updateOpen, setUpdateOpen] = useState(false);
     const [updateManifest, setUpdateManifest] = useState('');
     const [updateForceMajor, setUpdateForceMajor] = useState(false);
-    const [updatePendingOperationId, setUpdatePendingOperationId] = useState<number | null>(null);
 
     const manifest = (detail.data?.manifest ?? {}) as Record<string, unknown>;
 
@@ -221,7 +217,9 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
     const files = useMemo(() => {
         const summary = detail.data;
         const items: Array<{ label: string; value: string }> = [];
-        if (summary?.frontendPackage) items.push({ label: 'Frontend package', value: `${summary.frontendPackage}@${summary.frontendPackageVersion ?? '—'}` });
+        if (summary?.frontendRuntimeUrl) items.push({ label: 'Frontend runtime', value: summary.frontendRuntimeUrl });
+        if (summary?.frontendRuntimeStylesheetUrl) items.push({ label: 'Frontend stylesheet', value: summary.frontendRuntimeStylesheetUrl });
+        if (summary?.frontendRuntimeIntegrity) items.push({ label: 'Runtime integrity', value: summary.frontendRuntimeIntegrity });
         if (summary?.mobilePackage) items.push({ label: 'Mobile package', value: `${summary.mobilePackage}@${summary.mobilePackageVersion ?? '—'}` });
         const backendBundle = manifest.backend as { bundleClass?: string; package?: string } | undefined;
         if (backendBundle?.bundleClass) items.push({ label: 'Backend bundle', value: backendBundle.bundleClass });
@@ -269,7 +267,7 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
         }
     };
 
-    const onUpdateRequest = async () => {
+    const onUpdate = async () => {
         let parsed: Record<string, unknown>;
         try {
             parsed = JSON.parse(updateManifest);
@@ -278,31 +276,20 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
             return;
         }
         try {
-            const op = await requestUpdate.mutateAsync({ pluginId, manifest: parsed, forceMajor: updateForceMajor });
-            setUpdatePendingOperationId(op.data?.id ?? null);
-            notifications.show({ color: 'blue', title: 'Update requested', message: `Operation ${op.data?.id} created.` });
-        } catch (err) {
-            notifications.show({ color: 'red', title: 'Update request failed', message: err instanceof Error ? err.message : String(err) });
-        }
-    };
-
-    const onUpdateFinalize = async () => {
-        if (updatePendingOperationId === null) return;
-        let parsed: Record<string, unknown>;
-        try {
-            parsed = JSON.parse(updateManifest);
-        } catch (err) {
-            notifications.show({ color: 'red', title: 'Manifest is not valid JSON', message: err instanceof Error ? err.message : String(err) });
-            return;
-        }
-        try {
-            await finalizeUpdate.mutateAsync({ pluginId, operationId: updatePendingOperationId, manifest: parsed });
-            notifications.show({ color: 'green', title: 'Update finalized', message: pluginId });
+            const op = await updateMutation.mutateAsync({
+                pluginId,
+                body: { source: 'paste', manifest: parsed, forceMajor: updateForceMajor },
+            });
+            notifications.show({
+                color: 'green',
+                title: 'Update dispatched',
+                message: `Operation #${op.data?.id} queued. Watch progress in the Operations tab.`,
+            });
             setUpdateOpen(false);
-            setUpdatePendingOperationId(null);
             setUpdateManifest('');
+            setUpdateForceMajor(false);
         } catch (err) {
-            notifications.show({ color: 'red', title: 'Update finalize failed', message: err instanceof Error ? err.message : String(err) });
+            notifications.show({ color: 'red', title: 'Update failed', message: err instanceof Error ? err.message : String(err) });
         }
     };
 
@@ -913,11 +900,14 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                 </Stack>
             </Modal>
 
-            <Modal opened={updateOpen} onClose={() => { setUpdateOpen(false); setUpdateManifest(''); setUpdatePendingOperationId(null); }} title={`Update ${pluginId}`} size="xl">
+            <Modal opened={updateOpen} onClose={() => { setUpdateOpen(false); setUpdateManifest(''); setUpdateForceMajor(false); }} title={`Update ${pluginId}`} size="xl">
                 <Stack gap="sm">
                     <Alert color="blue" icon={<IconLink size={16} />}>
-                        Paste the target version&apos;s <Code>plugin.json</Code>. The host runs the <Code>update-policy</Code> check and creates a staged operation;
-                        you confirm with <strong>Finalize</strong> when the staged operation reports <Code>requested</Code>.
+                        Paste the target version&apos;s <Code>plugin.json</Code>. The host validates compatibility, capabilities,
+                        and signature, then dispatches an <Code>UpdatePluginMessage</Code> on the <Code>plugin_ops</Code> Messenger
+                        transport. The worker runs <Code>composer require</Code>, runs Doctrine migrations, and rewrites the
+                        lock file. Progress streams over Mercure on <Code>selfhelp/plugins/state</Code>; see the
+                        <strong> Operation history</strong> tab.
                     </Alert>
                     <JsonInput
                         label="Target plugin.json"
@@ -933,18 +923,9 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                         checked={updateForceMajor}
                         onChange={(e) => setUpdateForceMajor(e.currentTarget.checked)}
                     />
-                    {updatePendingOperationId !== null && (
-                        <Alert color="green" icon={<IconActivity size={16} />}>
-                            Operation <Code>#{updatePendingOperationId}</Code> created. Click <strong>Finalize</strong> below to apply.
-                        </Alert>
-                    )}
                     <Group justify="flex-end">
-                        <Button variant="default" onClick={() => { setUpdateOpen(false); setUpdateManifest(''); setUpdatePendingOperationId(null); }}>Cancel</Button>
-                        {updatePendingOperationId === null ? (
-                            <Button loading={requestUpdate.isPending} onClick={onUpdateRequest}>Request update</Button>
-                        ) : (
-                            <Button color="green" loading={finalizeUpdate.isPending} onClick={onUpdateFinalize}>Finalize</Button>
-                        )}
+                        <Button variant="default" onClick={() => { setUpdateOpen(false); setUpdateManifest(''); setUpdateForceMajor(false); }}>Cancel</Button>
+                        <Button loading={updateMutation.isPending} onClick={onUpdate}>Update</Button>
                     </Group>
                 </Stack>
             </Modal>

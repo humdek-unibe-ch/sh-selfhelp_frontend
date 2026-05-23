@@ -682,20 +682,20 @@ export const API_CONFIG = {
             route: (pluginId: string) => `/admin/plugins/${pluginId}`,
             permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
         },
-        ADMIN_PLUGIN_REQUEST_INSTALL: {
-            route: '/admin/plugins',
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
-        },
-        ADMIN_PLUGIN_FINALIZE_INSTALL: {
-            route: (pluginId: string) => `/admin/plugins/${pluginId}/finalize-install`,
+        ADMIN_PLUGIN_INSTALL: {
+            route: '/admin/plugins/install',
             permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
-        ADMIN_PLUGIN_REQUEST_UPDATE: {
-            route: (pluginId: string) => `/admin/plugins/${pluginId}/request-update`,
+        ADMIN_PLUGINS_UPDATES: {
+            route: '/admin/plugins/updates',
             permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
         },
-        ADMIN_PLUGIN_FINALIZE_UPDATE: {
-            route: (pluginId: string) => `/admin/plugins/${pluginId}/finalize-update`,
+        ADMIN_PLUGIN_INSPECT_ARCHIVE: {
+            route: '/admin/plugins/inspect-archive',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
+        },
+        ADMIN_PLUGIN_UPDATE: {
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/update`,
             permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
         ADMIN_PLUGIN_ENABLE: {

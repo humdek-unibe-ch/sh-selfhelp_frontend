@@ -30,8 +30,10 @@ export interface IAdminPluginSummary {
     trustLevel: 'official' | 'reviewed' | 'untrusted';
     installMode: 'development' | 'managed' | 'trusted';
     capabilities: string[];
-    frontendPackage?: string | null;
-    frontendPackageVersion?: string | null;
+    frontendRuntimeUrl?: string | null;
+    frontendRuntimeStylesheetUrl?: string | null;
+    frontendRuntimeIntegrity?: string | null;
+    frontendRuntimeFormat?: string | null;
     mobilePackage?: string | null;
     mobilePackageVersion?: string | null;
     installedAt: string;

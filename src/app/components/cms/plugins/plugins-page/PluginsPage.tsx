@@ -5,12 +5,19 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 /**
- * `PluginsPage` — top-level admin page rendering installed plugins with
- * detail tabs (overview / operations / feature flags / sources).
+ * `PluginsPage` — top-level admin page rendering installed plugins
+ * with detail tabs (installed / available / sources) and a single
+ * install modal that exposes all four install sources:
+ *   1. From registry — handled inline by the AvailablePluginsPanel tab.
+ *   2. From URL — paste a direct `plugin.json` URL.
+ *   3. Upload .shplugin — drag-and-drop / file picker, the main manual
+ *      install path. Pre-validated via `/admin/plugins/inspect-archive`.
+ *   4. Paste JSON / Developer mode — Monaco editor, explicitly labelled
+ *      developer / debugging only.
  *
- * The page is driven by `useAdminPlugins()` so the data flows through
- * React Query; Mercure subscriptions hooked elsewhere keep the cache
- * fresh without polling.
+ * All four paths POST to `/admin/plugins/install` and dispatch a single
+ * `InstallPluginMessage`. The Mercure-driven invalidation surfaces the
+ * resulting `plugin_operations` row on the Available tab.
  */
 
 import Link from 'next/link';
@@ -43,19 +50,22 @@ import { MonacoFieldEditor } from '../../shared/monaco-field-editor/MonacoFieldE
 import {
     useAdminPluginDisable,
     useAdminPluginEnable,
-    useAdminPluginFinalizeInstall,
+    useAdminPluginInspectArchive,
+    useAdminPluginInstall,
     useAdminPluginPurge,
-    useAdminPluginRequestInstall,
     useAdminPluginSources,
     useAdminPluginUninstall,
     useAdminPlugins,
 } from '../hooks/useAdminPlugins';
 import { PluginSourcesPanel } from '../plugin-sources-panel/PluginSourcesPanel';
 import { AvailablePluginsPanel } from '../available-plugins-panel/AvailablePluginsPanel';
+import { UpdatesPanel } from '../updates-panel/UpdatesPanel';
 import { PluginVersionMismatchBanner } from '../plugin-version-mismatch-banner/PluginVersionMismatchBanner';
 
-type TPluginsTab = 'installed' | 'available' | 'sources';
-const PLUGINS_TABS: readonly TPluginsTab[] = ['installed', 'available', 'sources'];
+type TPluginsTab = 'installed' | 'available' | 'updates' | 'sources';
+const PLUGINS_TABS: readonly TPluginsTab[] = ['installed', 'available', 'updates', 'sources'];
+
+type TInstallSourceTab = 'registry' | 'url' | 'archive' | 'paste';
 
 export function PluginsPage() {
     const router = useRouter();
@@ -67,9 +77,16 @@ export function PluginsPage() {
     const [purgeConfirm, setPurgeConfirm] = useState('');
 
     const [installOpen, setInstallOpen] = useState(false);
+    const [installSourceTab, setInstallSourceTab] = useState<TInstallSourceTab>('archive');
+    const [installArchive, setInstallArchive] = useState<File | null>(null);
+    const [installArchivePreview, setInstallArchivePreview] = useState<{
+        manifest: Record<string, unknown>;
+        compatibility: { severity: 'ok' | 'warning' | 'blocking'; reasons: string[] };
+        capabilities: string[];
+        signatureStatus: string;
+    } | null>(null);
+    const [installUrl, setInstallUrl] = useState('');
     const [installManifest, setInstallManifest] = useState('');
-    const [installEnableOnSuccess, setInstallEnableOnSuccess] = useState(true);
-    const [installPendingOperationId, setInstallPendingOperationId] = useState<number | null>(null);
     const [installManifestFileName, setInstallManifestFileName] = useState<string | null>(null);
 
     // Tabs are persisted to the URL so refresh / bookmark / share all
@@ -88,13 +105,17 @@ export function PluginsPage() {
         router.replace(`${pathname}${sp.toString() ? `?${sp.toString()}` : ''}`, { scroll: false });
     }, [pathname, router, searchParams]);
 
+    const enableMutation = useAdminPluginEnable();
+    const disableMutation = useAdminPluginDisable();
+    const uninstallMutation = useAdminPluginUninstall();
+    const purgeMutation = useAdminPluginPurge();
+    const installMutation = useAdminPluginInstall();
+    const inspectArchive = useAdminPluginInspectArchive();
+
     const onManifestFile = useCallback(async (file: File | null) => {
         if (!file) return;
         try {
             const text = await file.text();
-            // Pretty-print so Monaco's JSON validator can give nicer
-            // gutter hints. If the file isn't valid JSON, leave it as
-            // typed so the user can see the parse error inline.
             try {
                 const parsed = JSON.parse(text);
                 setInstallManifest(JSON.stringify(parsed, null, 4));
@@ -108,12 +129,27 @@ export function PluginsPage() {
         }
     }, []);
 
-    const enableMutation = useAdminPluginEnable();
-    const disableMutation = useAdminPluginDisable();
-    const uninstallMutation = useAdminPluginUninstall();
-    const purgeMutation = useAdminPluginPurge();
-    const requestInstall = useAdminPluginRequestInstall();
-    const finalizeInstall = useAdminPluginFinalizeInstall();
+    const onArchiveFile = useCallback(async (file: File | null) => {
+        setInstallArchive(file);
+        setInstallArchivePreview(null);
+        if (!file) return;
+        try {
+            const result = await inspectArchive.mutateAsync(file);
+            setInstallArchivePreview({
+                manifest: result.data.manifest,
+                compatibility: result.data.compatibility,
+                capabilities: result.data.capabilities,
+                signatureStatus: result.data.signatureStatus,
+            });
+            notifications.show({ color: 'green', title: '.shplugin verified', message: file.name });
+        } catch (err) {
+            notifications.show({
+                color: 'red',
+                title: 'Archive rejected',
+                message: err instanceof Error ? err.message : String(err),
+            });
+        }
+    }, [inspectArchive]);
 
     const rows = useMemo(() => pluginList?.plugins ?? [], [pluginList]);
     const installMode = pluginList?.installMode;
@@ -122,6 +158,17 @@ export function PluginsPage() {
         () => (sources ?? []).filter((source) => source.enabled).length,
         [sources],
     );
+
+    useEffect(() => {
+        if (!installOpen) {
+            setInstallSourceTab('archive');
+            setInstallArchive(null);
+            setInstallArchivePreview(null);
+            setInstallUrl('');
+            setInstallManifest('');
+            setInstallManifestFileName(null);
+        }
+    }, [installOpen]);
 
     if (isLoading) {
         return (
@@ -177,52 +224,43 @@ export function PluginsPage() {
         }
     };
 
-    const onInstallRequest = async () => {
-        let parsed: Record<string, unknown>;
+    const onInstallSubmit = async () => {
         try {
-            parsed = JSON.parse(installManifest);
-        } catch (err) {
-            notifications.show({ color: 'red', title: 'Manifest is not valid JSON', message: err instanceof Error ? err.message : String(err) });
-            return;
-        }
-        try {
-            const op = await requestInstall.mutateAsync({ manifest: parsed, registryEntry: null });
-            setInstallPendingOperationId(op.data?.id ?? null);
-            notifications.show({ color: 'blue', title: 'Install requested', message: `Operation ${op.data?.id} created.` });
-        } catch (err) {
-            notifications.show({ color: 'red', title: 'Install request failed', message: err instanceof Error ? err.message : String(err) });
-        }
-    };
-
-    const onInstallFinalize = async () => {
-        if (installPendingOperationId === null) return;
-        let parsed: Record<string, unknown>;
-        try {
-            parsed = JSON.parse(installManifest);
-        } catch (err) {
-            notifications.show({ color: 'red', title: 'Manifest is not valid JSON', message: err instanceof Error ? err.message : String(err) });
-            return;
-        }
-        const manifestPluginId = typeof parsed?.id === 'string' ? parsed.id : null;
-        if (!manifestPluginId) {
-            notifications.show({ color: 'red', title: 'Manifest missing id', message: 'The manifest must contain a top-level "id" field.' });
-            return;
-        }
-        try {
-            const result = await finalizeInstall.mutateAsync({ pluginId: manifestPluginId, operationId: installPendingOperationId, manifest: parsed });
-            notifications.show({ color: 'green', title: 'Plugin installed', message: result.data?.pluginId ?? 'unknown' });
-            if (installEnableOnSuccess && result.data?.pluginId) {
-                try {
-                    await enableMutation.mutateAsync(result.data.pluginId);
-                } catch (enableErr) {
-                    notifications.show({ color: 'yellow', title: 'Installed but not enabled', message: enableErr instanceof Error ? enableErr.message : String(enableErr) });
+            let op;
+            if (installSourceTab === 'archive') {
+                if (!installArchive) {
+                    notifications.show({ color: 'red', title: 'No .shplugin selected', message: 'Drop or pick a .shplugin file to install.' });
+                    return;
                 }
+                op = await installMutation.mutateAsync({ source: 'archive', archive: installArchive });
+            } else if (installSourceTab === 'url') {
+                const url = installUrl.trim();
+                if (url === '') {
+                    notifications.show({ color: 'red', title: 'No URL', message: 'Enter a plugin.json URL.' });
+                    return;
+                }
+                op = await installMutation.mutateAsync({ source: 'url', manifestUrl: url });
+            } else if (installSourceTab === 'paste') {
+                let parsed: Record<string, unknown>;
+                try {
+                    parsed = JSON.parse(installManifest);
+                } catch (err) {
+                    notifications.show({ color: 'red', title: 'Manifest is not valid JSON', message: err instanceof Error ? err.message : String(err) });
+                    return;
+                }
+                op = await installMutation.mutateAsync({ source: 'paste', manifest: parsed });
+            } else {
+                notifications.show({ color: 'blue', title: 'Use the Available tab', message: 'Switch to the Available tab to install from a registry source.' });
+                return;
             }
+            notifications.show({
+                color: 'green',
+                title: 'Install queued',
+                message: `Operation #${op.data?.id} dispatched. Watch the Operations tab for progress.`,
+            });
             setInstallOpen(false);
-            setInstallPendingOperationId(null);
-            setInstallManifest('');
         } catch (err) {
-            notifications.show({ color: 'red', title: 'Install finalize failed', message: err instanceof Error ? err.message : String(err) });
+            notifications.show({ color: 'red', title: 'Install failed', message: err instanceof Error ? err.message : String(err) });
         }
     };
 
@@ -259,6 +297,7 @@ export function PluginsPage() {
                 <Tabs.List>
                     <Tabs.Tab value="installed">Installed</Tabs.Tab>
                     <Tabs.Tab value="available">Available</Tabs.Tab>
+                    <Tabs.Tab value="updates">Updates</Tabs.Tab>
                     <Tabs.Tab value="sources">Sources</Tabs.Tab>
                 </Tabs.List>
 
@@ -355,6 +394,10 @@ export function PluginsPage() {
                     <AvailablePluginsPanel enabledSourcesCount={enabledSourcesCount} />
                 </Tabs.Panel>
 
+                <Tabs.Panel value="updates" pt="md">
+                    <UpdatesPanel active={activeTab === 'updates'} />
+                </Tabs.Panel>
+
                 <Tabs.Panel value="sources" pt="md">
                     <PluginSourcesPanel />
                 </Tabs.Panel>
@@ -385,99 +428,154 @@ export function PluginsPage() {
 
             <ModalWrapper
                 opened={installOpen}
-                onClose={() => {
-                    setInstallOpen(false);
-                    setInstallManifest('');
-                    setInstallPendingOperationId(null);
-                    setInstallManifestFileName(null);
-                }}
+                onClose={() => setInstallOpen(false)}
                 title="Install plugin"
                 size="xl"
-                scrollAreaHeight={560}
-                onCancel={() => {
-                    setInstallOpen(false);
-                    setInstallManifest('');
-                    setInstallPendingOperationId(null);
-                    setInstallManifestFileName(null);
-                }}
+                scrollAreaHeight={620}
+                onCancel={() => setInstallOpen(false)}
                 customActions={
-                    installPendingOperationId === null ? (
-                        <Button loading={requestInstall.isPending} onClick={onInstallRequest} disabled={!installManifest.trim()}>
-                            Request install
-                        </Button>
-                    ) : (
-                        <Button color="green" loading={finalizeInstall.isPending} onClick={onInstallFinalize}>
-                            Finalize
+                    installSourceTab === 'registry' ? null : (
+                        <Button
+                            loading={installMutation.isPending}
+                            onClick={onInstallSubmit}
+                            disabled={
+                                installSourceTab === 'archive' ? !installArchive
+                                    : installSourceTab === 'url' ? installUrl.trim() === ''
+                                    : installSourceTab === 'paste' ? installManifest.trim() === ''
+                                    : true
+                            }
+                        >
+                            Install
                         </Button>
                     )
                 }
             >
-                <Stack gap="sm">
-                    <Alert color="blue" title="Two ways to load the manifest">
-                        Drop the plugin&apos;s <strong>plugin.json</strong> on the upload area below, click <strong>Choose file</strong>,
-                        or paste the JSON directly into the editor. The host validates it against the manifest schema,
-                        runs the install-policy check, and creates a staged operation. Click <strong>Finalize</strong> to apply.
-                    </Alert>
+                <Stack gap="md">
+                    <Tabs value={installSourceTab} onChange={(v) => setInstallSourceTab((v ?? 'archive') as TInstallSourceTab)}>
+                        <Tabs.List>
+                            <Tabs.Tab value="registry">From registry</Tabs.Tab>
+                            <Tabs.Tab value="url">From URL</Tabs.Tab>
+                            <Tabs.Tab value="archive">Upload .shplugin</Tabs.Tab>
+                            <Tabs.Tab value="paste" color="gray">Paste JSON (developer)</Tabs.Tab>
+                        </Tabs.List>
 
-                    <Dropzone
-                        onDrop={(files: FileWithPath[]) => onManifestFile(files[0] ?? null)}
-                        onReject={() => notifications.show({ color: 'red', title: 'Rejected', message: 'Only .json files are accepted.' })}
-                        accept={{ 'application/json': ['.json'] }}
-                        maxFiles={1}
-                        multiple={false}
-                        maxSize={2 * 1024 * 1024}
-                    >
-                        <Group justify="center" gap="md" mih={80} style={{ pointerEvents: 'none' }}>
-                            <Dropzone.Accept>
-                                <IconUpload size={32} stroke={1.5} />
-                            </Dropzone.Accept>
-                            <Dropzone.Reject>
-                                <IconX size={32} stroke={1.5} />
-                            </Dropzone.Reject>
-                            <Dropzone.Idle>
-                                <IconFileUpload size={32} stroke={1.5} />
-                            </Dropzone.Idle>
-                            <Stack gap={2} align="flex-start">
-                                <Text size="sm" fw={600}>
-                                    {installManifestFileName ?? 'Drop plugin.json here or click to browse'}
-                                </Text>
-                                <Text size="xs" c="dimmed">
-                                    Accepts a single .json file up to 2&nbsp;MB.
-                                </Text>
+                        <Tabs.Panel value="registry" pt="md">
+                            <Alert color="blue" title="Use the Available tab">
+                                Browse and install plugins listed in your enabled registries from the
+                                <strong> Available</strong> tab on the main page.
+                            </Alert>
+                        </Tabs.Panel>
+
+                        <Tabs.Panel value="url" pt="md">
+                            <Stack gap="sm">
+                                <Text size="sm">Paste a direct URL to a published <code>plugin.json</code>. The host downloads, verifies the canonical signed payload, and dispatches the install operation.</Text>
+                                <TextInput
+                                    placeholder="https://example.com/path/to/plugin.json"
+                                    value={installUrl}
+                                    onChange={(e) => setInstallUrl(e.currentTarget.value)}
+                                />
                             </Stack>
-                        </Group>
-                    </Dropzone>
+                        </Tabs.Panel>
 
-                    <Group justify="space-between" align="center">
-                        <Text size="sm" fw={600}>Plugin manifest (plugin.json)</Text>
-                        <FileButton onChange={onManifestFile} accept="application/json,.json">
-                            {(props) => (
-                                <Button {...props} size="xs" variant="light" leftSection={<IconFileUpload size={14} />}>
-                                    Choose file…
-                                </Button>
-                            )}
-                        </FileButton>
-                    </Group>
+                        <Tabs.Panel value="archive" pt="md">
+                            <Stack gap="sm">
+                                <Alert color="blue" title="Recommended for manual install">
+                                    Drop the publisher&apos;s <strong>.shplugin</strong> archive. The host extracts it, verifies the
+                                    Ed25519 signature + SHA-256 checksums, and dispatches the install operation. Drop the
+                                    file or click to browse.
+                                </Alert>
+                                <Dropzone
+                                    onDrop={(files: FileWithPath[]) => onArchiveFile(files[0] ?? null)}
+                                    onReject={() => notifications.show({ color: 'red', title: 'Rejected', message: 'Only .shplugin files are accepted.' })}
+                                    accept={['.shplugin']}
+                                    maxFiles={1}
+                                    multiple={false}
+                                    maxSize={20 * 1024 * 1024}
+                                >
+                                    <Group justify="center" gap="md" mih={100} style={{ pointerEvents: 'none' }}>
+                                        <Dropzone.Accept>
+                                            <IconUpload size={32} stroke={1.5} />
+                                        </Dropzone.Accept>
+                                        <Dropzone.Reject>
+                                            <IconX size={32} stroke={1.5} />
+                                        </Dropzone.Reject>
+                                        <Dropzone.Idle>
+                                            <IconFileUpload size={32} stroke={1.5} />
+                                        </Dropzone.Idle>
+                                        <Stack gap={2} align="flex-start">
+                                            <Text size="sm" fw={600}>
+                                                {installArchive?.name ?? 'Drop .shplugin here or click to browse'}
+                                            </Text>
+                                            <Text size="xs" c="dimmed">
+                                                Accepts a single .shplugin archive up to 20 MB.
+                                            </Text>
+                                        </Stack>
+                                    </Group>
+                                </Dropzone>
+                                <FileButton onChange={onArchiveFile} accept=".shplugin">
+                                    {(props) => (
+                                        <Button {...props} size="xs" variant="light" leftSection={<IconFileUpload size={14} />}>
+                                            Choose file…
+                                        </Button>
+                                    )}
+                                </FileButton>
+                                {inspectArchive.isPending && (
+                                    <Group gap="xs"><Loader size="xs" /><Text size="sm" c="dimmed">Verifying archive…</Text></Group>
+                                )}
+                                {installArchivePreview && (
+                                    <Paper withBorder p="md">
+                                        <Stack gap={4}>
+                                            <Text size="sm" fw={600}>
+                                                {String(installArchivePreview.manifest.name ?? installArchivePreview.manifest.id)} v{String(installArchivePreview.manifest.version)}
+                                            </Text>
+                                            <Group gap={6}>
+                                                <Badge color={installArchivePreview.compatibility.severity === 'ok' ? 'green' : installArchivePreview.compatibility.severity === 'warning' ? 'yellow' : 'red'}>
+                                                    {installArchivePreview.compatibility.severity}
+                                                </Badge>
+                                                <Badge color={installArchivePreview.signatureStatus === 'verified' ? 'green' : 'red'}>
+                                                    {installArchivePreview.signatureStatus}
+                                                </Badge>
+                                                <Badge variant="light">{installArchivePreview.capabilities.length} capabilities</Badge>
+                                            </Group>
+                                            {installArchivePreview.compatibility.reasons.length > 0 && (
+                                                <Text size="xs" c="dimmed">{installArchivePreview.compatibility.reasons.join('; ')}</Text>
+                                            )}
+                                        </Stack>
+                                    </Paper>
+                                )}
+                            </Stack>
+                        </Tabs.Panel>
 
-                    <Paper withBorder p={0} style={{ overflow: 'hidden' }}>
-                        <MonacoFieldEditor
-                            value={installManifest}
-                            onChange={setInstallManifest}
-                            language="json"
-                            height={360}
-                        />
-                    </Paper>
-
-                    <Switch
-                        label="Enable plugin after install succeeds"
-                        checked={installEnableOnSuccess}
-                        onChange={(e) => setInstallEnableOnSuccess(e.currentTarget.checked)}
-                    />
-                    {installPendingOperationId !== null && (
-                        <Alert color="green">
-                            Operation #{installPendingOperationId} created. Click <strong>Finalize</strong> above to apply.
-                        </Alert>
-                    )}
+                        <Tabs.Panel value="paste" pt="md">
+                            <Stack gap="sm">
+                                <Alert color="gray" title="Developer / debugging only">
+                                    Pasting a raw <code>plugin.json</code> skips the publisher&apos;s signed archive. Use
+                                    this only for local development of an in-progress plugin.
+                                </Alert>
+                                <Group justify="space-between" align="center">
+                                    <Text size="sm" fw={600}>plugin.json</Text>
+                                    <FileButton onChange={onManifestFile} accept="application/json,.json">
+                                        {(props) => (
+                                            <Button {...props} size="xs" variant="light" leftSection={<IconFileUpload size={14} />}>
+                                                Choose file…
+                                            </Button>
+                                        )}
+                                    </FileButton>
+                                </Group>
+                                <Paper withBorder p={0} style={{ overflow: 'hidden' }}>
+                                    <MonacoFieldEditor
+                                        value={installManifest}
+                                        onChange={setInstallManifest}
+                                        language="json"
+                                        height={320}
+                                    />
+                                </Paper>
+                                {installManifestFileName && (
+                                    <Text size="xs" c="dimmed">Loaded {installManifestFileName}</Text>
+                                )}
+                            </Stack>
+                        </Tabs.Panel>
+                    </Tabs>
                 </Stack>
             </ModalWrapper>
         </Stack>
