@@ -232,6 +232,40 @@ function defaultInjectStylesheet(href: string, integrity?: string | null): HTMLL
 }
 
 /**
+ * Resolve a plugin asset URL relative to the plugin's runtime entry
+ * URL. Plugin manifests sometimes ship the stylesheet as a relative
+ * path (e.g. `dist/plugin.css`) because the publisher does not know
+ * the absolute artifact root at build time. The browser would resolve
+ * such a relative href against the current document — so on
+ * `/admin/plugins` the stylesheet ends up at `/admin/dist/plugin.css`
+ * and 404s. Resolving against the runtime URL gives us
+ * `/plugin-artifacts/<id>-<ver>/dist/plugin.css`, which is what the
+ * Symfony backend actually serves.
+ */
+function resolvePluginAssetUrl(runtimeUrl: string, assetUrl: string): string {
+    if (assetUrl.startsWith('/') || /^https?:\/\//i.test(assetUrl) || assetUrl.startsWith('//')) {
+        return assetUrl;
+    }
+    // The URL parser needs an absolute base; we inject a placeholder
+    // origin when the runtime URL is path-only and strip it back off
+    // the result. This keeps host-relative URLs in the manifest
+    // host-relative in the rendered <link href="…">.
+    const placeholderOrigin = 'http://__plugin-runtime__';
+    const baseAbs = /^https?:\/\//i.test(runtimeUrl)
+        ? runtimeUrl
+        : `${placeholderOrigin}${runtimeUrl.startsWith('/') ? '' : '/'}${runtimeUrl}`;
+    try {
+        const resolved = new URL(assetUrl, baseAbs);
+        if (resolved.origin === placeholderOrigin) {
+            return resolved.pathname + resolved.search + resolved.hash;
+        }
+        return resolved.href;
+    } catch {
+        return assetUrl;
+    }
+}
+
+/**
  * Soft no-op rich-text adapter. Plugins that don't use rich text never
  * touch it; plugins that DO get a friendly warning the first time
  * they try to mount instead of a hard exception. Tests + production
@@ -439,8 +473,12 @@ export class PluginRuntime {
 
         let stylesheetNode: HTMLLinkElement | null = null;
         if (entry.frontendRuntimeStylesheetUrl) {
-            stylesheetNode = this.injectStylesheet(
+            const stylesheetHref = resolvePluginAssetUrl(
+                runtimeUrl,
                 entry.frontendRuntimeStylesheetUrl,
+            );
+            stylesheetNode = this.injectStylesheet(
+                stylesheetHref,
                 entry.frontendRuntimeIntegrity ?? null,
             );
         }

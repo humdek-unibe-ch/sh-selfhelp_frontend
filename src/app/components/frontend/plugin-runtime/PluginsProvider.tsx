@@ -34,6 +34,7 @@ import {
     type IPluginRuntimeSnapshot,
     type IPluginVersionWarning,
 } from './PluginRuntime';
+import { populatePluginRuntimeGlobals } from './runtime-globals.client';
 
 interface IPluginsContextValue {
     snapshot: IPluginRuntimeSnapshot;
@@ -112,6 +113,14 @@ function PluginsProvider({ apiBaseUrl = '/api', initialManifest, children }: IPl
 
     useEffect(() => {
         if (!data) return;
+        // Stash the host's singleton modules on `globalThis` BEFORE we
+        // dynamically import any plugin bundle. The plugin bundle's
+        // bare imports (react, @mantine/core, @selfhelp/shared/plugin-sdk,
+        // …) hit the import map declared in `layout.tsx` and resolve
+        // to `/api/plugins/runtime-shim/*`, which re-exports from
+        // exactly this stash. Skipping this step makes the very first
+        // plugin import throw "host did not populate module".
+        populatePluginRuntimeGlobals();
         let cancelled = false;
         runtime
             .boot(data)
