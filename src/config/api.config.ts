@@ -686,10 +686,6 @@ export const API_CONFIG = {
             route: '/admin/plugins/install',
             permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
-        ADMIN_PLUGINS_UPDATES: {
-            route: '/admin/plugins/updates',
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
-        },
         ADMIN_PLUGIN_INSPECT_ARCHIVE: {
             route: '/admin/plugins/inspect-archive',
             permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]

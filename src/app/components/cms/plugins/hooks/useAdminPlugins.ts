@@ -44,20 +44,6 @@ export function useAdminPluginsAvailable(enabled: boolean = true) {
     });
 }
 
-/**
- * Cross-references installed plugins against every enabled registry
- * source and returns the rows that have a strictly-newer version
- * available. Powers the admin UI's "Updates" tab.
- */
-export function useAdminPluginUpdates(enabled: boolean = true) {
-    return useQuery({
-        queryKey: [...KEY, 'updates'],
-        queryFn: async () => (await AdminPluginApi.listUpdates()).data,
-        staleTime: Infinity,
-        enabled,
-    });
-}
-
 export function useAdminPlugin(pluginId: string | null) {
     return useQuery({
         queryKey: [...KEY, 'detail', pluginId ?? ''],
@@ -233,10 +219,17 @@ export function useAdminPluginInstall() {
  * Pre-install inspection for `.shplugin` uploads. Returns the parsed
  * manifest + compatibility + capabilities + signatureStatus without
  * triggering an install.
+ *
+ * The optional `trustedKey` field carries a per-request trust
+ * override used by the inspect-archive trust-helper panel — see
+ * `AdminPluginApi.inspectArchive` for semantics.
  */
 export function useAdminPluginInspectArchive() {
     return useMutation({
-        mutationFn: (archive: File) => AdminPluginApi.inspectArchive(archive),
+        mutationFn: ({ archive, trustedKey }: {
+            archive: File;
+            trustedKey?: { keyId: string; publicKeyBase64: string };
+        }) => AdminPluginApi.inspectArchive(archive, trustedKey),
     });
 }
 

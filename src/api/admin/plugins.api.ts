@@ -43,24 +43,6 @@ export const AdminPluginApi = {
         return response.data;
     },
 
-    async listUpdates(): Promise<IBaseApiResponse<{
-        updates: Array<{
-            pluginId: string;
-            name: string;
-            installedVersion: string;
-            availableVersion: string;
-            diffKind: 'patch' | 'minor' | 'major' | 'unknown';
-            sourceName: string;
-            trustLevel: string;
-            manifestUrl?: string | null;
-            manifest?: Record<string, unknown> | null;
-            registryEntry: Record<string, unknown>;
-        }>;
-    }>> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_UPDATES);
-        return response.data;
-    },
-
     async getPlugin(pluginId: string): Promise<IBaseApiResponse<IAdminPluginDetail>> {
         const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_DETAIL, pluginId);
         return response.data;
@@ -101,15 +83,67 @@ export const AdminPluginApi = {
      * Pre-install inspection for `.shplugin` uploads. Returns the parsed
      * manifest + compatibility / capabilities / signature status so the
      * UI can render a preview card before committing.
+     *
+     * `manifest` and `compatibility` may be `null` when the archive
+     * fails before reaching those stages (e.g. corrupted ZIP, missing
+     * plugin.json, invalid JSON). `errors[]` always carries the
+     * human-readable rejection reasons; the UI should branch on them
+     * before reading `manifest.*`.
+     *
+     * Optional `trustedKey` parameter carries a per-request trust
+     * override used by the inspect-archive trust-helper panel. When
+     * the previous inspect call returned
+     * `signature.unknownKey != null`, the UI lets the operator paste
+     * the matching base64 Ed25519 public key and re-test by passing
+     * `{keyId, publicKeyBase64}` here. The host merges that pair into
+     * a per-request verifier; env keys win on duplicate keyIds and
+     * neither env nor lock files are mutated. See
+     * `docs/plugins/trusted-keys.md` for the operator playbook.
      */
-    async inspectArchive(archive: File): Promise<IBaseApiResponse<{
-        manifest: Record<string, unknown>;
-        compatibility: { severity: 'ok' | 'warning' | 'blocking'; reasons: string[] };
+    async inspectArchive(
+        archive: File,
+        trustedKey?: { keyId: string; publicKeyBase64: string },
+    ): Promise<IBaseApiResponse<{
+        ok: boolean;
+        manifest: Record<string, unknown> | null;
+        compatibility: { severity: 'ok' | 'warning' | 'blocking'; reasons: string[] } | null;
         capabilities: string[];
-        signatureStatus: 'verified' | 'missing' | 'invalid';
+        signatureStatus: 'verified' | 'invalid' | 'unsigned' | 'unverifiable';
+        // Structured signature descriptor. Mirrors `signatureStatus`
+        // for forwards compatibility, plus surfaces the parsed
+        // `keyId` (when readable from `signature.json`) and the
+        // recoverable `unknownKey` failure that drives the trust
+        // helper UI.
+        signature: {
+            status: 'verified' | 'invalid' | 'unsigned' | 'unverifiable';
+            keyId: string | null;
+            unknownKey: { keyId: string; envSnippet: string } | null;
+        };
+        errors: string[];
+        warnings: string[];
+        // Phase 2a — describes how the host will install the backend
+        // bundle for this archive. `mode=connected` means the host
+        // pulls the Composer package from Packagist / VCS; `standalone`
+        // means the package is included in the archive and installed
+        // via a Composer path repository. Both modes still require
+        // Composer to reach a package source for the plugin's third-
+        // party PHP dependencies — `.shplugin` is not a fully offline
+        // install bundle, so there is intentionally no
+        // `internetRequired` flag here.
+        archive: {
+            mode: 'connected' | 'standalone';
+            backendIncluded: boolean;
+            backendPackage: string | null;
+            backendVersion: string | null;
+            installMode: 'composer-path-repository' | 'composer-packagist';
+        };
     }>> {
         const formData = new FormData();
         formData.append('archive', archive);
+        if (trustedKey) {
+            formData.append('trustedKeyId', trustedKey.keyId);
+            formData.append('trustedKeyBase64', trustedKey.publicKeyBase64);
+        }
         const response = await permissionAwareApiClient.post(
             API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_INSPECT_ARCHIVE,
             formData,

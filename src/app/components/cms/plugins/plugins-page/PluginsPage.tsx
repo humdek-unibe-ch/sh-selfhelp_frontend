@@ -18,6 +18,14 @@ SPDX-License-Identifier: MPL-2.0
  * All four paths POST to `/admin/plugins/install` and dispatch a single
  * `InstallPluginMessage`. The Mercure-driven invalidation surfaces the
  * resulting `plugin_operations` row on the Available tab.
+ *
+ * Update flow: the backend's `listPlugins()` response embeds a per-plugin
+ * `availableUpdate` block (cross-referenced against every enabled
+ * registry source). The Installed tab renders an inline "v{x.y.z}"
+ * badge + "Update" button on rows where an upgrade is available; the
+ * button opens an update modal that dispatches
+ * `POST /admin/plugins/{id}/update` with `source=registry`. There is
+ * no separate "Updates" tab — the inline experience replaces it.
  */
 
 import Link from 'next/link';
@@ -28,6 +36,7 @@ import {
     Anchor,
     Badge,
     Button,
+    Code,
     FileButton,
     Group,
     Loader,
@@ -38,12 +47,13 @@ import {
     Table,
     Tabs,
     Text,
+    Textarea,
     TextInput,
     Title,
     Tooltip,
 } from '@mantine/core';
 import { Dropzone, type FileWithPath } from '@mantine/dropzone';
-import { IconDownload, IconFileUpload, IconUpload, IconX } from '@tabler/icons-react';
+import { IconArrowUp, IconCopy, IconDownload, IconFileUpload, IconUpload, IconX } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { MonacoFieldEditor } from '../../shared/monaco-field-editor/MonacoFieldEditor';
@@ -55,17 +65,25 @@ import {
     useAdminPluginPurge,
     useAdminPluginSources,
     useAdminPluginUninstall,
+    useAdminPluginUpdate,
     useAdminPlugins,
 } from '../hooks/useAdminPlugins';
 import { PluginSourcesPanel } from '../plugin-sources-panel/PluginSourcesPanel';
 import { AvailablePluginsPanel } from '../available-plugins-panel/AvailablePluginsPanel';
-import { UpdatesPanel } from '../updates-panel/UpdatesPanel';
 import { PluginVersionMismatchBanner } from '../plugin-version-mismatch-banner/PluginVersionMismatchBanner';
+import type { IAdminPluginAvailableUpdate } from '../../../../../types/responses/admin/plugins.types';
 
-type TPluginsTab = 'installed' | 'available' | 'updates' | 'sources';
-const PLUGINS_TABS: readonly TPluginsTab[] = ['installed', 'available', 'updates', 'sources'];
+type TPluginsTab = 'installed' | 'available' | 'sources';
+const PLUGINS_TABS: readonly TPluginsTab[] = ['installed', 'available', 'sources'];
 
 type TInstallSourceTab = 'registry' | 'url' | 'archive' | 'paste';
+
+const UPDATE_DIFF_COLORS: Record<string, string> = {
+    patch: 'green',
+    minor: 'blue',
+    major: 'red',
+    unknown: 'gray',
+};
 
 export function PluginsPage() {
     const router = useRouter();
@@ -80,11 +98,31 @@ export function PluginsPage() {
     const [installSourceTab, setInstallSourceTab] = useState<TInstallSourceTab>('archive');
     const [installArchive, setInstallArchive] = useState<File | null>(null);
     const [installArchivePreview, setInstallArchivePreview] = useState<{
-        manifest: Record<string, unknown>;
-        compatibility: { severity: 'ok' | 'warning' | 'blocking'; reasons: string[] };
+        ok: boolean;
+        manifest: Record<string, unknown> | null;
+        compatibility: { severity: 'ok' | 'warning' | 'blocking'; reasons: string[] } | null;
         capabilities: string[];
-        signatureStatus: string;
+        signatureStatus: 'verified' | 'invalid' | 'unsigned' | 'unverifiable';
+        signature: {
+            status: 'verified' | 'invalid' | 'unsigned' | 'unverifiable';
+            keyId: string | null;
+            unknownKey: { keyId: string; envSnippet: string } | null;
+        };
+        errors: string[];
+        warnings: string[];
+        archive: {
+            mode: 'connected' | 'standalone';
+            backendIncluded: boolean;
+            backendPackage: string | null;
+            backendVersion: string | null;
+            installMode: 'composer-path-repository' | 'composer-packagist';
+        };
     } | null>(null);
+    // Operator-pasted base64 public key for the inspect-archive trust
+    // helper. Lives only inside the modal; cleared whenever the
+    // archive changes or the modal closes.
+    const [trustHelperBase64, setTrustHelperBase64] = useState('');
+    const [trustHelperCopied, setTrustHelperCopied] = useState(false);
     const [installUrl, setInstallUrl] = useState('');
     const [installManifest, setInstallManifest] = useState('');
     const [installManifestFileName, setInstallManifestFileName] = useState<string | null>(null);
@@ -110,7 +148,14 @@ export function PluginsPage() {
     const uninstallMutation = useAdminPluginUninstall();
     const purgeMutation = useAdminPluginPurge();
     const installMutation = useAdminPluginInstall();
+    const updateMutation = useAdminPluginUpdate();
     const inspectArchive = useAdminPluginInspectArchive();
+
+    // Update-modal state. Opened from the inline "Update" button on
+    // the Installed tab; carries the registry entry we resolved on the
+    // listPlugins server side so the modal can show the change kind
+    // (patch/minor/major) without an extra round-trip.
+    const [updateFor, setUpdateFor] = useState<IAdminPluginAvailableUpdate | null>(null);
 
     const onManifestFile = useCallback(async (file: File | null) => {
         if (!file) return;
@@ -129,19 +174,32 @@ export function PluginsPage() {
         }
     }, []);
 
-    const onArchiveFile = useCallback(async (file: File | null) => {
-        setInstallArchive(file);
-        setInstallArchivePreview(null);
-        if (!file) return;
+    const runArchiveInspect = useCallback(async (
+        file: File,
+        trustedKey?: { keyId: string; publicKeyBase64: string },
+    ) => {
         try {
-            const result = await inspectArchive.mutateAsync(file);
+            const result = await inspectArchive.mutateAsync({ archive: file, trustedKey });
             setInstallArchivePreview({
+                ok: result.data.ok,
                 manifest: result.data.manifest,
                 compatibility: result.data.compatibility,
                 capabilities: result.data.capabilities,
                 signatureStatus: result.data.signatureStatus,
+                signature: result.data.signature,
+                errors: result.data.errors ?? [],
+                warnings: result.data.warnings ?? [],
+                archive: result.data.archive,
             });
-            notifications.show({ color: 'green', title: '.shplugin verified', message: file.name });
+            if (result.data.ok) {
+                notifications.show({ color: 'green', title: '.shplugin verified', message: file.name });
+            } else {
+                notifications.show({
+                    color: 'red',
+                    title: 'Archive cannot be installed',
+                    message: result.data.errors?.[0] ?? 'See preview card for details.',
+                });
+            }
         } catch (err) {
             notifications.show({
                 color: 'red',
@@ -150,6 +208,57 @@ export function PluginsPage() {
             });
         }
     }, [inspectArchive]);
+
+    const onArchiveFile = useCallback(async (file: File | null) => {
+        setInstallArchive(file);
+        setInstallArchivePreview(null);
+        setTrustHelperBase64('');
+        setTrustHelperCopied(false);
+        if (!file) return;
+        await runArchiveInspect(file);
+    }, [runArchiveInspect]);
+
+    const onTrustHelperRetest = useCallback(async () => {
+        if (!installArchive) return;
+        const keyId = installArchivePreview?.signature?.unknownKey?.keyId;
+        if (!keyId) return;
+        const pasted = trustHelperBase64.trim();
+        if (pasted === '') {
+            notifications.show({
+                color: 'red',
+                title: 'Public key required',
+                message: 'Paste the publisher\'s base64 Ed25519 public key first.',
+            });
+            return;
+        }
+        await runArchiveInspect(installArchive, { keyId, publicKeyBase64: pasted });
+    }, [installArchive, installArchivePreview, runArchiveInspect, trustHelperBase64]);
+
+    const onTrustHelperCopyEnv = useCallback(async () => {
+        const keyId = installArchivePreview?.signature?.unknownKey?.keyId;
+        if (!keyId) return;
+        const pasted = trustHelperBase64.trim();
+        const snippet = pasted === ''
+            ? `SELFHELP_PLUGIN_TRUSTED_KEYS=${keyId}=<paste-base64-here>`
+            : `SELFHELP_PLUGIN_TRUSTED_KEYS=${keyId}=${pasted}`;
+        try {
+            if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                await navigator.clipboard.writeText(snippet);
+                setTrustHelperCopied(true);
+                notifications.show({
+                    color: 'blue',
+                    title: 'Env line copied',
+                    message: 'Paste into .env.local and restart the host to make this trust persist across requests.',
+                });
+            }
+        } catch (err) {
+            notifications.show({
+                color: 'red',
+                title: 'Could not copy',
+                message: err instanceof Error ? err.message : String(err),
+            });
+        }
+    }, [installArchivePreview, trustHelperBase64]);
 
     const rows = useMemo(() => pluginList?.plugins ?? [], [pluginList]);
     const installMode = pluginList?.installMode;
@@ -167,6 +276,8 @@ export function PluginsPage() {
             setInstallUrl('');
             setInstallManifest('');
             setInstallManifestFileName(null);
+            setTrustHelperBase64('');
+            setTrustHelperCopied(false);
         }
     }, [installOpen]);
 
@@ -221,6 +332,33 @@ export function PluginsPage() {
             setPurgeConfirm('');
         } catch (err) {
             notifications.show({ color: 'red', title: 'Purge failed', message: err instanceof Error ? err.message : String(err) });
+        }
+    };
+
+    const onUpdateConfirm = async () => {
+        if (updateFor === null) return;
+        try {
+            const op = await updateMutation.mutateAsync({
+                pluginId: updateFor.pluginId,
+                body: {
+                    source: 'registry',
+                    sourceName: updateFor.sourceName,
+                    registryEntry: updateFor.registryEntry,
+                    forceMajor: updateFor.diffKind === 'major',
+                },
+            });
+            notifications.show({
+                color: 'green',
+                title: 'Update queued',
+                message: `Operation #${op.data?.id} dispatched for ${updateFor.pluginId}.`,
+            });
+            setUpdateFor(null);
+        } catch (err) {
+            notifications.show({
+                color: 'red',
+                title: 'Update failed',
+                message: err instanceof Error ? err.message : String(err),
+            });
         }
     };
 
@@ -297,7 +435,6 @@ export function PluginsPage() {
                 <Tabs.List>
                     <Tabs.Tab value="installed">Installed</Tabs.Tab>
                     <Tabs.Tab value="available">Available</Tabs.Tab>
-                    <Tabs.Tab value="updates">Updates</Tabs.Tab>
                     <Tabs.Tab value="sources">Sources</Tabs.Tab>
                 </Tabs.List>
 
@@ -330,7 +467,26 @@ export function PluginsPage() {
                                                 <Text size="xs" c="dimmed">{p.pluginId}</Text>
                                             </Stack>
                                         </Table.Td>
-                                        <Table.Td>{p.version}</Table.Td>
+                                        <Table.Td>
+                                            <Stack gap={2}>
+                                                <Text size="sm">{p.version}</Text>
+                                                {p.availableUpdate && (
+                                                    <Tooltip
+                                                        label={`v${p.availableUpdate.availableVersion} available from ${p.availableUpdate.sourceName} (${p.availableUpdate.diffKind} update)`}
+                                                        position="right"
+                                                    >
+                                                        <Badge
+                                                            size="xs"
+                                                            variant="light"
+                                                            color={UPDATE_DIFF_COLORS[p.availableUpdate.diffKind] ?? 'gray'}
+                                                            leftSection={<IconArrowUp size={10} />}
+                                                        >
+                                                            v{p.availableUpdate.availableVersion}
+                                                        </Badge>
+                                                    </Tooltip>
+                                                )}
+                                            </Stack>
+                                        </Table.Td>
                                         <Table.Td>
                                             <Badge color={p.trustLevel === 'official' ? 'green' : p.trustLevel === 'reviewed' ? 'blue' : 'gray'}>
                                                 {p.trustLevel}
@@ -355,6 +511,24 @@ export function PluginsPage() {
                                         </Table.Td>
                                         <Table.Td>
                                             <Group gap="xs" onClick={(e) => e.stopPropagation()}>
+                                                {p.availableUpdate && (
+                                                    <Tooltip
+                                                        label={
+                                                            p.availableUpdate.diffKind === 'major'
+                                                                ? 'Major upgrade — review breaking changes in the changelog before applying.'
+                                                                : `Update to v${p.availableUpdate.availableVersion}`
+                                                        }
+                                                    >
+                                                        <Button
+                                                            size="xs"
+                                                            color={p.availableUpdate.diffKind === 'major' ? 'red' : 'blue'}
+                                                            leftSection={<IconArrowUp size={12} />}
+                                                            onClick={() => setUpdateFor(p.availableUpdate ?? null)}
+                                                        >
+                                                            Update
+                                                        </Button>
+                                                    </Tooltip>
+                                                )}
                                                 {p.enabled ? (
                                                     <Button size="xs" variant="default" loading={disableMutation.isPending} onClick={() => onDisable(p.pluginId)}>
                                                         Disable
@@ -394,10 +568,6 @@ export function PluginsPage() {
                     <AvailablePluginsPanel enabledSourcesCount={enabledSourcesCount} />
                 </Tabs.Panel>
 
-                <Tabs.Panel value="updates" pt="md">
-                    <UpdatesPanel active={activeTab === 'updates'} />
-                </Tabs.Panel>
-
                 <Tabs.Panel value="sources" pt="md">
                     <PluginSourcesPanel />
                 </Tabs.Panel>
@@ -427,6 +597,68 @@ export function PluginsPage() {
             </ModalWrapper>
 
             <ModalWrapper
+                opened={updateFor !== null}
+                onClose={() => setUpdateFor(null)}
+                title={updateFor ? `Update ${updateFor.name}` : 'Update plugin'}
+                size="md"
+                onCancel={() => setUpdateFor(null)}
+                customActions={
+                    updateFor ? (
+                        <Button
+                            color={updateFor.diffKind === 'major' ? 'red' : 'blue'}
+                            leftSection={<IconArrowUp size={14} />}
+                            loading={updateMutation.isPending}
+                            onClick={onUpdateConfirm}
+                        >
+                            {updateFor.diffKind === 'major' ? 'Force update' : 'Update'}
+                        </Button>
+                    ) : null
+                }
+            >
+                {updateFor && (
+                    <Stack gap="sm">
+                        {updateFor.diffKind === 'major' && (
+                            <Alert color="red" title="Major upgrade">
+                                This update changes the major version of the plugin and may require manual data migration. Review the publisher&apos;s changelog and back up plugin data before applying.
+                            </Alert>
+                        )}
+                        {updateFor.diffKind === 'minor' && (
+                            <Alert color="blue" title="Minor upgrade">
+                                Minor updates may introduce schema changes. Doctrine migrations bundled with the plugin run automatically as part of the update.
+                            </Alert>
+                        )}
+                        <Group justify="space-between">
+                            <Text size="sm" c="dimmed">Plugin</Text>
+                            <Text size="sm" fw={600}>{updateFor.pluginId}</Text>
+                        </Group>
+                        <Group justify="space-between">
+                            <Text size="sm" c="dimmed">Installed version</Text>
+                            <Text size="sm">{updateFor.installedVersion}</Text>
+                        </Group>
+                        <Group justify="space-between">
+                            <Text size="sm" c="dimmed">Available version</Text>
+                            <Group gap="xs">
+                                <Text size="sm" fw={600}>{updateFor.availableVersion}</Text>
+                                <Badge size="xs" color={UPDATE_DIFF_COLORS[updateFor.diffKind] ?? 'gray'}>
+                                    {updateFor.diffKind}
+                                </Badge>
+                            </Group>
+                        </Group>
+                        <Group justify="space-between">
+                            <Text size="sm" c="dimmed">Source</Text>
+                            <Text size="sm">{updateFor.sourceName}</Text>
+                        </Group>
+                        <Group justify="space-between">
+                            <Text size="sm" c="dimmed">Trust level</Text>
+                            <Badge color={updateFor.trustLevel === 'official' ? 'green' : updateFor.trustLevel === 'reviewed' ? 'blue' : 'gray'}>
+                                {updateFor.trustLevel}
+                            </Badge>
+                        </Group>
+                    </Stack>
+                )}
+            </ModalWrapper>
+
+            <ModalWrapper
                 opened={installOpen}
                 onClose={() => setInstallOpen(false)}
                 title="Install plugin"
@@ -439,7 +671,8 @@ export function PluginsPage() {
                             loading={installMutation.isPending}
                             onClick={onInstallSubmit}
                             disabled={
-                                installSourceTab === 'archive' ? !installArchive
+                                installSourceTab === 'archive'
+                                    ? !installArchive || inspectArchive.isPending || (installArchivePreview !== null && !installArchivePreview.ok)
                                     : installSourceTab === 'url' ? installUrl.trim() === ''
                                     : installSourceTab === 'paste' ? installManifest.trim() === ''
                                     : true
@@ -524,20 +757,140 @@ export function PluginsPage() {
                                 )}
                                 {installArchivePreview && (
                                     <Paper withBorder p="md">
-                                        <Stack gap={4}>
-                                            <Text size="sm" fw={600}>
-                                                {String(installArchivePreview.manifest.name ?? installArchivePreview.manifest.id)} v{String(installArchivePreview.manifest.version)}
-                                            </Text>
+                                        <Stack gap={6}>
+                                            {installArchivePreview.manifest ? (
+                                                <Text size="sm" fw={600}>
+                                                    {String(installArchivePreview.manifest.name ?? installArchivePreview.manifest.id ?? installArchive?.name ?? 'Plugin')}
+                                                    {installArchivePreview.manifest.version
+                                                        ? ` v${String(installArchivePreview.manifest.version)}`
+                                                        : ''}
+                                                </Text>
+                                            ) : (
+                                                <Text size="sm" fw={600} c="red">
+                                                    {installArchive?.name ?? 'Archive'} — manifest could not be parsed
+                                                </Text>
+                                            )}
                                             <Group gap={6}>
-                                                <Badge color={installArchivePreview.compatibility.severity === 'ok' ? 'green' : installArchivePreview.compatibility.severity === 'warning' ? 'yellow' : 'red'}>
-                                                    {installArchivePreview.compatibility.severity}
-                                                </Badge>
+                                                {installArchivePreview.compatibility && (
+                                                    <Badge color={installArchivePreview.compatibility.severity === 'ok' ? 'green' : installArchivePreview.compatibility.severity === 'warning' ? 'yellow' : 'red'}>
+                                                        {installArchivePreview.compatibility.severity}
+                                                    </Badge>
+                                                )}
                                                 <Badge color={installArchivePreview.signatureStatus === 'verified' ? 'green' : 'red'}>
                                                     {installArchivePreview.signatureStatus}
                                                 </Badge>
                                                 <Badge variant="light">{installArchivePreview.capabilities.length} capabilities</Badge>
+                                                <Tooltip
+                                                    label={
+                                                        installArchivePreview.archive.mode === 'standalone'
+                                                            ? 'Standalone archive: the .shplugin bundles the backend Composer package under backend/package/ and the host installs it via a path repository. Third-party PHP dependencies (symfony/*, doctrine/*, …) are still resolved by Composer.'
+                                                            : 'Connected archive: the host resolves the backend Composer package from Packagist / the configured Composer repository.'
+                                                    }
+                                                >
+                                                    <Badge color={installArchivePreview.archive.mode === 'standalone' ? 'indigo' : 'gray'} variant="light">
+                                                        archive: {installArchivePreview.archive.mode}
+                                                    </Badge>
+                                                </Tooltip>
+                                                {installArchivePreview.archive.backendIncluded && (
+                                                    <Tooltip
+                                                        label={
+                                                            installArchivePreview.archive.backendPackage && installArchivePreview.archive.backendVersion
+                                                                ? `${installArchivePreview.archive.backendPackage}@${installArchivePreview.archive.backendVersion}`
+                                                                : 'Backend Composer package is included in the archive.'
+                                                        }
+                                                    >
+                                                        <Badge color="teal" variant="light">backend included</Badge>
+                                                    </Tooltip>
+                                                )}
+                                                {!installArchivePreview.ok && (
+                                                    <Badge color="red" variant="filled">not installable</Badge>
+                                                )}
                                             </Group>
-                                            {installArchivePreview.compatibility.reasons.length > 0 && (
+                                            <Text size="xs" c="dimmed">
+                                                {installArchivePreview.archive.mode === 'standalone'
+                                                    ? `Install mode: ${installArchivePreview.archive.installMode}. ` +
+                                                      (installArchivePreview.archive.backendPackage && installArchivePreview.archive.backendVersion
+                                                          ? `Backend bundle ${installArchivePreview.archive.backendPackage}@${installArchivePreview.archive.backendVersion} is installed from a Composer path repo. `
+                                                          : 'Backend bundle is installed from a Composer path repo. ') +
+                                                      'Composer still resolves third-party PHP dependencies (symfony/*, doctrine/*, …) at install time.'
+                                                    : `Install mode: ${installArchivePreview.archive.installMode}. ` +
+                                                      (installArchivePreview.archive.backendPackage && installArchivePreview.archive.backendVersion
+                                                          ? `Backend bundle ${installArchivePreview.archive.backendPackage}@${installArchivePreview.archive.backendVersion} will be resolved by Composer.`
+                                                          : 'Backend bundle will be resolved by Composer.')}
+                                            </Text>
+                                            {installArchivePreview.errors.length > 0 && (
+                                                <Alert color="red" variant="light" title="Errors">
+                                                    <Stack gap={2}>
+                                                        {installArchivePreview.errors.map((reason, idx) => (
+                                                            <Text key={idx} size="xs">{reason}</Text>
+                                                        ))}
+                                                    </Stack>
+                                                </Alert>
+                                            )}
+                                            {installArchivePreview.warnings.length > 0 && (
+                                                <Alert color="yellow" variant="light" title="Warnings">
+                                                    <Stack gap={2}>
+                                                        {installArchivePreview.warnings.map((reason, idx) => (
+                                                            <Text key={idx} size="xs">{reason}</Text>
+                                                        ))}
+                                                    </Stack>
+                                                </Alert>
+                                            )}
+                                            {installArchivePreview.signatureStatus === 'invalid' && installArchivePreview.signature?.unknownKey && (
+                                                <Alert color="yellow" variant="light" title="Unknown publisher key">
+                                                    <Stack gap="xs">
+                                                        <Text size="sm">
+                                                            This archive is signed by{' '}
+                                                            <Code>{installArchivePreview.signature.unknownKey.keyId}</Code>
+                                                            , which is not in your trusted-keys list. Paste the
+                                                            publisher&apos;s base64 Ed25519 public key below and
+                                                            click <strong>Re-test</strong> to verify the upload for
+                                                            this request only — no env / lock files are mutated.
+                                                        </Text>
+                                                        <Textarea
+                                                            label="Publisher public key (base64)"
+                                                            description="32-byte Ed25519 public key, base64-encoded. The publisher shares this out of band (email, SFTP)."
+                                                            placeholder="MCowBQYDK2VwAyEA..."
+                                                            value={trustHelperBase64}
+                                                            onChange={(e) => {
+                                                                setTrustHelperBase64(e.currentTarget.value);
+                                                                setTrustHelperCopied(false);
+                                                            }}
+                                                            autosize
+                                                            minRows={2}
+                                                            maxRows={4}
+                                                        />
+                                                        <Group gap="xs">
+                                                            <Button
+                                                                size="xs"
+                                                                variant="light"
+                                                                leftSection={<IconRefresh size={14} />}
+                                                                loading={inspectArchive.isPending}
+                                                                disabled={trustHelperBase64.trim() === ''}
+                                                                onClick={onTrustHelperRetest}
+                                                            >
+                                                                Re-test with this key
+                                                            </Button>
+                                                            <Tooltip label="Copies SELFHELP_PLUGIN_TRUSTED_KEYS=<keyId>=<base64>. Paste into .env.local and restart the host to make this trust persist across requests.">
+                                                                <Button
+                                                                    size="xs"
+                                                                    variant="default"
+                                                                    leftSection={<IconCopy size={14} />}
+                                                                    onClick={onTrustHelperCopyEnv}
+                                                                >
+                                                                    {trustHelperCopied ? 'Copied!' : 'Copy env line'}
+                                                                </Button>
+                                                            </Tooltip>
+                                                        </Group>
+                                                        <Text size="xs" c="dimmed">
+                                                            The override is per-request only. To trust this publisher
+                                                            permanently, paste the env line into <Code>.env.local</Code>{' '}
+                                                            and restart the host.
+                                                        </Text>
+                                                    </Stack>
+                                                </Alert>
+                                            )}
+                                            {installArchivePreview.compatibility && installArchivePreview.compatibility.reasons.length > 0 && (
                                                 <Text size="xs" c="dimmed">{installArchivePreview.compatibility.reasons.join('; ')}</Text>
                                             )}
                                         </Stack>

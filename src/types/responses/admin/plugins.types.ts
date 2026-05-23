@@ -20,6 +20,26 @@ export interface IAdminPluginCompatibility {
     detectedSdk: string;
 }
 
+/**
+ * Update available for an installed plugin. Mirrors a single row of
+ * `listAvailableUpdates()` and is embedded into each installed-plugin
+ * row by `PluginAdminService::listPlugins()` so the Installed tab can
+ * render an inline "Update available" badge + Update button without a
+ * separate registry round-trip.
+ */
+export interface IAdminPluginAvailableUpdate {
+    pluginId: string;
+    name: string;
+    installedVersion: string;
+    availableVersion: string;
+    diffKind: 'patch' | 'minor' | 'major' | 'unknown';
+    sourceName: string;
+    trustLevel: 'official' | 'reviewed' | 'untrusted' | string;
+    manifestUrl?: string | null;
+    manifest?: Record<string, unknown> | null;
+    registryEntry: Record<string, unknown>;
+}
+
 export interface IAdminPluginSummary {
     pluginId: string;
     name: string;
@@ -41,6 +61,13 @@ export interface IAdminPluginSummary {
     enabledAt?: string | null;
     disabledAt?: string | null;
     compatibility?: IAdminPluginCompatibility;
+    /**
+     * Cross-referenced registry entry advertising a strictly-newer
+     * version of this plugin. `null` when the registry has no newer
+     * version, when the registry lookup failed, or when no registry
+     * source is enabled.
+     */
+    availableUpdate?: IAdminPluginAvailableUpdate | null;
 }
 
 export interface IAdminPluginOperation {
