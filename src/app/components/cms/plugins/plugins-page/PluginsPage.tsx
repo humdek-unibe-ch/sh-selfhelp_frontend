@@ -52,6 +52,7 @@ import {
 } from '../hooks/useAdminPlugins';
 import { PluginSourcesPanel } from '../plugin-sources-panel/PluginSourcesPanel';
 import { AvailablePluginsPanel } from '../available-plugins-panel/AvailablePluginsPanel';
+import { PluginVersionMismatchBanner } from '../plugin-version-mismatch-banner/PluginVersionMismatchBanner';
 
 type TPluginsTab = 'installed' | 'available' | 'sources';
 const PLUGINS_TABS: readonly TPluginsTab[] = ['installed', 'available', 'sources'];
@@ -251,6 +252,8 @@ export function PluginsPage() {
                     All plugins are disabled at boot. Disable safe mode (CLI: <Text component="span" ff="monospace">php bin/console selfhelp:plugin:safe-mode off</Text>) to resume normal operation.
                 </Alert>
             )}
+
+            <PluginVersionMismatchBanner />
 
             <Tabs value={activeTab} onChange={setActiveTab} keepMounted={false}>
                 <Tabs.List>

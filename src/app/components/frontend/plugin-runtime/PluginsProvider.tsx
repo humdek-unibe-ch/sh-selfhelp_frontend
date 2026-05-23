@@ -28,7 +28,12 @@ SPDX-License-Identifier: MPL-2.0
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getPluginRuntime, type IPluginManifest, type IPluginRuntimeSnapshot } from './PluginRuntime';
+import {
+    getPluginRuntime,
+    type IPluginManifest,
+    type IPluginRuntimeSnapshot,
+    type IPluginVersionWarning,
+} from './PluginRuntime';
 
 interface IPluginsContextValue {
     snapshot: IPluginRuntimeSnapshot;
@@ -45,6 +50,7 @@ const EMPTY_SNAPSHOT: IPluginRuntimeSnapshot = {
     menuItems: [],
     healthChecks: [],
     featureFlags: [],
+    versionWarnings: [],
 };
 
 const PluginsContext = createContext<IPluginsContextValue>({
@@ -158,4 +164,15 @@ export function usePluginMenuItems() {
 export function usePluginFeatureFlags() {
     const { snapshot } = usePluginRuntime();
     return snapshot.featureFlags;
+}
+
+/**
+ * Live list of plugin runtime warnings. Empty in a healthy
+ * deployment; populated when the host manifest references a plugin
+ * version that does not match the npm package the host actually
+ * imports.
+ */
+export function usePluginVersionWarnings(): IPluginVersionWarning[] {
+    const { snapshot } = usePluginRuntime();
+    return snapshot.versionWarnings;
 }

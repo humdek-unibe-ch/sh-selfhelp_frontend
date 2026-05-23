@@ -3,7 +3,15 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 export { PluginRuntime, getPluginRuntime, _resetPluginRuntime } from './PluginRuntime';
-export type { IPluginManifest, IPluginManifestEntry, IPluginRuntimeSnapshot, IPluginRuntimeOptions, TPluginStyleComponent } from './PluginRuntime';
+export type {
+    IPluginManifest,
+    IPluginManifestEntry,
+    IPluginRuntimeSnapshot,
+    IPluginRuntimeOptions,
+    IPluginVersionWarning,
+    TPluginStyleComponent,
+    TPluginVersionWarningKind,
+} from './PluginRuntime';
 export {
     PluginsProvider,
     usePluginRuntime,
@@ -11,6 +19,7 @@ export {
     usePluginAdminPages,
     usePluginMenuItems,
     usePluginFeatureFlags,
+    usePluginVersionWarnings,
 } from './PluginsProvider';
 
 /**
@@ -20,11 +29,12 @@ export {
  * to take a peer dependency on `@selfhelp/shared/plugin-sdk` themselves.
  *
  * BFF wiring: the hook expects same-origin SSE under
- * `/api/plugins/events?pluginId=...&topic=...`. The host BFF proxy that
- * forwards the request to the Symfony plugin topic bootstrap endpoint
- * (and back to Mercure) is tracked as a follow-up; until it lands, the
- * hook reports `isOnline: false` for plugin topics and consumers should
- * render an "offline" hint instead of polling.
+ * `/api/plugins/events`. The Next.js BFF route at
+ * `src/app/api/plugins/events/route.ts` proxies the connection to the
+ * Symfony plugin topic bootstrap endpoint (`/cms-api/v1/auth/events`)
+ * and the Mercure hub, multiplexing every plugin topic IRI the user
+ * is allowed to subscribe to. The route returns 204 when no topics
+ * are granted so the EventSource stops cleanly.
  */
 export { usePluginRealtime } from '@selfhelp/shared/plugin-sdk';
 export type {

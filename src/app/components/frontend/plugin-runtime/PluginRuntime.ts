@@ -33,6 +33,7 @@ import type {
     IPluginHealthCheck,
     IPluginRealtimeTopic,
     IPluginRegistration,
+    IRichTextEditorAdapter,
     IStyleDefinition,
 } from '@selfhelp/shared/plugin-sdk';
 import { PLUGIN_API_VERSION, isPluginApiCompatible } from '@selfhelp/shared/plugin-sdk';
@@ -98,6 +99,34 @@ interface IRegisteredPlugin {
     featureFlagValues: Record<string, boolean>;
 }
 
+/**
+ * Reason a plugin entry was skipped at boot time. Surfaced on the
+ * snapshot so the admin UI can warn the operator that the runtime
+ * silently dropped a plugin instead of mounting it.
+ */
+export type TPluginVersionWarningKind =
+    | 'incompatibleApiVersion'
+    | 'registrationMismatch'
+    | 'importFailed'
+    | 'registerThrew'
+    | 'styleRegistryFailed'
+    | 'missingRegister';
+
+export interface IPluginVersionWarning {
+    pluginId: string;
+    pluginName?: string;
+    kind: TPluginVersionWarningKind;
+    /** Version the host expected (from the manifest). */
+    expectedVersion: string;
+    /** Version the plugin reported (when known). */
+    actualVersion?: string;
+    /** API version reported by the plugin manifest entry. */
+    declaredApiVersion?: string;
+    /** API version the host SDK ships with. */
+    hostApiVersion?: string;
+    message: string;
+}
+
 export interface IPluginRuntimeSnapshot {
     plugins: IRegisteredPlugin[];
     styleComponents: Record<string, TPluginStyleComponent>;
@@ -105,6 +134,12 @@ export interface IPluginRuntimeSnapshot {
     menuItems: Array<IMenuItemDefinition & { pluginId: string }>;
     healthChecks: Array<IPluginHealthCheck & { pluginId: string }>;
     featureFlags: Array<IPluginFeatureFlag & { pluginId: string; value: boolean }>;
+    /**
+     * Plugins the runtime tried to mount but had to drop. Each entry
+     * tells the admin which plugin failed and why. Empty in a healthy
+     * deployment.
+     */
+    versionWarnings: IPluginVersionWarning[];
 }
 
 export interface IPluginRuntimeOptions {
@@ -124,6 +159,16 @@ export interface IPluginRuntimeOptions {
         warn(message: string, context?: Record<string, unknown>): void;
         error(message: string, context?: Record<string, unknown>): void;
     };
+    /**
+     * Rich-text editor adapter injected by the host. Plugins that mount
+     * a rich-text editor receive this through `IPluginApi.richTextEditor`.
+     * When `undefined`, the runtime installs a soft no-op stub that
+     * logs once instead of throwing — this is fine for plugins that
+     * never call `richTextEditor.mount`, but plugins that DO rely on
+     * it will silently fall back. Wire a real adapter from the host's
+     * editor module before booting the runtime.
+     */
+    richTextEditor?: IRichTextEditorAdapter;
 }
 
 const DEFAULT_LOGGER = {
@@ -147,9 +192,39 @@ const DEFAULT_LOGGER = {
     },
 };
 
+/**
+ * Soft no-op rich-text adapter. Plugins that don't use rich text never
+ * touch it; plugins that DO get a friendly warning the first time
+ * they try to mount instead of a hard exception. Tests + production
+ * boot wire a real adapter through `IPluginRuntimeOptions.richTextEditor`.
+ */
+function createStubRichTextAdapter(logger: NonNullable<IPluginRuntimeOptions['logger']>): IRichTextEditorAdapter {
+    let warned = false;
+    return {
+        mount() {
+            if (!warned) {
+                logger.warn(
+                    'Plugin attempted to mount the rich-text editor adapter, but the host has not provided one. ' +
+                    'Wire IPluginRuntimeOptions.richTextEditor in the host before initialising the runtime.',
+                );
+                warned = true;
+            }
+            return {
+                setValue() {
+                    /* no-op stub */
+                },
+                destroy() {
+                    /* no-op stub */
+                },
+            };
+        },
+    };
+}
+
 export class PluginRuntime {
     private readonly logger: NonNullable<IPluginRuntimeOptions['logger']>;
     private readonly importPlugin: (packageName: string) => Promise<unknown>;
+    private readonly richTextEditor: IRichTextEditorAdapter;
     private snapshot: IPluginRuntimeSnapshot = {
         plugins: [],
         styleComponents: {},
@@ -157,7 +232,9 @@ export class PluginRuntime {
         menuItems: [],
         healthChecks: [],
         featureFlags: [],
+        versionWarnings: [],
     };
+    private pendingWarnings: IPluginVersionWarning[] = [];
     private lastManifestSignature: string | null = null;
     private booting: Promise<IPluginRuntimeSnapshot> | null = null;
 
@@ -166,6 +243,17 @@ export class PluginRuntime {
         this.importPlugin = options.importPlugin ?? ((packageName: string) =>
             // eslint-disable-next-line @typescript-eslint/no-implied-eval
             (Function('p', 'return import(/* webpackIgnore: true */ p)') as (p: string) => Promise<unknown>)(packageName));
+        this.richTextEditor = options.richTextEditor ?? createStubRichTextAdapter(this.logger);
+    }
+
+    /**
+     * Late-bind the rich-text adapter from the host. Useful when the
+     * editor module is code-split and only loaded for admin sessions.
+     * The next plugin `boot()` picks up the new adapter for any
+     * registrations that mount editor instances.
+     */
+    setRichTextEditor(adapter: IRichTextEditorAdapter): void {
+        (this as unknown as { richTextEditor: IRichTextEditorAdapter }).richTextEditor = adapter;
     }
 
     /**
@@ -251,7 +339,9 @@ export class PluginRuntime {
             menuItems: [],
             healthChecks: [],
             featureFlags: [],
+            versionWarnings: [],
         };
+        this.pendingWarnings = [];
 
         const enabled = manifest.plugins.filter((p) => p.enabled && p.frontendPackage);
         for (const entry of enabled) {
@@ -261,13 +351,30 @@ export class PluginRuntime {
                     declared: entry.pluginApiVersion,
                     hostSdk: PLUGIN_API_VERSION,
                 });
+                this.recordWarning({
+                    pluginId: entry.pluginId,
+                    pluginName: entry.name,
+                    kind: 'incompatibleApiVersion',
+                    expectedVersion: entry.version,
+                    declaredApiVersion: entry.pluginApiVersion,
+                    hostApiVersion: PLUGIN_API_VERSION,
+                    message: `Plugin "${entry.name ?? entry.pluginId}" declares pluginApiVersion ${entry.pluginApiVersion}, but the host SDK is ${PLUGIN_API_VERSION}. The plugin was not loaded — update the plugin or the host to a matching API version.`,
+                });
                 continue;
             }
             await this.registerOne(entry);
         }
 
+        this.snapshot = {
+            ...this.snapshot,
+            versionWarnings: [...this.pendingWarnings],
+        };
         this.lastManifestSignature = signature;
         return this.snapshot;
+    }
+
+    private recordWarning(warning: IPluginVersionWarning): void {
+        this.pendingWarnings.push(warning);
     }
 
     private async registerOne(entry: IPluginManifestEntry): Promise<void> {
@@ -282,6 +389,13 @@ export class PluginRuntime {
                 packageName,
                 error: error instanceof Error ? error.message : String(error),
             });
+            this.recordWarning({
+                pluginId: entry.pluginId,
+                pluginName: entry.name,
+                kind: 'importFailed',
+                expectedVersion: entry.version,
+                message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: import of "${packageName}" failed (${error instanceof Error ? error.message : String(error)}). The installed npm package version probably does not match ${entry.frontendPackageVersion ?? entry.version}. Re-run \`pnpm install\` (or its equivalent) on the host.`,
+            });
             return;
         }
 
@@ -290,6 +404,13 @@ export class PluginRuntime {
             this.logger.warn('Plugin package does not export register()', {
                 pluginId: entry.pluginId,
                 packageName,
+            });
+            this.recordWarning({
+                pluginId: entry.pluginId,
+                pluginName: entry.name,
+                kind: 'missingRegister',
+                expectedVersion: entry.version,
+                message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: npm package "${packageName}" does not export a register() function. The installed package version may be outdated.`,
             });
             return;
         }
@@ -303,6 +424,13 @@ export class PluginRuntime {
                 pluginId: entry.pluginId,
                 error: error instanceof Error ? error.message : String(error),
             });
+            this.recordWarning({
+                pluginId: entry.pluginId,
+                pluginName: entry.name,
+                kind: 'registerThrew',
+                expectedVersion: entry.version,
+                message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: register() threw (${error instanceof Error ? error.message : String(error)}). The plugin was not mounted.`,
+            });
             return;
         }
 
@@ -312,6 +440,14 @@ export class PluginRuntime {
                 declaredId: registration.id,
                 declaredVersion: registration.version,
                 expectedVersion: entry.version,
+            });
+            this.recordWarning({
+                pluginId: entry.pluginId,
+                pluginName: entry.name,
+                kind: 'registrationMismatch',
+                expectedVersion: entry.version,
+                actualVersion: registration.version,
+                message: `Plugin "${entry.name ?? entry.pluginId}": host expected v${entry.version} but the installed npm package reports v${registration.version}. Run \`pnpm install\` (or equivalent) to align the npm dependency with the host manifest.`,
             });
             return;
         }
@@ -339,6 +475,13 @@ export class PluginRuntime {
                 this.logger.error('Plugin style registration failed', {
                     pluginId: entry.pluginId,
                     error: error instanceof Error ? error.message : String(error),
+                });
+                this.recordWarning({
+                    pluginId: entry.pluginId,
+                    pluginName: entry.name,
+                    kind: 'styleRegistryFailed',
+                    expectedVersion: entry.version,
+                    message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: style registry extension failed (${error instanceof Error ? error.message : String(error)}). Plugin styles may already be claimed by another plugin.`,
                 });
                 return;
             }
@@ -381,6 +524,7 @@ export class PluginRuntime {
                     value: this.resolveFlagValue(flag, registered.featureFlagValues),
                 })),
             ],
+            versionWarnings: this.snapshot.versionWarnings,
         };
 
         this.logger.info('Plugin registered', {
@@ -407,16 +551,12 @@ export class PluginRuntime {
             // Mercure endpoint via fetch / EventSource. The publisher
             // surface is reserved for backend plugin code.
             realtime: undefined,
-            // Plugins that need a rich-text editor will inject their
-            // own adapter; the host placeholder throws to encourage
-            // explicit wiring.
-            richTextEditor: {
-                mount() {
-                    throw new Error(
-                        '[plugin-runtime] Rich-text editor adapter has not been provided by the host yet. Wire one through IPluginApi.richTextEditor.',
-                    );
-                },
-            },
+            // Rich-text adapter is injected by the host through
+            // `IPluginRuntimeOptions.richTextEditor` (or `setRichTextEditor`).
+            // Plugins that don't use rich text never touch this; plugins
+            // that DO get a friendly warning when no adapter is wired,
+            // not a hard exception.
+            richTextEditor: this.richTextEditor,
             log: this.logger,
         };
     }
