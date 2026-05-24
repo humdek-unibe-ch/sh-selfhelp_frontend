@@ -16,14 +16,13 @@ SPDX-License-Identifier: MPL-2.0
  *      thin convenience hooks for components that only need a slice.
  *
  * No-polling policy:
- *   The provider does not poll. The Symfony backend publishes a
- *   `selfhelp/plugins/manifest` Mercure update on every successful
- *   install/update/enable/disable/uninstall operation; the frontend
- *   subscribes through `useAclEventStream` style and re-fetches when
- *   it sees the event. Initial wiring of that subscription lives in
- *   `useAdminPluginsRealtime` (Phase 3, follow-up). Until that wiring
- *   ships, the manifest is fetched once and React Query stale-while-
- *   revalidate behavior covers manual refreshes.
+ *   The provider does not poll. The Symfony backend publishes plugin
+ *   lifecycle events on the admin plugin state Mercure topic; the
+ *   frontend subscribes through `useAdminPluginsRealtime` (mounted in
+ *   `RefineWrapper`) and invalidates the `plugins-manifest` query on
+ *   every relevant event. Local admin mutations also call
+ *   `queryClient.invalidateQueries({ queryKey: ['plugins-manifest'] })`
+ *   directly so the optimistic refetch fires before the round-trip.
  */
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';

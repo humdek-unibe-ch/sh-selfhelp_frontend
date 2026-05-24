@@ -50,6 +50,7 @@ import { cookieColorSchemeManager } from '../utils/cookie-color-scheme-manager';
 import { useMemo, useState } from 'react';
 import { useAclVersionWatcher } from '../hooks/useAclVersionWatcher';
 import { useAclEventStream } from '../hooks/useAclEventStream';
+import { useAdminPluginsRealtime } from '../app/components/cms/plugins/hooks/useAdminPluginsRealtime';
 import type { ILanguage } from '../types/responses/admin/languages.types';
 import { getQueryClient } from './query-client';
 import type { QueryClient } from '@tanstack/react-query';
@@ -77,6 +78,15 @@ function RefineWrapper({
     // grants the user a new page surfaces in the menu within ~1 RTT,
     // without requiring a click.
     useAclEventStream();
+
+    // Real-time push from Symfony for the admin plugin manager
+    // (`/plugins/events` SSE proxied through the BFF). On plugin
+    // lifecycle / operation-progress events we invalidate the
+    // `admin-plugins`, `admin-plugin-operations`, and `plugins-manifest`
+    // React Query caches so the UI reacts to background workers without
+    // polling. Users without `admin.plugins.manage` receive zero topics
+    // and the BFF returns 204, so the hook is free for non-admins.
+    useAdminPluginsRealtime();
 
     // Important: do NOT block rendering on `isLoading`. The navigation query
     // is prefetched on the server when SSR is enabled, and the tree below
