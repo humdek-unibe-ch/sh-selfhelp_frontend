@@ -108,12 +108,11 @@ export const AdminPluginApi = {
         manifest: Record<string, unknown> | null;
         compatibility: { severity: 'ok' | 'warning' | 'blocking'; reasons: string[] } | null;
         capabilities: string[];
-        signatureStatus: 'verified' | 'invalid' | 'unsigned' | 'unverifiable';
-        // Structured signature descriptor. Mirrors `signatureStatus`
-        // for forwards compatibility, plus surfaces the parsed
-        // `keyId` (when readable from `signature.json`) and the
-        // recoverable `unknownKey` failure that drives the trust
-        // helper UI.
+        // Canonical signature descriptor — `status` is the single
+        // source of truth (no parallel top-level field), `keyId` is
+        // parsed from `signature.json` when readable, and `unknownKey`
+        // drives the trust helper UI for the recoverable "unknown
+        // signing key" failure.
         signature: {
             status: 'verified' | 'invalid' | 'unsigned' | 'unverifiable';
             keyId: string | null;
@@ -121,15 +120,15 @@ export const AdminPluginApi = {
         };
         errors: string[];
         warnings: string[];
-        // Phase 2a — describes how the host will install the backend
-        // bundle for this archive. `mode=connected` means the host
-        // pulls the Composer package from Packagist / VCS; `standalone`
-        // means the package is included in the archive and installed
-        // via a Composer path repository. Both modes still require
-        // Composer to reach a package source for the plugin's third-
-        // party PHP dependencies — `.shplugin` is not a fully offline
-        // install bundle, so there is intentionally no
-        // `internetRequired` flag here.
+        // Describes how the host will install the backend bundle for
+        // this archive. `mode=connected` means the host pulls the
+        // Composer package from Packagist / VCS; `standalone` means
+        // the package is included in the archive and installed via a
+        // Composer path repository. Both modes still require Composer
+        // to reach a package source for the plugin's third-party PHP
+        // dependencies — `.shplugin` is not a fully offline install
+        // bundle, so there is intentionally no `internetRequired`
+        // flag here.
         archive: {
             mode: 'connected' | 'standalone';
             backendIncluded: boolean;

@@ -53,7 +53,7 @@ import {
     Tooltip,
 } from '@mantine/core';
 import { Dropzone, type FileWithPath } from '@mantine/dropzone';
-import { IconArrowUp, IconCopy, IconDownload, IconFileUpload, IconUpload, IconX } from '@tabler/icons-react';
+import { IconArrowUp, IconCopy, IconDownload, IconFileUpload, IconRefresh, IconUpload, IconX } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { MonacoFieldEditor } from '../../shared/monaco-field-editor/MonacoFieldEditor';
@@ -102,7 +102,6 @@ export function PluginsPage() {
         manifest: Record<string, unknown> | null;
         compatibility: { severity: 'ok' | 'warning' | 'blocking'; reasons: string[] } | null;
         capabilities: string[];
-        signatureStatus: 'verified' | 'invalid' | 'unsigned' | 'unverifiable';
         signature: {
             status: 'verified' | 'invalid' | 'unsigned' | 'unverifiable';
             keyId: string | null;
@@ -185,7 +184,6 @@ export function PluginsPage() {
                 manifest: result.data.manifest,
                 compatibility: result.data.compatibility,
                 capabilities: result.data.capabilities,
-                signatureStatus: result.data.signatureStatus,
                 signature: result.data.signature,
                 errors: result.data.errors ?? [],
                 warnings: result.data.warnings ?? [],
@@ -776,8 +774,8 @@ export function PluginsPage() {
                                                         {installArchivePreview.compatibility.severity}
                                                     </Badge>
                                                 )}
-                                                <Badge color={installArchivePreview.signatureStatus === 'verified' ? 'green' : 'red'}>
-                                                    {installArchivePreview.signatureStatus}
+                                                <Badge color={installArchivePreview.signature.status === 'verified' ? 'green' : 'red'}>
+                                                    {installArchivePreview.signature.status}
                                                 </Badge>
                                                 <Badge variant="light">{installArchivePreview.capabilities.length} capabilities</Badge>
                                                 <Tooltip
@@ -836,7 +834,7 @@ export function PluginsPage() {
                                                     </Stack>
                                                 </Alert>
                                             )}
-                                            {installArchivePreview.signatureStatus === 'invalid' && installArchivePreview.signature?.unknownKey && (
+                                            {installArchivePreview.signature.status === 'invalid' && installArchivePreview.signature.unknownKey && (
                                                 <Alert color="yellow" variant="light" title="Unknown publisher key">
                                                     <Stack gap="xs">
                                                         <Text size="sm">

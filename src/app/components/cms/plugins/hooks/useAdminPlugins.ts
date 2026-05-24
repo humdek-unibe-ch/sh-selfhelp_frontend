@@ -228,8 +228,8 @@ export function useAdminPluginInstall() {
 
 /**
  * Pre-install inspection for `.shplugin` uploads. Returns the parsed
- * manifest + compatibility + capabilities + signatureStatus without
- * triggering an install.
+ * manifest + compatibility + capabilities + signature descriptor
+ * without triggering an install.
  *
  * The optional `trustedKey` field carries a per-request trust
  * override used by the inspect-archive trust-helper panel — see
