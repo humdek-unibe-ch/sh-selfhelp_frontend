@@ -750,6 +750,10 @@ export const API_CONFIG = {
             route: (operationId: number) => `/admin/plugins/operations/${operationId}/rollback`,
             permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
+        ADMIN_PLUGIN_OPERATION_CANCEL: {
+            route: (operationId: number) => `/admin/plugins/operations/${operationId}/cancel`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
+        },
 
         // Admin plugin feature flags
         ADMIN_PLUGIN_FEATURE_FLAGS_LIST: {

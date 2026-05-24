@@ -252,6 +252,16 @@ export const AdminPluginApi = {
         return response.data;
     },
 
+    /**
+     * Force-cancel a stuck operation row. Mirrors the
+     * `selfhelp:plugin:cancel-operation` CLI command so admins can
+     * clear a stuck operation without dropping to a shell.
+     */
+    async cancelOperation(operationId: number): Promise<IBaseApiResponse<IAdminPluginOperation>> {
+        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_OPERATION_CANCEL, undefined, operationId);
+        return response.data;
+    },
+
     async listFeatureFlags(pluginId: string): Promise<IBaseApiResponse<IAdminPluginFeatureFlag[]>> {
         const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_FEATURE_FLAGS_LIST, pluginId);
         return response.data;

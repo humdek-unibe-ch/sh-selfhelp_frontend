@@ -125,6 +125,17 @@ export function useAdminPluginRollback() {
     });
 }
 
+export function useAdminPluginCancelOperation() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (operationId: number) => AdminPluginApi.cancelOperation(operationId),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: KEY });
+            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
+        },
+    });
+}
+
 export function useAdminPluginRepair() {
     const qc = useQueryClient();
     return useMutation({

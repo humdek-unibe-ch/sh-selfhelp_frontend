@@ -74,7 +74,7 @@ export interface IAdminPluginOperation {
     id: number;
     pluginId: string;
     type: 'install' | 'update' | 'enable' | 'disable' | 'uninstall' | 'purge' | 'rollback' | 'repair';
-    status: 'requested' | 'running' | 'succeeded' | 'failed' | 'rolled_back';
+    status: 'requested' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'rolled_back';
     requestedVersion?: string | null;
     fromVersion?: string | null;
     toVersion?: string | null;
