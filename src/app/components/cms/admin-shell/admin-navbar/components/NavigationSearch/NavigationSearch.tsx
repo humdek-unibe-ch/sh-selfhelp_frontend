@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import styles from './NavigationSearch.module.css';
 import { useNavigationStore } from '../../../../../../store/navigation.store';
 import { useAuth } from '../../../../../../../hooks/useAuth';
+import { usePluginMenuItems } from '../../../../../frontend/plugin-runtime';
 
 interface ISearchableItem {
     id: string;
@@ -73,7 +74,12 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
     const [searchQuery, setSearchQuery] = useState('');
     const router = useRouter();
     const { setActiveItem } = useNavigationStore();
-    const { permissionChecker } = useAuth();
+    const { permissionChecker, hasPermission } = useAuth();
+    // Plugin-contributed menu items live in the PluginRuntime snapshot.
+    // Reading them here (instead of taking another prop) keeps the
+    // component's call sites unchanged while still making every
+    // installed-and-enabled plugin page reachable via Ctrl-F.
+    const pluginMenuItems = usePluginMenuItems();
 
     // Build searchable items from all admin functions and pages
     const searchableItems = useMemo<ISearchableItem[]>(() => {
@@ -159,6 +165,34 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
         }
 
         items.push(...staticFunctions);
+
+        // Plugin-contributed menu items (e.g. "Surveys" from the
+        // SurveyJS plugin). The PluginRuntime snapshot lists every
+        // entry an installed-and-enabled plugin contributed via
+        // `register().menuItems`; we gate each one on its declared
+        // permission so users see the same set the sidebar shows.
+        // Keywords mix the human label, the plugin id, and `plugin`
+        // so searching either "surveys" or "surveyjs" hits the row.
+        pluginMenuItems
+            .filter((mi) => !mi.permission || hasPermission(mi.permission))
+            .forEach((mi) => {
+                const href = mi.href ?? `/admin/plugins-host/${mi.pluginId}/${mi.key}`;
+                const labelLower = mi.label.toLowerCase();
+                items.push({
+                    id: `plugin-menu-${mi.pluginId}-${mi.key}`,
+                    label: mi.label,
+                    href,
+                    icon: <IconPuzzle size={16} />,
+                    category: `Plugin: ${mi.pluginId}`,
+                    keywords: [
+                        labelLower,
+                        mi.key,
+                        mi.pluginId,
+                        'plugin',
+                        'plugins',
+                    ].filter(Boolean),
+                });
+            });
 
         // Add dynamic pages from adminPagesData
         if (adminPagesData) {
@@ -335,7 +369,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
         }
 
         return items;
-    }, [adminPagesData, permissionChecker]);
+    }, [adminPagesData, permissionChecker, pluginMenuItems, hasPermission]);
 
     // Filter items based on search query with improved ranking
     const filteredItems = useMemo(() => {
