@@ -6,11 +6,13 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * plugins-sync.mjs
  *
- * Reads the live plugin manifest from a SelfHelp backend, generates
- * a deterministic `selfhelp.plugins.lock.json` next to the project,
- * and ensures every enabled plugin's frontend npm package is listed
- * in `package.json` dependencies. Designed to be run as part of CI
- * before `npm install` so deployments are reproducible.
+ * Reads the live plugin manifest from a SelfHelp backend and writes
+ * a deterministic `selfhelp.plugins.lock.json` next to the project so
+ * deployments are reproducible. Frontend plugins ship as ESM bundles
+ * loaded at runtime from `/plugin-artifacts/<id>-<ver>/...`, so this
+ * script intentionally does NOT touch `package.json` — the host's
+ * dependencies stay decoupled from whatever plugins happen to be
+ * installed on a given CMS instance.
  *
  * Usage:
  *   node scripts/plugins-sync.mjs --backend https://cms.example.org [--lock selfhelp.plugins.lock.json] [--dry-run]
@@ -37,7 +39,6 @@ function argFlag(name) {
 
 const backendUrl = argFlag('backend') ?? process.env.SELFHELP_BACKEND_URL;
 const lockPath = path.resolve(process.cwd(), String(argFlag('lock') ?? 'selfhelp.plugins.lock.json'));
-const packagePath = path.resolve(process.cwd(), 'package.json');
 const dryRun = Boolean(argFlag('dry-run'));
 
 if (!backendUrl || typeof backendUrl !== 'string') {
@@ -64,26 +65,38 @@ async function fetchManifest(base) {
     return json.data;
 }
 
+function assertPluginShape(plugin, idx) {
+    if (typeof plugin !== 'object' || plugin === null) {
+        throw new Error(`manifest.plugins[${idx}] is not an object.`);
+    }
+    if (typeof plugin.pluginId !== 'string' || plugin.pluginId === '') {
+        throw new Error(`manifest.plugins[${idx}].pluginId must be a non-empty string.`);
+    }
+    if (typeof plugin.version !== 'string' || plugin.version === '') {
+        throw new Error(`manifest.plugins[${idx}].version must be a non-empty string.`);
+    }
+}
+
 function buildLock(manifest) {
-    const plugins = (manifest.plugins ?? []).map((p) => ({
-        id: p.pluginId,
-        version: p.version,
-        pluginApiVersion: p.pluginApiVersion,
-        enabled: p.enabled,
-        trustLevel: p.trustLevel,
-        frontend: p.frontendRuntimeUrl
-            ? {
-                runtimeUrl: p.frontendRuntimeUrl,
-                stylesheetUrl: p.frontendRuntimeStylesheetUrl ?? null,
-                integrity: p.frontendRuntimeIntegrity ?? null,
-                format: p.frontendRuntimeFormat ?? 'esm',
-            }
-            : null,
-        mobile: p.mobilePackage
-            ? { package: p.mobilePackage, version: p.mobilePackageVersion ?? p.version }
-            : null,
-        capabilities: p.capabilities ?? [],
-    }));
+    const plugins = (manifest.plugins ?? []).map((p, idx) => {
+        assertPluginShape(p, idx);
+        return {
+            id: p.pluginId,
+            version: p.version,
+            pluginApiVersion: p.pluginApiVersion ?? null,
+            enabled: Boolean(p.enabled),
+            trustLevel: p.trustLevel ?? null,
+            frontend: p.frontendRuntimeUrl
+                ? {
+                    runtimeUrl: p.frontendRuntimeUrl,
+                    stylesheetUrl: p.frontendRuntimeStylesheetUrl ?? null,
+                    integrity: p.frontendRuntimeIntegrity ?? null,
+                    format: p.frontendRuntimeFormat ?? 'esm',
+                }
+                : null,
+            capabilities: Array.isArray(p.capabilities) ? p.capabilities : [],
+        };
+    });
     return {
         schemaVersion: '1.0',
         generatedAt: new Date().toISOString(),
@@ -115,46 +128,6 @@ async function writeLock(target, payload) {
     return true;
 }
 
-async function syncPackageJson(target, payload) {
-    const raw = await fs.readFile(target, 'utf8');
-    const pkg = JSON.parse(raw);
-    pkg.dependencies = pkg.dependencies ?? {};
-
-    const updated = {};
-    for (const plugin of payload.plugins) {
-        if (!plugin.enabled || !plugin.frontend) continue;
-        updated[plugin.frontend.package] = plugin.frontend.version
-            ? `^${plugin.frontend.version}`
-            : 'latest';
-    }
-
-    // Preserve unrelated dependencies; only ensure plugin packages are
-    // present (do NOT auto-remove other plugins the operator might have
-    // pinned manually).
-    let changed = false;
-    for (const [pkgName, constraint] of Object.entries(updated)) {
-        if (pkg.dependencies[pkgName] !== constraint) {
-            pkg.dependencies[pkgName] = constraint;
-            changed = true;
-        }
-    }
-
-    if (!changed) {
-        console.log('plugins-sync: package.json already lists all enabled plugin packages.');
-        return false;
-    }
-
-    if (dryRun) {
-        console.log('plugins-sync: would update package.json dependencies:');
-        console.log(JSON.stringify(updated, null, 2));
-        return false;
-    }
-
-    await fs.writeFile(target, `${JSON.stringify(pkg, null, 2)}\n`, 'utf8');
-    console.log('plugins-sync: package.json updated. Run `npm install` next.');
-    return true;
-}
-
 async function main() {
     try {
         const manifest = await fetchManifest(backendUrl);
@@ -164,10 +137,9 @@ async function main() {
         }
         const lock = buildLock(manifest);
         await writeLock(lockPath, lock);
-        await syncPackageJson(packagePath, lock);
     } catch (err) {
         console.error('plugins-sync:', err.message ?? err);
-        process.exit(1);
+        process.exit(err?.code === 'ENOENT' || err?.code === 'EACCES' ? 3 : err?.message?.startsWith('manifest.plugins') ? 2 : 1);
     }
 }
 
