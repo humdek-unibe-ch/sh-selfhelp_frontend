@@ -9,15 +9,30 @@ import { PluginHostRouteContainer } from '../../../../components/cms/plugins/plu
 
 export const dynamic = 'force-dynamic';
 
-interface IPageProps {
-    params: { pluginId: string; slug: string };
+interface IPluginHostRouteParams {
+    pluginId: string;
+    slug: string;
 }
 
-export default function PluginAdminPage({ params }: IPageProps) {
+// `params` is a Promise on Next.js 15+ / 16. The old synchronous shape
+// resolved to `{}` at render time, so `pluginId` and `slug` arrived as
+// `undefined` and `PluginHostRouteContainer` rendered the "Page not
+// found at /" empty state for every plugin URL. Awaiting the promise
+// matches the sibling `/admin/plugins/[pluginId]/page.tsx` pattern.
+export async function generateMetadata({ params }: { params: Promise<IPluginHostRouteParams> }) {
+    const { pluginId, slug } = await params;
+    return { title: `Plugin · ${decodeURIComponent(pluginId)} · ${decodeURIComponent(slug)}` };
+}
+
+export default async function PluginAdminPage({ params }: { params: Promise<IPluginHostRouteParams> }) {
+    const { pluginId, slug } = await params;
     return (
         <AdminShell>
             <Suspense fallback={<LoadingScreen />}>
-                <PluginHostRouteContainer pluginId={params.pluginId} slug={params.slug} />
+                <PluginHostRouteContainer
+                    pluginId={decodeURIComponent(pluginId)}
+                    slug={decodeURIComponent(slug)}
+                />
             </Suspense>
         </AdminShell>
     );
