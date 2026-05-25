@@ -46,6 +46,7 @@ interface IPluginsContextValue {
 const EMPTY_SNAPSHOT: IPluginRuntimeSnapshot = {
     plugins: [],
     styleComponents: {},
+    fieldRenderers: {},
     adminPages: [],
     menuItems: [],
     healthChecks: [],
@@ -97,6 +98,7 @@ async function fetchManifest(baseUrl: string): Promise<IPluginManifest> {
 function PluginsProvider({ apiBaseUrl = '/api', initialManifest, children }: IPluginsProviderProps) {
     const runtime = useMemo(() => getPluginRuntime(), []);
     const [snapshot, setSnapshot] = useState<IPluginRuntimeSnapshot>(EMPTY_SNAPSHOT);
+    const [isBooting, setIsBooting] = useState(false);
 
     const { data, isLoading, error } = useQuery({
         queryKey: ['plugins-manifest', apiBaseUrl],
@@ -112,6 +114,7 @@ function PluginsProvider({ apiBaseUrl = '/api', initialManifest, children }: IPl
 
     useEffect(() => {
         if (!data) return;
+        setIsBooting(true);
         // Stash the host's singleton modules on `globalThis` BEFORE we
         // dynamically import any plugin bundle. The plugin bundle's
         // bare imports (react, @mantine/core, @selfhelp/shared/plugin-sdk,
@@ -121,6 +124,9 @@ function PluginsProvider({ apiBaseUrl = '/api', initialManifest, children }: IPl
         // plugin import throw "host did not populate module".
         populatePluginRuntimeGlobals();
         let cancelled = false;
+        const unsubscribe = runtime.subscribe((next) => {
+            if (!cancelled) setSnapshot(next);
+        });
         runtime
             .boot(data)
             .then((next) => {
@@ -129,20 +135,24 @@ function PluginsProvider({ apiBaseUrl = '/api', initialManifest, children }: IPl
             .catch((err) => {
                 // eslint-disable-next-line no-console
                 console.error('[plugins-provider] boot failed', err);
+            })
+            .finally(() => {
+                if (!cancelled) setIsBooting(false);
             });
         return () => {
             cancelled = true;
+            unsubscribe();
         };
     }, [data, runtime]);
 
     const value: IPluginsContextValue = useMemo(
         () => ({
             snapshot,
-            isLoading,
+            isLoading: isLoading || isBooting,
             error: error instanceof Error ? error : undefined,
             isFeatureEnabled: (pluginId, flagKey) => runtime.isFeatureEnabled(pluginId, flagKey),
         }),
-        [snapshot, isLoading, error, runtime],
+        [snapshot, isLoading, isBooting, error, runtime],
     );
 
     return <PluginsContext.Provider value={value}>{children}</PluginsContext.Provider>;
@@ -157,6 +167,17 @@ export function usePluginRuntime(): IPluginsContextValue {
 export function usePluginStyleComponent(styleName: string) {
     const { snapshot } = usePluginRuntime();
     return snapshot.styleComponents[styleName];
+}
+
+/**
+ * Plugin-supplied editor component for a section field type. Returns
+ * `undefined` when no plugin has registered a renderer for the field
+ * type — callers should fall back to the host's built-in renderer.
+ */
+export function usePluginFieldRenderer(fieldType: string | null | undefined) {
+    const { snapshot } = usePluginRuntime();
+    if (!fieldType) return undefined;
+    return snapshot.fieldRenderers[fieldType];
 }
 
 export function usePluginAdminPages() {

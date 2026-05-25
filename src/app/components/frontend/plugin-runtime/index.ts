@@ -10,12 +10,14 @@ export type {
     IPluginRuntimeOptions,
     IPluginVersionWarning,
     TPluginStyleComponent,
+    TPluginFieldRendererComponent,
     TPluginVersionWarningKind,
 } from './PluginRuntime';
 export {
     PluginsProvider,
     usePluginRuntime,
     usePluginStyleComponent,
+    usePluginFieldRenderer,
     usePluginAdminPages,
     usePluginMenuItems,
     usePluginFeatureFlags,

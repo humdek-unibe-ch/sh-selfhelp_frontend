@@ -34,6 +34,7 @@ import type {
     IMenuItemDefinition,
     IPluginApi,
     IPluginFeatureFlag,
+    IPluginFieldRendererProps,
     IPluginHealthCheck,
     IPluginRealtimeTopic,
     IPluginRegistration,
@@ -83,6 +84,13 @@ export type TPluginStyleComponent = (props: {
     parentColor?: string;
 }) => unknown;
 
+/**
+ * Plugin-supplied CMS section-field editor renderer. Consumed by the
+ * host `FieldRenderer` to render the input control for plugin-owned
+ * field types (e.g. `select-survey-js`).
+ */
+export type TPluginFieldRendererComponent = (props: IPluginFieldRendererProps) => unknown;
+
 interface IRegisteredPlugin {
     id: string;
     version: string;
@@ -91,6 +99,8 @@ interface IRegisteredPlugin {
     disposeRegistry: () => void;
     /** Mounted style components keyed by style name. */
     styleComponents: Record<string, TPluginStyleComponent>;
+    /** Field renderers keyed by `fields.type` (e.g. `select-survey-js`). */
+    fieldRenderers: Record<string, TPluginFieldRendererComponent>;
     /** Admin pages, indexed by `slug`. */
     adminPages: IAdminPageDefinition[];
     /** Menu items the plugin contributes. */
@@ -139,6 +149,13 @@ export interface IPluginVersionWarning {
 export interface IPluginRuntimeSnapshot {
     plugins: IRegisteredPlugin[];
     styleComponents: Record<string, TPluginStyleComponent>;
+    /**
+     * Plugin-supplied field renderers keyed by `fields.type`. The host
+     * `FieldRenderer` looks them up before falling back to its built-in
+     * editor controls, so plugins can ship pickers for plugin-owned
+     * field types without the host hardcoding plugin-specific UI.
+     */
+    fieldRenderers: Record<string, TPluginFieldRendererComponent>;
     adminPages: Array<IAdminPageDefinition & { pluginId: string }>;
     menuItems: Array<IMenuItemDefinition & { pluginId: string }>;
     healthChecks: Array<IPluginHealthCheck & { pluginId: string }>;
@@ -185,6 +202,8 @@ export interface IPluginRuntimeOptions {
      */
     richTextEditor?: IRichTextEditorAdapter;
 }
+
+type TPluginRuntimeListener = (snapshot: IPluginRuntimeSnapshot) => void;
 
 const DEFAULT_LOGGER = {
     debug: (message: string, context?: Record<string, unknown>) => {
@@ -246,6 +265,9 @@ function resolvePluginAssetUrl(runtimeUrl: string, assetUrl: string): string {
     if (assetUrl.startsWith('/') || /^https?:\/\//i.test(assetUrl) || assetUrl.startsWith('//')) {
         return assetUrl;
     }
+    const normalizedAssetUrl = isDevelopmentRuntimeUrl(runtimeUrl) && assetUrl.startsWith('dist/')
+        ? assetUrl.slice('dist/'.length)
+        : assetUrl;
     // The URL parser needs an absolute base; we inject a placeholder
     // origin when the runtime URL is path-only and strip it back off
     // the result. This keeps host-relative URLs in the manifest
@@ -255,13 +277,54 @@ function resolvePluginAssetUrl(runtimeUrl: string, assetUrl: string): string {
         ? runtimeUrl
         : `${placeholderOrigin}${runtimeUrl.startsWith('/') ? '' : '/'}${runtimeUrl}`;
     try {
-        const resolved = new URL(assetUrl, baseAbs);
+        const resolved = new URL(normalizedAssetUrl, baseAbs);
         if (resolved.origin === placeholderOrigin) {
             return resolved.pathname + resolved.search + resolved.hash;
         }
         return resolved.href;
     } catch {
-        return assetUrl;
+        return normalizedAssetUrl;
+    }
+}
+
+function isDevelopmentRuntimeUrl(runtimeUrl: string): boolean {
+    try {
+        const url = new URL(runtimeUrl, typeof window === 'undefined' ? 'http://localhost' : window.location.href);
+        return url.protocol === 'http:' && ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
+    } catch {
+        return false;
+    }
+}
+
+function cacheBustUrl(rawUrl: string, token: string): string {
+    try {
+        const url = new URL(rawUrl, typeof window === 'undefined' ? 'http://localhost' : window.location.href);
+        url.searchParams.set('_shDevReload', token);
+        if (rawUrl.startsWith('/')) {
+            return `${url.pathname}${url.search}${url.hash}`;
+        }
+        return url.href;
+    } catch {
+        const separator = rawUrl.includes('?') ? '&' : '?';
+        return `${rawUrl}${separator}_shDevReload=${encodeURIComponent(token)}`;
+    }
+}
+
+function devReloadEndpointForRuntime(runtimeUrl: string): string | null {
+    try {
+        const url = new URL(runtimeUrl, typeof window === 'undefined' ? 'http://localhost' : window.location.href);
+        if (!isDevelopmentRuntimeUrl(url.href)) {
+            return null;
+        }
+        url.search = '';
+        url.hash = '';
+        const basePath = url.pathname.endsWith('/plugin.esm.js')
+            ? url.pathname.slice(0, -'/plugin.esm.js'.length)
+            : url.pathname.replace(/\/[^/]*$/, '');
+        url.pathname = `${basePath}/__selfhelp_plugin_reload`.replace(/\/{2,}/g, '/');
+        return url.href;
+    } catch {
+        return null;
     }
 }
 
@@ -302,6 +365,7 @@ export class PluginRuntime {
     private snapshot: IPluginRuntimeSnapshot = {
         plugins: [],
         styleComponents: {},
+        fieldRenderers: {},
         adminPages: [],
         menuItems: [],
         healthChecks: [],
@@ -311,6 +375,9 @@ export class PluginRuntime {
     private pendingWarnings: IPluginVersionWarning[] = [];
     private lastManifestSignature: string | null = null;
     private booting: Promise<IPluginRuntimeSnapshot> | null = null;
+    private activeManifest: IPluginManifest | null = null;
+    private readonly listeners = new Set<TPluginRuntimeListener>();
+    private readonly devReloadSources = new Map<string, EventSource>();
 
     constructor(options: IPluginRuntimeOptions = {}) {
         this.logger = options.logger ?? DEFAULT_LOGGER;
@@ -329,6 +396,11 @@ export class PluginRuntime {
      */
     setRichTextEditor(adapter: IRichTextEditorAdapter): void {
         (this as unknown as { richTextEditor: IRichTextEditorAdapter }).richTextEditor = adapter;
+    }
+
+    subscribe(listener: TPluginRuntimeListener): () => void {
+        this.listeners.add(listener);
+        return () => this.listeners.delete(listener);
     }
 
     /**
@@ -397,6 +469,8 @@ export class PluginRuntime {
 
     private async doBoot(manifest: IPluginManifest, signature: string): Promise<IPluginRuntimeSnapshot> {
         this.logger.debug('Booting plugin runtime', { count: manifest.plugins.length });
+        this.closeDevelopmentReloadSources();
+        this.activeManifest = manifest;
         for (const plugin of this.snapshot.plugins) {
             try {
                 plugin.disposeRegistry();
@@ -413,6 +487,7 @@ export class PluginRuntime {
         this.snapshot = {
             plugins: [],
             styleComponents: {},
+            fieldRenderers: {},
             adminPages: [],
             menuItems: [],
             healthChecks: [],
@@ -448,6 +523,8 @@ export class PluginRuntime {
             versionWarnings: [...this.pendingWarnings],
         };
         this.lastManifestSignature = signature;
+        this.openDevelopmentReloadSources(manifest);
+        this.emitSnapshot();
         return this.snapshot;
     }
 
@@ -580,6 +657,11 @@ export class PluginRuntime {
             styleComponents[def.name] = def.component as unknown as TPluginStyleComponent;
         }
 
+        const fieldRenderers: Record<string, TPluginFieldRendererComponent> = {};
+        for (const def of registration.fieldRenderers ?? []) {
+            fieldRenderers[def.fieldType] = def.component as unknown as TPluginFieldRendererComponent;
+        }
+
         let disposeRegistry: () => void = () => undefined;
         if (Object.keys(styleEntries).length > 0) {
             try {
@@ -612,6 +694,7 @@ export class PluginRuntime {
             pluginApiVersion: entry.pluginApiVersion,
             disposeRegistry,
             styleComponents,
+            fieldRenderers,
             adminPages: registration.adminPages ?? [],
             menuItems: registration.menuItems ?? [],
             healthChecks: registration.healthChecks ?? [],
@@ -624,6 +707,7 @@ export class PluginRuntime {
         this.snapshot = {
             plugins: [...this.snapshot.plugins, registered],
             styleComponents: { ...this.snapshot.styleComponents, ...styleComponents },
+            fieldRenderers: { ...this.snapshot.fieldRenderers, ...fieldRenderers },
             adminPages: [
                 ...this.snapshot.adminPages,
                 ...registered.adminPages.map((page) => ({ ...page, pluginId: entry.pluginId })),
@@ -651,6 +735,7 @@ export class PluginRuntime {
             pluginId: entry.pluginId,
             version: entry.version,
             styles: Object.keys(styleComponents).length,
+            fieldRenderers: Object.keys(fieldRenderers).length,
             adminPages: registered.adminPages.length,
         });
     }
@@ -676,6 +761,80 @@ export class PluginRuntime {
             richTextEditor: this.richTextEditor,
             log: this.logger,
         };
+    }
+
+    private emitSnapshot(): void {
+        for (const listener of this.listeners) {
+            listener(this.snapshot);
+        }
+    }
+
+    private openDevelopmentReloadSources(manifest: IPluginManifest): void {
+        if (typeof window === 'undefined' || typeof EventSource === 'undefined') {
+            return;
+        }
+
+        for (const entry of manifest.plugins) {
+            if (!entry.enabled || !entry.frontendRuntimeUrl) {
+                continue;
+            }
+            const endpoint = devReloadEndpointForRuntime(entry.frontendRuntimeUrl);
+            if (!endpoint || this.devReloadSources.has(endpoint)) {
+                continue;
+            }
+            const source = new EventSource(endpoint);
+            source.addEventListener('reload', () => {
+                void this.reloadDevelopmentRuntime(entry.pluginId);
+            });
+            source.onerror = () => {
+                this.logger.warn('Plugin development reload stream disconnected', {
+                    pluginId: entry.pluginId,
+                    endpoint,
+                });
+            };
+            this.devReloadSources.set(endpoint, source);
+        }
+    }
+
+    private closeDevelopmentReloadSources(): void {
+        for (const source of this.devReloadSources.values()) {
+            source.close();
+        }
+        this.devReloadSources.clear();
+    }
+
+    private async reloadDevelopmentRuntime(pluginId: string): Promise<void> {
+        if (!this.activeManifest) {
+            return;
+        }
+
+        const token = String(Date.now());
+        const manifest: IPluginManifest = {
+            ...this.activeManifest,
+            plugins: this.activeManifest.plugins.map((entry) => {
+                if (entry.pluginId !== pluginId || !entry.frontendRuntimeUrl) {
+                    return entry;
+                }
+
+                return {
+                    ...entry,
+                    frontendRuntimeUrl: cacheBustUrl(entry.frontendRuntimeUrl, token),
+                    frontendRuntimeStylesheetUrl: entry.frontendRuntimeStylesheetUrl
+                        ? cacheBustUrl(entry.frontendRuntimeStylesheetUrl, token)
+                        : entry.frontendRuntimeStylesheetUrl,
+                };
+            }),
+        };
+
+        try {
+            await this.boot(manifest);
+        } catch (error) {
+            this.logger.error('Plugin development reload failed', {
+                pluginId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+            window.location.reload();
+        }
     }
 }
 

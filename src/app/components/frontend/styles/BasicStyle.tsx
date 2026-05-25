@@ -46,7 +46,7 @@ import {
     TStyle,
     IStyleWithSpacing
 } from '../../../../types/common/styles.types';
-import { usePluginStyleComponent } from '../plugin-runtime';
+import { usePluginRuntime, usePluginStyleComponent } from '../plugin-runtime';
 
 /**
  * Convert spacing field value to Mantine spacing prop value
@@ -406,6 +406,7 @@ interface IBasicStyleProps {
  */
 const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childIndex, parentColor }) => {
     const pluginRenderer = usePluginStyleComponent(style?.style_name ?? '');
+    const { isLoading: isPluginRuntimeLoading } = usePluginRuntime();
 
     if (!style || !style.style_name) {
         return null;
@@ -442,6 +443,10 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
                 parentColor={parentColor}
             />,
         );
+    }
+
+    if (isPluginRuntimeLoading) {
+        return null;
     }
 
     return wrapWithDebug(<UnknownStyle style={style as never} />);
