@@ -59,6 +59,9 @@ const STATIC_FALLBACK_BY_KEYWORD: Record<string, string> = {
     profile: '/auth/profile',
     register: '/auth/register',
     reset_password: '/auth/reset-password',
+    no_access: '/auth/no-access',
+    no_access_guest: '/auth/no-access-guest',
+    missing: '/auth/missing',
 };
 
 /**
