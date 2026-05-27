@@ -37,7 +37,9 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { useAuthStatus } from '../../../../../hooks/useUserData';
+import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 
 const SSE_ENDPOINT = '/api/plugins/events';
 const MAX_RECONNECT_DELAY_MS = 30_000;
@@ -46,6 +48,8 @@ const INITIAL_RECONNECT_DELAY_MS = 1_000;
 const ADMIN_PLUGINS_KEY = ['admin-plugins'] as const;
 const ADMIN_PLUGIN_OPERATIONS_KEY = ['admin-plugin-operations'] as const;
 const PLUGINS_MANIFEST_KEY = ['plugins-manifest'] as const;
+const FRONTEND_PAGES_KEY = ['frontend-pages'] as const;
+const PAGE_BY_KEYWORD_KEY = ['page-by-keyword'] as const;
 
 const PLUGIN_STATE_EVENTS = [
     'plugin-installed',
@@ -58,6 +62,7 @@ const PLUGIN_STATE_EVENTS = [
 
 export function useAdminPluginsRealtime(): void {
     const queryClient = useQueryClient();
+    const router = useRouter();
     const { isAuthenticated } = useAuthStatus();
 
     useEffect(() => {
@@ -69,10 +74,21 @@ export function useAdminPluginsRealtime(): void {
         let reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
         let cancelled = false;
 
-        const invalidateAdminCaches = () => {
+        const invalidatePluginSurfaceCaches = () => {
             queryClient.invalidateQueries({ queryKey: ADMIN_PLUGINS_KEY });
             queryClient.invalidateQueries({ queryKey: ADMIN_PLUGIN_OPERATIONS_KEY });
             queryClient.invalidateQueries({ queryKey: PLUGINS_MANIFEST_KEY });
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
+            queryClient.invalidateQueries({ queryKey: FRONTEND_PAGES_KEY });
+            queryClient.invalidateQueries({ queryKey: PAGE_BY_KEYWORD_KEY });
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.STYLE_GROUPS });
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LOOKUPS });
+
+            // Plugin lifecycle changes can remove styles/admin pages that
+            // are already part of the current App Router payload. A route
+            // refresh forces a fresh RSC tree so stale sections do not
+            // linger until the next manual navigation.
+            router.refresh();
         };
 
         const invalidateOperationsOnly = () => {
@@ -92,7 +108,7 @@ export function useAdminPluginsRealtime(): void {
             });
 
             for (const eventName of PLUGIN_STATE_EVENTS) {
-                es.addEventListener(eventName, invalidateAdminCaches);
+                es.addEventListener(eventName, invalidatePluginSurfaceCaches);
             }
 
             // Progress events are noisy — only invalidate the
@@ -123,5 +139,5 @@ export function useAdminPluginsRealtime(): void {
                 es = null;
             }
         };
-    }, [isAuthenticated, queryClient]);
+    }, [isAuthenticated, queryClient, router]);
 }
