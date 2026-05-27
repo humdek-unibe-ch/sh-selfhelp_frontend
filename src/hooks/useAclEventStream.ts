@@ -44,10 +44,12 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStatus } from './useUserData';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useImpersonationStore } from '../app/store/impersonation.store';
+import { ROUTES } from '../config/routes.config';
 
 interface ImpersonationStatusPayload {
     active: boolean;
@@ -76,9 +78,17 @@ const MAX_RECONNECT_DELAY_MS = 30_000;
 /** Initial backoff — doubles on each successive failure. */
 const INITIAL_RECONNECT_DELAY_MS = 1_000;
 
+function shouldRedirectToLogin(pathname: string): boolean {
+    if (!pathname.startsWith('/admin')) return false;
+    if (pathname.startsWith(ROUTES.LOGIN)) return false;
+    if (pathname.startsWith(ROUTES.NO_ACCESS)) return false;
+    return true;
+}
+
 export function useAclEventStream(): void {
     const queryClient = useQueryClient();
     const { isAuthenticated } = useAuthStatus();
+    const router = useRouter();
 
     useEffect(() => {
         if (!isAuthenticated) return;
@@ -88,6 +98,41 @@ export function useAclEventStream(): void {
         let reconnectTimer: number | null = null;
         let reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
         let cancelled = false;
+        let checkingAuth = false;
+
+        const handleExpiredSession = async (): Promise<boolean> => {
+            if (checkingAuth || cancelled) return false;
+            checkingAuth = true;
+            try {
+                const res = await fetch('/api/auth/user-data', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Client-Type': 'web',
+                    },
+                    cache: 'no-store',
+                });
+
+                if (res.status !== 401) {
+                    return false;
+                }
+
+                queryClient.removeQueries({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
+                });
+
+                const currentPath = window.location.pathname + window.location.search;
+                if (shouldRedirectToLogin(window.location.pathname)) {
+                    router.replace(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(currentPath)}`);
+                }
+                return true;
+            } catch {
+                return false;
+            } finally {
+                checkingAuth = false;
+            }
+        };
 
         const connect = () => {
             if (cancelled) return;
@@ -142,11 +187,15 @@ export function useAclEventStream(): void {
             // upstream returns 4xx (e.g. expired JWT) it stays closed.
             // Re-open with backoff so the user does not silently lose
             // permission updates.
-            es.addEventListener('error', () => {
+            es.addEventListener('error', async () => {
                 if (!es) return;
                 if (es.readyState === EventSource.CLOSED && !cancelled) {
                     es.close();
                     es = null;
+                    const expired = await handleExpiredSession();
+                    if (expired || cancelled) {
+                        return;
+                    }
                     reconnectTimer = window.setTimeout(connect, reconnectDelay);
                     reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY_MS);
                 }
@@ -165,5 +214,5 @@ export function useAclEventStream(): void {
                 es = null;
             }
         };
-    }, [isAuthenticated, queryClient]);
+    }, [isAuthenticated, queryClient, router]);
 }
