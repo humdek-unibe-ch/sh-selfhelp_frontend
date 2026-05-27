@@ -12,6 +12,8 @@ import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { SectionPropertyField } from './section-field-connectors';
 import styles from './SectionInspector.module.css';
 
+const GLOBAL_FIELD_NAMES = new Set<GlobalFieldType>(['condition', 'data_config', 'css', 'css_mobile', 'debug']);
+
 interface ISectionGlobalFieldsProps {
     globalFieldTypes: GlobalFieldType[];
     dataVariables?: Record<string, any>;
@@ -61,7 +63,7 @@ export const SectionProperties = React.memo(function SectionProperties({
     dataVariables
 }: ISectionPropertiesProps) {
     const propertyFieldsToDisplay = fields.filter(
-        field => !field.display && !field.name.startsWith('mantine_')
+        field => !field.display && !field.name.startsWith('mantine_') && !GLOBAL_FIELD_NAMES.has(field.name as GlobalFieldType)
     );
 
     return (
