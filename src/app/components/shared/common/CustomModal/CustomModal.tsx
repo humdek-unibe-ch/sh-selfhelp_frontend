@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { Modal, ModalProps, Group, Button, ScrollArea, Text, CloseButton } from '@mantine/core';
+import { Modal, ModalProps, Group, Button, Text, CloseButton } from '@mantine/core';
 import { ReactNode } from 'react';
 import styles from './CustomModal.module.css';
 
@@ -133,15 +133,9 @@ export const ModalWrapper = ({
             </Group>
 
             {/* Scrollable Content */}
-            <ScrollArea
-                className={styles.scrollArea}
-                style={{
-                    maxHeight: typeof scrollAreaHeight === 'number' ? `${scrollAreaHeight}px` : scrollAreaHeight,
-                }}
-                p="md"
-            >
+            <div className={styles.scrollArea} style={{ padding: 'var(--mantine-spacing-md)' }}>
                 {children}
-            </ScrollArea>
+            </div>
 
             {/* Footer with Actions */}
             {(hasPrimaryAction || hasDeleteAction || hasCancelAction || customActions) && (

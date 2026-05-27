@@ -36,5 +36,5 @@ SPDX-License-Identifier: MPL-2.0
 .scrollArea {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow-y: auto;
 }
