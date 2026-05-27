@@ -40,6 +40,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
     const alertFail = style.alert_fail?.content || 'Invalid email or validation code.';
     const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for activation link.';
     const successMessage = style.success?.content || 'Registration completed successfully';
+    const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
     const formType = style.fields?.type?.content || 'success';
     
     // Check if open registration is enabled
@@ -146,13 +147,13 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                         </Text>
                     )}
                     
-                    <Button 
-                        type="submit" 
-                        fullWidth 
+                    <Button
+                        type="submit"
+                        fullWidth
                         size="md"
                         loading={isLoading}
+                        color={mantineColor}
                         variant={formType === 'success' ? 'filled' : 'light'}
-                        color={formType === 'success' ? 'green' : 'blue'}
                     >
                         {labelSubmit}
                     </Button>

@@ -31,6 +31,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const labelPasswordReset = style.label_pw_reset?.content || 'Forgot password?';
     const alertFail = style.alert_fail?.content || 'Invalid email or password.';
     const loginTitle = style.login_title?.content || 'Welcome back!';
+    const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
     const formType = style.type?.content || style.fields?.type?.content || 'light';
 
     const handleSubmit = async (e: { preventDefault(): void }) => {
@@ -104,6 +105,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                         fullWidth
                         size="md"
                         loading={isLoading}
+                        color={mantineColor}
                         variant={formType === 'dark' ? 'filled' : 'light'}
                     >
                         {labelLogin}

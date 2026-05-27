@@ -22,11 +22,10 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     const [error, setError] = useState('');
 
     const labelPwReset = style.label_pw_reset?.content || 'Reset Password';
-    const type = style.type?.content || 'blue';
+    const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
     const alertSuccess = style.alert_success?.content || 'Password reset email sent successfully';
     const placeholder = DOMPurify.sanitize(style.placeholder?.content || 'Enter your email address', { ALLOWED_TAGS: [] });
     const isHtml = style.is_html?.content === '1';
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
@@ -75,7 +74,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
                         mb="md"
                     />
 
-                    <Button type="submit" fullWidth color={type} variant="filled">
+                    <Button type="submit" fullWidth color={mantineColor} variant="filled">
                         {labelPwReset}
                     </Button>
                 </form>
