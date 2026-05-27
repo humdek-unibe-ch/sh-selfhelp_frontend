@@ -14,7 +14,7 @@ import '../globals.css';
 import { ServerProviders } from '../providers/server-providers';
 import { resolveColorSchemeSSR, resolveLanguageSSR } from './_lib/server-fetch';
 import { ColorSchemeInjector } from './components/shared/common/ColorSchemeInjector';
-import { PLUGIN_RUNTIME_IMPORT_MAP } from './components/frontend/plugin-runtime/runtime-globals';
+import { PluginRuntimeImportMapInjector } from './components/frontend/plugin-runtime/PluginRuntimeImportMapInjector';
 
 /**
  * Root layout — a **Server Component**.
@@ -79,16 +79,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   host-served shim under `/api/plugins/runtime-shim/*`
                   which re-exports the host's singleton from
                   `globalThis.__SELFHELP_RUNTIME__` (see
-                  `runtime-globals.ts`). Must render before any
-                  `<script type="module">`, which Next.js injects below
-                  this `<head>`, so it ends up first in the DOM.
+                  `runtime-globals.ts`).
+
+                  `PluginRuntimeImportMapInjector` streams the import
+                  map into the SSR HTML outside React's client render
+                  tree. That keeps the browser-visible import map in
+                  the document before any plugin module loads, while
+                  avoiding React 19's dev-only warning about `<script>`
+                  tags rendered from JSX.
                 */}
-                <script
-                    type="importmap"
-                    dangerouslySetInnerHTML={{
-                        __html: JSON.stringify({ imports: PLUGIN_RUNTIME_IMPORT_MAP }),
-                    }}
-                />
+                <PluginRuntimeImportMapInjector />
             </head>
             <body>
                 <ColorSchemeInjector />
