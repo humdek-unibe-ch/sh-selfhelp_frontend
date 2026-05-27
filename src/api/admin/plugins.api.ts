@@ -27,6 +27,7 @@ import type {
     IAdminPluginDoctorReport,
     IAdminPluginFeatureFlag,
     IAdminPluginHealthReport,
+    IAdminPluginInstallResult,
     IAdminPluginListResponse,
     IAdminPluginOperation,
     IAdminPluginSource,
@@ -61,7 +62,7 @@ export const AdminPluginApi = {
         | { source: 'url'; manifestUrl: string; registryEntry?: Record<string, unknown> | null }
         | { source: 'paste'; manifest: Record<string, unknown>; registryEntry?: Record<string, unknown> | null }
         | { source: 'archive'; archive: File; forceMajor?: boolean; backupBefore?: boolean }
-    ): Promise<IBaseApiResponse<IAdminPluginOperation>> {
+    ): Promise<IBaseApiResponse<IAdminPluginInstallResult>> {
         if (body.source === 'archive') {
             const formData = new FormData();
             formData.append('source', 'archive');

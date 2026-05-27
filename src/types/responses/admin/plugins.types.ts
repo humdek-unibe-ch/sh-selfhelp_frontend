@@ -86,6 +86,35 @@ export interface IAdminPluginOperation {
     logs?: Array<{ stage?: string; at: string; data?: unknown }> | null;
 }
 
+/**
+ * POST /admin/plugins/install can return EITHER a normal
+ * IAdminPluginOperation envelope (when an install or update is
+ * dispatched) OR a "no-op" payload when the plugin is already
+ * installed at the requested version. The discriminator is
+ * `installAction`.
+ */
+export interface IAdminPluginInstallDispatched extends IAdminPluginOperation {
+    installAction: 'install_dispatched' | 'update_dispatched';
+    redirectedToUpdate: boolean;
+    existingVersion?: string | null;
+    requestedVersion?: string | null;
+    diffKind?: 'patch' | 'minor' | 'major' | 'unknown' | null;
+    message?: string | null;
+}
+
+export interface IAdminPluginInstallAlreadyInstalled {
+    installAction: 'already_installed';
+    redirectedToUpdate: false;
+    pluginId: string;
+    existingVersion: string;
+    requestedVersion: string;
+    message: string;
+}
+
+export type IAdminPluginInstallResult =
+    | IAdminPluginInstallDispatched
+    | IAdminPluginInstallAlreadyInstalled;
+
 export interface IAdminPluginSource {
     id: number;
     name: string;
@@ -154,6 +183,7 @@ export interface IAdminPluginAvailable {
     homepage?: string | null;
     manifest?: Record<string, unknown> | null;
     manifestUrl?: string | null;
+    registryEntry: Record<string, unknown>;
 }
 
 export interface IAdminPluginAvailableResponse {

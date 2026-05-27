@@ -389,11 +389,26 @@ export function PluginsPage() {
                 notifications.show({ color: 'blue', title: 'Use the Available tab', message: 'Switch to the Available tab to install from a registry source.' });
                 return;
             }
-            notifications.show({
-                color: 'green',
-                title: 'Install queued',
-                message: `Operation #${op.data?.id} dispatched. Watch the Operations tab for progress.`,
-            });
+            const data = op.data;
+            if (data?.installAction === 'already_installed') {
+                notifications.show({
+                    color: 'gray',
+                    title: 'Already installed',
+                    message: data.message,
+                });
+            } else if (data?.installAction === 'update_dispatched') {
+                notifications.show({
+                    color: 'green',
+                    title: 'Update queued',
+                    message: `${data?.pluginId}: ${data?.existingVersion} → v${data?.requestedVersion ?? data?.toVersion} — operation #${data?.id}.`,
+                });
+            } else {
+                notifications.show({
+                    color: 'green',
+                    title: 'Install queued',
+                    message: `Operation #${data?.id} dispatched. Watch the Operations tab for progress.`,
+                });
+            }
             setInstallOpen(false);
         } catch (err) {
             notifications.show({ color: 'red', title: 'Install failed', message: err instanceof Error ? err.message : String(err) });

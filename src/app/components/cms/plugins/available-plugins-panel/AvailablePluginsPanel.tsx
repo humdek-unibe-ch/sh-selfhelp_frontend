@@ -71,29 +71,37 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
 
         setInstallingId(entry.pluginId);
         try {
-            // The backend ManifestResolver accepts the registry entry
-            // directly. It will fetch + verify the canonical
-            // signedPayload + signature; the frontend never needs to
-            // pre-download the manifest body.
             const op = await installMutation.mutateAsync({
                 source: 'registry',
                 sourceName: entry.sourceName,
-                registryEntry: {
-                    ...(entry.manifest ? { manifest: entry.manifest } : {}),
-                    ...(entry.manifestUrl ? { manifestUrl: entry.manifestUrl } : {}),
-                    pluginId: entry.pluginId,
-                    version: entry.version,
-                    trustLevel: entry.trustLevel,
-                },
+                registryEntry: entry.registryEntry,
             });
-            const opId = op.data?.id;
+            const data = op.data;
+            // The unified install endpoint surfaces three outcomes via
+            // `installAction`:
+            //   - already_installed  → no-op (plugin is at the requested version)
+            //   - update_dispatched  → requested install routed to updater
+            //   - install_dispatched → fresh install queued
+            if (data?.installAction === 'already_installed') {
+                notifications.show({
+                    color: 'gray',
+                    title: 'Already installed',
+                    message: data.message,
+                });
+                await refetch();
+                return;
+            }
+            const opId = data?.id;
             if (typeof opId !== 'number') {
                 throw new Error('Install request did not return an operation id.');
             }
+            const isUpdate = data?.installAction === 'update_dispatched';
             notifications.show({
                 color: 'green',
-                title: 'Install queued',
-                message: `${entry.name} v${entry.version} — operation #${opId}. Watch the Operations tab or the Mercure stream for progress.`,
+                title: isUpdate ? 'Update queued' : 'Install queued',
+                message: isUpdate
+                    ? `${entry.name}: ${data?.existingVersion} → v${entry.version} — operation #${opId}.`
+                    : `${entry.name} v${entry.version} — operation #${opId}. Watch the Operations tab or the Mercure stream for progress.`,
             });
             if (enableAfterInstall) {
                 // Best-effort: enable the plugin after the worker reports
