@@ -570,12 +570,16 @@ export class PluginRuntime {
                 runtimeUrl,
                 error: error instanceof Error ? error.message : String(error),
             });
+            const isDevUrl = isDevelopmentRuntimeUrl(runtimeUrl);
+            const hint = isDevUrl
+                ? ' The URL points at a localhost dev server — start the plugin\'s runtime dev server (e.g. `npm --prefix frontend run dev:runtime` in the plugin checkout) and wait for the first Vite "built in ...ms" line before retrying.'
+                : ' Verify the URL is reachable and serves a valid ESM module.';
             this.recordWarning({
                 pluginId: entry.pluginId,
                 pluginName: entry.name,
                 kind: 'importFailed',
                 expectedVersion: entry.version,
-                message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: import of "${runtimeUrl}" failed (${error instanceof Error ? error.message : String(error)}). Verify the URL is reachable and serves a valid ESM module.`,
+                message: `Plugin "${entry.name ?? entry.pluginId}" v${entry.version}: import of "${runtimeUrl}" failed (${error instanceof Error ? error.message : String(error)}).${hint}`,
             });
             if (stylesheetNode && stylesheetNode.parentNode) {
                 stylesheetNode.parentNode.removeChild(stylesheetNode);
