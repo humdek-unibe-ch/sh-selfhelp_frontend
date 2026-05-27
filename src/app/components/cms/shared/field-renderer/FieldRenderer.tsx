@@ -286,6 +286,32 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         return renderFieldWithBadge(<TextInputWithMentions {...textInputProps} />);
     }
 
+    if (field.type === 'time') {
+        return renderFieldWithBadge(
+            <TextInputField
+                fieldId={field.id}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder={field.default_value || '00:00'}
+                inputType="time"
+            />
+        );
+    }
+
+    if (field.type === 'number') {
+        return renderFieldWithBadge(
+            <TextInputField
+                fieldId={field.id}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder={field.default_value || '0'}
+                inputType="number"
+                step="any"
+                disabled={disabled}
+            />
+        );
+    }
+
     // Select CSS field - dynamic select with API options
     if (field.type === 'select-css') {
         if (!field.config) {
