@@ -46,6 +46,7 @@ const MAX_RECONNECT_DELAY_MS = 30_000;
 const INITIAL_RECONNECT_DELAY_MS = 1_000;
 
 const ADMIN_PLUGINS_KEY = ['admin-plugins'] as const;
+const ADMIN_PLUGINS_AVAILABLE_KEY = ['admin-plugins', 'available'] as const;
 const ADMIN_PLUGIN_OPERATIONS_KEY = ['admin-plugin-operations'] as const;
 const PLUGINS_MANIFEST_KEY = ['plugins-manifest'] as const;
 const FRONTEND_PAGES_KEY = ['frontend-pages'] as const;
@@ -76,6 +77,7 @@ export function useAdminPluginsRealtime(): void {
 
         const invalidatePluginSurfaceCaches = () => {
             queryClient.invalidateQueries({ queryKey: ADMIN_PLUGINS_KEY });
+            queryClient.invalidateQueries({ queryKey: ADMIN_PLUGINS_AVAILABLE_KEY });
             queryClient.invalidateQueries({ queryKey: ADMIN_PLUGIN_OPERATIONS_KEY });
             queryClient.invalidateQueries({ queryKey: PLUGINS_MANIFEST_KEY });
             queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });

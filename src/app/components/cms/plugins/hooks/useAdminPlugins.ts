@@ -17,6 +17,7 @@ import { AdminPluginApi } from '../../../../../api/admin/plugins.api';
 const KEY = ['admin-plugins'] as const;
 const OPERATIONS_KEY = ['admin-plugin-operations'] as const;
 const SOURCES_KEY = ['admin-plugin-sources'] as const;
+const AVAILABLE_KEY = [...KEY, 'available'] as const;
 
 export function useAdminPlugins() {
     return useQuery({
@@ -37,10 +38,14 @@ export function useAdminPlugins() {
  */
 export function useAdminPluginsAvailable(enabled: boolean = true) {
     return useQuery({
-        queryKey: [...KEY, 'available'],
+        queryKey: AVAILABLE_KEY,
         queryFn: async () => (await AdminPluginApi.listAvailable()).data,
         staleTime: Infinity,
         enabled,
+        // This tab is often inactive while install / uninstall / purge
+        // actions happen elsewhere. If the query was invalidated while
+        // unmounted, refetch as soon as the tab mounts again.
+        refetchOnMount: true,
     });
 }
 
@@ -75,6 +80,7 @@ export function useAdminPluginEnable() {
         mutationFn: (pluginId: string) => AdminPluginApi.enable(pluginId),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
+            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
             qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
         },
     });
@@ -86,6 +92,7 @@ export function useAdminPluginDisable() {
         mutationFn: (pluginId: string) => AdminPluginApi.disable(pluginId),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
+            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
             qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
         },
     });
@@ -97,6 +104,7 @@ export function useAdminPluginUninstall() {
         mutationFn: (pluginId: string) => AdminPluginApi.uninstall(pluginId),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
+            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
             qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
         },
     });
@@ -109,6 +117,7 @@ export function useAdminPluginPurge() {
             AdminPluginApi.purge(pluginId, confirmedPluginId),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
+            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
             qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
         },
     });
@@ -164,7 +173,7 @@ export function useAdminPluginSourceCreate() {
             AdminPluginApi.createSource(body),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: SOURCES_KEY });
-            qc.invalidateQueries({ queryKey: [...KEY, 'available'] });
+            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
         },
     });
 }
@@ -176,7 +185,7 @@ export function useAdminPluginSourceUpdate() {
             AdminPluginApi.updateSource(sourceId, body),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: SOURCES_KEY });
-            qc.invalidateQueries({ queryKey: [...KEY, 'available'] });
+            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
         },
     });
 }
@@ -187,7 +196,7 @@ export function useAdminPluginSourceDelete() {
         mutationFn: (sourceId: number) => AdminPluginApi.deleteSource(sourceId),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: SOURCES_KEY });
-            qc.invalidateQueries({ queryKey: [...KEY, 'available'] });
+            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
         },
     });
 }
@@ -221,6 +230,7 @@ export function useAdminPluginInstall() {
             AdminPluginApi.install(body),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
+            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
             qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
         },
     });
@@ -257,6 +267,7 @@ export function useAdminPluginUpdate() {
         }) => AdminPluginApi.update(pluginId, body),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
+            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
             qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
         },
     });
