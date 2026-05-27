@@ -576,6 +576,8 @@ export function PluginsPage() {
                 onClose={() => { setPurgeFor(null); setPurgeConfirm(''); }}
                 title={`Purge ${purgeFor ?? ''}`}
                 size="md"
+                closeOnClickOutside={false}
+                closeOnEscape={false}
                 onDelete={onPurgeConfirm}
                 deleteLabel="Purge plugin"
                 onCancel={() => { setPurgeFor(null); setPurgeConfirm(''); }}
@@ -662,6 +664,8 @@ export function PluginsPage() {
                 title="Install plugin"
                 size="xl"
                 scrollAreaHeight={620}
+                closeOnClickOutside={false}
+                closeOnEscape={false}
                 onCancel={() => setInstallOpen(false)}
                 customActions={
                     installSourceTab === 'registry' ? null : (
