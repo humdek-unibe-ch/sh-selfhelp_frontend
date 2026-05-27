@@ -36,10 +36,20 @@ interface IAuthButtonProps {
 }
 
 export function AuthButton({ initialProfilePages = [], variant }: IAuthButtonProps = {}) {
+    // Derive auth state from the SSR-hydrated `['user-data']` cache rather
+    // than Refine's `useIsAuthenticated`. The latter has its own internal
+    // `useQuery` that always starts with `isLoading: true` and resolves
+    // after one tick, which caused the profile button to flash null/Login
+    // on every hard reload. Our own cache is seeded by `ServerProviders`
+    // before hydration, so first-paint already knows the real state.
     const { isAuthenticated, isLoading: isAuthLoading } = useAuthStatus();
     const { user } = useAuthUser();
     const { mutate: logout } = useLogout();
     const { profilePages: liveProfilePages } = useAppNavigation();
+    // Prefer live React Query data once it arrives; fall back to the
+    // SSR-seeded list during the first paint window so the SSR HTML and
+    // the post-hydration render produce identical text — no
+    // "Profile → Profil" jump.
     const profilePages = liveProfilePages.length > 0 ? liveProfilePages : initialProfilePages;
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const router = useRouter();
@@ -69,6 +79,7 @@ export function AuthButton({ initialProfilePages = [], variant }: IAuthButtonPro
 
     if (isAuthLoading || isLoggingOut) {
         if (variant === 'navbar') {
+            // Match the skeleton width to the flex-1 trigger so there's no layout jump.
             return (
                 <Box p="sm">
                     <Group wrap="nowrap" gap="xs">
@@ -78,6 +89,8 @@ export function AuthButton({ initialProfilePages = [], variant }: IAuthButtonPro
                 </Box>
             );
         }
+        // Match the rendered authenticated trigger so we don't get a width
+        // jump on hydration: Avatar (~24px) + name/email column + chevron.
         return <Skeleton height={36} width={180} radius="sm" />;
     }
 
@@ -146,6 +159,13 @@ export function AuthButton({ initialProfilePages = [], variant }: IAuthButtonPro
                     </Menu.Item>
                 ))
             ) : (
+                // Fallback when the `profile-link` page is absent from
+                // the CMS catalogue (the recent migration deletes it,
+                // since `profile-link` was a pure-label page with no
+                // body content). We still want the avatar dropdown to
+                // be useful, so we synthesize the two minimum-viable
+                // entries: a link to the user's profile page and the
+                // sign-out action.
                 <>
                     <Menu.Item
                         leftSection={<IconSettings size={14} />}
