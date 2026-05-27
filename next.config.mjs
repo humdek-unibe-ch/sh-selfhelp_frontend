@@ -12,7 +12,7 @@ const nextConfig = {
     reactStrictMode: true,
     allowedDevOrigins: ['127.0.0.1'],
 
-    transpilePackages: ['@selfhelp/shared'],
+    transpilePackages: ['@selfhelp/shared', '@selfhelp/ui'],
 
     outputFileTracingRoot: path.join(__dirname, '..'),
 
@@ -26,7 +26,14 @@ const nextConfig = {
 
     turbopack: {
       root: path.join(__dirname, '..'),
+      resolveAlias: {
+        react: './node_modules/react',
+        'react-dom': './node_modules/react-dom',
+        '@mantine/core': './node_modules/@mantine/core',
+        '@mantine/hooks': './node_modules/@mantine/hooks',
+      },
     },
+
   };
 
   export default nextConfig;
