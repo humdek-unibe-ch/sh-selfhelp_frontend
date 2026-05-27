@@ -12,11 +12,10 @@ SPDX-License-Identifier: MPL-2.0
  *
  *   * `pluginApiVersion` declared in the manifest does not satisfy
  *     the host SDK `PLUGIN_API_VERSION`.
- *   * The npm package that the host imports reports a different
- *     `version` than the manifest entry. This is the common
- *     "host upgraded but `pnpm install` was forgotten" case.
- *   * The npm package threw on import / threw on `register()` / does
- *     not export `register()` at all.
+ *   * The plugin runtime bundle reports a different `version` than
+ *     the manifest entry.
+ *   * The ESM runtime bundle threw on import / threw on `register()` /
+ *     does not export `register()` at all.
  *   * Style registry extension failed (style id conflict with another
  *     plugin or a core style).
  *
@@ -44,13 +43,13 @@ function describeKind(kind: IPluginVersionWarning['kind']): { title: string; hin
             };
         case 'registrationMismatch':
             return {
-                title: 'Installed npm package is out of date',
-                hint: 'Run `pnpm install` (or your usual package manager) on the host so the installed npm version matches the plugin manifest.',
+                title: 'Installed runtime bundle is out of sync',
+                hint: 'Reinstall or republish the plugin so the manifest version and the shipped runtime bundle report the same version.',
             };
         case 'importFailed':
             return {
-                title: 'Plugin package import failed',
-                hint: 'The npm package the host expected is missing or broken. Reinstall the host npm dependencies and reboot the Next.js server.',
+                title: 'Plugin runtime import failed',
+                hint: 'Check the plugin runtime URL or local dev server. For installed archives, reinstall or repair the plugin so its published runtime artifacts are present.',
             };
         case 'registerThrew':
             return {
@@ -65,7 +64,7 @@ function describeKind(kind: IPluginVersionWarning['kind']): { title: string; hin
         case 'missingRegister':
             return {
                 title: 'Plugin missing register() export',
-                hint: 'The installed npm package does not look like a SelfHelp plugin. Reinstall the host npm dependencies.',
+                hint: 'The runtime bundle does not look like a SelfHelp plugin. Rebuild and reinstall the plugin archive.',
             };
         default:
             return { title: 'Plugin runtime warning', hint: 'See the browser console for details.' };
