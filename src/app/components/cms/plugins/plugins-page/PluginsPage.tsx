@@ -616,6 +616,8 @@ export function PluginsPage() {
                 onClose={() => setUpdateFor(null)}
                 title={updateFor ? `Update ${updateFor.name}` : 'Update plugin'}
                 size="md"
+                closeOnClickOutside={false}
+                closeOnEscape={false}
                 onCancel={() => setUpdateFor(null)}
                 customActions={
                     updateFor ? (
