@@ -290,17 +290,61 @@ function resolvePluginAssetUrl(runtimeUrl: string, assetUrl: string): string {
 function isDevelopmentRuntimeUrl(runtimeUrl: string): boolean {
     try {
         const url = new URL(runtimeUrl, typeof window === 'undefined' ? 'http://localhost' : window.location.href);
-        return url.protocol === 'http:' && ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+            return false;
+        }
+        // Same-origin URLs are served by the host itself (relative
+        // paths like `/plugin-artifacts/<id>-<ver>/plugin.esm.js`
+        // produced by registry / archive / connected installs), so
+        // they are NOT development runtimes — the host's own origin
+        // is localhost during dev, but that does not turn a regular
+        // install into a dev install. The previous hostname-only
+        // check incorrectly flagged production-style installs running
+        // on a localhost dev host as development, which opened a 404
+        // SSE connection to `/plugin-artifacts/<id>-<ver>/__selfhelp_plugin_reload`
+        // and surfaced the "Plugin development reload stream
+        // disconnected" warning on every page load.
+        if (typeof window !== 'undefined' && url.origin === window.location.origin) {
+            return false;
+        }
+        return ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
     } catch {
         return false;
     }
 }
 
 function cacheBustUrl(rawUrl: string, token: string): string {
+    // Pure relative URLs (no leading `/`, no protocol, no protocol-
+    // relative `//`) must stay relative so the downstream
+    // `resolvePluginAssetUrl()` can anchor them against the plugin's
+    // runtime URL instead of the current document. Parsing them with
+    // `new URL(rawUrl, window.location.href)` would resolve them to
+    // `${current page directory}/${rawUrl}` and short-circuit the
+    // runtime-URL resolution because the result is now an absolute
+    // URL. This is the case for plugins whose `plugin.json` declares
+    // `frontend.runtime.stylesheet: "dist/plugin.css"` and which run
+    // in install modes that leave that field as-is (legacy dev
+    // installs persisted before the backend fast-path rewrote the
+    // dev stylesheet URL).
+    const isPureRelative = !rawUrl.startsWith('/')
+        && !rawUrl.startsWith('//')
+        && !/^[a-z][a-z0-9+.-]*:\/\//i.test(rawUrl);
+    if (isPureRelative) {
+        const hashIdx = rawUrl.indexOf('#');
+        const beforeHash = hashIdx === -1 ? rawUrl : rawUrl.slice(0, hashIdx);
+        const hash = hashIdx === -1 ? '' : rawUrl.slice(hashIdx);
+        const queryIdx = beforeHash.indexOf('?');
+        const pathPart = queryIdx === -1 ? beforeHash : beforeHash.slice(0, queryIdx);
+        const existingQuery = queryIdx === -1 ? '' : beforeHash.slice(queryIdx + 1);
+        const params = new URLSearchParams(existingQuery);
+        params.set('_shDevReload', token);
+        const queryString = params.toString();
+        return `${pathPart}${queryString === '' ? '' : `?${queryString}`}${hash}`;
+    }
     try {
         const url = new URL(rawUrl, typeof window === 'undefined' ? 'http://localhost' : window.location.href);
         url.searchParams.set('_shDevReload', token);
-        if (rawUrl.startsWith('/')) {
+        if (rawUrl.startsWith('/') && !rawUrl.startsWith('//')) {
             return `${url.pathname}${url.search}${url.hash}`;
         }
         return url.href;
@@ -787,7 +831,22 @@ export class PluginRuntime {
                 continue;
             }
             const source = new EventSource(endpoint);
-            source.addEventListener('reload', () => {
+            // Logging at `debug` level so production / CI bundles
+            // don't spam the console, but you can flip the host
+            // logger to debug to watch the live-reload chain
+            // end-to-end (open → reload arrived → re-import).
+            source.onopen = () => {
+                this.logger.debug('Plugin development reload stream open', {
+                    pluginId: entry.pluginId,
+                    endpoint,
+                });
+            };
+            source.addEventListener('reload', (event) => {
+                this.logger.debug('Plugin development reload event received', {
+                    pluginId: entry.pluginId,
+                    endpoint,
+                    data: (event as MessageEvent).data,
+                });
                 void this.reloadDevelopmentRuntime(entry.pluginId);
             });
             source.onerror = () => {

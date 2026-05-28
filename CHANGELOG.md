@@ -14,7 +14,93 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
-## Unreleased
+## v0.0.5 — 2026-05-28
+
+### Fixed
+- `isDevelopmentRuntimeUrl()` no longer flags same-origin plugin
+  runtime URLs as development installs. The previous check only
+  inspected `protocol === 'http:'` and a localhost hostname, so a
+  regular registry / archive / connected install whose
+  `frontendRuntimeUrl` was a relative path like
+  `/plugin-artifacts/<id>-<ver>/plugin.esm.js` resolved against
+  `window.location.href` to `http://localhost:3000/plugin-artifacts/…`
+  on any localhost dev host — which matched the localhost hostname
+  rule and tripped every downstream dev branch (`openDevelopmentReloadSources`
+  opened a 404 SSE connection to
+  `/plugin-artifacts/<id>-<ver>/__selfhelp_plugin_reload`,
+  `resolvePluginAssetUrl()` enabled the legacy `dist/` rewrite path,
+  the registerOne error hint told the user to start a dev runtime
+  server that does not exist). The fix adds an origin equality
+  check: when the resolved URL's origin matches
+  `window.location.origin`, the runtime is served by the host
+  itself and is treated as a regular install. Only cross-origin
+  localhost URLs (i.e. an actual external Vite dev server on a
+  different port like `http://localhost:5174/...`) are now
+  recognised as development runtimes.
+
+- `cacheBustUrl()` no longer absolutizes pure-relative plugin asset
+  URLs against `window.location.href`. The previous implementation
+  ran `new URL(rawUrl, window.location.href)` for every input, which
+  converts `dist/plugin.css` (an archive-relative URL some plugin
+  manifests still carry on the dev fast-path) into
+  `http://localhost:3000/admin/plugins-host/<id>/dist/plugin.css` and
+  short-circuits the downstream `resolvePluginAssetUrl()` check
+  (which only resolves URLs that are still relative). Pure relative
+  URLs are now preserved as relative, with the `_shDevReload` token
+  appended via `URLSearchParams` so that `resolvePluginAssetUrl()`
+  can subsequently anchor them against the plugin's runtime URL.
+  Absolute (`http://…`) and host-relative (`/plugin-artifacts/…`)
+  URLs continue to be parsed through `new URL()` as before. This
+  fixes the dev-mode live-reload symptom where the stylesheet
+  `<link>` 404s on every reboot, leaving the page apparently
+  un-updated until a hard reload — provided the user is still
+  running a plugin install whose manifest leaks a relative
+  `dist/plugin.css` (the matching backend fix in `v8.0.0`
+  `PluginInstaller` / `PluginUpdater` removes the leak at the
+  source; this client-side fix is defence-in-depth for legacy DB
+  rows persisted before the backend fix shipped).
+
+## v0.0.4 — 2026-05-28
+
+### Added
+- `PluginRuntime` now emits two new `logger.debug` events on the
+  development hot-reload path:
+  - `Plugin development reload stream open` when an EventSource
+    successfully connects to the plugin dev runtime's
+    `__selfhelp_plugin_reload` endpoint, and
+  - `Plugin development reload event received` whenever an SSE
+    `reload` event arrives (including the payload data).
+
+  Both are silent in production (logger defaults to `info`+); flip
+  the host logger to `debug` to watch the SSE → re-import chain
+  end-to-end in the browser console. The plugin-side
+  `dev-runtime.mjs` already logs SSE client connect / reload
+  broadcast unconditionally, so combining the two gives a full
+  edit-to-reload trace without bisecting either codebase.
+
+## v0.0.3 — 2026-05-28
+
+### Changed
+- Plugin runtime shim now consumes the canonical singleton contract
+  from `@selfhelp/shared/plugin-sdk` instead of duplicating the list
+  across three files. `runtime-globals.ts`, `runtime-globals.client.ts`,
+  and the `/api/plugins/runtime-shim/[...moduleName]/route.ts`
+  allowlist all read from `PLUGIN_RUNTIME_SHIM_SPECIFIERS` /
+  `PLUGIN_RUNTIME_IMPORT_MAP` / `PLUGIN_RUNTIME_GLOBAL_KEY` exported
+  by the shared package. Adding a new singleton is now a single edit
+  to the shared list plus one matching `import * as` in
+  `runtime-globals.client.ts`; TypeScript flags any drift at compile
+  time.
+- Bumped `@selfhelp/shared` peer dep from `^1.1.0` to `^1.2.0` to
+  pick up the new runtime-shim contract export.
+
+### Added
+- Host now stashes and shims `@mantine/notifications` and
+  `react/jsx-dev-runtime` so plugin dev-runtime servers (Vite
+  middleware mode, which injects the JSX dev runtime automatically)
+  can resolve them through the host instead of bundling a second
+  Mantine or a second React copy. Fixes plugin dev live reload for
+  plugins that consume notifications or run under a Vite dev server.
 
 ### Fixed
 - Plugin manager API client now matches the backend route table. The

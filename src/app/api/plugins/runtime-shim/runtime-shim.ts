@@ -4,24 +4,15 @@ SPDX-License-Identifier: MPL-2.0
 */
 
 import { NextResponse } from 'next/server';
+import {
+    PLUGIN_RUNTIME_GLOBAL_KEY,
+    isPluginRuntimeShimSpecifier,
+} from '@selfhelp/shared/plugin-sdk';
 
 const dynamicImport = new Function(
     'specifier',
     'return import(specifier)',
 ) as (specifier: string) => Promise<Record<string, unknown>>;
-
-const ALLOWED_MODULES: ReadonlySet<string> = new Set([
-    'react',
-    'react-dom',
-    'react-dom/client',
-    'react/jsx-runtime',
-    '@mantine/core',
-    '@mantine/hooks',
-    '@tanstack/react-query',
-    '@selfhelp/shared',
-    '@selfhelp/shared/plugin-sdk',
-    '@selfhelp/shared/registry',
-]);
 
 const VALID_IDENTIFIER = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 
@@ -37,13 +28,15 @@ function buildShim(moduleName: string, exports: Record<string, unknown>): string
 
     const lines: string[] = [];
     lines.push(`/* runtime shim for ${moduleName} */`);
-    lines.push(`const __M = (globalThis.__SELFHELP_RUNTIME__ || {})[${jsKey(moduleName)}];`);
+    lines.push(
+        `const __M = (globalThis[${jsKey(PLUGIN_RUNTIME_GLOBAL_KEY)}] || {})[${jsKey(moduleName)}];`,
+    );
     lines.push(`if (!__M) {`);
     lines.push(
         `  throw new Error('[plugin-runtime] host did not populate module: ${moduleName}. ' +`,
     );
     lines.push(
-        `    'Make sure runtime-globals.ts imports it before any plugin loads.');`,
+        `    'Make sure runtime-globals.client.ts imports it before any plugin loads.');`,
     );
     lines.push(`}`);
     if (hasDefault) {
@@ -67,7 +60,7 @@ export async function buildRuntimeShimResponse(segments: string[]): Promise<Next
     }
     const name = segments.map((s) => decodeURIComponent(s)).join('/');
 
-    if (!ALLOWED_MODULES.has(name)) {
+    if (!isPluginRuntimeShimSpecifier(name)) {
         return new NextResponse(
             `/* runtime-shim: ${JSON.stringify(name)} is not on the allowlist */`,
             {

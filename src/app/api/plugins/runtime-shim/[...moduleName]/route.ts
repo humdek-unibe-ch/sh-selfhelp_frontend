@@ -30,9 +30,14 @@ SPDX-License-Identifier: MPL-2.0
  * The browser's import map (rendered in `layout.tsx`) maps every
  * supported bare specifier to one of these URLs.
  *
- * Security: only the explicit allowlist below can be served. The
- * allowlist mirrors the host singletons documented in `AGENTS.md`
- * under `Host singleton peerDependencies`. Anything else returns 404.
+ * Security: only specifiers listed in
+ * `@selfhelp/shared/plugin-sdk`'s
+ * `PLUGIN_RUNTIME_SHIM_SPECIFIERS` can be served. The shared list is
+ * the single source of truth — the host's import map, the global
+ * stash in `runtime-globals.client.ts`, and this route handler all
+ * derive their allowlist from it, so they cannot drift apart from
+ * the singletons plugin builds externalise. Anything else returns
+ * 404.
  */
 
 import { buildRuntimeShimResponse } from '../runtime-shim';

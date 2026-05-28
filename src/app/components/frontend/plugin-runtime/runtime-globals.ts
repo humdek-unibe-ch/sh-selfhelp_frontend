@@ -25,35 +25,45 @@ SPDX-License-Identifier: MPL-2.0
  *      singletons — no duplicate React, no duplicate
  *      `STYLE_REGISTRY`, no two copies of `MantineProvider`.
  *
+ * The canonical list of supported bare specifiers lives in
+ * `@selfhelp/shared/plugin-sdk` so plugin builds and this host
+ * cannot drift. Adding or removing a singleton is a single edit to
+ * `PLUGIN_RUNTIME_SHIM_SPECIFIERS` over there — the host then needs
+ * a matching `import * as` + stash assignment in
+ * `runtime-globals.client.ts`. The route allowlist and the import
+ * map below are both derived from the shared list automatically.
+ *
  * This module deliberately contains no `import * as foo from 'bar'`
  * statements so it is safe to import from Server Components like
  * `layout.tsx`. The actual module references live in
  * `runtime-globals.client.ts`, which is a Client-only module.
- *
- * Adding a new singleton:
- *   - Add the bare specifier + URL to `PLUGIN_RUNTIME_IMPORT_MAP`.
- *   - Add the matching `import * as` + stash assignment in
- *     `runtime-globals.client.ts`.
- *   - Add the matching entry in `ALLOWED_MODULES` in
- *     `src/app/api/plugins/runtime-shim/[...moduleName]/route.ts`.
  */
 
-export const PLUGIN_RUNTIME_GLOBAL_KEY = '__SELFHELP_RUNTIME__';
+import {
+    PLUGIN_RUNTIME_GLOBAL_KEY as SHARED_PLUGIN_RUNTIME_GLOBAL_KEY,
+    PLUGIN_RUNTIME_IMPORT_MAP as SHARED_PLUGIN_RUNTIME_IMPORT_MAP,
+    PLUGIN_RUNTIME_SHIM_SPECIFIERS,
+    type TPluginRuntimeShimSpecifier,
+} from '@selfhelp/shared/plugin-sdk';
+
+export const PLUGIN_RUNTIME_GLOBAL_KEY = SHARED_PLUGIN_RUNTIME_GLOBAL_KEY;
 
 /**
- * Bare-specifier → shim URL map. Rendered as the body of the
- * `<script type="importmap">` tag in `layout.tsx`. Keys are the
- * literal strings plugins use in `import` statements.
+ * Bare-specifier → shim URL map rendered into the SSR `<script
+ * type="importmap">` tag (see `PluginRuntimeImportMapInjector`).
+ * Sourced from the shared SDK so the import map, the
+ * `globalThis.__SELFHELP_RUNTIME__` stash, and the
+ * `/api/plugins/runtime-shim/*` allowlist all describe the same set
+ * of singletons.
  */
 export const PLUGIN_RUNTIME_IMPORT_MAP: Record<string, string> = {
-    react: '/api/plugins/runtime-shim/react',
-    'react/jsx-runtime': '/api/plugins/runtime-shim/react/jsx-runtime',
-    'react-dom': '/api/plugins/runtime-shim/react-dom',
-    'react-dom/client': '/api/plugins/runtime-shim/react-dom/client',
-    '@mantine/core': '/api/plugins/runtime-shim/@mantine/core',
-    '@mantine/hooks': '/api/plugins/runtime-shim/@mantine/hooks',
-    '@tanstack/react-query': '/api/plugins/runtime-shim/@tanstack/react-query',
-    '@selfhelp/shared': '/api/plugins/runtime-shim/@selfhelp/shared',
-    '@selfhelp/shared/plugin-sdk': '/api/plugins/runtime-shim/@selfhelp/shared/plugin-sdk',
-    '@selfhelp/shared/registry': '/api/plugins/runtime-shim/@selfhelp/shared/registry',
+    ...SHARED_PLUGIN_RUNTIME_IMPORT_MAP,
 };
+
+/**
+ * Re-export the canonical list so other host-side modules
+ * (notably the runtime-shim route handler) can validate incoming
+ * specifiers without importing the shared package twice.
+ */
+export { PLUGIN_RUNTIME_SHIM_SPECIFIERS };
+export type { TPluginRuntimeShimSpecifier };
