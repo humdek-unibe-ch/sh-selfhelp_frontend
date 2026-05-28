@@ -44,6 +44,14 @@ export interface ILogoutSuccessData {
 }
 export type ILogoutSuccessResponse = IBaseApiResponse<ILogoutSuccessData>;
 
+// Registration Success
+export interface IRegisterSuccessData {
+    user_id: number;
+    email: string;
+    message: string;
+}
+export type IRegisterSuccessResponse = IBaseApiResponse<IRegisterSuccessData>;
+
 // Language Preference Update Success
 export interface ILanguagePreferenceUpdateData {
     message: string;
