@@ -203,6 +203,37 @@ If docs conflict with implementation, flag the conflict instead of assuming the 
 - Keep imports consistent with nearby files. The code mostly uses relative imports; confirm aliases before introducing `@/...`.
 - Use `@tabler/icons-react` for icons because that is the installed icon set.
 
+## Modal Rules
+- **Always use the shared `ModalWrapper`** from
+  `src/app/components/shared/common/CustomModal/CustomModal.tsx` for
+  every modal in the admin UI. Do not build new modals on top of raw
+  `Mantine.Modal` — `ModalWrapper` already wires the standard header,
+  scrollable body, save/update/delete/cancel buttons, loading state,
+  and styling.
+- If you need a fully custom footer, pass a `customActions` slot to
+  `ModalWrapper`; do not fall back to a raw Modal just because of one
+  button.
+- Confirmation/destructive dialogs (purge, force delete) use
+  `ModalWrapper` with `onDelete` + the `deleteLabel` prop and a red
+  alert in the body — see `PluginsPage` purge modal and
+  `DeleteUserModal` for the canonical patterns.
+- Form modals (Add/Edit) use `onSave`/`onUpdate` and pass
+  `isLoading={mutation.isPending}` so the primary button shows the
+  loader during submission.
+
+## Plugin Registry Rules
+- The host ships with `humdek-public` (https://humdek-unibe-ch.github.io/sh2-plugin-registry/)
+  as the seeded default plugin source. The UI marks it with a lock
+  icon, hides destructive actions, and only allows toggling the
+  `Enabled` switch.
+- Treat `IAdminPluginSource.isSystem === true` as the only signal a
+  source row is host-managed; never hard-code the `humdek-public`
+  name in UI logic — additional system sources may be added later.
+- When the user opens `Admin → Plugins → Available`, the host calls
+  `/cms-api/v1/admin/plugins/available`. That endpoint walks every
+  enabled `PluginSource` server-side, so no extra logic is needed
+  client-side beyond rendering the `AvailablePluginsPanel`.
+
 ## Type Safety Rules
 - Prefer narrowing and explicit typing over assertions.
 - Avoid introducing `any`, double-casts, or unsafe non-null assertions.
@@ -235,6 +266,119 @@ Before creating new hooks, API clients, providers, Zustand stores, utilities, qu
 - Follow repository-specific rules even when they differ.
 - Keep changes isolated to the repository being modified.
 - Do not apply conventions from one repository to another unless explicitly documented.
+## Multi-Repository Changes
+
+- When implementing features that affect multiple repositories, read the `AGENTS.md` of every affected repository.
+- Follow repository-specific rules even when they differ.
+- Keep changes isolated to the repository being modified.
+- Do not apply conventions from one repository to another unless explicitly documented.
+
+### Repository roles
+
+Plugin-related work may affect:
+
+- This repository.
+- Symfony backend repository: `sh-selfhelp_backend`.
+- Shared package repository: `sh-selfhelp_shared`.
+- Expo mobile app repository: `sh-selfhelp_mobile`.
+- Affected plugin repositories, usually under a local `plugins/` workspace directory.
+
+Repository locations are environment-specific.
+
+Do not assume absolute paths such as `D:\...`.
+
+Discover repositories from:
+
+- the current workspace
+- sibling directories
+- explicitly provided user paths
+- local developer configuration files
+
+### Canonical multi-repo rule
+
+The canonical Multi-Repository AGENTS.md Rule lives in the backend repository at:
+
+```text
+docs/plugins/multi-repo-agents-md.md
+```
+
+If the backend repository is available, read that document before making plugin-related multi-repository changes.
+
+If it is not available, continue with the rules in this `AGENTS.md` and clearly state that the canonical multi-repo document was not found.
+
+### Required-before-coding checklist
+
+- [ ] Identify all repositories affected by role.
+- [ ] Locate each repository in the current environment.
+- [ ] Read `AGENTS.md` in each affected repository.
+- [ ] Read the canonical multi-repo rule if available.
+- [ ] Summarize relevant rules per repository.
+- [ ] Confirm planned file changes per repository.
+- [ ] Apply changes repo-by-repo.
+- [ ] Run validation commands from the matching repository.
+- [ ] Do not mix backend, frontend, shared, mobile, and plugin rules.
+
+## Plugin Ecosystem Rules (frontend side)
+
+This repo hosts the runtime + admin UI for the SelfHelp plugin ecosystem. Plugins ship their own npm package (`@<vendor>/<plugin-id>`); the frontend loads them through `PluginRuntime` at boot.
+
+### Extension points only
+
+The frontend dispatcher must remain extensible without being patched per plugin:
+
+- The `STYLE_REGISTRY` in `@selfhelp/shared/registry` is the runtime-extensible style catalog. Adding a plugin style means the plugin calls `extendStyleRegistry(...)` from `@selfhelp/shared/plugin-sdk` at registration time, not by editing this repo.
+- `src/app/components/frontend/styles/BasicStyle.tsx` is a dispatcher seeded with core styles and a `styleImpls` map populated by `PluginRuntime`. Do not hardcode plugin styles in the switch.
+- Plugin admin pages mount under `/admin/plugins-host/{pluginId}/...` through a dynamic admin route shell. Do not introduce static admin pages for plugin features.
+- The host's Plugins admin lives under `/admin/plugins` and `/admin/plugins/{pluginId}` and is part of this repo (not contributed by any plugin).
+
+### No polling in plugin-related UI
+
+Plugin operation progress, dashboards, chat, notifications, collaborative editing, file uploads, and job progress must subscribe to Mercure topics via the new `usePluginRealtime(pluginId, topic, topicParams)` hook exposed by `@selfhelp/shared/plugin-sdk`. Polling for these signals is forbidden. Polling is allowed only for:
+
+- Initial bootstrap (one-shot manifest fetch + lookup fetch).
+- Emergency compatibility mode when Mercure is explicitly disabled per-instance.
+
+The `plugin-runtime-check.yml` GitHub Actions workflow flags new polling code paths.
+
+### Plugin runtime files
+
+- `src/app/components/frontend/plugin-runtime/PluginRuntime.ts` — runtime that imports each installed plugin's npm package and calls its `register(api)`. Records `versionWarnings` on the snapshot for every plugin it could not mount (api-version mismatch, npm-package version mismatch, import / register failure).
+- `src/app/components/frontend/plugin-runtime/PluginsProvider.tsx` — context provider that exposes `IPluginApi` to plugin components and tracks feature flags + manifest. Also exposes `usePluginVersionWarnings()` for the banner.
+- `src/app/components/cms/plugins/plugin-version-mismatch-banner/PluginVersionMismatchBanner.tsx` — admin-visible alert that surfaces the runtime warnings on `/admin/plugins`. The mobile counterpart lives at `components/plugin-runtime/PluginVersionMismatchBanner.tsx` in the mobile repo.
+- `src/app/admin/plugins/page.tsx` and `src/app/admin/plugins/[pluginId]/page.tsx` — host Plugins admin (overview + detail tabs).
+- `src/app/admin/plugins-host/[pluginId]/[slug]/page.tsx` — dynamic shell that mounts plugin-supplied admin React subtrees.
+- `src/app/api/plugins/events/route.ts` — BFF SSE proxy that multiplexes the user's plugin Mercure topics over one same-origin connection.
+- `scripts/plugins-sync.mjs` — reads `selfhelp.plugins.lock.json`, updates `package.json` dependencies, and runs `pnpm install --filter` per plugin. It does NOT emit a static `registered.ts`; the runtime uses `import(/* webpackIgnore: true */ packageName)` and discovers plugins purely from the live manifest (`GET /cms-api/v1/plugins/manifest`).
+
+### Host singleton peerDependencies
+
+Plugin npm packages must declare these as `peerDependencies`, never as `dependencies`:
+
+- `react`
+- `react-dom`
+- `next`
+- `@mantine/core`
+- `@mantine/hooks`
+- `@tanstack/react-query`
+- `@selfhelp/shared`
+
+CI runs `npm ls react`, `npm ls react-dom`, `npm ls @tanstack/react-query`, `npm ls @mantine/core` and fails if any returns more than one version. This prevents the "two React copies" plugin failure mode.
+
+### Lookup-driven enums
+
+All enum-like values consumed by frontend code (status badges, scope selectors, channel pickers, etc.) come from the lookups API. Do not hardcode enum string unions in plugin-related UI components; pull them through the existing lookup hook.
+
+### Plugin version semantics (for UI badges)
+
+- **patch** — code change only, no DB change.
+- **minor** — always carries a DB change.
+- **major** — breaking change.
+
+The "Update available" badge and the "Update warnings" tooltip in `/admin/plugins` derive their copy from this rule plus the registry's `breaking` flag.
+
+### Plugin SDK boundary
+
+The only file plugins should import from the SelfHelp side is `@selfhelp/shared/plugin-sdk`. Do not export new frontend APIs to plugins through ad-hoc paths — extend the SDK in `sh-selfhelp_shared` and depend on it from this repo.
 
 ## AI Change Response Expectations
 When making changes, mention the relevant impact on:
