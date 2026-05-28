@@ -81,13 +81,36 @@ jobs:
           set -euo pipefail
           fail=0
           for pkg in react react-dom @tanstack/react-query @mantine/core; do
-            echo "==> npm ls --all $pkg"
-            output=$(npm ls --all "$pkg" 2>/dev/null || true)
-            # Count unique resolved versions (lines like `pkg@X.Y.Z`)
-            versions=$(printf '%s\n' "$output" | grep -oE "${pkg//\//\\/}@[0-9]+\.[0-9]+\.[0-9]+[^ ]*" | sort -u || true)
+            echo "==> npm ls --json --all $pkg"
+            output=$(npm ls --json --all "$pkg" 2>/dev/null || true)
+            versions=$(PKG_NAME="$pkg" npm_config_loglevel=silent node -e "
+const fs = require('fs');
+const pkgName = process.env.PKG_NAME;
+const raw = fs.readFileSync(0, 'utf8');
+if (!raw.trim()) process.exit(0);
+const root = JSON.parse(raw);
+const versions = new Set();
+const visit = (name, node) => {
+  if (!node || typeof node !== 'object') return;
+  if (name === pkgName && typeof node.version === 'string') {
+    versions.add(\`\${pkgName}@\${node.version}\`);
+  }
+  const deps = node.dependencies;
+  if (!deps || typeof deps !== 'object') return;
+  for (const [depName, depNode] of Object.entries(deps)) {
+    visit(depName, depNode);
+  }
+};
+visit(root.name ?? '', root);
+process.stdout.write(Array.from(versions).sort().join('\n'));
+" <<< "$output")
             count=$(printf '%s\n' "$versions" | sed '/^$/d' | wc -l | tr -d ' ')
             echo "Resolved versions ($count):"
-            printf '  %s\n' $versions
+            if [ -n "$versions" ]; then
+              printf '  %s\n' "$versions"
+            else
+              echo "  <none>"
+            fi
             if [ "$count" -gt 1 ]; then
               echo "::error::$pkg resolves to more than one version - duplicate host singleton"
               fail=1
