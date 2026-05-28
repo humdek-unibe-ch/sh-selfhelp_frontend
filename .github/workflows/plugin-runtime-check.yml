@@ -83,27 +83,7 @@ jobs:
           for pkg in react react-dom @tanstack/react-query @mantine/core; do
             echo "==> npm ls --json --all $pkg"
             output=$(npm ls --json --all "$pkg" 2>/dev/null || true)
-            versions=$(PKG_NAME="$pkg" npm_config_loglevel=silent node -e "
-const fs = require('fs');
-const pkgName = process.env.PKG_NAME;
-const raw = fs.readFileSync(0, 'utf8');
-if (!raw.trim()) process.exit(0);
-const root = JSON.parse(raw);
-const versions = new Set();
-const visit = (name, node) => {
-  if (!node || typeof node !== 'object') return;
-  if (name === pkgName && typeof node.version === 'string') {
-    versions.add(\`\${pkgName}@\${node.version}\`);
-  }
-  const deps = node.dependencies;
-  if (!deps || typeof deps !== 'object') return;
-  for (const [depName, depNode] of Object.entries(deps)) {
-    visit(depName, depNode);
-  }
-};
-visit(root.name ?? '', root);
-process.stdout.write(Array.from(versions).sort().join('\n'));
-" <<< "$output")
+            versions=$(PKG_NAME="$pkg" NPM_LS_OUTPUT="$output" npm_config_loglevel=silent node -e "const pkgName=process.env.PKG_NAME; const raw=process.env.NPM_LS_OUTPUT ?? ''; if (!raw.trim()) process.exit(0); const root=JSON.parse(raw); const versions=new Set(); const visit=(name,node)=>{ if (!node || typeof node !== 'object') return; if (name === pkgName && typeof node.version === 'string') versions.add(\`\${pkgName}@\${node.version}\`); const deps=node.dependencies; if (!deps || typeof deps !== 'object') return; for (const [depName, depNode] of Object.entries(deps)) visit(depName, depNode); }; visit(root.name ?? '', root); process.stdout.write(Array.from(versions).sort().join('\n'));")
             count=$(printf '%s\n' "$versions" | sed '/^$/d' | wc -l | tr -d ' ')
             echo "Resolved versions ($count):"
             if [ -n "$versions" ]; then
