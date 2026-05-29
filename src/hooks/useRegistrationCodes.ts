@@ -40,7 +40,7 @@ export function useCreateRegistrationCode() {
         onError: (error: any) => {
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to create registration code',
+                message: error?.response?.data?.error || error?.response?.data?.message || 'Failed to create registration code',
                 color: 'red',
             });
         },

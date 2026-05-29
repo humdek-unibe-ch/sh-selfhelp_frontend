@@ -44,6 +44,7 @@ import {
     IconX,
     IconSortAscending,
     IconSortDescending,
+    IconRefresh,
 } from '@tabler/icons-react';
 import { useRegistrationCodes, useCreateRegistrationCode, useDeleteRegistrationCode } from '../../../../hooks/useRegistrationCodes';
 import { useGroups } from '../../../../hooks/useGroups';
@@ -150,6 +151,12 @@ export function RegistrationCodesPage() {
         setCreateModalOpened(false);
         setNewCode('');
         setSelectedGroupId(null);
+    };
+
+    const handleGenerateCode = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const code = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        setNewCode(code);
     };
 
     const handleConfirmDelete = () => {
@@ -401,6 +408,13 @@ export function RegistrationCodesPage() {
                         onChange={e => setNewCode(e.currentTarget.value)}
                         maxLength={16}
                         required
+                        rightSection={
+                            <Tooltip label="Generate random code">
+                                <ActionIcon variant="subtle" color="gray" size="sm" onClick={handleGenerateCode} aria-label="Generate random code">
+                                    <IconRefresh size={14} />
+                                </ActionIcon>
+                            </Tooltip>
+                        }
                     />
                     <Select
                         label="Group"
