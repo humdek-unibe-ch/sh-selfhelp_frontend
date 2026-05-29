@@ -404,6 +404,13 @@ export class PermissionChecker {
   canAccessSettings(): boolean {
     return this.hasPermission(PERMISSIONS.ADMIN_SETTINGS);
   }
+
+  /**
+   * Check if user can read registration codes
+   */
+  canReadRegistrationCodes(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_REGISTRATION_CODE_READ);
+  }
 }
 
 /**

@@ -173,6 +173,11 @@ export const PERMISSIONS = {
     // Sections
     ADMIN_SECTION_DELETE: 'admin.section.delete',
 
+    // Registration codes
+    ADMIN_REGISTRATION_CODE_CREATE: 'admin.registration_code.create',
+    ADMIN_REGISTRATION_CODE_DELETE: 'admin.registration_code.delete',
+    ADMIN_REGISTRATION_CODE_READ: 'admin.registration_code.read',
+
     // Settings
     ADMIN_SETTINGS: 'admin.settings',
 
