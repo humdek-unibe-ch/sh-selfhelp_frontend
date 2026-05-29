@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TextInput, Button, Paper, Title, Alert, Stack, Text, Group } from '@mantine/core';
 import { IconCheck, IconExclamationCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
@@ -12,6 +12,7 @@ import { IRegisterStyle } from '../../../../types/common/styles.types';
 import { IContentField } from '../../../../shared';
 import { usePageContext } from '../../contexts/PageContext';
 import { useRegisterMutation } from '../../../../hooks/mutations/useRegisterMutation';
+import { useAuth } from '../../../../hooks/useAuth';
 import { ROUTES } from '../../../../config/routes.config';
 
 // Fields present in the backend response but not yet in the shared IRegisterStyle type.
@@ -40,6 +41,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
     const router = useRouter();
     const pageContext = usePageContext();
     const register = useRegisterMutation();
+    const { isAuthenticated, isLoading } = useAuth();
 
     const [email, setEmail] = useState('');
     const [code, setCode] = useState('');
@@ -66,6 +68,12 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
             ...(requiresCode && code ? { code } : {}),
         });
     };
+
+    useEffect(() => {
+        if (!isLoading && isAuthenticated) {
+            router.replace(ROUTES.HOME);
+        }
+    }, [isLoading, isAuthenticated, router]);
 
     if (register.isSuccess) {
         return (

@@ -8,13 +8,24 @@ import type { IBaseApiResponse } from '../../types/responses/common/response-env
 import type {
     IRegistrationCode,
     IRegistrationCodesListResponse,
+    IRegistrationCodesListParams,
 } from '../../types/responses/admin/registration-codes.types';
 import type { ICreateRegistrationCodeRequest } from '../../types/requests/admin/registration-codes.types';
 
 export const AdminRegistrationCodesApi = {
-    async getAll(): Promise<IRegistrationCodesListResponse> {
+    async getAll(params: IRegistrationCodesListParams = {}): Promise<IRegistrationCodesListResponse> {
+        const q: Record<string, string> = {};
+        if (params.page) q.page = String(params.page);
+        if (params.pageSize) q.pageSize = String(params.pageSize);
+        if (params.search) q.search = params.search;
+        if (params.id_groups) q.id_groups = String(params.id_groups);
+        if (params.status) q.status = params.status;
+        if (params.sort) q.sort = params.sort;
+        if (params.sortDirection) q.sortDirection = params.sortDirection;
+
         const response = await permissionAwareApiClient.get<IBaseApiResponse<IRegistrationCodesListResponse>>(
-            API_CONFIG.ENDPOINTS.ADMIN_REGISTRATION_CODES_GET_ALL
+            API_CONFIG.ENDPOINTS.ADMIN_REGISTRATION_CODES_GET_ALL,
+            { params: q }
         );
         return response.data.data;
     },
