@@ -673,6 +673,126 @@ export const API_CONFIG = {
             permissions: [PERMISSIONS.ADMIN_AUDIT_VIEW]
         },
 
+        // Admin plugin manager endpoints
+        ADMIN_PLUGINS_LIST: {
+            route: '/admin/plugins',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGINS_AVAILABLE: {
+            route: '/admin/plugins/available',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_DETAIL: {
+            route: (pluginId: string) => `/admin/plugins/${pluginId}`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_INSTALL: {
+            route: '/admin/plugins/install',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
+        },
+        ADMIN_PLUGIN_INSPECT_ARCHIVE: {
+            route: '/admin/plugins/inspect-archive',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
+        },
+        ADMIN_PLUGIN_UPDATE: {
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/update`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
+        },
+        ADMIN_PLUGIN_ENABLE: {
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/enable`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_DISABLE: {
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/disable`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_UNINSTALL: {
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/uninstall`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_PURGE: {
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/purge`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_PURGE]
+        },
+        ADMIN_PLUGIN_REPAIR: {
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/repair`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_REPAIR_ALL: {
+            route: '/admin/plugins/repair',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+
+        // Admin plugin sources
+        ADMIN_PLUGIN_SOURCES_LIST: {
+            route: '/admin/plugins/sources',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_SOURCES_CREATE: {
+            route: '/admin/plugins/sources',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_SOURCE_UPDATE: {
+            route: (sourceId: number) => `/admin/plugins/sources/${sourceId}`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_SOURCE_DELETE: {
+            route: (sourceId: number) => `/admin/plugins/sources/${sourceId}`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+
+        // Admin plugin operations
+        ADMIN_PLUGIN_OPERATIONS_LIST: {
+            route: '/admin/plugins/operations',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_OPERATION_DETAIL: {
+            route: (operationId: number) => `/admin/plugins/operations/${operationId}`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_OPERATION_ROLLBACK: {
+            route: (operationId: number) => `/admin/plugins/operations/${operationId}/rollback`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
+        },
+        ADMIN_PLUGIN_OPERATION_CANCEL: {
+            route: (operationId: number) => `/admin/plugins/operations/${operationId}/cancel`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
+        },
+
+        // Admin plugin feature flags
+        ADMIN_PLUGIN_FEATURE_FLAGS_LIST: {
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/feature-flags`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGIN_FEATURE_FLAGS_SET: {
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/feature-flags`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+
+        // Admin plugin health + doctor + safe-mode
+        ADMIN_PLUGIN_HEALTH: {
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/health`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGINS_DOCTOR: {
+            route: '/admin/plugins/doctor',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGINS_SAFE_MODE_ENABLE: {
+            route: '/admin/plugins/safe-mode/enable',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+        ADMIN_PLUGINS_SAFE_MODE_DISABLE: {
+            route: '/admin/plugins/safe-mode/disable',
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+        },
+
+        // Public plugin manifest endpoint (read-only, frontends sync from here)
+        PLUGINS_MANIFEST: {
+            route: '/plugins/manifest',
+            permissions: []
+        },
+
     },
     TIMEOUT: 10000, // 10 seconds
 };
