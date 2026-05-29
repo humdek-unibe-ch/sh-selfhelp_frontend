@@ -41,11 +41,19 @@ export interface IUserData {
         locale: string | null;
         name: string | null;
     };
+    /**
+     * Timezone is `null` when the user has no timezone set AND the CMS
+     * default timezone is not configured (or its lookup is missing).
+     * Field names mirror `UserDataService::getUserTimezoneInfo()` and the
+     * `auth/user_data.json` response schema: `code` is the lookup code
+     * (e.g. `Europe/Zurich`), `name` is the human label.
+     */
     timezone: {
-        id: number | null;
-        lookupCode: string | null;
-        lookupValue: string | null;
-    };
+        id: number;
+        code: string;
+        name: string;
+        description: string | null;
+    } | null;
     roles: Array<{
         id: number;
         name: string;
@@ -157,6 +165,11 @@ export const PERMISSIONS = {
 
     // Permissions
     ADMIN_PERMISSION_READ: 'admin.permission.read',
+
+    // Plugins
+    ADMIN_PLUGINS_MANAGE: 'admin.plugins.manage',
+    ADMIN_PLUGINS_EXECUTE: 'admin.plugins.execute',
+    ADMIN_PLUGINS_PURGE: 'admin.plugins.purge',
 
     // Roles (CRUD)
     ADMIN_ROLE_CREATE: 'admin.role.create',

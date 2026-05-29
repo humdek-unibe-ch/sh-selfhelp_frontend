@@ -4,6 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
+import '@mantine/dropzone/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/schedule/styles.css';
 import '@mantine/carousel/styles.css';
@@ -13,6 +14,7 @@ import '../globals.css';
 import { ServerProviders } from '../providers/server-providers';
 import { resolveColorSchemeSSR, resolveLanguageSSR } from './_lib/server-fetch';
 import { ColorSchemeInjector } from './components/shared/common/ColorSchemeInjector';
+import { PluginRuntimeImportMapInjector } from './components/frontend/plugin-runtime/PluginRuntimeImportMapInjector';
 
 /**
  * Root layout — a **Server Component**.
@@ -68,6 +70,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     name="viewport"
                     content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
                 />
+                {/*
+                  Plugin runtime import map.
+                  Plugins ship as native ESM bundles with bare imports
+                  for `react`, `@mantine/core`, `@selfhelp/shared/plugin-sdk`,
+                  etc. The browser cannot resolve those without help.
+                  This map points each supported bare specifier at a
+                  host-served shim under `/api/plugins/runtime-shim/*`
+                  which re-exports the host's singleton from
+                  `globalThis.__SELFHELP_RUNTIME__` (see
+                  `runtime-globals.ts`).
+
+                  `PluginRuntimeImportMapInjector` streams the import
+                  map into the SSR HTML outside React's client render
+                  tree. That keeps the browser-visible import map in
+                  the document before any plugin module loads, while
+                  avoiding React 19's dev-only warning about `<script>`
+                  tags rendered from JSX.
+                */}
+                <PluginRuntimeImportMapInjector />
             </head>
             <body>
                 <ColorSchemeInjector />

@@ -74,6 +74,12 @@ export function useAuthUser(): {
 }
 
 function transformUserData(userData: IUserData): IAuthUser {
+    // `userData.timezone` is `null` when the user has no timezone AND the
+    // CMS default is unconfigured (or its lookup is missing). `language`
+    // is always an object on the backend, but we still defend against a
+    // schema regression rather than crash the whole shell.
+    const language = userData.language ?? { id: null, locale: null, name: null };
+    const timezone = userData.timezone;
     return {
         id: userData.id,
         email: userData.email,
@@ -84,12 +90,12 @@ function transformUserData(userData: IUserData): IAuthUser {
         roles: userData.roles,
         permissions: userData.permissions,
         groups: userData.groups,
-        languageId: userData.language.id,
-        languageLocale: userData.language.locale,
-        languageName: userData.language.name,
-        timezoneId: userData.timezone.id,
-        timezoneLookupCode: userData.timezone.lookupCode,
-        timezoneLookupValue: userData.timezone.lookupValue,
+        languageId: language.id,
+        languageLocale: language.locale,
+        languageName: language.name,
+        timezoneId: timezone ? timezone.id : null,
+        timezoneLookupCode: timezone ? timezone.code : null,
+        timezoneLookupValue: timezone ? timezone.name : null,
     };
 }
 
