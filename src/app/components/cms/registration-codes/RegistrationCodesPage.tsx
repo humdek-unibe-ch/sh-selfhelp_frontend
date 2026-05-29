@@ -4,7 +4,8 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     flexRender,
     getCoreRowModel,
@@ -48,6 +49,9 @@ import {
 } from '@tabler/icons-react';
 import { useRegistrationCodes, useCreateRegistrationCode, useDeleteRegistrationCode } from '../../../../hooks/useRegistrationCodes';
 import { useGroups } from '../../../../hooks/useGroups';
+import { useAuth } from '../../../../hooks/useAuth';
+import { useCanReadRegistrationCodes } from '../../../../hooks/usePermissionChecks';
+import { ROUTES } from '../../../../config/routes.config';
 import { PageHeader } from '../../shared/common/PageHeader';
 import { EmptyState } from '../../shared/common/EmptyState';
 import { FilterActions } from '../../shared/common/FilterControls';
@@ -64,6 +68,10 @@ const DEFAULT_PARAMS: IRegistrationCodesListParams = {
 };
 
 export function RegistrationCodesPage() {
+    const router = useRouter();
+    const { isLoading: isAuthLoading } = useAuth();
+    const canReadRegistrationCodes = useCanReadRegistrationCodes();
+
     const { data: groupsData } = useGroups({ page: 1, pageSize: 1000 });
     const createCode = useCreateRegistrationCode();
     const deleteCode = useDeleteRegistrationCode();
@@ -90,6 +98,13 @@ export function RegistrationCodesPage() {
         value: String(g.id),
         label: g.name,
     }));
+
+    // Redirect if no read permission
+    useEffect(() => {
+        if (!isAuthLoading && !canReadRegistrationCodes) {
+            router.push(ROUTES.NO_ACCESS);
+        }
+    }, [isAuthLoading, canReadRegistrationCodes, router]);
 
     // Handle sorting change — applied immediately like users
     const handleSortingChange = useCallback<OnChangeFn<SortingState>>((updaterOrValue) => {
@@ -251,6 +266,14 @@ export function RegistrationCodesPage() {
         onSortingChange: handleSortingChange,
         enableSortingRemoval: false,
     });
+
+    if (isAuthLoading) {
+        return null;
+    }
+
+    if (!canReadRegistrationCodes) {
+        return null;
+    }
 
     if (error) {
         return (
