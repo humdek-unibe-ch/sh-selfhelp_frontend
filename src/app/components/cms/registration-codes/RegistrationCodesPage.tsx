@@ -109,12 +109,13 @@ export function RegistrationCodesPage() {
                                     <TableTh>Group</TableTh>
                                     <TableTh>Status</TableTh>
                                     <TableTh>Created</TableTh>
+                                    <TableTh>Consumed</TableTh>
                                     <TableTh>Actions</TableTh>
                                 </TableTr>
                             </TableThead>
                             <TableTbody>
                                 {codes.map(item => (
-                                    <TableTr key={item.id}>
+                                    <TableTr key={item.code}>
                                         <TableTd>
                                             <Text size="sm" ff="monospace" fw={500}>{item.code}</Text>
                                         </TableTd>
@@ -128,8 +129,15 @@ export function RegistrationCodesPage() {
                                         </TableTd>
                                         <TableTd>
                                             <Text size="sm" c="dimmed">
-                                                {new Date(item.created_at).toLocaleDateString()}
+                                                {new Date(item.created_at).toLocaleString()}
                                             </Text>
+                                        </TableTd>
+                                        <TableTd>
+                                            {item.consumed_at ? (
+                                                <Text size="sm" c="dimmed">
+                                                    {new Date(item.consumed_at).toLocaleString()}
+                                                </Text>
+                                            ) : null}
                                         </TableTd>
                                         <TableTd>
                                             <Tooltip label="Delete code">
