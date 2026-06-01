@@ -1,6 +1,6 @@
 {
     "name": "selfhelp-frontend",
-    "version": "0.0.2",
+    "version": "0.0.5",
     "private": true,
     "license": "MPL-2.0",
     "scripts": {
@@ -17,7 +17,8 @@
         "prune": "ts-prune",
         "headers:check": "license-check-and-add check -f license-check-and-add-config.json",
         "headers:add": "license-check-and-add add -f license-check-and-add-config.json",
-        "headers:remove": "license-check-and-add remove -f license-check-and-add-config.json"
+        "headers:remove": "license-check-and-add remove -f license-check-and-add-config.json",
+        "plugins:sync": "node scripts/plugins-sync.mjs"
     },
     "dependencies": {
         "@atlaskit/pragmatic-drag-and-drop": "^1.8.0",
@@ -39,8 +40,8 @@
         "@refinedev/core": "^5.0.12",
         "@refinedev/nextjs-router": "^7.0.5",
         "@refinedev/simple-rest": "^6.0.1",
-        "@selfhelp/shared": "^1.0.3",
         "@selfhelp/ui": "file:../sh-library-of-components",
+        "@selfhelp/shared": "^1.2.1",
         "@tabler/icons-react": "^3.41.1",
         "@tanstack/react-query": "^5.99.2",
         "@tanstack/react-table": "^8.21.3",

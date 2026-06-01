@@ -17,9 +17,11 @@ import {
     IconPlayerPlay,
     IconFileText,
     IconPlus,
+    IconPuzzle,
 } from '@tabler/icons-react';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useAuth } from '../../../../../hooks/useAuth';
+import { usePluginMenuItems } from '../../../frontend/plugin-runtime/PluginsProvider';
 import { LinksGroup } from './components/LinksGroup';
 import { CreatePageModal } from '../../pages/create-page/CreatePage';
 import { SelfHelpLogo, PreviewModeToggle, AuthButton } from '../../../shared';
@@ -58,7 +60,8 @@ export function AdminNavbar() {
         isLoading
     } = useAdminPages();
 
-    const { permissionChecker } = useAuth();
+    const { permissionChecker, hasPermission } = useAuth();
+    const pluginMenuItems = usePluginMenuItems();
 
     const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
 
@@ -133,6 +136,7 @@ export function AdminNavbar() {
             if (permissionChecker.canReadUsers()) userManagementLinks.push({ label: 'Users', link: '/admin/users' });
             if (permissionChecker.canReadGroups()) userManagementLinks.push({ label: 'Groups', link: '/admin/groups' });
             if (permissionChecker.canReadRoles()) userManagementLinks.push({ label: 'Roles', link: '/admin/roles' });
+            if (permissionChecker.canReadRegistrationCodes()) userManagementLinks.push({ label: 'Registration Codes', link: '/admin/registration-codes' });
 
             if (userManagementLinks.length > 0) {
                 menuItems.push({
@@ -289,12 +293,44 @@ export function AdminNavbar() {
             }
         }
 
+        // Plugin-contributed menu items. Each entry comes from a plugin's
+        // `register()` registration (`menuItems`) inside its ESM bundle.
+        // We gate every entry on its declared `permission` so a viewer
+        // role does not see admin-only plugin links. The plugin menu
+        // appears just above "System Tools" — close to the related
+        // "Plugin Management" link inside System Tools, but kept as a
+        // top-level group so users do not have to expand a nested menu
+        // to reach the plugin pages they use day-to-day.
+        const pluginMenuLinks = pluginMenuItems
+            .filter((item) => !item.permission || hasPermission(item.permission))
+            .sort((a, b) => (a.position?.order ?? 0) - (b.position?.order ?? 0))
+            .map((item) => ({
+                label: item.label,
+                link: item.href ?? `/admin/plugins-host/${item.pluginId}/${item.key}`,
+                id: `${item.pluginId}:${item.key}`,
+            }));
+
+        if (pluginMenuLinks.length > 0) {
+            menuItems.push({
+                label: 'Plugins',
+                icon: <IconPuzzle size={16} />,
+                links: pluginMenuLinks,
+                id: 'plugins',
+            });
+        }
+
         // System Tools - check various permissions
         const systemToolLinks = [];
         if (permissionChecker.canManageLanguages()) systemToolLinks.push({ label: 'Languages', link: '/admin/languages' });
         if (permissionChecker.canAccessDataBrowser()) systemToolLinks.push({ label: 'Data Browser', link: '/admin/data' });
         if (permissionChecker.canViewAuditLogs()) systemToolLinks.push({ label: 'Audit Logs', link: '/admin/data-access' });
         if (permissionChecker.canReadCache()) systemToolLinks.push({ label: 'Cache Management', link: '/admin/cache' });
+        // Plugin Management lives under System Tools (with its own
+        // permission gate) so the sidebar stays compact. The dedicated
+        // plugin detail page is reachable at /admin/plugins/<id>.
+        if (permissionChecker.canManagePlugins()) {
+            systemToolLinks.push({ label: 'Plugin Management', link: '/admin/plugins' });
+        }
 
         if (systemToolLinks.length > 0) {
             menuItems.push({
@@ -306,7 +342,7 @@ export function AdminNavbar() {
         }
 
         return menuItems;
-    }, [pages, configurationPageLinks, categorizedSystemPages, categorizedRegularPages, isLoading, permissionChecker]);
+    }, [pages, configurationPageLinks, categorizedSystemPages, categorizedRegularPages, isLoading, permissionChecker, pluginMenuItems, hasPermission]);
 
     const links = navigationData.map((item) => <LinksGroup {...item} key={item.id || item.label} />);
 

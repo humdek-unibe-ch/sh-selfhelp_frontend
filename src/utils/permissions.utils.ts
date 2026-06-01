@@ -111,14 +111,14 @@ export class PermissionChecker {
    * Check if user has any of the specified permissions
    */
   hasAnyPermission(...permissions: string[]): boolean {
-    return permissions.some(permission => this.hasPermission(permission));
+    return permissions.some((permission) => this.hasPermission(permission));
   }
 
   /**
    * Check if user has all of the specified permissions
    */
   hasAllPermissions(...permissions: string[]): boolean {
-    return permissions.every(permission => this.hasPermission(permission));
+    return permissions.every((permission) => this.hasPermission(permission));
   }
 
   /**
@@ -139,7 +139,7 @@ export class PermissionChecker {
       PERMISSIONS.ADMIN_USER_DELETE,
       PERMISSIONS.ADMIN_USER_BLOCK,
       PERMISSIONS.ADMIN_USER_UNBLOCK,
-      PERMISSIONS.ADMIN_USER_IMPERSONATE
+      PERMISSIONS.ADMIN_USER_IMPERSONATE,
     );
   }
 
@@ -201,7 +201,7 @@ export class PermissionChecker {
       PERMISSIONS.ADMIN_GROUP_CREATE,
       PERMISSIONS.ADMIN_GROUP_UPDATE,
       PERMISSIONS.ADMIN_GROUP_DELETE,
-      PERMISSIONS.ADMIN_GROUP_ACL
+      PERMISSIONS.ADMIN_GROUP_ACL,
     );
   }
 
@@ -221,7 +221,7 @@ export class PermissionChecker {
       PERMISSIONS.ADMIN_ROLE_CREATE,
       PERMISSIONS.ADMIN_ROLE_UPDATE,
       PERMISSIONS.ADMIN_ROLE_DELETE,
-      PERMISSIONS.ADMIN_ROLE_PERMISSIONS
+      PERMISSIONS.ADMIN_ROLE_PERMISSIONS,
     );
   }
 
@@ -242,7 +242,7 @@ export class PermissionChecker {
       PERMISSIONS.ADMIN_PAGE_UPDATE,
       PERMISSIONS.ADMIN_PAGE_DELETE,
       PERMISSIONS.ADMIN_PAGE_EXPORT,
-      PERMISSIONS.ADMIN_PAGE_INSERT
+      PERMISSIONS.ADMIN_PAGE_INSERT,
     );
   }
 
@@ -267,7 +267,7 @@ export class PermissionChecker {
     return this.hasAnyPermission(
       PERMISSIONS.ADMIN_ASSET_READ,
       PERMISSIONS.ADMIN_ASSET_CREATE,
-      PERMISSIONS.ADMIN_ASSET_DELETE
+      PERMISSIONS.ADMIN_ASSET_DELETE,
     );
   }
 
@@ -285,7 +285,7 @@ export class PermissionChecker {
     return this.hasAnyPermission(
       PERMISSIONS.ADMIN_ACTION_READ,
       PERMISSIONS.ADMIN_ACTION_UPDATE,
-      PERMISSIONS.ADMIN_ACTION_DELETE
+      PERMISSIONS.ADMIN_ACTION_DELETE,
     );
   }
 
@@ -303,7 +303,7 @@ export class PermissionChecker {
     return this.hasAnyPermission(
       PERMISSIONS.ADMIN_SCHEDULED_JOB_READ,
       PERMISSIONS.ADMIN_SCHEDULED_JOB_EXECUTE,
-      PERMISSIONS.ADMIN_SCHEDULED_JOB_DELETE
+      PERMISSIONS.ADMIN_SCHEDULED_JOB_DELETE,
     );
   }
 
@@ -321,7 +321,7 @@ export class PermissionChecker {
     return this.hasAnyPermission(
       PERMISSIONS.ADMIN_CACHE_READ,
       PERMISSIONS.ADMIN_CACHE_MANAGE,
-      PERMISSIONS.ADMIN_CACHE_CLEAR
+      PERMISSIONS.ADMIN_CACHE_CLEAR,
     );
   }
 
@@ -352,7 +352,7 @@ export class PermissionChecker {
   canManageCmsPreferences(): boolean {
     return this.hasAnyPermission(
       PERMISSIONS.ADMIN_CMS_PREFERENCES_READ,
-      PERMISSIONS.ADMIN_CMS_PREFERENCES_UPDATE
+      PERMISSIONS.ADMIN_CMS_PREFERENCES_UPDATE,
     );
   }
 
@@ -380,7 +380,7 @@ export class PermissionChecker {
       PERMISSIONS.ADMIN_PAGE_VERSION_CREATE,
       PERMISSIONS.ADMIN_PAGE_VERSION_PUBLISH,
       PERMISSIONS.ADMIN_PAGE_VERSION_UNPUBLISH,
-      PERMISSIONS.ADMIN_PAGE_VERSION_COMPARE
+      PERMISSIONS.ADMIN_PAGE_VERSION_COMPARE,
     );
   }
 
@@ -403,6 +403,43 @@ export class PermissionChecker {
    */
   canAccessSettings(): boolean {
     return this.hasPermission(PERMISSIONS.ADMIN_SETTINGS);
+  }
+
+  /**
+   * Check if user can read registration codes
+   */
+  canReadRegistrationCodes(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_REGISTRATION_CODE_READ);
+  }
+
+  /**
+   * Check if user can manage plugins (list/inspect/install/update/uninstall).
+   *
+   * Granted by any of the three plugin permissions because all three need
+   * the Plugins admin page visible — manage is read-only access, execute
+   * controls install/update/uninstall, purge gates the destructive purge.
+   */
+  canManagePlugins(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_PLUGINS_MANAGE,
+      PERMISSIONS.ADMIN_PLUGINS_EXECUTE,
+      PERMISSIONS.ADMIN_PLUGINS_PURGE,
+    );
+  }
+
+  /** Read-only inspection of installed plugins. */
+  canReadPlugins(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_PLUGINS_MANAGE);
+  }
+
+  /** Execute install/update/uninstall/repair/rollback operations. */
+  canExecutePlugins(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_PLUGINS_EXECUTE);
+  }
+
+  /** Purge — physically delete a plugin's data + rows. */
+  canPurgePlugins(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_PLUGINS_PURGE);
   }
 }
 

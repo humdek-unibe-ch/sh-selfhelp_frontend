@@ -62,6 +62,18 @@ SPDX-License-Identifier: MPL-2.0
 | GET | `/admin/groups/{id}/acls` | Get group ACLs |
 | PUT | `/admin/groups/{id}/acls` | Update group ACLs |
 
+## Registration Codes
+
+Invitation codes required for user registration when the `register` style has `open_registration = '0'`. Each code is bound to a group; once consumed during registration the new user is added to that group. Managed under **User Management → Registration Codes** in the admin navbar.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/admin/registration-codes`        | List registration codes (paginated). Supports `search` (partial match on code), `id_groups`, `status` (`available` \| `used`), `sort` (`created_at` \| `consumed_at`), `sortDirection` (`asc` \| `desc`), `page`, `pageSize`. |
+| POST   | `/admin/registration-codes`        | Create a registration code. Body: `{ code: string, id_groups: number }`. |
+| DELETE | `/admin/registration-codes/{code}` | Delete a registration code by its `code` value (the table's primary key). |
+
+Permissions: `admin.registration_code.read`, `admin.registration_code.create`, `admin.registration_code.delete`.
+
 ## Asset Management
 
 | Method | Endpoint | Description |

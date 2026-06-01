@@ -5,12 +5,15 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { TextInput } from '@mantine/core';
+import type { ComponentProps } from 'react';
 
 interface ITextInputFieldProps {
     fieldId: number;
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
+    inputType?: ComponentProps<typeof TextInput>['type'];
+    step?: string | number;
     disabled?: boolean;
     validator?: (value: string) => { isValid: boolean; error?: string };
     sanitize?: (value: string) => string;
@@ -21,6 +24,8 @@ export function TextInputField({
     value,
     onChange,
     placeholder,
+    inputType = 'text',
+    step,
     disabled = false,
     validator,
     sanitize
@@ -30,6 +35,8 @@ export function TextInputField({
     return (
         <TextInput
             key={fieldId}
+            type={inputType}
+            step={step}
             placeholder={placeholder || ''}
             value={value}
             onChange={(event) => {
