@@ -27,6 +27,7 @@ import {
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
+import { usePluginFieldRenderer } from '../../../frontend/plugin-runtime';
 
 // Global field types for section-level properties
 export type GlobalFieldType = 'condition' | 'data_config' | 'css' | 'css_mobile' | 'debug';
@@ -74,7 +75,12 @@ interface IFieldRendererProps {
 
 export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Record<string, string> }) {
     const { field, languageId, value, onChange, locale, className, disabled = false, dataVariables } = props;
-    
+
+    // Plugin-supplied editor renderers take priority over host built-ins so
+    // plugin-owned field types (e.g. `select-survey-js`) stay inside the
+    // plugin bundle. Returns undefined for any field type no plugin claimed.
+    const pluginFieldRenderer = usePluginFieldRenderer(field.type);
+
     // Skip rendering hidden fields - they should not be visible to users
     if (field.hidden === 1) {
         return null;
@@ -161,6 +167,25 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     };
     
+    // Plugin-supplied renderers win over host built-ins. This is the only
+    // hook plugins need to ship custom field editors for plugin-owned
+    // field types (e.g. SurveyJS' `select-survey-js`). The host wraps the
+    // plugin output with the standard label / tooltip / type badge so the
+    // editor surface stays visually consistent.
+    if (pluginFieldRenderer) {
+        return renderFieldWithBadge(
+            pluginFieldRenderer({
+                fieldId: field.id,
+                fieldName: field.name,
+                fieldType: field.type ?? '',
+                value: fieldValue,
+                onChange: (next) => onChange(next),
+                disabled,
+                field: field as unknown as Record<string, unknown>,
+            }) as React.ReactNode,
+        );
+    }
+
     // Handle checkbox separately as it has inline label
     if (field.type === 'checkbox') {
         // Convert string values to boolean for checkbox
@@ -229,7 +254,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         
         return renderFieldWithBadge(<RichTextField {...richTextProps} />);
     }
-    
+
     // Text and markdown-inline fields - use TextInputWithMentions for single-line text with variable support
     if (field.type === 'text' || field.type === 'markdown-inline') {
 
@@ -259,6 +284,32 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         }
         
         return renderFieldWithBadge(<TextInputWithMentions {...textInputProps} />);
+    }
+
+    if (field.type === 'time') {
+        return renderFieldWithBadge(
+            <TextInputField
+                fieldId={field.id}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder={field.default_value || '00:00'}
+                inputType="time"
+            />
+        );
+    }
+
+    if (field.type === 'number') {
+        return renderFieldWithBadge(
+            <TextInputField
+                fieldId={field.id}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder={field.default_value || '0'}
+                inputType="number"
+                step="any"
+                disabled={disabled}
+            />
+        );
     }
 
     // Select CSS field - dynamic select with API options

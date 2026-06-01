@@ -17,11 +17,12 @@ import {
     Badge,
     UnstyledButton
 } from '@mantine/core';
-import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, IconPhoto, IconPlayerPlay, IconFileText, IconLanguage } from '@tabler/icons-react';
+import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, IconPhoto, IconPlayerPlay, IconFileText, IconLanguage, IconPuzzle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import styles from './NavigationSearch.module.css';
 import { useNavigationStore } from '../../../../../../store/navigation.store';
 import { useAuth } from '../../../../../../../hooks/useAuth';
+import { usePluginMenuItems } from '../../../../../frontend/plugin-runtime';
 
 interface ISearchableItem {
     id: string;
@@ -73,7 +74,12 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
     const [searchQuery, setSearchQuery] = useState('');
     const router = useRouter();
     const { setActiveItem } = useNavigationStore();
-    const { permissionChecker } = useAuth();
+    const { permissionChecker, hasPermission } = useAuth();
+    // Plugin-contributed menu items live in the PluginRuntime snapshot.
+    // Reading them here (instead of taking another prop) keeps the
+    // component's call sites unchanged while still making every
+    // installed-and-enabled plugin page reachable via Ctrl-F.
+    const pluginMenuItems = usePluginMenuItems();
 
     // Build searchable items from all admin functions and pages
     const searchableItems = useMemo<ISearchableItem[]>(() => {
@@ -132,12 +138,61 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
         if (permissionChecker?.canReadCache()) {
             systemToolFunctions.push({ id: 'cache', label: 'Cache Management', href: '/admin/cache', icon: <IconDatabase size={16} />, category: 'Configuration', keywords: ['cache', 'performance', 'memory'] });
         }
+        // Plugin Management lives under System Tools — searchable by
+        // every word an admin would reach for: plugins, addon, extension,
+        // module, marketplace, install, update, uninstall, doctor, safe-mode,
+        // surveyjs (so people who only know the use-case still find it).
+        if (permissionChecker?.canManagePlugins()) {
+            systemToolFunctions.push({
+                id: 'plugin-management',
+                label: 'Plugin Management',
+                href: '/admin/plugins',
+                icon: <IconPuzzle size={16} />,
+                category: 'System Tools',
+                keywords: [
+                    'plugin', 'plugins', 'plugin management',
+                    'addon', 'add-on', 'extension', 'extensions', 'module', 'modules', 'marketplace',
+                    'install', 'install plugin', 'update plugin', 'uninstall',
+                    'plugin doctor', 'doctor', 'safe mode', 'safe-mode',
+                    'plugin sources', 'plugin operations',
+                    'survey', 'surveyjs', 'survey-js',
+                ],
+            });
+        }
 
         if (systemToolFunctions.length > 0) {
             items.push(...systemToolFunctions);
         }
 
         items.push(...staticFunctions);
+
+        // Plugin-contributed menu items (e.g. "Surveys" from the
+        // SurveyJS plugin). The PluginRuntime snapshot lists every
+        // entry an installed-and-enabled plugin contributed via
+        // `register().menuItems`; we gate each one on its declared
+        // permission so users see the same set the sidebar shows.
+        // Keywords mix the human label, the plugin id, and `plugin`
+        // so searching either "surveys" or "surveyjs" hits the row.
+        pluginMenuItems
+            .filter((mi) => !mi.permission || hasPermission(mi.permission))
+            .forEach((mi) => {
+                const href = mi.href ?? `/admin/plugins-host/${mi.pluginId}/${mi.key}`;
+                const labelLower = mi.label.toLowerCase();
+                items.push({
+                    id: `plugin-menu-${mi.pluginId}-${mi.key}`,
+                    label: mi.label,
+                    href,
+                    icon: <IconPuzzle size={16} />,
+                    category: `Plugin: ${mi.pluginId}`,
+                    keywords: [
+                        labelLower,
+                        mi.key,
+                        mi.pluginId,
+                        'plugin',
+                        'plugins',
+                    ].filter(Boolean),
+                });
+            });
 
         // Add dynamic pages from adminPagesData
         if (adminPagesData) {
@@ -314,7 +369,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
         }
 
         return items;
-    }, [adminPagesData, permissionChecker]);
+    }, [adminPagesData, permissionChecker, pluginMenuItems, hasPermission]);
 
     // Filter items based on search query with improved ranking
     const filteredItems = useMemo(() => {

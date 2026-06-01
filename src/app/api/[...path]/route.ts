@@ -34,6 +34,7 @@ import {
     type BufferedRequest,
     bufferRequest,
 } from '../_lib/proxy';
+import { buildRuntimeShimResponse } from '../plugins/runtime-shim/runtime-shim';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,6 +113,9 @@ async function handle(req: NextRequest, context: { params: Promise<{ path: strin
     if (csrfFail) return csrfFail;
 
     const { path } = await context.params;
+    if (path[0] === 'plugins' && path[1] === 'runtime-shim') {
+        return buildRuntimeShimResponse(path.slice(2));
+    }
     const search = req.nextUrl.search || '';
     const upstreamUrl = buildUpstreamUrl(path, search);
 

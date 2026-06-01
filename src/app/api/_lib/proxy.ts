@@ -76,6 +76,13 @@ const HOP_BY_HOP_HEADERS = new Set([
     'upgrade',
     'content-length',
     'host',
+    // Node 22 / undici refuses to issue a fetch when the request carries an
+    // `Expect: 100-continue` header, throwing
+    // `NotSupportedError: expect header not supported` before the body is
+    // sent. Browsers and `curl -F` add this header automatically for larger
+    // multipart uploads (typically > ~1 KB), so forwarding it verbatim
+    // breaks the catch-all proxy for plugin archive uploads. Drop it.
+    'expect',
 ]);
 
 const UPSTREAM_HEADERS_TO_DROP = new Set([
