@@ -26,3 +26,11 @@ export interface ITwoFactorVerifyRequest {
 export interface IUpdateLanguagePreferenceRequest {
     language_id: number;
 }
+
+export interface IRegisterRequest {
+    page_id: number;
+    email: string;
+    password?: string;
+    name?: string;
+    code?: string;
+}
