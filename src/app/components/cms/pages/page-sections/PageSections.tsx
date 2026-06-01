@@ -17,7 +17,8 @@ import {
     ActionIcon,
     Tooltip,
     Box,
-    Stack
+    Stack,
+    LoadingOverlay
 } from '@mantine/core';
 import {
     IconAlertCircle,
@@ -711,7 +712,9 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                    )
                  }
                >
-                 {visibleExpandedSections.size > 0 ? "Collapse all" : "Expand all"}
+                 {visibleExpandedSections.size > 0
+                   ? "Collapse all"
+                   : "Expand all"}
                </Button>
 
                <Button
@@ -752,24 +755,22 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                    size="sm"
                    variant="subtle"
                    onClick={() =>
-                     selectedCount > 0
-                       ? handleDeselectAll()
-                       : handleSelectAll()
+                     selectedCount > 0 ? handleDeselectAll() : handleSelectAll()
                    }
                  >
                    {selectedCount > 0 ? "Deselect All" : "Select All"}
                  </Button>
 
-                  {selectedCount > 0 && (
-                    <Button
-                      size="sm"
-                      color="orange"
-                      leftSection={<IconTrash size={14} />}
-                      onClick={handleOpenBulkRemoveModal}
-                    >
-                      Remove ({selectedCount})
-                    </Button>
-                  )}
+                 {selectedCount > 0 && (
+                   <Button
+                     size="sm"
+                     color="orange"
+                     leftSection={<IconTrash size={14} />}
+                     onClick={handleOpenBulkRemoveModal}
+                   >
+                     Remove ({selectedCount})
+                   </Button>
+                 )}
                </Group>
              )}
            </Stack>
@@ -860,10 +861,13 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
          {/* 4. Main Content */}
          <Box>
+           <LoadingOverlay
+             visible={isLoading}
+             overlayProps={{ blur: 0, backgroundOpacity: 0.35 }}
+             loaderProps={{ size: "md" }}
+           />
            <SectionsList
-             sections={
-               sortedSections
-             }
+             sections={sortedSections}
              expandedSections={visibleExpandedSections}
              onToggleExpand={handleToggleExpand}
              onSectionMove={handleSectionMove}
@@ -900,17 +904,15 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
            onSectionsImported={handleSectionsImported}
          />
 
-          <BulkRemoveModal
-            opened={BulkRemoveModalOpened}
-            onClose={() => {
-              setBulkRemoveIds([]);
-              setBulkRemoveModalOpened(false);
-            }}
-            selectedSections={bulkRemoveIds.map((id) => ({
-              id,
-              name:
-                sectionLookup?.nameById.get(id) ??
-               "Unknown Section",
+         <BulkRemoveModal
+           opened={BulkRemoveModalOpened}
+           onClose={() => {
+             setBulkRemoveIds([]);
+             setBulkRemoveModalOpened(false);
+           }}
+           selectedSections={bulkRemoveIds.map((id) => ({
+             id,
+             name: sectionLookup?.nameById.get(id) ?? "Unknown Section",
            }))}
            onConfirm={handleBulkRemove}
          />
