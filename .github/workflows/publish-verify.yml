@@ -1,0 +1,186 @@
+# SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+# SPDX-License-Identifier: MPL-2.0
+#
+# Publish verification gate.
+#
+# Runs the full "nothing bad shipped" suite whenever a release is published,
+# so a tagged build is proven to be installable, type-safe, buildable, AND
+# actually boots and serves HTTP before anyone deploys it.
+#
+# Why a separate workflow from `plugin-runtime-check.yml`?
+#   - plugin-runtime-check runs on every PR / push to main (fast feedback).
+#   - This one is the *release* gate: it is self-contained (does not assume
+#     the PR check ran) and adds the checks that only matter at publish time:
+#       1. A production `next build` + `next start` runtime smoke test against
+#          the dependency-free `/api/health` route. A green `build` does NOT
+#          prove the server boots (env wiring, runtime-only imports, BFF route
+#          crashes only surface at `next start`), so this is the core extra.
+#       2. Git tag <-> package.json version consistency.
+#       3. Supply-chain audit + host-singleton duplication.
+#
+# BLOCKING (must pass to go green): npm ci, license headers, tsc, next build,
+#   runtime smoke test.
+# ADVISORY (reported, do NOT fail the run yet): ESLint, knip dead-code,
+#   npm audit, host-singleton check, version/tag consistency. Each advisory
+#   step is marked `continue-on-error: true`. To promote one to a hard gate,
+#   delete its `continue-on-error: true` line.
+#
+# Node 22 matches the rest of the frontend tooling.
+
+name: publish-verify
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+# A tag push and the GitHub "release published" event can both fire for the
+# same version. Group by ref so the duplicate run queues behind the first one
+# instead of racing it; never cancel an in-flight release verification.
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify release artifact (build + boot + checks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # --- BLOCKING: dependencies resolve exactly from the lockfile ----------
+      - name: Install dependencies (npm ci)
+        run: npm ci
+
+      # --- BLOCKING: license headers present on all source files ------------
+      - name: License headers
+        run: npm run headers:check
+
+      # --- BLOCKING: TypeScript is sound -----------------------------------
+      - name: Type-check (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      # --- ADVISORY: lint ---------------------------------------------------
+      - name: ESLint
+        continue-on-error: true
+        run: npm run lint -- --max-warnings=0
+
+      # --- ADVISORY: dead / unused code ------------------------------------
+      - name: Dead-code (knip)
+        continue-on-error: true
+        run: npm run dead
+
+      # --- ADVISORY: supply-chain audit (production deps) ------------------
+      - name: npm audit (high+)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
+      # --- ADVISORY: host singleton tree is not duplicated -----------------
+      # The plugin host must resolve exactly one copy of each shared singleton,
+      # otherwise plugins hit the "two React copies" failure mode at runtime.
+      - name: Host singleton dependency check
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          fail=0
+          for pkg in react react-dom @tanstack/react-query @mantine/core; do
+            output=$(npm ls --json --all "$pkg" 2>/dev/null || true)
+            versions=$(PKG_NAME="$pkg" NPM_LS_OUTPUT="$output" node -e "const pkgName=process.env.PKG_NAME; const raw=process.env.NPM_LS_OUTPUT ?? ''; if(!raw.trim()) process.exit(0); const root=JSON.parse(raw); const versions=new Set(); const visit=(name,node)=>{ if(!node||typeof node!=='object') return; if(name===pkgName && typeof node.version==='string') versions.add(node.version); const deps=node.dependencies; if(!deps||typeof deps!=='object') return; for(const [d,n] of Object.entries(deps)) visit(d,n); }; visit(root.name ?? '', root); process.stdout.write(Array.from(versions).sort().join(' '));")
+            count=$(printf '%s' "$versions" | tr ' ' '\n' | sed '/^$/d' | wc -l | tr -d ' ')
+            echo "$pkg -> ${count:-0} version(s): ${versions:-<none>}"
+            if [ "${count:-0}" -gt 1 ]; then
+              echo "::warning::$pkg resolves to more than one version (duplicate host singleton)."
+              fail=1
+            fi
+          done
+          if [ "$fail" -eq 1 ]; then
+            echo "::error::host singleton dependency check found duplicates."
+            exit 1
+          fi
+          echo "All host singletons resolved to a single version."
+
+      # --- ADVISORY: the tag must match the shipped package version --------
+      - name: Version / tag consistency
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_TYPE:-}" != "tag" ]; then
+            echo "Not a tag/release build (ref_type='${GITHUB_REF_TYPE:-none}'); skipping version/tag check."
+            exit 0
+          fi
+          tag="${GITHUB_REF_NAME}"
+          tag_version="${tag#v}"
+          pkg_version="$(node -p "require('./package.json').version")"
+          echo "Git tag:      $tag (version: $tag_version)"
+          echo "package.json: $pkg_version"
+          if [ "$tag_version" != "$pkg_version" ]; then
+            echo "::error::Tag version ($tag_version) != package.json version ($pkg_version). Bump package.json or retag before publishing."
+            exit 1
+          fi
+          echo "Version/tag consistency OK."
+
+      # --- BLOCKING: production build succeeds ------------------------------
+      - name: Next.js build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: npm run build
+
+      # --- BLOCKING: the built artifact actually boots and serves HTTP -----
+      # Starts `next start`, waits for the port, and asserts the dependency-free
+      # /api/health route returns 200. No Symfony backend is needed: the health
+      # route never calls upstream, so this is a pure "does the server boot"
+      # signal. Server logs are printed on any failure for fast diagnosis.
+      - name: Runtime smoke test (/api/health)
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          PORT: '3000'
+        run: |
+          set -euo pipefail
+          npm run start > "$RUNNER_TEMP/next-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+          url="http://localhost:3000/api/health"
+          code=""
+          for i in $(seq 1 60); do
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              echo "::error::next start exited before becoming ready."
+              cat "$RUNNER_TEMP/next-server.log" || true
+              exit 1
+            fi
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$url" || true)
+            if [ "$code" = "200" ]; then
+              echo "Server healthy after ${i}s (HTTP $code)."
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$code" != "200" ]; then
+            echo "::error::/api/health did not return 200 within 60s (last code: ${code:-none})."
+            cat "$RUNNER_TEMP/next-server.log" || true
+            exit 1
+          fi
+
+          body=$(curl -s "$url")
+          echo "Health payload: $body"
+          echo "$body" | grep -q '"status":"ok"' || {
+            echo "::error::/api/health payload missing \"status\":\"ok\"."
+            exit 1
+          }
+          echo "Runtime smoke test passed."

@@ -404,6 +404,36 @@ export class PermissionChecker {
   canAccessSettings(): boolean {
     return this.hasPermission(PERMISSIONS.ADMIN_SETTINGS);
   }
+
+  /**
+   * Check if user can manage plugins (list/inspect/install/update/uninstall).
+   *
+   * Granted by any of the three plugin permissions because all three need
+   * the Plugins admin page visible — manage is read-only access, execute
+   * controls install/update/uninstall, purge gates the destructive purge.
+   */
+  canManagePlugins(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_PLUGINS_MANAGE,
+      PERMISSIONS.ADMIN_PLUGINS_EXECUTE,
+      PERMISSIONS.ADMIN_PLUGINS_PURGE
+    );
+  }
+
+  /** Read-only inspection of installed plugins. */
+  canReadPlugins(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_PLUGINS_MANAGE);
+  }
+
+  /** Execute install/update/uninstall/repair/rollback operations. */
+  canExecutePlugins(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_PLUGINS_EXECUTE);
+  }
+
+  /** Purge — physically delete a plugin's data + rows. */
+  canPurgePlugins(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_PLUGINS_PURGE);
+  }
 }
 
 /**
