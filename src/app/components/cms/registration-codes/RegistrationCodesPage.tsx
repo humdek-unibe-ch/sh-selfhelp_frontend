@@ -88,7 +88,7 @@ export function RegistrationCodesPage() {
     const generateMax = data?.config?.generate_max ?? 10000;
 
     const [generateModalOpened, setGenerateModalOpened] = useState(false);
-    const [generateCount, setGenerateCount] = useState(5);
+    const [generateCount, setGenerateCount] = useState(generateMin);
     const [generateGroupId, setGenerateGroupId] = useState<string | null>(null);
 
     // Table sorting state
@@ -174,7 +174,7 @@ export function RegistrationCodesPage() {
 
     const handleCloseGenerate = useCallback(() => {
         setGenerateModalOpened(false);
-        setGenerateCount(5);
+        setGenerateCount(generateMin);
         setGenerateGroupId(null);
     }, []);
 
@@ -434,8 +434,7 @@ export function RegistrationCodesPage() {
                 <Stack gap="md">
                     <NumberInput
                         label="Number of codes"
-                        description={`How many codes to generate (max ${generateMax.toLocaleString()})`}
-                        value={generateCount}
+                        description={`How many codes to generate (max ${generateMax.toLocaleString()}) in a single request`}                        value={generateCount}
                         onChange={(v) => setGenerateCount(typeof v === 'number' ? v : generateMin)}
                         min={generateMin}
                         max={generateMax}
