@@ -16,13 +16,14 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { permissionAwareApiClient } from './base.api';
-import { ILoginRequest, ITwoFactorVerifyRequest } from '../types/requests/auth/auth.types';
+import { ILoginRequest, ITwoFactorVerifyRequest, IRegisterRequest } from '../types/requests/auth/auth.types';
 import {
     ILoginSuccessResponse,
     ITwoFactorRequiredResponse,
     ITwoFactorVerifySuccessResponse,
     ILogoutSuccessResponse,
     ILanguagePreferenceUpdateResponse,
+    IRegisterSuccessResponse,
 } from '../types/responses/auth.types';
 import { IUserDataResponse } from '../types/auth/jwt-payload.types';
 import { API_CONFIG } from '../config/api.config';
@@ -162,6 +163,17 @@ export const AuthApi = {
             { timezone_id: timezoneId }
         );
         if (response.data.error) throw new Error(response.data.error);
+        return response.data;
+    },
+
+    async register(data: IRegisterRequest): Promise<IRegisterSuccessResponse> {
+        const response = await permissionAwareApiClient.post<IRegisterSuccessResponse>(
+            API_CONFIG.ENDPOINTS.AUTH_REGISTER,
+            data
+        );
+        if (response.data.error) {
+            throw new Error(response.data.error);
+        }
         return response.data;
     },
 

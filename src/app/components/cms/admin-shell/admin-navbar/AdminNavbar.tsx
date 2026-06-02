@@ -24,9 +24,9 @@ import { useAuth } from '../../../../../hooks/useAuth';
 import { usePluginMenuItems } from '../../../frontend/plugin-runtime/PluginsProvider';
 import { LinksGroup } from './components/LinksGroup';
 import { CreatePageModal } from '../../pages/create-page/CreatePage';
-import { SelfHelpLogo, PreviewModeToggle } from '../../../shared';
+import { SelfHelpLogo, PreviewModeToggle, AuthButton } from '../../../shared';
 import classes from './AdminNavbar.module.css';
-import { NavigationSearch, UserButton } from './components';
+import { NavigationSearch } from './components';
 
 interface INavigationLink {
     label: string;
@@ -369,7 +369,7 @@ export function AdminNavbar() {
             </ScrollArea>
 
             <div className={classes.footer}>
-                <UserButton />
+                <AuthButton variant="navbar" />
             </div>
             
             <CreatePageModal

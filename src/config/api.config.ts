@@ -66,6 +66,10 @@ export const API_CONFIG = {
             route: '/auth/two-factor-verify',
             permissions: []
         },
+        AUTH_REGISTER: {
+            route: '/auth/register',
+            permissions: []
+        },
         AUTH_LOGOUT: {
             route: '/auth/logout',
             permissions: []

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import {
-    Paper,
+    Box,
     Group,
     Title,
     Badge,
@@ -37,7 +37,7 @@ export function InspectorHeader({
     actions = []
 }: IInspectorHeaderProps) {
     return (
-        <Paper p="md" withBorder className="border-b-0">
+        <Box p="md">
             <Group justify="space-between" align="center">
                 <Group gap="xs">
                     <Title order={2}>{title}</Title>
@@ -71,6 +71,6 @@ export function InspectorHeader({
                     </Group>
                 )}
             </Group>
-        </Paper>
+        </Box>
     );
 } 
