@@ -2,15 +2,14 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+'use client';
+
 import React, { useState } from 'react';
 import { Box, Card, TextInput, Button, Alert } from '@mantine/core';
 import { IconCheck, IconMail } from '@tabler/icons-react';
 import { IResetPasswordStyle } from '../../../../types/common/styles.types';
 import DOMPurify from 'isomorphic-dompurify';
 
-/**
- * Props interface for IResetPasswordStyle component
- */
 interface IResetPasswordStyleProps {
     style: IResetPasswordStyle;
     styleProps: Record<string, any>;
@@ -23,30 +22,15 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     const [error, setError] = useState('');
 
     const labelPwReset = style.label_pw_reset?.content || 'Reset Password';
-    const textMd = style.text_md?.content;
-    const type = style.type?.content || 'primary';
+    const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
     const alertSuccess = style.alert_success?.content || 'Password reset email sent successfully';
-    const placeholder =  DOMPurify.sanitize(style.placeholder?.content || 'Enter your email address', { ALLOWED_TAGS: [] });
-    const emailUser = style.email_user?.content;
-    const subjectUser = style.subject_user?.content;
+    const placeholder = DOMPurify.sanitize(style.placeholder?.content || 'Enter your email address', { ALLOWED_TAGS: [] });
     const isHtml = style.is_html?.content === '1';
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
-        if (!email.trim()) {
-            setError('Email address is required');
-            return;
-        }
-
-        if (!/\S+@\S+\.\S+/.test(email)) {
-            setError('Please enter a valid email address');
-            return;
-        }
-
         try {
-            // In a real implementation, you would make an API call here
             // await resetPassword(email);
             setIsSubmitted(true);
         } catch (err) {
@@ -56,31 +40,22 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
 
     if (isSubmitted) {
         return (
-            <Box className={style.css ?? ""}>
+            <Box {...styleProps} className={cssClass}>
                 <Card shadow="sm" padding="lg" radius="md" withBorder>
                     <Alert icon={<IconCheck size={16} />} color="green" title="Email Sent">
-                        {alertSuccess}
+                        {isHtml
+                            ? <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(alertSuccess) }} />
+                            : alertSuccess
+                        }
                     </Alert>
-                    
-                    {textMd && (
-                        <Box mt="md">
-
-                        </Box>
-                    )}
                 </Card>
             </Box>
         );
     }
 
     return (
-        <Box className={style.css ?? ""}>
+        <Box {...styleProps} className={cssClass}>
             <Card shadow="sm" padding="lg" radius="md" withBorder>
-                {textMd && (
-                    <Box mb="lg">
-
-                    </Box>
-                )}
-
                 <form onSubmit={handleSubmit}>
                     {error && (
                         <Alert color="red" mb="md">
@@ -99,7 +74,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
                         mb="md"
                     />
 
-                    <Button type="submit" fullWidth color={type}>
+                    <Button type="submit" fullWidth color={mantineColor} variant="filled">
                         {labelPwReset}
                     </Button>
                 </form>
@@ -108,4 +83,4 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     );
 };
 
-export default ResetPasswordStyle; 
+export default ResetPasswordStyle;

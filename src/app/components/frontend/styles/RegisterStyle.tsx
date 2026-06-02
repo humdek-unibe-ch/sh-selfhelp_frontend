@@ -40,11 +40,14 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
     const title = style.title?.content || 'Registration';
     const labelUser = style.label_user?.content || 'Email';
     const labelSubmit = style.label_submit?.content || 'Register';
-    const alertFail = style.alert_fail?.content || 'Registration failed. Please check your details and try again.';
-    const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for an activation link.';
-
-    // open_registration === '0' means registration requires an invitation code.
-    const requiresCode = style.open_registration?.content === '0';
+    const alertFail = style.alert_fail?.content || 'Invalid email or validation code.';
+    const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for activation link.';
+    const successMessage = style.success?.content || 'Registration completed successfully';
+    const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
+    const formType = style.fields?.type?.content || 'success';
+    
+    // Check if open registration is enabled
+    const openRegistration = style.fields?.open_registration?.content === '1';
 
     const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -53,7 +56,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
         register.mutate({
             page_id: pageContext.pageId,
             email,
-            ...(requiresCode && code ? { code } : {}),
+            ...(!openRegistration && code ? { code } : {}),
         });
     };
 
@@ -101,7 +104,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                         size="md"
                     />
 
-                    {requiresCode && (
+                    {!openRegistration && (
                         <TextInput
                             label="Validation Code"
                             placeholder="Enter your code"
@@ -118,6 +121,8 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                         fullWidth
                         size="md"
                         loading={register.isPending}
+                        color={mantineColor}
+                        variant={formType === 'success' ? 'filled' : 'light'}
                     >
                         {labelSubmit}
                     </Button>
