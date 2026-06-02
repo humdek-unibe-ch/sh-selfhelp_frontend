@@ -6,3 +6,8 @@ export interface ICreateRegistrationCodeRequest {
     code: string;
     id_groups: number;
 }
+
+export interface IGenerateRegistrationCodesRequest {
+    count: number;
+    id_groups: number;
+}

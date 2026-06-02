@@ -34,3 +34,7 @@ export interface IRegistrationCodesListResponse {
     codes: IRegistrationCode[];
     pagination: IRegistrationCodesPagination;
 }
+
+export interface IGenerateRegistrationCodesResponse {
+    codes: IRegistrationCode[];
+}

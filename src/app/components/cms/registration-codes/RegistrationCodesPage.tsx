@@ -34,20 +34,22 @@ import {
     LoadingOverlay,
     Modal,
     TextInput,
+    NumberInput,
     Select,
     Pagination,
     Box,
 } from '@mantine/core';
 import {
-    IconPlus,
     IconTrash,
     IconSearch,
     IconX,
     IconSortAscending,
     IconSortDescending,
-    IconRefresh,
+    IconDownload,
+    IconSparkles,
 } from '@tabler/icons-react';
-import { useRegistrationCodes, useCreateRegistrationCode, useDeleteRegistrationCode } from '../../../../hooks/useRegistrationCodes';
+import { notifications } from '@mantine/notifications';
+import { useRegistrationCodes, useDeleteRegistrationCode, useExportRegistrationCodes, useGenerateRegistrationCodes } from '../../../../hooks/useRegistrationCodes';
 import { useGroups } from '../../../../hooks/useGroups';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCanReadRegistrationCodes } from '../../../../hooks/usePermissionChecks';
@@ -73,8 +75,9 @@ export function RegistrationCodesPage() {
     const canReadRegistrationCodes = useCanReadRegistrationCodes();
 
     const { data: groupsData } = useGroups({ page: 1, pageSize: 1000 });
-    const createCode = useCreateRegistrationCode();
     const deleteCode = useDeleteRegistrationCode();
+    const exportCodes = useExportRegistrationCodes();
+    const generateCodes = useGenerateRegistrationCodes();
 
     // Filter form state (what user is editing)
     const [filterParams, setFilterParams] = useState<IRegistrationCodesListParams>(DEFAULT_PARAMS);
@@ -84,10 +87,11 @@ export function RegistrationCodesPage() {
 
     const { data, isFetching, error, refetch } = useRegistrationCodes(params);
 
-    const [createModalOpened, setCreateModalOpened] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<IRegistrationCode | null>(null);
-    const [newCode, setNewCode] = useState('');
-    const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+
+    const [generateModalOpened, setGenerateModalOpened] = useState(false);
+    const [generateCount, setGenerateCount] = useState(5);
+    const [generateGroupId, setGenerateGroupId] = useState<string | null>(null);
 
     // Table sorting state
     const [sorting, setSorting] = useState<SortingState>([
@@ -148,38 +152,51 @@ export function RegistrationCodesPage() {
         setParams(DEFAULT_PARAMS);
     }, []);
 
-    const handleCreate = () => {
-        if (!newCode.trim() || !selectedGroupId) return;
-        createCode.mutate(
-            { code: newCode.trim(), id_groups: Number(selectedGroupId) },
-            {
-                onSuccess: () => {
-                    setCreateModalOpened(false);
-                    setNewCode('');
-                    setSelectedGroupId(null);
-                },
-            }
-        );
-    };
-
-    const handleCloseCreate = () => {
-        setCreateModalOpened(false);
-        setNewCode('');
-        setSelectedGroupId(null);
-    };
-
-    const handleGenerateCode = () => {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        const code = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-        setNewCode(code);
-    };
-
     const handleConfirmDelete = () => {
         if (!deleteTarget) return;
         deleteCode.mutate(deleteTarget.code, {
             onSuccess: () => setDeleteTarget(null),
         });
     };
+
+    const handleExportCsv = useCallback(() => {
+        exportCodes.mutate(
+            { search: params.search, id_groups: params.id_groups, status: params.status },
+            {
+                onSuccess: (csv) => {
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, -5);
+                    const filename = `registration_codes_${timestamp}.csv`;
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    notifications.show({ title: 'Export Successful', message: `"${filename}" downloaded`, color: 'green' });
+                },
+            }
+        );
+    }, [exportCodes, params.search, params.id_groups, params.status]);
+
+    const handleCloseGenerate = useCallback(() => {
+        setGenerateModalOpened(false);
+        setGenerateCount(5);
+        setGenerateGroupId(null);
+    }, []);
+
+    const handleGenerate = useCallback(() => {
+        if (!generateGroupId) return;
+        generateCodes.mutate(
+            {
+                count: generateCount,
+                id_groups: Number(generateGroupId),
+            },
+            { onSuccess: handleCloseGenerate }
+        );
+    }, [generateCodes, generateCount, generateGroupId, handleCloseGenerate]);
 
     const columns = useMemo<ColumnDef<IRegistrationCode>[]>(() => [
         {
@@ -291,8 +308,19 @@ export function RegistrationCodesPage() {
                         title="Registration Codes"
                         subtitle="Manage invitation codes required for user registration"
                     >
-                        <Button leftSection={<IconPlus size={16} />} onClick={() => setCreateModalOpened(true)}>
-                            Add Code
+                        <Button
+                            variant="light"
+                            leftSection={<IconDownload size={16} />}
+                            onClick={handleExportCsv}
+                            loading={exportCodes.isPending}
+                        >
+                            Export CSV
+                        </Button>
+                        <Button
+                            leftSection={<IconSparkles size={16} />}
+                            onClick={() => setGenerateModalOpened(true)}
+                        >
+                            Generate Codes
                         </Button>
                     </PageHeader>
 
@@ -396,7 +424,7 @@ export function RegistrationCodesPage() {
                                 description={
                                     params.search || params.id_groups || params.status
                                         ? 'Try adjusting your filters'
-                                        : 'Add a code to allow users to register with an invitation'
+                                        : 'Generate codes to allow users to register with an invitation'
                                 }
                             />
                         )}
@@ -421,37 +449,42 @@ export function RegistrationCodesPage() {
                 </Stack>
             </Card>
 
-            {/* Create modal */}
-            <Modal opened={createModalOpened} onClose={handleCloseCreate} title="Add Registration Code" centered size="sm">
+            {/* Generate codes modal */}
+            <Modal
+                opened={generateModalOpened}
+                onClose={handleCloseGenerate}
+                title="Generate Registration Codes"
+                centered
+                size="sm"
+            >
                 <Stack gap="md">
-                    <TextInput
-                        label="Code"
-                        placeholder="Enter invitation code (max 16 chars)"
-                        value={newCode}
-                        onChange={e => setNewCode(e.currentTarget.value)}
-                        maxLength={16}
+                    <NumberInput
+                        label="Number of codes"
+                        description="How many codes to generate (max 10,000)"
+                        value={generateCount}
+                        onChange={(v) => setGenerateCount(typeof v === 'number' ? v : 5)}
+                        min={1}
+                        max={10000}
                         required
-                        rightSection={
-                            <Tooltip label="Generate random code">
-                                <ActionIcon variant="subtle" color="gray" size="sm" onClick={handleGenerateCode} aria-label="Generate random code">
-                                    <IconRefresh size={14} />
-                                </ActionIcon>
-                            </Tooltip>
-                        }
                     />
                     <Select
                         label="Group"
                         placeholder="Select a group"
                         data={groupOptions}
-                        value={selectedGroupId}
-                        onChange={setSelectedGroupId}
+                        value={generateGroupId}
+                        onChange={setGenerateGroupId}
                         searchable
                         required
                     />
                     <Group justify="flex-end" gap="sm">
-                        <Button variant="light" onClick={handleCloseCreate}>Cancel</Button>
-                        <Button onClick={handleCreate} loading={createCode.isPending} disabled={!newCode.trim() || !selectedGroupId}>
-                            Create
+                        <Button variant="light" onClick={handleCloseGenerate}>Cancel</Button>
+                        <Button
+                            leftSection={<IconSparkles size={16} />}
+                            onClick={handleGenerate}
+                            loading={generateCodes.isPending}
+                            disabled={!generateGroupId || generateCount < 1}
+                        >
+                            Generate {generateCount} code{generateCount !== 1 ? 's' : ''}
                         </Button>
                     </Group>
                 </Stack>
