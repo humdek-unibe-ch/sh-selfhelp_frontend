@@ -664,10 +664,6 @@ export const API_CONFIG = {
             route: '/admin/registration-codes',
             permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]
         },
-        ADMIN_REGISTRATION_CODES_CREATE: {
-            route: '/admin/registration-codes',
-            permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_CREATE]
-        },
         ADMIN_REGISTRATION_CODES_GENERATE: {
             route: '/admin/registration-codes/generate',
             permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_CREATE]

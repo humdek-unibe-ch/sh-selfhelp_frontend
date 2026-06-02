@@ -8,10 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { AdminRegistrationCodesApi } from '../api/admin/registration-codes.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import type {
-    ICreateRegistrationCodeRequest,
-    IGenerateRegistrationCodesRequest,
-} from '../types/requests/admin/registration-codes.types';
+import type { IGenerateRegistrationCodesRequest } from '../types/requests/admin/registration-codes.types';
 import type { IRegistrationCodesListParams } from '../types/responses/admin/registration-codes.types';
 
 const QUERY_KEYS = {
@@ -27,28 +24,6 @@ export function useRegistrationCodes(params: IRegistrationCodesListParams = {}) 
     });
 }
 
-export function useCreateRegistrationCode() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (data: ICreateRegistrationCodeRequest) => AdminRegistrationCodesApi.create(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
-            notifications.show({
-                title: 'Success',
-                message: 'Registration code created successfully',
-                color: 'green',
-            });
-        },
-        onError: (error: any) => {
-            notifications.show({
-                title: 'Error',
-                message: error?.response?.data?.error || error?.response?.data?.message || 'Failed to create registration code',
-                color: 'red',
-            });
-        },
-    });
-}
 
 export function useDeleteRegistrationCode() {
     const queryClient = useQueryClient();

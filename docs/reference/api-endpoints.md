@@ -68,8 +68,8 @@ Invitation codes required for user registration when the `register` style has `o
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET    | `/admin/registration-codes`          | List registration codes (paginated). Supports `search` (partial match on code), `id_groups`, `status` (`available` \| `used`), `sort` (`created_at` \| `consumed_at`), `sortDirection` (`asc` \| `desc`), `page`, `pageSize`. |
-| POST   | `/admin/registration-codes/generate` | Bulk-generate registration codes. Body: `{ count: number (1–10000), id_groups: number }`. Code length (8 chars, alphanumeric) is fixed server-side. Returns the created codes. |
+| GET    | `/admin/registration-codes`          | List registration codes (paginated). Supports `search`, `id_groups`, `status` (`available` \| `used`), `sort` (`created_at` \| `consumed_at`), `sortDirection`, `page`, `pageSize`. Response includes `codes`, `pagination`, and a `config` object (`{ generate_min, generate_max }`) that drives the generate form bounds — do not hardcode these on the frontend. |
+| POST   | `/admin/registration-codes/generate` | Bulk-generate registration codes. Body: `{ count: number, id_groups: number }`. `count` must be within `config.generate_min`–`config.generate_max`. Code length (8 chars, alphanumeric) is fixed server-side. Returns 422 with a human-readable `error` string when the table capacity would be exceeded or `count` is out of range. |
 | GET    | `/admin/registration-codes/export`   | Export all matching codes as CSV. Accepts the same filters as the list endpoint (`search`, `id_groups`, `status`) but returns all rows without pagination. Response is `text/csv`. |
 | DELETE | `/admin/registration-codes/{code}`   | Delete a registration code by its `code` value (the table's primary key). |
 

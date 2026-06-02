@@ -6,15 +6,11 @@ import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import type {
-    IRegistrationCode,
     IRegistrationCodesListResponse,
     IRegistrationCodesListParams,
     IGenerateRegistrationCodesResponse,
 } from '../../types/responses/admin/registration-codes.types';
-import type {
-    ICreateRegistrationCodeRequest,
-    IGenerateRegistrationCodesRequest,
-} from '../../types/requests/admin/registration-codes.types';
+import type { IGenerateRegistrationCodesRequest } from '../../types/requests/admin/registration-codes.types';
 
 export const AdminRegistrationCodesApi = {
     async getAll(params: IRegistrationCodesListParams = {}): Promise<IRegistrationCodesListResponse> {
@@ -30,14 +26,6 @@ export const AdminRegistrationCodesApi = {
         const response = await permissionAwareApiClient.get<IBaseApiResponse<IRegistrationCodesListResponse>>(
             API_CONFIG.ENDPOINTS.ADMIN_REGISTRATION_CODES_GET_ALL,
             { params: q }
-        );
-        return response.data.data;
-    },
-
-    async create(data: ICreateRegistrationCodeRequest): Promise<IRegistrationCode> {
-        const response = await permissionAwareApiClient.post<IBaseApiResponse<IRegistrationCode>>(
-            API_CONFIG.ENDPOINTS.ADMIN_REGISTRATION_CODES_CREATE,
-            data
         );
         return response.data.data;
     },

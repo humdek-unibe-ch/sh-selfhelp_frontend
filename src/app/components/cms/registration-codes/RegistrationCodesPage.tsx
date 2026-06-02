@@ -89,6 +89,9 @@ export function RegistrationCodesPage() {
 
     const [deleteTarget, setDeleteTarget] = useState<IRegistrationCode | null>(null);
 
+    const generateMin = data?.config?.generate_min ?? 1;
+    const generateMax = data?.config?.generate_max ?? 10000;
+
     const [generateModalOpened, setGenerateModalOpened] = useState(false);
     const [generateCount, setGenerateCount] = useState(5);
     const [generateGroupId, setGenerateGroupId] = useState<string | null>(null);
@@ -460,11 +463,11 @@ export function RegistrationCodesPage() {
                 <Stack gap="md">
                     <NumberInput
                         label="Number of codes"
-                        description="How many codes to generate (max 10,000)"
+                        description={`How many codes to generate (max ${generateMax.toLocaleString()})`}
                         value={generateCount}
-                        onChange={(v) => setGenerateCount(typeof v === 'number' ? v : 5)}
-                        min={1}
-                        max={10000}
+                        onChange={(v) => setGenerateCount(typeof v === 'number' ? v : generateMin)}
+                        min={generateMin}
+                        max={generateMax}
                         required
                     />
                     <Select

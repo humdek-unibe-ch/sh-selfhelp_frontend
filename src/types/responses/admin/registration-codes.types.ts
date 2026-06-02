@@ -30,9 +30,15 @@ export interface IRegistrationCodesPagination {
     hasPrevious: boolean;
 }
 
+export interface IRegistrationCodesConfig {
+    generate_min: number;
+    generate_max: number;
+}
+
 export interface IRegistrationCodesListResponse {
     codes: IRegistrationCode[];
     pagination: IRegistrationCodesPagination;
+    config: IRegistrationCodesConfig;
 }
 
 export interface IGenerateRegistrationCodesResponse {
