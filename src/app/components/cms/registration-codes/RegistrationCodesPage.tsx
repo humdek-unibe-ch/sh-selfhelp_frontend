@@ -280,7 +280,7 @@ export function RegistrationCodesPage() {
                 <Stack gap="md">
                     <PageHeader
                         title="Registration Codes"
-                        subtitle="Manage invitation codes required for user registration"
+                        subtitle="Manage invitation codes required for user registration when open registration is disabled"
                     >
                         <Button
                             variant="light"
