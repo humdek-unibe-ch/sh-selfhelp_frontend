@@ -26,5 +26,19 @@ export default defineConfig({
         exclude: ['node_modules', '.next', 'e2e'],
         clearMocks: true,
         restoreMocks: true,
+        coverage: {
+            // istanbul (not v8): the v8 provider double-counts files on Windows
+            // when `all` is enabled, skewing the report. Coverage is advisory
+            // for the frontend (only @selfhelp/shared has a blocking gate) —
+            // see docs testing matrix.
+            provider: 'istanbul',
+            reporter: ['text-summary', 'html', 'lcov'],
+            include: ['src/**/*.{ts,tsx}'],
+            exclude: [
+                'src/**/*.{test,spec}.{ts,tsx}',
+                'src/test-utils/**',
+                'src/**/*.d.ts',
+            ],
+        },
     },
 });
