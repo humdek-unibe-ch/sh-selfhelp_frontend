@@ -30,13 +30,6 @@ export const AdminRegistrationCodesApi = {
         return response.data.data;
     },
 
-    async delete(code: string): Promise<void> {
-        await permissionAwareApiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_REGISTRATION_CODES_DELETE,
-            code
-        );
-    },
-
     async exportCsv(params: Omit<IRegistrationCodesListParams, 'page' | 'pageSize'> = {}): Promise<string> {
         const q: Record<string, string> = {};
         if (params.search) q.search = params.search;

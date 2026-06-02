@@ -30,7 +30,6 @@ import {
     Text,
     Badge,
     ActionIcon,
-    Tooltip,
     LoadingOverlay,
     Modal,
     TextInput,
@@ -40,7 +39,6 @@ import {
     Box,
 } from '@mantine/core';
 import {
-    IconTrash,
     IconSearch,
     IconX,
     IconSortAscending,
@@ -49,7 +47,7 @@ import {
     IconSparkles,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { useRegistrationCodes, useDeleteRegistrationCode, useExportRegistrationCodes, useGenerateRegistrationCodes } from '../../../../hooks/useRegistrationCodes';
+import { useRegistrationCodes, useExportRegistrationCodes, useGenerateRegistrationCodes } from '../../../../hooks/useRegistrationCodes';
 import { useGroups } from '../../../../hooks/useGroups';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCanReadRegistrationCodes } from '../../../../hooks/usePermissionChecks';
@@ -75,7 +73,6 @@ export function RegistrationCodesPage() {
     const canReadRegistrationCodes = useCanReadRegistrationCodes();
 
     const { data: groupsData } = useGroups({ page: 1, pageSize: 1000 });
-    const deleteCode = useDeleteRegistrationCode();
     const exportCodes = useExportRegistrationCodes();
     const generateCodes = useGenerateRegistrationCodes();
 
@@ -86,8 +83,6 @@ export function RegistrationCodesPage() {
     const [params, setParams] = useState<IRegistrationCodesListParams>(DEFAULT_PARAMS);
 
     const { data, isFetching, error, refetch } = useRegistrationCodes(params);
-
-    const [deleteTarget, setDeleteTarget] = useState<IRegistrationCode | null>(null);
 
     const generateMin = data?.config?.generate_min ?? 1;
     const generateMax = data?.config?.generate_max ?? 10000;
@@ -154,13 +149,6 @@ export function RegistrationCodesPage() {
         setFilterParams(DEFAULT_PARAMS);
         setParams(DEFAULT_PARAMS);
     }, []);
-
-    const handleConfirmDelete = () => {
-        if (!deleteTarget) return;
-        deleteCode.mutate(deleteTarget.code, {
-            onSuccess: () => setDeleteTarget(null),
-        });
-    };
 
     const handleExportCsv = useCallback(() => {
         exportCodes.mutate(
@@ -256,23 +244,6 @@ export function RegistrationCodesPage() {
                     : null
             ),
             enableSorting: true,
-        },
-        {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => (
-                <Tooltip label="Delete code">
-                    <ActionIcon
-                        variant="subtle"
-                        color="red"
-                        size="sm"
-                        onClick={() => setDeleteTarget(row.original)}
-                        aria-label={`Delete code ${row.original.code}`}
-                    >
-                        <IconTrash size={16} />
-                    </ActionIcon>
-                </Tooltip>
-            ),
         },
     ], []);
 
@@ -493,22 +464,6 @@ export function RegistrationCodesPage() {
                 </Stack>
             </Modal>
 
-            {/* Delete confirmation modal */}
-            <Modal opened={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Registration Code" centered size="sm">
-                <Stack gap="md">
-                    <Text size="sm">
-                        Are you sure you want to delete the code{' '}
-                        <Text component="span" ff="monospace" fw={600}>{deleteTarget?.code}</Text>?
-                        This action cannot be undone.
-                    </Text>
-                    <Group justify="flex-end" gap="sm">
-                        <Button variant="light" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-                        <Button color="red" onClick={handleConfirmDelete} loading={deleteCode.isPending}>
-                            Delete
-                        </Button>
-                    </Group>
-                </Stack>
-            </Modal>
         </>
     );
 }

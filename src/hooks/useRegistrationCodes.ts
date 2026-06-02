@@ -25,29 +25,6 @@ export function useRegistrationCodes(params: IRegistrationCodesListParams = {}) 
 }
 
 
-export function useDeleteRegistrationCode() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (code: string) => AdminRegistrationCodesApi.delete(code),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
-            notifications.show({
-                title: 'Success',
-                message: 'Registration code deleted successfully',
-                color: 'green',
-            });
-        },
-        onError: (error: any) => {
-            notifications.show({
-                title: 'Error',
-                message: error?.response?.data?.message || 'Failed to delete registration code',
-                color: 'red',
-            });
-        },
-    });
-}
-
 export function useExportRegistrationCodes() {
     return useMutation({
         mutationFn: (params: Parameters<typeof AdminRegistrationCodesApi.exportCsv>[0]) =>
