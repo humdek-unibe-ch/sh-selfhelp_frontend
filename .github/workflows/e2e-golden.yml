@@ -1,0 +1,158 @@
+# SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+# SPDX-License-Identifier: MPL-2.0
+#
+# Golden E2E (Slice 7).
+#
+# Two jobs:
+#   1. compile  — PR gate. Installs deps and runs `playwright test --list`,
+#      which type-checks/collects every spec without launching a browser.
+#      Fast and deterministic; safe as a required check.
+#   2. golden   — full end-to-end run against a real stack (frontend +
+#      backend + MySQL + Redis). Brings the stack up, seeds the QA baseline
+#      (`composer test:reset-db`), installs the Chromium browser, and runs
+#      the golden form→action→job spec. Manual (workflow_dispatch) until the
+#      QA baseline also seeds the QA form page the spec drives; the spec
+#      skips cleanly when QA_* env is absent.
+#
+# On failure the golden job uploads the Playwright HTML report + traces +
+# screenshots + video (canonical Testing Rule 26: CI artifacts on failure).
+
+name: e2e-golden
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'e2e/**'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - '.github/workflows/e2e-golden.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-golden-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: Playwright specs compile (--list)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Collect specs (no browser)
+        run: npx playwright test --list
+
+  golden:
+    name: Golden form→action→job (full stack)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    if: github.event_name == 'workflow_dispatch'
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: selfhelp_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd="redis-cli ping" --health-interval=5s --health-timeout=5s --health-retries=20
+
+    env:
+      APP_ENV: test
+      BASE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8000
+      # QA_* must match the QA baseline + a seeded QA form page.
+      QA_LOGIN_KEYWORD: ${{ vars.QA_LOGIN_KEYWORD || 'login' }}
+      QA_USER_EMAIL: ${{ vars.QA_USER_EMAIL }}
+      QA_USER_PASSWORD: ${{ secrets.QA_USER_PASSWORD }}
+      QA_FORM_PAGE_KEYWORD: ${{ vars.QA_FORM_PAGE_KEYWORD }}
+      QA_FORM_FIELDS: ${{ vars.QA_FORM_FIELDS }}
+      QA_FORM_SUBMIT_LABEL: ${{ vars.QA_FORM_SUBMIT_LABEL || 'Save' }}
+
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+        with:
+          path: sh-selfhelp_frontend
+
+      - name: Checkout backend
+        uses: actions/checkout@v4
+        with:
+          repository: humdek-unibe-ch/sh-selfhelp_backend
+          ref: main
+          path: sh-selfhelp_backend
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, redis, intl, mbstring
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: sh-selfhelp_frontend/package-lock.json
+
+      - name: Backend install + seed QA baseline
+        working-directory: sh-selfhelp_backend
+        env:
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
+          REDIS_URL: redis://127.0.0.1:6379
+        run: |
+          composer install --no-interaction --no-progress
+          composer test:reset-db
+
+      - name: Start backend (Symfony built-in server)
+        working-directory: sh-selfhelp_backend
+        env:
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
+          REDIS_URL: redis://127.0.0.1:6379
+        run: |
+          php -S 127.0.0.1:8000 -t public >../backend-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/cms-api/v1/health && break || sleep 2; done
+
+      - name: Build + start frontend
+        working-directory: sh-selfhelp_frontend
+        run: |
+          npm ci
+          npm run build
+          npm run start -- --port 3000 >../frontend-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:3000 && break || sleep 2; done
+
+      - name: Install Playwright Chromium
+        working-directory: sh-selfhelp_frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run golden E2E
+        working-directory: sh-selfhelp_frontend
+        run: npm run test:golden
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-golden-report
+          path: |
+            sh-selfhelp_frontend/playwright-report/
+            sh-selfhelp_frontend/test-results/
+            backend-server.log
+            frontend-server.log
+          retention-days: 7

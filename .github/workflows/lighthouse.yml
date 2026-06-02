@@ -1,0 +1,127 @@
+# SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+# SPDX-License-Identifier: MPL-2.0
+#
+# Lighthouse CI smoke (Slice 11) — WARNING ONLY.
+#
+# Runs Lighthouse against a couple of public pages on a real stack and reports
+# performance / a11y / best-practices / SEO scores. It is deliberately
+# non-blocking:
+#   - every assertion in lighthouserc.json is level "warn", and
+#   - the LHCI step is `continue-on-error: true`,
+# so a low score is visible (job summary + uploaded report) but never fails a
+# build. Promote a metric to a hard gate only in a dedicated, reviewed PR once
+# the baseline is comfortably above target (mirrors the staged coverage gate).
+#
+# Manual (workflow_dispatch): it boots the full frontend+backend+DB+Redis stack
+# the same way as e2e-golden.yml, so running it is intentional and release-tier.
+
+name: lighthouse
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    name: Lighthouse smoke (warning-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: selfhelp_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd="redis-cli ping" --health-interval=5s --health-timeout=5s --health-retries=20
+
+    env:
+      APP_ENV: test
+      BASE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8000
+
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+        with:
+          path: sh-selfhelp_frontend
+
+      - name: Checkout backend
+        uses: actions/checkout@v4
+        with:
+          repository: humdek-unibe-ch/sh-selfhelp_backend
+          ref: main
+          path: sh-selfhelp_backend
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, redis, intl, mbstring
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: sh-selfhelp_frontend/package-lock.json
+
+      - name: Backend install + seed QA baseline
+        working-directory: sh-selfhelp_backend
+        env:
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
+          REDIS_URL: redis://127.0.0.1:6379
+        run: |
+          composer install --no-interaction --no-progress
+          composer test:reset-db
+
+      - name: Start backend (Symfony built-in server)
+        working-directory: sh-selfhelp_backend
+        env:
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
+          REDIS_URL: redis://127.0.0.1:6379
+        run: |
+          php -S 127.0.0.1:8000 -t public >../backend-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/cms-api/v1/health && break || sleep 2; done
+
+      - name: Build + start frontend
+        working-directory: sh-selfhelp_frontend
+        run: |
+          npm ci
+          npm run build
+          npm run start -- --port 3000 >../frontend-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:3000 && break || sleep 2; done
+
+      - name: Lighthouse CI (warning-only)
+        continue-on-error: true
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: sh-selfhelp_frontend/lighthouserc.json
+          uploadArtifacts: true
+          urls: |
+            http://127.0.0.1:3000/
+            http://127.0.0.1:3000/login
+
+      - name: Upload server logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-server-logs
+          path: |
+            backend-server.log
+            frontend-server.log
+          retention-days: 7
