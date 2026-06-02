@@ -5,27 +5,19 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useState } from 'react';
-import { TextInput, Button, Paper, Title, Alert, Stack, Text, Group } from '@mantine/core';
+import { TextInput, Button, Paper, Title, Alert, Stack, Group } from '@mantine/core';
 import { IconCheck, IconExclamationCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { IRegisterStyle } from '../../../../types/common/styles.types';
-import { IContentField } from '../../../../shared';
 import { usePageContext } from '../../contexts/PageContext';
 import { useRegisterMutation } from '../../../../hooks/mutations/useRegisterMutation';
 import { ROUTES } from '../../../../config/routes.config';
-
-// Fields present in the backend response but not yet in the shared IRegisterStyle type.
-// TODO: Later add to the shared instead of extend
-interface IRegisterStyleExtended extends IRegisterStyle {
-    open_registration?: IContentField<string>;
-    anonymous_users_registration?: IContentField<string>;
-}
 
 /**
  * Props interface for RegisterStyle component
  */
 interface IRegisterStyleProps {
-    style: IRegisterStyleExtended;
+    style: IRegisterStyle;
     styleProps: Record<string, any>;
     cssClass: string;
 }
@@ -52,9 +44,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
     const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for an activation link.';
 
     // open_registration === '0' means registration requires an invitation code.
-    // These fields come from the backend but are not yet in the shared IRegisterStyle type.
     const requiresCode = style.open_registration?.content === '0';
-    const anonymousUsersText = style.anonymous_users_registration?.content;
 
     const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -122,11 +112,6 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                         />
                     )}
 
-                    {!requiresCode && anonymousUsersText && (
-                        <Text size="sm" c="dimmed">
-                            {anonymousUsersText}
-                        </Text>
-                    )}
 
                     <Button
                         type="submit"
