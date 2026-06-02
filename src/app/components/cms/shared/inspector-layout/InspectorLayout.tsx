@@ -39,7 +39,7 @@ export function InspectorLayout({
     // Loading state
     if (loading) {
         return (
-            <Paper p="xl" withBorder>
+            <Paper p="xl">
                 <Stack align="center" gap="md">
                     <Text>{loadingText}</Text>
                 </Stack>

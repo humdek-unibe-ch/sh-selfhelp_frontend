@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 .modalContent {
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
+  max-height: calc(100dvh - 1.5rem);
   height: auto;
 }
 
@@ -36,5 +36,4 @@ SPDX-License-Identifier: MPL-2.0
 .scrollArea {
   flex: 1;
   min-height: 0;
-  overflow: auto;
 }

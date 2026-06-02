@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import { Container, Group, Text, Flex } from '@mantine/core';
 import { ThemeToggle } from '../../../shared/common/ThemeToggle';
 import { AuthButton } from '../../../shared/auth/AuthButton';
+import { AdminButton } from '../../../shared/auth/AdminButton';
 import { LanguageSelector } from '../../../shared/common/LanguageSelector';
 import { BurgerMenuClient } from '../../../shared/common/BurgerMenuClient';
 import { WebsiteHeaderMenu } from './WebsiteHeaderMenu';
@@ -58,6 +59,7 @@ export async function WebsiteHeader() {
                 <WebsiteHeaderMenu initialMenuPages={initialMenuPages} />
 
                 <Group gap="sm">
+                    <AdminButton />
                     <AuthButton initialProfilePages={initialProfilePages} />
                     <ThemeToggle />
                     <LanguageSelector />

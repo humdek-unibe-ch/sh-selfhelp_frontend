@@ -35,12 +35,16 @@ SPDX-License-Identifier: MPL-2.0
 /* Rich text editor mode - standard rich text appearance */
 .richTextEditor {
     min-height: 200px;
+    background-color: var(--mantine-color-body);
+    border-radius: var(--mantine-radius-md);
 }
 
 .richTextEditor :global(.ProseMirror) {
     padding: 12px;
     font-size: 14px;
     line-height: 1.55;
+    background-color: var(--mantine-color-body);
+    color: var(--mantine-color-text);
 }
 
 .richTextEditor :global(.ProseMirror .is-editor-empty:first-child::before) {

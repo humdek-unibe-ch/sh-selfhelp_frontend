@@ -93,7 +93,7 @@ export const ModalWrapper = ({
     closeOnClickOutside = true,
     closeOnEscape = true,
     withCloseButton = true,
-    scrollAreaHeight = 400,
+    scrollAreaHeight = 'calc(100dvh - 10rem)',
     modalStyles,
 }: ModalWrapperProps) => {
     // Determine which actions to show
@@ -109,8 +109,8 @@ export const ModalWrapper = ({
             centered={centered}
             closeOnClickOutside={closeOnClickOutside}
             closeOnEscape={closeOnEscape}
-            withCloseButton={false} // We'll handle this in the header
-            styles={modalStyles}
+            withCloseButton={false}
+            styles={modalStyles} // We'll handle this in the header            
             classNames={{
                 content: styles.modalContent,
                 body: styles.modalBody,
@@ -133,15 +133,17 @@ export const ModalWrapper = ({
             </Group>
 
             {/* Scrollable Content */}
-            <ScrollArea
+            <ScrollArea.Autosize
                 className={styles.scrollArea}
-                style={{
-                    maxHeight: typeof scrollAreaHeight === 'number' ? `${scrollAreaHeight}px` : scrollAreaHeight,
-                }}
+                mah={scrollAreaHeight}
+                type="auto"
+                scrollbars="y"
+                offsetScrollbars="present"
                 p="md"
+                scrollbarSize={!scrollAreaHeight ? 0 : undefined}
             >
                 {children}
-            </ScrollArea>
+            </ScrollArea.Autosize>
 
             {/* Footer with Actions */}
             {(hasPrimaryAction || hasDeleteAction || hasCancelAction || customActions) && (

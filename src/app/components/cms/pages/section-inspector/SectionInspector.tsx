@@ -13,10 +13,8 @@ import {
     TextInput,
     Button,
     Alert,
-    Tabs,
 } from '@mantine/core';
 import {
-    IconInfoCircle,
     IconDeviceFloppy,
     IconTrash,
     IconFileExport
@@ -26,21 +24,17 @@ import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
-import { GlobalFieldType } from '../../shared';
-import styles from './SectionInspector.module.css';
 import { exportSection } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
-import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
 import { InspectorHeader } from '../../shared/inspector-header/InspectorHeader';
-import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
 import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
-import { SectionContentField } from './section-field-connectors';
-import { SectionGlobalFields, SectionProperties, SectionMantineProperties, SectionInfoPanel } from './section-field-groups';
+import { SectionInfoPanel } from './section-field-groups';
+import { SectionFieldPanels } from './SectionFieldPanels';
 
 interface ISectionInspectorProps {
     pageId: number | null;
@@ -237,7 +231,6 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     );
 
     const fields = sectionDetailsData?.fields || [];
-    const globalFieldTypes: GlobalFieldType[] = ['condition', 'data_config', 'css', 'css_mobile', 'debug'];
 
     // Save handler
     const handleSave = useCallback(async () => {
@@ -439,112 +432,17 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 {/* Section Information */}
                 <SectionInfoPanel section={section} />
 
-                {/* Content Fields */}
-                <CollapsibleSection
-                    title="Content"
-                    inspectorType={INSPECTOR_TYPES.SECTION}
-                    sectionName="content"
-                    defaultExpanded={true}
-                >
-                    {fields.filter(field => field.display).length > 0 ? (
-                        hasMultipleLanguages ? (
-                            <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languagesData[0]?.id.toString() || ''))}>
-                                <Tabs.List>
-                                    {languagesData.map(lang => (
-                                        <Tabs.Tab key={lang.id} value={lang.id.toString()}>
-                                            {lang.language}
-                                        </Tabs.Tab>
-                                    ))}
-                                </Tabs.List>
-
-                                {languagesData.map(lang => (
-                                    <Tabs.Panel key={lang.id} value={lang.id.toString()} pt="md">
-                                        <Stack gap="md">
-                                            {fields.filter(field => field.display).map(field => (
-                                                <SectionContentField
-                                                    key={`${field.id}-${lang.id}`}
-                                                    field={field}
-                                                    languageId={lang.id}
-                                                    locale={lang.locale}
-                                                    className={styles.fullWidthLabel}
-                                                    dataVariables={dataVariables}
-                                                />
-                                            ))}
-                                        </Stack>
-                                    </Tabs.Panel>
-                                ))}
-                            </Tabs>
-                        ) : (
-                            <Stack gap="md">
-                                {fields.filter(field => field.display).map(field => (
-                                    <SectionContentField
-                                        key={`${field.id}-${languagesData[0]?.id}`}
-                                        field={field}
-                                        languageId={languagesData[0]?.id || 1}
-                                        locale={languagesData[0]?.locale}
-                                        className={styles.fullWidthLabel}
-                                        dataVariables={dataVariables}
-                                    />
-                                ))}
-                            </Stack>
-                        )
-                    ) : (
-                        <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
-                            No content fields available for this section.
-                        </Alert>
-                    )}
-                </CollapsibleSection>
-
-                {/* Global Fields */}
-                <CollapsibleSection
-                    title="Global Fields"
-                    inspectorType={INSPECTOR_TYPES.SECTION}
-                    sectionName="global-fields"
-                    defaultExpanded={false}
-                >
-                    <SectionGlobalFields
-                        globalFieldTypes={globalFieldTypes}
-                        dataVariables={dataVariables}
-                    />
-                </CollapsibleSection>
-
-                {/* Property Fields */}
-                <CollapsibleSection
-                    title="Properties"
-                    inspectorType={INSPECTOR_TYPES.SECTION}
-                    sectionName="properties"
-                    defaultExpanded={true}
-                >
-                    {fields.filter(field => !field.display && !field.name.startsWith('mantine_')).length > 0 ? (
-                        <SectionProperties
-                            fields={fields}
-                            dataVariables={dataVariables}
-                        />
-                    ) : (
-                        <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
-                            No property fields available for this section.
-                        </Alert>
-                    )}
-                </CollapsibleSection>
-
-                {/* Mantine Properties */}
-                <CollapsibleSection
-                    title="Mantine Properties"
-                    inspectorType={INSPECTOR_TYPES.SECTION}
-                    sectionName="mantine-properties"
-                    defaultExpanded={false}
-                >
-                    {fields.filter(field => !field.display && field.name.startsWith('mantine_')).length > 0 ? (
-                        <SectionMantineProperties
-                            fields={fields}
-                            dataVariables={dataVariables}
-                        />
-                    ) : (
-                        <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
-                            No Mantine property fields available for this section.
-                        </Alert>
-                    )}
-                </CollapsibleSection>
+                {/* Searchable field panels */}
+                <SectionFieldPanels
+                    key={sectionId}
+                    sectionId={sectionId}
+                    fields={fields}
+                    languagesData={languagesData}
+                    activeLanguageTab={activeLanguageTab}
+                    onLanguageTabChange={setActiveLanguageTab}
+                    dataVariables={dataVariables}
+                    hasMultipleLanguages={hasMultipleLanguages}
+                />
             </InspectorLayout>
 
             {/* Delete Modal */}
