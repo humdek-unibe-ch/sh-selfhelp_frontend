@@ -89,6 +89,13 @@ web_modules/
 .next
 out
 
+# Playwright / Vitest output
+playwright-report
+test-results
+blob-report
+.last-run.json
+coverage
+
 # Nuxt.js build / generate output
 .nuxt
 dist
