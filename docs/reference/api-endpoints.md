@@ -68,9 +68,10 @@ Invitation codes required for user registration when the `register` style has `o
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET    | `/admin/registration-codes`        | List registration codes (paginated). Supports `search` (partial match on code), `id_groups`, `status` (`available` \| `used`), `sort` (`created_at` \| `consumed_at`), `sortDirection` (`asc` \| `desc`), `page`, `pageSize`. |
-| POST   | `/admin/registration-codes`        | Create a registration code. Body: `{ code: string, id_groups: number }`. |
-| DELETE | `/admin/registration-codes/{code}` | Delete a registration code by its `code` value (the table's primary key). |
+| GET    | `/admin/registration-codes`          | List registration codes (paginated). Supports `search` (partial match on code), `id_groups`, `status` (`available` \| `used`), `sort` (`created_at` \| `consumed_at`), `sortDirection` (`asc` \| `desc`), `page`, `pageSize`. |
+| POST   | `/admin/registration-codes/generate` | Bulk-generate registration codes. Body: `{ count: number (1–10000), id_groups: number }`. Code length (8 chars, alphanumeric) is fixed server-side. Returns the created codes. |
+| GET    | `/admin/registration-codes/export`   | Export all matching codes as CSV. Accepts the same filters as the list endpoint (`search`, `id_groups`, `status`) but returns all rows without pagination. Response is `text/csv`. |
+| DELETE | `/admin/registration-codes/{code}`   | Delete a registration code by its `code` value (the table's primary key). |
 
 Permissions: `admin.registration_code.read`, `admin.registration_code.create`, `admin.registration_code.delete`.
 
