@@ -56,7 +56,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
         register.mutate({
             page_id: pageContext.pageId,
             email,
-            ...(requiresCode && code ? { code } : {}),
+            ...(!openRegistration && code ? { code } : {}),
         });
     };
 
@@ -104,7 +104,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                         size="md"
                     />
 
-                    {requiresCode && (
+                    {!openRegistration && (
                         <TextInput
                             label="Validation Code"
                             placeholder="Enter your code"
@@ -120,7 +120,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                         type="submit"
                         fullWidth
                         size="md"
-                        loading={isLoading}
+                        loading={register.isPending}
                         color={mantineColor}
                         variant={formType === 'success' ? 'filled' : 'light'}
                     >
