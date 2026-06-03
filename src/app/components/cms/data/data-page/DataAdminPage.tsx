@@ -14,25 +14,22 @@ import {
   MultiSelect,
   Select,
   Stack,
-  Text,
-  Title,
   Paper,
-  Container,
 } from '@mantine/core';
-import { IconAlertCircle, IconSettings } from '@tabler/icons-react';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useDataTables } from '../../../../../hooks/useData';
+import { useCanAccessDataBrowser } from '../../../../../hooks/usePermissionChecks';
 import { useUsers } from '../../../../../hooks/useUsers';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import type { IUserBasic } from '../../../../../types/responses/admin/users.types';
 import { DataTablesViewer } from '../tables/DataTablesViewer';
 import { FilterActions } from '../../../shared/common/FilterControls';
-import { useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '../../../shared/common/PageHeader';
 
 export function DataAdminPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const queryClient = useQueryClient();
+  const canAccessDataBrowser = useCanAccessDataBrowser();
 
   // Filter form state (what user is currently selecting)
   const [selectedUserId, setSelectedUserId] = useState<number | null>(() => {
@@ -154,7 +151,7 @@ export function DataAdminPage() {
           subtitle="Explore and manage form data across users and tables"
         />
 
-        {!hasTables && (
+        {!canAccessDataBrowser && (
           <Alert variant="light" color="orange" title="No Access to Data Tables" icon={<IconAlertCircle />}>
             You currently have no access to any data tables. Please contact your administrator.
           </Alert>
