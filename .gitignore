@@ -89,6 +89,16 @@ web_modules/
 .next
 out
 
+# Playwright / Vitest output
+playwright-report
+test-results
+blob-report
+.last-run.json
+coverage
+# Visual-regression baselines are platform-specific and regenerated locally /
+# in CI (see e2e/visual/visual.spec.ts) — never committed.
+e2e/visual/*-snapshots/
+
 # Nuxt.js build / generate output
 .nuxt
 dist

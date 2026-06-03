@@ -68,7 +68,7 @@ export function MentionEditor({
     maxItems = 50,
     singleLineMode = false,
     showToolbar = true,
-    autoFocus = true,
+    autoFocus = false,
     onKeyDown,
     enableRichTextShortcuts = false,
 }: IMentionEditorProps) {

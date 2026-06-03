@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { Modal, ModalProps, Group, Button, Text, CloseButton } from '@mantine/core';
+import { Modal, ModalProps, Group, Button, ScrollArea, Text, CloseButton } from '@mantine/core';
 import { ReactNode } from 'react';
 import styles from './CustomModal.module.css';
 
@@ -93,7 +93,7 @@ export const ModalWrapper = ({
     closeOnClickOutside = true,
     closeOnEscape = true,
     withCloseButton = true,
-    scrollAreaHeight = 400,
+    scrollAreaHeight = 'calc(100dvh - 10rem)',
     modalStyles,
 }: ModalWrapperProps) => {
     // Determine which actions to show
@@ -109,8 +109,8 @@ export const ModalWrapper = ({
             centered={centered}
             closeOnClickOutside={closeOnClickOutside}
             closeOnEscape={closeOnEscape}
-            withCloseButton={false} // We'll handle this in the header
-            styles={modalStyles}
+            withCloseButton={false}
+            styles={modalStyles} // We'll handle this in the header            
             classNames={{
                 content: styles.modalContent,
                 body: styles.modalBody,
@@ -133,9 +133,17 @@ export const ModalWrapper = ({
             </Group>
 
             {/* Scrollable Content */}
-            <div className={styles.scrollArea} style={{ padding: 'var(--mantine-spacing-md)' }}>
+            <ScrollArea.Autosize
+                className={styles.scrollArea}
+                mah={scrollAreaHeight}
+                type="auto"
+                scrollbars="y"
+                offsetScrollbars="present"
+                p="md"
+                scrollbarSize={!scrollAreaHeight ? 0 : undefined}
+            >
                 {children}
-            </div>
+            </ScrollArea.Autosize>
 
             {/* Footer with Actions */}
             {(hasPrimaryAction || hasDeleteAction || hasCancelAction || customActions) && (

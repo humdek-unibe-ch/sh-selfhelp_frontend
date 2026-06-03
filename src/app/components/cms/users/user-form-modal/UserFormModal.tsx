@@ -183,11 +183,10 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
             isLoading={isSubmitting}
             saveLabel={mode === 'create' ? 'Create User' : 'Update User'}
             cancelLabel="Cancel"
-            scrollAreaHeight={500}
         >
             <LoadingOverlay visible={isLoading} />
 
-            <form onSubmit={form.onSubmit(handleSubmit)}>
+            <form onSubmit={form.onSubmit(handleSubmit)} style={{ maxHeight: 'none', overflow: 'visible' }}>
                 <Stack gap="md">
                     {/* User Information Display for Edit Mode */}
                     {mode === 'edit' && userDetails && (
@@ -232,12 +231,14 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                                         {...form.getInputProps('email')}
                                     />
 
-                                    <Group grow>
+                                    <Group grow align="flex-start">
                                         <TextInput
                                             label="Full Name"
                                             placeholder="John Doe"
                                             required
                                             autoComplete="off"
+                                            description="Only letters, numbers, hyphens, and underscores allowed"
+                                            descriptionProps={{ style: { visibility: 'hidden' } }}
                                             {...form.getInputProps('name')}
                                         />
                                         <TextInput

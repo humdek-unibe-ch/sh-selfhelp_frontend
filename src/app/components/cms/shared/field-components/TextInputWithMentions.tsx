@@ -48,7 +48,7 @@ export function TextInputWithMentions({
     dataVariables,
     maxVisibleRows = 5,
     maxItems = 50,
-    autoFocus = true,
+    autoFocus = false,
     onKeyDown,
     enableRichTextShortcuts = false,
 }: ITextInputWithMentionsProps) {

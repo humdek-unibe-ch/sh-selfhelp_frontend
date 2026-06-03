@@ -1,0 +1,177 @@
+# SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+# SPDX-License-Identifier: MPL-2.0
+#
+# Visual regression + intentional baseline updates (Slice 11).
+#
+# Playwright screenshot baselines are platform-specific, so they must be
+# generated on the SAME OS that verifies them (Linux/CI) — never committed from
+# a developer's Windows/macOS machine. This workflow is the ONLY sanctioned way
+# to refresh them, which keeps snapshot updates intentional and reviewable
+# (canonical Testing Rule 18: never `--update-snapshots` just to go green).
+#
+# Two modes, one job:
+#   - VERIFY  (workflow_dispatch, mode=verify, default): runs the visual specs
+#     and diffs against the committed baselines; uploads the HTML report + diff
+#     images on failure so a reviewer can see exactly what changed.
+#   - UPDATE  (PR labelled `update-snapshots`, or workflow_dispatch mode=update):
+#     regenerates the baselines and commits them back to the PR branch with a
+#     `[skip ci]` message. The diff lands in the PR for review.
+#
+# Both modes boot the full frontend+backend+DB+Redis stack like e2e-golden.yml.
+
+name: visual-snapshots
+
+on:
+  pull_request:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'verify (diff only) or update (regenerate + commit baselines)'
+        type: choice
+        options: [verify, update]
+        default: verify
+
+permissions:
+  # `contents: write` is needed only by the UPDATE mode to push refreshed
+  # baselines back to the PR branch. VERIFY mode does not write.
+  contents: write
+
+concurrency:
+  group: visual-snapshots-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual:
+    name: Visual baselines (verify / update)
+    # Only react to the specific label, or to a manual run.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'update-snapshots')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: selfhelp_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd="redis-cli ping" --health-interval=5s --health-timeout=5s --health-retries=20
+
+    env:
+      APP_ENV: test
+      BASE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8000
+      # QA_* select the seeded admin + public/admin page targets for the shots.
+      QA_LOGIN_KEYWORD: ${{ vars.QA_LOGIN_KEYWORD || 'login' }}
+      QA_USER_EMAIL: ${{ vars.QA_USER_EMAIL }}
+      QA_USER_PASSWORD: ${{ secrets.QA_USER_PASSWORD }}
+      QA_ADMIN_EMAIL: ${{ vars.QA_ADMIN_EMAIL }}
+      QA_ADMIN_PASSWORD: ${{ secrets.QA_ADMIN_PASSWORD }}
+      QA_FORM_PAGE_KEYWORD: ${{ vars.QA_FORM_PAGE_KEYWORD }}
+      QA_VISUAL_PUBLIC_PATHS: ${{ vars.QA_VISUAL_PUBLIC_PATHS }}
+      QA_VISUAL_ADMIN_PATHS: ${{ vars.QA_VISUAL_ADMIN_PATHS }}
+
+    steps:
+      - name: Checkout frontend (PR head when labelled, so we can push baselines back)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          path: sh-selfhelp_frontend
+
+      - name: Checkout backend
+        uses: actions/checkout@v4
+        with:
+          repository: humdek-unibe-ch/sh-selfhelp_backend
+          ref: main
+          path: sh-selfhelp_backend
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, redis, intl, mbstring
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: sh-selfhelp_frontend/package-lock.json
+
+      - name: Backend install + seed QA baseline
+        working-directory: sh-selfhelp_backend
+        env:
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
+          REDIS_URL: redis://127.0.0.1:6379
+        run: |
+          composer install --no-interaction --no-progress
+          composer test:reset-db
+
+      - name: Start backend (Symfony built-in server)
+        working-directory: sh-selfhelp_backend
+        env:
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
+          REDIS_URL: redis://127.0.0.1:6379
+        run: |
+          php -S 127.0.0.1:8000 -t public >../backend-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/cms-api/v1/health && break || sleep 2; done
+
+      - name: Build + start frontend
+        working-directory: sh-selfhelp_frontend
+        run: |
+          npm ci
+          npm run build
+          npm run start -- --port 3000 >../frontend-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:3000 && break || sleep 2; done
+
+      - name: Install Playwright Chromium
+        working-directory: sh-selfhelp_frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify visual baselines (diff)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode != 'update'
+        working-directory: sh-selfhelp_frontend
+        run: npm run test:visual
+
+      - name: Update visual baselines
+        id: update
+        if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'update')
+        working-directory: sh-selfhelp_frontend
+        run: npm run test:visual:update
+
+      - name: Commit refreshed baselines to the PR branch
+        if: steps.update.conclusion == 'success' && github.event_name == 'pull_request'
+        working-directory: sh-selfhelp_frontend
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add 'e2e/**/*-snapshots/**' || true
+          if git diff --cached --quiet; then
+            echo "No baseline changes to commit."
+          else
+            git commit -m "test(visual): refresh Playwright baselines [skip ci]"
+            git push
+          fi
+
+      - name: Upload Playwright report + diffs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-report
+          path: |
+            sh-selfhelp_frontend/playwright-report/
+            sh-selfhelp_frontend/test-results/
+            backend-server.log
+            frontend-server.log
+          retention-days: 7
