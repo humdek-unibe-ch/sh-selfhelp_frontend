@@ -143,7 +143,7 @@ export function DataAdminPage() {
     refetchUsers();
     refetchTables();
     refetchLanguages();
-    }, [refetchUsers, refetchTables, refetchLanguages]);
+  }, [refetchUsers, refetchTables, refetchLanguages]);
 
   return (
     <Paper p="md" radius="md">
@@ -193,7 +193,15 @@ export function DataAdminPage() {
                 value={selectedTableIds.map(String)}
                 onChange={(vals) => {
                   const parsed = vals.map(v => parseInt(v, 10));
-                  setSelectedTableIds(parsed.includes(-1) ? [-1] : parsed);
+                  // If user just added "all", clear specific selections
+                  // If user had "all" and picked a specific table, switch to that table only
+                  if (parsed.includes(-1) && selectedTableIds.includes(-1)) {
+                    setSelectedTableIds(parsed.filter(v => v !== -1));
+                  } else if (parsed.includes(-1)) {
+                    setSelectedTableIds([-1]);
+                  } else {
+                    setSelectedTableIds(parsed);
+                  }
                 }}
                 searchable
                 clearable
