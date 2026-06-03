@@ -30,15 +30,15 @@ export const AdminRegistrationCodesApi = {
         return response.data.data;
     },
 
-    async exportCsv(params: Omit<IRegistrationCodesListParams, 'page' | 'pageSize'> = {}): Promise<string> {
+    async exportCsv(params: Omit<IRegistrationCodesListParams, 'page' | 'pageSize'> = {}): Promise<Blob> {
         const q: Record<string, string> = {};
         if (params.search) q.search = params.search;
         if (params.id_groups) q.id_groups = String(params.id_groups);
         if (params.status) q.status = params.status;
 
-        const response = await permissionAwareApiClient.get<string>(
+        const response = await permissionAwareApiClient.get<Blob>(
             API_CONFIG.ENDPOINTS.ADMIN_REGISTRATION_CODES_EXPORT,
-            { params: q, responseType: 'text', transformResponse: [(raw: string) => raw] }
+            { params: q, responseType: 'blob' }
         );
         return response.data;
     },

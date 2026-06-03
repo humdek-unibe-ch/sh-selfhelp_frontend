@@ -39,14 +39,6 @@ export function downloadJsonFile(data: any, filename: string): void {
 }
 
 /**
- * Downloads a CSV string as a file.
- */
-export function downloadCsvFile(csv: string, filename: string): void {
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    downloadBlobFile(blob, filename);
-}
-
-/**
  * Triggers a browser download for an already-built Blob (e.g. a CSV/JSON/ZIP
  * payload returned by the backend with `responseType: 'blob'`).
  */

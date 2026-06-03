@@ -47,6 +47,7 @@ import {
     IconSparkles,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
+import { downloadBlobFile, generateExportFilename } from '../../../../utils/export-import.utils';
 import { useRegistrationCodes, useExportRegistrationCodes, useGenerateRegistrationCodes } from '../../../../hooks/useRegistrationCodes';
 import { useGroups } from '../../../../hooks/useGroups';
 import { useAuth } from '../../../../hooks/useAuth';
@@ -154,18 +155,9 @@ export function RegistrationCodesPage() {
         exportCodes.mutate(
             { search: params.search, id_groups: params.id_groups, status: params.status },
             {
-                onSuccess: (csv) => {
-                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, -5);
-                    const filename = `registration_codes_${timestamp}.csv`;
-                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
+                onSuccess: (blob) => {
+                    const filename = generateExportFilename('registration_codes', 'csv');
+                    downloadBlobFile(blob, filename);
                     notifications.show({ title: 'Export Successful', message: `"${filename}" downloaded`, color: 'green' });
                 },
             }
