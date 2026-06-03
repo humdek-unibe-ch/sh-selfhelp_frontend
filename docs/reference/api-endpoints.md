@@ -74,6 +74,26 @@ Invitation codes required for user registration when the `register` style has `o
 
 Permissions: `admin.registration_code.read`, `admin.registration_code.create`.
 
+## Data Browser
+
+Browse and manage form-submission data per table under **Data Management** in the admin navbar. Tables are created implicitly by the backend (a form section is created, or data is first written) — there is no create endpoint. Frontend reads tables by name and drives all delete/export from `DataAdminPage` + `SingleDataTable`.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/admin/data/tables` | List data tables the current user can access. |
+| GET    | `/admin/data` | Get rows for a table. Query: `table_name` (required), `user_id`, `exclude_deleted`, `language_id`. |
+| GET    | `/admin/data/tables/{name}/columns` | List columns (`{ id, name }`) for a table. |
+| GET    | `/admin/data/tables/{name}/column-names` | List column names only. |
+| DELETE | `/admin/data/records/{recordId}` | Delete one row. **Requires** `?table_name=<name>`. |
+| DELETE | `/admin/data/tables/{name}/columns` | Delete columns. Body: `{ columns: string[] }`. |
+| DELETE | `/admin/data/tables/{name}` | Delete an entire table. |
+| GET    | `/admin/data/tables/{name}/export` | Export one table. Query: `format` (`csv` \| `json`), plus the same `user_id` / `language_id` / `exclude_deleted` filters as the rows endpoint. **Returns a raw blob** (`text/csv` or `application/json`), **not** the standard envelope. |
+| POST   | `/admin/data/tables/bulk-export` | Export several tables as a single ZIP. Body: `{ table_names: string[], format: 'csv' \| 'json', user_id?, language_id?, exclude_deleted? }`. **Returns an `application/zip` blob**, not the envelope. |
+
+Permissions: `admin.data.read`, `admin.data.delete`, `admin.data.delete_columns`. Export endpoints reuse `admin.data.read`.
+
+> **Blob contract:** the two export endpoints (and `/admin/registration-codes/export`) are the data endpoints that bypass the Symfony `{status,message,data,...}` envelope. The browser reads them with axios `responseType: 'blob'` and triggers the download via `downloadBlobFile()` in `src/utils/export-import.utils.ts`. Do not try to unwrap `response.data.data` for these.
+
 ## Asset Management
 
 | Method | Endpoint | Description |
