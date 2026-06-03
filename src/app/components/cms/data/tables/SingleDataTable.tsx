@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   flexRender,
   getCoreRowModel,
@@ -20,8 +20,6 @@ import {
   Card,
   Group,
   LoadingOverlay,
-  Modal,
-  Stack,
   TextInput,
   Table,
   TableTbody,
@@ -34,8 +32,9 @@ import {
   Button,
   Tooltip,
 } from '@mantine/core';
+import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconSortAscending, IconSortDescending, IconArrowsUpDown } from '@tabler/icons-react';
-import { useDataRows, useDeleteRecord, DATA_QUERY_KEYS, useDeleteTable } from '../../../../../hooks/useData';
+import { useDataRows, useDeleteRecord, useDeleteTable } from '../../../../../hooks/useData';
 import { DataTableEditorModal } from '../modals/DataTableEditorModal';
 import { ConfirmDeleteTableModal } from '../modals/ConfirmDeleteTableModal';
 
@@ -54,17 +53,21 @@ export default function SingleDataTable({ formId, tableName, displayName, select
   const [isDeleteTableOpen, setIsDeleteTableOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
+
+  useEffect(() => {
+    setSorting([]);
+    setGlobalFilter('');
+  }, [tableName, selectedUserId, showDeleted, selectedLanguageId]);
   const deleteRecord = useDeleteRecord();
   const deleteTable = useDeleteTable();
 
-  const { data, isLoading } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted, language_id: selectedLanguageId });
+  const { data, isLoading, isFetching } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted, language_id: selectedLanguageId });
 
   const rows = data?.rows || [];
   const columns = useMemo<ColumnDef<Record<string, any>>[]>(() => {
     if (rows.length === 0) return [];
-    const sample = rows[0];
-    // Construct columns dynamically; keep record_id prominent when present
-    const baseCols = Object.keys(sample).map((key) => ({
+    const allKeys = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
+    const baseCols = allKeys.map((key) => ({
       accessorKey: key,
       header: ({ column }: any) => {
         const isSorted = column.getIsSorted();
@@ -85,7 +88,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
           </Button>
         );
       },
-      cell: ({ row }: { row: any }) => <Text size="sm">{String(row.original[key])}</Text>,
+      cell: ({ row }: { row: any }) => <Text size="sm">{row.original[key] ?? ''}</Text>,
       enableSorting: true,
     }));
     return [
@@ -124,7 +127,8 @@ export default function SingleDataTable({ formId, tableName, displayName, select
   });
 
   return (
-    <Card withBorder>
+    <Card withBorder style={{ position: 'relative' }}>
+      <LoadingOverlay visible={isLoading || isFetching} />
       <Group justify="space-between" mb="sm">
         <Group>
           <Title order={4}>{displayName}</Title>
@@ -153,8 +157,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
         size="sm"
       />
 
-      <Box style={{ position: 'relative', overflowX: 'auto' }}>
-        <LoadingOverlay visible={isLoading} />
+      <Box style={{ overflowX: 'auto', minHeight: 60 }}>
         <Table striped highlightOnHover>
           <TableThead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -182,34 +185,26 @@ export default function SingleDataTable({ formId, tableName, displayName, select
       <DataTableEditorModal open={isEditorOpen} onClose={() => setIsEditorOpen(false)} formId={formId} tableName={tableName} displayName={displayName} />
 
       {/* Confirm delete row modal */}
-      <Modal
+      <ModalWrapper
         opened={!!isDeleteRowOpen}
         onClose={() => setIsDeleteRowOpen(null)}
-        title={<Title order={4} component="div">Confirm delete row</Title>}
-        centered
+        title="Confirm delete row"
+        onDelete={() => {
+          if (!isDeleteRowOpen) return;
+          deleteRecord.mutate({
+            recordId: isDeleteRowOpen.id,
+            tableName,
+          }, {
+            onSuccess: () => setIsDeleteRowOpen(null),
+          });
+        }}
+        onCancel={() => setIsDeleteRowOpen(null)}
+        deleteLabel="Delete row"
+        deleteVariant="filled"
+        isLoading={deleteRecord.isPending}
       >
-        <Stack>
-          <Text>Are you sure you want to delete the selected row from <Text span fw={600}>{displayName}</Text>?</Text>
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => setIsDeleteRowOpen(null)}>Cancel</Button>
-            <Button
-              color="red"
-              loading={deleteRecord.isPending}
-              onClick={() => {
-                if (!isDeleteRowOpen) return;
-                deleteRecord.mutate({
-                  recordId: isDeleteRowOpen.id,
-                  refetchKeys: [DATA_QUERY_KEYS.rows(tableName, selectedUserId, !showDeleted)],
-                }, {
-                  onSuccess: () => setIsDeleteRowOpen(null),
-                });
-              }}
-            >
-              Delete row
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        <Text>Are you sure you want to delete the selected row from <Text span fw={600}>{displayName}</Text>?</Text>
+      </ModalWrapper>
 
       {/* Confirm delete entire table */}
       <ConfirmDeleteTableModal

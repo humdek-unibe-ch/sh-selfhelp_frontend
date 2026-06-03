@@ -59,8 +59,9 @@ export const AdminDataApi = {
     return response.data.data;
   },
 
-  async deleteRecord(recordId: number, opts?: { own_entries_only?: boolean }): Promise<IDeleteRecordResponse> {
-    const params = opts?.own_entries_only === false ? { own_entries_only: 'false' } : undefined;
+  async deleteRecord(recordId: number, tableName: string, opts?: { own_entries_only?: boolean }): Promise<IDeleteRecordResponse> {
+    const params: Record<string, string> = { table_name: tableName };
+    if (opts?.own_entries_only === false) params.own_entries_only = 'false';
     const response = await permissionAwareApiClient.delete<IBaseApiResponse<IDeleteRecordResponse>>(
       API_CONFIG.ENDPOINTS.ADMIN_DATA_RECORD_DELETE,
       recordId,

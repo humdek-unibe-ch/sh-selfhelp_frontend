@@ -47,7 +47,7 @@ export function useDataRows(params: { table_name: string; user_id?: number; excl
     enabled: !!table_name,
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.REAL_TIME.staleTime,
     gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.REAL_TIME.gcTime,
-    select: (data) => data, // identity transform
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -97,12 +97,10 @@ export function useDeleteColumns() {
 
 export function useDeleteRecord() {
   const queryClient = useQueryClient();
-  return useMutation<IDeleteRecordResponse, unknown, { recordId: number; refetchKeys?: any[]; ownEntriesOnly?: boolean }>(
+  return useMutation<IDeleteRecordResponse, unknown, { recordId: number; tableName: string; ownEntriesOnly?: boolean }>(
     {
-      mutationFn: ({ recordId, ownEntriesOnly }) => AdminDataApi.deleteRecord(recordId, { own_entries_only: ownEntriesOnly }),
-      onSuccess: (_, variables) => {
-        if (variables.refetchKeys) variables.refetchKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key as any }));
-        // Globally refetch any rows query to ensure consistency after delete
+      mutationFn: ({ recordId, tableName, ownEntriesOnly }) => AdminDataApi.deleteRecord(recordId, tableName, { own_entries_only: ownEntriesOnly }),
+      onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.all });
       },
     }

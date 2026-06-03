@@ -64,7 +64,7 @@ export function DataAdminPage() {
 
   // Data fetching
   const { data: usersResp, refetch: refetchUsers } = useUsers({ page: 1, pageSize: 100, sort: 'email', sortDirection: 'asc' });
-  const { data: tablesResp, refetch: refetchTables } = useDataTables();
+  const { data: tablesResp, refetch: refetchTables, isFetching: isTablesFetching } = useDataTables();
   const { languages, refetch: refetchLanguages } = usePublicLanguages();
 
   const userOptions = useMemo(() => {
@@ -214,7 +214,7 @@ export function DataAdminPage() {
               onApply={handleApplyFilters}
               onReset={handleResetFilters}
               onRefresh={handleRefresh}
-              isFetching={false}
+              isFetching={isTablesFetching}
               isApplyDisabled={false}
             />
           </Stack>
