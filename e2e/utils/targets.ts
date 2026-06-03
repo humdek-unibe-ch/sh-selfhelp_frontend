@@ -42,7 +42,7 @@ function csv(raw: string | undefined, fallback: string[]): string[] {
 }
 
 export interface IVisualTargets {
-    /** 3 public routes (no auth). */
+    /** Genuinely public routes (no auth). */
     publicPaths: string[];
     /** 3 admin routes (auth required). */
     adminPaths: string[];
@@ -52,11 +52,12 @@ export interface IVisualTargets {
 
 export function visualTargets(): IVisualTargets {
     const loginKeyword = process.env.QA_LOGIN_KEYWORD ?? 'login';
-    const formKeyword = process.env.QA_FORM_PAGE_KEYWORD ?? 'qa-feedback';
     return {
-        // 3 public defaults: home, login, the QA form page. Override with
+        // Public defaults: home + login. The QA form page is ACL-gated (the
+        // golden flow logs in before opening it), so it is captured as an
+        // authenticated shot in the spec, not here. Override with
         // QA_VISUAL_PUBLIC_PATHS (comma-separated) for a real stack.
-        publicPaths: csv(process.env.QA_VISUAL_PUBLIC_PATHS, ['/', `/${loginKeyword}`, `/${formKeyword}`]),
+        publicPaths: csv(process.env.QA_VISUAL_PUBLIC_PATHS, ['/', `/${loginKeyword}`]),
         adminPaths: csv(process.env.QA_VISUAL_ADMIN_PATHS, ['/admin', '/admin/pages', '/admin/users']),
         surveyRuntimePath: process.env.QA_SURVEY_RUNTIME_PATH ?? '',
     };

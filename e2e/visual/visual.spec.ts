@@ -18,7 +18,7 @@ SPDX-License-Identifier: MPL-2.0
  * and the caret is hidden (playwright.config.ts) so shots are deterministic.
  */
 import { test, expect, type Page } from '@playwright/test';
-import { isQaConfigured } from '../utils/env';
+import { isQaConfigured, qaEnv } from '../utils/env';
 import { adminCreds, isAdminConfigured, visualTargets } from '../utils/targets';
 import { loginAs } from '../utils/loginAs';
 
@@ -30,7 +30,10 @@ function snapshotName(prefix: string, path: string): string {
 
 /** Settle the page so the screenshot is deterministic. */
 async function settle(page: Page): Promise<void> {
-    await page.waitForLoadState('networkidle');
+    // Authenticated pages hold a Mercure EventSource open, so the network never
+    // reaches a full idle — wait for it only briefly and don't hang the shot if
+    // it never arrives. Public pages reach idle well within this window.
+    await page.waitForLoadState('networkidle', { timeout: 3_000 }).catch(() => {});
     // A small, fixed delay lets late layout (fonts, Mantine theme) settle
     // without depending on a flaky animation event.
     await page.waitForTimeout(300);
@@ -53,6 +56,20 @@ test.describe('visual: public pages', () => {
         await page.goto(surveyRuntimePath);
         await settle(page);
         await expect(page).toHaveScreenshot('public-surveyjs-runtime.png', { fullPage: true });
+    });
+});
+
+test.describe('visual: authenticated QA form', () => {
+    test.skip(!isQaConfigured(), 'Set the QA_* env (and run a QA stack) to capture the QA form baseline.');
+
+    test('QA form page matches its baseline', async ({ page }) => {
+        // The QA form page is ACL-gated, so log in as the QA user first; an
+        // anonymous visit would screenshot the not-found page, not the form.
+        const qa = qaEnv();
+        await loginAs(page, qa.email, qa.password, qa.loginKeyword);
+        await page.goto(`/${qa.formPageKeyword}`);
+        await settle(page);
+        await expect(page).toHaveScreenshot('qa-form-page.png', { fullPage: true });
     });
 });
 

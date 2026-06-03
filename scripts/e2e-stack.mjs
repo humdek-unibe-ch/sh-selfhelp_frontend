@@ -309,6 +309,32 @@ async function warmupStack(baseUrl, backendUrl) {
     }
 }
 
+/**
+ * Visual baselines are git-ignored + platform-specific (CI regenerates the
+ * authoritative Linux set). On a machine that has none yet, seed them once
+ * (create-only — this never overwrites an existing baseline, so it cannot hide
+ * a real regression) so `npm run test:visual` passes out of the box. When
+ * baselines already exist this is a no-op and the run is a true regression
+ * check.
+ */
+async function ensureVisualBaselines(baseUrl, backendUrl, extraArgs) {
+    const snapDir = path.join(FRONTEND_ROOT, 'e2e', 'visual', 'visual.spec.ts-snapshots');
+    const hasBaselines = fs.existsSync(snapDir) && fs.readdirSync(snapDir).some((f) => f.endsWith('.png'));
+    const alreadyUpdating = extraArgs.some((a) => a.startsWith('--update-snapshots'));
+    if (hasBaselines || alreadyUpdating) return;
+    log('No visual baselines found — seeding them once (create-only) before the check…');
+    await new Promise((resolve) => {
+        const child = spawn('npx', ['playwright', 'test', 'e2e/visual', '--update-snapshots'], {
+            cwd: FRONTEND_ROOT,
+            env: { ...process.env, ...suiteEnv(baseUrl, backendUrl) },
+            stdio: 'inherit',
+            shell: IS_WIN,
+        });
+        child.on('error', () => resolve());
+        child.on('close', () => resolve());
+    });
+}
+
 async function main() {
     const [profileName, ...extraPlaywrightArgs] = process.argv.slice(2);
     const profile = PROFILES[profileName];
@@ -442,6 +468,10 @@ async function main() {
             log('Frontend is up.');
 
             await warmupStack(baseUrl, backendUrl);
+        }
+
+        if (profileName === 'visual') {
+            await ensureVisualBaselines(baseUrl, backendUrl, extraPlaywrightArgs);
         }
 
         log(`Running Playwright suite "${profileName}" (${profile.dir})…`);
