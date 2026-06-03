@@ -34,6 +34,7 @@ const navigationItems = [
             { label: 'Users', href: '/admin/users' },
             { label: 'Groups', href: '/admin/groups' },
             { label: 'Roles', href: '/admin/roles' },
+            { label: 'Registration Codes', href: '/admin/registration-codes' },
         ]
     },
     {

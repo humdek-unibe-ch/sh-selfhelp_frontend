@@ -136,6 +136,7 @@ export function AdminNavbar() {
             if (permissionChecker.canReadUsers()) userManagementLinks.push({ label: 'Users', link: '/admin/users' });
             if (permissionChecker.canReadGroups()) userManagementLinks.push({ label: 'Groups', link: '/admin/groups' });
             if (permissionChecker.canReadRoles()) userManagementLinks.push({ label: 'Roles', link: '/admin/roles' });
+            if (permissionChecker.canReadRegistrationCodes()) userManagementLinks.push({ label: 'Registration Codes', link: '/admin/registration-codes' });
 
             if (userManagementLinks.length > 0) {
                 menuItems.push({

@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Box, Card, Title, TextInput, Button, Group, Alert, Text, LoadingOverlay } from '@mantine/core';
 import { IconCheck, IconX } from '@tabler/icons-react';
+import { ROUTES } from '../../../../config/routes.config';
 import { IValidateStyle } from '../../../../types/common/styles.types';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
@@ -38,6 +39,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     const [errors, setErrors] = useState<string[]>([]);
     const [success, setSuccess] = useState(false);
     const [passwordError, setPasswordError] = useState<string>('');
+    const [redirectCountdown, setRedirectCountdown] = useState(3);
 
     // Extract userId and token from URL path
     // This works with any URL pattern as long as it contains /validate/{uid}/{token}
@@ -251,7 +253,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
             };
 
             // Use complete validation endpoint
-            const response = await completeValidationMutation.mutateAsync({
+            await completeValidationMutation.mutateAsync({
                 userId,
                 token,
                 data: validationData
@@ -259,20 +261,26 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
 
             setSubmitSuccess(true);
 
-            // Handle success alert - prefer backend message over style message
-            const successMessage = (response as any)?.data?.message || alertSuccessConfig;
-
-            // Handle redirect
-            if (redirectUrl) {
-                setTimeout(() => {
-                    router.push(redirectUrl);
-                }, 1500); // Slightly longer delay to show success message
-            }
+            // Redirect to login after countdown regardless of CMS redirectUrl —
+            // the token is now consumed so any validate page revisit would 404.
+            let count = 3;
+            setRedirectCountdown(count);
+            const interval = setInterval(() => {
+                count -= 1;
+                setRedirectCountdown(count);
+                if (count <= 0) {
+                    clearInterval(interval);
+                    router.push(ROUTES.LOGIN);
+                }
+            }, 1000);
 
         } catch (error: any) {
-            // Extract error message from API response if available
+            // Prefer validation field errors from the backend envelope
+            const validationErrors: string[] = error?.response?.data?.validation?.errors;
             let errorMessage = 'Failed to complete validation. Please try again.';
-            if (error?.response?.data?.error) {
+            if (validationErrors?.length > 0) {
+                errorMessage = validationErrors.join('\n');
+            } else if (error?.response?.data?.error) {
                 errorMessage = error.response.data.error;
             } else if (error?.response?.data?.message) {
                 errorMessage = error.response.data.message;
@@ -435,6 +443,9 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
                     {submitSuccess ? (
                         <Alert icon={<IconCheck size={16} />} color="green" title="Success">
                             {alertSuccessConfig}
+                            <Text size="sm" mt="xs">
+                                Redirecting to login in {redirectCountdown}s...
+                            </Text>
                         </Alert>
                     ) : (
                         <form ref={formRef} key={formKey} onSubmit={handleSubmit}>
@@ -445,7 +456,11 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
 
                             {submitError && (
                                 <Alert icon={<IconX size={16} />} color="red" title={alertFail} mb="md" onClose={() => setSubmitError(null)} withCloseButton>
-                                    {submitError}
+                                    {submitError.includes('\n') ? (
+                                        <ul style={{ margin: 0, paddingLeft: '1rem' }}>
+                                            {submitError.split('\n').map((msg, i) => <li key={i}>{msg}</li>)}
+                                        </ul>
+                                    ) : submitError}
                                 </Alert>
                             )}
 

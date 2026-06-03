@@ -224,3 +224,16 @@ export function useCanAccessSettings(): boolean {
   const { permissionChecker } = useAuth();
   return permissionChecker?.canAccessSettings() ?? false;
 }
+
+/**
+ * Registration Codes Permissions
+ */
+export function useCanReadRegistrationCodes(): boolean {
+  const { permissionChecker } = useAuth();
+  return permissionChecker?.canReadRegistrationCodes() ?? false;
+}
+
+export function useCanCreateRegistrationCodes(): boolean {
+  const { permissionChecker } = useAuth();
+  return permissionChecker?.canCreateRegistrationCodes() ?? false;
+}

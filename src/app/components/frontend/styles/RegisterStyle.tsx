@@ -4,14 +4,16 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TextInput, Button, Paper, Title, Alert, Stack, Group } from '@mantine/core';
 import { IconCheck, IconExclamationCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { IRegisterStyle } from '../../../../types/common/styles.types';
 import { usePageContext } from '../../contexts/PageContext';
 import { useRegisterMutation } from '../../../../hooks/mutations/useRegisterMutation';
+import { useAuth } from '../../../../hooks/useAuth';
 import { ROUTES } from '../../../../config/routes.config';
+import { parseApiError } from '../../../../utils/mutation-error-handler';
 
 /**
  * Props interface for RegisterStyle component
@@ -32,6 +34,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
     const router = useRouter();
     const pageContext = usePageContext();
     const register = useRegisterMutation();
+    const { isAuthenticated, isLoading } = useAuth();
 
     const [email, setEmail] = useState('');
     const [code, setCode] = useState('');
@@ -42,7 +45,6 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
     const labelSubmit = style.label_submit?.content || 'Register';
     const alertFail = style.alert_fail?.content || 'Invalid email or validation code.';
     const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for activation link.';
-    const successMessage = style.success?.content || 'Registration completed successfully';
     const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
     const formType = style.fields?.type?.content || 'success';
     
@@ -59,6 +61,12 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
             ...(!openRegistration && code ? { code } : {}),
         });
     };
+
+    useEffect(() => {
+        if (!isLoading && isAuthenticated) {
+            router.replace(ROUTES.HOME);
+        }
+    }, [isLoading, isAuthenticated, router]);
 
     if (register.isSuccess) {
         return (
@@ -90,7 +98,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                 <Stack gap="md">
                     {register.isError && (
                         <Alert icon={<IconExclamationCircle size={16} />} color="red" variant="light">
-                            {register.error instanceof Error ? register.error.message : alertFail}
+                            {parseApiError(register.error).errorMessage || alertFail}
                         </Alert>
                     )}
 

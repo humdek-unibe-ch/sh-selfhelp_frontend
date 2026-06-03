@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import { LoadingScreen } from '../../../../components/shared/common/LoadingScreen';
 import { AdminShell } from '../../../../components/cms/admin-shell/AdminShell';
 import { PluginHostRouteContainer } from '../../../../components/cms/plugins/plugin-host-route/PluginHostRouteContainer';
+import { requireAdminPermission } from '../../../../_lib/admin-guard';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,9 @@ export async function generateMetadata({ params }: { params: Promise<IPluginHost
 
 export default async function PluginAdminPage({ params }: { params: Promise<IPluginHostRouteParams> }) {
     const { pluginId, slug } = await params;
+    // Plugin host pages require admin access; the plugin's own nav entry gates
+    // its declared permission, so admin.access is the server-side baseline.
+    await requireAdminPermission();
     return (
         <AdminShell>
             <Suspense fallback={<LoadingScreen />}>

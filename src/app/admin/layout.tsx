@@ -22,13 +22,10 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
-import { ROUTES } from '../../config/routes.config';
-import { getSystemLookupsSSR, getAdminPagesSSR, getAuthMeSSR } from '../_lib/server-fetch';
-import { AUTH_COOKIE } from '../../config/server.config';
+import { getSystemLookupsSSR, getAdminPagesSSR } from '../_lib/server-fetch';
+import { requireAdminAccessSSR } from '../_lib/admin-guard';
 import { getQueryClient } from '../../providers/query-client';
 
 /**
@@ -56,19 +53,12 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminRouteLayout({ children }: { children: React.ReactNode }) {
-    const jar = await cookies();
-    if (!jar.get(AUTH_COOKIE)) {
-        redirect(ROUTES.LOGIN);
-    }
-
-    // Authoritative auth gate: an empty envelope means the cookie was
-    // present but invalid/expired. `getAuthMeSSR` is `cache()`-wrapped, so
-    // this shares its round-trip with the seed in `ServerProviders` instead
-    // of double-hitting Symfony.
-    const me = (await getAuthMeSSR()) as { data?: unknown } | null;
-    if (!me || !me.data) {
-        redirect(ROUTES.LOGIN);
-    }
+    // Authoritative server-side gate for the whole /admin segment: redirects
+    // to login when unauthenticated and to the no-access page when the user
+    // lacks `admin.access`. Each `page.tsx` adds its specific section
+    // permission via `requireAdminPermission`. `getAuthMeSSR` is
+    // `cache()`-wrapped, so this shares its round-trip with `ServerProviders`.
+    await requireAdminAccessSSR();
 
     const queryClient = getQueryClient();
     await Promise.all([

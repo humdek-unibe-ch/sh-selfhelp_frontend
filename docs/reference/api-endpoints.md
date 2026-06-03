@@ -62,6 +62,18 @@ SPDX-License-Identifier: MPL-2.0
 | GET | `/admin/groups/{id}/acls` | Get group ACLs |
 | PUT | `/admin/groups/{id}/acls` | Update group ACLs |
 
+## Registration Codes
+
+Invitation codes required for user registration when the `register` style has `open_registration = '0'`. Each code is bound to a group; once consumed during registration the new user is added to that group. Managed under **User Management → Registration Codes** in the admin navbar.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/admin/registration-codes`          | List registration codes (paginated). Supports `search`, `id_groups`, `status` (`available` \| `used`), `sort` (`created_at` \| `consumed_at`), `sortDirection`, `page`, `pageSize`. Response includes `codes`, `pagination`, and a `config` object (`{ generate_min, generate_max }`) that drives the generate form bounds — do not hardcode these on the frontend. |
+| POST   | `/admin/registration-codes/generate` | Bulk-generate registration codes. Body: `{ count: number, id_groups: number }`. `count` must be within `config.generate_min`–`config.generate_max`. Code length (8 chars, alphanumeric) is fixed server-side. Returns 422 with a human-readable `error` string when the table capacity would be exceeded or `count` is out of range. |
+| GET    | `/admin/registration-codes/export`   | Export all matching codes as CSV. Accepts the same filters as the list endpoint (`search`, `id_groups`, `status`) but returns all rows without pagination. Response is `text/csv`. |
+
+Permissions: `admin.registration_code.read`, `admin.registration_code.create`.
+
 ## Asset Management
 
 | Method | Endpoint | Description |

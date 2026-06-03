@@ -659,6 +659,19 @@ export const API_CONFIG = {
             permissions: [PERMISSIONS.ADMIN_ROLE_READ, PERMISSIONS.ADMIN_ROLE_UPDATE]
         },
 
+        // Admin registration codes endpoints
+        ADMIN_REGISTRATION_CODES_GET_ALL: {
+            route: '/admin/registration-codes',
+            permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]
+        },
+        ADMIN_REGISTRATION_CODES_GENERATE: {
+            route: '/admin/registration-codes/generate',
+            permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_CREATE]
+        },
+        ADMIN_REGISTRATION_CODES_EXPORT: {
+            route: '/admin/registration-codes/export',
+            permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]
+        },
         // Admin audit management endpoints
         ADMIN_AUDIT_DATA_ACCESS_LIST: {
             route: '/admin/audit/data-access',

@@ -3,6 +3,8 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import type { Metadata } from 'next';
+import { requireAdminPermission } from '../../_lib/admin-guard';
+import { PERMISSIONS } from '../../../types/auth/jwt-payload.types';
 
 /**
  * Metadata segment for the `/admin/pages/*` route group.
@@ -21,6 +23,7 @@ export const metadata: Metadata = {
     title: 'Pages',
 };
 
-export default function AdminPagesLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminPagesLayout({ children }: { children: React.ReactNode }) {
+    await requireAdminPermission(PERMISSIONS.ADMIN_PAGE_READ);
     return <>{children}</>;
 }
