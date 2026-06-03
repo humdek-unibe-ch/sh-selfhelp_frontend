@@ -56,6 +56,12 @@ const HOME_KEYWORD = 'home';
 const STATIC_FALLBACK_BY_KEYWORD: Record<string, string> = {
     login: '/auth/login',
     'two-factor-authentication': '/auth/two-factor-authentication',
+    profile: '/auth/profile',
+    register: '/auth/register',
+    reset_password: '/auth/reset-password',
+    no_access: '/auth/no-access',
+    no_access_guest: '/auth/no-access-guest',
+    missing: '/auth/missing',
 };
 
 /**
@@ -101,14 +107,16 @@ function keywordFromSlug(slug: string[] | undefined): string {
 }
 
 /**
- * Returns true when `page` cannot be rendered as a CMS page — i.e. the
- * envelope is null/undefined or the page carries no sections at all. We
- * treat both as "CMS payload is empty" so the fallback redirect kicks in
- * symmetrically whether the row was never seeded or all sections were
- * removed by an admin.
+/**
+ * Returns true when the page should fall back to its static route.
+ *
+ * Prefers the BE-computed `should_fallback` flag (set when the page is
+ * missing its required functional section). Falls back to the old
+ * zero-sections check when the flag is absent (older BE versions).
  */
-function isPagePayloadEmpty(page: any): boolean {
+function shouldFallback(page: any): boolean {
     if (!page) return true;
+    if (typeof page.should_fallback === 'boolean') return page.should_fallback;
     const sections = Array.isArray(page?.sections) ? page.sections : [];
     return sections.length === 0;
 }
@@ -194,7 +202,7 @@ export default async function SlugPage({
     // `STATIC_FALLBACK_BY_KEYWORD` for the rationale.
     if (
         Object.prototype.hasOwnProperty.call(STATIC_FALLBACK_BY_KEYWORD, keyword) &&
-        isPagePayloadEmpty(page)
+        shouldFallback(page)
     ) {
         redirect(STATIC_FALLBACK_BY_KEYWORD[keyword]);
     }

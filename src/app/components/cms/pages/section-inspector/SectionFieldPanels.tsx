@@ -44,7 +44,7 @@ interface ISectionFieldPanelsProps {
 }
 
 export function SectionFieldPanels({
-    sectionId,
+    sectionId: _sectionId,
     fields,
     languagesData,
     activeLanguageTab,
@@ -54,13 +54,6 @@ export function SectionFieldPanels({
 }: ISectionFieldPanelsProps) {
     const globalFieldTypes: GlobalFieldType[] = ['condition', 'data_config', 'css', 'css_mobile', 'debug'];
     const [fieldSearch, setFieldSearch] = useState('');
-    // Track the last rendered sectionId in state so we can reset the search
-    // during render when it changes — avoids a useEffect extra render cycle.
-    const [prevSectionId, setPrevSectionId] = useState(sectionId);
-    if (prevSectionId !== sectionId) {
-        setPrevSectionId(sectionId);
-        setFieldSearch('');
-    }
 
     const query = fieldSearch.trim().toLowerCase();
     const matches = (text: string | null | undefined) => (text ?? '').toLowerCase().includes(query);

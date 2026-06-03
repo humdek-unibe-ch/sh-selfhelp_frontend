@@ -434,6 +434,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
 
                 {/* Searchable field panels */}
                 <SectionFieldPanels
+                    key={sectionId}
                     sectionId={sectionId}
                     fields={fields}
                     languagesData={languagesData}

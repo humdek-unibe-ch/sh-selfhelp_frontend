@@ -4,29 +4,21 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState, useEffect } from 'react';
-import { TextInput, Button, Paper, Title, Alert, Stack, Text, Group } from '@mantine/core';
+import { useEffect, useState } from 'react';
+import { TextInput, Button, Paper, Title, Alert, Stack, Group } from '@mantine/core';
 import { IconCheck, IconExclamationCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { IRegisterStyle } from '../../../../types/common/styles.types';
-import { IContentField } from '../../../../shared';
 import { usePageContext } from '../../contexts/PageContext';
 import { useRegisterMutation } from '../../../../hooks/mutations/useRegisterMutation';
 import { useAuth } from '../../../../hooks/useAuth';
 import { ROUTES } from '../../../../config/routes.config';
 
-// Fields present in the backend response but not yet in the shared IRegisterStyle type.
-// TODO: Later add to the shared instead of extend
-interface IRegisterStyleExtended extends IRegisterStyle {
-    open_registration?: IContentField<string>;
-    anonymous_users_registration?: IContentField<string>;
-}
-
 /**
  * Props interface for RegisterStyle component
  */
 interface IRegisterStyleProps {
-    style: IRegisterStyleExtended;
+    style: IRegisterStyle;
     styleProps: Record<string, any>;
     cssClass: string;
 }
@@ -50,13 +42,14 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
     const title = style.title?.content || 'Registration';
     const labelUser = style.label_user?.content || 'Email';
     const labelSubmit = style.label_submit?.content || 'Register';
-    const alertFail = style.alert_fail?.content || 'Registration failed. Please check your details and try again.';
-    const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for an activation link.';
-
-    // open_registration === '0' means registration requires an invitation code.
-    // These fields come from the backend but are not yet in the shared IRegisterStyle type.
-    const requiresCode = style.open_registration?.content === '0';
-    const anonymousUsersText = style.anonymous_users_registration?.content;
+    const alertFail = style.alert_fail?.content || 'Invalid email or validation code.';
+    const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for activation link.';
+    const successMessage = style.success?.content || 'Registration completed successfully';
+    const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
+    const formType = style.fields?.type?.content || 'success';
+    
+    // Check if open registration is enabled
+    const openRegistration = style.fields?.open_registration?.content === '1';
 
     const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -65,7 +58,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
         register.mutate({
             page_id: pageContext.pageId,
             email,
-            ...(requiresCode && code ? { code } : {}),
+            ...(!openRegistration && code ? { code } : {}),
         });
     };
 
@@ -119,7 +112,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                         size="md"
                     />
 
-                    {requiresCode && (
+                    {!openRegistration && (
                         <TextInput
                             label="Validation Code"
                             placeholder="Enter your code"
@@ -130,17 +123,14 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                         />
                     )}
 
-                    {!requiresCode && anonymousUsersText && (
-                        <Text size="sm" c="dimmed">
-                            {anonymousUsersText}
-                        </Text>
-                    )}
 
                     <Button
                         type="submit"
                         fullWidth
                         size="md"
                         loading={register.isPending}
+                        color={mantineColor}
+                        variant={formType === 'success' ? 'filled' : 'light'}
                     >
                         {labelSubmit}
                     </Button>

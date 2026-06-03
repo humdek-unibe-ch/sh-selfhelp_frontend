@@ -5,12 +5,12 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { Container } from '@mantine/core';
-import TwoFactorAuthStyle from '../../components/frontend/styles/TwoFactorAuthStyle';
+import RegisterStyle from '../../components/frontend/styles/RegisterStyle';
 
-export default function TwoFactorAuthenticationPage() {
+export default function RegisterFallbackPage() {
     return (
         <Container size={420} my={40}>
-            <TwoFactorAuthStyle style={{} as any} styleProps={{}} cssClass="" />
+            <RegisterStyle style={{} as any} styleProps={{}} cssClass="" />
         </Container>
     );
 }
