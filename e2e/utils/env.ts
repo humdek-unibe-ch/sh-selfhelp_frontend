@@ -11,6 +11,14 @@ SPDX-License-Identifier: MPL-2.0
  * (canonical Testing Rule 9). The golden spec is skipped unless the
  * required QA env is present, so `npm run test:e2e` is safe to run on a
  * machine without a stack.
+ *
+ * The defaults below are the CANONICAL QA values owned by the backend
+ * fixture {@link
+ * https://github.com/humdek-unibe-ch/sh-selfhelp_backend `QaFrontendGoldenFixture`}
+ * (seeded by `composer test:reset-db`). The one-command harness
+ * (`scripts/e2e-stack.mjs`, invoked by `npm run test:golden`) exports the
+ * same values so a developer never has to set QA_* by hand. Keep them in
+ * sync with that fixture and with `scripts/e2e-stack.mjs`.
  */
 
 export interface IQaE2eEnv {
@@ -28,8 +36,8 @@ export function qaEnv(): IQaE2eEnv {
     return {
         baseUrl: process.env.BASE_URL ?? 'http://localhost:3000',
         loginKeyword: process.env.QA_LOGIN_KEYWORD ?? 'login',
-        email: process.env.QA_USER_EMAIL ?? 'qa.user@qa.selfhelp.test',
-        password: process.env.QA_USER_PASSWORD ?? 'change-me',
+        email: process.env.QA_USER_EMAIL ?? 'qa.user@selfhelp.test',
+        password: process.env.QA_USER_PASSWORD ?? 'QaPassw0rd!2026',
         formPageKeyword: process.env.QA_FORM_PAGE_KEYWORD ?? 'qa-feedback',
         submitLabel: process.env.QA_FORM_SUBMIT_LABEL ?? 'Save',
         formFields: parseFields(process.env.QA_FORM_FIELDS),
