@@ -75,6 +75,11 @@ const QA_DEFAULTS = {
     QA_FORM_PAGE_KEYWORD: 'qa-feedback',
     QA_FORM_FIELDS: '{"qa_message":"qa automated golden entry"}',
     QA_FORM_SUBMIT_LABEL: 'Save',
+    // The seeded admin persona (QaBaselineFixture). Exporting it means the
+    // admin-scoped a11y + visual checks actually RUN against the real admin UI
+    // instead of skipping.
+    QA_ADMIN_EMAIL: 'qa.admin@selfhelp.test',
+    QA_ADMIN_PASSWORD: 'QaPassw0rd!2026',
 };
 
 /**
@@ -311,20 +316,44 @@ async function warmupStack(baseUrl, backendUrl) {
 
 /**
  * Visual baselines are git-ignored + platform-specific (CI regenerates the
- * authoritative Linux set). On a machine that has none yet, seed them once
- * (create-only — this never overwrites an existing baseline, so it cannot hide
- * a real regression) so `npm run test:visual` passes out of the box. When
- * baselines already exist this is a no-op and the run is a true regression
- * check.
+ * authoritative Linux set). To keep `npm run test:visual` green out of the box
+ * we seed any MISSING baseline first, create-only:
+ *
+ *   - A fresh checkout (no baselines) → all are seeded.
+ *   - A partial set (e.g. after a new visual target is added) → only the new
+ *     ones are seeded; the rest are still compared.
+ *   - A complete set → fast-path skip; the run is a pure regression check.
+ *
+ * `--update-snapshots=missing` writes ONLY baselines that don't exist yet and
+ * still compares the existing ones, so it can never overwrite a baseline and
+ * hide a real regression. The timed run that follows is the authoritative
+ * regression check.
  */
 async function ensureVisualBaselines(baseUrl, backendUrl, extraArgs) {
+    if (extraArgs.some((a) => a.startsWith('--update-snapshots'))) return;
+
     const snapDir = path.join(FRONTEND_ROOT, 'e2e', 'visual', 'visual.spec.ts-snapshots');
-    const hasBaselines = fs.existsSync(snapDir) && fs.readdirSync(snapDir).some((f) => f.endsWith('.png'));
-    const alreadyUpdating = extraArgs.some((a) => a.startsWith('--update-snapshots'));
-    if (hasBaselines || alreadyUpdating) return;
-    log('No visual baselines found — seeding them once (create-only) before the check…');
+    const pngCount = fs.existsSync(snapDir)
+        ? fs.readdirSync(snapDir).filter((f) => f.endsWith('.png')).length
+        : 0;
+
+    // Cheap, no-browser count of visual test cases (one test == one screenshot
+    // == one baseline png per platform) so we can tell a complete baseline set
+    // from a fresh or partial one without hard-coding snapshot names.
+    const list = spawnSync('npx', ['playwright', 'test', 'e2e/visual', '--list'], {
+        cwd: FRONTEND_ROOT,
+        env: { ...process.env, ...suiteEnv(baseUrl, backendUrl) },
+        encoding: 'utf8',
+        shell: IS_WIN,
+    });
+    const matched = `${list.stdout ?? ''}${list.stderr ?? ''}`.match(/Total:\s+(\d+)\s+test/);
+    const expected = matched ? Number(matched[1]) : 0;
+
+    if (expected > 0 && pngCount >= expected) return; // complete → regression check only
+
+    log('Seeding missing visual baselines (create-only) before the check…');
     await new Promise((resolve) => {
-        const child = spawn('npx', ['playwright', 'test', 'e2e/visual', '--update-snapshots'], {
+        const child = spawn('npx', ['playwright', 'test', 'e2e/visual', '--update-snapshots=missing'], {
             cwd: FRONTEND_ROOT,
             env: { ...process.env, ...suiteEnv(baseUrl, backendUrl) },
             stdio: 'inherit',

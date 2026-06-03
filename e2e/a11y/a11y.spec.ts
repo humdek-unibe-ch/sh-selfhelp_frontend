@@ -7,16 +7,16 @@ SPDX-License-Identifier: MPL-2.0
  *
  * Runs axe-core on the four surfaces the rule names:
  *   1. the login page (public),
- *   2. the public form page (the QA form the golden flow drives),
+ *   2. the QA form page (the form the golden flow drives, ACL-gated),
  *   3. the admin page editor (auth required),
- *   4. a plugin admin page (auth required, optional).
+ *   4. the plugin manager admin page (auth required).
  *
- * Each test fails only on `serious`/`critical` WCAG A/AA violations (see
- * `expectNoSeriousA11yViolations`). The suite is env-gated: the public checks
- * need a running stack (`isQaConfigured`), the admin checks need admin
- * credentials (`isAdminConfigured`), and the plugin check additionally needs
- * `QA_PLUGIN_ADMIN_PATH`. Anything not configured skips cleanly so the suite
- * never fails on a machine without that part of the stack.
+ * Each check audits the page's `main` content landmark and fails only on
+ * `serious`/`critical` WCAG A/AA violations (see `expectNoSeriousA11yViolations`).
+ * The harness (`scripts/e2e-stack.mjs`) exports the seeded QA + admin personas,
+ * so all four surfaces run with no skips; the `isQaConfigured` /
+ * `isAdminConfigured` guards only skip when the suite is run by hand against a
+ * stack without those credentials.
  */
 import { test } from '@playwright/test';
 import { qaEnv, isQaConfigured } from '../utils/env';
@@ -51,14 +51,12 @@ test.describe('a11y: core public + admin surfaces have no serious/critical viola
     });
 
     test('plugin admin page is accessible', async ({ page }) => {
-        const { pluginAdminPath } = a11yTargets();
-        test.skip(
-            !isAdminConfigured() || pluginAdminPath === '',
-            'Set QA_ADMIN_EMAIL + QA_ADMIN_PASSWORD + QA_PLUGIN_ADMIN_PATH to execute the plugin admin a11y check.',
-        );
+        // Defaults to the always-present plugin manager (`/admin/plugins`); set
+        // QA_PLUGIN_ADMIN_PATH to audit a specific plugin's own admin page.
+        test.skip(!isAdminConfigured(), 'Set QA_ADMIN_EMAIL + QA_ADMIN_PASSWORD to execute admin a11y checks.');
         const admin = adminCreds();
         await loginAs(page, admin.email, admin.password, admin.loginKeyword);
-        await page.goto(pluginAdminPath);
+        await page.goto(a11yTargets().pluginAdminPath);
         await expectNoSeriousA11yViolations(page, 'plugin admin page');
     });
 });

@@ -7,10 +7,10 @@ SPDX-License-Identifier: MPL-2.0
  *
  * Everything is env-driven so the same specs run against any QA stack without
  * hard-coded hosts/paths (canonical Testing Rule 14) and all identifiers use
- * the QA prefix (Rule 9). Admin-scoped checks need admin credentials; when
- * those (or an optional path such as the plugin admin page / SurveyJS runtime)
- * are absent, the relevant spec skips cleanly so the suite is safe to run on a
- * machine without a fully-seeded stack.
+ * the QA prefix (Rule 9). The defaults mirror the seeded QA baseline (admin
+ * persona + the always-present `/admin/plugins` manager), and the harness
+ * exports the admin credentials, so the admin-scoped checks run with no skips;
+ * the guards only skip when a spec is run by hand without those credentials.
  */
 
 export interface IAdminCreds {
@@ -46,8 +46,6 @@ export interface IVisualTargets {
     publicPaths: string[];
     /** 3 admin routes (auth required). */
     adminPaths: string[];
-    /** Optional SurveyJS runtime page (public). Empty string ⇒ skip. */
-    surveyRuntimePath: string;
 }
 
 export function visualTargets(): IVisualTargets {
@@ -59,7 +57,6 @@ export function visualTargets(): IVisualTargets {
         // QA_VISUAL_PUBLIC_PATHS (comma-separated) for a real stack.
         publicPaths: csv(process.env.QA_VISUAL_PUBLIC_PATHS, ['/', `/${loginKeyword}`]),
         adminPaths: csv(process.env.QA_VISUAL_ADMIN_PATHS, ['/admin', '/admin/pages', '/admin/users']),
-        surveyRuntimePath: process.env.QA_SURVEY_RUNTIME_PATH ?? '',
     };
 }
 
@@ -67,7 +64,7 @@ export interface IA11yTargets {
     loginPath: string;
     /** Admin page editor (auth required). */
     adminEditorPath: string;
-    /** Optional plugin admin page (auth required). Empty string ⇒ skip. */
+    /** Plugin admin page (auth required) — the always-present plugin manager. */
     pluginAdminPath: string;
 }
 
@@ -75,6 +72,8 @@ export function a11yTargets(): IA11yTargets {
     return {
         loginPath: `/${process.env.QA_LOGIN_KEYWORD ?? 'login'}`,
         adminEditorPath: process.env.QA_ADMIN_EDITOR_PATH ?? '/admin/pages',
-        pluginAdminPath: process.env.QA_PLUGIN_ADMIN_PATH ?? '',
+        // The plugin manager admin page ships with every install, so this check
+        // always has a real target. Override for a specific plugin's own page.
+        pluginAdminPath: process.env.QA_PLUGIN_ADMIN_PATH ?? '/admin/plugins',
     };
 }

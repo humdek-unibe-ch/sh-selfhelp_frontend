@@ -5,17 +5,20 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * Visual-regression screenshots (Slice 11).
  *
- * Captures stable full-page screenshots of 3 public pages, 3 admin pages, and
- * the SurveyJS runtime, and compares them against committed baselines
- * (`toHaveScreenshot`). Baselines are platform-specific and are generated /
- * refreshed in CI (Linux) via the labelled `visual-snapshots` workflow — never
- * by blindly running `--update-snapshots` locally to make a diff go away
- * (canonical Testing Rule 18: snapshot updates are intentional and reviewed).
+ * Captures stable full-page screenshots of the public pages (home + login), the
+ * authenticated QA form page, and 3 admin pages, comparing each against a
+ * baseline (`toHaveScreenshot`). Baselines are platform-specific; the
+ * authoritative set is generated / refreshed in CI (Linux) via the labelled
+ * `visual-snapshots` workflow — never by blindly running `--update-snapshots`
+ * locally to make a diff go away (canonical Testing Rule 18: snapshot updates
+ * are intentional and reviewed). Locally the harness seeds only MISSING
+ * baselines (create-only) so the suite is green out of the box.
  *
- * Env-gated like the rest of the e2e suite: public shots need a running stack
- * (`isQaConfigured`), admin shots need admin credentials (`isAdminConfigured`),
- * and the SurveyJS shot needs `QA_SURVEY_RUNTIME_PATH`. Animations are disabled
- * and the caret is hidden (playwright.config.ts) so shots are deterministic.
+ * The harness (`scripts/e2e-stack.mjs`) exports the seeded QA + admin personas,
+ * so every shot runs with no skips; the `isQaConfigured` / `isAdminConfigured`
+ * guards only skip when the suite is run by hand without those credentials.
+ * Animations are disabled and the caret is hidden (playwright.config.ts) so
+ * shots are deterministic.
  */
 import { test, expect, type Page } from '@playwright/test';
 import { isQaConfigured, qaEnv } from '../utils/env';
@@ -49,14 +52,6 @@ test.describe('visual: public pages', () => {
             await expect(page).toHaveScreenshot(snapshotName('public', path), { fullPage: true });
         });
     }
-
-    test('SurveyJS runtime matches its baseline', async ({ page }) => {
-        const { surveyRuntimePath } = visualTargets();
-        test.skip(surveyRuntimePath === '', 'Set QA_SURVEY_RUNTIME_PATH to capture the SurveyJS runtime baseline.');
-        await page.goto(surveyRuntimePath);
-        await settle(page);
-        await expect(page).toHaveScreenshot('public-surveyjs-runtime.png', { fullPage: true });
-    });
 });
 
 test.describe('visual: authenticated QA form', () => {

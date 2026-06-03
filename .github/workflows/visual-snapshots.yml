@@ -80,7 +80,6 @@ jobs:
       QA_FORM_PAGE_KEYWORD: ${{ vars.QA_FORM_PAGE_KEYWORD }}
       QA_VISUAL_PUBLIC_PATHS: ${{ vars.QA_VISUAL_PUBLIC_PATHS }}
       QA_VISUAL_ADMIN_PATHS: ${{ vars.QA_VISUAL_ADMIN_PATHS }}
-      QA_SURVEY_RUNTIME_PATH: ${{ vars.QA_SURVEY_RUNTIME_PATH }}
 
     steps:
       - name: Checkout frontend (PR head when labelled, so we can push baselines back)
