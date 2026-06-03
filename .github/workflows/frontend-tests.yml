@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+# SPDX-License-Identifier: MPL-2.0
+#
+# Frontend test gate (Slice 6).
+#
+# The Vitest test-tier gate for the SelfHelp frontend (complements
+# plugin-runtime-check.yml, which owns tsc + build + host-singleton).
+# On every PR to main it runs:
+#   1. License headers.
+#   2. Vitest unit/component tests (jsdom + Testing Library + MSW). MSW is
+#      configured with onUnhandledRequest: 'error', so any real outbound
+#      request fails the run (canonical Testing Rule 30).
+#
+# Referenced by branch protection on `main` (Slice 10).
+
+name: frontend-tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-tests:
+    name: Vitest (unit + component)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: License headers
+        run: npm run headers:check
+
+      - name: Vitest
+        run: npm test

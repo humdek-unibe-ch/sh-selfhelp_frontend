@@ -1,0 +1,62 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+/**
+ * Accessibility checks (canonical Testing Rule 34, Slice 11).
+ *
+ * Runs axe-core on the four surfaces the rule names:
+ *   1. the login page (public),
+ *   2. the QA form page (the form the golden flow drives, ACL-gated),
+ *   3. the admin page editor (auth required),
+ *   4. the plugin manager admin page (auth required).
+ *
+ * Each check audits the page's `main` content landmark and fails only on
+ * `serious`/`critical` WCAG A/AA violations (see `expectNoSeriousA11yViolations`).
+ * The harness (`scripts/e2e-stack.mjs`) exports the seeded QA + admin personas,
+ * so all four surfaces run with no skips; the `isQaConfigured` /
+ * `isAdminConfigured` guards only skip when the suite is run by hand against a
+ * stack without those credentials.
+ */
+import { test } from '@playwright/test';
+import { qaEnv, isQaConfigured } from '../utils/env';
+import { adminCreds, isAdminConfigured, a11yTargets } from '../utils/targets';
+import { loginAs } from '../utils/loginAs';
+import { expectNoSeriousA11yViolations } from '../utils/a11y';
+
+test.describe('a11y: core public + admin surfaces have no serious/critical violations', () => {
+    test.skip(!isQaConfigured(), 'Set the QA_* env (and run a QA stack) to execute the accessibility suite.');
+
+    test('login page is accessible', async ({ page }) => {
+        await page.goto(a11yTargets().loginPath);
+        await expectNoSeriousA11yViolations(page, 'login page');
+    });
+
+    test('QA form page is accessible', async ({ page }) => {
+        // The QA form page is ACL-gated (the golden flow logs in before opening
+        // it), so authenticate as the QA user first — otherwise the app renders
+        // its not-found page and we would be auditing that instead of the form.
+        const qa = qaEnv();
+        await loginAs(page, qa.email, qa.password, qa.loginKeyword);
+        await page.goto(`/${qa.formPageKeyword}`);
+        await expectNoSeriousA11yViolations(page, 'QA form page');
+    });
+
+    test('admin page editor is accessible', async ({ page }) => {
+        test.skip(!isAdminConfigured(), 'Set QA_ADMIN_EMAIL + QA_ADMIN_PASSWORD to execute admin a11y checks.');
+        const admin = adminCreds();
+        await loginAs(page, admin.email, admin.password, admin.loginKeyword);
+        await page.goto(a11yTargets().adminEditorPath);
+        await expectNoSeriousA11yViolations(page, 'admin page editor');
+    });
+
+    test('plugin admin page is accessible', async ({ page }) => {
+        // Defaults to the always-present plugin manager (`/admin/plugins`); set
+        // QA_PLUGIN_ADMIN_PATH to audit a specific plugin's own admin page.
+        test.skip(!isAdminConfigured(), 'Set QA_ADMIN_EMAIL + QA_ADMIN_PASSWORD to execute admin a11y checks.');
+        const admin = adminCreds();
+        await loginAs(page, admin.email, admin.password, admin.loginKeyword);
+        await page.goto(a11yTargets().pluginAdminPath);
+        await expectNoSeriousA11yViolations(page, 'plugin admin page');
+    });
+});
