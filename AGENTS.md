@@ -421,10 +421,61 @@ When making changes, mention the relevant impact on:
 - For new CMS style components, update types, exports, and `BasicStyle.tsx` registration; coordinate backend field/style definitions separately.
 
 ## Testing Rules
-- No test runner or test script is currently configured.
-- Use available checks: `npm run tsc`, `npm run lint`, `npm run dead`, `npm run unused`, `npm run prune`, `npm run headers:check`.
+- Vitest is configured (jsdom + Testing Library + MSW). Run `npm test` (single run), `npm run test:watch`, or `npm run test:changed` (fast loop on git-changed files). Tests live next to code under `__tests__/`; shared helpers under `src/test-utils/`.
+- Also use: `npm run tsc`, `npm run lint`, `npm run dead`, `npm run unused`, `npm run prune`, `npm run headers:check`.
 - Do not claim tests passed unless you ran the relevant command.
 - Add focused tests only if the project adds or already has a matching test setup.
+
+### Canonical Testing Rules (all SelfHelp repos)
+
+These are the canonical SelfHelp testing policy, shared verbatim across the backend, frontend, shared package, mobile app, and every plugin repo. They describe the target conventions. The frontend Vitest toolchain (Vitest + Testing Library + MSW, Slice 6) and Playwright E2E (Slice 7, `npm run test:e2e` / `npm run test:golden`, specs under `e2e/`) are configured. A rule applies as soon as the tooling it references exists in this repo.
+
+1. Every new feature ships with at least one automated test at the appropriate layer (unit / integration / contract / E2E).
+2. Every bug fix ships with a regression test that fails before the fix and passes after.
+3. Every new API endpoint ships with a JSON-schema contract test **and** a permission-matrix test (admin/editor/user/guest + at least one negative cross-scope case).
+4. Every new CMS style, action type, scheduled-job type, plugin event subscriber, or plugin realtime topic ships with an integration test for registration → use → cleanup.
+5. Every new business workflow extends a golden-workflow test in `tests/Golden/` (backend) and, where a UI is involved, `e2e/golden/` (frontend / mobile).
+6. Before writing or changing a test, perform a short **test impact analysis**: which workflow can break, which services/controllers/screens/plugin contracts are touched, which existing tests should fail, which new regression test is needed. Tests existing only to inflate coverage are rejected.
+7. Tests do not depend on developer credentials. Use the seeded `qa.admin/editor/user/guest@selfhelp.test` personas.
+8. QA fixtures use the production permission model. Seed test users through the same `Lookup userStatus/userTypes`, `Group`, `Role`, and `rel_groups_users` entities that production `src/Command/CreateAdminUserCommand.php` uses. Special permissions go through normal admin/domain services, never raw SQL.
+9. All test data writes use the `qa.` / `qa-` / `qa_` prefix. Tests never create/update/delete non-QA business records. Read-only access to system baselines (languages, permissions, styles, lookups, plugin metadata, role/group/page-type) is allowed.
+10. Tests self-clean (DAMA transaction rollback or an explicit `afterEach`). Integration/golden tests pass the `QaCleanupVerifier` (or the per-repo equivalent).
+11. Do not mock domain behaviour in integration/golden tests. Unit tests may use deterministic test doubles but must not hide real business logic. Mock external dependencies (network, time, filesystem) at the boundary only.
+12. Date/time tests use `Symfony\Bridge\PhpUnit\ClockMock` (PHP), `vi.useFakeTimers()` (Vitest), or `page.clock.install()` (Playwright).
+13. Mercure events are verified via `MercureTestRecorder` (backend) or `mockMercureHub` (shared); never by polling.
+14. Anti-flakiness: no `sleep()`, no external internet, no random IDs in fixtures or assertions, no order-dependent tests, no developer-machine absolute paths.
+15. The full suite passes in random order. `composer test:random` (or the per-repo equivalent) runs nightly.
+16. Test names describe business behaviour, not the method under test (e.g. `testFinishedFormSubmissionSchedulesAndExecutesActionEmailJob`, not `testSubmit`).
+17. Prefer asserting public/domain-visible effects (API response, admin API view of scheduled jobs, Mercure event, rendered page) before internal implementation details. DB/queue assertions are secondary or a fallback.
+18. Snapshot updates (Vitest, Playwright screenshots, response fixtures) must be intentional: the change is expected, the PR explains why, and a reviewer can compare before/after. Never run `--update-snapshots` just to make CI green.
+19. Performance: any test slower than 10s is `@group golden` under `tests/Golden/` (or the per-repo golden area). PR-tier suites complete in under 10 minutes per repo.
+20. Coverage gates: ≥ 70% line on `src/Service/**` + `src/Controller/**` (backend); ≥ 60% on new files (other repos). PRs dropping coverage by > 1% on changed files are blocked.
+21. Use the standard test commands defined in this repo's Build / Dev Commands section. Never invent new test command names.
+22. Tests assert **meaningful behaviour**, not just status codes. At minimum: status + envelope shape + key returned fields + one public side effect.
+23. **Do not change production logic to make tests pass.** If a test reveals a production issue, fix the production code and explain in the PR. If the test expectation is wrong, fix the test.
+24. **Smallest runnable proof**: after every 1–3 file changes, run `test:changed` (or the single new test file). Do not extend a slice while its current state is red for an unknown reason.
+25. **Contract tests for FE/mobile/plugin-consumed responses**: every API response field consumed by frontend, mobile, or plugin code must exist in a JSON Schema under `config/schemas/api/v1/` plus a TypeScript type in `@selfhelp/shared`. Schema drift fails CI. Consumers must not depend on undocumented response fields.
+26. **Negative-permission tests are mandatory** for every permission-sensitive endpoint: allowed user → success; lower-privileged user → 403; unauthenticated user → 401; cross-scope/group user → 403 or 404 per the established access rule.
+27. **Security regression tests** are required for any change to authentication, authorization, CSRF, JWT issuance/refresh/revocation, logout/session invalidation, plugin trust level or capabilities, or ACL cache invalidation. Security tests assert failure behaviour, not only success.
+28. **API backward compatibility**: do not remove or rename a response field without (a) a schema version bump, (b) a shared TS type update, (c) frontend/mobile/plugin adaptation in the same PR, and (d) a changelog entry.
+29. **Performance budgets** for critical APIs are asserted in smoke/golden tests: login < 500 ms, admin pages list < 1000 ms, form submit < 1000 ms in the test env. Regressions above 2× the budget block PRs; 1.5×–2× warns. The single source for these numbers is `e2e/utils/perf.ts` (`PERF_BUDGETS` + the `measure` wrapper) — kept under `e2e/utils/` alongside every other e2e helper (`a11y.ts`, `targets.ts`, `loginAs.ts`, `env.ts`), **not** the plan's suggested `e2e/support/perfBudget.ts`, so all e2e helpers stay in one directory. The backend mirror is `tests/Support/PerfBudget.php` (with `Timing` aliasing it); do not redefine the numbers anywhere else.
+30. **No real outbound** in tests: tests never send real email/SMS/push/webhooks/external HTTP. Use `RecordingNotifier`, MSW, or a mocked HTTP client, and assert the content of the captured message.
+31. **Environment isolation**: test reset commands refuse to run unless `APP_ENV=test`, the database name contains `_test`, the host is in the allow-list, and `--force` is provided. Reset prints the target database name before destroying it.
+32. **Fixture version**: `QaBaselineFixture` exposes `QA_FIXTURE_VERSION`; smoke tests print and assert it. Stale fixtures fail fast with a clear message.
+33. **CI failure artifacts**: CI uploads PHPUnit logs, coverage report, Playwright traces/videos/screenshots, docker container logs, and a sanitized test DB dump for failed golden tests.
+34. **Accessibility checks** for Playwright golden specs use axe-core on the login page, admin page editor, public form page, and plugin admin page.
+
+### Frontend-specific testing additions
+
+- CMS style components: a Vitest render test under `src/app/components/frontend/styles/__tests__/`.
+- Admin screens: a Playwright spec under `e2e/admin/`; if the screen drives a workflow, also extend `e2e/golden/`.
+- React Query hooks: assert query keys, stale times, invalidation, and the BFF route via a Vitest test next to the hook. Mock the network with MSW only — never hit a real backend from a unit test.
+- Test utilities live under `src/test-utils/` (`renderWithProviders`, `msw/createHandlers`, `msw/server`, `setup`). MSW handlers are **inline by design**: `createHandlers.ts` builds responses programmatically with `apiEnvelope<T>()`, which mirrors the backend `ApiResponseFormatter` shape (`status`/`message`/`error`/`logged_in`/`meta`/`data`). There is intentionally **no** `src/test-utils/snapshots/` directory of committed backend JSON — keeping the envelope in one typed builder avoids snapshot drift and a second source of truth. If a test needs a specific payload it passes a custom handler via `server.use(...)`; response **shape** is guarded by the schema-parity check (rule 25), not by stored fixtures.
+- Accessibility (rule 34): `e2e/a11y/a11y.spec.ts` runs axe-core (`e2e/utils/a11y.ts`, fails on `serious`/`critical` WCAG A/AA) on the login page, the QA form page, the admin page editor, and the plugin manager admin page (`/admin/plugins`). Each check audits the page's `main` content landmark — shared layout chrome (admin sidebar/header, site header/footer, debug menu) is out of scope, and `color-contrast` is tracked, non-blocking theme debt. The harness exports the seeded QA + admin personas, so all four run with **no skips**; the env guards only skip a hand-run without those credentials.
+- Visual regression (Slice 11): `e2e/visual/visual.spec.ts` screenshots the public home + login pages, the authenticated QA form, and 3 admin pages via `toHaveScreenshot` (targets in `e2e/utils/targets.ts`, env-overridable). The harness seeds only **missing** baselines (create-only `--update-snapshots=missing`) so `npm run test:visual` is green out of the box on any machine. The authoritative baselines are **Linux** (CI) and are refreshed ONLY through the labelled `visual-snapshots` workflow (PR label `update-snapshots`) or `workflow_dispatch mode=update` — never by committing `--update-snapshots` output from a Windows/macOS machine (rule 18).
+- **Coverage gate state (rule 20):** frontend coverage is **advisory / non-blocking** today. `vitest.config.ts` declares an istanbul `coverage` block (reporters `text-summary`/`html`/`lcov`) with **no `thresholds`**, so `npm run test:coverage` never fails on a coverage number. Only `@selfhelp/shared` ships a **blocking** coverage gate; the frontend "≥ 60% on new files / no > 1% regression" target in rule 20 is intentionally **staged** — promote it to a blocking job (add `coverage.thresholds`) only in a dedicated reviewed PR once the baseline clears the target, so it ratchets up rather than blocking every merge. Until then, generate reports on demand and do not let changed-file coverage regress. (Mirrors the backend's staged stance — see the host `docs/developer/15-testing-guidelines.md` "Coverage gates".)
+- Lighthouse (`lighthouserc.json` + `.github/workflows/lighthouse.yml`) is **warning-only**: every assertion is level `warn` and the step is `continue-on-error`. Promote a metric to a hard gate only in a dedicated reviewed PR once the baseline clears target.
+- Standard frontend test commands: `npm test`, `npm run test:watch`, `npm run test:changed` (fast loop), `npm run test:e2e`, `npm run test:golden`, `npm run test:a11y`, `npm run test:visual`, `npm run test:visual:update` (regenerate visual baselines — CI/Linux only). Do not invent new names.
 
 ## Build / Dev Commands
 - `npm install`: install dependencies.
@@ -432,6 +483,14 @@ When making changes, mention the relevant impact on:
 - `npm run dev:fast`: start dev server on port 3000.
 - `npm run build`: production build.
 - `npm run start`: start built app.
+- `npm test`: Vitest unit/component tests (single run).
+- `npm run test:watch`: Vitest in watch mode.
+- `npm run test:changed`: Vitest on git-changed files (fast loop).
+- `npm run test:e2e`: Playwright E2E (specs under `e2e/`; needs a running stack + `BASE_URL`).
+- `npm run test:golden`: Playwright golden workflow specs (`e2e/golden/`).
+- `npm run test:a11y`: Playwright axe-core accessibility specs (`e2e/a11y/`; needs a running stack).
+- `npm run test:visual`: Playwright visual-regression specs (`e2e/visual/`; diffs against committed Linux baselines).
+- `npm run test:visual:update`: regenerate visual baselines (run in CI/Linux via the `visual-snapshots` workflow, not locally).
 - `npm run tsc`: TypeScript check.
 - `npm run lint`: ESLint.
 - `npm run lint:fix`: ESLint autofix.

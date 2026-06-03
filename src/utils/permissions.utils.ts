@@ -406,10 +406,17 @@ export class PermissionChecker {
   }
 
   /**
-   * Check if user can read registration codes
+   * Check if user can read registration codes (list + CSV export).
    */
   canReadRegistrationCodes(): boolean {
     return this.hasPermission(PERMISSIONS.ADMIN_REGISTRATION_CODE_READ);
+  }
+
+  /**
+   * Check if user can create (generate) registration codes.
+   */
+  canCreateRegistrationCodes(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_REGISTRATION_CODE_CREATE);
   }
 
   /**
