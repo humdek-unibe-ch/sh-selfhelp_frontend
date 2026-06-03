@@ -100,6 +100,8 @@ machine with nothing running.
 | `SELFHELP_E2E_FRONTEND_HOST` / `SELFHELP_E2E_FRONTEND_PORT` | Frontend bind/host (default `127.0.0.1:3000`). |
 | `SELFHELP_E2E_PERF_HARD_MULTIPLIER` | Scales only the perf **block** limit (not warns). The harness sets `3` on Windows (single-threaded `php -S`) and `1` elsewhere; CI keeps the strict default. |
 | `QA_USER_EMAIL` / `QA_USER_PASSWORD` / `QA_FORM_PAGE_KEYWORD` / `QA_FORM_FIELDS` / `QA_FORM_SUBMIT_LABEL` / `QA_LOGIN_KEYWORD` | Override individual QA values (defaults mirror the backend fixture). |
+| `QA_ADMIN_EMAIL` / `QA_ADMIN_PASSWORD` | Admin persona for the admin-scoped `a11y` + `visual` checks (defaults to the seeded `qa.admin`, exported by the harness so those checks run with no skips). |
+| `QA_PLUGIN_ADMIN_PATH` / `QA_ADMIN_EDITOR_PATH` / `QA_VISUAL_PUBLIC_PATHS` / `QA_VISUAL_ADMIN_PATHS` | Override the a11y/visual page targets (defaults: `/admin/plugins`, `/admin/pages`, home+login, `/admin`+`/admin/pages`+`/admin/users`). |
 
 > **Perf budgets on a local single-threaded server.** The golden spec asserts the
 > canonical budgets (login < 500 ms, form submit < 1000 ms) against the **API
