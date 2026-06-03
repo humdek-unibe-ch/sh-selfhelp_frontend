@@ -6,10 +6,13 @@ import { Suspense } from 'react';
 import { LoadingScreen } from '../../components/shared/common/LoadingScreen';
 import { UsersPage } from '../../components/cms/users/users-page/UsersPage';
 import { AdminShell } from '../../components/cms/admin-shell/AdminShell';
+import { requireAdminPermission } from '../../_lib/admin-guard';
+import { PERMISSIONS } from '../../../types/auth/jwt-payload.types';
 
 export const metadata = { title: 'Users' };
 
-export default function AdminUsersPage() {
+export default async function AdminUsersPage() {
+  await requireAdminPermission(PERMISSIONS.ADMIN_USER_READ);
   return (
     <AdminShell>
       <Suspense fallback={<LoadingScreen />}>
