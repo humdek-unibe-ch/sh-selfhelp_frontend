@@ -32,9 +32,14 @@ test.describe('a11y: core public + admin surfaces have no serious/critical viola
         await expectNoSeriousA11yViolations(page, 'login page');
     });
 
-    test('public form page is accessible', async ({ page }) => {
-        await page.goto(`/${qaEnv().formPageKeyword}`);
-        await expectNoSeriousA11yViolations(page, 'public form page');
+    test('QA form page is accessible', async ({ page }) => {
+        // The QA form page is ACL-gated (the golden flow logs in before opening
+        // it), so authenticate as the QA user first — otherwise the app renders
+        // its not-found page and we would be auditing that instead of the form.
+        const qa = qaEnv();
+        await loginAs(page, qa.email, qa.password, qa.loginKeyword);
+        await page.goto(`/${qa.formPageKeyword}`);
+        await expectNoSeriousA11yViolations(page, 'QA form page');
     });
 
     test('admin page editor is accessible', async ({ page }) => {
