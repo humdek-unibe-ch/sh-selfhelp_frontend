@@ -33,7 +33,7 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
-import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconSortAscending, IconSortDescending, IconArrowsUpDown } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconSortAscending, IconSortDescending, IconArrowsUpDown, IconRefresh } from '@tabler/icons-react';
 import { useDataRows, useDeleteRecord, useDeleteTable } from '../../../../../hooks/useData';
 import { DataTableEditorModal } from '../modals/DataTableEditorModal';
 import { ConfirmDeleteTableModal } from '../modals/ConfirmDeleteTableModal';
@@ -61,7 +61,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
   const deleteRecord = useDeleteRecord();
   const deleteTable = useDeleteTable();
 
-  const { data, isLoading, isFetching } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted, language_id: selectedLanguageId });
+  const { data, isLoading, isFetching, refetch } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted, language_id: selectedLanguageId });
 
   const rows = data?.rows || [];
   const columns = useMemo<ColumnDef<Record<string, any>>[]>(() => {
@@ -135,6 +135,11 @@ export default function SingleDataTable({ formId, tableName, displayName, select
           <Text c="dimmed">({tableName}) • {rows.length} records</Text>
         </Group>
         <Group gap="xs">
+          <Tooltip label="Refresh table data">
+            <ActionIcon variant="subtle" onClick={() => refetch()} loading={isFetching}>
+              <IconRefresh size={16} />
+            </ActionIcon>
+          </Tooltip>
           <Tooltip label="Edit table">
             <ActionIcon variant="subtle" onClick={() => setIsEditorOpen(true)}>
               <IconEdit size={16} />
