@@ -31,7 +31,6 @@ import {
     Badge,
     ActionIcon,
     LoadingOverlay,
-    Modal,
     TextInput,
     NumberInput,
     Select,
@@ -50,12 +49,34 @@ import { notifications } from '@mantine/notifications';
 import { useRegistrationCodes, useExportRegistrationCodes, useGenerateRegistrationCodes } from '../../../../hooks/useRegistrationCodes';
 import { useGroups } from '../../../../hooks/useGroups';
 import { useAuth } from '../../../../hooks/useAuth';
-import { useCanReadRegistrationCodes } from '../../../../hooks/usePermissionChecks';
+import { useCanReadRegistrationCodes, useCanCreateRegistrationCodes } from '../../../../hooks/usePermissionChecks';
 import { ROUTES } from '../../../../config/routes.config';
 import { PageHeader } from '../../shared/common/PageHeader';
 import { EmptyState } from '../../shared/common/EmptyState';
 import { FilterActions } from '../../shared/common/FilterControls';
+import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
 import type { IRegistrationCode, IRegistrationCodesListParams } from '../../../../types/responses/admin/registration-codes.types';
+
+/**
+ * Registration-code timestamps arrive from the backend as UTC "Y-m-d H:i:s".
+ * Render them in a fixed locale + UTC zone so server and client produce
+ * identical text (no hydration mismatch, no browser-locale/timezone drift).
+ */
+function formatTimestamp(value: string | null): string {
+    if (!value) return '';
+    const iso = value.includes('T') ? value : value.replace(' ', 'T') + 'Z';
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'UTC',
+        hour12: false,
+    }) + ' UTC';
+}
 
 const DEFAULT_PARAMS: IRegistrationCodesListParams = {
     page: 1,
@@ -71,6 +92,7 @@ export function RegistrationCodesPage() {
     const router = useRouter();
     const { isLoading: isAuthLoading } = useAuth();
     const canReadRegistrationCodes = useCanReadRegistrationCodes();
+    const canCreateRegistrationCodes = useCanCreateRegistrationCodes();
 
     const { data: groupsData } = useGroups({ page: 1, pageSize: 1000 });
     const exportCodes = useExportRegistrationCodes();
@@ -224,7 +246,7 @@ export function RegistrationCodesPage() {
                 </Group>
             ),
             cell: ({ row }) => (
-                <Text size="sm" c="dimmed">{new Date(row.original.created_at).toLocaleString()}</Text>
+                <Text size="sm" c="dimmed">{formatTimestamp(row.original.created_at)}</Text>
             ),
             enableSorting: true,
         },
@@ -240,10 +262,19 @@ export function RegistrationCodesPage() {
             ),
             cell: ({ row }) => (
                 row.original.consumed_at
-                    ? <Text size="sm" c="dimmed">{new Date(row.original.consumed_at).toLocaleString()}</Text>
+                    ? <Text size="sm" c="dimmed">{formatTimestamp(row.original.consumed_at)}</Text>
                     : null
             ),
             enableSorting: true,
+        },
+        {
+            accessorKey: 'user_email',
+            header: 'Registered User',
+            cell: ({ row }) => (
+                row.original.user_email
+                    ? <Text size="sm">{row.original.user_email}</Text>
+                    : <Text size="sm" c="dimmed">—</Text>
+            ),
         },
     ], []);
 
@@ -282,20 +313,24 @@ export function RegistrationCodesPage() {
                         title="Registration Codes"
                         subtitle="Manage invitation codes required for user registration when open registration is disabled"
                     >
-                        <Button
-                            variant="light"
-                            leftSection={<IconDownload size={16} />}
-                            onClick={handleExportCsv}
-                            loading={exportCodes.isPending}
-                        >
-                            Export CSV
-                        </Button>
-                        <Button
-                            leftSection={<IconSparkles size={16} />}
-                            onClick={() => setGenerateModalOpened(true)}
-                        >
-                            Generate Codes
-                        </Button>
+                        {canReadRegistrationCodes && (
+                            <Button
+                                variant="light"
+                                leftSection={<IconDownload size={16} />}
+                                onClick={handleExportCsv}
+                                loading={exportCodes.isPending}
+                            >
+                                Export CSV
+                            </Button>
+                        )}
+                        {canCreateRegistrationCodes && (
+                            <Button
+                                leftSection={<IconSparkles size={16} />}
+                                onClick={() => setGenerateModalOpened(true)}
+                            >
+                                Generate Codes
+                            </Button>
+                        )}
                     </PageHeader>
 
                     {/* Filters */}
@@ -424,17 +459,22 @@ export function RegistrationCodesPage() {
             </Card>
 
             {/* Generate codes modal */}
-            <Modal
+            <ModalWrapper
                 opened={generateModalOpened}
                 onClose={handleCloseGenerate}
                 title="Generate Registration Codes"
-                centered
                 size="sm"
+                onSave={handleGenerate}
+                onCancel={handleCloseGenerate}
+                saveLabel={`Generate ${generateCount} code${generateCount !== 1 ? 's' : ''}`}
+                isLoading={generateCodes.isPending}
+                disabled={!generateGroupId || generateCount < 1}
             >
                 <Stack gap="md">
                     <NumberInput
                         label="Number of codes"
-                        description={`How many codes to generate (max ${generateMax.toLocaleString()}) in a single request`}                        value={generateCount}
+                        description={`How many codes to generate (max ${generateMax.toLocaleString()}) in a single request`}
+                        value={generateCount}
                         onChange={(v) => setGenerateCount(typeof v === 'number' ? v : generateMin)}
                         min={generateMin}
                         max={generateMax}
@@ -449,19 +489,8 @@ export function RegistrationCodesPage() {
                         searchable
                         required
                     />
-                    <Group justify="flex-end" gap="sm">
-                        <Button variant="light" onClick={handleCloseGenerate}>Cancel</Button>
-                        <Button
-                            leftSection={<IconSparkles size={16} />}
-                            onClick={handleGenerate}
-                            loading={generateCodes.isPending}
-                            disabled={!generateGroupId || generateCount < 1}
-                        >
-                            Generate {generateCount} code{generateCount !== 1 ? 's' : ''}
-                        </Button>
-                    </Group>
                 </Stack>
-            </Modal>
+            </ModalWrapper>
 
         </>
     );

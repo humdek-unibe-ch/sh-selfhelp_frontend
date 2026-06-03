@@ -29,6 +29,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const labelPassword = style.label_pw?.content || 'Password';
     const labelLogin = style.label_login?.content || 'Sign in';
     const labelPasswordReset = style.label_pw_reset?.content || 'Forgot password?';
+    const labelRegister = ((style as any).label_register?.content as string | undefined) || 'Create account';
     const alertFail = style.alert_fail?.content || 'Invalid email or password.';
     const loginTitle = style.login_title?.content || 'Welcome back!';
     const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
@@ -117,6 +118,14 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                         href="/reset"
                     >
                         {labelPasswordReset}
+                    </Anchor>
+
+                    <Anchor
+                        ta="center"
+                        size="sm"
+                        href={ROUTES.REGISTER}
+                    >
+                        {labelRegister}
                     </Anchor>
                 </Stack>
             </form>
