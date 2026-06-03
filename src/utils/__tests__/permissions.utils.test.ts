@@ -50,4 +50,17 @@ describe('PermissionChecker', () => {
         expect(checker.canAccessAdmin()).toBe(false);
         expect(checker.hasAnyPermission(PERMISSIONS.ADMIN_USER_READ, PERMISSIONS.ADMIN_USER_CREATE)).toBe(false);
     });
+
+    it('separates registration-code read (list/export) from create (generate)', () => {
+        const reader = createPermissionChecker([PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]);
+        expect(reader.canReadRegistrationCodes()).toBe(true);
+        expect(reader.canCreateRegistrationCodes()).toBe(false);
+
+        const creator = createPermissionChecker([
+            PERMISSIONS.ADMIN_REGISTRATION_CODE_READ,
+            PERMISSIONS.ADMIN_REGISTRATION_CODE_CREATE,
+        ]);
+        expect(creator.canReadRegistrationCodes()).toBe(true);
+        expect(creator.canCreateRegistrationCodes()).toBe(true);
+    });
 });
