@@ -20,6 +20,7 @@ import {
   Card,
   Group,
   LoadingOverlay,
+  Menu,
   TextInput,
   Table,
   TableTbody,
@@ -33,8 +34,9 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
-import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconSortAscending, IconSortDescending, IconArrowsUpDown, IconRefresh } from '@tabler/icons-react';
-import { useDataRows, useDeleteRecord, useDeleteTable } from '../../../../../hooks/useData';
+import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconSortAscending, IconSortDescending, IconArrowsUpDown, IconRefresh, IconDownload, IconFileTypeCsv, IconJson } from '@tabler/icons-react';
+import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable } from '../../../../../hooks/useData';
+import type { TDataExportFormat } from '../../../../../types/responses/admin/data.types';
 import { DataTableEditorModal } from '../modals/DataTableEditorModal';
 import { ConfirmDeleteTableModal } from '../modals/ConfirmDeleteTableModal';
 
@@ -60,6 +62,20 @@ export default function SingleDataTable({ formId, tableName, displayName, select
   }, [tableName, selectedUserId, showDeleted, selectedLanguageId]);
   const deleteRecord = useDeleteRecord();
   const deleteTable = useDeleteTable();
+  const exportTable = useExportTable();
+
+  const handleExport = (format: TDataExportFormat) => {
+    exportTable.mutate({
+      tableName,
+      displayName,
+      params: {
+        format,
+        user_id: selectedUserId !== -1 ? selectedUserId : undefined,
+        language_id: selectedLanguageId,
+        exclude_deleted: !showDeleted,
+      },
+    });
+  };
 
   const { data, isLoading, isFetching, refetch } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted, language_id: selectedLanguageId });
 
@@ -135,6 +151,24 @@ export default function SingleDataTable({ formId, tableName, displayName, select
           <Text c="dimmed">({tableName}) • {rows.length} records</Text>
         </Group>
         <Group gap="xs">
+          <Menu position="bottom-end" withinPortal>
+            <Menu.Target>
+              <Tooltip label="Export table">
+                <ActionIcon variant="subtle" loading={exportTable.isPending} aria-label="Export table">
+                  <IconDownload size={16} />
+                </ActionIcon>
+              </Tooltip>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Label>Export as</Menu.Label>
+              <Menu.Item leftSection={<IconFileTypeCsv size={16} />} onClick={() => handleExport('csv')}>
+                CSV
+              </Menu.Item>
+              <Menu.Item leftSection={<IconJson size={16} />} onClick={() => handleExport('json')}>
+                JSON
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
           <Tooltip label="Refresh table data">
             <ActionIcon variant="subtle" onClick={() => refetch()} loading={isFetching}>
               <IconRefresh size={16} />

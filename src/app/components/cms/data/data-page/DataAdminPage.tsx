@@ -8,6 +8,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Alert,
+  Button,
   Card,
   Checkbox,
   Group,
@@ -16,13 +17,14 @@ import {
   Stack,
   Paper,
 } from '@mantine/core';
-import { IconAlertCircle } from '@tabler/icons-react';
+import { IconAlertCircle, IconPackageExport } from '@tabler/icons-react';
 import { useDataTables } from '../../../../../hooks/useData';
 import { useCanAccessDataBrowser } from '../../../../../hooks/usePermissionChecks';
 import { useUsers } from '../../../../../hooks/useUsers';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import type { IUserBasic } from '../../../../../types/responses/admin/users.types';
 import { DataTablesViewer } from '../tables/DataTablesViewer';
+import { BulkExportModal } from '../modals/BulkExportModal';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { PageHeader } from '../../../shared/common/PageHeader';
 
@@ -52,6 +54,8 @@ export function DataAdminPage() {
     const languageId = searchParams.get('languageId');
     return languageId ? parseInt(languageId, 10) : 1;
   });
+
+  const [bulkExportOpen, setBulkExportOpen] = useState(false);
 
   // Active (applied) filters
   const [activeSelectedUserId, setActiveSelectedUserId] = useState<number>(-1);
@@ -149,7 +153,16 @@ export function DataAdminPage() {
         <PageHeader
           title="Data Management"
           subtitle="Explore and manage form data across users and tables"
-        />
+        >
+          <Button
+            variant="light"
+            leftSection={<IconPackageExport size={16} />}
+            onClick={() => setBulkExportOpen(true)}
+            disabled={!hasTables}
+          >
+            Export tables
+          </Button>
+        </PageHeader>
 
         {!canAccessDataBrowser && (
           <Alert variant="light" color="orange" title="No Access to Data Tables" icon={<IconAlertCircle />}>
@@ -233,6 +246,12 @@ export function DataAdminPage() {
           selectedLanguageId={activeSelectedLanguageId}
         />
       </Stack>
+
+      <BulkExportModal
+        open={bulkExportOpen}
+        onClose={() => setBulkExportOpen(false)}
+        tables={tablesResp?.dataTables || []}
+      />
     </Paper>
   );
 }

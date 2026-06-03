@@ -568,6 +568,14 @@ export const API_CONFIG = {
             route: (tableName: string) => `/admin/data/tables/${tableName}`,
             permissions: [PERMISSIONS.ADMIN_DATA_DELETE]
         },
+        ADMIN_DATA_TABLE_EXPORT: {
+            route: (tableName: string) => `/admin/data/tables/${tableName}/export`,
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
+        ADMIN_DATA_TABLES_EXPORT_BULK: {
+            route: '/admin/data/tables/bulk-export',
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
 
         // Form submission endpoints (public access)
         FORMS_SUBMIT: {

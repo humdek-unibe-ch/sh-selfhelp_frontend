@@ -3,6 +3,7 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { notifications } from '@mantine/notifications';
 import { AdminDataApi } from '../api/admin/data.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type {
@@ -14,7 +15,10 @@ import type {
   IDeleteColumnsResponse,
   IDeleteRecordResponse,
   IDeleteTableResponse,
+  IDataExportTableParams,
+  IBulkDataExportRequest,
 } from '../types/responses/admin/data.types';
+import { downloadBlobFile, generateExportFilename } from '../utils/export-import.utils';
 
 export const DATA_QUERY_KEYS = {
   all: ['admin', 'data'] as const,
@@ -124,6 +128,38 @@ export function useDeleteTable() {
             return params?.tableName === variables.tableName;
           },
         });
+      },
+    }
+  );
+}
+
+export function useExportTable() {
+  return useMutation<Blob, unknown, { tableName: string; displayName?: string; params: IDataExportTableParams }>(
+    {
+      mutationFn: ({ tableName, params }) => AdminDataApi.exportTable(tableName, params),
+      onSuccess: (blob, { tableName, displayName, params }) => {
+        const filename = generateExportFilename(displayName || tableName, params.format);
+        downloadBlobFile(blob, filename);
+        notifications.show({ title: 'Export Successful', message: `"${filename}" downloaded`, color: 'green' });
+      },
+      onError: () => {
+        notifications.show({ title: 'Export Failed', message: 'Could not export the data table', color: 'red' });
+      },
+    }
+  );
+}
+
+export function useExportTablesZip() {
+  return useMutation<Blob, unknown, IBulkDataExportRequest>(
+    {
+      mutationFn: (body) => AdminDataApi.exportTablesZip(body),
+      onSuccess: (blob) => {
+        const filename = generateExportFilename('data_tables', 'zip');
+        downloadBlobFile(blob, filename);
+        notifications.show({ title: 'Export Successful', message: `"${filename}" downloaded`, color: 'green' });
+      },
+      onError: () => {
+        notifications.show({ title: 'Export Failed', message: 'Could not export the selected data tables', color: 'red' });
       },
     }
   );
