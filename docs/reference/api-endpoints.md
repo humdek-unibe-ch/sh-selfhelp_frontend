@@ -4,11 +4,17 @@ SPDX-License-Identifier: MPL-2.0
 */
 # API Endpoints Reference
 
+Audience: Developers and integrators.
+Status: active.
+Applies to: SelfHelp2 Next.js frontend.
+Last verified: 2026-06-03.
+Source of truth: Controllers, JSON schemas, route definitions, and exported types in this repository.
+
 > **Routing.** All endpoints are reached by the browser through the
 > Next.js BFF proxy at `/api/*`, which forwards to Symfony at
 > `/cms-api/v1/*`. The Symfony paths are listed below for reference;
 > never call them directly from the browser. See
-> [`docs/architecture/ssr-bff-architecture.md`](../architecture/ssr-bff-architecture.md)
+> [`docs/architecture/ssr-bff-architecture.md`](../developer/ssr-bff-architecture.md)
 > for the full lifecycle.
 
 ## Authentication Endpoints
@@ -109,4 +115,4 @@ Permissions: `admin.registration_code.read`, `admin.registration_code.create`.
 
 ---
 
-**[Back to Main Guide](../COMPREHENSIVE_FRONTEND_GUIDE.md)**
+**[Back to Main Guide](../archive/comprehensive-frontend-guide.md)**

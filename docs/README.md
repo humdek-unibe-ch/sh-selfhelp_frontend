@@ -5,44 +5,35 @@ SPDX-License-Identifier: MPL-2.0
 
 # SelfHelp Frontend Documentation
 
-Audience: frontend developers, technical operators, CMS administrators, and AI coding agents.
-Status: active documentation index.
-Applies to: SelfHelp2 Next.js frontend docs in this repository.
+Audience: Frontend developers, technical operators, CMS administrators, and AI coding agents.
+Status: active.
+Applies to: SelfHelp2 Next.js frontend.
 Last verified: 2026-06-03.
-Source of truth: frontend source code, `AGENTS.md`, current SSR/BFF architecture docs, and shared/backend contracts.
+Source of truth: Frontend source code, `AGENTS.md`, the current SSR/BFF architecture docs, and shared/backend contracts.
 
-Use this page as the navigation entrypoint for frontend documentation. The current docs are partly organized by previous implementation phases; new or substantially rewritten docs should follow the audience-based placement rules in `AGENTS.md`.
+Navigation entrypoint for the frontend documentation, organized by audience and purpose per the Documentation Rules in `AGENTS.md`.
 
-## Start Here
+## Start here
 
 | Need | Read |
 | --- | --- |
-| Current SSR/BFF architecture | [architecture/ssr-bff-architecture.md](architecture/ssr-bff-architecture.md) |
-| Frontend development overview | [developer-guide.md](developer-guide.md) |
-| Modular frontend guides | [guides/01-architecture-overview.md](guides/01-architecture-overview.md) |
+| Current SSR/BFF architecture | [developer/ssr-bff-architecture.md](developer/ssr-bff-architecture.md) |
+| Frontend development overview | [developer/developer-guide.md](developer/developer-guide.md) |
+| Modular frontend guides | [developer/guides/index.md](developer/guides/index.md) |
 | API endpoint reference | [reference/api-endpoints.md](reference/api-endpoints.md) |
 | Troubleshooting | [reference/troubleshooting.md](reference/troubleshooting.md) |
 
-## Current Documentation Map
-
-| Current location | Purpose | Future placement rule |
-| --- | --- | --- |
-| `docs/architecture/` | Current and supporting architecture references. | Keep as developer architecture docs unless a broader `docs/developer/` migration is scheduled. |
-| `docs/guides/` | Developer guides for core frontend systems. | Keep as developer docs or gradually fold into `docs/developer/`. |
-| `docs/reference/` | API, component, configuration, SSR helper, and troubleshooting references. | Keep as `docs/reference/`. |
-| `docs/compatibility/` | Historical compatibility and migration summaries. | Move stable historical notes to `docs/archive/` after links are updated. |
-| Top-level `docs/*.md` | Mixed developer notes, operations notes, troubleshooting, and implementation summaries. | Re-home gradually into `developer`, `user`, `reference`, `operations`, or `archive`. |
-| `docs/AI Prompts/` | AI prompt/reference material. | Rename or re-home later using lowercase kebab-case if links are updated. |
-
-## New Documentation Placement
+## Documentation map
 
 | Folder | Use for |
 | --- | --- |
-| `docs/developer/` | Architecture, renderer behavior, BFF/auth/cache patterns, testing, and engineering workflow. |
-| `docs/user/` | Non-technical CMS/admin feature usage, expected UI behavior, and operator-facing tasks. |
-| `docs/reference/` | API endpoints, helper catalogs, configuration keys, route contracts, and component patterns. |
-| `docs/cookbook/` | Step-by-step recipes for adding styles, admin pages, BFF routes, tests, or shared-contract changes. |
-| `docs/operations/` | Local setup, Playwright environment setup, build/deploy notes, monitoring, and recovery runbooks. |
-| `docs/archive/` | Historical implementation summaries, completed compatibility fixes, and superseded recommendations. |
+| [developer/](developer/index.md) | Architecture, renderer/BFF/auth/cache patterns, styling, performance, and the numbered developer guides. |
+| [reference/](reference/index.md) | API endpoints, component patterns, configuration keys, SSR helpers, the permission quick reference, and AI prompt material. |
+| [user/](user/index.md) | Non-technical CMS/admin orientation for operator-facing tasks. |
+| [archive/](archive/index.md) | Historical architecture, implementation summaries, compatibility fixes, and superseded recommendations. |
 
-When moving existing docs, update all repository-relative links in the same change and prefer small batches over broad rewrites.
+## Conventions
+
+- Every active doc starts with the metadata block (`Audience`, `Status`, `Applies to`, `Last verified`, `Source of truth`).
+- Filenames use lowercase kebab-case; this file (`README.md`) is the only uppercase docs entrypoint, and subfolder indexes are `index.md`.
+- Frontend source code, shared types, and backend contracts are the source of truth. When a doc conflicts with the code, the code wins and the doc is corrected or archived.
