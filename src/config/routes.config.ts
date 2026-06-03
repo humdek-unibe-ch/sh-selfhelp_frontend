@@ -17,6 +17,7 @@ SPDX-License-Identifier: MPL-2.0
 export const ROUTES = {
   // System page URLs that match the CMS database
   LOGIN: '/login',
+  REGISTER: '/register',
   TWO_FACTOR_AUTH: '/two-factor-authentication',
   RESET_PASSWORD: '/reset',
   VALIDATE: '/validate', // Base path, actual URL includes parameters

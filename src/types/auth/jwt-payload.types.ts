@@ -188,7 +188,6 @@ export const PERMISSIONS = {
 
     // Registration codes
     ADMIN_REGISTRATION_CODE_CREATE: 'admin.registration_code.create',
-    ADMIN_REGISTRATION_CODE_DELETE: 'admin.registration_code.delete',
     ADMIN_REGISTRATION_CODE_READ: 'admin.registration_code.read',
 
     // Settings

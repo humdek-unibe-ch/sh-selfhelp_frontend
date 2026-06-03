@@ -44,11 +44,11 @@ export interface ILogoutSuccessData {
 }
 export type ILogoutSuccessResponse = IBaseApiResponse<ILogoutSuccessData>;
 
-// Registration Success
+// Registration Success — the public /auth/register endpoint returns only a
+// confirmation flag (the new account is blocked until the user validates their
+// email), matching the backend `responses/auth/register` schema.
 export interface IRegisterSuccessData {
-    user_id: number;
-    email: string;
-    message: string;
+    registered: boolean;
 }
 export type IRegisterSuccessResponse = IBaseApiResponse<IRegisterSuccessData>;
 
