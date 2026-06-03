@@ -8,14 +8,20 @@
 #      which type-checks/collects every spec without launching a browser.
 #      Fast and deterministic; safe as a required check.
 #   2. golden   — full end-to-end run against a real stack (frontend +
-#      backend + MySQL + Redis). Brings the stack up, seeds the QA baseline
-#      (`composer test:reset-db`), installs the Chromium browser, and runs
-#      the golden form→action→job spec. Manual (workflow_dispatch) until the
-#      QA baseline also seeds the QA form page the spec drives; the spec
-#      skips cleanly when QA_* env is absent.
+#      backend + MySQL + Redis). The reusable harness
+#      (`scripts/e2e-stack.mjs`, via `npm run test:golden`) owns the whole
+#      lifecycle: generate JWT keys, seed the QA database
+#      (`composer test:reset-db` → backend `QaFrontendGoldenFixture`, which
+#      seeds the `qa-feedback` form page the spec drives), start Symfony +
+#      Next, run Playwright, then stop the processes it started.
+#
+# QA values are NO LONGER GitHub vars/secrets: the backend fixture owns the
+# canonical QA data and the harness exports the matching defaults, so this
+# workflow only needs to provide the DB/Redis the GitHub `services` block
+# already starts.
 #
 # On failure the golden job uploads the Playwright HTML report + traces +
-# screenshots + video (canonical Testing Rule 26: CI artifacts on failure).
+# screenshots + video + the harness server logs (canonical Testing Rule 26).
 
 name: e2e-golden
 
@@ -24,6 +30,7 @@ on:
     branches: [main]
     paths:
       - 'e2e/**'
+      - 'scripts/e2e-stack.mjs'
       - 'playwright.config.ts'
       - 'package.json'
       - '.github/workflows/e2e-golden.yml'
@@ -74,16 +81,19 @@ jobs:
           --health-cmd="redis-cli ping" --health-interval=5s --health-timeout=5s --health-retries=20
 
     env:
+      # The harness inherits these; real env vars take precedence over the
+      # backend `.env.test`, so they point Symfony at the GitHub services.
       APP_ENV: test
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
+      REDIS_URL: redis://127.0.0.1:6379
       BASE_URL: http://127.0.0.1:3000
       NEXT_PUBLIC_API_URL: http://127.0.0.1:8000
-      # QA_* must match the QA baseline + a seeded QA form page.
-      QA_LOGIN_KEYWORD: ${{ vars.QA_LOGIN_KEYWORD || 'login' }}
-      QA_USER_EMAIL: ${{ vars.QA_USER_EMAIL }}
-      QA_USER_PASSWORD: ${{ secrets.QA_USER_PASSWORD }}
-      QA_FORM_PAGE_KEYWORD: ${{ vars.QA_FORM_PAGE_KEYWORD }}
-      QA_FORM_FIELDS: ${{ vars.QA_FORM_FIELDS }}
-      QA_FORM_SUBMIT_LABEL: ${{ vars.QA_FORM_SUBMIT_LABEL || 'Save' }}
+      SYMFONY_INTERNAL_URL: http://127.0.0.1:8000
+      # Harness knobs: GitHub `services` already provide DB/Redis, and we
+      # install Chromium with system deps below — so skip those harness steps.
+      SELFHELP_BACKEND_DIR: ${{ github.workspace }}/sh-selfhelp_backend
+      SELFHELP_E2E_SKIP_DOCKER: '1'
+      SELFHELP_E2E_SKIP_PW_INSTALL: '1'
 
     steps:
       - name: Checkout frontend
@@ -111,37 +121,17 @@ jobs:
           cache: npm
           cache-dependency-path: sh-selfhelp_frontend/package-lock.json
 
-      - name: Backend install + seed QA baseline
+      - name: Backend install
         working-directory: sh-selfhelp_backend
-        env:
-          DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
-          REDIS_URL: redis://127.0.0.1:6379
-        run: |
-          composer install --no-interaction --no-progress
-          composer test:reset-db
+        run: composer install --no-interaction --no-progress
 
-      - name: Start backend (Symfony built-in server)
-        working-directory: sh-selfhelp_backend
-        env:
-          DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
-          REDIS_URL: redis://127.0.0.1:6379
-        run: |
-          php -S 127.0.0.1:8000 -t public >../backend-server.log 2>&1 &
-          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/cms-api/v1/health && break || sleep 2; done
-
-      - name: Build + start frontend
+      - name: Frontend install + Chromium (with system deps)
         working-directory: sh-selfhelp_frontend
         run: |
           npm ci
-          npm run build
-          npm run start -- --port 3000 >../frontend-server.log 2>&1 &
-          for i in $(seq 1 30); do curl -sf http://127.0.0.1:3000 && break || sleep 2; done
+          npx playwright install --with-deps chromium
 
-      - name: Install Playwright Chromium
-        working-directory: sh-selfhelp_frontend
-        run: npx playwright install --with-deps chromium
-
-      - name: Run golden E2E
+      - name: Run golden E2E (harness owns seed + servers)
         working-directory: sh-selfhelp_frontend
         run: npm run test:golden
 
@@ -153,6 +143,6 @@ jobs:
           path: |
             sh-selfhelp_frontend/playwright-report/
             sh-selfhelp_frontend/test-results/
-            backend-server.log
-            frontend-server.log
+            sh-selfhelp_frontend/e2e-stack.backend.log
+            sh-selfhelp_frontend/e2e-stack.frontend.log
           retention-days: 7
