@@ -28,6 +28,26 @@ import { BulkExportModal } from '../modals/BulkExportModal';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { PageHeader } from '../../../shared/common/PageHeader';
 
+const ALL_TABLES = -1;
+
+/**
+ * Resolve the next data-table selection. "All data tables" (`-1`) is a shortcut
+ * that is mutually exclusive with specific tables:
+ *  - newly adding "all" collapses the selection to just `[-1]`;
+ *  - picking a specific table while "all" was active switches to that table
+ *    (drops `-1`), instead of staying stuck on "all";
+ *  - otherwise the raw selection is used as-is.
+ */
+export function resolveTableSelection(next: number[], previous: number[]): number[] {
+  const addingAll = next.includes(ALL_TABLES);
+  if (addingAll && previous.includes(ALL_TABLES)) {
+    // "all" was already selected and the user picked a specific table.
+    return next.filter((v) => v !== ALL_TABLES);
+  }
+  if (addingAll) return [ALL_TABLES];
+  return next;
+}
+
 export function DataAdminPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -203,15 +223,7 @@ export function DataAdminPage() {
                 value={selectedTableIds.map(String)}
                 onChange={(vals) => {
                   const parsed = vals.map(v => parseInt(v, 10));
-                  // If user just added "all", clear specific selections
-                  // If user had "all" and picked a specific table, switch to that table only
-                  if (parsed.includes(-1) && selectedTableIds.includes(-1)) {
-                    setSelectedTableIds(parsed.filter(v => v !== -1));
-                  } else if (parsed.includes(-1)) {
-                    setSelectedTableIds([-1]);
-                  } else {
-                    setSelectedTableIds(parsed);
-                  }
+                  setSelectedTableIds(resolveTableSelection(parsed, selectedTableIds));
                 }}
                 searchable
                 clearable

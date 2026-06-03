@@ -95,15 +95,18 @@ describe('AdminRegistrationCodesApi', () => {
         expect(result.codes[0].is_consumed).toBe(false);
     });
 
-    it('returns the raw CSV body from the export endpoint', async () => {
-        getMock.mockResolvedValue({ data: 'code,group,consumed\nQAQA1234ABCD,QA Group,2026-06-02 12:30:00' });
+    it('requests the export as a blob and returns it untouched', async () => {
+        const blob = new Blob(['code,group,consumed\nQAQA1234ABCD,QA Group,2026-06-02 12:30:00'], {
+            type: 'text/csv',
+        });
+        getMock.mockResolvedValue({ data: blob });
 
-        const csv = await AdminRegistrationCodesApi.exportCsv({ status: 'used' });
+        const result = await AdminRegistrationCodesApi.exportCsv({ status: 'used' });
 
         expect(getMock).toHaveBeenCalledWith(
             API_CONFIG.ENDPOINTS.ADMIN_REGISTRATION_CODES_EXPORT,
-            expect.objectContaining({ params: { status: 'used' }, responseType: 'text' }),
+            expect.objectContaining({ params: { status: 'used' }, responseType: 'blob' }),
         );
-        expect(csv).toContain('QAQA1234ABCD');
+        expect(result).toBe(blob);
     });
 });
