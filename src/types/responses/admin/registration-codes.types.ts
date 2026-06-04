@@ -5,8 +5,14 @@ SPDX-License-Identifier: MPL-2.0
 export interface IRegistrationCode {
     id: string;
     code: string;
+    /** Primary (first) group id, kept for backward compatibility. See group_ids for the full set. */
     id_groups: number | null;
+    /** Primary (first) group name. See group_names for the full set. */
     group_name: string | null;
+    /** Every group the code grants membership to once consumed. */
+    group_ids: number[];
+    /** Names of every group the code grants membership to once consumed. */
+    group_names: string[];
     created_at: string;
     consumed_at: string | null;
     is_consumed: boolean;

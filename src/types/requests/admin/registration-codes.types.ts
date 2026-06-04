@@ -9,5 +9,6 @@ export interface ICreateRegistrationCodeRequest {
 
 export interface IGenerateRegistrationCodesRequest {
     count: number;
-    id_groups: number;
+    /** Groups every generated code grants; the first is stored as the primary group. */
+    group_ids: number[];
 }
