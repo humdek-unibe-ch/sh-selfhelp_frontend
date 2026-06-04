@@ -77,6 +77,17 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     const pwPlaceholder = style.pw_placeholder?.content;
     const anonymousUserNameDescription = style.anonymous_user_name_description?.content;
 
+    // Activation lifecycle status text users see after the registration email
+    // (CMS-managed; fall back to the previous hardcoded English copy). The
+    // dynamically typed `fields` bag fallback is narrowed to a string.
+    const loadingTitle = style.loading_title?.content ?? (style.fields?.loading_title?.content as string | undefined) ?? 'Validating Link';
+    const loadingText = style.loading_text?.content ?? (style.fields?.loading_text?.content as string | undefined) ?? 'Please wait while we validate your account activation link...';
+    const errorTitle = style.error_title?.content ?? (style.fields?.error_title?.content as string | undefined) ?? 'Invalid Validation Link';
+    const errorHeading = style.error_heading?.content ?? (style.fields?.error_heading?.content as string | undefined) ?? 'Account validation failed';
+    const errorText = style.error_text?.content ?? (style.fields?.error_text?.content as string | undefined) ?? 'This validation link is invalid or has expired. Please request a new validation email.';
+    const successTitle = style.success_title?.content ?? (style.fields?.success_title?.content as string | undefined) ?? 'Success';
+    const redirectText = style.redirect_text?.content ?? (style.fields?.redirect_text?.content as string | undefined) ?? 'Redirecting to login in {seconds}s...';
+
     // Form configuration fields
     const formName = style.name?.content || 'validate_form';
     const alertSuccessConfig = style.alert_success?.content || alertSuccess;
@@ -376,10 +387,10 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
                 >
                     <LoadingOverlay visible={true} />
                     <Title order={2} mb="md">
-                        Validating Link
+                        {loadingTitle}
                     </Title>
                     <Text size="md" c="dimmed">
-                        Please wait while we validate your account activation link...
+                        {loadingText}
                     </Text>
                 </Card>
             </Box>
@@ -396,14 +407,14 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
                     radius={cardRadius}
                     withBorder={withBorder}
                 >
-                    <Alert icon={<IconX size={16} />} color="red" title="Invalid Validation Link">
+                    <Alert icon={<IconX size={16} />} color="red" title={errorTitle}>
                         <Text size="md" fw={500} mb="sm">
-                            Account validation failed
+                            {errorHeading}
                         </Text>
                         <Text size="sm">
                             {tokenValidation?.data?.message ||
                              tokenValidationError?.message ||
-                             'This validation link is invalid or has expired. Please request a new validation email.'}
+                             errorText}
                         </Text>
                     </Alert>
                 </Card>
@@ -441,10 +452,10 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
                     )}
 
                     {submitSuccess ? (
-                        <Alert icon={<IconCheck size={16} />} color="green" title="Success">
+                        <Alert icon={<IconCheck size={16} />} color="green" title={successTitle}>
                             {alertSuccessConfig}
                             <Text size="sm" mt="xs">
-                                Redirecting to login in {redirectCountdown}s...
+                                {redirectText.replace('{seconds}', String(redirectCountdown))}
                             </Text>
                         </Alert>
                     ) : (

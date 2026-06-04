@@ -25,10 +25,14 @@ interface IRegisterStyleProps {
 }
 
 /**
- * RegisterStyle component renders a registration form with email and optional
- * validation code fields. Password is set later on the activation page.
+ * RegisterStyle component renders a registration form with email and an
+ * optional validation code field. Password is set later on the activation page.
  * Uses Mantine UI components for consistent theming and styling.
- * open_registration.content === '0' means a code is required to register.
+ *
+ * The backend is the source of truth for the policy: open_registration === '1'
+ * is open registration (no code field, no code submitted); '0' or missing
+ * requires a validation code. Any submitted code is ignored server-side in open
+ * mode, but the frontend still hides the field and sends nothing to match.
  */
 const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssClass }) => {
     const router = useRouter();
@@ -47,9 +51,19 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
     const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for activation link.';
     const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
     const formType = style.fields?.type?.content || 'success';
-    
-    // Check if open registration is enabled
-    const openRegistration = style.fields?.open_registration?.content === '1';
+
+    // CMS-managed labels for the previously hardcoded registration UI text.
+    // The `fields` bag is dynamically typed (IContentField<unknown>), so the
+    // fallback is narrowed to a string like the existing mantine_color read.
+    const labelCode = style.label_code?.content ?? (style.fields?.label_code?.content as string | undefined) ?? 'Validation Code';
+    const codePlaceholder = style.code_placeholder?.content ?? (style.fields?.code_placeholder?.content as string | undefined) ?? 'Enter your code';
+    const labelGoHome = style.label_go_home?.content ?? (style.fields?.label_go_home?.content as string | undefined) ?? 'Go Home';
+    const labelGoToLogin = style.label_go_to_login?.content ?? (style.fields?.label_go_to_login?.content as string | undefined) ?? 'Go to Login';
+
+    // Backend is source of truth: open_registration === '1' => open registration
+    // (no code). '0' or missing => a validation code is required.
+    const openRegistrationValue = style.open_registration?.content ?? (style.fields?.open_registration?.content as string | undefined) ?? '0';
+    const codeRequired = openRegistrationValue !== '1';
 
     const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -58,7 +72,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
         register.mutate({
             page_id: pageContext.pageId,
             email,
-            ...(!openRegistration && code ? { code } : {}),
+            ...(codeRequired && code ? { code } : {}),
         });
     };
 
@@ -77,10 +91,10 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                     </Alert>
                     <Group grow>
                         <Button variant="light" onClick={() => router.push(ROUTES.HOME)}>
-                            Go Home
+                            {labelGoHome}
                         </Button>
                         <Button onClick={() => router.push(ROUTES.LOGIN)}>
-                            Go to Login
+                            {labelGoToLogin}
                         </Button>
                     </Group>
                 </Stack>
@@ -112,10 +126,10 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                         size="md"
                     />
 
-                    {!openRegistration && (
+                    {codeRequired && (
                         <TextInput
-                            label="Validation Code"
-                            placeholder="Enter your code"
+                            label={labelCode}
+                            placeholder={codePlaceholder}
                             value={code}
                             onChange={(e) => setCode(e.target.value)}
                             required
