@@ -197,8 +197,8 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
     if (mode === 'create') {
       const payload: ICreateActionRequest = {
         name,
-        id_actionTriggerTypes: Number(trigger) || trigger,
-        id_dataTables,
+        id_action_trigger_types: Number(trigger) || trigger,
+        id_data_tables: id_dataTables,
         config: parsed || undefined,
         translations: translations.length > 0 ? translations : undefined
       };
@@ -207,8 +207,8 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
     } else if (mode === 'edit' && actionId) {
       const payload: IUpdateActionRequest = {
         name,
-        id_actionTriggerTypes: Number(trigger) || trigger,
-        id_dataTables,
+        id_action_trigger_types: Number(trigger) || trigger,
+        id_data_tables: id_dataTables,
         config: parsed || undefined,
         translations: translations.length > 0 ? translations : undefined
       };
