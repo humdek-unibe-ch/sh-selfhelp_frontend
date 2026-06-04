@@ -442,6 +442,8 @@ When making changes, mention the relevant impact on:
 - For new CMS style components, update types, exports, and `BasicStyle.tsx` registration; coordinate backend field/style definitions separately.
 
 ## Testing Rules
+- **Run only the tests related to your change — never the whole suite.** The full suite is very slow, so scope every run to the touched code: a single spec (`npm test -- path/to/file.test.tsx`) or `npm run test:changed` (git-changed files). Run the full suite (including E2E/visual) only when explicitly asked or right before a release/push.
+- **Always write task-specific tests and add them to the suite.** Every change ships with its own focused test(s), committed alongside it so they run as part of `npm test`/CI. Never rely on the existing suite alone to cover new behaviour.
 - Vitest is configured (jsdom + Testing Library + MSW). Run `npm test` (single run), `npm run test:watch`, or `npm run test:changed` (fast loop on git-changed files). Tests live next to code under `__tests__/`; shared helpers under `src/test-utils/`.
 - Also use: `npm run tsc`, `npm run lint`, `npm run dead`, `npm run unused`, `npm run prune`, `npm run headers:check`.
 - Do not claim tests passed unless you ran the relevant command.
