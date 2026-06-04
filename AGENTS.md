@@ -39,6 +39,14 @@ These rules apply to every documentation change in active SelfHelp2 repositories
 - Do not expose secrets, tokens, private keys, database URLs, Mercure/JWT secrets, or real credentials in docs, examples, logs, or screenshots. Use redacted examples and documented env var names only.
 - When docs conflict with runtime behavior, treat runtime behavior as source of truth, flag the stale doc, and update or archive it instead of copying the conflict.
 
+## Style Documentation Rules
+
+CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` types + the frontend/mobile renderers in `src/app/components/frontend/styles/`). The canonical per-style reference lives in the **backend** repo at `docs/reference/styles/` (`index.md` catalog, `_template.md`, and `<category>/<style>.md` pages).
+
+- When you **add a new style renderer**, the change is incomplete until the matching backend `docs/reference/styles/<category>/<style>.md` page exists and is linked from the catalog `index.md`.
+- When you **change an existing style renderer** in a way that affects its fields, behaviour, modes, defaults, or the field-content contract, update that style's backend reference page in the same change (creating the full page if it was "catalog only").
+- Keep the documented field list and behaviour aligned with the shared `I<Name>Style` type and the actual component; treat a style renderer change with no matching `docs/reference/styles/` update as an incomplete change during review.
+
 ## Engineering Principles
 ### Think Before Coding
 - State assumptions explicitly.
