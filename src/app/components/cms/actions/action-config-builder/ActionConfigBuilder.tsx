@@ -18,7 +18,46 @@ import { DateTimePicker, TimeInput } from '@mantine/dates';
 import { useActionTranslations } from '../../../../../hooks/useActionTranslations';
 import { GroupedTranslationInput } from '../grouped-translation-input/GroupedTranslationInput';
 import { usePageKeywords } from '../../../../../hooks/usePageKeywords';
+import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 // Removed custom CSS import - using Mantine and Tailwind instead
+
+/**
+ * Default notification subject/body placeholder templates for new actions.
+ * They are shown as input placeholder hints (not seeded values) so the admin
+ * sees a suggested message that disappears as soon as they type. They demonstrate
+ * the placeholders the backend expands at send time:
+ *   {{user_name}}, {{user_email}}, {{user_code}}, {{id_users}}
+ * Keyed by locale prefix so each language gets a localized hint.
+ */
+const NOTIFICATION_TEMPLATES: Record<string, { subject: string; body: string }> = {
+    de: {
+        subject: 'Benachrichtigung für {{user_name}}',
+        body: `Hallo {{user_name}},
+
+dies ist eine Benachrichtigung der SelfHelp-Plattform.
+Ihr Verifizierungscode: {{user_code}}
+Ihre E-Mail-Adresse: {{user_email}}
+Ihre Benutzer-ID: {{id_users}}
+
+Bitte antworten Sie nicht auf diese E-Mail.`,
+    },
+    default: {
+        subject: 'Notification for {{user_name}}',
+        body: `Hello {{user_name}},
+
+This is a notification from the SelfHelp platform.
+Your verification code: {{user_code}}
+Your email address: {{user_email}}
+Your user ID: {{id_users}}
+
+Please do not reply to this email.`,
+    },
+};
+
+function templateForLocale(locale: string | undefined): { subject: string; body: string } {
+    const key = (locale || '').slice(0, 2).toLowerCase();
+    return NOTIFICATION_TEMPLATES[key] || NOTIFICATION_TEMPLATES.default;
+}
 
 // Global rule: Use Mantine components if any styles are needed, create module CSS
 // This ensures consistent styling and better maintainability
@@ -104,6 +143,21 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
     // Load page keywords for redirect field
     const { data: pageKeywords } = usePageKeywords();
+    const { languages: publicLanguages } = usePublicLanguages();
+
+    // Per-language placeholder hints shown inside the empty notification subject/body
+    // fields. These are display-only suggestions (not seeded values) demonstrating the
+    // available {{...}} placeholders; they disappear as soon as the admin types.
+    const templateSubjectPlaceholders = useMemo(() => {
+        const map: { [languageId: number]: string } = {};
+        (publicLanguages ?? []).forEach(l => { map[l.id] = templateForLocale(l.locale).subject; });
+        return map;
+    }, [publicLanguages]);
+    const templateBodyPlaceholders = useMemo(() => {
+        const map: { [languageId: number]: string } = {};
+        (publicLanguages ?? []).forEach(l => { map[l.id] = templateForLocale(l.locale).body; });
+        return map;
+    }, [publicLanguages]);
 
     useEffect(() => {
         (async () => {
@@ -807,6 +861,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                         bodyValue={localTranslations[`${prefix}.body`] || {}}
                         subjectPlaceholder={n.notification_types === 'email' ? "Enter email subject" : "Enter notification title"}
                         bodyPlaceholder={n.notification_types === 'email' ? "Enter email body content" : "Enter notification message"}
+                        subjectPlaceholders={n.notification_types === 'email' ? templateSubjectPlaceholders : undefined}
+                        bodyPlaceholders={n.notification_types === 'email' ? templateBodyPlaceholders : undefined}
                         onSubjectChange={(translations) => {
                             setLocalTranslations(prev => ({
                                 ...prev,
