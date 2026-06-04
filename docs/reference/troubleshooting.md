@@ -4,6 +4,12 @@ SPDX-License-Identifier: MPL-2.0
 */
 # Troubleshooting Guide
 
+Audience: Developers and integrators.
+Status: active.
+Applies to: SelfHelp2 Next.js frontend.
+Last verified: 2026-06-03.
+Source of truth: Controllers, JSON schemas, route definitions, and exported types in this repository.
+
 ## Common Issues & Solutions
 
 ### React Query Issues
@@ -101,4 +107,4 @@ const expensiveValue = useMemo(() => {
 
 ---
 
-**[Back to Main Guide](../COMPREHENSIVE_FRONTEND_GUIDE.md)**
+**[Back to Main Guide](../archive/comprehensive-frontend-guide.md)**
