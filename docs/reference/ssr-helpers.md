@@ -4,9 +4,15 @@ SPDX-License-Identifier: MPL-2.0
 */
 # SSR / BFF helpers — reference
 
+Audience: Developers and integrators.
+Status: active.
+Applies to: SelfHelp2 Next.js frontend.
+Last verified: 2026-06-03.
+Source of truth: Controllers, JSON schemas, route definitions, and exported types in this repository.
+
 A flat reference of the new helpers introduced by the v0.1.0 refactor.
 For the architectural rationale read
-[`docs/architecture/ssr-bff-architecture.md`](../architecture/ssr-bff-architecture.md);
+[`docs/architecture/ssr-bff-architecture.md`](../developer/ssr-bff-architecture.md);
 this page is the index of "what file does what" so you can find the right
 helper without grepping the whole tree.
 
@@ -94,6 +100,6 @@ themselves live in `src/config/cookie-names.ts` and re-exports from
 
 ## See also
 
-- [SSR + BFF Architecture](../architecture/ssr-bff-architecture.md) — full rationale and request lifecycle diagrams.
-- [`architecture.md`](../../architecture.md) §15 — historical reference, current cookies / state-management tables.
+- [SSR + BFF Architecture](../developer/ssr-bff-architecture.md) — full rationale and request lifecycle diagrams.
+- [`architecture.md`](../archive/architecture-legacy.md) §15 — historical reference, current cookies / state-management tables.
 - [API Endpoints Reference](api-endpoints.md) — every BFF route in one table.

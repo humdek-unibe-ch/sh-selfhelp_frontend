@@ -5,7 +5,7 @@ Before returning anything print in chat `❤️AGENTS.md` so that we know the ru
 ## Project Overview
 SelfHelp Frontend is a Next.js App Router application for the SelfHelp CMS. It renders public CMS pages and provides an admin CMS for pages, sections, users, roles, groups, assets, actions, cache, audit, data, languages, scheduled jobs, and page versions.
 
-Read `docs/architecture/ssr-bff-architecture.md` first for current architecture. `architecture.md` is useful but partly historical.
+Read `docs/developer/ssr-bff-architecture.md` first for current architecture. `docs/archive/architecture-legacy.md` is useful but partly historical.
 
 ## Architecture Snapshot
 - Next.js App Router SSR/BFF frontend for a Symfony backend.
@@ -20,11 +20,24 @@ Read `docs/architecture/ssr-bff-architecture.md` first for current architecture.
 ## Source of Truth Priority
 When sources conflict, use this priority order:
 - Actual source code behavior.
-- Current architecture docs, especially `docs/architecture/ssr-bff-architecture.md`.
+- Current architecture docs, especially `docs/developer/ssr-bff-architecture.md`.
 - Existing hooks, services, components, and providers.
 - Type definitions and available checks.
 
 If docs conflict with implementation, flag the conflict instead of assuming the docs are correct.
+
+## Documentation Rules
+
+These rules apply to every documentation change in active SelfHelp2 repositories. Copy this section unchanged across repository `AGENTS.md` files so agents get the same documentation contract without following a central link.
+
+- Organize documentation by audience and purpose, not by implementation history: `docs/developer/` for technical architecture/workflow docs, `docs/user/` for non-technical feature/admin/operator guides, `docs/reference/` for exact contracts/tables/schemas/API details, `docs/cookbook/` for task recipes, `docs/operations/` for install/deploy/publish/runbooks, and `docs/archive/` for historical notes.
+- Every docs root should have `docs/README.md` as the navigation entrypoint. Tiny repos may keep documentation in the root `README.md` until they need more than one doc. Preserve canonical exceptions such as backend `docs/plugins/` when moving files would break important links; add indexes/status notes first, migrate only after references are updated.
+- New or substantially rewritten docs must begin with this metadata block: `Audience`, `Status`, `Applies to`, `Last verified`, `Source of truth`.
+- Documentation filenames should use lowercase kebab-case, one `#` title, ASCII punctuation, no emoji headings, repo-relative links, concrete dates instead of "latest/current" when time-sensitive, and no local absolute paths.
+- Write developer docs for engineers/technical operators with architecture, contracts, commands, and tradeoffs. Write user docs for non-technical users/operators as task-based steps with expected results and minimal implementation jargon.
+- Update documentation in the same change when behavior changes affect user-visible behavior, API contracts, schemas/types, permissions/auth, database/migrations, config/env vars, build/deploy/publish flow, plugin capabilities, or testing commands.
+- Do not expose secrets, tokens, private keys, database URLs, Mercure/JWT secrets, or real credentials in docs, examples, logs, or screenshots. Use redacted examples and documented env var names only.
+- When docs conflict with runtime behavior, treat runtime behavior as source of truth, flag the stale doc, and update or archive it instead of copying the conflict.
 
 ## Engineering Principles
 ### Think Before Coding

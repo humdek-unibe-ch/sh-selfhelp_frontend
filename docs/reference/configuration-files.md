@@ -4,6 +4,12 @@ SPDX-License-Identifier: MPL-2.0
 */
 # Configuration Files Reference
 
+Audience: Developers and integrators.
+Status: active.
+Applies to: SelfHelp2 Next.js frontend.
+Last verified: 2026-06-03.
+Source of truth: Controllers, JSON schemas, route definitions, and exported types in this repository.
+
 ## Core Configuration Files
 
 ### API Configuration (`src/config/api.config.ts`)
@@ -119,4 +125,4 @@ export const ROUTES = {
 
 ---
 
-**[Back to Main Guide](../COMPREHENSIVE_FRONTEND_GUIDE.md)**
+**[Back to Main Guide](../archive/comprehensive-frontend-guide.md)**
