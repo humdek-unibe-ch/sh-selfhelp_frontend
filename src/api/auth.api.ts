@@ -166,6 +166,21 @@ export const AuthApi = {
         return response.data;
     },
 
+    async updateCommunicationPreferences(
+        receivesNotifications: boolean,
+        receivesEmails: boolean
+    ): Promise<IUserDataResponse> {
+        const response = await permissionAwareApiClient.put<IUserDataResponse>(
+            API_CONFIG.ENDPOINTS.USER_UPDATE_COMMUNICATION_PREFERENCES,
+            {
+                receives_notifications: receivesNotifications,
+                receives_emails: receivesEmails,
+            }
+        );
+        if (response.data.error) throw new Error(response.data.error);
+        return response.data;
+    },
+
     async register(data: IRegisterRequest): Promise<IRegisterSuccessResponse> {
         const response = await permissionAwareApiClient.post<IRegisterSuccessResponse>(
             API_CONFIG.ENDPOINTS.AUTH_REGISTER,
