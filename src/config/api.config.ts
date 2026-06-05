@@ -70,6 +70,14 @@ export const API_CONFIG = {
             route: '/auth/register',
             permissions: []
         },
+        AUTH_FORGOT_PASSWORD: {
+            route: '/auth/forgot-password',
+            permissions: []
+        },
+        AUTH_RESET_PASSWORD: {
+            route: '/auth/reset-password',
+            permissions: []
+        },
         AUTH_LOGOUT: {
             route: '/auth/logout',
             permissions: []

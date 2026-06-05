@@ -192,6 +192,43 @@ export const AuthApi = {
         return response.data;
     },
 
+    /**
+     * POST /auth/forgot-password — request a recovery email. The backend always
+     * returns a generic success so the response never reveals whether the email
+     * belongs to a known account.
+     */
+    async requestPasswordReset(
+        email: string
+    ): Promise<{ status: number; message: string; error?: string }> {
+        const response = await permissionAwareApiClient.post<{ status: number; message: string; error?: string }>(
+            API_CONFIG.ENDPOINTS.AUTH_FORGOT_PASSWORD,
+            { email }
+        );
+        if (response.data.error) {
+            throw new Error(response.data.error);
+        }
+        return response.data;
+    },
+
+    /**
+     * POST /auth/reset-password — set a new password using the one-time token
+     * from the recovery email. Throws on an invalid/expired token (HTTP 400).
+     */
+    async resetPassword(
+        userId: number,
+        token: string,
+        password: string
+    ): Promise<{ status: number; message: string; error?: string }> {
+        const response = await permissionAwareApiClient.post<{ status: number; message: string; error?: string }>(
+            API_CONFIG.ENDPOINTS.AUTH_RESET_PASSWORD,
+            { id_users: userId, token, password }
+        );
+        if (response.data.error) {
+            throw new Error(response.data.error);
+        }
+        return response.data;
+    },
+
     async validateToken(userId: number, token: string) {
         const response = await permissionAwareApiClient.get(
             API_CONFIG.ENDPOINTS.USER_VALIDATE_TOKEN,
