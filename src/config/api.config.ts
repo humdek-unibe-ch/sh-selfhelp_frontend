@@ -104,6 +104,10 @@ export const API_CONFIG = {
             route: '/auth/user/timezone',
             permissions: []
         },
+        USER_UPDATE_COMMUNICATION_PREFERENCES: {
+            route: '/auth/user/communication-preferences',
+            permissions: []
+        },
 
         // User validation endpoints
         USER_VALIDATE_TOKEN: {
@@ -436,6 +440,30 @@ export const API_CONFIG = {
         },
          ADMIN_SCHEDULED_JOBS_CALENDAR: {
             route: () => `/admin/scheduled-jobs/calendar`,
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
+        ADMIN_SCHEDULED_JOBS_RUNNER_STATUS: {
+            route: '/admin/scheduled-jobs/runner/status',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
+        ADMIN_SCHEDULED_JOBS_RUNNER_SETTINGS: {
+            route: '/admin/scheduled-jobs/runner/settings',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_MANAGE]
+        },
+        ADMIN_SCHEDULED_JOBS_RUNNER_ENABLE: {
+            route: '/admin/scheduled-jobs/runner/enable',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_MANAGE]
+        },
+        ADMIN_SCHEDULED_JOBS_RUNNER_DISABLE: {
+            route: '/admin/scheduled-jobs/runner/disable',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_MANAGE]
+        },
+        ADMIN_SCHEDULED_JOBS_RUNNER_RUN_NOW: {
+            route: '/admin/scheduled-jobs/runner/run-now',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_EXECUTE]
+        },
+        ADMIN_SCHEDULED_JOBS_TYPES: {
+            route: '/admin/scheduled-jobs/types',
             permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
         },
 
