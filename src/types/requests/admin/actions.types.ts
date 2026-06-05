@@ -10,17 +10,17 @@ export interface IActionTranslationRequest {
 
 export interface ICreateActionRequest {
   name: string;
-  id_actionTriggerTypes: number | string; // backend accepts id
-  id_dataTables: number; // required per schema
+  id_action_trigger_types: number | string; // matches backend create_action schema
+  id_data_tables: number; // required per schema
   config?: any; // JSON object built from schema
   translations?: IActionTranslationRequest[]; // optional translations array
 }
 
 export interface IUpdateActionRequest {
   name?: string;
-  id_actionTriggerTypes?: number | string;
+  id_action_trigger_types?: number | string;
   config?: any;
-  id_dataTables?: number | null;
+  id_data_tables?: number | null;
   translations?: IActionTranslationRequest[]; // optional translations array
 }
 
