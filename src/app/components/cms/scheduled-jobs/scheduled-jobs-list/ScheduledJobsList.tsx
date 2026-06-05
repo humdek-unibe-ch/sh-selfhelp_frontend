@@ -437,6 +437,40 @@ export function ScheduledJobsList({
           enableSorting: true,
         },
         {
+          id: "calculated_time",
+          header: "Calculated (timezone)",
+          cell: ({ row }) => {
+            const schedule = row.original.schedule;
+            if (!schedule?.local_datetime) {
+              return (
+                <Text size="sm" c="dimmed">
+                  {schedule?.timezone || "-"}
+                </Text>
+              );
+            }
+            return (
+              <Stack gap={2}>
+                <Text size="sm">
+                  {schedule.local_datetime.replace("T", " ")}
+                </Text>
+                <Group gap={4} wrap="nowrap">
+                  <Text size="xs" c="dimmed">
+                    {schedule.timezone}
+                  </Text>
+                  <Badge
+                    size="xs"
+                    variant="light"
+                    color={schedule.is_wall_clock ? "blue" : "gray"}
+                  >
+                    {schedule.is_wall_clock ? "wall-clock" : "relative"}
+                  </Badge>
+                </Group>
+              </Stack>
+            );
+          },
+          enableSorting: false,
+        },
+        {
           accessorKey: "date_executed",
           header: ({ column }) => (
             <Group gap="xs">

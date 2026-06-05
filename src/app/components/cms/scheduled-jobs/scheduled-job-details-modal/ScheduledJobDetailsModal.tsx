@@ -413,6 +413,46 @@ export function ScheduledJobDetailsModal({
                                 <Text size="sm" fw={500}>Date Executed:</Text>
                                 <Text size="sm">{jobDetails.date_executed ? formatDate(jobDetails.date_executed) : '-'}</Text>
                             </Group>
+
+                            {jobDetails.schedule && (
+                                <>
+                                    <Divider />
+                                    <Group>
+                                        <IconClock size={16} />
+                                        <Text size="sm" fw={500}>Calculated Time:</Text>
+                                        <Text size="sm">
+                                            {jobDetails.schedule.local_datetime
+                                                ? jobDetails.schedule.local_datetime.replace('T', ' ')
+                                                : formatDate(jobDetails.date_to_be_executed)}
+                                        </Text>
+                                        <Badge
+                                            size="sm"
+                                            variant="light"
+                                            color={jobDetails.schedule.is_wall_clock ? 'blue' : 'gray'}
+                                        >
+                                            {jobDetails.schedule.is_wall_clock ? 'wall-clock' : 'relative'}
+                                        </Badge>
+                                    </Group>
+                                    <Group>
+                                        <IconClock size={16} />
+                                        <Text size="sm" fw={500}>Timezone:</Text>
+                                        <Text size="sm">{jobDetails.schedule.timezone}</Text>
+                                        {jobDetails.schedule.timezone_source && (
+                                            <Badge size="xs" variant="outline" color="gray">
+                                                {jobDetails.schedule.timezone_source}
+                                            </Badge>
+                                        )}
+                                    </Group>
+                                </>
+                            )}
+
+                            {jobDetails.user_timezone && (
+                                <Group>
+                                    <IconUser size={16} />
+                                    <Text size="sm" fw={500}>User Timezone:</Text>
+                                    <Text size="sm">{jobDetails.user_timezone}</Text>
+                                </Group>
+                            )}
                         </Stack>
                     </Paper>
 

@@ -12,6 +12,22 @@ export interface IScheduledJobTransaction {
     user: string;
 }
 
+/**
+ * Timezone-aware schedule intent for a job. `local_datetime` is the intended
+ * wall-clock execution time expressed in `timezone`; both are recalculated when
+ * the recipient changes their timezone preference.
+ */
+export interface IScheduledJobSchedule {
+    /** Timezone the execution time was calculated in. */
+    timezone: string;
+    /** Origin of the timezone: 'user' or 'cms_default'. */
+    timezone_source: string | null;
+    /** Intended local (wall-clock) execution time in the job timezone. */
+    local_datetime: string | null;
+    /** True for wall-clock schedules; false for relative/absolute schedules. */
+    is_wall_clock: boolean;
+}
+
 export interface IScheduledJob {
     id: number;
     id_users: number;
@@ -37,6 +53,10 @@ export interface IScheduledJob {
     date_created: string;
     date_to_be_executed: string;
     date_executed: string | null;
+    /** Resolved email subject for email jobs, null for non-email jobs. */
+    email_subject?: string | null;
+    /** Timezone-aware schedule intent (calculated local time + timezone). */
+    schedule?: IScheduledJobSchedule;
     config: Record<string, any>;
     transactions?: IScheduledJobTransaction[];
 }
@@ -75,6 +95,10 @@ export interface IScheduledJobDetailData {
     date_create: string;
     date_to_be_executed: string;
     date_executed: string | null;
+    /** Recipient user's timezone code (falls back to CMS default). */
+    user_timezone?: string | null;
+    /** Timezone-aware schedule intent (calculated local time + timezone). */
+    schedule?: IScheduledJobSchedule;
     config: string | null;
     recipients: IScheduledJobRecipient[];
     users: Array<{
