@@ -66,6 +66,16 @@ interface IScheduledJobsListProps {
     onBulkDeleteJobs?: (jobIds: number[], descriptions: string[]) => void;
 }
 
+// Maps tanstack column ids to the sort fields the backend accepts. Columns not
+// present here are not server-sortable and are ignored.
+const SORT_FIELD_MAP: Record<string, NonNullable<IScheduledJobFilters['sort']>> = {
+    id: 'id',
+    date_created: 'date_create',
+    date_to_be_executed: 'date_to_be_executed',
+    date_executed: 'date_executed',
+    description: 'description',
+};
+
 // Format date in European style
 const formatDate = (dateString: string) => {
     if (!dateString) return '-';
@@ -183,12 +193,14 @@ export function ScheduledJobsList({
         { id: 'date_created', desc: true }
     ]);
 
-    // Apply Filters
+    // Apply Filters (preserve the active sort so it is not lost on apply)
     const handleApplyFilters = useCallback(() => {
-    setParams({
+    setParams((prev) => ({
         ...filterParams,
+        sort: prev.sort,
+        sortDirection: prev.sortDirection,
         page: 1,
-    });
+    }));
     }, [filterParams]);
 
     // Reset Filters
@@ -215,9 +227,13 @@ export function ScheduledJobsList({
         
         if (newSorting.length > 0) {
             const sortField = newSorting[0];
+            const backendSort = SORT_FIELD_MAP[sortField.id];
+            if (!backendSort) {
+                return;
+            }
             setParams((prev: IScheduledJobFilters) => ({
                 ...prev,
-                sort: sortField.id as IScheduledJobFilters['sort'],
+                sort: backendSort,
                 sortDirection: sortField.desc ? 'desc' : 'asc',
                 page: 1,
             }));
@@ -242,20 +258,20 @@ export function ScheduledJobsList({
         }));
     }, []);
 
-    // Handle page change
+    // Handle page change (apply immediately so the query refetches the new page)
     const handlePageChange = useCallback((page: number) => {
+        setParams(prev => ({ ...prev, page }));
         setFilterParams(prev => ({ ...prev, page }));
     }, []);
 
-    // Handle page size change
+    // Handle page size change (apply immediately and reset to the first page)
     const handlePageSizeChange = useCallback((pageSize: string | null) => {
-        if (pageSize) {
-            setFilterParams(prev => ({
-                ...prev,
-                pageSize: parseInt(pageSize, 10),
-                page: 1,
-            }));
+        if (!pageSize) {
+            return;
         }
+        const size = parseInt(pageSize, 10);
+        setParams(prev => ({ ...prev, pageSize: size, page: 1 }));
+        setFilterParams(prev => ({ ...prev, pageSize: size, page: 1 }));
     }, []);
 
     // Handle job selection
