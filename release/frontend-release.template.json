@@ -1,0 +1,11 @@
+{
+  "kind": "selfhelp-frontend-release",
+  "channel": "stable",
+  "builtFrom": {
+    "nextStandalone": true
+  },
+  "backendCompatibility": {
+    "requiredCoreRange": ">=8.0.0 <8.1.0",
+    "requiredApiVersion": "2.1"
+  }
+}

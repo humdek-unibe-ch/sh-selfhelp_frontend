@@ -20,6 +20,13 @@ const nextConfig = {
 
     transpilePackages: ['@selfhelp/shared'],
 
+    // Self-contained production server for the Docker image: emits
+    // `.next/standalone` (server.js + only the traced node_modules) so the
+    // runtime image never needs `npm install`/source. Browser traffic still
+    // goes through the BFF `/api/*`; server code reaches Symfony via
+    // SYMFONY_INTERNAL_URL (read at runtime).
+    output: 'standalone',
+
     outputFileTracingRoot: path.join(__dirname, '..'),
 
     experimental: {
@@ -49,6 +56,18 @@ const nextConfig = {
         {
           source: '/plugin-artifacts/:path*',
           destination: `${SYMFONY_BACKEND_URL}/plugin-artifacts/:path*`,
+        },
+        /**
+         * Symfony-served user assets (`/uploads/...`). In production the
+         * backend is private and Traefik only exposes the frontend, so the
+         * browser reaches uploads same-origin through the frontend, which
+         * proxies to the internal backend (same pattern as plugin-artifacts).
+         * `getAssetUrl` emits same-origin `/uploads/...` paths when the API
+         * base is a path prefix (the production BFF mode).
+         */
+        {
+          source: '/uploads/:path*',
+          destination: `${SYMFONY_BACKEND_URL}/uploads/:path*`,
         },
       ];
     },
