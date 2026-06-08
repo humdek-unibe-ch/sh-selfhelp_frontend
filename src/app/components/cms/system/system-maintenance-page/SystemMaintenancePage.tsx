@@ -29,6 +29,7 @@ import { PageHeader } from '../../../shared/common/PageHeader';
 import { useAuth } from '../../../../../hooks/useAuth';
 import {
     useSystemVersion, useSystemHealth, useUpdatePreflight, useUpdateStatus, useRequestUpdateMutation,
+    useSystemMaintenance, useSetMaintenanceMutation,
 } from '../../../../../hooks/useSystem';
 import type {
     TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus,
@@ -98,19 +99,24 @@ const ACTIVE_STATUSES: TUpdateOperationStatus[] = [
 export function SystemMaintenancePage() {
     const { permissionChecker } = useAuth();
     const canUpdate = permissionChecker?.canUpdateSystem() ?? false;
+    const canManageMaintenance = permissionChecker?.canManageMaintenance() ?? false;
 
     const [targetInput, setTargetInput] = useState('');
     const [checkedTarget, setCheckedTarget] = useState<string | null>(null);
     const [acceptedRisk, setAcceptedRisk] = useState(false);
     const [typedConfirmation, setTypedConfirmation] = useState('');
+    const [maintMessage, setMaintMessage] = useState('');
 
     const version = useSystemVersion();
     const health = useSystemHealth(true, 15000);
+    const maintenance = useSystemMaintenance();
+    const setMaintenance = useSetMaintenanceMutation();
     const preflight = useUpdatePreflight(checkedTarget);
     const requestUpdate = useRequestUpdateMutation();
 
     const versionData = version.data;
     const healthData = health.data;
+    const maintenanceData = maintenance.data;
     const preflightData = preflight.data;
 
     // Poll the status while an operation is active.
@@ -135,6 +141,15 @@ export function SystemMaintenancePage() {
         setAcceptedRisk(false);
         setTypedConfirmation('');
         setCheckedTarget(next);
+    }
+
+    function handleToggleMaintenance() {
+        if (!maintenanceData) return;
+        const next = !maintenanceData.enabled;
+        setMaintenance.mutate({
+            enabled: next,
+            message: next && maintMessage.trim() !== '' ? maintMessage.trim() : undefined,
+        });
     }
 
     function handleRequest() {
@@ -284,6 +299,121 @@ export function SystemMaintenancePage() {
                             Checked at {new Date(healthData.checked_at).toLocaleString()}.
                         </Text>
                     )}
+                </Paper>
+
+                {/* Maintenance + safe mode */}
+                <Paper p="md" radius="md" withBorder pos="relative">
+                    <LoadingOverlay visible={maintenance.isLoading} />
+                    <Group justify="space-between" mb="sm">
+                        <Title order={4}>Maintenance mode</Title>
+                        {maintenanceData && (
+                            <Badge color={maintenanceData.enabled ? 'orange' : 'green'} variant="light">
+                                {maintenanceData.enabled ? 'ON' : 'OFF'}
+                            </Badge>
+                        )}
+                    </Group>
+                    {maintenance.isError && (
+                        <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+                            Could not load the maintenance state. Try refreshing the page.
+                        </Alert>
+                    )}
+                    {maintenanceData && (
+                        <Stack gap="sm">
+                            <Text size="sm" c="dimmed">
+                                When enabled, the instance is flagged as under maintenance and the state is surfaced
+                                in health/status. The SelfHelp Manager and admin work can still proceed.
+                            </Text>
+
+                            {maintenanceData.forced_by_env && (
+                                <Alert icon={<IconAlertTriangle size={16} />} color="yellow" variant="light" title="Enforced by server configuration">
+                                    Maintenance is enforced by <Code>SELFHELP_MAINTENANCE_MODE</Code> and cannot be
+                                    changed from the CMS. Clear it in the instance environment.
+                                </Alert>
+                            )}
+
+                            {maintenanceData.enabled && maintenanceData.message && (
+                                <Text size="sm">Note: {maintenanceData.message}</Text>
+                            )}
+                            {maintenanceData.enabled && maintenanceData.since && (
+                                <Text size="xs" c="dimmed">
+                                    Since {new Date(maintenanceData.since).toLocaleString()}
+                                    {maintenanceData.updated_by ? ` (${maintenanceData.updated_by})` : ''}.
+                                </Text>
+                            )}
+
+                            {maintenanceData.safe_mode && (
+                                <Alert icon={<IconShieldCheck size={16} />} color="red" variant="light" title="Plugin safe mode is active">
+                                    Plugins are disabled (safe mode). This is toggled by the operator via the instance
+                                    environment (<Code>SELFHELP_DISABLE_PLUGINS</Code>) or the
+                                    {' '}<Code>selfhelp:plugin:safe-mode</Code> CLI — not from the CMS.
+                                </Alert>
+                            )}
+
+                            {canManageMaintenance ? (
+                                <>
+                                    {!maintenanceData.enabled && !maintenanceData.forced_by_env && (
+                                        <TextInput
+                                            label="Operator note (optional)"
+                                            placeholder="e.g. Upgrading to 8.1.0; back at 14:00 UTC"
+                                            value={maintMessage}
+                                            onChange={(e) => setMaintMessage(e.currentTarget.value)}
+                                        />
+                                    )}
+                                    <Group justify="flex-end">
+                                        <Button
+                                            color={maintenanceData.enabled ? 'green' : 'orange'}
+                                            variant={maintenanceData.enabled ? 'light' : 'filled'}
+                                            loading={setMaintenance.isPending}
+                                            disabled={maintenanceData.forced_by_env}
+                                            onClick={handleToggleMaintenance}
+                                        >
+                                            {maintenanceData.enabled ? 'Disable maintenance' : 'Enable maintenance'}
+                                        </Button>
+                                    </Group>
+                                </>
+                            ) : (
+                                <Alert icon={<IconShieldCheck size={16} />} color="gray" variant="light">
+                                    You need the <Code>admin.system.maintenance</Code> permission to change maintenance mode.
+                                </Alert>
+                            )}
+                        </Stack>
+                    )}
+                </Paper>
+
+                {/* Operations & support guidance (Manager-performed; the CMS never
+                    runs Docker/backups itself, so this surfaces the exact steps). */}
+                <Paper p="md" radius="md" withBorder>
+                    <Title order={4} mb="sm">Backups &amp; support</Title>
+                    <Stack gap="sm">
+                        <Text size="sm" c="dimmed">
+                            Backups and support bundles are produced by the SelfHelp Manager on the server,
+                            not from the CMS. Run these from the server host (the operator console):
+                        </Text>
+                        <List size="sm" spacing="xs">
+                            <List.Item>
+                                <Text size="sm">
+                                    Create a backup before risky changes:{' '}
+                                    <Code>sh-manager instance backup {versionData?.instance_id ?? '<instance-id>'}</Code>.
+                                    Backups are stored under the instance&apos;s <Code>backups/</Code> directory and
+                                    preserve DB, uploads, plugin artifacts, and secrets.
+                                </Text>
+                            </List.Item>
+                            <List.Item>
+                                <Text size="sm">
+                                    Collect a redacted support bundle (no secrets):{' '}
+                                    <Code>sh-manager instance support-bundle {versionData?.instance_id ?? '<instance-id>'}</Code>.
+                                </Text>
+                            </List.Item>
+                            <List.Item>
+                                <Text size="sm">
+                                    Security advisories from the official registry are evaluated automatically during a
+                                    <strong> Check compatibility</strong> preflight below and appear as
+                                    {' '}<Badge size="xs" color="red" variant="light">error</Badge> checks when a blocking
+                                    advisory affects the target version.
+                                </Text>
+                            </List.Item>
+                        </List>
+                    </Stack>
                 </Paper>
 
                 {/* Active operation status */}

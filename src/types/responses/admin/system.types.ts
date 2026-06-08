@@ -83,6 +83,30 @@ export interface ISystemHealth {
 }
 export type ISystemHealthResponse = IBaseApiResponse<ISystemHealth>;
 
+/**
+ * GET /admin/system/maintenance — current maintenance-mode state for THIS
+ * instance. `forced_by_env` means the env hard switch
+ * (SELFHELP_MAINTENANCE_MODE) is on and the CMS cannot disable it.
+ */
+export interface ISystemMaintenance {
+    enabled: boolean;
+    forced_by_env: boolean;
+    message: string;
+    since: string;
+    updated_by: string;
+    safe_mode: boolean;
+}
+export type ISystemMaintenanceResponse = IBaseApiResponse<ISystemMaintenance>;
+
+/**
+ * PUT /admin/system/maintenance — enable/disable maintenance for THIS instance.
+ * No `instance_id`: the backend derives + verifies it server-side.
+ */
+export interface IMaintenanceSetRequest {
+    enabled: boolean;
+    message?: string;
+}
+
 export type TUpdatePreflightStatus = 'ok' | 'warning' | 'blocked';
 export type TUpdateCheckSeverity = 'info' | 'warning' | 'error';
 

@@ -487,6 +487,14 @@ export const API_CONFIG = {
             route: '/admin/system/health',
             permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
         },
+        ADMIN_SYSTEM_MAINTENANCE: {
+            route: '/admin/system/maintenance',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_MAINTENANCE_SET: {
+            route: '/admin/system/maintenance',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_MAINTENANCE]
+        },
         ADMIN_SYSTEM_UPDATE_PREFLIGHT: {
             route: '/admin/system/update/preflight',
             permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]

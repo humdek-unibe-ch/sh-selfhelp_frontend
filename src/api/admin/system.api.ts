@@ -7,6 +7,8 @@ import { API_CONFIG } from '../../config/api.config';
 import type {
     ISystemVersionResponse,
     ISystemHealthResponse,
+    ISystemMaintenanceResponse,
+    IMaintenanceSetRequest,
     IUpdatePreflightResponse,
     IUpdateStatusResponse,
     IUpdateRequestResponse,
@@ -32,6 +34,24 @@ export class AdminSystemApi {
     /** GET /admin/system/health — aggregated, instance-scoped health/status. */
     static async getHealth(): Promise<ISystemHealthResponse> {
         const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_HEALTH);
+        return response.data;
+    }
+
+    /** GET /admin/system/maintenance — current maintenance-mode state. */
+    static async getMaintenance(): Promise<ISystemMaintenanceResponse> {
+        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_MAINTENANCE);
+        return response.data;
+    }
+
+    /**
+     * PUT /admin/system/maintenance — enable/disable maintenance for THIS
+     * instance. The payload intentionally has no `instance_id`.
+     */
+    static async setMaintenance(body: IMaintenanceSetRequest): Promise<ISystemMaintenanceResponse> {
+        const response = await permissionAwareApiClient.put(
+            API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_MAINTENANCE_SET,
+            body
+        );
         return response.data;
     }
 

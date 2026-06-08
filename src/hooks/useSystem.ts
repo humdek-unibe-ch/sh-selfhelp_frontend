@@ -6,10 +6,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { AdminSystemApi } from '../api/admin/system.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import type { IUpdateRequest } from '../types/responses/admin/system.types';
+import type { IMaintenanceSetRequest, IUpdateRequest } from '../types/responses/admin/system.types';
 
 const SYSTEM_VERSION_KEY = ['systemVersion'] as const;
 const SYSTEM_HEALTH_KEY = ['systemHealth'] as const;
+const SYSTEM_MAINTENANCE_KEY = ['systemMaintenance'] as const;
 const SYSTEM_UPDATE_STATUS_KEY = ['systemUpdateStatus'] as const;
 
 /**
@@ -45,6 +46,56 @@ export function useSystemHealth(enabled: boolean = true, refetchInterval: number
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+    });
+}
+
+/**
+ * Current maintenance-mode state for THIS instance (enabled / env-forced /
+ * operator note / safe-mode flag). Read-only query.
+ */
+export function useSystemMaintenance(enabled: boolean = true) {
+    return useQuery({
+        queryKey: SYSTEM_MAINTENANCE_KEY,
+        queryFn: () => AdminSystemApi.getMaintenance(),
+        select: (response) => response.data,
+        enabled,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
+        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+    });
+}
+
+/**
+ * Enable/disable maintenance mode for THIS instance (no `instance_id` — the
+ * backend derives + verifies it). Refreshes the maintenance + health + version
+ * caches so every system view reflects the new state immediately.
+ */
+export function useSetMaintenanceMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (body: IMaintenanceSetRequest) => AdminSystemApi.setMaintenance(body),
+        onSuccess: (response) => {
+            const data = response.data;
+            notifications.show({
+                title: 'Maintenance Mode Updated',
+                message: data?.enabled
+                    ? 'Maintenance mode is now ON for this instance.'
+                    : 'Maintenance mode is now OFF for this instance.',
+                color: data?.enabled ? 'orange' : 'green',
+            });
+            queryClient.invalidateQueries({ queryKey: SYSTEM_MAINTENANCE_KEY });
+            queryClient.invalidateQueries({ queryKey: SYSTEM_HEALTH_KEY });
+            queryClient.invalidateQueries({ queryKey: SYSTEM_VERSION_KEY });
+        },
+        onError: () => {
+            notifications.show({
+                title: 'Maintenance Update Failed',
+                message: 'Could not change maintenance mode. It may be enforced by server configuration.',
+                color: 'red',
+            });
+        },
     });
 }
 

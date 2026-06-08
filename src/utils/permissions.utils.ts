@@ -347,6 +347,13 @@ export class PermissionChecker {
   }
 
   /**
+   * Check if user can enable/disable maintenance mode for the current instance.
+   */
+  canManageMaintenance(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_SYSTEM_MAINTENANCE);
+  }
+
+  /**
    * Check if user can view audit logs
    */
   canViewAuditLogs(): boolean {

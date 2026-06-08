@@ -15,9 +15,13 @@ import { createTestQueryClient } from '../../test-utils/renderWithProviders';
  * exact wiring and the hard rule that the request payload carries NO
  * `instance_id` (the backend derives + verifies it).
  */
-const { getVersion, getHealth, getUpdatePreflight, getUpdateStatus, requestUpdate, notifyShow } = vi.hoisted(() => ({
+const {
+    getVersion, getHealth, getMaintenance, setMaintenance, getUpdatePreflight, getUpdateStatus, requestUpdate, notifyShow,
+} = vi.hoisted(() => ({
     getVersion: vi.fn(),
     getHealth: vi.fn(),
+    getMaintenance: vi.fn(),
+    setMaintenance: vi.fn(),
     getUpdatePreflight: vi.fn(),
     getUpdateStatus: vi.fn(),
     requestUpdate: vi.fn(),
@@ -25,13 +29,16 @@ const { getVersion, getHealth, getUpdatePreflight, getUpdateStatus, requestUpdat
 }));
 
 vi.mock('../../api/admin/system.api', () => ({
-    AdminSystemApi: { getVersion, getHealth, getUpdatePreflight, getUpdateStatus, requestUpdate },
+    AdminSystemApi: { getVersion, getHealth, getMaintenance, setMaintenance, getUpdatePreflight, getUpdateStatus, requestUpdate },
 }));
 vi.mock('@mantine/notifications', () => ({
     notifications: { show: notifyShow },
 }));
 
-import { useSystemVersion, useSystemHealth, useUpdatePreflight, useRequestUpdateMutation } from '../useSystem';
+import {
+    useSystemVersion, useSystemHealth, useUpdatePreflight, useRequestUpdateMutation,
+    useSystemMaintenance, useSetMaintenanceMutation,
+} from '../useSystem';
 
 function wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={createTestQueryClient()}>{children}</QueryClientProvider>;
@@ -40,6 +47,8 @@ function wrapper({ children }: { children: ReactNode }) {
 beforeEach(() => {
     getVersion.mockReset();
     getHealth.mockReset();
+    getMaintenance.mockReset();
+    setMaintenance.mockReset();
     getUpdatePreflight.mockReset();
     getUpdateStatus.mockReset();
     requestUpdate.mockReset();
@@ -100,6 +109,55 @@ describe('useSystemHealth', () => {
         expect(result.current.data?.overall).toBe('healthy');
         expect(result.current.data?.components).toHaveLength(2);
         expect(getHealth).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('useSystemMaintenance', () => {
+    it('unwraps the maintenance state envelope', async () => {
+        getMaintenance.mockResolvedValue({
+            data: {
+                enabled: true,
+                forced_by_env: false,
+                message: 'Upgrade window',
+                since: '2026-06-08T18:00:00+00:00',
+                updated_by: 'user:1',
+                safe_mode: false,
+            },
+        });
+
+        const { result } = renderHook(() => useSystemMaintenance(), { wrapper });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(result.current.data?.enabled).toBe(true);
+        expect(getMaintenance).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('useSetMaintenanceMutation', () => {
+    it('sends enabled+message without an instance_id and notifies orange when enabling', async () => {
+        setMaintenance.mockResolvedValue({
+            data: { enabled: true, forced_by_env: false, message: 'window', since: 's', updated_by: 'user:1', safe_mode: false },
+        });
+
+        const { result } = renderHook(() => useSetMaintenanceMutation(), { wrapper });
+        result.current.mutate({ enabled: true, message: 'window' });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+        const body = setMaintenance.mock.calls[0][0];
+        expect(body).toEqual({ enabled: true, message: 'window' });
+        expect(body).not.toHaveProperty('instance_id');
+        expect(notifyShow).toHaveBeenCalledWith(expect.objectContaining({ color: 'orange' }));
+    });
+
+    it('notifies red when the toggle is rejected (e.g. env-forced)', async () => {
+        setMaintenance.mockRejectedValue(new Error('conflict'));
+
+        const { result } = renderHook(() => useSetMaintenanceMutation(), { wrapper });
+        result.current.mutate({ enabled: false });
+
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        expect(notifyShow).toHaveBeenCalledWith(expect.objectContaining({ color: 'red' }));
     });
 });
 
