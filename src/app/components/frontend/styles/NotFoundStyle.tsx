@@ -8,6 +8,7 @@ import { Container, Paper, ThemeIcon, Title, Text, Button, Group } from '@mantin
 import { IconCompass, IconHome, IconLogin } from '@tabler/icons-react';
 import Link from 'next/link';
 import { ROUTES } from '../../../../config/routes.config';
+import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 
 // Inline CMS-style contract. These fields will be moved to `@selfhelp/shared`
 // (`INotFoundStyle`) and the backend field catalog later; kept inline here so
@@ -43,8 +44,8 @@ interface INotFoundStyleProps {
 const NotFoundStyle: React.FC<INotFoundStyleProps> = ({ style, styleProps, cssClass, isAuthenticated = false }) => {
     const title = style.title?.content || 'Page not found';
     const message = style.message?.content || 'The page you are looking for does not exist or has been moved.';
-    const buttonLabel = style.button_label?.content || 'Back to home';
-    const loginLabel = style.login_label?.content || 'Sign in';
+    const buttonLabel = stripHtmlTags(style.button_label?.content || 'Back to home');
+    const loginLabel = stripHtmlTags(style.login_label?.content || 'Sign in');
     const color = style.mantine_color?.content || 'gray';
     const radius = style.mantine_radius?.content || 'md';
     const shadow = style.mantine_shadow?.content || undefined;

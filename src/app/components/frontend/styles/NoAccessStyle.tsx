@@ -8,6 +8,7 @@ import { Container, Paper, ThemeIcon, Title, Text, Button, Group } from '@mantin
 import { IconLock, IconHome, IconLogin } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '../../../../config/routes.config';
+import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 
 // Inline CMS-style contract. These fields will be moved to `@selfhelp/shared`
 // (`INoAccessStyle`) and the backend field catalog later; kept inline here so
@@ -40,8 +41,8 @@ const NoAccessStyle: React.FC<INoAccessStyleProps> = ({ style, styleProps, cssCl
 
     const title = style.title?.content || 'Access denied';
     const message = style.message?.content || 'Your account does not have permission to view this page. If you think this is a mistake, please contact the research team or your administrator.';
-    const buttonLabel = style.button_label?.content || 'Back to home';
-    const loginLabel = style.login_label?.content || 'Sign in';
+    const buttonLabel = stripHtmlTags(style.button_label?.content || 'Back to home');
+    const loginLabel = stripHtmlTags(style.login_label?.content || 'Sign in');
     const showLogin = style.show_login?.content === '1';
     const color = style.mantine_color?.content || 'red';
     const radius = style.mantine_radius?.content || 'md';
