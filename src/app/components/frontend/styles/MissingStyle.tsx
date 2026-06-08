@@ -7,26 +7,9 @@ SPDX-License-Identifier: MPL-2.0
 import { Container, Paper, ThemeIcon, Title, Text, Button } from '@mantine/core';
 import { IconCompass, IconHome } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
+import { IMissingStyle } from '../../../../shared';
 import { ROUTES } from '../../../../config/routes.config';
 import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
-
-// Inline CMS-style contract. These fields will be moved to `@selfhelp/shared`
-// (`IMissingStyle`) and the backend field catalog later; kept inline here so
-// the component is already configuration-ready.
-interface IContentField {
-    content?: string;
-}
-
-interface IMissingStyle {
-    title?: IContentField;
-    message?: IContentField;
-    button_label?: IContentField;
-    mantine_color?: IContentField;
-    mantine_radius?: IContentField;
-    mantine_shadow?: IContentField;
-    mantine_button_variant?: IContentField;
-    show_icon?: IContentField;
-}
 
 interface IMissingStyleProps {
     style: IMissingStyle;

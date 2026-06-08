@@ -7,28 +7,9 @@ SPDX-License-Identifier: MPL-2.0
 import { Container, Paper, ThemeIcon, Title, Text, Button, Group } from '@mantine/core';
 import { IconLock, IconHome, IconLogin } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
+import { INoAccessStyle } from '../../../../shared';
 import { ROUTES } from '../../../../config/routes.config';
 import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
-
-// Inline CMS-style contract. These fields will be moved to `@selfhelp/shared`
-// (`INoAccessStyle`) and the backend field catalog later; kept inline here so
-// the component is already configuration-ready.
-interface IContentField {
-    content?: string;
-}
-
-interface INoAccessStyle {
-    title?: IContentField;
-    message?: IContentField;
-    button_label?: IContentField;
-    login_label?: IContentField;
-    show_login?: IContentField;
-    mantine_color?: IContentField;
-    mantine_radius?: IContentField;
-    mantine_shadow?: IContentField;
-    mantine_button_variant?: IContentField;
-    show_icon?: IContentField;
-}
 
 interface INoAccessStyleProps {
     style: INoAccessStyle;
