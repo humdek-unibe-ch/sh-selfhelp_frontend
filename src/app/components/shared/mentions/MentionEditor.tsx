@@ -205,7 +205,7 @@ export function MentionEditor({
 
     // Update editor content when value prop changes externally
     React.useEffect(() => {
-        if (editor && editor.getHTML() !== value) {
+        if (editor && !editor.isDestroyed && editor.getHTML() !== value) {
             isUpdatingRef.current = true;
             editor.commands.setContent(value);
             setTimeout(() => {
