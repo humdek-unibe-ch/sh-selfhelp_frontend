@@ -18,11 +18,12 @@ import {
     Alert,
     Card,
     Modal,
-    Accordion
+    Accordion,
+    Switch
 } from '@mantine/core';
-import { IconUser, IconKey, IconTrash, IconAlertTriangle, IconCheck, IconX, IconClock } from '@tabler/icons-react';
+import { IconUser, IconKey, IconTrash, IconAlertTriangle, IconCheck, IconX, IconClock, IconBell } from '@tabler/icons-react';
 import { useAuthUser } from '../../../../hooks/useUserData';
-import { useUpdateUsernameMutation, useUpdateNameMutation, useUpdatePasswordMutation, useUpdateTimezoneMutation, useDeleteAccountMutation } from '../../../../hooks/mutations/useProfileMutations';
+import { useUpdateUsernameMutation, useUpdateNameMutation, useUpdatePasswordMutation, useUpdateTimezoneMutation, useUpdateCommunicationPreferencesMutation, useDeleteAccountMutation } from '../../../../hooks/mutations/useProfileMutations';
 import { useLookupsByType } from '../../../../hooks/useLookups';
 import { IProfileStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline } from '../../../../utils/html-sanitizer.utils';
@@ -67,6 +68,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
     const updateNameMutation = useUpdateNameMutation();
     const updatePasswordMutation = useUpdatePasswordMutation();
     const updateTimezoneMutation = useUpdateTimezoneMutation();
+    const updateCommunicationPreferencesMutation = useUpdateCommunicationPreferencesMutation();
     const deleteAccountMutation = useDeleteAccountMutation();
 
     // Form states
@@ -93,6 +95,15 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
         success: ''
     });
 
+    // Communication preferences (issue #29). Pending overrides default to null so
+    // the displayed value is derived from the loaded user until the admin toggles
+    // a switch — this avoids a setState-in-effect initialization.
+    const [communicationPending, setCommunicationPending] = useState<{
+        receivesNotifications: boolean | null;
+        receivesEmails: boolean | null;
+    }>({ receivesNotifications: null, receivesEmails: null });
+    const [communicationMessage, setCommunicationMessage] = useState({ error: '', success: '' });
+
     const [deleteForm, setDeleteForm] = useState({
         email: '',
         isSubmitting: false,
@@ -112,6 +123,11 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
             }));
         }
     }, [user?.timezoneId, timezoneForm.timezoneId, timezoneForm.success]);
+
+    // Derived communication preference values: pending override, else the loaded
+    // user's value, else a safe default.
+    const receivesNotificationsValue = communicationPending.receivesNotifications ?? user?.receivesNotifications ?? true;
+    const receivesEmailsValue = communicationPending.receivesEmails ?? user?.receivesEmails ?? true;
 
     // Extract field values
     const profileTitle = style.profile_title?.content || 'My Profile';
@@ -170,6 +186,17 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
     const timezoneSuccess = style.profile_timezone_change_success?.content || 'Timezone updated successfully!';
     const timezoneErrorRequired = style.profile_timezone_change_error_required?.content || 'Timezone is required';
     const timezoneErrorGeneral = style.profile_timezone_change_error_general?.content || 'Failed to update timezone. Please try again.';
+
+    // Communication preferences fields (issue #29)
+    const communicationTitle = style.profile_communication_preferences_title?.content || 'Communication Preferences';
+    const communicationDescription = style.profile_communication_preferences_description?.content || '<p>Choose which messages SelfHelp may send you. Account and security messages are always delivered.</p>';
+    const receiveNotificationsLabel = style.profile_receive_notifications_label?.content || 'Receive notifications';
+    const receiveNotificationsDescription = style.profile_receive_notifications_description?.content || 'Allow scheduled push notifications from SelfHelp.';
+    const receiveEmailsLabel = style.profile_receive_emails_label?.content || 'Receive emails';
+    const receiveEmailsDescription = style.profile_receive_emails_description?.content || 'Allow scheduled (non-essential) emails from SelfHelp.';
+    const communicationButton = style.profile_communication_preferences_button?.content || 'Update Preferences';
+    const communicationSuccess = style.profile_communication_preferences_success?.content || 'Communication preferences updated successfully!';
+    const communicationErrorGeneral = style.profile_communication_preferences_error_general?.content || 'Failed to update communication preferences. Please try again.';
 
     // Account deletion fields
     const deleteTitle = style.profile_delete_title?.content || 'Delete Account';
@@ -351,6 +378,34 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
                     }
 
                     setTimezoneForm(prev => ({ ...prev, error: errorMessage, isSubmitting: false }));
+                }
+            }
+        );
+    };
+
+    // Communication preferences handler (issue #29)
+    const handleCommunicationChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCommunicationMessage({ error: '', success: '' });
+
+        updateCommunicationPreferencesMutation.mutate(
+            {
+                receivesNotifications: receivesNotificationsValue,
+                receivesEmails: receivesEmailsValue
+            },
+            {
+                onSuccess: () => {
+                    setCommunicationMessage({ error: '', success: communicationSuccess });
+                },
+                onError: (error: any) => {
+                    let errorMessage = communicationErrorGeneral;
+
+                    const backendError = getBackendErrorMessage(error);
+                    if (backendError && backendError !== errorMessage) {
+                        errorMessage = `${errorMessage} ${backendError}`;
+                    }
+
+                    setCommunicationMessage({ error: errorMessage, success: '' });
                 }
             }
         );
@@ -603,6 +658,69 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
         </Card>
     );
 
+    const renderCommunicationPreferencesCard = () => (
+        <Card
+            withBorder
+            radius={cardRadius}
+            p="lg"
+            variant={cardVariant}
+            shadow={cardShadow}
+        >
+            {!useAccordion && (
+            <Title order={3} mb="sm">{communicationTitle}</Title>
+            )}
+            <HtmlContent html={communicationDescription} className="mb-md text-dimmed" />
+
+            <form onSubmit={handleCommunicationChange}>
+                <Stack gap="md">
+                    <Switch
+                        label={receiveNotificationsLabel}
+                        description={receiveNotificationsDescription}
+                        checked={receivesNotificationsValue}
+                        onChange={(e) => {
+                            const checked = e.currentTarget.checked;
+                            setCommunicationPending(prev => ({ ...prev, receivesNotifications: checked }));
+                            setCommunicationMessage({ error: '', success: '' });
+                        }}
+                        disabled={updateCommunicationPreferencesMutation.isPending}
+                    />
+
+                    <Switch
+                        label={receiveEmailsLabel}
+                        description={receiveEmailsDescription}
+                        checked={receivesEmailsValue}
+                        onChange={(e) => {
+                            const checked = e.currentTarget.checked;
+                            setCommunicationPending(prev => ({ ...prev, receivesEmails: checked }));
+                            setCommunicationMessage({ error: '', success: '' });
+                        }}
+                        disabled={updateCommunicationPreferencesMutation.isPending}
+                    />
+
+                    {communicationMessage.error && (
+                        <Alert color="red" icon={<IconX size={16} />}>
+                            {communicationMessage.error}
+                        </Alert>
+                    )}
+
+                    {communicationMessage.success && (
+                        <Alert color="green" icon={<IconCheck size={16} />}>
+                            {communicationMessage.success}
+                        </Alert>
+                    )}
+
+                    <Button
+                        type="submit"
+                        loading={updateCommunicationPreferencesMutation.isPending}
+                        leftSection={<IconBell size={16} />}
+                    >
+                        {communicationButton}
+                    </Button>
+                </Stack>
+            </form>
+        </Card>
+    );
+
     const renderAccountDeletionCard = () => (
         <Card
             withBorder
@@ -639,6 +757,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
             <Fragment key="user-info">{renderUserInfoCard()}</Fragment>,
             <Fragment key="name-change">{renderNameChangeCard()}</Fragment>,
             <Fragment key="timezone-change">{renderTimezoneChangeCard()}</Fragment>,
+            <Fragment key="communication-preferences">{renderCommunicationPreferencesCard()}</Fragment>,
             <Fragment key="password-change">{renderPasswordChangeCard()}</Fragment>,
             <Fragment key="account-delete">{renderAccountDeletionCard()}</Fragment>
         ];
@@ -707,6 +826,15 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
                         </Accordion.Control>
                         <Accordion.Panel>
                             {renderTimezoneChangeCard()}
+                        </Accordion.Panel>
+                    </Accordion.Item>
+
+                    <Accordion.Item value="communication_preferences">
+                        <Accordion.Control icon={<IconBell size={16} />}>
+                            {communicationTitle}
+                        </Accordion.Control>
+                        <Accordion.Panel>
+                            {renderCommunicationPreferencesCard()}
                         </Accordion.Panel>
                     </Accordion.Item>
 

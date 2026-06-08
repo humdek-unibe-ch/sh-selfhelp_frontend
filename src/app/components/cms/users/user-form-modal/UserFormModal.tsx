@@ -38,6 +38,8 @@ interface IUserFormValues {
     user_name: string;
     validation_code: string;
     blocked: boolean;
+    receivesNotifications: boolean;
+    receivesEmails: boolean;
     groupIds: string[];
     roleIds: string[];
 }
@@ -59,6 +61,8 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
             user_name: '',
             validation_code: '',
             blocked: false,
+            receivesNotifications: true,
+            receivesEmails: true,
             groupIds: [],
             roleIds: [],
         },
@@ -96,6 +100,8 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                 user_name: userDetails.user_name || '',
                 validation_code: userDetails.validation_code || '',
                 blocked: userDetails.blocked,
+                receivesNotifications: userDetails.receives_notifications,
+                receivesEmails: userDetails.receives_emails,
                 groupIds: userDetails.groups?.map((g: any) => g.id.toString()) || [],
                 roleIds: userDetails.roles?.map((r: any) => r.id.toString()) || [],
             });
@@ -122,6 +128,8 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                     user_name: values.user_name,
                     validation_code: values.validation_code,
                     blocked: values.blocked,
+                    receives_notifications: values.receivesNotifications,
+                    receives_emails: values.receivesEmails,
                     group_ids: values.groupIds.map(id => parseInt(id, 10)),
                     role_ids: values.roleIds.map(id => parseInt(id, 10)),
                 };
@@ -134,6 +142,8 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                 const updateData: IUpdateUserRequest = {
                     name: values.name || undefined,
                     blocked: values.blocked,
+                    receives_notifications: values.receivesNotifications,
+                    receives_emails: values.receivesEmails,
                     group_ids: values.groupIds.map(id => parseInt(id, 10)),
                     role_ids: values.roleIds.map(id => parseInt(id, 10)),
                 };
@@ -314,6 +324,27 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                             description="Blocked users cannot log in to the system"
                             {...form.getInputProps('blocked', { type: 'checkbox' })}
                         />
+                    </div>
+
+                    <Divider />
+
+                    {/* Communication preferences (issue #29) */}
+                    <div>
+                        <Text size="sm" fw={500} mb="xs">
+                            Communication Preferences
+                        </Text>
+                        <Stack gap="sm">
+                            <Switch
+                                label="Receives notifications"
+                                description="Allow scheduled push notifications. Account/security messages are always delivered."
+                                {...form.getInputProps('receivesNotifications', { type: 'checkbox' })}
+                            />
+                            <Switch
+                                label="Receives emails"
+                                description="Allow scheduled (non-essential) emails. Required system emails are always sent."
+                                {...form.getInputProps('receivesEmails', { type: 'checkbox' })}
+                            />
+                        </Stack>
                     </div>
 
                 </Stack>

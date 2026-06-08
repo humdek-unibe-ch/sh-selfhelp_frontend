@@ -11,6 +11,8 @@ export interface ICreateUserRequest {
   id_languages?: number;
   id_userTypes?: number;
   blocked?: boolean;
+  receives_notifications?: boolean;
+  receives_emails?: boolean;
   group_ids?: number[];
   role_ids?: number[];
 }
@@ -23,6 +25,8 @@ export interface IUpdateUserRequest {
   id_languages?: number;
   id_userTypes?: number;
   blocked?: boolean;
+  receives_notifications?: boolean;
+  receives_emails?: boolean;
   group_ids?: number[];
   role_ids?: number[];
 }

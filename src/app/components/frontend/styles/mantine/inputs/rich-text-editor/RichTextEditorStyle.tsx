@@ -125,9 +125,12 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style, style
             immediatelyRender: false, // Fix SSR hydration mismatch
         });
 
-        // Update editor content when currentValue changes (for controlled behavior)
+        // Update editor content when currentValue changes (for controlled behavior).
+        // Guard against a destroyed editor (Tiptap nulls its schema on destroy):
+        // calling getHTML() on it throws "Cannot read properties of null (reading 'cached')",
+        // which can happen while language tabs remount the editor.
         useEffect(() => {
-            if (languageEditor && currentValue !== languageEditor.getHTML()) {
+            if (languageEditor && !languageEditor.isDestroyed && currentValue !== languageEditor.getHTML()) {
                 languageEditor.commands.setContent(currentValue);
             }
         }, [languageEditor, currentValue]);
