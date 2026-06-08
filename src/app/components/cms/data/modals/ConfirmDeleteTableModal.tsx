@@ -5,8 +5,9 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { useState } from 'react';
-import { Alert, Button, Group, Modal, Stack, Text, TextInput } from '@mantine/core';
+import { Alert, Text, TextInput, Stack } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
+import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 
 interface IConfirmDeleteTableModalProps {
   open: boolean;
@@ -17,17 +18,26 @@ interface IConfirmDeleteTableModalProps {
 }
 
 export function ConfirmDeleteTableModal({ open, onClose, displayName, onConfirm, loading = false }: IConfirmDeleteTableModalProps) {
-  const [confirm, setConfirm] = useState("");
+  const [confirm, setConfirm] = useState('');
   const disabled = confirm !== displayName;
 
   const handleConfirm = async () => {
     await onConfirm();
-    setConfirm("");
-    onClose();
+    setConfirm('');
   };
 
   return (
-    <Modal opened={open} onClose={onClose} title={`Delete Table`} size="lg" centered>
+    <ModalWrapper
+      opened={open}
+      onClose={onClose}
+      title="Delete Table"
+      onDelete={handleConfirm}
+      onCancel={onClose}
+      deleteLabel="Delete Table"
+      deleteVariant="filled"
+      isLoading={loading}
+      disabled={disabled}
+    >
       <Stack>
         <Alert variant="light" color="red" icon={<IconAlertTriangle />}
           title="This action will permanently delete the data table">
@@ -39,13 +49,7 @@ export function ConfirmDeleteTableModal({ open, onClose, displayName, onConfirm,
           </Text>
         </Alert>
         <TextInput value={confirm} onChange={(e) => setConfirm(e.currentTarget.value)} placeholder={displayName} />
-        <Group justify="flex-end">
-          <Button variant="default" onClick={onClose}>Cancel</Button>
-          <Button color="red" disabled={disabled} loading={loading} onClick={handleConfirm}>Delete Table</Button>
-        </Group>
       </Stack>
-    </Modal>
+    </ModalWrapper>
   );
 }
-
-

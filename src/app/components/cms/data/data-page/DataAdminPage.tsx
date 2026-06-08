@@ -8,31 +8,50 @@ import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Alert,
+  Button,
   Card,
   Checkbox,
   Group,
   MultiSelect,
   Select,
   Stack,
-  Text,
-  Title,
   Paper,
-  Container,
 } from '@mantine/core';
-import { IconAlertCircle, IconSettings } from '@tabler/icons-react';
+import { IconAlertCircle, IconPackageExport } from '@tabler/icons-react';
 import { useDataTables } from '../../../../../hooks/useData';
+import { useCanAccessDataBrowser } from '../../../../../hooks/usePermissionChecks';
 import { useUsers } from '../../../../../hooks/useUsers';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import type { IUserBasic } from '../../../../../types/responses/admin/users.types';
 import { DataTablesViewer } from '../tables/DataTablesViewer';
+import { BulkExportModal } from '../modals/BulkExportModal';
 import { FilterActions } from '../../../shared/common/FilterControls';
-import { useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '../../../shared/common/PageHeader';
+
+const ALL_TABLES = -1;
+
+/**
+ * Resolve the next data-table selection. "All data tables" (`-1`) is a shortcut
+ * that is mutually exclusive with specific tables:
+ *  - newly adding "all" collapses the selection to just `[-1]`;
+ *  - picking a specific table while "all" was active switches to that table
+ *    (drops `-1`), instead of staying stuck on "all";
+ *  - otherwise the raw selection is used as-is.
+ */
+export function resolveTableSelection(next: number[], previous: number[]): number[] {
+  const addingAll = next.includes(ALL_TABLES);
+  if (addingAll && previous.includes(ALL_TABLES)) {
+    // "all" was already selected and the user picked a specific table.
+    return next.filter((v) => v !== ALL_TABLES);
+  }
+  if (addingAll) return [ALL_TABLES];
+  return next;
+}
 
 export function DataAdminPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const queryClient = useQueryClient();
+  const canAccessDataBrowser = useCanAccessDataBrowser();
 
   // Filter form state (what user is currently selecting)
   const [selectedUserId, setSelectedUserId] = useState<number | null>(() => {
@@ -56,6 +75,8 @@ export function DataAdminPage() {
     return languageId ? parseInt(languageId, 10) : 1;
   });
 
+  const [bulkExportOpen, setBulkExportOpen] = useState(false);
+
   // Active (applied) filters
   const [activeSelectedUserId, setActiveSelectedUserId] = useState<number>(-1);
   const [activeTableIds, setActiveTableIds] = useState<number[]>([]);
@@ -64,7 +85,7 @@ export function DataAdminPage() {
 
   // Data fetching
   const { data: usersResp, refetch: refetchUsers } = useUsers({ page: 1, pageSize: 100, sort: 'email', sortDirection: 'asc' });
-  const { data: tablesResp, refetch: refetchTables } = useDataTables();
+  const { data: tablesResp, refetch: refetchTables, isFetching: isTablesFetching } = useDataTables();
   const { languages, refetch: refetchLanguages } = usePublicLanguages();
 
   const userOptions = useMemo(() => {
@@ -143,7 +164,7 @@ export function DataAdminPage() {
     refetchUsers();
     refetchTables();
     refetchLanguages();
-    }, [refetchUsers, refetchTables, refetchLanguages]);
+  }, [refetchUsers, refetchTables, refetchLanguages]);
 
   return (
     <Paper p="md" radius="md">
@@ -152,9 +173,18 @@ export function DataAdminPage() {
         <PageHeader
           title="Data Management"
           subtitle="Explore and manage form data across users and tables"
-        />
+        >
+          <Button
+            variant="light"
+            leftSection={<IconPackageExport size={16} />}
+            onClick={() => setBulkExportOpen(true)}
+            disabled={!hasTables}
+          >
+            Export tables
+          </Button>
+        </PageHeader>
 
-        {!hasTables && (
+        {!canAccessDataBrowser && (
           <Alert variant="light" color="orange" title="No Access to Data Tables" icon={<IconAlertCircle />}>
             You currently have no access to any data tables. Please contact your administrator.
           </Alert>
@@ -193,7 +223,7 @@ export function DataAdminPage() {
                 value={selectedTableIds.map(String)}
                 onChange={(vals) => {
                   const parsed = vals.map(v => parseInt(v, 10));
-                  setSelectedTableIds(parsed.includes(-1) ? [-1] : parsed);
+                  setSelectedTableIds(resolveTableSelection(parsed, selectedTableIds));
                 }}
                 searchable
                 clearable
@@ -214,7 +244,7 @@ export function DataAdminPage() {
               onApply={handleApplyFilters}
               onReset={handleResetFilters}
               onRefresh={handleRefresh}
-              isFetching={false}
+              isFetching={isTablesFetching}
               isApplyDisabled={false}
             />
           </Stack>
@@ -228,6 +258,12 @@ export function DataAdminPage() {
           selectedLanguageId={activeSelectedLanguageId}
         />
       </Stack>
+
+      <BulkExportModal
+        open={bulkExportOpen}
+        onClose={() => setBulkExportOpen(false)}
+        tables={tablesResp?.dataTables || []}
+      />
     </Paper>
   );
 }

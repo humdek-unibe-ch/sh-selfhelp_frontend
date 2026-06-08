@@ -41,6 +41,23 @@ export interface IDeleteTableResponse {
   deleted: boolean;
 }
 
+export type TDataExportFormat = 'csv' | 'json';
+
+export interface IDataExportFilters {
+  user_id?: number;
+  language_id?: number;
+  exclude_deleted?: boolean;
+}
+
+export interface IDataExportTableParams extends IDataExportFilters {
+  format: TDataExportFormat;
+}
+
+export interface IBulkDataExportRequest extends IDataExportFilters {
+  table_names: string[];
+  format: TDataExportFormat;
+}
+
 
 
 

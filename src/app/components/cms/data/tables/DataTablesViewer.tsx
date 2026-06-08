@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { Accordion, Card, Text } from '@mantine/core';
+import { Accordion, Card, Center, Loader, Text } from '@mantine/core';
 import { useDataTables } from '../../../../../hooks/useData';
 import SingleDataTable from './SingleDataTable';
 import { EmptyState } from '../../../shared/common/EmptyState';
@@ -22,27 +22,22 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
   const tables = tablesResp?.dataTables || [];
   const [opened, setOpened] = useState<string[]>([]);
 
-  // stable key from IDs to avoid array reference changes triggering effects
   const tableIdsKey = useMemo(
-  () => tables.map(t => t.id).join(','),
-  [tables]
+    () => tables.map(t => t.id).join(','),
+    [tables]
   );
 
-  // Only reset opened panels when the actual selected tables change, not when filters change
   useEffect(() => {
-    // Keep previously opened panels that are still in the current selection
     setOpened(prevOpened => {
       if (activeTableIds.length === 0) return [];
       if (activeTableIds.includes(-1)) {
-        // If "all tables" is selected, keep all previously opened panels that still exist
         return prevOpened.filter(id => tables.some(t => String(t.id) === id));
       } else {
-        // Filter to only keep panels that are still in the current selection
         const currentTableIds = new Set(activeTableIds.map(String));
         return prevOpened.filter(id => currentTableIds.has(id));
       }
     });
-  }, [activeTableIds, tableIdsKey]); // Only depend on activeTableIds and tables, not filter parameters
+  }, [activeTableIds, tableIdsKey]);
 
   const selectedTables = useMemo(() => {
     if (!tables.length) return [] as { id: number; name: string; displayName: string }[];
@@ -55,21 +50,23 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
   if (isLoading) {
     return (
       <Card>
-        <Text c="dimmed">Loading data tables...</Text>
+        <Center py="xl">
+          <Loader size="sm" />
+        </Center>
       </Card>
     );
   }
 
-if (selectedTables.length === 0) {
-  return (
-    <Card withBorder shadow="sm" radius="md">
-      <EmptyState
-        title="No data tables available"
-        description=""
-      />
-    </Card>
-  );
-}
+  if (selectedTables.length === 0) {
+    return (
+      <Card withBorder shadow="sm" radius="md">
+        <EmptyState
+          title="No data tables available"
+          description=""
+        />
+      </Card>
+    );
+  }
 
   return (
     <Accordion multiple value={opened} onChange={setOpened}>
@@ -95,5 +92,3 @@ if (selectedTables.length === 0) {
     </Accordion>
   );
 }
-
-

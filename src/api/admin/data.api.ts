@@ -14,6 +14,8 @@ import type {
   IDeleteColumnsResponse,
   IDeleteRecordResponse,
   IDeleteTableResponse,
+  IDataExportTableParams,
+  IBulkDataExportRequest,
 } from '../../types/responses/admin';
 
 export const AdminDataApi = {
@@ -59,8 +61,9 @@ export const AdminDataApi = {
     return response.data.data;
   },
 
-  async deleteRecord(recordId: number, opts?: { own_entries_only?: boolean }): Promise<IDeleteRecordResponse> {
-    const params = opts?.own_entries_only === false ? { own_entries_only: 'false' } : undefined;
+  async deleteRecord(recordId: number, tableName: string, opts?: { own_entries_only?: boolean }): Promise<IDeleteRecordResponse> {
+    const params: Record<string, string> = { table_name: tableName };
+    if (opts?.own_entries_only === false) params.own_entries_only = 'false';
     const response = await permissionAwareApiClient.delete<IBaseApiResponse<IDeleteRecordResponse>>(
       API_CONFIG.ENDPOINTS.ADMIN_DATA_RECORD_DELETE,
       recordId,
@@ -72,6 +75,31 @@ export const AdminDataApi = {
   async deleteTable(tableName: string): Promise<IDeleteTableResponse> {
     const response = await permissionAwareApiClient.delete<IBaseApiResponse<IDeleteTableResponse>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_TABLE_DELETE, tableName);
     return response.data.data;
+  },
+
+  async exportTable(tableName: string, params: IDataExportTableParams): Promise<Blob> {
+    const queryParams: Record<string, string> = { format: params.format };
+    if (params.user_id !== undefined) queryParams.user_id = String(params.user_id);
+    if (params.language_id !== undefined) queryParams.language_id = String(params.language_id);
+    if (params.exclude_deleted !== undefined) queryParams.exclude_deleted = String(params.exclude_deleted);
+
+    const response = await permissionAwareApiClient.get<Blob>(
+      API_CONFIG.ENDPOINTS.ADMIN_DATA_TABLE_EXPORT,
+      tableName,
+      { params: queryParams, responseType: 'blob' }
+    );
+    return response.data;
+  },
+
+  async exportTablesZip(body: IBulkDataExportRequest): Promise<Blob> {
+    const response = await permissionAwareApiClient.post<Blob>(
+      API_CONFIG.ENDPOINTS.ADMIN_DATA_TABLES_EXPORT_BULK,
+      body,
+      // `params: {}` ensures the wrapper detects this as an Axios config and
+      // not a route param (the bulk route is static and takes none).
+      { params: {}, responseType: 'blob' }
+    );
+    return response.data;
   },
 };
 
