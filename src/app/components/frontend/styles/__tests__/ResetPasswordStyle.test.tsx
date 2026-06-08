@@ -61,6 +61,17 @@ describe('ResetPasswordStyle', () => {
         expect(screen.getByRole('button', { name: 'Set new password' })).toBeInTheDocument();
     });
 
+    it('also supports the static fallback slug shape without the reset prefix', () => {
+        useParamsMock.mockReturnValue({ slug: ['123', 'tok-abc'] });
+
+        renderWithProviders(
+            <ResetPasswordStyle style={{} as unknown as ResetPasswordField} styleProps={{}} cssClass="section-1" />,
+        );
+
+        expect(screen.getByLabelText(/^New password/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Set new password' })).toBeInTheDocument();
+    });
+
     it('submits the new password with the user id and token from the URL', async () => {
         useParamsMock.mockReturnValue({ slug: ['reset', '123', 'tok-abc'] });
         vi.mocked(AuthApi.resetPassword).mockResolvedValue({ status: 200, message: 'OK' });
@@ -89,5 +100,35 @@ describe('ResetPasswordStyle', () => {
 
         expect(await screen.findByText('The two passwords do not match.')).toBeInTheDocument();
         expect(AuthApi.resetPassword).not.toHaveBeenCalled();
+    });
+
+    it('renders the CMS-managed reset-mode labels and messages when provided', async () => {
+        useParamsMock.mockReturnValue({ slug: ['reset', '123', 'tok-abc'] });
+
+        renderWithProviders(
+            <ResetPasswordStyle
+                style={{
+                    reset_title: { content: 'Choose your new password' },
+                    reset_label_pw: { content: 'Password' },
+                    reset_pw_placeholder: { content: 'Minimum 8 characters' },
+                    reset_label_pw_confirm: { content: 'Repeat password' },
+                    reset_pw_confirm_placeholder: { content: 'Repeat it here' },
+                    reset_label_submit: { content: 'Save password' },
+                    reset_error_pw_mismatch: { content: 'Passwords must match exactly.' },
+                } as unknown as ResetPasswordField}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+
+        expect(screen.getByText('Choose your new password')).toBeInTheDocument();
+        expect(screen.getByLabelText(/^Password/)).toHaveAttribute('placeholder', 'Minimum 8 characters');
+        expect(screen.getByLabelText(/^Repeat password/)).toHaveAttribute('placeholder', 'Repeat it here');
+
+        fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: 'NewSecret123' } });
+        fireEvent.change(screen.getByLabelText(/^Repeat password/), { target: { value: 'Mismatch123' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Save password' }));
+
+        expect(await screen.findByText('Passwords must match exactly.')).toBeInTheDocument();
     });
 });

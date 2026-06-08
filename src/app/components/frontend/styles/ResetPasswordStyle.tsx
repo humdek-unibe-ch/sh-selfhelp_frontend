@@ -19,6 +19,21 @@ interface IResetPasswordStyleProps {
     cssClass: string;
 }
 
+type TResetPasswordStyleFields = IResetPasswordStyle & {
+    reset_title?: { content?: string };
+    reset_label_pw?: { content?: string };
+    reset_pw_placeholder?: { content?: string };
+    reset_label_pw_confirm?: { content?: string };
+    reset_pw_confirm_placeholder?: { content?: string };
+    reset_label_submit?: { content?: string };
+    reset_success_title?: { content?: string };
+    reset_alert_success?: { content?: string };
+    reset_redirect_text?: { content?: string };
+    reset_error_invalid_token?: { content?: string };
+    reset_error_pw_short?: { content?: string };
+    reset_error_pw_mismatch?: { content?: string };
+};
+
 /**
  * Pull `/reset/{userId}/{token}` out of the `[[...slug]]` catch-all. Returns
  * zero/empty when the URL is just the request page (`/reset`), which switches
@@ -28,6 +43,16 @@ function extractResetTarget(slug: string | string[] | undefined): { userId: numb
     if (!Array.isArray(slug)) {
         return { userId: 0, token: '' };
     }
+
+    // Static fallback route (`/auth/reset-password/[...slug]`) receives only
+    // the trailing `[userId, token]` segments, not the public `reset` prefix.
+    if (slug.length >= 2 && slug[0] !== 'reset') {
+        return {
+            userId: parseInt(slug[0], 10) || 0,
+            token: slug[1] || '',
+        };
+    }
+
     const idx = slug.indexOf('reset');
     if (idx === -1 || slug.length <= idx + 2) {
         return { userId: 0, token: '' };
@@ -39,6 +64,7 @@ function extractResetTarget(slug: string | string[] | undefined): { userId: numb
 }
 
 const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, styleProps, cssClass }) => {
+    const resetStyle = style as TResetPasswordStyleFields;
     const params = useParams();
     const router = useRouter();
     const { userId, token } = extractResetTarget(params?.slug as string | string[] | undefined);
@@ -50,6 +76,19 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     const alertSuccess = style.alert_success?.content
         || 'If an account exists for that email, a reset link is on its way. Check your inbox (and your spam folder).';
     const placeholder = DOMPurify.sanitize(style.placeholder?.content || 'Enter your email address', { ALLOWED_TAGS: [] });
+    const resetTitle = resetStyle.reset_title?.content || 'Set a new password';
+    const resetLabelPw = resetStyle.reset_label_pw?.content || 'New password';
+    const resetPwPlaceholder = resetStyle.reset_pw_placeholder?.content || 'Choose a new password';
+    const resetLabelPwConfirm = resetStyle.reset_label_pw_confirm?.content || 'Confirm new password';
+    const resetPwConfirmPlaceholder = resetStyle.reset_pw_confirm_placeholder?.content || 'Repeat your new password';
+    const resetLabelSubmit = resetStyle.reset_label_submit?.content || 'Set new password';
+    const resetSuccessTitle = resetStyle.reset_success_title?.content || 'Password updated';
+    const resetAlertSuccess = resetStyle.reset_alert_success?.content || 'Your password has been reset.';
+    const resetRedirectText = resetStyle.reset_redirect_text?.content || 'Redirecting to sign in in {seconds}s...';
+    const resetErrorInvalidToken = resetStyle.reset_error_invalid_token?.content
+        || 'This reset link is invalid or has expired. Please request a new one.';
+    const resetErrorPwShort = resetStyle.reset_error_pw_short?.content || 'Your new password must be at least 8 characters long.';
+    const resetErrorPwMismatch = resetStyle.reset_error_pw_mismatch?.content || 'The two passwords do not match.';
 
     // "request a reset link" mode
     const [email, setEmail] = useState('');
@@ -83,11 +122,11 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
         setError('');
 
         if (password.length < 8) {
-            setError('Your new password must be at least 8 characters long.');
+            setError(resetErrorPwShort);
             return;
         }
         if (password !== passwordConfirm) {
-            setError('The two passwords do not match.');
+            setError(resetErrorPwMismatch);
             return;
         }
 
@@ -107,7 +146,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
                 }
             }, 1000);
         } catch (err: any) {
-            setError(err?.message || 'This reset link is invalid or has expired. Please request a new one.');
+            setError(err?.message || resetErrorInvalidToken);
         } finally {
             setSubmitting(false);
         }
@@ -118,9 +157,11 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
         return (
             <Box {...styleProps} className={cssClass}>
                 <Card shadow="sm" padding="lg" radius="md" withBorder>
-                    <Alert icon={<IconCheck size={16} />} color="green" title="Password updated">
-                        Your password has been reset.
-                        <Text size="sm" mt="xs">Redirecting to sign in in {redirectCountdown}s...</Text>
+                    <Alert icon={<IconCheck size={16} />} color="green" title={resetSuccessTitle}>
+                        {resetAlertSuccess}
+                        <Text size="sm" mt="xs">
+                            {resetRedirectText.replace('{seconds}', String(redirectCountdown))}
+                        </Text>
                     </Alert>
                 </Card>
             </Box>
@@ -133,6 +174,10 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
             <Box {...styleProps} className={cssClass}>
                 <Card shadow="sm" padding="lg" radius="md" withBorder>
                     <form onSubmit={handleSetSubmit}>
+                        <Text size="lg" fw={600} mb="md">
+                            {resetTitle}
+                        </Text>
+
                         {error && (
                             <Alert icon={<IconX size={16} />} color="red" mb="md" withCloseButton onClose={() => setError('')}>
                                 {error}
@@ -140,8 +185,8 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
                         )}
 
                         <TextInput
-                            label="New password"
-                            placeholder="Choose a new password"
+                            label={resetLabelPw}
+                            placeholder={resetPwPlaceholder}
                             leftSection={<IconLock size={16} />}
                             type="password"
                             value={password}
@@ -151,7 +196,8 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
                         />
 
                         <TextInput
-                            label="Confirm new password"
+                            label={resetLabelPwConfirm}
+                            placeholder={resetPwConfirmPlaceholder}
                             leftSection={<IconLock size={16} />}
                             type="password"
                             value={passwordConfirm}
@@ -161,7 +207,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
                         />
 
                         <Button type="submit" fullWidth color={mantineColor} variant="filled" loading={submitting}>
-                            Set new password
+                            {resetLabelSubmit}
                         </Button>
                     </form>
                 </Card>
