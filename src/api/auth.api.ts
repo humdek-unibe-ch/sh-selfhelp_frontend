@@ -16,6 +16,7 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { permissionAwareApiClient } from './base.api';
+import type { IForgotPasswordRequest, IResetPasswordRequest } from '../shared';
 import { ILoginRequest, ITwoFactorVerifyRequest, IRegisterRequest } from '../types/requests/auth/auth.types';
 import {
     ILoginSuccessResponse,
@@ -200,9 +201,10 @@ export const AuthApi = {
     async requestPasswordReset(
         email: string
     ): Promise<{ status: number; message: string; error?: string }> {
+        const payload: IForgotPasswordRequest = { email };
         const response = await permissionAwareApiClient.post<{ status: number; message: string; error?: string }>(
             API_CONFIG.ENDPOINTS.AUTH_FORGOT_PASSWORD,
-            { email }
+            payload
         );
         if (response.data.error) {
             throw new Error(response.data.error);
@@ -219,9 +221,10 @@ export const AuthApi = {
         token: string,
         password: string
     ): Promise<{ status: number; message: string; error?: string }> {
+        const payload: IResetPasswordRequest = { id_users: userId, token, password };
         const response = await permissionAwareApiClient.post<{ status: number; message: string; error?: string }>(
             API_CONFIG.ENDPOINTS.AUTH_RESET_PASSWORD,
-            { id_users: userId, token, password }
+            payload
         );
         if (response.data.error) {
             throw new Error(response.data.error);
