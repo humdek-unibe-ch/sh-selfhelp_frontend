@@ -28,10 +28,11 @@ import {
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { useAuth } from '../../../../../hooks/useAuth';
 import {
-    useSystemVersion, useUpdatePreflight, useUpdateStatus, useRequestUpdateMutation,
+    useSystemVersion, useSystemHealth, useUpdatePreflight, useUpdateStatus, useRequestUpdateMutation,
 } from '../../../../../hooks/useSystem';
 import type {
     TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus,
+    TSystemHealthOverall, TSystemComponentStatus,
 } from '../../../../../types/responses/admin/system.types';
 
 const PREFLIGHT_COLOR: Record<TUpdatePreflightStatus, string> = {
@@ -65,6 +66,21 @@ const OPERATION_COLOR: Record<TUpdateOperationStatus, string> = {
     rejected: 'gray',
 };
 
+const HEALTH_OVERALL_COLOR: Record<TSystemHealthOverall, string> = {
+    healthy: 'green',
+    degraded: 'yellow',
+    down: 'red',
+};
+
+const COMPONENT_COLOR: Record<TSystemComponentStatus, string> = {
+    ok: 'green',
+    configured: 'teal',
+    degraded: 'yellow',
+    down: 'red',
+    not_configured: 'gray',
+    unknown: 'gray',
+};
+
 // Statuses for which the operation is still in flight, so the UI keeps polling.
 const ACTIVE_STATUSES: TUpdateOperationStatus[] = [
     'requested',
@@ -89,10 +105,12 @@ export function SystemMaintenancePage() {
     const [typedConfirmation, setTypedConfirmation] = useState('');
 
     const version = useSystemVersion();
+    const health = useSystemHealth(true, 15000);
     const preflight = useUpdatePreflight(checkedTarget);
     const requestUpdate = useRequestUpdateMutation();
 
     const versionData = version.data;
+    const healthData = health.data;
     const preflightData = preflight.data;
 
     // Poll the status while an operation is active.
@@ -223,6 +241,51 @@ export function SystemMaintenancePage() {
                     </Grid.Col>
                 </Grid>
 
+                {/* Aggregated health / status */}
+                <Paper p="md" radius="md" withBorder pos="relative">
+                    <LoadingOverlay visible={health.isLoading} />
+                    <Group justify="space-between" mb="sm">
+                        <Title order={4}>System health</Title>
+                        {healthData && (
+                            <Badge color={HEALTH_OVERALL_COLOR[healthData.overall]} variant="filled">
+                                {healthData.overall.toUpperCase()}
+                            </Badge>
+                        )}
+                    </Group>
+                    {health.isError && (
+                        <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+                            Could not load system health. Try refreshing the page.
+                        </Alert>
+                    )}
+                    {healthData && (
+                        <Table verticalSpacing="xs">
+                            <Table.Thead>
+                                <Table.Tr>
+                                    <Table.Th>Component</Table.Th>
+                                    <Table.Th>Status</Table.Th>
+                                    <Table.Th>Detail</Table.Th>
+                                </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                                {healthData.components.map((c) => (
+                                    <Table.Tr key={c.name}>
+                                        <Table.Td><Text size="sm" tt="capitalize">{c.name}</Text></Table.Td>
+                                        <Table.Td>
+                                            <Badge color={COMPONENT_COLOR[c.status]} variant="light">{c.status}</Badge>
+                                        </Table.Td>
+                                        <Table.Td><Text size="sm" c="dimmed">{c.detail}</Text></Table.Td>
+                                    </Table.Tr>
+                                ))}
+                            </Table.Tbody>
+                        </Table>
+                    )}
+                    {healthData && (
+                        <Text size="xs" c="dimmed" mt="xs">
+                            Checked at {new Date(healthData.checked_at).toLocaleString()}.
+                        </Text>
+                    )}
+                </Paper>
+
                 {/* Active operation status */}
                 {currentStatus && currentStatus.operation_id !== '' && (
                     <Paper p="md" radius="md" withBorder>
@@ -258,7 +321,7 @@ export function SystemMaintenancePage() {
                         <Group align="flex-end" gap="sm">
                             <TextInput
                                 label="Target version"
-                                placeholder="e.g. 1.6.0"
+                                placeholder="e.g. 8.0.0"
                                 value={targetInput}
                                 onChange={(e) => setTargetInput(e.currentTarget.value)}
                                 style={{ flex: 1 }}

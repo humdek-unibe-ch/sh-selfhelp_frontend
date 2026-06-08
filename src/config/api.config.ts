@@ -483,6 +483,10 @@ export const API_CONFIG = {
             route: '/admin/system/version',
             permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
         },
+        ADMIN_SYSTEM_HEALTH: {
+            route: '/admin/system/health',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
         ADMIN_SYSTEM_UPDATE_PREFLIGHT: {
             route: '/admin/system/update/preflight',
             permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]

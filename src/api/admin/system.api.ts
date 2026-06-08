@@ -6,6 +6,7 @@ import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type {
     ISystemVersionResponse,
+    ISystemHealthResponse,
     IUpdatePreflightResponse,
     IUpdateStatusResponse,
     IUpdateRequestResponse,
@@ -25,6 +26,12 @@ export class AdminSystemApi {
     /** GET /admin/system/version — current instance version summary. */
     static async getVersion(): Promise<ISystemVersionResponse> {
         const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_VERSION);
+        return response.data;
+    }
+
+    /** GET /admin/system/health — aggregated, instance-scoped health/status. */
+    static async getHealth(): Promise<ISystemHealthResponse> {
+        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_HEALTH);
         return response.data;
     }
 

@@ -9,6 +9,7 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type { IUpdateRequest } from '../types/responses/admin/system.types';
 
 const SYSTEM_VERSION_KEY = ['systemVersion'] as const;
+const SYSTEM_HEALTH_KEY = ['systemHealth'] as const;
 const SYSTEM_UPDATE_STATUS_KEY = ['systemUpdateStatus'] as const;
 
 /**
@@ -21,6 +22,25 @@ export function useSystemVersion(enabled: boolean = true) {
         queryFn: () => AdminSystemApi.getVersion(),
         select: (response) => response.data,
         enabled,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
+        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+    });
+}
+
+/**
+ * Aggregated, instance-scoped health/status (DB/cache/Redis/Mercure/worker/
+ * scheduler/mailer/plugins + update + safe/maintenance mode). Read-only.
+ * Pass a refetch interval (ms) to keep the dashboard live.
+ */
+export function useSystemHealth(enabled: boolean = true, refetchInterval: number | false = false) {
+    return useQuery({
+        queryKey: SYSTEM_HEALTH_KEY,
+        queryFn: () => AdminSystemApi.getHealth(),
+        select: (response) => response.data,
+        enabled,
+        refetchInterval,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,

@@ -15,8 +15,9 @@ import { createTestQueryClient } from '../../test-utils/renderWithProviders';
  * exact wiring and the hard rule that the request payload carries NO
  * `instance_id` (the backend derives + verifies it).
  */
-const { getVersion, getUpdatePreflight, getUpdateStatus, requestUpdate, notifyShow } = vi.hoisted(() => ({
+const { getVersion, getHealth, getUpdatePreflight, getUpdateStatus, requestUpdate, notifyShow } = vi.hoisted(() => ({
     getVersion: vi.fn(),
+    getHealth: vi.fn(),
     getUpdatePreflight: vi.fn(),
     getUpdateStatus: vi.fn(),
     requestUpdate: vi.fn(),
@@ -24,13 +25,13 @@ const { getVersion, getUpdatePreflight, getUpdateStatus, requestUpdate, notifySh
 }));
 
 vi.mock('../../api/admin/system.api', () => ({
-    AdminSystemApi: { getVersion, getUpdatePreflight, getUpdateStatus, requestUpdate },
+    AdminSystemApi: { getVersion, getHealth, getUpdatePreflight, getUpdateStatus, requestUpdate },
 }));
 vi.mock('@mantine/notifications', () => ({
     notifications: { show: notifyShow },
 }));
 
-import { useSystemVersion, useUpdatePreflight, useRequestUpdateMutation } from '../useSystem';
+import { useSystemVersion, useSystemHealth, useUpdatePreflight, useRequestUpdateMutation } from '../useSystem';
 
 function wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={createTestQueryClient()}>{children}</QueryClientProvider>;
@@ -38,6 +39,7 @@ function wrapper({ children }: { children: ReactNode }) {
 
 beforeEach(() => {
     getVersion.mockReset();
+    getHealth.mockReset();
     getUpdatePreflight.mockReset();
     getUpdateStatus.mockReset();
     requestUpdate.mockReset();
@@ -65,6 +67,39 @@ describe('useSystemVersion', () => {
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
         expect(result.current.data?.instance_id).toBe('inst-1');
         expect(getVersion).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('useSystemHealth', () => {
+    it('unwraps the aggregated health envelope data', async () => {
+        getHealth.mockResolvedValue({
+            data: {
+                instance_id: 'inst-1',
+                overall: 'healthy',
+                checked_at: '2026-06-08T17:00:00+00:00',
+                safe_mode: false,
+                maintenance_mode: false,
+                version: {
+                    selfhelp: '8.0.0-dev',
+                    backend: '8.0.0-dev',
+                    frontend: '8.0.0-dev',
+                    plugin_api: '1.0.0',
+                    database_migration: 'Version20260608181148',
+                },
+                update: { operation_id: '', status: 'succeeded', progress_percent: 100 },
+                components: [
+                    { name: 'database', status: 'ok', detail: 'Reachable.' },
+                    { name: 'mercure', status: 'configured', detail: 'Hub URL configured.' },
+                ],
+            },
+        });
+
+        const { result } = renderHook(() => useSystemHealth(), { wrapper });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(result.current.data?.overall).toBe('healthy');
+        expect(result.current.data?.components).toHaveLength(2);
+        expect(getHealth).toHaveBeenCalledTimes(1);
     });
 });
 
