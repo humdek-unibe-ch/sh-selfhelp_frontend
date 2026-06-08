@@ -1,0 +1,114 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { type ReactNode } from 'react';
+import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { createTestQueryClient } from '../../test-utils/renderWithProviders';
+
+/**
+ * The system-maintenance hooks wire the instance-scoped update flow: read the
+ * version summary, run a target preflight (only when a target is set), and
+ * request an update. The API + notifications are mocked so the test pins the
+ * exact wiring and the hard rule that the request payload carries NO
+ * `instance_id` (the backend derives + verifies it).
+ */
+const { getVersion, getUpdatePreflight, getUpdateStatus, requestUpdate, notifyShow } = vi.hoisted(() => ({
+    getVersion: vi.fn(),
+    getUpdatePreflight: vi.fn(),
+    getUpdateStatus: vi.fn(),
+    requestUpdate: vi.fn(),
+    notifyShow: vi.fn(),
+}));
+
+vi.mock('../../api/admin/system.api', () => ({
+    AdminSystemApi: { getVersion, getUpdatePreflight, getUpdateStatus, requestUpdate },
+}));
+vi.mock('@mantine/notifications', () => ({
+    notifications: { show: notifyShow },
+}));
+
+import { useSystemVersion, useUpdatePreflight, useRequestUpdateMutation } from '../useSystem';
+
+function wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={createTestQueryClient()}>{children}</QueryClientProvider>;
+}
+
+beforeEach(() => {
+    getVersion.mockReset();
+    getUpdatePreflight.mockReset();
+    getUpdateStatus.mockReset();
+    requestUpdate.mockReset();
+    notifyShow.mockReset();
+});
+
+describe('useSystemVersion', () => {
+    it('unwraps the envelope data', async () => {
+        getVersion.mockResolvedValue({
+            data: {
+                instance_id: 'inst-1',
+                selfhelp_version: '1.5.0',
+                backend_version: '1.5.0',
+                frontend_version: '1.5.0',
+                plugin_api_version: '1.0.0',
+                database_migration_version: 'Version20260608160348',
+                safe_mode: false,
+                maintenance_mode: false,
+                installed_plugins: [],
+            },
+        });
+
+        const { result } = renderHook(() => useSystemVersion(), { wrapper });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(result.current.data?.instance_id).toBe('inst-1');
+        expect(getVersion).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('useUpdatePreflight', () => {
+    it('does not call the API while the target is null', async () => {
+        renderHook(() => useUpdatePreflight(null), { wrapper });
+        // Give React Query a tick; a disabled query must not fetch.
+        await new Promise((r) => setTimeout(r, 10));
+        expect(getUpdatePreflight).not.toHaveBeenCalled();
+    });
+
+    it('calls the API with the target once one is supplied', async () => {
+        getUpdatePreflight.mockResolvedValue({ data: { preflight_id: 'pf1', status: 'ok', target_version: '1.6.0' } });
+
+        const { result } = renderHook(() => useUpdatePreflight('1.6.0'), { wrapper });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(getUpdatePreflight).toHaveBeenCalledWith('1.6.0');
+        expect(result.current.data?.preflight_id).toBe('pf1');
+    });
+});
+
+describe('useRequestUpdateMutation', () => {
+    it('posts the request without an instance_id and notifies on success', async () => {
+        requestUpdate.mockResolvedValue({ data: { operation_id: 'op-9', instance_id: 'inst-1', status: 'requested' } });
+
+        const { result } = renderHook(() => useRequestUpdateMutation(), { wrapper });
+        result.current.mutate({ target_version: '1.6.0', preflight_id: 'pf1', accepted_migration_risk: false });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+        const body = requestUpdate.mock.calls[0][0];
+        expect(body).toEqual({ target_version: '1.6.0', preflight_id: 'pf1', accepted_migration_risk: false });
+        expect(body).not.toHaveProperty('instance_id');
+        expect(notifyShow).toHaveBeenCalledWith(expect.objectContaining({ color: 'green' }));
+    });
+
+    it('notifies in red when the request is rejected', async () => {
+        requestUpdate.mockRejectedValue(new Error('cross-instance'));
+
+        const { result } = renderHook(() => useRequestUpdateMutation(), { wrapper });
+        result.current.mutate({ target_version: '1.6.0', preflight_id: 'pf1', accepted_migration_risk: false });
+
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        expect(notifyShow).toHaveBeenCalledWith(expect.objectContaining({ color: 'red' }));
+    });
+});
