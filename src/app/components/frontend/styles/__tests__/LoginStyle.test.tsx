@@ -43,6 +43,6 @@ describe('LoginStyle', () => {
             <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
         );
 
-        expect(screen.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', '/reset');
+        expect(screen.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', '/reset-password');
     });
 });

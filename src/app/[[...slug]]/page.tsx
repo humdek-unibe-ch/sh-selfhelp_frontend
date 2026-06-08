@@ -54,43 +54,22 @@ const HOME_KEYWORD = 'home';
  * and never produces a route.
  */
 const STATIC_FALLBACK_BY_KEYWORD: Record<string, string> = {
-    'login': '/auth/login',
+    login: '/auth/login',
     'two-factor-authentication': '/auth/two-factor-authentication',
-    'profile': '/auth/profile',
-    'register': '/auth/register',
+    profile: '/auth/profile',
+    register: '/auth/register',
     'reset-password': '/auth/reset-password',
     'no-access': '/auth/no-access',
     'no-access-guest': '/auth/no-access-guest',
-    'missing': '/auth/missing',
-};
-
-/**
- * URL → page keyword aliases.
- *
- * Some system pages keep a "kebab-case URL" (`/no-access`, `/no-access-guest`,
- * `/reset`) but their CMS keyword uses underscores (`no_access`,
- * `no_access_guest`, `reset_password`) — that's the historical SelfHelp
- * convention and we do not want to rename keywords that are referenced
- * from hooks, ACL rows, plugin code, and existing migrations.
- *
- * The slug catch-all therefore consults this map BEFORE falling back to
- * the literal `slug.join('/')` so the API lookup uses the canonical
- * keyword.
- */
-const SLUG_TO_KEYWORD: Record<string, string> = {
-    'no-access': 'no_access',
-    'no-access-guest': 'no_access_guest',
-    reset: 'reset_password',
+    missing: '/auth/missing',
 };
 
 /**
  * Resolve a CMS page keyword from the dynamic slug.
  *
- *   `[]`                        → `home`
- *   `['validate', uid, token]`  → `validate` (the uid + token are read by
- *                                 `ValidateStyle` from `params.slug`)
- *   `['no-access']`             → `no_access` (keyword alias)
- *   anything else               → `slug.join('/')`
+ *   `[]`                          → `home`
+ *   `['validate', uid, token]`    → `validate`
+ *   anything else                 → `slug.join('/')`
  */
 function keywordFromSlug(slug: string[] | undefined): string {
     if (!slug || slug.length === 0) return HOME_KEYWORD;
@@ -102,8 +81,7 @@ function keywordFromSlug(slug: string[] | undefined): string {
         return 'validate';
     }
 
-    const joined = slug.join('/');
-    return SLUG_TO_KEYWORD[joined] ?? joined;
+    return slug.join('/');
 }
 
 /**
