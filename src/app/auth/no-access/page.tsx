@@ -7,5 +7,5 @@ SPDX-License-Identifier: MPL-2.0
 import NoAccessStyle from '../../components/frontend/styles/NoAccessStyle';
 
 export default function NoAccessFallbackPage() {
-    return <NoAccessStyle />;
+    return <NoAccessStyle style={{}} styleProps={{}} cssClass="" />;
 }

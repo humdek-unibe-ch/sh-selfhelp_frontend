@@ -27,6 +27,9 @@ import {
     FormStyle,
     ProfileStyle
 } from './SelfHelpStyles';
+import NoAccessStyle from './NoAccessStyle';
+import MissingStyle from './MissingStyle';
+import NotFoundStyle from './NotFoundStyle';
 import DebugWrapper from './shared/debug-wrapper/DebugWrapper';
 import {
     ILoginStyle, IProfileStyle, IValidateStyle, IRegisterStyle, IResetPasswordStyle, ITwoFactorAuthStyle,
@@ -219,6 +222,12 @@ const styleImpls: Record<string, TStyleRenderer> = {
         <TwoFactorAuthStyle style={style as ITwoFactorAuthStyle} styleProps={styleProps} cssClass={cssClass} />,
     profile: ({ style, styleProps, cssClass }) =>
         <ProfileStyle style={style as IProfileStyle} styleProps={styleProps} cssClass={cssClass} />,
+    noAccess: ({ style, styleProps, cssClass }) =>
+        <NoAccessStyle style={style as any} styleProps={styleProps} cssClass={cssClass} />,
+    missing: ({ style, styleProps, cssClass }) =>
+        <MissingStyle style={style as any} styleProps={styleProps} cssClass={cssClass} />,
+    notFound: ({ style, styleProps, cssClass }) =>
+        <NotFoundStyle style={style as any} styleProps={styleProps} cssClass={cssClass} />,
 
     // ===== layout =====
     container: ({ style, styleProps, cssClass }) =>

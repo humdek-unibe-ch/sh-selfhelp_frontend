@@ -54,14 +54,14 @@ const HOME_KEYWORD = 'home';
  * and never produces a route.
  */
 const STATIC_FALLBACK_BY_KEYWORD: Record<string, string> = {
-    login: '/auth/login',
+    'login': '/auth/login',
     'two-factor-authentication': '/auth/two-factor-authentication',
-    profile: '/auth/profile',
-    register: '/auth/register',
-    reset_password: '/auth/reset-password',
-    no_access: '/auth/no-access',
-    no_access_guest: '/auth/no-access-guest',
-    missing: '/auth/missing',
+    'profile': '/auth/profile',
+    'register': '/auth/register',
+    'reset-password': '/auth/reset-password',
+    'no-access': '/auth/no-access',
+    'no-access-guest': '/auth/no-access-guest',
+    'missing': '/auth/missing',
 };
 
 /**

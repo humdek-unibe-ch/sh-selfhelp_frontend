@@ -9,28 +9,63 @@ import { IconCompass, IconHome } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '../../../../config/routes.config';
 
-const MissingStyle: React.FC = () => {
+// Inline CMS-style contract. These fields will be moved to `@selfhelp/shared`
+// (`IMissingStyle`) and the backend field catalog later; kept inline here so
+// the component is already configuration-ready.
+interface IContentField {
+    content?: string;
+}
+
+interface IMissingStyle {
+    title?: IContentField;
+    message?: IContentField;
+    button_label?: IContentField;
+    mantine_color?: IContentField;
+    mantine_radius?: IContentField;
+    mantine_shadow?: IContentField;
+    mantine_button_variant?: IContentField;
+    show_icon?: IContentField;
+}
+
+interface IMissingStyleProps {
+    style: IMissingStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
+}
+
+const MissingStyle: React.FC<IMissingStyleProps> = ({ style, styleProps, cssClass }) => {
     const router = useRouter();
+
+    const title = style.title?.content || 'Page not found';
+    const message = style.message?.content || 'The page you are looking for does not exist or has been moved. Please check the URL or head back to the home page.';
+    const buttonLabel = style.button_label?.content || 'Back to home';
+    const color = style.mantine_color?.content || 'gray';
+    const radius = style.mantine_radius?.content || 'md';
+    const shadow = style.mantine_shadow?.content || undefined;
+    const buttonVariant = style.mantine_button_variant?.content || 'filled';
+    const showIcon = style.show_icon?.content !== '0';
 
     return (
         <Container size="sm" py="xl">
-            <Paper withBorder radius="md" px="xl" py="xl" className="max-w-xl mx-auto my-16">
-                <div className="flex justify-center mb-4">
-                    <ThemeIcon variant="light" color="gray" size={64} radius="xl">
-                        <IconCompass size={32} />
-                    </ThemeIcon>
-                </div>
-                <Title order={2} ta="center" mb="sm">Page not found</Title>
-                <Text ta="center" c="dimmed" mb="xl">
-                    The page you are looking for does not exist or has been moved. Please check the URL or head back to the home page.
-                </Text>
+            <Paper withBorder radius={radius} shadow={shadow} px="xl" py="xl" {...styleProps} className={`max-w-xl mx-auto my-16 ${cssClass}`}>
+                {showIcon && (
+                    <div className="flex justify-center mb-4">
+                        <ThemeIcon variant="light" color={color} size={64} radius="xl">
+                            <IconCompass size={32} />
+                        </ThemeIcon>
+                    </div>
+                )}
+                <Title order={2} ta="center" mb="sm">{title}</Title>
+                <Text ta="center" c="dimmed" mb="xl">{message}</Text>
                 <div className="flex justify-center">
                     <Button
+                        variant={buttonVariant}
+                        color={color}
                         size="md"
                         leftSection={<IconHome size={16} />}
                         onClick={() => router.push(ROUTES.HOME)}
                     >
-                        Back to home
+                        {buttonLabel}
                     </Button>
                 </div>
             </Paper>
