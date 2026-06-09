@@ -97,7 +97,7 @@ function health(): ISystemHealth {
         safe_mode: false,
         maintenance_mode: false,
         version: { selfhelp: '0.1.0', backend: '0.1.0', frontend: '0.1.0', plugin_api: '0.1.0', database_migration: 'Version20260608174905' },
-        update: { operation_id: '', status: 'succeeded', progress_percent: 100 },
+        update: { operation_id: '', status: 'idle', progress_percent: 0 },
         components: [{ name: 'database', status: 'ok', detail: 'reachable' }],
     };
 }
@@ -106,14 +106,15 @@ function maintenance(): ISystemMaintenance {
     return { enabled: false, forced_by_env: false, message: '', since: '', updated_by: '', safe_mode: false };
 }
 
-/** "No active operation" status shape so the operation panel stays hidden. */
+/** Never-updated instance: backend reports the honest `idle` state (empty
+ * operation_id, 0%), so the operation panel stays hidden. */
 function idleStatus(): IUpdateStatus {
     return {
         instance_id: 'qa-instance',
         operation_id: '',
-        status: 'succeeded',
+        status: 'idle',
         target_version: '0.1.0',
-        progress_percent: 100,
+        progress_percent: 0,
         steps: [],
         requested_at: '2026-06-08T00:00:00Z',
         updated_at: '2026-06-08T00:00:00Z',
@@ -187,7 +188,7 @@ describe('SystemMaintenancePage', () => {
         // No preflight yet, so no request button.
         expect(screen.queryByRole('button', { name: /Request update for this instance/i })).not.toBeInTheDocument();
 
-        fireEvent.change(screen.getByLabelText('Target version'), { target: { value: '8.1.0' } });
+        fireEvent.change(screen.getByLabelText('Target version'), { target: { value: '0.2.0' } });
         fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
 
         const requestButton = screen.getByRole('button', { name: /Request update for this instance/i });
@@ -199,7 +200,7 @@ describe('SystemMaintenancePage', () => {
         const body = state.requestMutate.mock.calls[0][0];
         // Hard rule: the browser never sends an instance_id.
         expect(body).not.toHaveProperty('instance_id');
-        expect(body.target_version).toBe('8.1.0');
+        expect(body.target_version).toBe('0.2.0');
         expect(body.preflight_id).toBe('pf-qa-001');
         expect(body.accepted_migration_risk).toBe(false);
     });
@@ -211,7 +212,7 @@ describe('SystemMaintenancePage', () => {
         });
 
         renderWithProviders(<SystemMaintenancePage />);
-        fireEvent.change(screen.getByLabelText('Target version'), { target: { value: '8.1.0' } });
+        fireEvent.change(screen.getByLabelText('Target version'), { target: { value: '0.2.0' } });
         fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
 
         expect(screen.getByRole('button', { name: /Request update for this instance/i })).toBeDisabled();
@@ -262,7 +263,7 @@ describe('SystemMaintenancePage', () => {
         state.canUpdate = false;
 
         renderWithProviders(<SystemMaintenancePage />);
-        fireEvent.change(screen.getByLabelText('Target version'), { target: { value: '8.1.0' } });
+        fireEvent.change(screen.getByLabelText('Target version'), { target: { value: '0.2.0' } });
         fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
 
         expect(screen.queryByRole('button', { name: /Request update for this instance/i })).not.toBeInTheDocument();

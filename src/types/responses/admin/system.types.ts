@@ -201,11 +201,14 @@ export interface IUpdateRequest {
 }
 
 /**
- * Update operation lifecycle. The CMS records `requested`; the SelfHelp Manager
- * writes the granular execution states back through the manager loop. `approved`
- * and `running` are kept as coarse legacy states for backward compatibility.
+ * Update operation lifecycle. `idle` is the synthetic state for an instance that
+ * has never run an update (no operation row) — the backend returns it instead of
+ * a misleading `succeeded`/100%. The CMS records `requested`; the SelfHelp
+ * Manager writes the granular execution states back through the manager loop.
+ * `approved` and `running` are kept as coarse legacy states for compatibility.
  */
 export type TUpdateOperationStatus =
+    | 'idle'
     | 'requested'
     | 'approved'
     | 'accepted'

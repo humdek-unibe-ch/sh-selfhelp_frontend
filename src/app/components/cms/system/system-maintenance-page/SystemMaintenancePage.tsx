@@ -49,6 +49,7 @@ const SEVERITY_COLOR: Record<TUpdateCheckSeverity, string> = {
 };
 
 const OPERATION_COLOR: Record<TUpdateOperationStatus, string> = {
+    idle: 'gray',
     requested: 'blue',
     approved: 'cyan',
     accepted: 'cyan',
