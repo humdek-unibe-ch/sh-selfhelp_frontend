@@ -13,6 +13,8 @@ import {
     TextInput,
     Button,
     Alert,
+    List,
+    Loader,
 } from '@mantine/core';
 import {
     IconDeviceFloppy,
@@ -24,6 +26,7 @@ import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
+import { useSectionPages } from '../../../../../hooks/useSectionUtility';
 import { exportSection } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
@@ -117,6 +120,13 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
             }
         }
     });
+
+    const isRefContainer = sectionDetailsData?.section?.style?.name === 'refContainer';
+
+    const {
+        data: sectionPages,
+        isLoading: isSectionPagesLoading,
+    } = useSectionPages(sectionId, deleteModalOpened && isRefContainer);
 
     // Delete mutation
     const deleteSectionMutation = useDeleteSectionMutation({
@@ -452,9 +462,93 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 centered
             >
                 <Stack gap="md">
-                    <Alert color="red" title="Warning">
-                        This action cannot be undone. The section and all its content will be permanently deleted.
-                    </Alert>
+                    {!isRefContainer && (
+                        <Alert color="red" title="Warning">
+                            This action cannot be undone. The section and all its content will be permanently deleted.
+                        </Alert>
+                    )}
+
+                    {isRefContainer && (
+                        <>
+                            {isSectionPagesLoading ? (
+                                <Group justify="center" p="sm">
+                                    <Loader size="sm" />
+                                    <Text size="sm">Checking page usage...</Text>
+                                </Group>
+                            ) : sectionPages && sectionPages.length > 0 ? (
+                                <>
+                                    {(() => {
+                                        const otherPages = sectionPages.filter((p) => p.id !== pageId);
+                                        const publishedOtherPages = otherPages.filter((p) => p.isPublished);
+                                        return (
+                                            <>
+                                                <Alert color="red" title="Reference Container">
+                                                    <Stack gap="xs">
+                                                        {otherPages.length > 0 ? (
+                                                            <>
+                                                                <Text size="sm">
+                                                                    Besides this page, this reference container is also used on the following page{otherPages.length > 1 ? 's' : ''}. Deleting it will remove it from all of them immediately and cannot be undone.
+                                                                </Text>
+                                                                <List size="sm" withPadding>
+                                                                    {otherPages.map((page) => (
+                                                                        <List.Item key={page.id}>
+                                                                            <Text
+                                                                                size="sm"
+                                                                                fw={500}
+                                                                                component="a"
+                                                                                href={`/admin/pages/${page.keyword}`}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                style={{ textDecoration: 'underline', cursor: 'pointer' }}
+                                                                            >
+                                                                                {page.keyword}
+                                                                            </Text>
+                                                                        </List.Item>
+                                                                    ))}
+                                                                </List>
+                                                            </>
+                                                        ) : (
+                                                            <Text size="sm">
+                                                                This reference container is only used on this page. Deleting it will remove it permanently and cannot be undone.
+                                                            </Text>
+                                                        )}
+                                                    </Stack>
+                                                </Alert>
+                                                {publishedOtherPages.length > 0 && (
+                                                    <Alert color="yellow" title="Published pages affected">
+                                                        <Stack gap="xs">
+                                                            <Text size="sm">The following published pages will need to be republished for the change to be visible to end users:</Text>
+                                                            <List size="sm" withPadding>
+                                                                {publishedOtherPages.map((page) => (
+                                                                    <List.Item key={page.id}>
+                                                                        <Text
+                                                                            size="sm"
+                                                                            fw={500}
+                                                                            component="a"
+                                                                            href={`/admin/pages/${page.keyword}`}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            style={{ textDecoration: 'underline', cursor: 'pointer' }}
+                                                                        >
+                                                                            {page.keyword}
+                                                                        </Text>
+                                                                    </List.Item>
+                                                                ))}
+                                                            </List>
+                                                        </Stack>
+                                                    </Alert>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
+                                </>
+                            ) : (
+                                <Alert color="red" title="Warning">
+                                    This action cannot be undone. The section and all its content will be permanently deleted.
+                                </Alert>
+                            )}
+                        </>
+                    )}
 
                     <Text size="sm">
                         To confirm deletion, please type the section name: <strong>{section.name}</strong>

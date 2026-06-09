@@ -5,9 +5,10 @@ SPDX-License-Identifier: MPL-2.0
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { AdminSectionUtilityApi } from '../api/admin/section-utility.api';
+import { AdminSectionApi } from '../api/admin/section.api';
 import { AdminCacheApi } from '../api/admin/cache.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import type { IUnusedSectionsData, IRefContainerSectionsData } from '../types/responses/admin/section-utility.types';
+import type { IUnusedSectionsData, IRefContainerSectionsData, ISectionPage } from '../types/responses/admin/section-utility.types';
 
 /**
  * Hook to fetch unused sections (not in hierarchy and not assigned to pages)
@@ -42,6 +43,21 @@ export function useRefContainerSections(enabled: boolean = true) {
         retry: 3,
         retryDelay: 1000,
         enabled,
+    });
+}
+
+/**
+ * Hook to fetch all pages that contain a given section
+ */
+export function useSectionPages(sectionId: number | null, enabled: boolean = true) {
+    return useQuery<ISectionPage[]>({
+        queryKey: ['admin', 'sections', sectionId, 'pages'],
+        queryFn: async (): Promise<ISectionPage[]> => {
+            return AdminSectionApi.getSectionPages(sectionId!);
+        },
+        staleTime: 0,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        enabled: enabled && !!sectionId,
     });
 }
 

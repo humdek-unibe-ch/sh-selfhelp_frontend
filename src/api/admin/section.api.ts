@@ -212,6 +212,18 @@ export const AdminSectionApi = {
     },
 
     /**
+     * Returns all pages that contain the given section (direct or via ancestor).
+     * @param {number} sectionId - The section ID
+     */
+    async getSectionPages(sectionId: number): Promise<{ id: number; keyword: string }[]> {
+        const response = await permissionAwareApiClient.get(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_PAGES,
+            sectionId
+        );
+        return response.data.data ?? [];
+    },
+
+    /**
      * Permanently destroys a section everywhere (all pages lose it).
      * @param {number} sectionId - The section ID to delete
      * @returns {Promise<{ success: boolean }>} Success response

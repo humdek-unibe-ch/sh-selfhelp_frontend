@@ -538,6 +538,10 @@ export const API_CONFIG = {
             route: (sectionId: number) => `/admin/sections/${sectionId}`,
             permissions: [PERMISSIONS.ADMIN_SECTION_DELETE]
         },
+        ADMIN_SECTIONS_PAGES: {
+            route: (sectionId: number) => `/admin/sections/${sectionId}/pages`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
         ADMIN_SECTIONS_FORCE_DELETE: {
             route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}/force-delete`,
             permissions: [PERMISSIONS.ADMIN_PAGE_DELETE]
