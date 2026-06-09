@@ -22,6 +22,7 @@ Technical documentation for the Next.js frontend. See [../README.md](../README.m
 - [token-refresh-solution.md](token-refresh-solution.md) - Token refresh handling.
 - [drag-drop-implementation.md](drag-drop-implementation.md) - Drag-and-drop implementation.
 - [plugins.md](plugins.md) - Frontend plugin runtime integration.
+- [system-maintenance-admin.md](system-maintenance-admin.md) - The `/admin/system` maintenance, health, and connected-update screen.
 
 ## Operations and debugging
 

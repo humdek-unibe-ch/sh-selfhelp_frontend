@@ -14,6 +14,28 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.0.6 — 2026-06-08
+
+### Added
+- **System Maintenance admin screen** (`/admin/system`): view this instance's
+  SelfHelp / backend / frontend / plugin-API / DB-migration versions and
+  installed-plugin compatibility, and see aggregated system health.
+- **Connected update flow**: run an update compatibility preflight for a target
+  version and request a signed update for this instance (the SelfHelp Manager
+  performs the Docker work). A blocked preflight disables the request; a
+  destructive database migration requires an explicit risk acknowledgement plus a
+  typed confirmation. Live operation status with a progress bar and per-step
+  detail.
+- **Maintenance mode** toggle and a read-only **safe mode** indicator, with
+  on-screen `sh-manager` guidance for server-side backups and support bundles.
+- The screen honours the `admin.system.read`, `admin.system.update`, and
+  `admin.system.maintenance` permissions; the browser never sends an instance id
+  (the backend derives it), and env-forced maintenance is shown read-only.
+
+See [docs/developer/system-maintenance-admin.md](docs/developer/system-maintenance-admin.md).
+
+---
+
 ## v0.0.5 — 2026-05-28
 
 ### Fixed

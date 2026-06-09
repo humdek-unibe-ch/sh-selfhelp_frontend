@@ -7,6 +7,7 @@ import { API_CONFIG } from '../../config/api.config';
 import type {
     ISystemVersionResponse,
     ISystemHealthResponse,
+    ISystemAdvisoriesResponse,
     ISystemMaintenanceResponse,
     IMaintenanceSetRequest,
     IUpdatePreflightResponse,
@@ -34,6 +35,16 @@ export class AdminSystemApi {
     /** GET /admin/system/health — aggregated, instance-scoped health/status. */
     static async getHealth(): Promise<ISystemHealthResponse> {
         const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_HEALTH);
+        return response.data;
+    }
+
+    /**
+     * GET /admin/system/advisories — security advisories from the registry feed
+     * filtered to the components installed on THIS instance. Fails soft to
+     * `available: false` when the registry is unreachable.
+     */
+    static async getAdvisories(): Promise<ISystemAdvisoriesResponse> {
+        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_ADVISORIES);
         return response.data;
     }
 

@@ -10,6 +10,7 @@ import type { IMaintenanceSetRequest, IUpdateRequest } from '../types/responses/
 
 const SYSTEM_VERSION_KEY = ['systemVersion'] as const;
 const SYSTEM_HEALTH_KEY = ['systemHealth'] as const;
+const SYSTEM_ADVISORIES_KEY = ['systemAdvisories'] as const;
 const SYSTEM_MAINTENANCE_KEY = ['systemMaintenance'] as const;
 const SYSTEM_UPDATE_STATUS_KEY = ['systemUpdateStatus'] as const;
 
@@ -42,6 +43,24 @@ export function useSystemHealth(enabled: boolean = true, refetchInterval: number
         select: (response) => response.data,
         enabled,
         refetchInterval,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
+        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+    });
+}
+
+/**
+ * Security advisories from the registry feed filtered to the components
+ * installed on THIS instance. Read-only; `available: false` means the registry
+ * could not be reached (the UI shows "could not check").
+ */
+export function useSystemAdvisories(enabled: boolean = true) {
+    return useQuery({
+        queryKey: SYSTEM_ADVISORIES_KEY,
+        queryFn: () => AdminSystemApi.getAdvisories(),
+        select: (response) => response.data,
+        enabled,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,

@@ -28,12 +28,12 @@ import {
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { useAuth } from '../../../../../hooks/useAuth';
 import {
-    useSystemVersion, useSystemHealth, useUpdatePreflight, useUpdateStatus, useRequestUpdateMutation,
-    useSystemMaintenance, useSetMaintenanceMutation,
+    useSystemVersion, useSystemHealth, useSystemAdvisories, useUpdatePreflight, useUpdateStatus,
+    useRequestUpdateMutation, useSystemMaintenance, useSetMaintenanceMutation,
 } from '../../../../../hooks/useSystem';
 import type {
     TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus,
-    TSystemHealthOverall, TSystemComponentStatus,
+    TSystemHealthOverall, TSystemComponentStatus, TSystemAdvisorySeverity,
 } from '../../../../../types/responses/admin/system.types';
 
 const PREFLIGHT_COLOR: Record<TUpdatePreflightStatus, string> = {
@@ -82,6 +82,13 @@ const COMPONENT_COLOR: Record<TSystemComponentStatus, string> = {
     unknown: 'gray',
 };
 
+const ADVISORY_SEVERITY_COLOR: Record<TSystemAdvisorySeverity, string> = {
+    low: 'gray',
+    medium: 'yellow',
+    high: 'orange',
+    critical: 'red',
+};
+
 // Statuses for which the operation is still in flight, so the UI keeps polling.
 const ACTIVE_STATUSES: TUpdateOperationStatus[] = [
     'requested',
@@ -109,6 +116,7 @@ export function SystemMaintenancePage() {
 
     const version = useSystemVersion();
     const health = useSystemHealth(true, 15000);
+    const advisories = useSystemAdvisories();
     const maintenance = useSystemMaintenance();
     const setMaintenance = useSetMaintenanceMutation();
     const preflight = useUpdatePreflight(checkedTarget);
@@ -116,6 +124,7 @@ export function SystemMaintenancePage() {
 
     const versionData = version.data;
     const healthData = health.data;
+    const advisoriesData = advisories.data;
     const maintenanceData = maintenance.data;
     const preflightData = preflight.data;
 
@@ -301,6 +310,79 @@ export function SystemMaintenancePage() {
                     )}
                 </Paper>
 
+                {/* Security advisories (registry feed, filtered to installed components) */}
+                <Paper p="md" radius="md" withBorder pos="relative">
+                    <LoadingOverlay visible={advisories.isLoading} />
+                    <Group justify="space-between" mb="sm">
+                        <Title order={4}>Security advisories</Title>
+                        {advisoriesData && (
+                            advisoriesData.advisories.length > 0 ? (
+                                <Badge color="red" variant="filled">
+                                    {advisoriesData.advisories.length} affecting this instance
+                                </Badge>
+                            ) : advisoriesData.available ? (
+                                <Badge color="green" variant="light">None</Badge>
+                            ) : (
+                                <Badge color="gray" variant="light">Could not check</Badge>
+                            )
+                        )}
+                    </Group>
+                    {advisories.isError && (
+                        <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+                            Could not load security advisories. Try refreshing the page.
+                        </Alert>
+                    )}
+                    {advisoriesData && !advisoriesData.available && (
+                        <Alert icon={<IconInfoCircle size={16} />} color="gray" variant="light">
+                            The official registry could not be reached, so advisories could not be checked. This does
+                            not block the instance; try again when connectivity is restored.
+                        </Alert>
+                    )}
+                    {advisoriesData && advisoriesData.available && advisoriesData.advisories.length === 0 && (
+                        <Alert icon={<IconShieldCheck size={16} />} color="green" variant="light">
+                            No known security advisories affect the components installed on this instance.
+                        </Alert>
+                    )}
+                    {advisoriesData && advisoriesData.advisories.length > 0 && (
+                        <Stack gap="sm">
+                            {advisoriesData.advisories.map((advisory) => (
+                                <Alert
+                                    key={advisory.id}
+                                    icon={<IconAlertTriangle size={16} />}
+                                    color={ADVISORY_SEVERITY_COLOR[advisory.severity]}
+                                    variant="light"
+                                    title={
+                                        <Group gap="xs">
+                                            <Badge color={ADVISORY_SEVERITY_COLOR[advisory.severity]} variant="filled" size="sm">
+                                                {advisory.severity}
+                                            </Badge>
+                                            <Text fw={600} size="sm">{advisory.id}</Text>
+                                            {advisory.blocked && <Badge color="red" variant="light" size="sm">Blocks updates</Badge>}
+                                        </Group>
+                                    }
+                                >
+                                    <Stack gap={4}>
+                                        <Text size="sm">{advisory.recommended_action}</Text>
+                                        <Text size="xs" c="dimmed">
+                                            Affects: {advisory.affected.map((a) => `${a.kind} ${a.id} @ ${a.installed_version}`).join(', ')}
+                                        </Text>
+                                        {advisory.fixed_versions.length > 0 && (
+                                            <Text size="xs" c="dimmed">
+                                                Fixed in: <Code>{advisory.fixed_versions.join(', ')}</Code>
+                                            </Text>
+                                        )}
+                                        {advisory.details_url && (
+                                            <Text size="xs">
+                                                <a href={advisory.details_url} target="_blank" rel="noopener noreferrer">Advisory details</a>
+                                            </Text>
+                                        )}
+                                    </Stack>
+                                </Alert>
+                            ))}
+                        </Stack>
+                    )}
+                </Paper>
+
                 {/* Maintenance + safe mode */}
                 <Paper p="md" radius="md" withBorder pos="relative">
                     <LoadingOverlay visible={maintenance.isLoading} />
@@ -342,10 +424,10 @@ export function SystemMaintenancePage() {
                             )}
 
                             {maintenanceData.safe_mode && (
-                                <Alert icon={<IconShieldCheck size={16} />} color="red" variant="light" title="Plugin safe mode is active">
+                                <Alert icon={<IconShieldCheck size={16} />} color="red" variant="light" title="Safe mode is active">
                                     Plugins are disabled (safe mode). This is toggled by the operator via the instance
-                                    environment (<Code>SELFHELP_DISABLE_PLUGINS</Code>) or the
-                                    {' '}<Code>selfhelp:plugin:safe-mode</Code> CLI — not from the CMS.
+                                    environment (<Code>SELFHELP_DISABLE_PLUGINS</Code>) or the canonical
+                                    {' '}<Code>selfhelp:safe-mode</Code> CLI — not from the CMS.
                                 </Alert>
                             )}
 

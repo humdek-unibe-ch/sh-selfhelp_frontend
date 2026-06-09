@@ -83,6 +83,37 @@ export interface ISystemHealth {
 }
 export type ISystemHealthResponse = IBaseApiResponse<ISystemHealth>;
 
+/** Advisory severity, matching the registry advisory feed. */
+export type TSystemAdvisorySeverity = 'low' | 'medium' | 'high' | 'critical';
+
+/** An installed component (core/frontend/plugin) an advisory affects. */
+export interface ISystemAdvisoryAffected {
+    kind: 'core' | 'frontend' | 'plugin';
+    id: string;
+    installed_version: string;
+}
+
+export interface ISystemAdvisory {
+    id: string;
+    severity: TSystemAdvisorySeverity;
+    recommended_action: string;
+    blocked: boolean;
+    details_url: string | null;
+    affected: ISystemAdvisoryAffected[];
+    fixed_versions: string[];
+}
+
+/**
+ * GET /admin/system/advisories — security advisories from the registry feed,
+ * filtered to the components installed on THIS instance. `available: false`
+ * means the registry could not be reached (the UI shows "could not check").
+ */
+export interface ISystemAdvisories {
+    available: boolean;
+    advisories: ISystemAdvisory[];
+}
+export type ISystemAdvisoriesResponse = IBaseApiResponse<ISystemAdvisories>;
+
 /**
  * GET /admin/system/maintenance — current maintenance-mode state for THIS
  * instance. `forced_by_env` means the env hard switch

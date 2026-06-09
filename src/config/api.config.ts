@@ -487,6 +487,10 @@ export const API_CONFIG = {
             route: '/admin/system/health',
             permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
         },
+        ADMIN_SYSTEM_ADVISORIES: {
+            route: '/admin/system/advisories',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
         ADMIN_SYSTEM_MAINTENANCE: {
             route: '/admin/system/maintenance',
             permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
