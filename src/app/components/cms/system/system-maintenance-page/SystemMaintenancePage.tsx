@@ -533,7 +533,7 @@ export function SystemMaintenancePage() {
                         <Group align="flex-end" gap="sm">
                             <TextInput
                                 label="Target version"
-                                placeholder="e.g. 8.0.0"
+                                placeholder="e.g. 0.1.1"
                                 value={targetInput}
                                 onChange={(e) => setTargetInput(e.currentTarget.value)}
                                 style={{ flex: 1 }}

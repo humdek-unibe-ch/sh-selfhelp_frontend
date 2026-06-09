@@ -5,7 +5,7 @@
     "nextStandalone": true
   },
   "backendCompatibility": {
-    "requiredCoreRange": ">=8.0.0 <8.1.0",
-    "requiredApiVersion": "2.1"
+    "requiredCoreRange": ">=0.1.0 <0.2.0",
+    "requiredApiVersion": "0.1.0"
   }
 }
