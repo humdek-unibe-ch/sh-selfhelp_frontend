@@ -145,6 +145,26 @@ export interface IUpdatePreflightCheck {
     code: string;
     severity: TUpdateCheckSeverity;
     message: string;
+    /**
+     * Standardized compatibility-error fields (mirrors `@selfhelp/shared`
+     * `IUpdatePreflightCheck` and the backend `CompatibilityError`). Populated by
+     * version/compatibility checks (e.g. `plugin_compatibility`) so the admin sees
+     * exactly which component blocks which target version and the range it
+     * requires. Absent on non-compatibility checks.
+     */
+    component?: string;
+    component_id?: string;
+    current_version?: string;
+    target_version?: string;
+    required_range?: string;
+    /** Whether this compatibility error blocks the update. */
+    blocking?: boolean;
+    /**
+     * For `plugin_compatibility` checks: whether the blocking plugin is pinned and
+     * must be unpinned (or removed) before it can be updated to a compatible
+     * version.
+     */
+    pinned?: boolean;
 }
 
 export interface IUpdatePreflightOption {

@@ -167,11 +167,52 @@ export interface IAdminPluginListResponse {
 }
 
 /**
+ * Standardized compatibility-error payload. Snake_case to match the backend
+ * `CompatibilityError::toArray()` and the shared `@selfhelp/shared`
+ * `IUpdatePreflightCheck` compatibility fields, so core preflight and plugin
+ * install/update render the SAME shape (blocking component + required range).
+ */
+export interface IPluginCompatibilityError {
+    component: 'plugin' | 'frontend' | 'core' | string;
+    component_id: string;
+    current_version?: string | null;
+    target_version?: string | null;
+    required_range: string;
+    blocking: boolean;
+    message: string;
+}
+
+/**
+ * The picker state of ONE published version of a plugin. `state` distinguishes
+ * `latest-compatible` (the default selection), a plain `compatible` older/newer
+ * version, an `incompatible` version (carries a human `reason`), and `selected`
+ * (legacy single-version sources). Mirrors `PluginAdminService::versionRow()`.
+ */
+export interface IAdminPluginAvailableVersion {
+    version: string;
+    channel?: string;
+    official: boolean;
+    compatible: boolean;
+    blocking: boolean;
+    selected: boolean;
+    requiredRange: string;
+    requiredPluginApiRange: string;
+    reason?: string | null;
+    releaseUrl?: string | null;
+    state: 'latest-compatible' | 'compatible' | 'incompatible' | 'selected';
+    registryEntry: Record<string, unknown> | null;
+}
+
+/**
  * One entry returned by `GET /admin/plugins/available`. Aggregates
- * registry-advertised plugins from every enabled `PluginSource`. The
- * UI exposes a one-click "Install" action that pre-fills the install
- * modal with `manifest` (or fetches `manifestUrl` if `manifest` is
- * not embedded).
+ * registry-advertised plugins from every enabled `PluginSource`. Unified
+ * registry sources publish MULTIPLE versions per plugin, so the entry carries
+ * the full `versions` list plus the resolver's selection/compatibility summary
+ * (`selectedVersion` = newest COMPATIBLE; `latestVersion` = newest overall;
+ * `compatibilityError` set only when nothing is compatible). The picker installs
+ * the chosen version's `registryEntry`. Legacy single-version sources collapse
+ * to a one-row `versions` list so the UI renders both uniformly. Mirrors
+ * `PluginAdminService::buildUnifiedAvailableEntry()` / `buildLegacyAvailableEntry()`.
  */
 export interface IAdminPluginAvailable {
     sourceName: string;
@@ -179,11 +220,21 @@ export interface IAdminPluginAvailable {
     name: string;
     description?: string | null;
     version: string;
+    channel?: string;
     trustLevel: string;
     homepage?: string | null;
     manifest?: Record<string, unknown> | null;
     manifestUrl?: string | null;
-    registryEntry: Record<string, unknown>;
+    registryEntry: Record<string, unknown> | null;
+    installed?: boolean;
+    pinned?: boolean;
+    latestVersion?: string | null;
+    latestCompatibleVersion?: string | null;
+    selectedVersion?: string | null;
+    hasCompatibleVersion?: boolean;
+    newerExistsButIncompatible?: boolean;
+    compatibilityError?: IPluginCompatibilityError | null;
+    versions?: IAdminPluginAvailableVersion[];
 }
 
 export interface IAdminPluginAvailableResponse {

@@ -490,7 +490,7 @@ export function SystemMaintenancePage() {
                                 <Text size="sm">
                                     Security advisories from the official registry are evaluated automatically during a
                                     <strong> Check compatibility</strong> preflight below and appear as
-                                    {' '}<Badge size="xs" color="red" variant="light">error</Badge> checks when a blocking
+                                    {' '}<Badge component="span" size="xs" color="red" variant="light">error</Badge> checks when a blocking
                                     advisory affects the target version.
                                 </Text>
                             </List.Item>
@@ -567,20 +567,52 @@ export function SystemMaintenancePage() {
                                 </Group>
 
                                 {preflightData.checks.length > 0 && (
-                                    <List size="sm" spacing={4}>
-                                        {preflightData.checks.map((check) => (
-                                            <List.Item
-                                                key={check.code}
-                                                icon={
-                                                    <Badge size="xs" color={SEVERITY_COLOR[check.severity]} variant="light">
-                                                        {check.severity}
-                                                    </Badge>
-                                                }
-                                            >
-                                                {check.message}
-                                            </List.Item>
-                                        ))}
-                                    </List>
+                                    <Stack gap={6}>
+                                        {preflightData.checks.map((check, idx) => {
+                                            const hasCompat = Boolean(
+                                                check.component_id ||
+                                                    check.required_range ||
+                                                    check.current_version ||
+                                                    check.target_version,
+                                            );
+                                            return (
+                                                <div key={`${check.code}-${check.component_id ?? idx}`}>
+                                                    <Group gap="xs" align="flex-start" wrap="nowrap">
+                                                        <Badge size="xs" color={SEVERITY_COLOR[check.severity]} variant="light">
+                                                            {check.severity}
+                                                        </Badge>
+                                                        <Text size="sm">{check.message}</Text>
+                                                    </Group>
+                                                    {hasCompat && (
+                                                        <Group gap="xs" mt={4} ml={28} wrap="wrap">
+                                                            {check.component_id && (
+                                                                <Badge size="xs" variant="outline" color="gray">
+                                                                    {check.component ? `${check.component}: ` : ''}
+                                                                    {check.component_id}
+                                                                </Badge>
+                                                            )}
+                                                            {check.required_range && (
+                                                                <Text size="xs" c="dimmed">
+                                                                    requires <Code>{check.required_range}</Code>
+                                                                </Text>
+                                                            )}
+                                                            {(check.current_version || check.target_version) && (
+                                                                <Text size="xs" c="dimmed">
+                                                                    <Code>{check.current_version ?? '—'}</Code> →{' '}
+                                                                    <Code>{check.target_version ?? '—'}</Code>
+                                                                </Text>
+                                                            )}
+                                                            {check.pinned && (
+                                                                <Badge size="xs" color="orange" variant="light">
+                                                                    pinned — unpin to update
+                                                                </Badge>
+                                                            )}
+                                                        </Group>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </Stack>
                                 )}
 
                                 {destructive && (

@@ -218,6 +218,46 @@ describe('SystemMaintenancePage', () => {
         expect(screen.getByText(/This update is blocked/i)).toBeInTheDocument();
     });
 
+    it('renders the standardized compatibility-error fields on a blocked plugin check', () => {
+        // The core-update preflight blocks on an installed (pinned) plugin whose
+        // required core range does not admit the target. The UI must surface the
+        // standardized compatibility-error fields (component, required range,
+        // pinned hint), not just the human message — so the admin knows which
+        // component blocks the update and what to do about it.
+        state.preflight = preflight({
+            status: 'blocked',
+            checks: [
+                {
+                    code: 'plugin_compatibility',
+                    severity: 'error',
+                    message:
+                        'Plugin sh2-shp-survey-js requires SelfHelp >=0.1.0 <0.2.0 and is not compatible with target version 0.2.0 (current 0.1.0).',
+                    component: 'plugin',
+                    component_id: 'sh2-shp-survey-js',
+                    current_version: '0.1.0',
+                    target_version: '0.2.0',
+                    required_range: '>=0.1.0 <0.2.0',
+                    blocking: true,
+                    pinned: true,
+                },
+            ],
+        });
+
+        renderWithProviders(<SystemMaintenancePage />);
+        fireEvent.change(screen.getByLabelText('Target version'), { target: { value: '0.2.0' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
+
+        // The blocking component badge ("plugin: <id>") is rendered as its own node.
+        expect(
+            screen.getAllByText((_content, el) => el?.textContent === 'plugin: sh2-shp-survey-js').length,
+        ).toBeGreaterThan(0);
+        // The required core range is shown as a standalone <Code> (exact match, so it
+        // does NOT match the longer human message that also embeds the range).
+        expect(screen.getByText('>=0.1.0 <0.2.0')).toBeInTheDocument();
+        // The pinned plugin gets an explicit "unpin to update" affordance.
+        expect(screen.getByText(/unpin to update/i)).toBeInTheDocument();
+    });
+
     it('hides the request button for an admin without admin.system.update', () => {
         state.canUpdate = false;
 
