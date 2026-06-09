@@ -212,19 +212,16 @@ export const AdminSectionApi = {
     },
 
     /**
-     * Deletes a section by ID (permanently removes it)
-     * @param {number} pageId - The page ID
+     * Permanently destroys a section everywhere (all pages lose it).
      * @param {number} sectionId - The section ID to delete
      * @returns {Promise<{ success: boolean }>} Success response
      * @throws {Error} When API request fails
      */
-    async deleteSection(pageId: number, sectionId: number): Promise<{ success: boolean }> {
+    async deleteSection(sectionId: number): Promise<{ success: boolean }> {
         const response = await permissionAwareApiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_REMOVE_SECTION,
-            pageId,
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_DELETE,
             sectionId
         );
-        // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
     }
 };

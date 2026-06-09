@@ -121,7 +121,6 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     // Delete mutation
     const deleteSectionMutation = useDeleteSectionMutation({
         showNotifications: true,
-        pageId: pageId || undefined,
         onSuccess: () => {
             setDeleteModalOpened(false);
             setDeleteConfirmText('');
@@ -303,10 +302,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         if (!sectionId || !sectionDetailsData || !pageId) return;
 
         if (deleteConfirmText === sectionDetailsData.section.name) {
-            deleteSectionMutation.mutate({
-                pageId,
-                sectionId
-            });
+            deleteSectionMutation.mutate({ sectionId });
         }
     }, [sectionId, sectionDetailsData, pageId, deleteConfirmText, deleteSectionMutation]);
 

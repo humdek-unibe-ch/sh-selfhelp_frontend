@@ -50,7 +50,8 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
             // Invalidate relevant queries to update the UI with consistent query keys
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] })
+                queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
             ]);
             
             if (showNotifications) {
