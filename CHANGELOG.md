@@ -14,6 +14,31 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.1 — 2026-06-10
+
+Version numbering note: the changelog jumps from `v0.0.6` to `v0.1.1` to align
+with the `package.json` version line (already `0.1.0` for the platform 0.1.0
+release), which the System Maintenance screen now self-reports.
+
+### Added
+- **Registry-fed update picker**: the System Maintenance "Target version" field
+  is now an autocomplete fed by `GET /admin/system/update/releases` (core
+  versions published in the official registry, newest first, current version
+  excluded). When the registry is unreachable the field degrades to manual
+  version entry — the flow never blocks.
+- **Deployment kind row** on the System Maintenance screen: shows whether the
+  backend runs as a managed **Docker image** or a **source checkout** (dev /
+  composer setup), from the new `deployment` field in
+  `GET /admin/system/version`.
+
+### Changed
+- When the backend reports `frontend_version: unknown` (no
+  `SELFHELP_FRONTEND_VERSION` set — typical for dev), the screen now shows the
+  frontend's own build-time package version labelled "self-reported" instead of
+  the bare `unknown`.
+
+---
+
 ## v0.0.6 — 2026-06-08
 
 ### Added
