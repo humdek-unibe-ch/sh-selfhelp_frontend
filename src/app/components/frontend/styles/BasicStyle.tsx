@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import {
-    AlertStyle, ButtonStyle, CarouselStyle, CardStyle, CardSegmentStyle, ContainerStyle,
+    AlertStyle, ButtonStyle, CarouselStyle, CardStyle, CardSegmentStyle, ContainerStyle, RefContainerStyle,
     ImageStyle, InputStyle,
     LinkStyle, LoginStyle, RegisterStyle,
     SelectStyle, TabsStyle, TabStyle, VideoStyle,
@@ -25,15 +25,16 @@ import {
     TitleStyle, TextStyle, TypographyStyle,
     UnknownStyle,
     FormStyle,
-    ProfileStyle
+    ProfileStyle,
+    ShowUserInputStyle
 } from './SelfHelpStyles';
 import NoAccessStyle from './NoAccessStyle';
 import MissingStyle from './MissingStyle';
 import NotFoundStyle from './NotFoundStyle';
 import DebugWrapper from './shared/debug-wrapper/DebugWrapper';
 import {
-    ILoginStyle, IProfileStyle, IValidateStyle, IRegisterStyle, IResetPasswordStyle, ITwoFactorAuthStyle,
-    IContainerStyle, ICenterStyle, IDividerStyle, IPaperStyle, IAlertStyle, IHtmlTagStyle,
+    ILoginStyle, IProfileStyle, IValidateStyle, IRegisterStyle, IResetPasswordStyle, ITwoFactorAuthStyle, IShowUserInputStyle,
+    IContainerStyle, IRefContainerStyle, ICenterStyle, IDividerStyle, IPaperStyle, IAlertStyle, IHtmlTagStyle,
     IFormStyle, IInputStyle, ITextInputStyle, ITextareaStyle, IRichTextEditorStyle,
     ISelectStyle, IRadioStyle, ISliderStyle, ICheckboxStyle, IDatePickerStyle,
     IImageStyle, IVideoStyle, IAudioStyle, IFigureStyle, ICarouselStyle, ILinkStyle, ITabsStyle, ITabStyle, IFlexStyle, IGroupStyle, ISimpleGridStyle, IScrollAreaStyle, ISpaceStyle,
@@ -230,6 +231,8 @@ const styleImpls: Record<string, TStyleRenderer> = {
         <NotFoundStyle style={style as any} styleProps={styleProps} cssClass={cssClass} />,
 
     // ===== layout =====
+    refContainer: ({ style }) =>
+        <RefContainerStyle style={style as IRefContainerStyle} />,
     container: ({ style, styleProps, cssClass }) =>
         <ContainerStyle style={style as IContainerStyle} styleProps={styleProps} cssClass={cssClass} />,
     card: ({ style, styleProps, cssClass }) =>
@@ -384,6 +387,10 @@ const styleImpls: Record<string, TStyleRenderer> = {
         <SpoilerStyle style={style as ISpoilerStyle} styleProps={styleProps} cssClass={cssClass} />,
     typography: ({ style, styleProps, cssClass }) =>
         <TypographyStyle style={style as ITypographyStyle} styleProps={styleProps} cssClass={cssClass} />,
+
+    // ===== data display =====
+    showUserInput: ({ style, styleProps, cssClass }) =>
+        <ShowUserInputStyle style={style as IShowUserInputStyle} styleProps={styleProps} cssClass={cssClass} />,
 };
 
 /**
