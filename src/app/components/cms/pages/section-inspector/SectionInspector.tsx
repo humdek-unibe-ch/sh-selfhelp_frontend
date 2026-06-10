@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import {
+    Anchor,
     Box,
     Modal,
     Stack,
@@ -492,17 +493,15 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                                                                 <List size="sm" withPadding>
                                                                     {otherPages.map((page) => (
                                                                         <List.Item key={page.id}>
-                                                                            <Text
+                                                                            <Anchor
                                                                                 size="sm"
                                                                                 fw={500}
-                                                                                component="a"
                                                                                 href={`/admin/pages/${page.keyword}`}
                                                                                 target="_blank"
                                                                                 rel="noopener noreferrer"
-                                                                                style={{ textDecoration: 'underline', cursor: 'pointer' }}
                                                                             >
                                                                                 {page.keyword}
-                                                                            </Text>
+                                                                            </Anchor>
                                                                         </List.Item>
                                                                     ))}
                                                                 </List>
@@ -521,17 +520,15 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                                                             <List size="sm" withPadding>
                                                                 {publishedOtherPages.map((page) => (
                                                                     <List.Item key={page.id}>
-                                                                        <Text
+                                                                        <Anchor
                                                                             size="sm"
                                                                             fw={500}
-                                                                            component="a"
                                                                             href={`/admin/pages/${page.keyword}`}
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
-                                                                            style={{ textDecoration: 'underline', cursor: 'pointer' }}
                                                                         >
                                                                             {page.keyword}
-                                                                        </Text>
+                                                                        </Anchor>
                                                                     </List.Item>
                                                                 ))}
                                                             </List>

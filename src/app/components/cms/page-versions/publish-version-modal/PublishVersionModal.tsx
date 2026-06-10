@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { Modal, Stack, TextInput, Textarea, Button, Group, Text, Alert, List, Loader } from '@mantine/core';
+import { Modal, Stack, TextInput, Textarea, Button, Group, Text, Alert, List, Loader, Anchor } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconDeviceFloppy, IconAlertTriangle } from '@tabler/icons-react';
 import type { ISectionPage } from '../../../../../types/responses/admin/section-utility.types';
@@ -80,17 +80,15 @@ export function PublishVersionModal({ opened, onClose, onPublish, isLoading, aff
                                 <List size="sm" withPadding>
                                     {affectedPublishedPages.map((page) => (
                                         <List.Item key={page.id}>
-                                            <Text
+                                            <Anchor
                                                 size="sm"
                                                 fw={500}
-                                                component="a"
                                                 href={`/admin/pages/${page.keyword}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                style={{ textDecoration: 'underline', cursor: 'pointer' }}
                                             >
                                                 {page.keyword}
-                                            </Text>
+                                            </Anchor>
                                         </List.Item>
                                     ))}
                                 </List>
