@@ -60,11 +60,31 @@ jobs:
         with:
           path: sh-selfhelp_frontend
 
+      # Same-branch-or-main: run the stack against the backend branch
+      # matching this build's branch name when it exists, else main. See
+      # sh-selfhelp_backend/docs/developer/branch-merge-order.md.
+      - name: Resolve backend ref (same branch as this build, else main)
+        id: backend-ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          BRANCH="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          REF="main"
+          if [ -n "$BRANCH" ] && [ "$BRANCH" != "main" ] && \
+             git ls-remote --exit-code --heads \
+               "https://x-access-token:${GH_TOKEN}@github.com/humdek-unibe-ch/sh-selfhelp_backend.git" \
+               "refs/heads/${BRANCH}" > /dev/null 2>&1; then
+            REF="$BRANCH"
+          fi
+          echo "ref=${REF}" >> "$GITHUB_OUTPUT"
+          echo "Resolved sh-selfhelp_backend ref: ${REF} (build branch: ${BRANCH})"
+
       - name: Checkout backend
         uses: actions/checkout@v4
         with:
           repository: humdek-unibe-ch/sh-selfhelp_backend
-          ref: main
+          ref: ${{ steps.backend-ref.outputs.ref }}
           path: sh-selfhelp_backend
 
       - name: Set up PHP 8.4
