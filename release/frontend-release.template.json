@@ -1,11 +1,8 @@
 {
+  "$comment": "Channel/build metadata only. The compatibility ranges live in /release-manifest.json (single source for the registry resolver AND the descriptor step).",
   "kind": "selfhelp-frontend-release",
   "channel": "stable",
   "builtFrom": {
     "nextStandalone": true
-  },
-  "backendCompatibility": {
-    "requiredCoreRange": ">=0.1.0 <0.2.0",
-    "requiredApiVersion": "0.1.0"
   }
 }

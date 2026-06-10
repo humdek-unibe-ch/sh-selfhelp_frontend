@@ -14,6 +14,22 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.4 — 2026-06-10
+
+### Added
+- **Automatic registry release candidate**: tagging the frontend now sends the
+  new version + built image digest to the unified registry's
+  `auto-core-release` workflow, which checks compatibility against the latest
+  published core and stages the signed frontend release as a reviewed PR
+  (human merge still required before anything becomes installable).
+- **`release-manifest.json`**: the single in-repo source for the supported
+  core range (`supports.core`) and `requiredApiVersion` — read both by the
+  release descriptor step and by the registry resolver at the released tag.
+
+### Changed
+- `release/frontend-release.template.json` now carries channel/build metadata
+  only; the compatibility ranges moved to `release-manifest.json`.
+
 ## v0.1.3 — 2026-06-10
 
 ### Fixed
