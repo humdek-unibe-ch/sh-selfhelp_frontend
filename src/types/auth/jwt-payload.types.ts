@@ -202,6 +202,11 @@ export const PERMISSIONS = {
     // Settings
     ADMIN_SETTINGS: 'admin.settings',
 
+    // System maintenance (instance-scoped update flow)
+    ADMIN_SYSTEM_READ: 'admin.system.read',
+    ADMIN_SYSTEM_UPDATE: 'admin.system.update',
+    ADMIN_SYSTEM_MAINTENANCE: 'admin.system.maintenance',
+
     // User management
     ADMIN_USER_BLOCK: 'admin.user.block',
     ADMIN_USER_CREATE: 'admin.user.create',

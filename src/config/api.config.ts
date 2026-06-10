@@ -477,6 +477,41 @@ export const API_CONFIG = {
             permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
         },
 
+        // Admin system maintenance / update endpoints (instance-scoped).
+        // Routes mirror `@selfhelp/shared` SYSTEM_ENDPOINTS (BFF-relative form).
+        ADMIN_SYSTEM_VERSION: {
+            route: '/admin/system/version',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_HEALTH: {
+            route: '/admin/system/health',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_ADVISORIES: {
+            route: '/admin/system/advisories',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_MAINTENANCE: {
+            route: '/admin/system/maintenance',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_MAINTENANCE_SET: {
+            route: '/admin/system/maintenance',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_MAINTENANCE]
+        },
+        ADMIN_SYSTEM_UPDATE_PREFLIGHT: {
+            route: '/admin/system/update/preflight',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_UPDATE_REQUEST: {
+            route: '/admin/system/update/request',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_UPDATE]
+        },
+        ADMIN_SYSTEM_UPDATE_STATUS: {
+            route: '/admin/system/update/status',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+
         // Admin page keywords endpoints
         ADMIN_PAGE_KEYWORDS_GET_ALL: {
             route: '/admin/page-keywords',

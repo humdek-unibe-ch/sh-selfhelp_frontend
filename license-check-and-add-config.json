@@ -16,7 +16,9 @@
         "knip.json",
         "license-check-and-add-config.json",
         "header.txt",
-        "LICENSE"
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore"
     ],
     "licenseFormats": {
         "ts|tsx|js|jsx|mjs|cjs": {

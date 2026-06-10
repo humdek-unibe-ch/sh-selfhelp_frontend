@@ -1,0 +1,27 @@
+# Build context hygiene for the production frontend image.
+# Keep the context small + reproducible: the image installs from the lockfile
+# and builds the standalone server itself.
+node_modules
+.next
+out
+.git
+.github
+.vscode
+.idea
+coverage
+playwright-report
+test-results
+e2e
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+*.log
+.env
+.env.*
+!.env.example
+Dockerfile
+.dockerignore
+README.md
+docs
