@@ -26,6 +26,13 @@ export interface ISystemInstalledPlugin {
     compatible: boolean;
 }
 
+/**
+ * How the backend runtime is deployed. `docker` = the production image
+ * published by docker-release.yml (SELFHELP_DEPLOYMENT is baked into the
+ * image); `source` = composer dev / bare checkout (the default).
+ */
+export type TSystemDeployment = 'docker' | 'source';
+
 export interface ISystemVersion {
     instance_id: string;
     selfhelp_version: string;
@@ -33,6 +40,7 @@ export interface ISystemVersion {
     frontend_version: string;
     plugin_api_version: string;
     database_migration_version: string;
+    deployment: TSystemDeployment;
     safe_mode: boolean;
     maintenance_mode: boolean;
     installed_plugins: ISystemInstalledPlugin[];
@@ -166,6 +174,27 @@ export interface IUpdatePreflightCheck {
      */
     pinned?: boolean;
 }
+
+/** One core version published in the official registry index. */
+export interface IUpdateRelease {
+    version: string;
+    channel: 'stable' | 'beta' | 'nightly' | 'test';
+    /** Whether the registry marks this release as blocked (e.g. by a security advisory). */
+    blocked: boolean;
+}
+
+/**
+ * GET /admin/system/update/releases — core versions published in the official
+ * registry (newest first) for the "Request an update" version picker.
+ * `available: false` means the registry could not be reached; the UI falls
+ * back to manual version entry instead of blocking.
+ */
+export interface IUpdateReleases {
+    available: boolean;
+    current_version: string;
+    releases: IUpdateRelease[];
+}
+export type IUpdateReleasesResponse = IBaseApiResponse<IUpdateReleases>;
 
 export interface IUpdatePreflightOption {
     type: string;

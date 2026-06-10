@@ -20,7 +20,7 @@ SPDX-License-Identifier: MPL-2.0
 import { useState } from 'react';
 import {
     Paper, Stack, Grid, Group, Title, Text, Badge, Table, TextInput, Button,
-    Checkbox, Alert, Progress, Code, LoadingOverlay, Divider, List,
+    Checkbox, Alert, Progress, Code, LoadingOverlay, Divider, List, Autocomplete,
 } from '@mantine/core';
 import {
     IconInfoCircle, IconAlertTriangle, IconRefresh, IconShieldCheck, IconCircleCheck,
@@ -29,7 +29,7 @@ import { PageHeader } from '../../../shared/common/PageHeader';
 import { useAuth } from '../../../../../hooks/useAuth';
 import {
     useSystemVersion, useSystemHealth, useSystemAdvisories, useUpdatePreflight, useUpdateStatus,
-    useRequestUpdateMutation, useSystemMaintenance, useSetMaintenanceMutation,
+    useRequestUpdateMutation, useSystemMaintenance, useSetMaintenanceMutation, useUpdateReleases,
 } from '../../../../../hooks/useSystem';
 import type {
     TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus,
@@ -90,6 +90,13 @@ const ADVISORY_SEVERITY_COLOR: Record<TSystemAdvisorySeverity, string> = {
     critical: 'red',
 };
 
+/**
+ * The frontend's own package version, inlined at build time (next.config.mjs).
+ * Used as a self-reported fallback when the backend reports `unknown` (i.e.
+ * SELFHELP_FRONTEND_VERSION is not set on the backend — typical for dev).
+ */
+const SELF_REPORTED_FRONTEND_VERSION = process.env.NEXT_PUBLIC_FRONTEND_VERSION ?? 'unknown';
+
 // Statuses for which the operation is still in flight, so the UI keeps polling.
 const ACTIVE_STATUSES: TUpdateOperationStatus[] = [
     'requested',
@@ -122,12 +129,21 @@ export function SystemMaintenancePage() {
     const setMaintenance = useSetMaintenanceMutation();
     const preflight = useUpdatePreflight(checkedTarget);
     const requestUpdate = useRequestUpdateMutation();
+    const releases = useUpdateReleases();
 
     const versionData = version.data;
     const healthData = health.data;
     const advisoriesData = advisories.data;
     const maintenanceData = maintenance.data;
     const preflightData = preflight.data;
+    const releasesData = releases.data;
+
+    // Registry-published core versions for the picker (newest first), excluding
+    // the version this instance already runs. Blocked releases stay listed —
+    // the preflight is what surfaces and enforces the block.
+    const releaseOptions = (releasesData?.releases ?? [])
+        .filter((r) => r.version !== releasesData?.current_version)
+        .map((r) => r.version);
 
     // Poll the status while an operation is active.
     const status = useUpdateStatus(true, undefined);
@@ -211,7 +227,18 @@ export function SystemMaintenancePage() {
                                         </Table.Tr>
                                         <Table.Tr>
                                             <Table.Td><Text size="sm" c="dimmed">Frontend</Text></Table.Td>
-                                            <Table.Td><Code>{versionData.frontend_version}</Code></Table.Td>
+                                            <Table.Td>
+                                                {versionData.frontend_version === 'unknown' ? (
+                                                    <Group gap="xs">
+                                                        <Code>{SELF_REPORTED_FRONTEND_VERSION}</Code>
+                                                        <Text size="xs" c="dimmed">
+                                                            self-reported — the backend has no SELFHELP_FRONTEND_VERSION set
+                                                        </Text>
+                                                    </Group>
+                                                ) : (
+                                                    <Code>{versionData.frontend_version}</Code>
+                                                )}
+                                            </Table.Td>
                                         </Table.Tr>
                                         <Table.Tr>
                                             <Table.Td><Text size="sm" c="dimmed">Plugin API</Text></Table.Td>
@@ -224,6 +251,19 @@ export function SystemMaintenancePage() {
                                         <Table.Tr>
                                             <Table.Td><Text size="sm" c="dimmed">Instance</Text></Table.Td>
                                             <Table.Td><Code>{versionData.instance_id}</Code></Table.Td>
+                                        </Table.Tr>
+                                        <Table.Tr>
+                                            <Table.Td><Text size="sm" c="dimmed">Deployment</Text></Table.Td>
+                                            <Table.Td>
+                                                {versionData.deployment === 'docker' ? (
+                                                    <Badge color="blue" variant="light">Docker image</Badge>
+                                                ) : (
+                                                    <Group gap="xs">
+                                                        <Badge color="grape" variant="light">Source checkout</Badge>
+                                                        <Text size="xs" c="dimmed">dev / composer setup — not a managed install</Text>
+                                                    </Group>
+                                                )}
+                                            </Table.Td>
                                         </Table.Tr>
                                     </Table.Tbody>
                                 </Table>
@@ -532,11 +572,18 @@ export function SystemMaintenancePage() {
                     <LoadingOverlay visible={preflight.isFetching || requestUpdate.isPending} />
                     <Stack gap="sm">
                         <Group align="flex-end" gap="sm">
-                            <TextInput
+                            <Autocomplete
                                 label="Target version"
-                                placeholder="e.g. 0.1.1"
+                                data-testid="target-version-input"
+                                placeholder={releaseOptions.length > 0 ? `e.g. ${releaseOptions[0]}` : 'e.g. 0.1.1'}
+                                description={
+                                    releasesData?.available
+                                        ? 'Versions published in the official registry (newest first). You can also type a version manually.'
+                                        : 'The registry could not be reached — type the target version manually.'
+                                }
+                                data={releaseOptions}
                                 value={targetInput}
-                                onChange={(e) => setTargetInput(e.currentTarget.value)}
+                                onChange={setTargetInput}
                                 style={{ flex: 1 }}
                             />
                             <Button

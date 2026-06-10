@@ -23,7 +23,7 @@ import { screen, fireEvent } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 import type {
     ISystemAdvisories, ISystemHealth, ISystemMaintenance, ISystemVersion,
-    IUpdatePreflight, IUpdateStatus,
+    IUpdatePreflight, IUpdateStatus, IUpdateReleases,
 } from '../../../../../../types/responses/admin/system.types';
 
 const state = vi.hoisted(() => ({
@@ -35,6 +35,7 @@ const state = vi.hoisted(() => ({
     maintenance: null as ISystemMaintenance | null,
     status: null as IUpdateStatus | null,
     preflight: null as IUpdatePreflight | null,
+    releases: null as IUpdateReleases | null,
     requestMutate: vi.fn(),
 }));
 
@@ -62,6 +63,7 @@ vi.mock('../../../../../../hooks/useSystem', () => ({
     }),
     useUpdateStatus: () => ({ data: state.status }),
     useRequestUpdateMutation: () => ({ mutate: state.requestMutate, isPending: false }),
+    useUpdateReleases: () => ({ data: state.releases, isLoading: false, isError: false }),
 }));
 
 vi.mock('../../../../shared/common/PageHeader', () => ({
@@ -83,6 +85,7 @@ function version(): ISystemVersion {
         frontend_version: '0.1.0',
         plugin_api_version: '0.1.0',
         database_migration_version: 'Version20260608174905',
+        deployment: 'docker',
         safe_mode: false,
         maintenance_mode: false,
         installed_plugins: [],
@@ -146,7 +149,63 @@ describe('SystemMaintenancePage', () => {
         state.maintenance = maintenance();
         state.status = idleStatus();
         state.preflight = preflight();
+        state.releases = {
+            available: true,
+            current_version: '0.1.0',
+            releases: [
+                { version: '0.2.0', channel: 'stable', blocked: false },
+                { version: '0.1.0', channel: 'stable', blocked: false },
+            ],
+        };
         state.requestMutate = vi.fn();
+    });
+
+    it('shows the deployment kind and distinguishes a source checkout from a Docker install', () => {
+        renderWithProviders(<SystemMaintenancePage />);
+        expect(screen.getByText('Docker image')).toBeInTheDocument();
+
+        state.version = { ...version(), deployment: 'source' };
+        renderWithProviders(<SystemMaintenancePage />);
+        expect(screen.getByText('Source checkout')).toBeInTheDocument();
+        expect(screen.getByText(/not a managed install/i)).toBeInTheDocument();
+    });
+
+    it('falls back to the self-reported frontend version when the backend reports unknown', () => {
+        state.version = { ...version(), frontend_version: 'unknown' };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        // The literal "unknown" is replaced by the build-time package version
+        // plus an explanation of where the backend value would come from.
+        expect(screen.getByText(/self-reported/i)).toBeInTheDocument();
+        expect(screen.getByText(/SELFHELP_FRONTEND_VERSION/)).toBeInTheDocument();
+    });
+
+    it('feeds the target-version picker from the registry releases and excludes the current version', () => {
+        renderWithProviders(<SystemMaintenancePage />);
+
+        const input = screen.getByTestId('target-version-input');
+        expect(
+            screen.getByText(/Versions published in the official registry/i),
+        ).toBeInTheDocument();
+
+        fireEvent.focus(input);
+        fireEvent.change(input, { target: { value: '0.' } });
+        // 0.2.0 is offered; the currently installed 0.1.0 is not.
+        expect(screen.getByRole('option', { name: '0.2.0' })).toBeInTheDocument();
+        expect(screen.queryByRole('option', { name: '0.1.0' })).not.toBeInTheDocument();
+    });
+
+    it('falls back to manual version entry when the registry is unreachable', () => {
+        state.releases = { available: false, current_version: '0.1.0', releases: [] };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(screen.getByText(/type the target version manually/i)).toBeInTheDocument();
+        // Manual entry + preflight still work without the registry.
+        fireEvent.change(screen.getByTestId('target-version-input'), { target: { value: '0.2.0' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
+        expect(screen.getByRole('button', { name: /Request update for this instance/i })).toBeInTheDocument();
     });
 
     it('renders security advisories filtered to this instance', () => {
@@ -188,7 +247,7 @@ describe('SystemMaintenancePage', () => {
         // No preflight yet, so no request button.
         expect(screen.queryByRole('button', { name: /Request update for this instance/i })).not.toBeInTheDocument();
 
-        fireEvent.change(screen.getByLabelText('Target version'), { target: { value: '0.2.0' } });
+        fireEvent.change(screen.getByTestId('target-version-input'), { target: { value: '0.2.0' } });
         fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
 
         const requestButton = screen.getByRole('button', { name: /Request update for this instance/i });
@@ -212,7 +271,7 @@ describe('SystemMaintenancePage', () => {
         });
 
         renderWithProviders(<SystemMaintenancePage />);
-        fireEvent.change(screen.getByLabelText('Target version'), { target: { value: '0.2.0' } });
+        fireEvent.change(screen.getByTestId('target-version-input'), { target: { value: '0.2.0' } });
         fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
 
         expect(screen.getByRole('button', { name: /Request update for this instance/i })).toBeDisabled();
@@ -245,7 +304,7 @@ describe('SystemMaintenancePage', () => {
         });
 
         renderWithProviders(<SystemMaintenancePage />);
-        fireEvent.change(screen.getByLabelText('Target version'), { target: { value: '0.2.0' } });
+        fireEvent.change(screen.getByTestId('target-version-input'), { target: { value: '0.2.0' } });
         fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
 
         // The blocking component badge ("plugin: <id>") is rendered as its own node.
@@ -263,7 +322,7 @@ describe('SystemMaintenancePage', () => {
         state.canUpdate = false;
 
         renderWithProviders(<SystemMaintenancePage />);
-        fireEvent.change(screen.getByLabelText('Target version'), { target: { value: '0.2.0' } });
+        fireEvent.change(screen.getByTestId('target-version-input'), { target: { value: '0.2.0' } });
         fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
 
         expect(screen.queryByRole('button', { name: /Request update for this instance/i })).not.toBeInTheDocument();

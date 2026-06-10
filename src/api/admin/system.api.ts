@@ -13,6 +13,7 @@ import type {
     IUpdatePreflightResponse,
     IUpdateStatusResponse,
     IUpdateRequestResponse,
+    IUpdateReleasesResponse,
     IUpdateRequest,
 } from '../../types/responses/admin/system.types';
 
@@ -90,6 +91,16 @@ export class AdminSystemApi {
     /** GET /admin/system/update/status — status/progress for THIS instance. */
     static async getUpdateStatus(): Promise<IUpdateStatusResponse> {
         const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_STATUS);
+        return response.data;
+    }
+
+    /**
+     * GET /admin/system/update/releases — core versions published in the
+     * official registry (newest first) for the target-version picker. Fails
+     * soft to `available: false` when the registry is unreachable.
+     */
+    static async getUpdateReleases(): Promise<IUpdateReleasesResponse> {
+        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_RELEASES);
         return response.data;
     }
 }

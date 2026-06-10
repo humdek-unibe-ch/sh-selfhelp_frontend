@@ -13,6 +13,7 @@ const SYSTEM_HEALTH_KEY = ['systemHealth'] as const;
 const SYSTEM_ADVISORIES_KEY = ['systemAdvisories'] as const;
 const SYSTEM_MAINTENANCE_KEY = ['systemMaintenance'] as const;
 const SYSTEM_UPDATE_STATUS_KEY = ['systemUpdateStatus'] as const;
+const SYSTEM_UPDATE_RELEASES_KEY = ['systemUpdateReleases'] as const;
 
 /**
  * Current instance version summary (backend/frontend/plugin-api/db-migration +
@@ -146,6 +147,24 @@ export function useUpdateStatus(enabled: boolean = true, refetchInterval: number
         select: (response) => response.data,
         enabled,
         refetchInterval,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
+        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+    });
+}
+
+/**
+ * Core versions published in the official registry (newest first) for the
+ * target-version picker. `available: false` means the registry could not be
+ * reached — the UI falls back to manual version entry, never blocks.
+ */
+export function useUpdateReleases(enabled: boolean = true) {
+    return useQuery({
+        queryKey: SYSTEM_UPDATE_RELEASES_KEY,
+        queryFn: () => AdminSystemApi.getUpdateReleases(),
+        select: (response) => response.data,
+        enabled,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,

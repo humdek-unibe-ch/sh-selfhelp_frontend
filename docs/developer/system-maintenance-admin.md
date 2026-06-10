@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Frontend developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-09.
+Last verified: 2026-06-10.
 Source of truth: `src/app/admin/system/page.tsx`, `src/app/components/cms/system/system-maintenance-page/SystemMaintenancePage.tsx`, `src/hooks/useSystem.ts`, `src/types/responses/admin/system.types.ts`, `src/app/components/cms/system/system-maintenance-page/__tests__/SystemMaintenancePage.test.tsx`.
 
 The **System Maintenance** screen (`/admin/system`) is the admin UI over the
@@ -25,14 +25,20 @@ instance.
 - UI: `SystemMaintenancePage` (Client Component), built with Mantine.
 - Data: the `useSystem` hooks wrap the BFF/React Query calls —
   `useSystemVersion`, `useSystemHealth`, `useUpdatePreflight`, `useUpdateStatus`,
-  `useRequestUpdateMutation`, `useSystemMaintenance`, `useSetMaintenanceMutation`.
+  `useRequestUpdateMutation`, `useSystemMaintenance`, `useSetMaintenanceMutation`,
+  `useUpdateReleases`.
 - Types: `src/types/responses/admin/system.types.ts`.
 
 ## What the screen shows
 
 - **Current instance** — SelfHelp / backend / frontend / plugin-API / DB-migration
   versions and the server-derived `instance_id`, plus Maintenance / Safe-mode
-  badges.
+  badges, and a **Deployment** row showing whether the backend runs as a managed
+  **Docker image** or a **source checkout** (dev). When the backend reports
+  `frontend_version: unknown` (no `SELFHELP_FRONTEND_VERSION` set — typical for
+  dev), the screen shows the frontend's own build-time package version labelled
+  "self-reported" (`NEXT_PUBLIC_FRONTEND_VERSION`, inlined from `package.json`
+  by `next.config.mjs`).
 - **Installed plugins** — each plugin's version and whether it is compatible with
   the running core.
 - **System health** — aggregated component status (`healthy` / `degraded` /
@@ -46,7 +52,10 @@ instance.
   these itself.
 - **Update operation** — when an operation is active, its status, progress bar,
   message, and per-step list, polled every ~4 s until a terminal state.
-- **Request an update** — enter a target version, run **Check compatibility**
+- **Request an update** — pick a target version (the field is an autocomplete
+  fed by `GET /admin/system/update/releases`: registry-published core versions,
+  newest first, current version excluded; manual entry still works and is the
+  fallback when the registry is unreachable), run **Check compatibility**
   (preflight), then request the update.
 
 ## Hard rules enforced in the UI
@@ -69,7 +78,8 @@ These mirror the backend guarantees (see the backend doc
 
 1. Open **Admin → System** (you need `admin.system.read`).
 2. Review the version, plugin compatibility, and health.
-3. Enter the target version and click **Check compatibility**. Read the preflight:
+3. Pick the target version from the registry-fed dropdown (or type it if the
+   registry is unreachable) and click **Check compatibility**. Read the preflight:
    `ok` (safe), `warning` (proceed carefully), or `blocked` (fix the listed
    errors first). Blocking security advisories appear as `error` checks.
 4. If the preflight reports a destructive migration, take a backup on the server

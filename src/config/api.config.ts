@@ -511,6 +511,10 @@ export const API_CONFIG = {
             route: '/admin/system/update/status',
             permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
         },
+        ADMIN_SYSTEM_UPDATE_RELEASES: {
+            route: '/admin/system/update/releases',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
 
         // Admin page keywords endpoints
         ADMIN_PAGE_KEYWORDS_GET_ALL: {

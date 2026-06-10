@@ -3,9 +3,11 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
 
 const SYMFONY_BACKEND_URL = (
   process.env.SYMFONY_INTERNAL_URL ||
@@ -13,10 +15,20 @@ const SYMFONY_BACKEND_URL = (
   'http://localhost/symfony'
 ).replace(/\/+$/, '');
 
+// The frontend's own package version, inlined at build time. The admin
+// system page uses it as a self-reported fallback when the backend reports
+// `frontend_version: unknown` (i.e. SELFHELP_FRONTEND_VERSION is not set on
+// the backend — typical for source/dev setups).
+const FRONTEND_VERSION = require('./package.json').version;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
     allowedDevOrigins: ['127.0.0.1'],
+
+    env: {
+      NEXT_PUBLIC_FRONTEND_VERSION: FRONTEND_VERSION,
+    },
 
     transpilePackages: ['@selfhelp/shared'],
 
