@@ -108,8 +108,12 @@ jobs:
           format: spdx-json
           output-file: sbom.spdx.json
 
+      # SHA-pinned to the 0.35.0 immutable release — the only tag guaranteed
+      # safe after the March 2026 Trivy supply-chain compromise
+      # (GHSA-69fq-xp46-6x23). Older tags were force-pushed to malicious
+      # commits and later deleted; never pin this action by mutable tag.
       - name: Scan image for vulnerabilities (Trivy)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           image-ref: ${{ env.IMAGE }}:${{ steps.version.outputs.version }}
           format: sarif
