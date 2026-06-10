@@ -32,6 +32,9 @@ import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 import { useUnpublishedChanges } from '../../../../../hooks/useUnpublishedChanges';
+import { useSectionPages } from '../../../../../hooks/useSectionUtility';
+import { usePageSections } from '../../../../../hooks/usePageDetails';
+import type { IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { VersionDetailsModal } from '../version-details-modal/VersionDetailsModal';
 import { VersionComparisonViewer } from '../version-comparison-viewer/VersionComparisonViewer';
 import { PublishVersionModal } from '../publish-version-modal/PublishVersionModal';
@@ -81,6 +84,31 @@ export function PublishingPanel({
 
     // Check for unpublished changes
     const { data: changesStatus, isLoading: changesLoading } = useUnpublishedChanges(pageId);
+
+    const { data: pageSectionsData } = usePageSections(pageId, publishModalOpened);
+
+    const refContainerIds = useMemo(() => {
+        if (!pageSectionsData?.sections) return [];
+        const ids: number[] = [];
+        const collect = (sections: IPageSectionWithFields[]) => {
+            for (const s of sections) {
+                if (s.style_name === 'refContainer') ids.push(s.id);
+                if (s.children?.length) collect(s.children as IPageSectionWithFields[]);
+            }
+        };
+        collect(pageSectionsData.sections as IPageSectionWithFields[]);
+        return ids;
+    }, [pageSectionsData?.sections]);
+
+    const {
+        data: sectionPagesData,
+        isLoading: isCheckingAffectedPages,
+    } = useSectionPages(refContainerIds, publishModalOpened && refContainerIds.length > 0);
+
+    const affectedPublishedPages = useMemo(() =>
+        (sectionPagesData ?? []).filter(p => p.id !== pageId && p.isPublished),
+        [sectionPagesData, pageId]
+    );
 
     // Determine publish button state
     const hasUnpublishedChanges = changesStatus?.has_unpublished_changes ?? false;
@@ -427,6 +455,8 @@ export function PublishingPanel({
                 onClose={() => setPublishModalOpened(false)}
                 onPublish={handlePublishModalSubmit}
                 isLoading={isPublishing}
+                affectedPublishedPages={affectedPublishedPages}
+                isCheckingAffectedPages={isCheckingAffectedPages}
             />
 
             {/* Version Comparison Modal */}

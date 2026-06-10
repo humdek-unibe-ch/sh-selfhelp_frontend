@@ -14,12 +14,13 @@ import { API_CONFIG } from '../../config/api.config';
 import { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import { TSectionDetailsResponse, ISectionDetailsData } from '../../types/responses/admin/admin.types';
 import type { AxiosRequestConfig } from 'axios';
-import { 
+import {
     IAddSectionInSectionData,
     ICreateSectionInPageData,
     ICreateSectionInSectionData,
     IUpdateSectionInPageData
 } from '../../types/requests/admin/create-section.types';
+import type { ISectionPage } from '../../types/responses/admin/section-utility.types';
 
 export const AdminSectionApi = {
     /**
@@ -212,13 +213,13 @@ export const AdminSectionApi = {
     },
 
     /**
-     * Returns all pages that contain the given section (direct or via ancestor).
-     * @param {number} sectionId - The section ID
+     * Returns all pages that contain any of the given sections (direct or via ancestor).
+     * @param {number[]} sectionIds - One or more section IDs
      */
-    async getSectionPages(sectionId: number): Promise<{ id: number; keyword: string }[]> {
+    async getSectionPages(sectionIds: number[]): Promise<ISectionPage[]> {
         const response = await permissionAwareApiClient.get(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_PAGES,
-            sectionId
+            { params: { ids: sectionIds } }
         );
         return response.data.data ?? [];
     },

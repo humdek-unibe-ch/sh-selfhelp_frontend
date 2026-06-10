@@ -126,7 +126,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     const {
         data: sectionPages,
         isLoading: isSectionPagesLoading,
-    } = useSectionPages(sectionId, deleteModalOpened && isRefContainer);
+    } = useSectionPages(sectionId ? [sectionId] : [], deleteModalOpened && isRefContainer);
 
     // Delete mutation
     const deleteSectionMutation = useDeleteSectionMutation({

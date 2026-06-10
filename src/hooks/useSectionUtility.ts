@@ -47,17 +47,18 @@ export function useRefContainerSections(enabled: boolean = true) {
 }
 
 /**
- * Hook to fetch all pages that contain a given section
+ * Hook to fetch all pages that contain any of the given sections (direct or via ancestor).
+ * Pass a single-element array for the delete-modal case, multiple IDs for the publish case.
  */
-export function useSectionPages(sectionId: number | null, enabled: boolean = true) {
+export function useSectionPages(sectionIds: number[], enabled: boolean = true) {
     return useQuery<ISectionPage[]>({
-        queryKey: ['admin', 'sections', sectionId, 'pages'],
+        queryKey: ['admin', 'sections', 'pages', sectionIds],
         queryFn: async (): Promise<ISectionPage[]> => {
-            return AdminSectionApi.getSectionPages(sectionId!);
+            return AdminSectionApi.getSectionPages(sectionIds);
         },
         staleTime: 0,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
-        enabled: enabled && !!sectionId,
+        enabled: enabled && sectionIds.length > 0,
     });
 }
 
