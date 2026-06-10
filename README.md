@@ -6,6 +6,35 @@ SPDX-License-Identifier: MPL-2.0
 
 React frontend for SelfHelp based on [MaterialPro NextJs template](https://www.wrappixel.com/templates/materialpro-nextjs-admin-dashboard-app-directory/).
 
+## Install & update
+
+**Production / testing servers:** this frontend is never deployed from a git
+checkout. It ships as a signed Docker image that
+[`sh-manager`](https://github.com/humdek-unibe-ch/sh-manager) installs and
+updates together with the backend stack:
+
+```bash
+shm instance install --id website1 --domain website1.example.ch --provision ...
+shm instance update website1
+```
+
+See the manager repo's `docs/operator/install.md` (Linux production) and
+`docs/operator/windows-quickstart.md` (Windows testing on localhost ports).
+
+**Development:**
+
+```bash
+git clone https://github.com/humdek-unibe-ch/sh-selfhelp_frontend.git
+cd sh-selfhelp_frontend
+npm install
+# Point at your local backend (default: http://localhost/symfony):
+#   .env.local → NEXT_PUBLIC_API_URL=http://localhost/symfony
+npm run dev          # Next.js dev server on http://localhost:3000
+npm run build && npm run start   # production build, run locally
+```
+
+Update a development checkout with `git pull && npm install`.
+
 ## License
 
 Licensed under the [Mozilla Public License 2.0](LICENSE). Copyright (c) 2026 Humdek, University of Bern.
