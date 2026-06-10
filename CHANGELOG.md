@@ -14,6 +14,24 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.3 — 2026-06-10
+
+### Fixed
+- **`frontend-release` tag pipeline no longer dies at the SARIF upload**: the
+  workflow was missing the `security-events: write` permission, so
+  `github/codeql-action/upload-sarif` failed with "Resource not accessible by
+  integration" and killed the whole release after the image was already
+  pushed (this is what broke the `v0.1.2` release — its image exists on GHCR
+  but it has no GitHub Release/descriptor). The upload also moved to
+  `upload-sarif@v4` (v3 is deprecated December 2026) and is now
+  `continue-on-error` so an advisory code-scanning hiccup can never block a
+  tagged release again.
+
+### Changed
+- `@selfhelp/shared` dependency raised to `^1.5.0` (deployment-kind + update
+  releases contracts). This ships the dependency bump tagged as `v0.1.2`,
+  whose release pipeline never completed.
+
 ## v0.1.1 — 2026-06-10
 
 Version numbering note: the changelog jumps from `v0.0.6` to `v0.1.1` to align
