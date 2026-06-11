@@ -2,7 +2,9 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React from 'react';
+'use client';
+
+import React, { useEffect } from 'react';
 import { Stack } from '@mantine/core';
 import type { TStyle } from '../../../../types/common/styles.types';
 import BasicStyle from '../styles/BasicStyle';
@@ -11,16 +13,30 @@ interface IPageContentRendererProps {
     sections: TStyle[];
 }
 
-/**
- * PageContentRenderer - Core component for rendering CMS page content
- * 
- * This component takes an array of sections and renders them using the
- * BasicStyle component factory. It's used by both the main page renderer
- * and the client-side renderer for dynamic content updates.
- * 
- * @component
- */
 export function PageContentRenderer({ sections }: IPageContentRendererProps) {
+    useEffect(() => {
+        const scrollToId = (id: string) => {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        // ?anchorId=value — scroll to section whose anchor matches
+        const params = new URLSearchParams(window.location.search);
+        const anchorId = params.get('anchorId');
+        if (anchorId) scrollToId(anchorId);
+
+        // #hash — scroll to section-{id} wrapper
+        const hash = window.location.hash.slice(1);
+        if (hash) scrollToId(hash);
+
+        const onHashChange = () => {
+            const h = window.location.hash.slice(1);
+            if (h) scrollToId(h);
+        };
+        window.addEventListener('hashchange', onHashChange);
+        return () => window.removeEventListener('hashchange', onHashChange);
+    }, [sections]);
+
     if (!sections || sections.length === 0) {
         return null;
     }
@@ -28,11 +44,15 @@ export function PageContentRenderer({ sections }: IPageContentRendererProps) {
     return (
         <div>
             <Stack gap={0}>
-                {sections.map((section, index) => {
+                {sections.map((section) => {
                     if (!section) return null;
-
-                    const key = `section-${section.id || `index-${index}`}`;
-                    return <BasicStyle key={key} style={section} />;
+                    const anchor = (section as any).anchor?.content;
+                    const sectionId = `section-${section.id}`;
+                    return (
+                        <div key={sectionId} id={anchor || sectionId}>
+                            <BasicStyle style={section} />
+                        </div>
+                    );
                 })}
             </Stack>
         </div>
