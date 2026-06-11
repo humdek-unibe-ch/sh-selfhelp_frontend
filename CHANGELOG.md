@@ -14,6 +14,87 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.4 — 2026-06-10
+
+### Added
+- **Automatic registry release candidate**: tagging the frontend now sends the
+  new version + built image digest to the unified registry's
+  `auto-core-release` workflow, which checks compatibility against the latest
+  published core and stages the signed frontend release as a reviewed PR
+  (human merge still required before anything becomes installable).
+- **`release-manifest.json`**: the single in-repo source for the supported
+  core range (`supports.core`) and `requiredApiVersion` — read both by the
+  release descriptor step and by the registry resolver at the released tag.
+
+### Changed
+- `release/frontend-release.template.json` now carries channel/build metadata
+  only; the compatibility ranges moved to `release-manifest.json`.
+
+## v0.1.3 — 2026-06-10
+
+### Fixed
+- **`frontend-release` tag pipeline no longer dies at the SARIF upload**: the
+  workflow was missing the `security-events: write` permission, so
+  `github/codeql-action/upload-sarif` failed with "Resource not accessible by
+  integration" and killed the whole release after the image was already
+  pushed (this is what broke the `v0.1.2` release — its image exists on GHCR
+  but it has no GitHub Release/descriptor). The upload also moved to
+  `upload-sarif@v4` (v3 is deprecated December 2026) and is now
+  `continue-on-error` so an advisory code-scanning hiccup can never block a
+  tagged release again.
+
+### Changed
+- `@selfhelp/shared` dependency raised to `^1.5.0` (deployment-kind + update
+  releases contracts). This ships the dependency bump tagged as `v0.1.2`,
+  whose release pipeline never completed.
+
+## v0.1.1 — 2026-06-10
+
+Version numbering note: the changelog jumps from `v0.0.6` to `v0.1.1` to align
+with the `package.json` version line (already `0.1.0` for the platform 0.1.0
+release), which the System Maintenance screen now self-reports.
+
+### Added
+- **Registry-fed update picker**: the System Maintenance "Target version" field
+  is now an autocomplete fed by `GET /admin/system/update/releases` (core
+  versions published in the official registry, newest first, current version
+  excluded). When the registry is unreachable the field degrades to manual
+  version entry — the flow never blocks.
+- **Deployment kind row** on the System Maintenance screen: shows whether the
+  backend runs as a managed **Docker image** or a **source checkout** (dev /
+  composer setup), from the new `deployment` field in
+  `GET /admin/system/version`.
+
+### Changed
+- When the backend reports `frontend_version: unknown` (no
+  `SELFHELP_FRONTEND_VERSION` set — typical for dev), the screen now shows the
+  frontend's own build-time package version labelled "self-reported" instead of
+  the bare `unknown`.
+
+---
+
+## v0.0.6 — 2026-06-08
+
+### Added
+- **System Maintenance admin screen** (`/admin/system`): view this instance's
+  SelfHelp / backend / frontend / plugin-API / DB-migration versions and
+  installed-plugin compatibility, and see aggregated system health.
+- **Connected update flow**: run an update compatibility preflight for a target
+  version and request a signed update for this instance (the SelfHelp Manager
+  performs the Docker work). A blocked preflight disables the request; a
+  destructive database migration requires an explicit risk acknowledgement plus a
+  typed confirmation. Live operation status with a progress bar and per-step
+  detail.
+- **Maintenance mode** toggle and a read-only **safe mode** indicator, with
+  on-screen `sh-manager` guidance for server-side backups and support bundles.
+- The screen honours the `admin.system.read`, `admin.system.update`, and
+  `admin.system.maintenance` permissions; the browser never sends an instance id
+  (the backend derives it), and env-forced maintenance is shown read-only.
+
+See [docs/developer/system-maintenance-admin.md](docs/developer/system-maintenance-admin.md).
+
+---
+
 ## v0.0.5 — 2026-05-28
 
 ### Fixed

@@ -49,6 +49,14 @@ export const getAssetUrl = (filePath: string): string => {
         cleanPath = `uploads/${cleanPath}`;
     }
 
-    // Return full URL pointing to Symfony backend
+    // Production (Docker/BFF) mode: BACKEND_URL is a same-origin path prefix
+    // (e.g. `/api`). The backend is private, so emit a same-origin URL and let
+    // the frontend proxy it: `uploads/*` is rewritten to the internal backend
+    // (see next.config.mjs), and `assets/*` is served by Next from `public/`.
+    if (API_CONFIG.BACKEND_URL.startsWith('/')) {
+        return `/${cleanPath}`;
+    }
+
+    // Dev mode: BACKEND_URL is the absolute Symfony origin.
     return `${API_CONFIG.BACKEND_URL}/${cleanPath}`;
 };

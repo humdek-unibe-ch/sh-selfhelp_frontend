@@ -119,4 +119,61 @@ describe('RegisterStyle', () => {
 
         expect(screen.getByText('This registration code has already been used.')).toBeInTheDocument();
     });
+
+    it('hides the validation-code field and submits no code in open registration mode', async () => {
+        const user = userEvent.setup();
+        // open_registration === '1' (read top-level) means a code is not required.
+        renderWithProviders(
+            <RegisterStyle
+                style={makeStyle({ open_registration: { content: '1' } })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+
+        expect(screen.queryByLabelText(/Validation Code/i)).not.toBeInTheDocument();
+
+        await user.type(screen.getByLabelText(/Email/i), 'qa.guest@selfhelp.test');
+        await user.click(screen.getByRole('button', { name: 'Register' }));
+
+        expect(mutateMock).toHaveBeenCalledTimes(1);
+        expect(mutateMock).toHaveBeenCalledWith({
+            page_id: 42,
+            email: 'qa.guest@selfhelp.test',
+        });
+    });
+
+    it('renders CMS-provided labels for the validation-code field instead of the hardcoded English text', () => {
+        renderWithProviders(
+            <RegisterStyle
+                style={makeStyle({
+                    label_code: { content: 'Einladungscode' },
+                    code_placeholder: { content: 'Code eingeben' },
+                })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+
+        expect(screen.getByLabelText(/Einladungscode/i)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Code eingeben')).toBeInTheDocument();
+        expect(screen.queryByLabelText(/Validation Code/i)).not.toBeInTheDocument();
+    });
+
+    it('renders CMS-provided post-registration button labels on success', () => {
+        setRegisterState({ isSuccess: true });
+        renderWithProviders(
+            <RegisterStyle
+                style={makeStyle({
+                    label_go_home: { content: 'Startseite' },
+                    label_go_to_login: { content: 'Anmelden' },
+                })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+
+        expect(screen.getByRole('button', { name: 'Startseite' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Anmelden' })).toBeInTheDocument();
+    });
 });

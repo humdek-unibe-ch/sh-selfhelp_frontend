@@ -76,6 +76,8 @@ function consumedCode(overrides: Partial<IRegistrationCode> = {}): IRegistration
         code: 'QAQA1234ABCD',
         id_groups: 1,
         group_name: 'QA Group',
+        group_ids: [1],
+        group_names: ['QA Group'],
         created_at: '2026-06-01 10:00:00',
         consumed_at: '2026-06-02 12:30:00',
         is_consumed: true,
@@ -98,6 +100,23 @@ describe('RegistrationCodesPage', () => {
         expect(screen.getByText('QAQA1234ABCD')).toBeInTheDocument();
         expect(screen.getByText('qa.user@selfhelp.test')).toBeInTheDocument();
         expect(screen.getByText('Registered User')).toBeInTheDocument();
+    });
+
+    it('renders one badge per group for a multi-group code', () => {
+        // Use group names that are NOT in the mocked group filter options, so
+        // each name resolves to exactly one element (the table badge) rather
+        // than also matching a filter-dropdown option.
+        state.codes = [
+            consumedCode({
+                code: 'QAMULTI12345',
+                group_ids: [2, 3],
+                group_names: ['QA Subjects', 'QA Therapists'],
+            }),
+        ];
+        renderWithProviders(<RegistrationCodesPage />);
+
+        expect(screen.getByText('QA Subjects')).toBeInTheDocument();
+        expect(screen.getByText('QA Therapists')).toBeInTheDocument();
     });
 
     it('shows the Generate button when the user can create codes', () => {

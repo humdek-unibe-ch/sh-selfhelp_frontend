@@ -98,6 +98,33 @@ export function useUpdateTimezoneMutation() {
 }
 
 /**
+ * Mutation hook for updating the user's communication preferences (issue #29).
+ *
+ * Persists whether the backend may send the user scheduled notifications and
+ * (non-system) emails. Invalidates user data on success so the toggles and any
+ * dependent UI reflect the saved state.
+ */
+export function useUpdateCommunicationPreferencesMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+            receivesNotifications,
+            receivesEmails,
+        }: {
+            receivesNotifications: boolean;
+            receivesEmails: boolean;
+        }) => {
+            return AuthApi.updateCommunicationPreferences(receivesNotifications, receivesEmails);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+        },
+        ...REACT_QUERY_CONFIG.DEFAULT_OPTIONS.mutations
+    });
+}
+
+/**
  * Mutation hook for deleting user account
  */
 export function useDeleteAccountMutation() {

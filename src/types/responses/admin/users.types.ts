@@ -10,6 +10,8 @@ export interface IUserBasic {
   last_login: string | null;
   status: string;
   blocked: boolean;
+  receives_notifications: boolean;
+  receives_emails: boolean;
   code: string | null;
   validation_code: string | null;
   groups: string;
@@ -41,6 +43,8 @@ export interface IUserDetails {
   id_languages: number | null;
   id_userTypes: number | null;
   blocked: boolean;
+  receives_notifications: boolean;
+  receives_emails: boolean;
   status: string;
   groups: IUserGroup[];
   roles: IUserRole[];

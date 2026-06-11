@@ -203,15 +203,24 @@ export function MentionEditor({
         autofocus: autoFocus,
     });
 
-    // Update editor content when value prop changes externally
+    // Update editor content when value prop changes externally.
+    // The editor can be torn down (Tiptap nulls its schema on destroy) while a
+    // stale instance is still referenced here — e.g. when the section inspector
+    // remounts the field on a language switch. Reading editor.getHTML() on a
+    // destroyed editor throws "Cannot read properties of null (reading 'cached')",
+    // so we mirror Tiptap's own bindings and bail out when it is destroyed.
     React.useEffect(() => {
-        if (editor && !editor.isDestroyed && editor.getHTML() !== value) {
-            isUpdatingRef.current = true;
-            editor.commands.setContent(value);
-            setTimeout(() => {
-                isUpdatingRef.current = false;
-            }, 0);
+        if (!editor || editor.isDestroyed) {
+            return;
         }
+        if (editor.getHTML() === value) {
+            return;
+        }
+        isUpdatingRef.current = true;
+        editor.commands.setContent(value);
+        setTimeout(() => {
+            isUpdatingRef.current = false;
+        }, 0);
     }, [editor, value]);
 
     return (

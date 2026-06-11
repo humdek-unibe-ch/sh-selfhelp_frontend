@@ -325,6 +325,7 @@ export function AdminNavbar() {
         if (permissionChecker.canAccessDataBrowser()) systemToolLinks.push({ label: 'Data Browser', link: '/admin/data' });
         if (permissionChecker.canViewAuditLogs()) systemToolLinks.push({ label: 'Audit Logs', link: '/admin/data-access' });
         if (permissionChecker.canReadCache()) systemToolLinks.push({ label: 'Cache Management', link: '/admin/cache' });
+        if (permissionChecker.canReadSystem()) systemToolLinks.push({ label: 'System Maintenance', link: '/admin/system' });
         // Plugin Management lives under System Tools (with its own
         // permission gate) so the sidebar stays compact. The dedicated
         // plugin detail page is reachable at /admin/plugins/<id>.

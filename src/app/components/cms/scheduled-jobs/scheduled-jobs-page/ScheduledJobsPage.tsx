@@ -6,6 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useState } from 'react';
 import { ScheduledJobsList } from '../scheduled-jobs-list/ScheduledJobsList';
+import { ScheduledJobsRunnerPanel } from '../scheduled-jobs-runner-panel/ScheduledJobsRunnerPanel';
 import { ScheduledJobDetailsModal } from '../scheduled-job-details-modal/ScheduledJobDetailsModal';
 import { DeleteJobModal } from '../delete-job-modal/DeleteJobModal';
 import { BulkDeleteJobsModal } from '../bulk-delete-jobs-modal/BulkDeleteJobsModal';
@@ -62,6 +63,8 @@ export function ScheduledJobsPage() {
 
     return (
         <>
+            <ScheduledJobsRunnerPanel />
+
             <ScheduledJobsList
                 onViewJob={handleViewJob}
                 onExecuteJob={handleExecuteJob}

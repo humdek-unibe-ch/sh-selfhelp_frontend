@@ -197,7 +197,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                     },
                     notification: {
                         notification_types: 'email',
-                        recipient: '@user'
+                        recipient: '{{recipient.email}}'
                     }
                 }]
             }
@@ -236,7 +236,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 },
                 notification: {
                     notification_types: 'email',
-                    recipient: '@user',
+                    recipient: '{{recipient.email}}',
                     subject: `block_${bIndex}.job_${newJobIndex}.notification.subject`,
                     body: `block_${bIndex}.job_${newJobIndex}.notification.body`
                 }
@@ -278,7 +278,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 },
                 notification: {
                     notification_types: 'email',
-                    recipient: '@user',
+                    recipient: '{{recipient.email}}',
                     subject: `${reminderPrefix}.subject`,
                     body: `${reminderPrefix}.body`
                 }
@@ -801,7 +801,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     label="Send To (recipient)"
                                     description="Enter recipient email address"
                                     placeholder="user@example.com"
-                                    value={n.recipient || "@user"}
+                                    value={n.recipient || "{{recipient.email}}"}
                                     onChange={(e) => onPatch({ notification: { ...n, recipient: e.currentTarget.value } })}
                                     required
                                     size="sm"
@@ -1114,7 +1114,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                                     job_type: newJobType,
                                                                                     notification: {
                                                                                         notification_types: 'email',
-                                                                                        recipient: '@user',
+                                                                                        recipient: '{{recipient.email}}',
                                                                                         subject: `block_${bIndex}.job_${jIndex}.notification.subject`,
                                                                                         body: `block_${bIndex}.job_${jIndex}.notification.body`
                                                                                     }

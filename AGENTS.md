@@ -39,6 +39,14 @@ These rules apply to every documentation change in active SelfHelp2 repositories
 - Do not expose secrets, tokens, private keys, database URLs, Mercure/JWT secrets, or real credentials in docs, examples, logs, or screenshots. Use redacted examples and documented env var names only.
 - When docs conflict with runtime behavior, treat runtime behavior as source of truth, flag the stale doc, and update or archive it instead of copying the conflict.
 
+## Style Documentation Rules
+
+CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` types + the frontend/mobile renderers in `src/app/components/frontend/styles/`). The canonical per-style reference lives in the **backend** repo at `docs/reference/styles/` (`index.md` catalog, `_template.md`, and `<category>/<style>.md` pages).
+
+- When you **add a new style renderer**, the change is incomplete until the matching backend `docs/reference/styles/<category>/<style>.md` page exists and is linked from the catalog `index.md`.
+- When you **change an existing style renderer** in a way that affects its fields, behaviour, modes, defaults, or the field-content contract, update that style's backend reference page in the same change (creating the full page if it was "catalog only").
+- Keep the documented field list and behaviour aligned with the shared `I<Name>Style` type and the actual component; treat a style renderer change with no matching `docs/reference/styles/` update as an incomplete change during review.
+
 ## Engineering Principles
 ### Think Before Coding
 - State assumptions explicitly.
@@ -434,6 +442,8 @@ When making changes, mention the relevant impact on:
 - For new CMS style components, update types, exports, and `BasicStyle.tsx` registration; coordinate backend field/style definitions separately.
 
 ## Testing Rules
+- **Run only the tests related to your change — never the whole suite.** The full suite is very slow, so scope every run to the touched code: a single spec (`npm test -- path/to/file.test.tsx`) or `npm run test:changed` (git-changed files). Run the full suite (including E2E/visual) only when explicitly asked or right before a release/push.
+- **Always write task-specific tests and add them to the suite.** Every change ships with its own focused test(s), committed alongside it so they run as part of `npm test`/CI. Never rely on the existing suite alone to cover new behaviour.
 - Vitest is configured (jsdom + Testing Library + MSW). Run `npm test` (single run), `npm run test:watch`, or `npm run test:changed` (fast loop on git-changed files). Tests live next to code under `__tests__/`; shared helpers under `src/test-utils/`.
 - Also use: `npm run tsc`, `npm run lint`, `npm run dead`, `npm run unused`, `npm run prune`, `npm run headers:check`.
 - Do not claim tests passed unless you ran the relevant command.

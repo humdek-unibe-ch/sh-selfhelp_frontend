@@ -45,4 +45,18 @@ describe('LoginStyle', () => {
 
         expect(screen.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', '/reset-password');
     });
+
+    it('uses the CMS-provided label for the registration link when set', () => {
+        renderWithProviders(
+            <LoginStyle
+                style={{ label_register: { content: 'Konto erstellen' } } as unknown as LoginStyleField}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+
+        const registerLink = screen.getByRole('link', { name: 'Konto erstellen' });
+        expect(registerLink).toHaveAttribute('href', '/register');
+        expect(screen.queryByRole('link', { name: 'Create account' })).not.toBeInTheDocument();
+    });
 });

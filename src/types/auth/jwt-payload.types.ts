@@ -30,6 +30,10 @@ export interface IUserData {
     name: string | null;
     user_name: string | null;
     blocked: boolean;
+    /** Issue #29: whether the backend may send this user scheduled push notifications. */
+    receives_notifications: boolean;
+    /** Issue #29: whether the backend may send this user scheduled (non-system) emails. */
+    receives_emails: boolean;
     /**
      * Opaque token that rotates whenever this user's ACL/permissions are
      * invalidated on the backend. The frontend compares it across requests
@@ -77,6 +81,10 @@ export interface IAuthUser {
     name: string;
     user_name: string | null;
     blocked: boolean;
+    /** Issue #29: whether the backend may send scheduled push notifications. */
+    receivesNotifications: boolean;
+    /** Issue #29: whether the backend may send scheduled (non-system) emails. */
+    receivesEmails: boolean;
     /** ACL version mirrored from the user-data response */
     aclVersion: string | null;
     roles: Array<{
@@ -181,6 +189,7 @@ export const PERMISSIONS = {
     // Scheduled jobs
     ADMIN_SCHEDULED_JOB_DELETE: 'admin.scheduled_job.delete',
     ADMIN_SCHEDULED_JOB_EXECUTE: 'admin.scheduled_job.execute',
+    ADMIN_SCHEDULED_JOB_MANAGE: 'admin.scheduled_job.manage',
     ADMIN_SCHEDULED_JOB_READ: 'admin.scheduled_job.read',
 
     // Sections
@@ -192,6 +201,11 @@ export const PERMISSIONS = {
 
     // Settings
     ADMIN_SETTINGS: 'admin.settings',
+
+    // System maintenance (instance-scoped update flow)
+    ADMIN_SYSTEM_READ: 'admin.system.read',
+    ADMIN_SYSTEM_UPDATE: 'admin.system.update',
+    ADMIN_SYSTEM_MAINTENANCE: 'admin.system.maintenance',
 
     // User management
     ADMIN_USER_BLOCK: 'admin.user.block',

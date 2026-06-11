@@ -48,7 +48,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
         },
         notification: {
           notification_types: 'email',
-          recipient: '@user',
+          recipient: '{{recipient.email}}',
           subject: 'block_0.job_0.notification.subject',
           body: 'block_0.job_0.notification.body'
         }
@@ -67,7 +67,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
         },
         notification: {
           notification_types: 'email',
-          recipient: '@user',
+          recipient: '{{recipient.email}}',
           subject: 'block_0.job_0.notification.subject',
           body: 'block_0.job_0.notification.body'
         }
@@ -122,7 +122,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
             },
             notification: {
               notification_types: 'email',
-              recipient: '@user',
+              recipient: '{{recipient.email}}',
               subject: 'block_0.job_0.notification.subject',
               body: 'block_0.job_0.notification.body'
             }
@@ -181,7 +181,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
   const handleSave = async () => {
     let parsed: any = configObj || null;
 
-    const id_dataTables = Number(dataTableId) || 0;
+    const id_data_tables = Number(dataTableId) || 0;
 
     // Convert translations object to array format expected by backend
     const translations: IActionTranslationRequest[] = Object.keys(actionTranslations).length > 0
@@ -198,7 +198,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
       const payload: ICreateActionRequest = {
         name,
         id_action_trigger_types: Number(trigger) || trigger,
-        id_data_tables: id_dataTables,
+        id_data_tables: id_data_tables,
         config: parsed || undefined,
         translations: translations.length > 0 ? translations : undefined
       };
@@ -208,7 +208,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
       const payload: IUpdateActionRequest = {
         name,
         id_action_trigger_types: Number(trigger) || trigger,
-        id_data_tables: id_dataTables,
+        id_data_tables: id_data_tables,
         config: parsed || undefined,
         translations: translations.length > 0 ? translations : undefined
       };

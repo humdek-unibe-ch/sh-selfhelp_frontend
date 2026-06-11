@@ -34,6 +34,7 @@ import {
     TextInput,
     NumberInput,
     Select,
+    MultiSelect,
     Pagination,
     Box,
 } from '@mantine/core';
@@ -112,7 +113,7 @@ export function RegistrationCodesPage() {
 
     const [generateModalOpened, setGenerateModalOpened] = useState(false);
     const [generateCount, setGenerateCount] = useState(generateMin);
-    const [generateGroupId, setGenerateGroupId] = useState<string | null>(null);
+    const [generateGroupIds, setGenerateGroupIds] = useState<string[]>([]);
 
     // Table sorting state
     const [sorting, setSorting] = useState<SortingState>([
@@ -189,19 +190,19 @@ export function RegistrationCodesPage() {
     const handleCloseGenerate = useCallback(() => {
         setGenerateModalOpened(false);
         setGenerateCount(generateMin);
-        setGenerateGroupId(null);
-    }, []);
+        setGenerateGroupIds([]);
+    }, [generateMin]);
 
     const handleGenerate = useCallback(() => {
-        if (!generateGroupId) return;
+        if (generateGroupIds.length === 0) return;
         generateCodes.mutate(
             {
                 count: generateCount,
-                id_groups: Number(generateGroupId),
+                group_ids: generateGroupIds.map(Number),
             },
             { onSuccess: handleCloseGenerate }
         );
-    }, [generateCodes, generateCount, generateGroupId, handleCloseGenerate]);
+    }, [generateCodes, generateCount, generateGroupIds, handleCloseGenerate]);
 
     const columns = useMemo<ColumnDef<IRegistrationCode>[]>(() => [
         {
@@ -213,10 +214,19 @@ export function RegistrationCodesPage() {
         },
         {
             accessorKey: 'group_name',
-            header: 'Group',
-            cell: ({ row }) => (
-                <Badge variant="light" color="blue">{row.original.group_name}</Badge>
-            ),
+            header: 'Groups',
+            cell: ({ row }) => {
+                const names = row.original.group_names?.length
+                    ? row.original.group_names
+                    : (row.original.group_name ? [row.original.group_name] : []);
+                return (
+                    <Group gap={4}>
+                        {names.map((name, i) => (
+                            <Badge key={`${row.original.code}-${name}-${i}`} variant="light" color="blue">{name}</Badge>
+                        ))}
+                    </Group>
+                );
+            },
         },
         {
             accessorKey: 'is_consumed',
@@ -460,7 +470,7 @@ export function RegistrationCodesPage() {
                 onCancel={handleCloseGenerate}
                 saveLabel={`Generate ${generateCount} code${generateCount !== 1 ? 's' : ''}`}
                 isLoading={generateCodes.isPending}
-                disabled={!generateGroupId || generateCount < 1}
+                disabled={generateGroupIds.length === 0 || generateCount < 1}
             >
                 <Stack gap="md">
                     <NumberInput
@@ -472,13 +482,15 @@ export function RegistrationCodesPage() {
                         max={generateMax}
                         required
                     />
-                    <Select
-                        label="Group"
-                        placeholder="Select a group"
+                    <MultiSelect
+                        label="Groups"
+                        description="Every generated code grants all selected groups"
+                        placeholder={generateGroupIds.length === 0 ? 'Select one or more groups' : undefined}
                         data={groupOptions}
-                        value={generateGroupId}
-                        onChange={setGenerateGroupId}
+                        value={generateGroupIds}
+                        onChange={setGenerateGroupIds}
                         searchable
+                        clearable
                         required
                     />
                 </Stack>

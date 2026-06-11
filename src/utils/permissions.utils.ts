@@ -333,6 +333,27 @@ export class PermissionChecker {
   }
 
   /**
+   * Check if user can read the instance system version / update status.
+   */
+  canReadSystem(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_SYSTEM_READ);
+  }
+
+  /**
+   * Check if user can request a system update for the current instance.
+   */
+  canUpdateSystem(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_SYSTEM_UPDATE);
+  }
+
+  /**
+   * Check if user can enable/disable maintenance mode for the current instance.
+   */
+  canManageMaintenance(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_SYSTEM_MAINTENANCE);
+  }
+
+  /**
    * Check if user can view audit logs
    */
   canViewAuditLogs(): boolean {

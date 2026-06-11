@@ -33,6 +33,8 @@ const listResponse: IRegistrationCodesListResponse = {
             code: 'QAQA1234ABCD',
             id_groups: 1,
             group_name: 'QA Group',
+            group_ids: [1],
+            group_names: ['QA Group'],
             created_at: '2026-06-01 10:00:00',
             consumed_at: '2026-06-02 12:30:00',
             is_consumed: true,
@@ -75,6 +77,8 @@ describe('AdminRegistrationCodesApi', () => {
                     code: 'QABB5678EFGH',
                     id_groups: 1,
                     group_name: 'QA Group',
+                    group_ids: [1, 2],
+                    group_names: ['QA Group', 'QA Therapists'],
                     created_at: '2026-06-03 09:00:00',
                     consumed_at: null,
                     is_consumed: false,
@@ -85,14 +89,15 @@ describe('AdminRegistrationCodesApi', () => {
         };
         postMock.mockResolvedValue({ data: { data: generated } });
 
-        const result = await AdminRegistrationCodesApi.generate({ count: 3, id_groups: 1 });
+        const result = await AdminRegistrationCodesApi.generate({ count: 3, group_ids: [1, 2] });
 
         expect(postMock).toHaveBeenCalledWith(
             API_CONFIG.ENDPOINTS.ADMIN_REGISTRATION_CODES_GENERATE,
-            { count: 3, id_groups: 1 },
+            { count: 3, group_ids: [1, 2] },
         );
         expect(result.codes).toHaveLength(1);
         expect(result.codes[0].is_consumed).toBe(false);
+        expect(result.codes[0].group_ids).toEqual([1, 2]);
     });
 
     it('requests the export as a blob and returns it untouched', async () => {

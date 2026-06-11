@@ -38,6 +38,8 @@ function strip(p: string): string {
 export const SHARED_ROUTE_ALIGNMENT = {
     AUTH_LOGIN: strip(SHARED_ENDPOINTS.AUTH.LOGIN),
     AUTH_LOGOUT: strip(SHARED_ENDPOINTS.AUTH.LOGOUT),
+    AUTH_FORGOT_PASSWORD: strip(SHARED_ENDPOINTS.AUTH.FORGOT_PASSWORD),
+    AUTH_RESET_PASSWORD: strip(SHARED_ENDPOINTS.AUTH.RESET_PASSWORD),
     AUTH_SET_LANGUAGE: strip(SHARED_ENDPOINTS.AUTH.SET_LANGUAGE),
     AUTH_USER_DATA: strip(SHARED_ENDPOINTS.AUTH.USER_DATA),
     PAGES: strip(SHARED_ENDPOINTS.PAGES.LIST),
@@ -68,6 +70,14 @@ export const API_CONFIG = {
         },
         AUTH_REGISTER: {
             route: '/auth/register',
+            permissions: []
+        },
+        AUTH_FORGOT_PASSWORD: {
+            route: '/auth/forgot-password',
+            permissions: []
+        },
+        AUTH_RESET_PASSWORD: {
+            route: '/auth/reset-password',
             permissions: []
         },
         AUTH_LOGOUT: {
@@ -102,6 +112,10 @@ export const API_CONFIG = {
         },
         USER_UPDATE_TIMEZONE: {
             route: '/auth/user/timezone',
+            permissions: []
+        },
+        USER_UPDATE_COMMUNICATION_PREFERENCES: {
+            route: '/auth/user/communication-preferences',
             permissions: []
         },
 
@@ -437,6 +451,69 @@ export const API_CONFIG = {
          ADMIN_SCHEDULED_JOBS_CALENDAR: {
             route: () => `/admin/scheduled-jobs/calendar`,
             permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
+        ADMIN_SCHEDULED_JOBS_RUNNER_STATUS: {
+            route: '/admin/scheduled-jobs/runner/status',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
+        ADMIN_SCHEDULED_JOBS_RUNNER_SETTINGS: {
+            route: '/admin/scheduled-jobs/runner/settings',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_MANAGE]
+        },
+        ADMIN_SCHEDULED_JOBS_RUNNER_ENABLE: {
+            route: '/admin/scheduled-jobs/runner/enable',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_MANAGE]
+        },
+        ADMIN_SCHEDULED_JOBS_RUNNER_DISABLE: {
+            route: '/admin/scheduled-jobs/runner/disable',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_MANAGE]
+        },
+        ADMIN_SCHEDULED_JOBS_RUNNER_RUN_NOW: {
+            route: '/admin/scheduled-jobs/runner/run-now',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_EXECUTE]
+        },
+        ADMIN_SCHEDULED_JOBS_TYPES: {
+            route: '/admin/scheduled-jobs/types',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
+
+        // Admin system maintenance / update endpoints (instance-scoped).
+        // Routes mirror `@selfhelp/shared` SYSTEM_ENDPOINTS (BFF-relative form).
+        ADMIN_SYSTEM_VERSION: {
+            route: '/admin/system/version',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_HEALTH: {
+            route: '/admin/system/health',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_ADVISORIES: {
+            route: '/admin/system/advisories',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_MAINTENANCE: {
+            route: '/admin/system/maintenance',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_MAINTENANCE_SET: {
+            route: '/admin/system/maintenance',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_MAINTENANCE]
+        },
+        ADMIN_SYSTEM_UPDATE_PREFLIGHT: {
+            route: '/admin/system/update/preflight',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_UPDATE_REQUEST: {
+            route: '/admin/system/update/request',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_UPDATE]
+        },
+        ADMIN_SYSTEM_UPDATE_STATUS: {
+            route: '/admin/system/update/status',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_UPDATE_RELEASES: {
+            route: '/admin/system/update/releases',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
         },
 
         // Admin page keywords endpoints

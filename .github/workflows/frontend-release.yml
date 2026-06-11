@@ -1,0 +1,216 @@
+# SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+# SPDX-License-Identifier: MPL-2.0
+#
+# Builds + publishes the production SelfHelp frontend image (Next.js
+# standalone) on a version tag, with an SBOM, a Trivy vulnerability scan, an
+# advisory dependency license report, and an UNSIGNED unified-registry release
+# descriptor (frontend-release.json) carrying the real image ref + digest.
+#
+# The registry maintainer signs that descriptor with the official key
+# (sh2-plugin-registry/scripts/sign-release.mjs) and commits it under
+# releases/frontend/ — production never trusts an unsigned/dev-signed release.
+#
+# Image signing (cosign) is wired but only runs when COSIGN_PRIVATE_KEY is set.
+name: frontend-release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+  # Required by github/codeql-action/upload-sarif to push the Trivy scan into
+  # the repo's code-scanning view; without it the upload fails with
+  # "Resource not accessible by integration" and kills the tag release.
+  security-events: write
+
+env:
+  # The unified registry references the image as `selfhelp-frontend` (not the
+  # repo slug), so publish under that canonical name.
+  IMAGE: ghcr.io/${{ github.repository_owner }}/selfhelp-frontend
+  # Baked into the standalone build (the `/plugin-artifacts` rewrite target is
+  # frozen at build time) and identical for every generated instance.
+  SYMFONY_INTERNAL_URL: http://backend:8080
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Mapped to a job-scoped env so the optional cosign step's `if:` can read it
+    # (the `secrets` context is not available in step `if:` expressions).
+    env:
+      COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies (npm ci)
+        run: npm ci
+
+      # --- BLOCKING: license headers + types are sound ---------------------
+      - name: License headers
+        run: npm run headers:check
+
+      - name: Type-check (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      # --- ADVISORY: production dependency license summary -----------------
+      - name: License report
+        continue-on-error: true
+        run: npx --yes license-checker-rseidelsohn --production --summary | tee license-report.txt
+
+      # --- Resolve the registry version (tag without the leading `v`) ------
+      - name: Resolve version
+        id: version
+        run: |
+          set -euo pipefail
+          ref="${GITHUB_REF_NAME}"
+          version="${ref#v}"
+          if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
+            pkg_version="$(node -p "require('./package.json').version")"
+            if [ "$version" != "$pkg_version" ]; then
+              echo "::error::Tag version ($version) != package.json version ($pkg_version). Bump package.json or retag."
+              exit 1
+            fi
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Release version: $version"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: |
+            SYMFONY_INTERNAL_URL=${{ env.SYMFONY_INTERNAL_URL }}
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ steps.version.outputs.version }}
+          provenance: true
+
+      - name: Generate SBOM (SPDX)
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.IMAGE }}:${{ steps.version.outputs.version }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      # SHA-pinned to the 0.35.0 immutable release — the only tag guaranteed
+      # safe after the March 2026 Trivy supply-chain compromise
+      # (GHSA-69fq-xp46-6x23). Older tags were force-pushed to malicious
+      # commits and later deleted; never pin this action by mutable tag.
+      - name: Scan image for vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        with:
+          image-ref: ${{ env.IMAGE }}:${{ steps.version.outputs.version }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          # Advisory: attach results; do not block a tagged release on a
+          # freshly disclosed base-image CVE.
+          exit-code: '0'
+
+      - name: Upload Trivy results to code scanning
+        if: ${{ always() && hashFiles('trivy-results.sarif') != '' }}
+        # Advisory by design: the SARIF still ships as a release artifact, so
+        # a code-scanning hiccup must never block a tagged release.
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: Sign image (optional)
+        if: ${{ env.COSIGN_PRIVATE_KEY != '' }}
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          curl -sSfL https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o /usr/local/bin/cosign
+          chmod +x /usr/local/bin/cosign
+          cosign sign --yes --key env://COSIGN_PRIVATE_KEY "${IMAGE}@${{ steps.build.outputs.digest }}"
+
+      # --- Emit the UNSIGNED unified-registry release descriptor ----------
+      # Merges the in-repo channel/build template with the canonical
+      # compatibility declaration (release-manifest.json — the same file the
+      # registry's auto-core-release resolver reads at this tag), the real
+      # version, image ref + digest, and the resolved @selfhelp/shared version.
+      - name: Generate registry release descriptor
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const tmpl = JSON.parse(readFileSync('release/frontend-release.template.json', 'utf8'));
+          const manifest = JSON.parse(readFileSync('release-manifest.json', 'utf8'));
+          const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+          const version = process.env.VERSION;
+          const image = `${process.env.IMAGE}:${version}`;
+          const digest = process.env.DIGEST || '';
+          const shared = pkg.dependencies?.['@selfhelp/shared'];
+          const out = {
+            kind: 'selfhelp-frontend-release',
+            id: `selfhelp-frontend-${version}`,
+            version,
+            channel: tmpl.channel ?? 'stable',
+            image,
+            digest,
+            builtFrom: { ...(tmpl.builtFrom ?? {}), nextStandalone: true, sharedPackageVersion: shared },
+            backendCompatibility: {
+              requiredCoreRange: manifest.supports.core,
+              requiredApiVersion: manifest.requiredApiVersion,
+            },
+          };
+          writeFileSync('frontend-release.json', JSON.stringify(out, null, 2) + '\n');
+          console.log(JSON.stringify(out, null, 2));
+          NODE
+
+      - name: Attach artifacts to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            sbom.spdx.json
+            trivy-results.sarif
+            license-report.txt
+            frontend-release.json
+
+      # Hand the new version to the unified registry: auto-core-release checks
+      # compatibility against the latest published core and stages the signed,
+      # human-reviewed frontend release PR. Skipped (with a notice) when the
+      # optional REGISTRY_DISPATCH_TOKEN secret is absent — the registry's
+      # daily reconcile or a manual auto-core-release dispatch covers that.
+      - name: Dispatch frontend-image-published to the registry
+        if: ${{ github.ref_type == 'tag' }}
+        env:
+          REGISTRY_DISPATCH_TOKEN: ${{ secrets.REGISTRY_DISPATCH_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          if [ -z "$REGISTRY_DISPATCH_TOKEN" ]; then
+            echo "::notice::REGISTRY_DISPATCH_TOKEN is not set — the registry's daily reconcile (or a manual auto-core-release run) will pick up frontend $VERSION."
+            exit 0
+          fi
+          PAYLOAD=$(printf '{"event_type":"frontend-image-published","client_payload":{"kind":"frontend","version":"%s","digests":{"image":"%s"}}}' "$VERSION" "$DIGEST")
+          echo "$PAYLOAD"
+          curl -sf -X POST \
+            -H "Authorization: Bearer $REGISTRY_DISPATCH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository_owner }}/sh2-plugin-registry/dispatches" \
+            -d "$PAYLOAD"
+          echo "::notice::auto-core-release dispatched for frontend $VERSION — review the staged PR in sh2-plugin-registry."

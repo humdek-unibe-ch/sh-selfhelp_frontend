@@ -28,9 +28,7 @@ export interface IUpdateLanguagePreferenceRequest {
 }
 
 export interface IRegisterRequest {
-    page_id: number;
-    email: string;
-    password?: string;
-    name?: string;
-    code?: string;
+    page_id: number; // ID of the CMS register page (locates the register section + policy).
+    email: string; // The new user's email address.
+    code?: string; // Validation code; required only when open_registration !== '1' (ignored server-side in open mode).
 }

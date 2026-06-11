@@ -1,0 +1,8 @@
+{
+  "$comment": "Release self-declaration consumed by the unified registry's auto-core-release resolver (sh2-plugin-registry/scripts/resolve-core-candidate.mjs) at the git tag being released, and by this repo's release-descriptor step. supports.core is the semver range of core versions this frontend works with; while the platform is pre-1.0, every 0.x minor is breaking, so widen/bump it deliberately.",
+  "kind": "frontend",
+  "supports": {
+    "core": ">=0.1.0 <0.2.0"
+  },
+  "requiredApiVersion": "0.1.0"
+}
