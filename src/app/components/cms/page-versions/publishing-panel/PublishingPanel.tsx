@@ -283,10 +283,8 @@ export function PublishingPanel({
                         <Card
                             withBorder
                             radius="md"
-                            style={{
-                                borderColor: 'var(--mantine-color-green-5)',
-                                backgroundColor: 'var(--mantine-color-green-0)'
-                            }}
+                            bg="light-dark(var(--mantine-color-green-0), var(--mantine-color-green-9))"
+                            bd="1px solid var(--mantine-color-green-5)"
                         >
                             <Group justify="space-between" align="center">
                                 <Group gap="sm">
