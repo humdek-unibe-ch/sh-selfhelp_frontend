@@ -14,6 +14,29 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.5 — 2026-06-12
+
+### Added
+- **Manager-loop status on the System page**: the update status now renders
+  the backend's `manager` block — a warning when a requested update sits
+  unclaimed (the SelfHelp Manager is not picking it up), an explanation when
+  no manager token is configured, and the `manager_loop` health component.
+  All operator command snippets are wrapper-aware (`./shm.ps1` / `./shm.sh`).
+
+### Changed
+- **System/update types now come from `@selfhelp/shared@1.6.0`**: the
+  in-tree mirror (`src/types/responses/admin/system.types.ts`) is deleted —
+  it only existed while the published shared package predated the system
+  contracts. `ISystemVersion`, `IUpdatePreflight`, `IUpdateStatus`,
+  `IUpdateStatusManager`, … are imported from the shared bridge
+  (`src/shared`), so the cross-repo contract has a single definition.
+
+### Removed
+- The hardcoded `v3.1.2` badge in the admin navbar (the real version is
+  reported on the System page).
+
+---
+
 ## v0.1.4 — 2026-06-10
 
 ### Added
