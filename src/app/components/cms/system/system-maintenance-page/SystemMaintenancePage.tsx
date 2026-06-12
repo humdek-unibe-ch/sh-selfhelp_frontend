@@ -334,7 +334,7 @@ export function SystemMaintenancePage() {
                             <Table.Tbody>
                                 {healthData.components.map((c) => (
                                     <Table.Tr key={c.name}>
-                                        <Table.Td><Text size="sm" tt="capitalize">{c.name}</Text></Table.Td>
+                                        <Table.Td><Text size="sm" tt="capitalize">{c.name.replace(/_/g, ' ')}</Text></Table.Td>
                                         <Table.Td>
                                             <Badge color={COMPONENT_COLOR[c.status]} variant="light">{c.status}</Badge>
                                         </Table.Td>
@@ -536,6 +536,10 @@ export function SystemMaintenancePage() {
                                 </Text>
                             </List.Item>
                         </List>
+                        <Text size="xs" c="dimmed">
+                            Using the wrapper? Replace <Code>sh-manager</Code> with <Code>./shm.ps1</Code> (Windows) or{' '}
+                            <Code>./shm.sh</Code> (Linux/macOS) in the commands above.
+                        </Text>
                     </Stack>
                 </Paper>
 
@@ -552,6 +556,45 @@ export function SystemMaintenancePage() {
                             Operation <Code>{currentStatus.operation_id}</Code> → <Code>{currentStatus.target_version}</Code>
                         </Text>
                         <Progress value={currentStatus.progress_percent} mb="sm" />
+                        {currentStatus.status === 'requested' && currentStatus.manager?.requested_stale && (
+                            <Alert
+                                icon={<IconAlertTriangle size={16} />}
+                                color="orange"
+                                variant="light"
+                                mb="sm"
+                                title="The SelfHelp Manager has not picked this up"
+                            >
+                                <Stack gap={4}>
+                                    <Text size="sm">
+                                        This request has been waiting longer than expected — verify the SelfHelp Manager
+                                        is running on the server host
+                                        {currentStatus.manager.configured
+                                            ? currentStatus.manager.last_seen_at
+                                                ? ` (manager last seen ${new Date(currentStatus.manager.last_seen_at).toLocaleString()})`
+                                                : ' (no manager has ever polled this instance)'
+                                            : ''}.
+                                    </Text>
+                                    {!currentStatus.manager.configured && (
+                                        <Text size="sm">
+                                            This instance has no manager token (<Code>SELFHELP_MANAGER_TOKEN</Code> is empty), so
+                                            the manager loop is disabled. Re-run{' '}
+                                            <Code>sh-manager instance update {currentStatus.instance_id}</Code> on the server to
+                                            backfill it.
+                                        </Text>
+                                    )}
+                                    <Text size="sm">
+                                        The persistent manager web console drains operations automatically. For headless
+                                        setups run{' '}
+                                        <Code>sh-manager instance process-operations {currentStatus.instance_id}</Code> on the
+                                        server (or schedule it with <Code>--watch</Code>).
+                                    </Text>
+                                    <Text size="xs" c="dimmed">
+                                        Using the wrapper? Replace <Code>sh-manager</Code> with <Code>./shm.ps1</Code> (Windows)
+                                        or <Code>./shm.sh</Code> (Linux/macOS).
+                                    </Text>
+                                </Stack>
+                            </Alert>
+                        )}
                         {currentStatus.message && <Text size="sm" mb="xs">{currentStatus.message}</Text>}
                         {currentStatus.steps.length > 0 && (
                             <List size="sm" spacing="xs">

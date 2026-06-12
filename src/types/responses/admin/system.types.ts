@@ -261,6 +261,20 @@ export interface IUpdateStep {
     detail?: string;
 }
 
+/**
+ * Manager-loop visibility attached to the update status. `configured` is
+ * whether this instance has a manager token (empty token = loop disabled);
+ * `last_seen_at` is the last authenticated manager poll (null = never);
+ * `requested_stale` is true when the latest operation has sat in `requested`
+ * too long without the manager claiming it — the UI warns that the SelfHelp
+ * Manager may not be running.
+ */
+export interface IUpdateStatusManager {
+    configured: boolean;
+    last_seen_at: string | null;
+    requested_stale: boolean;
+}
+
 export interface IUpdateStatus {
     instance_id: string;
     operation_id: string;
@@ -271,6 +285,7 @@ export interface IUpdateStatus {
     requested_at: string;
     updated_at: string;
     message?: string;
+    manager: IUpdateStatusManager;
 }
 export type IUpdateStatusResponse = IBaseApiResponse<IUpdateStatus>;
 

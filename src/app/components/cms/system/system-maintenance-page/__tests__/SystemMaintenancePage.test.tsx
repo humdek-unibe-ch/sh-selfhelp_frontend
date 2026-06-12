@@ -121,6 +121,7 @@ function idleStatus(): IUpdateStatus {
         steps: [],
         requested_at: '2026-06-08T00:00:00Z',
         updated_at: '2026-06-08T00:00:00Z',
+        manager: { configured: true, last_seen_at: '2026-06-08T00:00:00Z', requested_stale: false },
     };
 }
 
@@ -327,5 +328,72 @@ describe('SystemMaintenancePage', () => {
 
         expect(screen.queryByRole('button', { name: /Request update for this instance/i })).not.toBeInTheDocument();
         expect(screen.getByText(/need the/i)).toBeInTheDocument();
+    });
+
+    it('warns when a requested update sits unclaimed by the manager (stale)', () => {
+        // Backend flags the operation as stale: requested 10+ minutes ago, the
+        // manager loop never polled. The page must say so instead of showing a
+        // silent 0% progress bar, and give the wrapper-aware recovery command.
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_42',
+            status: 'requested',
+            target_version: '0.2.0',
+            manager: { configured: true, last_seen_at: null, requested_stale: true },
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(screen.getByText(/The SelfHelp Manager has not picked this up/i)).toBeInTheDocument();
+        expect(screen.getByText(/no manager has ever polled this instance/i)).toBeInTheDocument();
+        expect(screen.getByText('sh-manager instance process-operations qa-instance')).toBeInTheDocument();
+        // Wrapper-aware note so operators on the wrapper do not copy a broken command.
+        expect(screen.getAllByText('./shm.ps1').length).toBeGreaterThan(0);
+    });
+
+    it('explains a missing manager token in the stale warning', () => {
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_43',
+            status: 'requested',
+            target_version: '0.2.0',
+            manager: { configured: false, last_seen_at: null, requested_stale: true },
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(screen.getByText(/SELFHELP_MANAGER_TOKEN/)).toBeInTheDocument();
+        expect(screen.getByText('sh-manager instance update qa-instance')).toBeInTheDocument();
+    });
+
+    it('does not warn while a fresh requested operation waits within the grace window', () => {
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_44',
+            status: 'requested',
+            target_version: '0.2.0',
+            manager: { configured: true, last_seen_at: '2026-06-08T00:00:00Z', requested_stale: false },
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(screen.queryByText(/has not picked this up/i)).not.toBeInTheDocument();
+    });
+
+    it('renders the manager_loop health component with a readable name', () => {
+        state.health = {
+            ...health(),
+            overall: 'degraded',
+            components: [
+                { name: 'database', status: 'ok', detail: 'reachable' },
+                { name: 'manager_loop', status: 'down', detail: 'Manager token is configured but no manager has ever polled this instance.' },
+            ],
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        // Underscored component names render as words (capitalized via CSS).
+        expect(screen.getByText('manager loop')).toBeInTheDocument();
+        expect(screen.getByText(/no manager has ever polled/i)).toBeInTheDocument();
     });
 });
