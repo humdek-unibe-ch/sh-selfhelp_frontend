@@ -50,6 +50,12 @@ ENV NODE_ENV=production
 COPY --from=deps /build/node_modules ./node_modules
 COPY . .
 RUN npm run build
+# The plugin runtime-shim route needs the export names of every allowlisted
+# singleton (PLUGIN_RUNTIME_SHIM_SPECIFIERS), but the standalone runtime
+# image prunes node_modules below what its escape-hatch dynamic import can
+# resolve. Enumerate the exports here — while the full node_modules tree
+# still exists — into a JSON manifest placed next to server.js.
+RUN node scripts/emit-runtime-shim-exports.mjs .next/standalone/build/runtime-shim-exports.json
 
 # ---------------------------------------------------------------------------
 # runtime: minimal, non-root, self-contained standalone server.
