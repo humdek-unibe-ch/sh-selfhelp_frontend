@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { AdminSystemApi } from '../api/admin/system.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import type { IMaintenanceSetRequest, IUpdateRequest } from '../types/responses/admin/system.types';
+import type { IMaintenanceSetRequest, IUpdateRequest } from '../shared';
 
 const SYSTEM_VERSION_KEY = ['systemVersion'] as const;
 const SYSTEM_HEALTH_KEY = ['systemHealth'] as const;

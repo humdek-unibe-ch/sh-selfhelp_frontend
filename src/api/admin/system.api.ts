@@ -15,7 +15,7 @@ import type {
     IUpdateRequestResponse,
     IUpdateReleasesResponse,
     IUpdateRequest,
-} from '../../types/responses/admin/system.types';
+} from '../../shared';
 
 /**
  * Admin client for the instance-scoped system maintenance / update flow.

@@ -34,7 +34,7 @@ import {
 import type {
     TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus,
     TSystemHealthOverall, TSystemComponentStatus, TSystemAdvisorySeverity,
-} from '../../../../../types/responses/admin/system.types';
+} from '../../../../../shared';
 
 const PREFLIGHT_COLOR: Record<TUpdatePreflightStatus, string> = {
     ok: 'green',

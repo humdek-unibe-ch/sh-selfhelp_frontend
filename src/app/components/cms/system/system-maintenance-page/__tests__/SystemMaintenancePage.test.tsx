@@ -24,7 +24,7 @@ import { renderWithProviders } from '../../../../../../test-utils/renderWithProv
 import type {
     ISystemAdvisories, ISystemHealth, ISystemMaintenance, ISystemVersion,
     IUpdatePreflight, IUpdateStatus, IUpdateReleases,
-} from '../../../../../../types/responses/admin/system.types';
+} from '../../../../../../shared';
 
 const state = vi.hoisted(() => ({
     canUpdate: true,

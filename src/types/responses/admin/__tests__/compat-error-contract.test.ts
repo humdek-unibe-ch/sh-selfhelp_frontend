@@ -19,17 +19,15 @@ SPDX-License-Identifier: MPL-2.0
  * range it requires). This test pins the canonical field set and fails fast if
  * the frontend types drift from it.
  *
- * Why a runtime key-set assertion (not a pure type import from `@selfhelp/shared`):
- * the compat-error fields live in `@selfhelp/shared@1.4.0`, which is not yet
- * published — the installed dist is 1.3.2 and predates them. Importing the shared
- * type here would not type-check in CI. Instead we pin the canonical set the
- * backend `CompatibilityError::toArray()` emits and the shared 1.4.x
- * `IUpdatePreflightCheck` declares; a typed object literal makes `tsc` reject any
- * frontend rename/removal, and the key-set assertion documents the contract.
+ * `IUpdatePreflightCheck` is imported from the installed `@selfhelp/shared`
+ * (>= 1.4.0 ships the compat fields; the in-tree mirror was deleted once the
+ * published shared package caught up), so `tsc` checks the frontend directly
+ * against the canonical contract. The runtime key-set assertion stays to pin
+ * the exact wire field set the backend `CompatibilityError::toArray()` emits.
  */
 import { describe, it, expect } from 'vitest';
 import type { IPluginCompatibilityError } from '../plugins.types';
-import type { IUpdatePreflightCheck } from '../system.types';
+import type { IUpdatePreflightCheck } from '../../../../shared';
 
 /**
  * The exact keys `CompatibilityError::toArray()` emits (backend) and the
