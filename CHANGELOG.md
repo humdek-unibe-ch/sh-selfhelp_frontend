@@ -14,6 +14,35 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.6 — 2026-06-12
+
+### Fixed
+- **Creates no longer "succeed silently then 409" behind the BFF.** The
+  catch-all proxy forwarded the browser's `Accept-Encoding` (Chrome includes
+  `zstd`) to Symfony, whose web server compressed large responses with
+  zstd — a coding Node's fetch does not decode. Successful create/update
+  responses above the compression threshold reached the browser as binary
+  garbage: the entity (user, page, …) WAS created server-side, but the UI
+  showed no success, and retrying surfaced `409 already exists`. The proxy
+  now lets Node negotiate codings it can decode and stops relaying
+  `Content-Encoding` for bodies it already decoded.
+- **Plugin runtime shims now work in the production image.** The
+  `/api/plugins/runtime-shim/<specifier>` route enumerated module exports
+  with a live `import()`, which the Next standalone image cannot satisfy
+  (its pruned `node_modules` lacks `@selfhelp/shared`, `@mantine/*`, and
+  `@tanstack/react-query`), so every plugin failed to load with a 500 on
+  managed installs. The Docker build now emits a build-time export
+  manifest (`runtime-shim-exports.json`) next to `server.js`, and the
+  route serves shims from it, falling back to live import only in dev.
+- **Mutations are no longer auto-retried** (`retry: 0` in the React Query
+  defaults). A failed create (timeout, transient 5xx, deadlock) was silently
+  re-POSTed after 1s; when the first attempt had already committed
+  server-side, the retry surfaced as a confusing `409 Conflict`
+  ("User/Page already exists") even though the user only clicked once.
+  Errors now surface immediately and retrying stays an explicit user action.
+
+---
+
 ## v0.1.5 — 2026-06-12
 
 ### Added
