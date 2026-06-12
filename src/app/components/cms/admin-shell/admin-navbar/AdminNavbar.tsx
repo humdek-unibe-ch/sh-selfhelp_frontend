@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { useMemo, useState } from 'react';
-import { ScrollArea, Group, Code, Box } from '@mantine/core';
+import { ScrollArea, Group, Box } from '@mantine/core';
 import {
     IconDashboard,
     IconUsers,
@@ -353,7 +353,6 @@ export function AdminNavbar() {
             <Box p="md" className="border-b border-gray-3">
                 <Group gap="md" align="center" mb="md">
                     <SelfHelpLogo size={30} />
-                    <Code fw={700}>v3.1.2</Code>
                 </Group>
 
                 <Box mb="md">
