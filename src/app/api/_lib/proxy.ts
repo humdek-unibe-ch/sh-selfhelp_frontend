@@ -83,6 +83,19 @@ const HOP_BY_HOP_HEADERS = new Set([
     // multipart uploads (typically > ~1 KB), so forwarding it verbatim
     // breaks the catch-all proxy for plugin archive uploads. Drop it.
     'expect',
+    // Content negotiation is per hop. Forwarding the browser's
+    // `Accept-Encoding` (Chrome sends `gzip, deflate, br, zstd`) makes the
+    // backend's Caddy pick zstd — which undici does NOT decode — so every
+    // response above the compression threshold reaches the BFF as raw zstd
+    // bytes. Mutation handlers then read `.text()`, fail to parse, and relay
+    // binary garbage to the browser ("page created but the UI showed
+    // nothing / a later 409"). Let undici negotiate its own codings
+    // (gzip/br), which it transparently decodes.
+    'accept-encoding',
+    // undici hands us the DECODED body for the codings it negotiates, so a
+    // forwarded `Content-Encoding` header would describe an encoding the
+    // relayed body no longer has and make browsers/clients fail to decode.
+    'content-encoding',
 ]);
 
 const UPSTREAM_HEADERS_TO_DROP = new Set([

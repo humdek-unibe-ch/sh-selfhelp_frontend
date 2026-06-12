@@ -71,7 +71,8 @@ async function buildResponseWithCookieRotation(
         const res = new NextResponse(null, { status: upstream.status });
         upstream.headers.forEach((v, k) => {
             const key = k.toLowerCase();
-            if (key === 'set-cookie' || key === 'transfer-encoding' || key === 'content-length') return;
+            // `content-encoding` no longer matches the (empty, decoded) body.
+            if (key === 'set-cookie' || key === 'transfer-encoding' || key === 'content-length' || key === 'content-encoding') return;
             res.headers.set(k, v);
         });
         if (fallbackTokens) setAuthCookies(res, fallbackTokens);
