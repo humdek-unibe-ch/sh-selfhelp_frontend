@@ -14,6 +14,20 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.9 — 2026-06-15
+
+### Fixed
+- **A backend restart no longer logs the operator out.** Installing or updating
+  a plugin briefly restarts the backend; during that window a silent-refresh
+  attempt that could not reach the backend (a network error or a `502`/`503`
+  while it restarts) was treated the same as a *rejected* refresh token, so the
+  BFF/edge cleared the session cookies and bounced the admin to the login page.
+  Silent refresh now distinguishes **unreachable** (transient — keep the
+  session and let the client retry) from **invalid** (the backend reached a
+  verdict and rejected the token — the only case that logs you out). The
+  catch-all proxy returns `503` (with the cookies intact) instead of a
+  session-killing `401` when the backend is briefly unavailable.
+
 ## v0.1.8 — 2026-06-15
 
 ### Added

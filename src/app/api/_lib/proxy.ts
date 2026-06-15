@@ -39,6 +39,7 @@ import {
     SYMFONY_API_PREFIX,
     SYMFONY_INTERNAL_URL,
     callSymfonyRefreshToken,
+    type RefreshOutcome,
 } from '../../../config/server.config';
 import {
     IMPERSONATE_COOKIE,
@@ -358,16 +359,18 @@ export async function forwardBufferedToSymfony(
 }
 
 /**
- * Attempt an internal refresh using the sh_refresh cookie. Returns the new
- * tokens on success, or null on failure (in which case the caller should
- * respond 401 and clear cookies). Thin wrapper around
- * `callSymfonyRefreshToken` that pulls the refresh token from the Node
- * request cookie jar.
+ * Attempt an internal refresh using the sh_refresh cookie. Returns a
+ * {@link RefreshOutcome} so the caller can tell a genuinely dead session
+ * (`invalid` → clear cookies, surface 401) apart from a transient backend
+ * outage (`unreachable` → keep cookies, surface 503 so the client retries).
+ * Thin wrapper around `callSymfonyRefreshToken` that pulls the refresh token
+ * from the Node request cookie jar.
  */
-export async function refreshInternal(): Promise<{ access_token: string; refresh_token: string } | null> {
+export async function refreshInternal(): Promise<RefreshOutcome> {
     const jar = await cookies();
     const refresh = jar.get(REFRESH_COOKIE)?.value;
-    if (!refresh) return null;
+    // No refresh cookie at all → there is nothing to refresh: genuinely logged out.
+    if (!refresh) return { status: 'invalid' };
     return callSymfonyRefreshToken(refresh);
 }
 

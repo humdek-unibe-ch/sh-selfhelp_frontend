@@ -87,21 +87,43 @@ export interface IRefreshedTokens {
 }
 
 /**
- * POST to Symfony `/auth/refresh-token` with the given refresh token. Returns
- * a new `{ access_token, refresh_token }` pair on success or `null` on any
- * failure (network error, non-2xx response, missing access token in the
- * payload). Every successful call **rotates** the refresh token on the
- * backend, so callers must persist the new value before any other code path
- * can use the old one.
+ * Outcome of a silent-refresh attempt. The distinction between `invalid` and
+ * `unreachable` is security-relevant: only `invalid` (the backend was reached
+ * and rejected the refresh token) may destroy the session. `unreachable` (a
+ * network error or a 5xx — e.g. the backend is briefly restarting during a
+ * plugin install/update) is TRANSIENT and must NEVER log the user out; the
+ * caller keeps the cookies and lets the client retry.
+ *
+ *   - `ok`          → refresh succeeded; use `tokens`.
+ *   - `invalid`     → backend reached, refresh rejected (4xx / no token in a
+ *                     2xx body / no refresh cookie) → genuine logout.
+ *   - `unreachable` → could not reach/complete the call (network error, 5xx,
+ *                     unparseable 2xx) → transient; keep the session.
+ */
+export type RefreshOutcome =
+    | { status: 'ok'; tokens: IRefreshedTokens }
+    | { status: 'invalid' }
+    | { status: 'unreachable' };
+
+/**
+ * POST to Symfony `/auth/refresh-token` with the given refresh token. Every
+ * successful call **rotates** the refresh token on the backend, so callers
+ * must persist the new value before any other code path can use the old one.
+ *
+ * Returns a {@link RefreshOutcome} so callers can tell a genuinely dead
+ * session (`invalid`) apart from a transient backend outage (`unreachable`)
+ * and only clear cookies / bounce to login in the former case. This is what
+ * keeps a plugin-install/update restart from kicking the operator out.
  *
  * Shared between `src/proxy.ts` (Edge) and the BFF routes (Node) to keep the
  * upstream contract in a single place.
  */
 export async function callSymfonyRefreshToken(
     refreshToken: string
-): Promise<IRefreshedTokens | null> {
+): Promise<RefreshOutcome> {
+    let res: Response;
     try {
-        const res = await fetch(
+        res = await fetch(
             `${SYMFONY_INTERNAL_URL}${SYMFONY_API_PREFIX}/auth/refresh-token`,
             {
                 method: 'POST',
@@ -114,13 +136,25 @@ export async function callSymfonyRefreshToken(
                 cache: 'no-store',
             }
         );
-        if (!res.ok) return null;
-        const payload = await res.json();
-        const access = payload?.data?.access_token;
-        const newRefresh = payload?.data?.refresh_token ?? refreshToken;
-        if (!access) return null;
-        return { access_token: access, refresh_token: newRefresh };
     } catch {
-        return null;
+        // Network-level failure (DNS, connection refused while the backend is
+        // down) → transient, never a reason to destroy the session.
+        return { status: 'unreachable' };
     }
+    // 5xx (incl. the 502/503 Traefik returns while the backend container is
+    // restarting) is a server-side problem, NOT a rejected refresh token.
+    if (res.status >= 500) return { status: 'unreachable' };
+    // 4xx → the backend actively rejected the refresh token: session is dead.
+    if (!res.ok) return { status: 'invalid' };
+    let payload: unknown;
+    try {
+        payload = await res.json();
+    } catch {
+        return { status: 'unreachable' };
+    }
+    const data = (payload as { data?: { access_token?: string; refresh_token?: string } } | null)?.data;
+    const access = data?.access_token;
+    if (!access) return { status: 'invalid' };
+    const newRefresh = data?.refresh_token ?? refreshToken;
+    return { status: 'ok', tokens: { access_token: access, refresh_token: newRefresh } };
 }
