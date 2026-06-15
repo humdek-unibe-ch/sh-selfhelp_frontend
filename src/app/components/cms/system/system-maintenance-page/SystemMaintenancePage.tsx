@@ -792,7 +792,10 @@ export function SystemMaintenancePage() {
                                         <Button
                                             color="blue"
                                             disabled={!canRequest}
-                                            loading={requestUpdate.isPending}
+                                            // Spin for the WHOLE operation, not just the POST, so the
+                                            // button reads as in-progress (disabled alone is too subtle)
+                                            // and can never be re-triggered mid-update.
+                                            loading={requestUpdate.isPending || isActive}
                                             onClick={handleRequest}
                                         >
                                             Request update for this instance
@@ -901,7 +904,9 @@ export function SystemMaintenancePage() {
                                         <Button
                                             color="blue"
                                             disabled={!canRequestFrontend}
-                                            loading={requestFrontendUpdate.isPending}
+                                            // Spin for the WHOLE operation (core or frontend), matching the
+                                            // core button: while any update runs both paths are locked.
+                                            loading={requestFrontendUpdate.isPending || isActive}
                                             onClick={handleRequestFrontend}
                                         >
                                             Request frontend update for this instance

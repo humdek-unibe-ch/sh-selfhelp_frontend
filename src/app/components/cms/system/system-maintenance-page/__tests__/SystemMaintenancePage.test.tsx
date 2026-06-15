@@ -518,12 +518,18 @@ describe('SystemMaintenancePage', () => {
         // Core request button renders but is locked.
         fireEvent.change(screen.getByTestId('target-version-input'), { target: { value: '0.2.0' } });
         fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
-        expect(screen.getByRole('button', { name: /Request update for this instance/i })).toBeDisabled();
+        const coreButton = screen.getByRole('button', { name: /Request update for this instance/i });
+        expect(coreButton).toBeDisabled();
+        // It also visibly spins for the WHOLE operation (not just the POST), so the
+        // in-progress state is obvious — matching the plugin install button.
+        expect(coreButton).toHaveAttribute('data-loading', 'true');
 
         // Frontend request button is locked too.
         fireEvent.change(screen.getByTestId('frontend-target-version-input'), { target: { value: '0.1.7' } });
         fireEvent.click(screen.getByRole('button', { name: /Check frontend compatibility/i }));
-        expect(screen.getByRole('button', { name: /Request frontend update for this instance/i })).toBeDisabled();
+        const frontendButton = screen.getByRole('button', { name: /Request frontend update for this instance/i });
+        expect(frontendButton).toBeDisabled();
+        expect(frontendButton).toHaveAttribute('data-loading', 'true');
 
         // The operator is told why the buttons are locked (shown in both sections).
         expect(screen.getAllByText(/An update is already in progress/i).length).toBeGreaterThan(0);
