@@ -14,6 +14,32 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.13 — 2026-06-15
+
+### Fixed
+- **Every cookie is now namespaced per instance — no more cross-instance bleed.**
+  v0.1.12 isolated only the httpOnly session cookies; the browser-readable ones
+  (`sh_csrf`, `sh_lang`, `sh_accept_locale`, `sh_color_scheme`, `sh_preview`,
+  `sh_impersonate_target_email`) were still shared across instances on the same
+  host, so language, theme and preview state could leak between
+  `localhost:9111` and `localhost:9100`. All cookies now carry the
+  `…_<SELFHELP_INSTANCE_ID>` suffix. The server reads the id from its env; the
+  browser reads it back from `<html data-sh-instance>` (mirrored by the root
+  layout), so the SET name always matches the READ name on both sides. A plain
+  dev checkout (no instance id) keeps the historical names.
+- **Plugin install shows real, sticky progress.** The **Install** button used to
+  pop back to a clickable "Install" the moment the request was *queued* (and a
+  background poll could reset it), so it looked installable again while the worker
+  was still running. The button is now driven by the backend operation: it stays
+  disabled and shows the live step (**Installing… / Updating…**) for the whole
+  background run, survives a page reload mid-install, and can't be triggered twice.
+
+### Changed
+- **System update buttons reflect the whole operation.** "Request update / Request
+  frontend update" now stay in their loading state for the entire in-flight update
+  (not just the brief request), matching the plugin install button — so an update
+  in progress is obvious and the buttons can't be re-fired mid-operation.
+
 ## v0.1.12 — 2026-06-15
 
 ### Fixed
