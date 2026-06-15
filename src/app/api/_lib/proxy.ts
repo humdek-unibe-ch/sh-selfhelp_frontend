@@ -44,6 +44,8 @@ import {
 import {
     IMPERSONATE_COOKIE,
     IMPERSONATE_TARGET_EMAIL_COOKIE,
+    LEGACY_AUTH_COOKIE,
+    LEGACY_REFRESH_COOKIE,
 } from '../../../config/cookie-names';
 
 export {
@@ -201,6 +203,15 @@ export function clearImpersonationCookies(res: NextResponse): void {
 export function clearAuthCookies(res: NextResponse): void {
     res.cookies.set(AUTH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
     res.cookies.set(REFRESH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
+    // Flush the pre-namespacing shared cookies left over from before the
+    // per-instance suffix landed (no-op once they are gone / in dev where the
+    // suffix is empty and these equal the names above).
+    if (LEGACY_AUTH_COOKIE !== AUTH_COOKIE) {
+        res.cookies.set(LEGACY_AUTH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
+    }
+    if (LEGACY_REFRESH_COOKIE !== REFRESH_COOKIE) {
+        res.cookies.set(LEGACY_REFRESH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
+    }
     clearImpersonationCookies(res);
 }
 

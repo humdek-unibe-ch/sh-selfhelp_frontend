@@ -14,6 +14,22 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.12 — 2026-06-15
+
+### Fixed
+- **Logging into / updating one instance no longer logs you out of the others.**
+  When several instances run on the same host separated only by port
+  (`localhost:9111`, `localhost:9100`, …) the browser shared ONE cookie jar
+  (cookies are scoped by host, not port), so the httpOnly `sh_auth` / `sh_refresh`
+  session cookies collided: a token minted by one instance was rejected by the
+  next, whose silent refresh then wiped the shared cookie and bounced every
+  instance to the login screen. The session cookies (`sh_auth`, `sh_refresh`,
+  `sh_impersonate`) are now namespaced per instance (`…_<SELFHELP_INSTANCE_ID>`),
+  so each instance keeps its own session and a restart/update of one no longer
+  disturbs the others. The double-submit CSRF cookie stays shared (harmless).
+  After upgrading, each instance asks for a single fresh login as the old shared
+  cookie is retired.
+
 ## v0.1.11 — 2026-06-15
 
 ### Added
