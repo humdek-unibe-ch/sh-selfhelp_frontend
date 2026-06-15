@@ -158,18 +158,23 @@ export function SystemMaintenancePage() {
     const frontendReleaseOptions = (frontendReleasesData?.releases ?? [])
         .filter((r) => r.version !== frontendReleasesData?.current_version)
         .map((r) => r.version);
-    const canRequestFrontend =
-        canUpdate &&
-        !!frontendPreflightData &&
-        frontendPreflightData.status !== 'blocked' &&
-        !requestFrontendUpdate.isPending;
-
     // Poll the status while an operation is active.
     const status = useUpdateStatus(true, undefined);
     const statusData = status.data;
     const isActive = !!statusData && statusData.operation_id !== '' && ACTIVE_STATUSES.includes(statusData.status);
     const liveStatus = useUpdateStatus(isActive, isActive ? 4000 : false);
     const currentStatus = liveStatus.data ?? statusData;
+
+    // While an update operation (core OR frontend) is in flight, lock BOTH
+    // request paths. Otherwise an operator could fire a second, conflicting
+    // update — e.g. a frontend swap mid core update — and corrupt the instance.
+    // The buttons re-enable once the operation reaches a terminal state.
+    const canRequestFrontend =
+        canUpdate &&
+        !!frontendPreflightData &&
+        frontendPreflightData.status !== 'blocked' &&
+        !requestFrontendUpdate.isPending &&
+        !isActive;
 
     const destructive = preflightData?.database.destructive ?? false;
     const confirmationOk = !destructive || (acceptedRisk && typedConfirmation.trim() === checkedTarget);
@@ -178,7 +183,8 @@ export function SystemMaintenancePage() {
         !!preflightData &&
         preflightData.status !== 'blocked' &&
         confirmationOk &&
-        !requestUpdate.isPending;
+        !requestUpdate.isPending &&
+        !isActive;
 
     function handleCheck() {
         const next = targetInput.trim();
@@ -774,6 +780,13 @@ export function SystemMaintenancePage() {
                                     </Alert>
                                 )}
 
+                                {canUpdate && isActive && (
+                                    <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
+                                        An update is already in progress. Wait for it to finish before requesting another
+                                        update — core and frontend updates cannot run at the same time.
+                                    </Alert>
+                                )}
+
                                 {canUpdate && (
                                     <Group justify="flex-end">
                                         <Button
@@ -873,6 +886,13 @@ export function SystemMaintenancePage() {
                                 {!canUpdate && (
                                     <Alert icon={<IconShieldCheck size={16} />} color="gray" variant="light">
                                         You can view compatibility but need the <Code>admin.system.update</Code> permission to request a frontend update.
+                                    </Alert>
+                                )}
+
+                                {canUpdate && isActive && (
+                                    <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
+                                        An update is already in progress. Wait for it to finish before requesting a
+                                        frontend update — core and frontend updates cannot run at the same time.
                                     </Alert>
                                 )}
 

@@ -14,6 +14,16 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.10 — 2026-06-15
+
+### Fixed
+- **The System Maintenance page locks both update requests while one runs.**
+  While an update operation (core OR frontend) is in flight, the "Request update"
+  and "Request frontend update" buttons are now disabled and a notice explains
+  why — so an admin can no longer fire a second, conflicting update (for example
+  a frontend swap mid core update) and corrupt the instance. The buttons
+  re-enable when the operation reaches a terminal state.
+
 ## v0.1.9 — 2026-06-15
 
 ### Fixed

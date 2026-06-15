@@ -501,4 +501,31 @@ describe('SystemMaintenancePage', () => {
         // The notice text is split by a <Code> node, so match the trailing segment.
         expect(screen.getByText(/permission to request a frontend update/i)).toBeInTheDocument();
     });
+
+    it('locks BOTH update request buttons while an operation is in flight', () => {
+        // An active core update is running: the operator must not be able to fire
+        // a second (core OR frontend) update on top of it.
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_active',
+            status: 'update_running',
+            target_version: '0.2.0',
+            progress_percent: 50,
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        // Core request button renders but is locked.
+        fireEvent.change(screen.getByTestId('target-version-input'), { target: { value: '0.2.0' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
+        expect(screen.getByRole('button', { name: /Request update for this instance/i })).toBeDisabled();
+
+        // Frontend request button is locked too.
+        fireEvent.change(screen.getByTestId('frontend-target-version-input'), { target: { value: '0.1.7' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check frontend compatibility/i }));
+        expect(screen.getByRole('button', { name: /Request frontend update for this instance/i })).toBeDisabled();
+
+        // The operator is told why the buttons are locked (shown in both sections).
+        expect(screen.getAllByText(/An update is already in progress/i).length).toBeGreaterThan(0);
+    });
 });
