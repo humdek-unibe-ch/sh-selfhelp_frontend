@@ -112,6 +112,32 @@ async function fetchJson<T>(path: string, init: RequestInit = {}): Promise<T | n
 }
 
 /**
+ * Like {@link fetchJson} but surfaces the HTTP status alongside the parsed
+ * body. Used by the slug page to tell a real 404 (page missing) apart from a
+ * 503 (the instance is in maintenance — Symfony's `MaintenanceModeListener`
+ * returns a clean 503 for normal `/cms-api` traffic), so it can render the
+ * maintenance page instead of `notFound()`. `status` is `null` when the
+ * request never completed (network error / backend down).
+ */
+async function fetchJsonWithStatus<T>(
+    path: string,
+    init: RequestInit = {}
+): Promise<{ status: number | null; data: T | null }> {
+    const url = `${SYMFONY_INTERNAL_URL}${SYMFONY_API_PREFIX}${path}`;
+    try {
+        const res = await fetch(url, {
+            cache: 'no-store',
+            ...init,
+            headers: { ...(await authHeaders(path)), ...(init.headers || {}) },
+        });
+        if (!res.ok) return { status: res.status, data: null };
+        return { status: res.status, data: (await res.json()) as T };
+    } catch {
+        return { status: null, data: null };
+    }
+}
+
+/**
  * Fetch navigation (frontend pages) for the given language. Returned shape
  * matches the public `/pages/language/{id}` endpoint, which is also what the
  * React Query `['frontend-pages', languageId]` entry expects so the client
@@ -369,6 +395,24 @@ export const resolveLanguageSSR = cache(async (): Promise<{
 export const getPageByKeywordSSRCached = cache(
     async (keyword: string, languageId: number, preview = false): Promise<any | null> => {
         return getPageByKeywordSSR(keyword, languageId, preview);
+    }
+);
+
+/**
+ * Status-aware variant of {@link getPageByKeywordSSRCached}. Returns both the
+ * HTTP status and the parsed envelope so the slug page can distinguish a 404
+ * (render `notFound()`) from a 503 (render the maintenance page). Deduplicated
+ * per request via `cache()`.
+ */
+export const getPageByKeywordSSRStatus = cache(
+    async (
+        keyword: string,
+        languageId: number,
+        preview = false
+    ): Promise<{ status: number | null; data: any | null }> => {
+        const params = new URLSearchParams({ language_id: String(languageId) });
+        if (preview) params.set('preview', '1');
+        return fetchJsonWithStatus(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`);
     }
 );
 
