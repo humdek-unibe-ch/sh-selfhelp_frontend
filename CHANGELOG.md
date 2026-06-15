@@ -14,6 +14,30 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.7 — 2026-06-15
+
+### Fixed
+- **Public pages no longer 500 with `Cannot find module 'jsdom-<hash>'`.**
+  Server-side HTML sanitization (`isomorphic-dompurify`, which lazily loads
+  `jsdom`) crashed every server-rendered page that sanitizes content — the
+  public `[[...slug]]` route and admin styles — in the production image. Next
+  16's Turbopack build externalizes those packages under a content-hashed
+  specifier resolved via a symlink in `.next/node_modules`, but that symlink
+  pointed one directory level too high once the standalone `build/` wrapper is
+  flattened into the image, leaving it dangling. The packages are now declared
+  as `serverExternalPackages` and the Docker build re-points the hashed
+  external symlinks at the real packages it already ships, so sanitization
+  resolves at runtime. (vercel/next.js#89037, #88844)
+- **No more "logged out every few minutes" on production instances.** The
+  admin auth guard re-validates by parsing `/api/auth/user-data` (a ~2 KB
+  permission payload, above the proxy compression threshold). Before the
+  v0.1.6 BFF encoding fix that response could arrive zstd-garbled, so the JSON
+  parse threw, the guard treated it as "not authenticated", and the admin was
+  bounced to the login page on the next focus/navigation — roughly every few
+  minutes of active use even though the JWT was still valid for an hour. With
+  the proxy encoding fix the payload now parses cleanly and the session lasts
+  its full TTL.
+
 ## v0.1.6 — 2026-06-12
 
 ### Fixed
