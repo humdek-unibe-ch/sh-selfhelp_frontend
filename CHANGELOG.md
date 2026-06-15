@@ -14,6 +14,27 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.11 — 2026-06-15
+
+### Added
+- **Maintenance page.** While the instance is in maintenance the backend returns
+  a clean `503` for normal page traffic; the slug route now detects that and
+  renders the seeded, styled `maintenance` CMS page — including the operator's
+  live note via `{{system.maintenance_message}}` — instead of the 404 page. A
+  self-contained `MaintenanceClient` fallback (the maintenance counterpart of the
+  404 page) is shown when the seeded page is missing or unreachable, so visitors
+  always get a styled "we'll be right back" screen rather than a raw error.
+
+### Changed
+- **Adaptive plugin-operation status tracking.** The admin plugin manager now
+  polls quickly (every 2s) only while an install / uninstall / disable / purge
+  operation is actually in flight, and stops once every operation reaches a
+  terminal state — so progress stays live during an action without relying solely
+  on Mercure, and there is no constant background polling when idle. The
+  operations query drives the plugin list, detail, and available-plugins views,
+  and uninstall / purge now invalidate the operations cache so fast polling
+  engages immediately when an action is triggered.
+
 ## v0.1.10 — 2026-06-15
 
 ### Fixed
