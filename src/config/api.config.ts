@@ -515,6 +515,21 @@ export const API_CONFIG = {
             route: '/admin/system/update/releases',
             permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
         },
+        // Frontend-only update flow: the frontend ships independently of the
+        // core, so an instance on the newest core can still move to a newer
+        // compatible frontend. Reads guarded by read, the request by update.
+        ADMIN_SYSTEM_UPDATE_FRONTEND_RELEASES: {
+            route: '/admin/system/update/frontend/releases',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_UPDATE_FRONTEND_PREFLIGHT: {
+            route: '/admin/system/update/frontend/preflight',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_UPDATE_FRONTEND_REQUEST: {
+            route: '/admin/system/update/frontend/request',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_UPDATE]
+        },
 
         // Admin page keywords endpoints
         ADMIN_PAGE_KEYWORDS_GET_ALL: {

@@ -30,6 +30,7 @@ import { useAuth } from '../../../../../hooks/useAuth';
 import {
     useSystemVersion, useSystemHealth, useSystemAdvisories, useUpdatePreflight, useUpdateStatus,
     useRequestUpdateMutation, useSystemMaintenance, useSetMaintenanceMutation, useUpdateReleases,
+    useFrontendUpdateReleases, useFrontendUpdatePreflight, useRequestFrontendUpdateMutation,
 } from '../../../../../hooks/useSystem';
 import type {
     TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus,
@@ -121,6 +122,8 @@ export function SystemMaintenancePage() {
     const [acceptedRisk, setAcceptedRisk] = useState(false);
     const [typedConfirmation, setTypedConfirmation] = useState('');
     const [maintMessage, setMaintMessage] = useState('');
+    const [frontendTargetInput, setFrontendTargetInput] = useState('');
+    const [frontendCheckedTarget, setFrontendCheckedTarget] = useState<string | null>(null);
 
     const version = useSystemVersion();
     const health = useSystemHealth(true, 15000);
@@ -130,6 +133,9 @@ export function SystemMaintenancePage() {
     const preflight = useUpdatePreflight(checkedTarget);
     const requestUpdate = useRequestUpdateMutation();
     const releases = useUpdateReleases();
+    const frontendReleases = useFrontendUpdateReleases();
+    const frontendPreflight = useFrontendUpdatePreflight(frontendCheckedTarget);
+    const requestFrontendUpdate = useRequestFrontendUpdateMutation();
 
     const versionData = version.data;
     const healthData = health.data;
@@ -137,6 +143,8 @@ export function SystemMaintenancePage() {
     const maintenanceData = maintenance.data;
     const preflightData = preflight.data;
     const releasesData = releases.data;
+    const frontendReleasesData = frontendReleases.data;
+    const frontendPreflightData = frontendPreflight.data;
 
     // Registry-published core versions for the picker (newest first), excluding
     // the version this instance already runs. Blocked releases stay listed —
@@ -144,6 +152,17 @@ export function SystemMaintenancePage() {
     const releaseOptions = (releasesData?.releases ?? [])
         .filter((r) => r.version !== releasesData?.current_version)
         .map((r) => r.version);
+
+    // Registry-published frontend versions for the frontend-only picker (newest
+    // first), excluding the frontend version this instance already runs.
+    const frontendReleaseOptions = (frontendReleasesData?.releases ?? [])
+        .filter((r) => r.version !== frontendReleasesData?.current_version)
+        .map((r) => r.version);
+    const canRequestFrontend =
+        canUpdate &&
+        !!frontendPreflightData &&
+        frontendPreflightData.status !== 'blocked' &&
+        !requestFrontendUpdate.isPending;
 
     // Poll the status while an operation is active.
     const status = useUpdateStatus(true, undefined);
@@ -185,6 +204,20 @@ export function SystemMaintenancePage() {
             preflight_id: preflightData.preflight_id,
             accepted_migration_risk: acceptedRisk,
             typed_confirmation: typedConfirmation.trim() === '' ? undefined : typedConfirmation.trim(),
+        });
+    }
+
+    function handleCheckFrontend() {
+        const next = frontendTargetInput.trim();
+        if (next === '') return;
+        setFrontendCheckedTarget(next);
+    }
+
+    function handleRequestFrontend() {
+        if (!frontendPreflightData || !frontendCheckedTarget) return;
+        requestFrontendUpdate.mutate({
+            target_version: frontendCheckedTarget,
+            preflight_id: frontendPreflightData.preflight_id,
         });
     }
 
@@ -750,6 +783,108 @@ export function SystemMaintenancePage() {
                                             onClick={handleRequest}
                                         >
                                             Request update for this instance
+                                        </Button>
+                                    </Group>
+                                )}
+                            </Stack>
+                        )}
+                    </Stack>
+                </Paper>
+
+                <Divider label="Update frontend only" labelPosition="center" />
+
+                {/* Frontend-only update request. The frontend ships independently
+                    of the core and is stateless, so this is a lightweight swap:
+                    no destructive migration, no backup, no typed confirmation.
+                    The SelfHelp Manager re-resolves the signed frontend release
+                    and performs the authoritative compatibility check. */}
+                <Paper p="md" radius="md" withBorder pos="relative" data-testid="frontend-update-section">
+                    <LoadingOverlay visible={frontendPreflight.isFetching || requestFrontendUpdate.isPending} />
+                    <Stack gap="sm">
+                        <Text size="sm" c="dimmed">
+                            The frontend ships independently of the SelfHelp core. If this instance is already on the
+                            newest core, you can still move it to a newer compatible frontend here. A frontend swap is
+                            stateless — there is no database migration or backup — and the SelfHelp Manager rolls it back
+                            automatically if the new container fails its health check.
+                        </Text>
+
+                        <Group align="flex-end" gap="sm">
+                            <Autocomplete
+                                label="Target frontend version"
+                                data-testid="frontend-target-version-input"
+                                placeholder={frontendReleaseOptions.length > 0 ? `e.g. ${frontendReleaseOptions[0]}` : 'e.g. 0.1.7'}
+                                description={
+                                    frontendReleasesData?.available
+                                        ? 'Frontend releases from the official registry (newest first). You can also type a version manually.'
+                                        : 'The registry could not be reached — type the target frontend version manually.'
+                                }
+                                data={frontendReleaseOptions}
+                                value={frontendTargetInput}
+                                onChange={setFrontendTargetInput}
+                                style={{ flex: 1 }}
+                            />
+                            <Button
+                                leftSection={<IconRefresh size={16} />}
+                                onClick={handleCheckFrontend}
+                                disabled={frontendTargetInput.trim() === ''}
+                                variant="default"
+                            >
+                                Check frontend compatibility
+                            </Button>
+                        </Group>
+
+                        {frontendPreflight.isError && (
+                            <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+                                Frontend preflight failed. Check the target version and try again.
+                            </Alert>
+                        )}
+
+                        {frontendPreflightData && (
+                            <Stack gap="sm">
+                                <Group gap="xs">
+                                    <Text fw={600}>Preflight</Text>
+                                    <Badge color={PREFLIGHT_COLOR[frontendPreflightData.status]} variant="filled">
+                                        {frontendPreflightData.status.toUpperCase()}
+                                    </Badge>
+                                    <Text size="sm" c="dimmed">
+                                        <Code>{frontendPreflightData.current_version}</Code> → <Code>{frontendPreflightData.target_version}</Code>
+                                    </Text>
+                                </Group>
+
+                                {frontendPreflightData.checks.length > 0 && (
+                                    <Stack gap={6}>
+                                        {frontendPreflightData.checks.map((check, idx) => (
+                                            <Group key={`${check.code}-${idx}`} gap="xs" align="flex-start" wrap="nowrap">
+                                                <Badge size="xs" color={SEVERITY_COLOR[check.severity]} variant="light">
+                                                    {check.severity}
+                                                </Badge>
+                                                <Text size="sm">{check.message}</Text>
+                                            </Group>
+                                        ))}
+                                    </Stack>
+                                )}
+
+                                {frontendPreflightData.status === 'blocked' && (
+                                    <Alert icon={<IconAlertTriangle size={16} />} color="red" variant="light">
+                                        This frontend update is blocked. Resolve the errors above before requesting it.
+                                    </Alert>
+                                )}
+
+                                {!canUpdate && (
+                                    <Alert icon={<IconShieldCheck size={16} />} color="gray" variant="light">
+                                        You can view compatibility but need the <Code>admin.system.update</Code> permission to request a frontend update.
+                                    </Alert>
+                                )}
+
+                                {canUpdate && (
+                                    <Group justify="flex-end">
+                                        <Button
+                                            color="blue"
+                                            disabled={!canRequestFrontend}
+                                            loading={requestFrontendUpdate.isPending}
+                                            onClick={handleRequestFrontend}
+                                        >
+                                            Request frontend update for this instance
                                         </Button>
                                     </Group>
                                 )}

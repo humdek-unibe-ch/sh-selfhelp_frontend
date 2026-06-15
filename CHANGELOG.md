@@ -14,6 +14,21 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.8 — 2026-06-15
+
+### Added
+- **Frontend-only updates from the CMS.** The System Maintenance page gains an
+  "Update frontend only" section: an admin can pick a registry-published
+  frontend version (newest first, with manual entry as an offline fallback), run
+  a lightweight compatibility preflight, and request a frontend-only update for
+  the current instance. Because the frontend ships independently of the core, an
+  instance already on the newest core can still move to a newer compatible
+  frontend. The swap is stateless — no destructive-migration warning, no backup
+  prompt, no typed confirmation — and, like every update request, the browser
+  never sends an `instance_id` and needs `admin.system.update` to submit. The
+  SelfHelp Manager re-resolves the signed frontend release and performs the
+  authoritative compatibility check before swapping only the frontend container.
+
 ## v0.1.7 — 2026-06-15
 
 ### Fixed

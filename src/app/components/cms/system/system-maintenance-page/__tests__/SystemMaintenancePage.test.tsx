@@ -24,6 +24,7 @@ import { renderWithProviders } from '../../../../../../test-utils/renderWithProv
 import type {
     ISystemAdvisories, ISystemHealth, ISystemMaintenance, ISystemVersion,
     IUpdatePreflight, IUpdateStatus, IUpdateReleases,
+    IFrontendUpdatePreflight, IFrontendUpdateReleases,
 } from '../../../../../../shared';
 
 const state = vi.hoisted(() => ({
@@ -36,7 +37,10 @@ const state = vi.hoisted(() => ({
     status: null as IUpdateStatus | null,
     preflight: null as IUpdatePreflight | null,
     releases: null as IUpdateReleases | null,
+    frontendReleases: null as IFrontendUpdateReleases | null,
+    frontendPreflight: null as IFrontendUpdatePreflight | null,
     requestMutate: vi.fn(),
+    frontendRequestMutate: vi.fn(),
 }));
 
 vi.mock('../../../../../../hooks/useAuth', () => ({
@@ -64,6 +68,14 @@ vi.mock('../../../../../../hooks/useSystem', () => ({
     useUpdateStatus: () => ({ data: state.status }),
     useRequestUpdateMutation: () => ({ mutate: state.requestMutate, isPending: false }),
     useUpdateReleases: () => ({ data: state.releases, isLoading: false, isError: false }),
+    useFrontendUpdateReleases: () => ({ data: state.frontendReleases, isLoading: false, isError: false }),
+    // Mirror the real hook: the frontend preflight is gated on a non-null target.
+    useFrontendUpdatePreflight: (target: string | null) => ({
+        data: target ? state.frontendPreflight : undefined,
+        isError: false,
+        isFetching: false,
+    }),
+    useRequestFrontendUpdateMutation: () => ({ mutate: state.frontendRequestMutate, isPending: false }),
 }));
 
 vi.mock('../../../../shared/common/PageHeader', () => ({
@@ -116,7 +128,9 @@ function idleStatus(): IUpdateStatus {
         instance_id: 'qa-instance',
         operation_id: '',
         status: 'idle',
+        kind: 'core',
         target_version: '0.1.0',
+        target_frontend_version: null,
         progress_percent: 0,
         steps: [],
         requested_at: '2026-06-08T00:00:00Z',
@@ -140,6 +154,22 @@ function preflight(overrides: Partial<IUpdatePreflight> = {}): IUpdatePreflight 
     };
 }
 
+/** A frontend-only preflight: stateless, so never destructive / backup-required. */
+function frontendPreflight(overrides: Partial<IFrontendUpdatePreflight> = {}): IFrontendUpdatePreflight {
+    return {
+        preflight_id: 'fe-pf-qa-001',
+        status: 'ok',
+        instance_id: 'qa-instance',
+        current_version: '0.1.5',
+        target_version: '0.1.7',
+        checks: [{ code: 'resource', severity: 'info', message: 'The SelfHelp Manager performs the authoritative checks at execution time.' }],
+        options: [{ type: 'frontend', version: '0.1.7', label: 'SelfHelp frontend 0.1.7' }],
+        database: { destructive: false, requires_backup: false, manual_confirmation_required: false },
+        rollback: { automatic_before_migrations: true, automatic_after_destructive_migrations: true },
+        ...overrides,
+    };
+}
+
 describe('SystemMaintenancePage', () => {
     beforeEach(() => {
         state.canUpdate = true;
@@ -158,7 +188,17 @@ describe('SystemMaintenancePage', () => {
                 { version: '0.1.0', channel: 'stable', blocked: false },
             ],
         };
+        state.frontendReleases = {
+            available: true,
+            current_version: '0.1.5',
+            releases: [
+                { version: '0.1.7', channel: 'stable', blocked: false },
+                { version: '0.1.5', channel: 'stable', blocked: false },
+            ],
+        };
+        state.frontendPreflight = frontendPreflight();
         state.requestMutate = vi.fn();
+        state.frontendRequestMutate = vi.fn();
     });
 
     it('shows the deployment kind and distinguishes a source checkout from a Docker install', () => {
@@ -395,5 +435,70 @@ describe('SystemMaintenancePage', () => {
         // Underscored component names render as words (capitalized via CSS).
         expect(screen.getByText('manager loop')).toBeInTheDocument();
         expect(screen.getByText(/no manager has ever polled/i)).toBeInTheDocument();
+    });
+
+    it('feeds the frontend-only picker from the registry frontend releases and excludes the current frontend version', () => {
+        renderWithProviders(<SystemMaintenancePage />);
+
+        const input = screen.getByTestId('frontend-target-version-input');
+        fireEvent.focus(input);
+        fireEvent.change(input, { target: { value: '0.' } });
+        // 0.1.7 is offered; the currently installed frontend 0.1.5 is not.
+        expect(screen.getByRole('option', { name: '0.1.7' })).toBeInTheDocument();
+        expect(screen.queryByRole('option', { name: '0.1.5' })).not.toBeInTheDocument();
+    });
+
+    it('runs a frontend preflight then requests a frontend-only update with NO instance_id and NO migration risk', () => {
+        renderWithProviders(<SystemMaintenancePage />);
+
+        // No frontend preflight yet, so no frontend request button.
+        expect(
+            screen.queryByRole('button', { name: /Request frontend update for this instance/i }),
+        ).not.toBeInTheDocument();
+
+        fireEvent.change(screen.getByTestId('frontend-target-version-input'), { target: { value: '0.1.7' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check frontend compatibility/i }));
+
+        const requestButton = screen.getByRole('button', { name: /Request frontend update for this instance/i });
+        expect(requestButton).toBeEnabled();
+
+        fireEvent.click(requestButton);
+
+        expect(state.frontendRequestMutate).toHaveBeenCalledTimes(1);
+        const body = state.frontendRequestMutate.mock.calls[0][0];
+        // Hard rules for a frontend swap: no instance_id, no migration-risk fields.
+        expect(body).not.toHaveProperty('instance_id');
+        expect(body).not.toHaveProperty('accepted_migration_risk');
+        expect(body).not.toHaveProperty('typed_confirmation');
+        expect(body.target_version).toBe('0.1.7');
+        expect(body.preflight_id).toBe('fe-pf-qa-001');
+    });
+
+    it('disables the frontend request button when the frontend preflight is blocked', () => {
+        state.frontendPreflight = frontendPreflight({
+            status: 'blocked',
+            checks: [{ code: 'downgrade', severity: 'error', message: 'Frontend downgrades are not supported.' }],
+        });
+
+        renderWithProviders(<SystemMaintenancePage />);
+        fireEvent.change(screen.getByTestId('frontend-target-version-input'), { target: { value: '0.1.3' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check frontend compatibility/i }));
+
+        expect(screen.getByRole('button', { name: /Request frontend update for this instance/i })).toBeDisabled();
+        expect(screen.getByText(/This frontend update is blocked/i)).toBeInTheDocument();
+    });
+
+    it('hides the frontend request button for an admin without admin.system.update', () => {
+        state.canUpdate = false;
+
+        renderWithProviders(<SystemMaintenancePage />);
+        fireEvent.change(screen.getByTestId('frontend-target-version-input'), { target: { value: '0.1.7' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check frontend compatibility/i }));
+
+        expect(
+            screen.queryByRole('button', { name: /Request frontend update for this instance/i }),
+        ).not.toBeInTheDocument();
+        // The notice text is split by a <Code> node, so match the trailing segment.
+        expect(screen.getByText(/permission to request a frontend update/i)).toBeInTheDocument();
     });
 });
