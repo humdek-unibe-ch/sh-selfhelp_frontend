@@ -5,14 +5,22 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * React Query hooks for the admin plugin manager.
  *
- * Every hook uses `staleTime: Infinity`. Reactivity is supplied by
- * Mercure: the admin shell subscribes to `selfhelp/plugins/state` and
- * calls `queryClient.invalidateQueries(['admin-plugins'])` whenever an
- * operation event arrives. No background polling is performed.
+ * Reactivity is supplied primarily by Mercure: the admin shell
+ * subscribes to `selfhelp/plugins/state` and calls
+ * `queryClient.invalidateQueries(['admin-plugins'])` whenever an
+ * operation event arrives. Because SSE can stall silently and the
+ * caches use `staleTime: Infinity`, the lifecycle queries ALSO poll
+ * fast while an operation is in flight (see `plugin-operation-polling`)
+ * as a fallback, then go quiet once everything is terminal.
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AdminPluginApi } from '../../../../../api/admin/plugins.api';
+import {
+    hasActivePluginOperation,
+    operationsRefetchInterval,
+    pluginSurfaceRefetchInterval,
+} from './plugin-operation-polling';
 
 const KEY = ['admin-plugins'] as const;
 const OPERATIONS_KEY = ['admin-plugin-operations'] as const;
@@ -20,10 +28,15 @@ const SOURCES_KEY = ['admin-plugin-sources'] as const;
 const AVAILABLE_KEY = [...KEY, 'available'] as const;
 
 export function useAdminPlugins() {
+    // Subscribe to operations so the list repaints (installed/enabled
+    // state) while an action runs, even if the Mercure event is missed.
+    const operations = useAdminPluginOperations();
+    const active = hasActivePluginOperation(operations.data);
     return useQuery({
         queryKey: [...KEY, 'list'],
         queryFn: async () => (await AdminPluginApi.listPlugins()).data,
         staleTime: Infinity,
+        refetchInterval: pluginSurfaceRefetchInterval(active),
     });
 }
 
@@ -37,6 +50,8 @@ export function useAdminPlugins() {
  * the Available tab; no background polling.
  */
 export function useAdminPluginsAvailable(enabled: boolean = true) {
+    const operations = useAdminPluginOperations();
+    const active = hasActivePluginOperation(operations.data);
     return useQuery({
         queryKey: AVAILABLE_KEY,
         queryFn: async () => (await AdminPluginApi.listAvailable()).data,
@@ -46,15 +61,20 @@ export function useAdminPluginsAvailable(enabled: boolean = true) {
         // actions happen elsewhere. If the query was invalidated while
         // unmounted, refetch as soon as the tab mounts again.
         refetchOnMount: true,
+        // An install moves a plugin out of "Available"; poll while it runs.
+        refetchInterval: pluginSurfaceRefetchInterval(active),
     });
 }
 
 export function useAdminPlugin(pluginId: string | null) {
+    const operations = useAdminPluginOperations(pluginId ?? undefined);
+    const active = hasActivePluginOperation(operations.data);
     return useQuery({
         queryKey: [...KEY, 'detail', pluginId ?? ''],
         queryFn: async () => (await AdminPluginApi.getPlugin(pluginId as string)).data,
         enabled: Boolean(pluginId),
         staleTime: Infinity,
+        refetchInterval: pluginSurfaceRefetchInterval(active),
     });
 }
 
@@ -63,6 +83,10 @@ export function useAdminPluginOperations(pluginId?: string) {
         queryKey: [...OPERATIONS_KEY, pluginId ?? 'all'],
         queryFn: async () => (await AdminPluginApi.listOperations(pluginId)).data,
         staleTime: Infinity,
+        // Self-driven adaptive polling: fast while an operation is in
+        // flight (so logs/progress stay live without Mercure), off once
+        // every operation is terminal.
+        refetchInterval: (query) => operationsRefetchInterval(query.state.data),
     });
 }
 
@@ -105,6 +129,7 @@ export function useAdminPluginUninstall() {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
             qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
+            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
             qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
         },
     });
@@ -118,6 +143,7 @@ export function useAdminPluginPurge() {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
             qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
+            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
             qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
         },
     });
