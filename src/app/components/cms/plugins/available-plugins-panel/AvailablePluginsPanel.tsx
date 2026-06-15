@@ -30,7 +30,7 @@ SPDX-License-Identifier: MPL-2.0
  * invalidates it on any install/uninstall/enable/disable event.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Alert,
     Anchor,
@@ -50,8 +50,14 @@ import { IconAlertTriangle, IconDownload, IconExternalLink, IconRefresh } from '
 import { notifications } from '@mantine/notifications';
 import {
     useAdminPluginInstall,
+    useAdminPluginOperations,
     useAdminPluginsAvailable,
 } from '../hooks/useAdminPlugins';
+import {
+    activePluginOperationFor,
+    hasActivePluginOperation,
+    pluginOperationBusyLabel,
+} from '../hooks/plugin-operation-polling';
 import type {
     IAdminPluginAvailable,
     IAdminPluginAvailableVersion,
@@ -109,14 +115,37 @@ function optionLabel(v: IAdminPluginAvailableVersion): string {
 
 export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePluginsPanelProps) {
     const { data, isLoading, error, refetch, isFetching } = useAdminPluginsAvailable(enabledSourcesCount > 0);
+    const operations = useAdminPluginOperations();
     const installMutation = useAdminPluginInstall();
     const [enableAfterInstall, setEnableAfterInstall] = useState(true);
+    // Local latch covering ONLY the brief window between clicking Install and the
+    // backend operation becoming visible. Once the operation appears it owns the
+    // busy state (see the handoff effect below), so the button stays disabled +
+    // "Installing…" for the WHOLE background worker run — surviving polling
+    // refetches and reloads — and can never be clicked twice.
     const [installingId, setInstallingId] = useState<string | null>(null);
+    const pendingOpIdRef = useRef<number | null>(null);
     // Per-row chosen version (keyed by source::pluginId). Defaults resolve from
     // the backend's `selectedVersion` (newest compatible) on first render.
     const [picked, setPicked] = useState<Record<string, string>>({});
 
     const items = data?.plugins ?? [];
+    const ops = operations.data;
+    // Any lifecycle operation in flight (this plugin or another). The backend
+    // serializes plugin operations, so we disable every Install while one runs.
+    const anyOperationActive = installingId !== null || hasActivePluginOperation(ops);
+
+    // Hand the local latch off to the backend operation as soon as it appears,
+    // matched by the id the install returned. This closes the POST→operation gap
+    // (no flicker back to "Install") without ever matching a stale prior op.
+    useEffect(() => {
+        const opId = pendingOpIdRef.current;
+        if (opId === null) return;
+        if (Array.isArray(ops) && ops.some((op) => op.id === opId)) {
+            pendingOpIdRef.current = null;
+            setInstallingId(null);
+        }
+    }, [ops]);
 
     const defaultVersionFor = useMemo(() => {
         return (entry: IAdminPluginAvailable): string => {
@@ -130,7 +159,7 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
     }, []);
 
     const handleInstall = async (entry: IAdminPluginAvailable, version: IAdminPluginAvailableVersion) => {
-        if (installingId !== null) return;
+        if (anyOperationActive) return;
         const registryEntry = version.registryEntry ?? entry.registryEntry;
         if (!registryEntry) {
             notifications.show({ color: 'red', title: 'Cannot install', message: 'This version has no installable registry entry.' });
@@ -147,6 +176,7 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
             const result = op.data;
             if (result?.installAction === 'already_installed') {
                 notifications.show({ color: 'gray', title: 'Already installed', message: result.message });
+                setInstallingId(null);
                 await refetch();
                 return;
             }
@@ -162,15 +192,19 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
                     ? `${entry.name}: ${result?.existingVersion} → v${version.version} — operation #${opId}.`
                     : `${entry.name} v${version.version} — operation #${opId}. Watch the Operations tab or the Mercure stream for progress.`,
             });
+            // Keep the latch set: the handoff effect releases it once operation
+            // #opId is visible, so the button never reverts to a clickable
+            // "Install" while the worker is still running.
+            pendingOpIdRef.current = opId;
             await refetch();
         } catch (err) {
+            pendingOpIdRef.current = null;
+            setInstallingId(null);
             notifications.show({
                 color: 'red',
                 title: 'Install failed',
                 message: err instanceof Error ? err.message : String(err),
             });
-        } finally {
-            setInstallingId(null);
         }
     };
 
@@ -239,7 +273,11 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
                             const versions = versionsOf(entry);
                             const currentVersion = picked[key] ?? defaultVersionFor(entry);
                             const selectedVer = versions.find((v) => v.version === currentVersion) ?? versions[0];
-                            const isBusy = installingId === entry.pluginId;
+                            // Busy = the local latch (request just fired) OR a backend
+                            // operation in flight for this plugin. The latter keeps the
+                            // button locked for the entire background install/update.
+                            const rowActiveOp = activePluginOperationFor(ops, entry.pluginId);
+                            const isBusy = installingId === entry.pluginId || rowActiveOp !== null;
                             const noCompatible = entry.hasCompatibleVersion === false;
                             const installable = Boolean(selectedVer?.compatible && (selectedVer?.registryEntry ?? entry.registryEntry));
                             const trustForRow = selectedVer?.official ? 'official' : entry.trustLevel;
@@ -334,11 +372,15 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
                                                 size="xs"
                                                 leftSection={<IconDownload size={14} />}
                                                 loading={isBusy}
-                                                disabled={!installable || (installingId !== null && !isBusy)}
+                                                disabled={!installable || anyOperationActive}
                                                 onClick={() => selectedVer && handleInstall(entry, selectedVer)}
                                                 data-disabled={!installable ? true : undefined}
                                             >
-                                                {isBusy ? 'Installing…' : 'Install'}
+                                                {isBusy
+                                                    ? rowActiveOp
+                                                        ? pluginOperationBusyLabel(rowActiveOp.type)
+                                                        : 'Installing…'
+                                                    : 'Install'}
                                             </Button>
                                         </Tooltip>
                                     </Table.Td>

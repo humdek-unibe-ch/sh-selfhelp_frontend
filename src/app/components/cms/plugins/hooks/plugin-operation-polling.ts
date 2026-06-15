@@ -58,6 +58,51 @@ export function hasActivePluginOperation(
 }
 
 /**
+ * The in-flight operation for ONE plugin, or null. This is the authoritative,
+ * backend-driven busy signal for a row's action button: it survives polling
+ * refetches AND a full page reload (unlike a local "request in flight" flag),
+ * so the button stays in its progress state for the whole background worker run
+ * and can never be clicked again mid-operation.
+ */
+export function activePluginOperationFor(
+    operations: readonly IAdminPluginOperation[] | null | undefined,
+    pluginId: string,
+): IAdminPluginOperation | null {
+    if (!Array.isArray(operations)) return null;
+    return (
+        operations.find((op) => op?.pluginId === pluginId && isPluginOperationActive(op?.status)) ?? null
+    );
+}
+
+/**
+ * Present-progressive button label for an in-flight operation type, e.g.
+ * `install` → "Installing…". Keeps the action button honest about WHICH
+ * lifecycle step is running instead of a generic spinner.
+ */
+export function pluginOperationBusyLabel(type: IAdminPluginOperation['type']): string {
+    switch (type) {
+        case 'install':
+            return 'Installing…';
+        case 'update':
+            return 'Updating…';
+        case 'uninstall':
+            return 'Uninstalling…';
+        case 'purge':
+            return 'Purging…';
+        case 'enable':
+            return 'Enabling…';
+        case 'disable':
+            return 'Disabling…';
+        case 'rollback':
+            return 'Rolling back…';
+        case 'repair':
+            return 'Repairing…';
+        default:
+            return 'Working…';
+    }
+}
+
+/**
  * `refetchInterval` value for the operations query itself: poll fast
  * while it carries an in-flight operation, otherwise stop. Pass the
  * query's own `data` (`query.state.data`).
