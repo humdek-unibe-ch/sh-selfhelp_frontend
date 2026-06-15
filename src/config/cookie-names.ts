@@ -18,36 +18,53 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 /**
- * Per-instance cookie suffix.
+ * Per-instance cookie suffix — applied to EVERY SelfHelp cookie.
  *
  * The manager runs many instances on the SAME host, separated only by port
  * (`localhost:9111`, `localhost:9100`, …). Cookies are scoped by host, NOT by
  * port (RFC 6265 §8.5), so without a suffix every instance would share ONE
- * `sh_auth` / `sh_refresh` cookie jar. Because each instance signs its JWTs
- * with its own keypair and stores refresh tokens in its own database, a token
- * minted by one instance is rejected by another — and the BFF's silent refresh
- * then deletes the *shared* cookie, logging the operator out of EVERY instance
- * at once. Suffixing the httpOnly, server-only session cookies with the
- * instance id gives each instance its own jar even on a shared host.
+ * cookie jar. For the session cookies this logged the operator out of EVERY
+ * instance at once (each instance signs JWTs with its own keypair, so a token
+ * minted by one is rejected by another and the BFF's silent refresh then
+ * deletes the *shared* cookie). For the rest — locale (`sh_lang`,
+ * `sh_accept_locale`), color scheme, preview, CSRF — sharing one jar silently
+ * bled one instance's UI state into another. Suffixing *all* of them with the
+ * instance id gives each instance a fully isolated jar even on a shared host.
  *
- * The value comes from `SELFHELP_INSTANCE_ID`, which the manager injects into
- * every instance's generated `.env` (and therefore into the frontend
- * container's process env). It is read identically by the Edge proxy, the BFF
- * route handlers, and RSC — all running in the same frontend container — so the
- * name used to SET a cookie always matches the name used to READ it. In a plain
- * dev checkout the variable is unset and the suffix is empty, preserving the
- * historical single-instance cookie names.
+ * ## Where the id comes from (server vs. browser)
+ * The id is `SELFHELP_INSTANCE_ID`, injected by the manager into every
+ * instance's generated `.env` (and thus the frontend container's process env):
  *
- * Only the httpOnly cookies that never leave the server are suffixed. The
- * double-submit CSRF cookie and the impersonation *display* cookie are read by
- * the browser, which cannot see this server-only id; they keep stable names
- * (sharing them across ports is harmless — CSRF is validated per hop and the
- * display hint carries no authority).
+ *   - **Server** (Edge proxy, BFF route handlers, RSC — all in the frontend
+ *     container) read it straight from `process.env`.
+ *   - **Browser** cannot see it: it is not a `NEXT_PUBLIC_*` var, and even if it
+ *     were, `NEXT_PUBLIC_*` is inlined at *build* time while the id is a
+ *     *runtime* value that differs per container started from the same image.
+ *     So the server-rendered root layout mirrors it onto
+ *     `<html data-sh-instance="…">`, and the browser reads it back from there.
+ *     `document.documentElement` is the first node parsed, so the attribute is
+ *     always present by the time any client module evaluates this file.
+ *
+ * Because both sides derive the identical suffix, the name used to SET a cookie
+ * always matches the name used to READ it — on the server, in the browser, and
+ * across the SSR→hydration boundary. In a plain dev checkout the variable is
+ * unset, the attribute is absent, the suffix is empty, and the historical
+ * single-instance cookie names are preserved.
  */
+function readInstanceId(): string {
+  // Server runtime (node / edge): the manager-injected env var.
+  if (typeof process !== 'undefined' && process.env && process.env.SELFHELP_INSTANCE_ID) {
+    return process.env.SELFHELP_INSTANCE_ID;
+  }
+  // Browser: mirrored onto <html data-sh-instance> by the root layout.
+  if (typeof document !== 'undefined' && document.documentElement) {
+    return document.documentElement.dataset.shInstance ?? '';
+  }
+  return '';
+}
+
 function instanceCookieSuffix(): string {
-  const raw =
-    (typeof process !== 'undefined' && process.env && process.env.SELFHELP_INSTANCE_ID) || '';
-  const safe = raw.replace(/[^A-Za-z0-9_]/g, '');
+  const safe = readInstanceId().replace(/[^A-Za-z0-9_]/g, '');
   return safe ? `_${safe}` : '';
 }
 
@@ -64,16 +81,16 @@ export const REFRESH_COOKIE = `sh_refresh${INSTANCE_COOKIE_SUFFIX}`;
 export const LEGACY_AUTH_COOKIE = 'sh_auth';
 export const LEGACY_REFRESH_COOKIE = 'sh_refresh';
 
-export const CSRF_COOKIE = 'sh_csrf';
-export const LANG_COOKIE = 'sh_lang';
-export const LOCALE_HINT_COOKIE = 'sh_accept_locale';
+export const CSRF_COOKIE = `sh_csrf${INSTANCE_COOKIE_SUFFIX}`;
+export const LANG_COOKIE = `sh_lang${INSTANCE_COOKIE_SUFFIX}`;
+export const LOCALE_HINT_COOKIE = `sh_accept_locale${INSTANCE_COOKIE_SUFFIX}`;
 /**
  * Preview mode flag. Present (`1`) = admin is previewing unpublished content,
  * absent = published view. `PreviewModeProvider` writes it and Server
  * Components read it before prefetching page content, so preview mode has a
  * single request-scoped source of truth.
  */
-export const PREVIEW_COOKIE = 'sh_preview';
+export const PREVIEW_COOKIE = `sh_preview${INSTANCE_COOKIE_SUFFIX}`;
 
 /**
  * Color scheme choice (`light` | `dark` | `auto`). Mirrored from
@@ -88,7 +105,7 @@ export const PREVIEW_COOKIE = 'sh_preview';
  *   - `auto`: the server leaves the attribute off and the bootstrap script
  *     (`/mantine-color-scheme.js`) computes it from `prefers-color-scheme`.
  */
-export const COLOR_SCHEME_COOKIE = 'sh_color_scheme';
+export const COLOR_SCHEME_COOKIE = `sh_color_scheme${INSTANCE_COOKIE_SUFFIX}`;
 
 /** One year — used for non-auth cookies (CSRF, locale hint, `sh_lang`). */
 export const LONG_LIVED_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
@@ -116,4 +133,4 @@ export const LONG_LIVED_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 //                                              no secret material.
 
 export const IMPERSONATE_COOKIE = `sh_impersonate${INSTANCE_COOKIE_SUFFIX}`;
-export const IMPERSONATE_TARGET_EMAIL_COOKIE = 'sh_impersonate_target_email';
+export const IMPERSONATE_TARGET_EMAIL_COOKIE = `sh_impersonate_target_email${INSTANCE_COOKIE_SUFFIX}`;
