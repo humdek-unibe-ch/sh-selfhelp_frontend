@@ -51,12 +51,27 @@ import { API_CONFIG } from '../config/api.config';
 import { ROUTES } from '../config/routes.config';
 import { readCookieValue } from '../utils/auth.utils';
 import { CSRF_COOKIE } from '../config/cookie-names';
+import { isTransientApiError, transientRetryDelay } from '../utils/transient-error.utils';
 
 declare module 'axios' {
     export interface InternalAxiosRequestConfig {
         _retry?: boolean;
+        _transientRetryCount?: number;
     }
 }
+
+/** Safe (idempotent, body-less) methods we may transparently retry. */
+const SAFE_METHODS = new Set(['get', 'head', 'options']);
+
+/**
+ * How many times a SAFE request is retried while the backend is briefly
+ * unavailable (a manager-driven service restart during a plugin/system
+ * operation). Short by design — React Query adds its own longer transient
+ * retry on top for reads, and the SSE reconnect reconciles anything missed.
+ */
+const MAX_TRANSIENT_RETRIES = 3;
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const apiClientRaw = axios.create({
     baseURL: API_CONFIG.BASE_URL,
@@ -132,6 +147,24 @@ apiClientRaw.interceptors.response.use(
         ) {
             originalRequest._retry = true;
             return apiClientRaw(originalRequest);
+        }
+
+        // (a2) Transient backend outage on a SAFE read (network error / 5xx —
+        //      e.g. Traefik 502/503 while the manager restarts Symfony for a
+        //      plugin/system operation). Retry a few times with backoff so the
+        //      restart window is invisible. NEVER retry mutations (not
+        //      idempotent) and never treat this as a logout (5xx is not a 401).
+        if (
+            originalRequest &&
+            SAFE_METHODS.has((originalRequest.method || 'get').toLowerCase()) &&
+            isTransientApiError(error)
+        ) {
+            const attempt = originalRequest._transientRetryCount ?? 0;
+            if (attempt < MAX_TRANSIENT_RETRIES) {
+                originalRequest._transientRetryCount = attempt + 1;
+                await sleep(transientRetryDelay(attempt));
+                return apiClientRaw(originalRequest);
+            }
         }
 
         // (b) Session genuinely expired. The proxy cleared cookies; if we

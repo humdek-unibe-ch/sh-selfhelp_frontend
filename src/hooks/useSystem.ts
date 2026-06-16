@@ -6,7 +6,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { AdminSystemApi } from '../api/admin/system.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { makeTransientRetry, transientRetryDelay } from '../utils/transient-error.utils';
 import type { IMaintenanceSetRequest, IUpdateRequest, IFrontendUpdateRequest } from '../shared';
+
+/**
+ * Transient-only retry for the system read queries. While the SelfHelp Manager
+ * applies an update it restarts the backend, so reads briefly come back as 5xx
+ * / network errors. Those are ridden out with backoff (UI shows a quiet
+ * "reconnecting" state) instead of surfacing a dead error or bouncing to login;
+ * a genuine 4xx still fails fast. Mirrors the plugin-admin read policy.
+ */
+const TRANSIENT_READ_RETRY = {
+    retry: makeTransientRetry(8),
+    retryDelay: transientRetryDelay,
+} as const;
 
 const SYSTEM_VERSION_KEY = ['systemVersion'] as const;
 const SYSTEM_HEALTH_KEY = ['systemHealth'] as const;
@@ -28,8 +41,7 @@ export function useSystemVersion(enabled: boolean = true) {
         enabled,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -47,8 +59,7 @@ export function useSystemHealth(enabled: boolean = true, refetchInterval: number
         refetchInterval,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -65,8 +76,7 @@ export function useSystemAdvisories(enabled: boolean = true) {
         enabled,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -82,8 +92,7 @@ export function useSystemMaintenance(enabled: boolean = true) {
         enabled,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -132,8 +141,7 @@ export function useUpdatePreflight(target: string | null) {
         enabled: !!target,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -150,8 +158,7 @@ export function useUpdateStatus(enabled: boolean = true, refetchInterval: number
         refetchInterval,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -168,8 +175,7 @@ export function useUpdateReleases(enabled: boolean = true) {
         enabled,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -219,8 +225,7 @@ export function useFrontendUpdateReleases(enabled: boolean = true) {
         enabled,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -238,8 +243,7 @@ export function useFrontendUpdatePreflight(target: string | null) {
         enabled: !!target,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
