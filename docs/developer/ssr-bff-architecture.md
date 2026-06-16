@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-03.
+Last verified: 2026-06-16.
 Source of truth: Runtime code, configuration, and tests in this repository.
 
 This document explains **why** the SelfHelp frontend is structured the
@@ -346,6 +346,39 @@ or local state.** Never duplicate server data into Zustand.
 
 Do not write a global `queryClient.invalidateQueries()` — it is almost
 always wrong and it will defeat the tiered caches.
+
+### 6.5 Real-time invalidation (SSE) — events, not timers
+
+Live admin views are **event-driven**, not poll-driven. The browser holds **one**
+authenticated Server-Sent-Events stream at `GET /api/auth/events`
+(`useAclEventStream`). The BFF route opens **one** upstream Mercure connection
+and multiplexes the per-user topics onto that single stream:
+
+- `acl-changed` → invalidate `['frontend-pages']` + `['page-by-keyword']`.
+- `impersonation` → impersonation start/stop for this user.
+- `system-update` → invalidate `['systemUpdateStatus']` + `['systemVersion']` +
+  `['systemHealth']` so the System Maintenance step tracker repaints the instant
+  the manager advances an update (CMS request or manager write-back). The topic
+  is **optional** in the bootstrap so an older backend still streams ACL +
+  impersonation.
+
+Plugin-admin operations use the same philosophy (`plugin-operation-polling`
+gated by `plugin-sse-status`): the install/uninstall/update views refresh from
+the stream and the operation, not a timer.
+
+**Fallback policy.** There is **no time-based background polling** while the
+stream is healthy. A short fallback poll runs **only** while the stream is
+disconnected **and** an operation is in flight, and stops on reconnect. The
+connection state lives in tiny external stores (`auth-sse-status.ts`,
+`plugin-sse-status.ts`) that the stream updates on `open`/`error` and the
+queries read. On **re-connect** the stream invalidates once (the
+`hasConnectedBefore` guard) to reconcile anything missed while it was down — so
+a manager-driven backend restart never strands the UI on stale data and never
+needs a manual full-page refresh.
+
+This is the same pattern the SelfHelp Manager console uses (`GET /api/events`),
+so the two tools behave identically: instant updates, no idle polling, a poll
+only as a disconnected safety net.
 
 ---
 

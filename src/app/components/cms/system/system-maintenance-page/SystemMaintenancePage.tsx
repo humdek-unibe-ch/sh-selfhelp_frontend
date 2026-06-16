@@ -21,9 +21,11 @@ import { useState } from 'react';
 import {
     Paper, Stack, Grid, Group, Title, Text, Badge, Table, TextInput, Button,
     Checkbox, Alert, Progress, Code, LoadingOverlay, Divider, List, Autocomplete,
+    Timeline, Loader,
 } from '@mantine/core';
 import {
     IconInfoCircle, IconAlertTriangle, IconRefresh, IconShieldCheck, IconCircleCheck,
+    IconClock, IconX,
 } from '@tabler/icons-react';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { useAuth } from '../../../../../hooks/useAuth';
@@ -32,9 +34,10 @@ import {
     useRequestUpdateMutation, useSystemMaintenance, useSetMaintenanceMutation, useUpdateReleases,
     useFrontendUpdateReleases, useFrontendUpdatePreflight, useRequestFrontendUpdateMutation,
 } from '../../../../../hooks/useSystem';
+import { useAuthSseConnected } from '../../../../../hooks/auth-sse-status';
 import type {
     TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus,
-    TSystemHealthOverall, TSystemComponentStatus, TSystemAdvisorySeverity,
+    TSystemHealthOverall, TSystemComponentStatus, TSystemAdvisorySeverity, IUpdateStep,
 } from '../../../../../shared';
 
 const PREFLIGHT_COLOR: Record<TUpdatePreflightStatus, string> = {
@@ -98,7 +101,9 @@ const ADVISORY_SEVERITY_COLOR: Record<TSystemAdvisorySeverity, string> = {
  */
 const SELF_REPORTED_FRONTEND_VERSION = process.env.NEXT_PUBLIC_FRONTEND_VERSION ?? 'unknown';
 
-// Statuses for which the operation is still in flight, so the UI keeps polling.
+// Statuses for which the operation is still in flight. While active the UI
+// tracks it via the `system-update` SSE event; the short fallback poll only
+// runs while the SSE stream is disconnected (see the page body).
 const ACTIVE_STATUSES: TUpdateOperationStatus[] = [
     'requested',
     'approved',
@@ -111,6 +116,78 @@ const ACTIVE_STATUSES: TUpdateOperationStatus[] = [
     'health_check_running',
     'rollback_running',
 ];
+
+/** Backoff for the fallback update-status poll (only while SSE is down + active). */
+const UPDATE_FALLBACK_POLL_MS = 4000;
+
+type TStepState = 'done' | 'active' | 'error' | 'pending';
+
+/**
+ * Classify a manager-written `IUpdateStep.status` (free-form string) into one
+ * of four render states so the Timeline stays robust to the exact vocabulary.
+ */
+function stepState(status: string): TStepState {
+    const s = status.toLowerCase();
+    if (/(succeed|success|done|complete|ok|pass)/.test(s)) return 'done';
+    if (/(fail|error|rollback|rolled_back)/.test(s)) return 'error';
+    if (/(running|progress|active|start|pending_restart)/.test(s)) return 'active';
+    return 'pending';
+}
+
+function stepColor(state: TStepState): string {
+    switch (state) {
+        case 'done':
+            return 'teal';
+        case 'active':
+            return 'blue';
+        case 'error':
+            return 'red';
+        case 'pending':
+        default:
+            return 'gray';
+    }
+}
+
+function StepBullet({ state }: { state: TStepState }) {
+    if (state === 'active') return <Loader size={12} color="blue" />;
+    if (state === 'error') return <IconX size={12} />;
+    if (state === 'done') return <IconCircleCheck size={12} />;
+    return <IconClock size={12} />;
+}
+
+/**
+ * Step-tracked progress for the active update operation — the CMS analogue of
+ * the manager install checklist. Driven by the SSE-refreshed `steps` array; the
+ * `active` bullet is the last non-pending step.
+ */
+function UpdateStepsTimeline({ steps }: { steps: IUpdateStep[] }) {
+    const states = steps.map((s) => stepState(s.status));
+    let activeIndex = -1;
+    states.forEach((st, i) => {
+        if (st !== 'pending') activeIndex = i;
+    });
+
+    return (
+        <Timeline active={activeIndex} bulletSize={18} lineWidth={2}>
+            {steps.map((step, i) => {
+                const state = states[i] ?? 'pending';
+                return (
+                    <Timeline.Item
+                        key={step.name}
+                        color={stepColor(state)}
+                        bullet={<StepBullet state={state} />}
+                        title={<Text size="sm">{step.name}</Text>}
+                    >
+                        <Text size="xs" c="dimmed">
+                            {step.status}
+                            {step.detail ? `: ${step.detail}` : ''}
+                        </Text>
+                    </Timeline.Item>
+                );
+            })}
+        </Timeline>
+    );
+}
 
 export function SystemMaintenancePage() {
     const { permissionChecker } = useAuth();
@@ -125,8 +202,11 @@ export function SystemMaintenancePage() {
     const [frontendTargetInput, setFrontendTargetInput] = useState('');
     const [frontendCheckedTarget, setFrontendCheckedTarget] = useState<string | null>(null);
 
+    // SSE drives freshness: the `system-update` event invalidates health too
+    // (terminal states flip component status), so no background health poll.
+    const sseConnected = useAuthSseConnected();
     const version = useSystemVersion();
-    const health = useSystemHealth(true, 15000);
+    const health = useSystemHealth(true);
     const advisories = useSystemAdvisories();
     const maintenance = useSystemMaintenance();
     const setMaintenance = useSetMaintenanceMutation();
@@ -158,11 +238,14 @@ export function SystemMaintenancePage() {
     const frontendReleaseOptions = (frontendReleasesData?.releases ?? [])
         .filter((r) => r.version !== frontendReleasesData?.current_version)
         .map((r) => r.version);
-    // Poll the status while an operation is active.
-    const status = useUpdateStatus(true, undefined);
+    // SSE-driven status: the `system-update` event (emitted on every CMS
+    // request + manager write-back) invalidates this query, so there is no
+    // time-based poll. A short fallback poll runs ONLY while the SSE stream is
+    // disconnected AND an operation is in flight, and stops on reconnect.
+    const status = useUpdateStatus(true, false);
     const statusData = status.data;
     const isActive = !!statusData && statusData.operation_id !== '' && ACTIVE_STATUSES.includes(statusData.status);
-    const liveStatus = useUpdateStatus(isActive, isActive ? 4000 : false);
+    const liveStatus = useUpdateStatus(isActive, isActive && !sseConnected ? UPDATE_FALLBACK_POLL_MS : false);
     const currentStatus = liveStatus.data ?? statusData;
 
     // While an update operation (core OR frontend) is in flight, lock BOTH
@@ -636,13 +719,7 @@ export function SystemMaintenancePage() {
                         )}
                         {currentStatus.message && <Text size="sm" mb="xs">{currentStatus.message}</Text>}
                         {currentStatus.steps.length > 0 && (
-                            <List size="sm" spacing="xs">
-                                {currentStatus.steps.map((step) => (
-                                    <List.Item key={step.name} icon={<IconCircleCheck size={14} />}>
-                                        {step.name} — {step.status}{step.detail ? `: ${step.detail}` : ''}
-                                    </List.Item>
-                                ))}
-                            </List>
+                            <UpdateStepsTimeline steps={currentStatus.steps} />
                         )}
                     </Paper>
                 )}

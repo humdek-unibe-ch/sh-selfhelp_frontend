@@ -62,6 +62,16 @@ SPDX-License-Identifier: MPL-2.0
  *                                this user. Both topics share ONE upstream
  *                                Mercure connection (the bootstrap JWT
  *                                authorises both).
+ *     - `system-update`         data: {
+ *                                  operationId: string,
+ *                                  status: string,
+ *                                  progressPercent: number
+ *                                }
+ *                                fired when an update operation THIS user
+ *                                requested changes state (CMS request or
+ *                                manager write-back). Lets the System
+ *                                Maintenance page track progress without
+ *                                polling.
  *
  *   Mercure protocol-level frames (`Last-Event-ID`, `:` heartbeats,
  *   reconnect time hints) flow through unchanged and are handled by the
@@ -95,6 +105,9 @@ interface MercureBootstrap {
     hubUrl: string;
     topic: string;
     impersonationTopic: string;
+    /** Per-user system-update topic. Optional so an older backend that does
+     *  not yet emit it still streams ACL + impersonation. */
+    systemUpdateTopic: string;
     token: string;
     expiresIn: number;
 }
@@ -119,10 +132,8 @@ function extractBootstrap(payload: unknown): MercureBootstrap | null {
                   | undefined);
 
     if (!candidate || typeof candidate !== 'object') return null;
-    const { hubUrl, topic, impersonationTopic, token, expiresIn } = candidate as Record<
-        string,
-        unknown
-    >;
+    const { hubUrl, topic, impersonationTopic, systemUpdateTopic, token, expiresIn } =
+        candidate as Record<string, unknown>;
     if (
         typeof hubUrl !== 'string' ||
         typeof topic !== 'string' ||
@@ -135,6 +146,8 @@ function extractBootstrap(payload: unknown): MercureBootstrap | null {
         hubUrl,
         topic,
         impersonationTopic,
+        // Tolerate an older backend that does not advertise it yet.
+        systemUpdateTopic: typeof systemUpdateTopic === 'string' ? systemUpdateTopic : '',
         token,
         expiresIn: typeof expiresIn === 'number' ? expiresIn : 3600,
     };
@@ -203,7 +216,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const subscribeUrl =
         `${bootstrap.hubUrl}` +
         `?topic=${encodeURIComponent(bootstrap.topic)}` +
-        `&topic=${encodeURIComponent(bootstrap.impersonationTopic)}`;
+        `&topic=${encodeURIComponent(bootstrap.impersonationTopic)}` +
+        (bootstrap.systemUpdateTopic !== ''
+            ? `&topic=${encodeURIComponent(bootstrap.systemUpdateTopic)}`
+            : '');
 
     let hubResponse: Response;
     try {
