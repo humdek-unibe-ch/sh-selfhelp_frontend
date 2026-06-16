@@ -270,7 +270,8 @@ export type TStyleName =
     | 'card' | 'card-segment'
     | 'list' | 'list-item'
     | 'datepicker'
-    | 'typography';
+    | 'typography'
+    | 'showUserInput';
 
 // ===== IContentField — re-exported from shared =====
 export type IContentField<T> = ISharedContentField<T>;
@@ -404,7 +405,7 @@ export type {
 } from '../../shared';
 
 // ===== Frontend-only legacy styles =====
-// These three styles exist in the admin/CMS UI and are emitted by the
+// These styles exist in the admin/CMS UI and are emitted by the
 // page editor, but they don't reach the mobile app and aren't part of
 // the shared `STYLE_REGISTRY`. They live here so the frontend's
 // renderer can still discriminate them.
@@ -418,6 +419,39 @@ export interface IDataContainerStyle extends IBaseStyle {
 
 export interface IVersionStyle extends IBaseStyle {
     style_name: 'version';
+}
+
+export interface IShowUserInputEntry {
+    record_id: number;
+    id_users: number;
+    _can_delete?: boolean;
+    [key: string]: unknown;
+}
+
+export interface IShowUserInputStyle extends IBaseStyle {
+    style_name: 'showUserInput';
+    own_entries_only?: IContentField<string>;
+    show_timestamp?: IContentField<string>;
+    dt_sortable?: IContentField<string>;
+    dt_searching?: IContentField<string>;
+    dt_paginate?: IContentField<string>;
+    dt_info?: IContentField<string>;
+    dt_default_order_column?: IContentField<string>;
+    dt_default_order_dir?: IContentField<string>;
+    csv_export?: IContentField<string>;
+    delete_entry?: IContentField<string>;
+    fields_map?: IContentField<string>;
+    delete_modal_title?: IContentField<string>;
+    delete_modal_body?: IContentField<string>;
+    mantine_spacing_margin_padding?: IContentField<string>;
+    mantine_table_striped?: IContentField<string>;
+    mantine_table_highlight_on_hover?: IContentField<string>;
+    mantine_table_with_table_border?: IContentField<string>;
+    mantine_table_with_column_borders?: IContentField<string>;
+    mantine_table_with_row_borders?: IContentField<string>;
+    mantine_table_sticky_header?: IContentField<string>;
+    mantine_table_caption_side?: IContentField<string>;
+    entries?: IShowUserInputEntry[];
 }
 
 // ===== Discriminated union of all styles =====
@@ -538,7 +572,7 @@ export type TStyle =
     | IAccordionStyle | IAccordionItemStyle | ITabsStyle | ITabStyle
     | ITimelineStyle | IListStyle | IListItemStyle
     | IEntryListStyle | IEntryRecordStyle | IEntryRecordDeleteStyle
-    | ILoopStyle | IVersionStyle;
+    | ILoopStyle | IVersionStyle | IShowUserInputStyle;
 
 export interface IUnknownStyle extends IBaseStyle {
     style_name: TStyleName;
