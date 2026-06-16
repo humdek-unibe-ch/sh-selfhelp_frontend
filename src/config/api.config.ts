@@ -634,10 +634,6 @@ export const API_CONFIG = {
             route: '/admin/sections/pages',
             permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
         },
-        ADMIN_SECTIONS_FORCE_DELETE: {
-            route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}/force-delete`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_DELETE]
-        },
 
         // Admin data management endpoints
         ADMIN_DATA_TABLES_LIST: {

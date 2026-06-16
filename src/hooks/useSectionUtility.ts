@@ -150,37 +150,3 @@ export function useDeleteAllUnusedSectionsMutation() {
         },
     });
 }
-
-/**
- * Hook to force delete a section from a page
- */
-export function useForceDeleteSectionMutation() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({ pageId, sectionId }: { pageId: number; sectionId: number }) => 
-            AdminSectionUtilityApi.forceDeleteSection(pageId, sectionId),
-        onSuccess: (data, variables) => {
-            notifications.show({
-                title: 'Success',
-                message: data.message || 'Section force deleted successfully',
-                color: 'green',
-            });
-
-            // Invalidate page sections and unused sections queries
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] });
-            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'pages', variables.pageId, 'sections'] });
-        },
-        onError: (error: any) => {
-
-            notifications.show({
-                title: 'Error',
-                message: error?.response?.data?.message || 'Failed to force delete section',
-                color: 'red',
-                autoClose: false,
-            });
-        },
-    });
-}
