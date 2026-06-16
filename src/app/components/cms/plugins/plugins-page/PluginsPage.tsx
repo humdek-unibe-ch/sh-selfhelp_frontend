@@ -62,15 +62,19 @@ import {
     useAdminPluginEnable,
     useAdminPluginInspectArchive,
     useAdminPluginInstall,
+    useAdminPluginOperations,
     useAdminPluginPurge,
     useAdminPluginSources,
     useAdminPluginUninstall,
     useAdminPluginUpdate,
     useAdminPlugins,
 } from '../hooks/useAdminPlugins';
+import { activePluginOperationFor, pluginOperationBusyLabel } from '../hooks/plugin-operation-polling';
 import { PluginSourcesPanel } from '../plugin-sources-panel/PluginSourcesPanel';
 import { AvailablePluginsPanel } from '../available-plugins-panel/AvailablePluginsPanel';
 import { PluginVersionMismatchBanner } from '../plugin-version-mismatch-banner/PluginVersionMismatchBanner';
+import { ActivePluginOperationsPanel } from '../plugin-operation-progress/PluginOperationProgress';
+import { isTransientApiError } from '../../../../../utils/transient-error.utils';
 import type { IAdminPluginAvailableUpdate } from '../../../../../types/responses/admin/plugins.types';
 
 type TPluginsTab = 'installed' | 'available' | 'sources';
@@ -91,6 +95,12 @@ export function PluginsPage() {
     const searchParams = useSearchParams();
     const { data: pluginList, isLoading, error } = useAdminPlugins();
     const { data: sources } = useAdminPluginSources();
+    const { data: operations } = useAdminPluginOperations();
+    // Bridges the brief window between dispatching an action and the backend
+    // operation row appearing, so a row's buttons never flash back to clickable
+    // mid-dispatch. The authoritative busy signal is the backend operation
+    // (`activePluginOperationFor`), which survives reloads / restarts.
+    const [busyPluginId, setBusyPluginId] = useState<string | null>(null);
     const [purgeFor, setPurgeFor] = useState<string | null>(null);
     const [purgeConfirm, setPurgeConfirm] = useState('');
 
@@ -289,6 +299,18 @@ export function PluginsPage() {
     }
 
     if (error) {
+        // A manager-driven service restart (a plugin/system operation) makes the
+        // backend briefly unavailable. Surface a non-fatal "reconnecting" state —
+        // the read keeps retrying and SSE reconnect reconciles — instead of a
+        // dead error screen that nudges the operator to reload (or log in again).
+        if (isTransientApiError(error)) {
+            return (
+                <Alert color="yellow" title="Reconnecting…" icon={<Loader size="xs" />}>
+                    The instance is briefly unavailable (it may be restarting to apply an operation).
+                    Retrying automatically — no need to reload.
+                </Alert>
+            );
+        }
         return (
             <Alert color="red" title="Failed to load plugins">
                 {error instanceof Error ? error.message : 'Unknown error.'}
@@ -297,47 +319,62 @@ export function PluginsPage() {
     }
 
     const onEnable = async (pluginId: string) => {
+        setBusyPluginId(pluginId);
         try {
             await enableMutation.mutateAsync(pluginId);
             notifications.show({ color: 'green', title: 'Plugin enabled', message: pluginId });
         } catch (err) {
             notifications.show({ color: 'red', title: 'Enable failed', message: err instanceof Error ? err.message : String(err) });
+        } finally {
+            setBusyPluginId(null);
         }
     };
     const onDisable = async (pluginId: string) => {
+        setBusyPluginId(pluginId);
         try {
             await disableMutation.mutateAsync(pluginId);
             notifications.show({ color: 'yellow', title: 'Plugin disabled', message: pluginId });
         } catch (err) {
             notifications.show({ color: 'red', title: 'Disable failed', message: err instanceof Error ? err.message : String(err) });
+        } finally {
+            setBusyPluginId(null);
         }
     };
     const onUninstall = async (pluginId: string) => {
+        setBusyPluginId(pluginId);
         try {
             await uninstallMutation.mutateAsync(pluginId);
             notifications.show({ color: 'green', title: 'Plugin uninstalled', message: pluginId });
         } catch (err) {
             notifications.show({ color: 'red', title: 'Uninstall failed', message: err instanceof Error ? err.message : String(err) });
+        } finally {
+            setBusyPluginId(null);
         }
     };
 
     const onPurgeConfirm = async () => {
         if (purgeFor === null) return;
+        const pluginId = purgeFor;
+        setBusyPluginId(pluginId);
         try {
-            await purgeMutation.mutateAsync({ pluginId: purgeFor, confirmedPluginId: purgeConfirm });
-            notifications.show({ color: 'green', title: 'Plugin purged', message: purgeFor });
+            await purgeMutation.mutateAsync({ pluginId, confirmedPluginId: purgeConfirm });
+            notifications.show({ color: 'green', title: 'Plugin purged', message: pluginId });
             setPurgeFor(null);
             setPurgeConfirm('');
         } catch (err) {
             notifications.show({ color: 'red', title: 'Purge failed', message: err instanceof Error ? err.message : String(err) });
+        } finally {
+            setBusyPluginId(null);
         }
     };
 
     const onUpdateConfirm = async () => {
         if (updateFor === null) return;
+        const pluginId = updateFor.pluginId;
+        setBusyPluginId(pluginId);
         try {
             const op = await updateMutation.mutateAsync({
-                pluginId: updateFor.pluginId,
+                pluginId,
                 body: {
                     source: 'registry',
                     sourceName: updateFor.sourceName,
@@ -348,7 +385,7 @@ export function PluginsPage() {
             notifications.show({
                 color: 'green',
                 title: 'Update queued',
-                message: `Operation #${op.data?.id} dispatched for ${updateFor.pluginId}.`,
+                message: `Operation #${op.data?.id} dispatched for ${pluginId}.`,
             });
             setUpdateFor(null);
         } catch (err) {
@@ -357,6 +394,8 @@ export function PluginsPage() {
                 title: 'Update failed',
                 message: err instanceof Error ? err.message : String(err),
             });
+        } finally {
+            setBusyPluginId(null);
         }
     };
 
@@ -444,6 +483,8 @@ export function PluginsPage() {
 
             <PluginVersionMismatchBanner />
 
+            <ActivePluginOperationsPanel operations={operations} />
+
             <Tabs value={activeTab} onChange={setActiveTab} keepMounted={false}>
                 <Tabs.List>
                     <Tabs.Tab value="installed">Installed</Tabs.Tab>
@@ -523,45 +564,68 @@ export function PluginsPage() {
                                             </Badge>
                                         </Table.Td>
                                         <Table.Td>
-                                            <Group gap="xs" onClick={(e) => e.stopPropagation()}>
-                                                {p.availableUpdate && (
-                                                    <Tooltip
-                                                        label={
-                                                            p.availableUpdate.diffKind === 'major'
-                                                                ? 'Major upgrade — review breaking changes in the changelog before applying.'
-                                                                : `Update to v${p.availableUpdate.availableVersion}`
-                                                        }
-                                                    >
+                                            {(() => {
+                                                const activeOp = activePluginOperationFor(operations, p.pluginId);
+                                                const busy = Boolean(activeOp) || busyPluginId === p.pluginId;
+                                                // While an operation runs (backend-driven, survives reloads /
+                                                // restarts) collapse the row's actions into one disabled,
+                                                // labelled progress button so nothing can be clicked twice.
+                                                if (busy) {
+                                                    return (
                                                         <Button
                                                             size="xs"
-                                                            color={p.availableUpdate.diffKind === 'major' ? 'red' : 'blue'}
-                                                            leftSection={<IconArrowUp size={12} />}
-                                                            onClick={() => setUpdateFor(p.availableUpdate ?? null)}
+                                                            variant="light"
+                                                            color="blue"
+                                                            loading
+                                                            disabled
+                                                            onClick={(e) => e.stopPropagation()}
                                                         >
-                                                            Update
+                                                            {activeOp ? pluginOperationBusyLabel(activeOp.type) : 'Working…'}
                                                         </Button>
-                                                    </Tooltip>
-                                                )}
-                                                {p.enabled ? (
-                                                    <Button size="xs" variant="default" loading={disableMutation.isPending} onClick={() => onDisable(p.pluginId)}>
-                                                        Disable
-                                                    </Button>
-                                                ) : (
-                                                    <Button size="xs" loading={enableMutation.isPending} onClick={() => onEnable(p.pluginId)}>
-                                                        Enable
-                                                    </Button>
-                                                )}
-                                                <Tooltip label="Removes packages; preserves data">
-                                                    <Button size="xs" variant="light" color="yellow" loading={uninstallMutation.isPending} onClick={() => onUninstall(p.pluginId)}>
-                                                        Uninstall
-                                                    </Button>
-                                                </Tooltip>
-                                                <Tooltip label="Destructive: drops tables and tagged rows">
-                                                    <Button size="xs" variant="light" color="red" onClick={() => setPurgeFor(p.pluginId)}>
-                                                        Purge…
-                                                    </Button>
-                                                </Tooltip>
-                                            </Group>
+                                                    );
+                                                }
+                                                return (
+                                                    <Group gap="xs" onClick={(e) => e.stopPropagation()}>
+                                                        {p.availableUpdate && (
+                                                            <Tooltip
+                                                                label={
+                                                                    p.availableUpdate.diffKind === 'major'
+                                                                        ? 'Major upgrade — review breaking changes in the changelog before applying.'
+                                                                        : `Update to v${p.availableUpdate.availableVersion}`
+                                                                }
+                                                            >
+                                                                <Button
+                                                                    size="xs"
+                                                                    color={p.availableUpdate.diffKind === 'major' ? 'red' : 'blue'}
+                                                                    leftSection={<IconArrowUp size={12} />}
+                                                                    onClick={() => setUpdateFor(p.availableUpdate ?? null)}
+                                                                >
+                                                                    Update
+                                                                </Button>
+                                                            </Tooltip>
+                                                        )}
+                                                        {p.enabled ? (
+                                                            <Button size="xs" variant="default" onClick={() => onDisable(p.pluginId)}>
+                                                                Disable
+                                                            </Button>
+                                                        ) : (
+                                                            <Button size="xs" onClick={() => onEnable(p.pluginId)}>
+                                                                Enable
+                                                            </Button>
+                                                        )}
+                                                        <Tooltip label="Removes packages; preserves data">
+                                                            <Button size="xs" variant="light" color="yellow" onClick={() => onUninstall(p.pluginId)}>
+                                                                Uninstall
+                                                            </Button>
+                                                        </Tooltip>
+                                                        <Tooltip label="Destructive: drops tables and tagged rows">
+                                                            <Button size="xs" variant="light" color="red" onClick={() => setPurgeFor(p.pluginId)}>
+                                                                Purge…
+                                                            </Button>
+                                                        </Tooltip>
+                                                    </Group>
+                                                );
+                                            })()}
                                         </Table.Td>
                                     </Table.Tr>
                                 ))}

@@ -7,8 +7,8 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Frontend developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-10.
-Source of truth: `src/app/admin/system/page.tsx`, `src/app/components/cms/system/system-maintenance-page/SystemMaintenancePage.tsx`, `src/hooks/useSystem.ts`, `src/types/responses/admin/system.types.ts`, `src/app/components/cms/system/system-maintenance-page/__tests__/SystemMaintenancePage.test.tsx`.
+Last verified: 2026-06-16.
+Source of truth: `src/app/admin/system/page.tsx`, `src/app/components/cms/system/system-maintenance-page/SystemMaintenancePage.tsx`, `src/hooks/useSystem.ts`, `src/hooks/useAclEventStream.ts`, `src/hooks/auth-sse-status.ts`, `src/app/api/auth/events/route.ts`, `src/types/responses/admin/system.types.ts`, `src/app/components/cms/system/system-maintenance-page/__tests__/SystemMaintenancePage.test.tsx`.
 
 The **System Maintenance** screen (`/admin/system`) is the admin UI over the
 backend's instance-scoped system layer. It shows this instance's version and
@@ -42,7 +42,8 @@ instance.
 - **Installed plugins** — each plugin's version and whether it is compatible with
   the running core.
 - **System health** — aggregated component status (`healthy` / `degraded` /
-  `down`), polled every ~15 s.
+  `down`), refreshed from the live event stream (and on a short fallback poll
+  only while the stream is disconnected).
 - **Maintenance mode** — current state, with enable/disable (requires
   `admin.system.maintenance`). An env-forced state
   (`SELFHELP_MAINTENANCE_MODE`) is shown read-only. Safe mode is shown read-only
@@ -51,7 +52,13 @@ instance.
   the server (`instance backup`, `instance support-bundle`); the CMS never runs
   these itself.
 - **Update operation** — when an operation is active, its status, progress bar,
-  message, and per-step list, polled every ~4 s until a terminal state.
+  message, and a **live step tracker** (requested → claimed → backing up →
+  updating → migrating → health-check → done, or the failure step). It advances
+  **over the event stream** — the per-user `system-update` SSE topic invalidates
+  the status the instant the manager advances it. A short fallback poll runs
+  **only** while the stream is disconnected and an operation is in flight, and
+  stops on reconnect; on reconnect the view reconciles once so nothing missed
+  during a manager-driven backend restart is lost.
 - **Request an update** — pick a target version (the field is an autocomplete
   fed by `GET /admin/system/update/releases`: registry-published core versions,
   newest first, current version excluded; manual entry still works and is the
@@ -86,8 +93,10 @@ These mirror the backend guarantees (see the backend doc
    first (`sh-manager instance backup <instance-id>`), then accept the risk and
    type the target version to confirm.
 5. Click **Request update for this instance** (needs `admin.system.update`). Watch
-   the **Update operation** card as the SelfHelp Manager runs and reports each
-   step.
+   the **Update operation** card advance through its steps **live** as the
+   SelfHelp Manager runs — it tracks over SSE, so the card updates on its own
+   (no manual refresh) and you stay signed in even across the backend restart
+   the update performs.
 
 ## Test the update from the CMS (safe rehearsal)
 
@@ -109,8 +118,9 @@ release channel:
      --backend-url http://127.0.0.1:<port> --token "$SELFHELP_MANAGER_TOKEN"
    ```
 
-4. Watch the **Update operation** card poll to `succeeded`. The backend derives the
-   instance id server-side, so a browser-supplied id is ignored/rejected.
+4. Watch the **Update operation** card advance live to `succeeded` (driven by the
+   `system-update` SSE topic). The backend derives the instance id server-side, so
+   a browser-supplied id is ignored/rejected.
 
 The same journey is automated as the manager Docker e2e
 (`SHM_E2E=1 npm run e2e`). The UI behaviour above (advisory card, preflight gating,

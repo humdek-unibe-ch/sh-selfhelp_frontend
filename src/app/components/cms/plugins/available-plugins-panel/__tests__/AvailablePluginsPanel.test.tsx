@@ -29,10 +29,12 @@ import type {
     IAdminPluginAvailable,
     IAdminPluginAvailableResponse,
     IAdminPluginAvailableVersion,
+    IAdminPluginOperation,
 } from '../../../../../../types/responses/admin/plugins.types';
 
 const state = vi.hoisted(() => ({
     available: null as IAdminPluginAvailableResponse | null,
+    operations: [] as IAdminPluginOperation[],
     installMutate: vi.fn(),
     refetch: vi.fn(),
 }));
@@ -45,6 +47,7 @@ vi.mock('../../hooks/useAdminPlugins', () => ({
         refetch: state.refetch,
         isFetching: false,
     }),
+    useAdminPluginOperations: () => ({ data: state.operations }),
     useAdminPluginInstall: () => ({ mutateAsync: state.installMutate }),
 }));
 
@@ -124,6 +127,7 @@ function multiVersionEntry(overrides: Partial<IAdminPluginAvailable> = {}): IAdm
 describe('AvailablePluginsPanel — multi-version picker', () => {
     beforeEach(() => {
         state.available = { plugins: [multiVersionEntry()] };
+        state.operations = [];
         state.installMutate = vi.fn().mockResolvedValue({ data: { id: 4242, installAction: 'install_dispatched' } });
         state.refetch = vi.fn().mockResolvedValue(undefined);
     });
@@ -137,6 +141,22 @@ describe('AvailablePluginsPanel — multi-version picker', () => {
         expect(screen.getByText('newer incompatible')).toBeInTheDocument();
         // Install is enabled because the SELECTED version is compatible.
         expect(screen.getByRole('button', { name: 'Install' })).toBeEnabled();
+    });
+
+    it('keeps Install locked + "Installing…" while a backend operation is in flight (survives polling/reload)', () => {
+        // No local click happened: the active operation comes straight from the
+        // backend operations query — exactly the state after a page reload in the
+        // middle of an install. The button must reflect it, not offer a re-click.
+        state.operations = [
+            { id: 4242, pluginId: 'sh2-shp-survey-js', type: 'install', status: 'running' } as IAdminPluginOperation,
+        ];
+
+        renderWithProviders(<AvailablePluginsPanel enabledSourcesCount={1} />);
+
+        const busy = screen.getByRole('button', { name: /Installing/i });
+        expect(busy).toBeDisabled();
+        // The clickable "Install" affordance is gone — no double-trigger.
+        expect(screen.queryByRole('button', { name: 'Install' })).not.toBeInTheDocument();
     });
 
     it('installs the selected COMPATIBLE version registry entry, not the newest overall', async () => {

@@ -91,8 +91,11 @@ export const REACT_QUERY_CONFIG = {
             networkMode: 'online',
         },
         mutations: {
-            retry: 1,
-            retryDelay: 1000,
+            // Never auto-retry mutations: POST/PUT/DELETE are not idempotent.
+            // A retried create that already committed server-side surfaces as a
+            // confusing 409 ("already exists") and can race itself into
+            // deadlocks. Users retry explicitly from the UI instead.
+            retry: 0,
         },
     },
 

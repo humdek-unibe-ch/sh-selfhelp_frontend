@@ -50,6 +50,12 @@ ENV NODE_ENV=production
 COPY --from=deps /build/node_modules ./node_modules
 COPY . .
 RUN npm run build
+# The plugin runtime-shim route needs the export names of every allowlisted
+# singleton (PLUGIN_RUNTIME_SHIM_SPECIFIERS), but the standalone runtime
+# image prunes node_modules below what its escape-hatch dynamic import can
+# resolve. Enumerate the exports here — while the full node_modules tree
+# still exists — into a JSON manifest placed next to server.js.
+RUN node scripts/emit-runtime-shim-exports.mjs .next/standalone/build/runtime-shim-exports.json
 
 # ---------------------------------------------------------------------------
 # runtime: minimal, non-root, self-contained standalone server.
@@ -72,6 +78,32 @@ ENV SYMFONY_INTERNAL_URL=http://backend:8080
 COPY --from=builder --chown=node:node /build/.next/standalone/build/ ./
 COPY --from=builder --chown=node:node /build/.next/static ./.next/static
 COPY --from=builder --chown=node:node /build/public ./public
+
+# Next 16.1+ with Turbopack references `serverExternalPackages` (jsdom,
+# isomorphic-dompurify) by a content-hashed specifier — `require('jsdom-<hash>')`
+# — resolved through a symlink under `.next/node_modules/<pkg>-<hash>`. That
+# symlink is written relative to the standalone root (`../../../build/node_modules/<pkg>`),
+# which is correct only while the `build/` wrapper exists; flattening that wrapper
+# into `/app` leaves it pointing one level too high (`/build/node_modules/<pkg>`),
+# so the require fails at runtime with "Cannot find module '<pkg>-<hash>'" and every
+# HTML-sanitizing page 500s. Re-point each hashed symlink at the real package that
+# the standalone trace already copied into `/app/node_modules`.
+# Refs: vercel/next.js#89037, #88844, #91654.
+RUN if [ -d .next/node_modules ]; then \
+      cd .next/node_modules && \
+      for link in *; do \
+        [ -L "$link" ] || continue; \
+        target=$(readlink "$link"); \
+        pkg=${target#*node_modules/}; \
+        if [ -d "../../node_modules/$pkg" ]; then \
+          rm -f "$link"; \
+          ln -s "../../node_modules/$pkg" "$link"; \
+          echo "repointed external $link -> ../../node_modules/$pkg"; \
+        else \
+          echo "WARN: external $link target ../../node_modules/$pkg missing" >&2; \
+        fi; \
+      done; \
+    fi
 
 USER node
 EXPOSE 3000

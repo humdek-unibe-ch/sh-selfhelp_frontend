@@ -32,6 +32,21 @@ const nextConfig = {
 
     transpilePackages: ['@selfhelp/shared'],
 
+    /**
+     * Keep server-only CommonJS packages OUT of the bundle.
+     *
+     * `isomorphic-dompurify` lazily `require('jsdom')` on the server. When
+     * Turbopack bundles the wrapper it rewrites that inner require to a
+     * synthetic, content-hashed external id (e.g. `jsdom-a75e3a59d07dd9e7`)
+     * that does not exist at runtime, so every server-rendered page that
+     * sanitizes HTML (the public `[[...slug]]` route and the admin styles)
+     * crashed with `Cannot find module 'jsdom-…'`. Marking both packages as
+     * server externals makes Next emit a plain `require('isomorphic-dompurify')`
+     * / `require('jsdom')` and copy them (and `dompurify`) into the standalone
+     * `node_modules`, so the bare specifier resolves normally in the image.
+     */
+    serverExternalPackages: ['isomorphic-dompurify', 'jsdom'],
+
     // Self-contained production server for the Docker image: emits
     // `.next/standalone` (server.js + only the traced node_modules) so the
     // runtime image never needs `npm install`/source. Browser traffic still

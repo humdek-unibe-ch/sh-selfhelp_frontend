@@ -21,20 +21,25 @@ import { useState } from 'react';
 import {
     Paper, Stack, Grid, Group, Title, Text, Badge, Table, TextInput, Button,
     Checkbox, Alert, Progress, Code, LoadingOverlay, Divider, List, Autocomplete,
+    Timeline, Loader,
 } from '@mantine/core';
 import {
     IconInfoCircle, IconAlertTriangle, IconRefresh, IconShieldCheck, IconCircleCheck,
+    IconClock, IconX,
 } from '@tabler/icons-react';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { useAuth } from '../../../../../hooks/useAuth';
 import {
     useSystemVersion, useSystemHealth, useSystemAdvisories, useUpdatePreflight, useUpdateStatus,
     useRequestUpdateMutation, useSystemMaintenance, useSetMaintenanceMutation, useUpdateReleases,
+    useFrontendUpdateReleases, useFrontendUpdatePreflight, useRequestFrontendUpdateMutation,
 } from '../../../../../hooks/useSystem';
+import { useAuthSseConnected } from '../../../../../hooks/auth-sse-status';
+import { summarizeUpdateAvailability, isComparableVersion } from '../../../../../utils/version.utils';
 import type {
-    TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus,
-    TSystemHealthOverall, TSystemComponentStatus, TSystemAdvisorySeverity,
-} from '../../../../../types/responses/admin/system.types';
+    TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus, TUpdateKind,
+    TSystemHealthOverall, TSystemComponentStatus, TSystemAdvisorySeverity, IUpdateStep,
+} from '../../../../../shared';
 
 const PREFLIGHT_COLOR: Record<TUpdatePreflightStatus, string> = {
     ok: 'green',
@@ -97,7 +102,9 @@ const ADVISORY_SEVERITY_COLOR: Record<TSystemAdvisorySeverity, string> = {
  */
 const SELF_REPORTED_FRONTEND_VERSION = process.env.NEXT_PUBLIC_FRONTEND_VERSION ?? 'unknown';
 
-// Statuses for which the operation is still in flight, so the UI keeps polling.
+// Statuses for which the operation is still in flight. While active the UI
+// tracks it via the `system-update` SSE event; the short fallback poll only
+// runs while the SSE stream is disconnected (see the page body).
 const ACTIVE_STATUSES: TUpdateOperationStatus[] = [
     'requested',
     'approved',
@@ -111,6 +118,187 @@ const ACTIVE_STATUSES: TUpdateOperationStatus[] = [
     'rollback_running',
 ];
 
+/** Backoff for the fallback update-status poll (only while SSE is down + active). */
+const UPDATE_FALLBACK_POLL_MS = 4000;
+
+type TStepState = 'done' | 'active' | 'error' | 'pending';
+
+/**
+ * Classify a manager-written `IUpdateStep.status` (free-form string) into one
+ * of four render states so the Timeline stays robust to the exact vocabulary.
+ */
+function stepState(status: string): TStepState {
+    const s = status.toLowerCase();
+    if (/(succeed|success|done|complete|ok|pass)/.test(s)) return 'done';
+    if (/(fail|error|rollback|rolled_back)/.test(s)) return 'error';
+    if (/(running|progress|active|start|pending_restart)/.test(s)) return 'active';
+    return 'pending';
+}
+
+function stepColor(state: TStepState): string {
+    switch (state) {
+        case 'done':
+            return 'teal';
+        case 'active':
+            return 'blue';
+        case 'error':
+            return 'red';
+        case 'pending':
+        default:
+            return 'gray';
+    }
+}
+
+function StepBullet({ state }: { state: TStepState }) {
+    if (state === 'active') return <Loader size={12} color="blue" />;
+    if (state === 'error') return <IconX size={12} />;
+    if (state === 'done') return <IconCircleCheck size={12} />;
+    return <IconClock size={12} />;
+}
+
+/**
+ * Step-tracked progress for the active update operation — the CMS analogue of
+ * the manager install checklist. Driven by the SSE-refreshed `steps` array; the
+ * `active` bullet is the last non-pending step.
+ */
+function UpdateStepsTimeline({ steps }: { steps: IUpdateStep[] }) {
+    const states = steps.map((s) => stepState(s.status));
+    let activeIndex = -1;
+    states.forEach((st, i) => {
+        if (st !== 'pending') activeIndex = i;
+    });
+
+    return (
+        <Timeline active={activeIndex} bulletSize={18} lineWidth={2}>
+            {steps.map((step, i) => {
+                const state = states[i] ?? 'pending';
+                return (
+                    <Timeline.Item
+                        key={step.name}
+                        color={stepColor(state)}
+                        bullet={<StepBullet state={state} />}
+                        title={<Text size="sm">{step.name}</Text>}
+                    >
+                        <Text size="xs" c="dimmed">
+                            {step.status}
+                            {step.detail ? `: ${step.detail}` : ''}
+                        </Text>
+                    </Timeline.Item>
+                );
+            })}
+        </Timeline>
+    );
+}
+
+/**
+ * What a core / frontend update is going to do, mirrored from the SelfHelp
+ * Manager's own operation checklist so the operator sees the SAME plan on both
+ * sides. Shown in advance and ticked live (below) while the manager works.
+ */
+const CORE_UPDATE_PLAN: { id: string; label: string }[] = [
+    { id: 'plan', label: 'Resolve & plan update' },
+    { id: 'backup', label: 'Pre-update backup' },
+    { id: 'pull', label: 'Pull verified images' },
+    { id: 'recreate', label: 'Recreate containers' },
+    { id: 'migrate', label: 'Run database migrations' },
+    { id: 'health', label: 'Health check' },
+];
+
+const FRONTEND_UPDATE_PLAN: { id: string; label: string }[] = [
+    { id: 'plan', label: 'Resolve & plan frontend update' },
+    { id: 'pull', label: 'Pull verified frontend image' },
+    { id: 'recreate', label: 'Recreate frontend container' },
+    { id: 'health', label: 'Health check' },
+];
+
+const PLAN_ERROR_STATUSES = new Set<TUpdateOperationStatus>([
+    'failed', 'preflight_failed', 'rejected', 'rolled_back', 'rollback_failed',
+]);
+
+/** Maps the coarse lifecycle status onto the plan-step id it corresponds to. */
+function statusPlanStepId(status: TUpdateOperationStatus): string {
+    switch (status) {
+        // Requested but not yet claimed: show the whole plan as "waiting" so the
+        // operator knows what's coming without implying the manager has started.
+        case 'requested':
+        case 'approved':
+            return '__pending__';
+        case 'accepted':
+        case 'preflight_running':
+        case 'preflight_failed':
+            return 'plan';
+        case 'backup_running':
+            return 'backup';
+        case 'running':
+        case 'update_running':
+            return 'pull';
+        case 'migration_running':
+            return 'migrate';
+        case 'health_check_running':
+        case 'rollback_running':
+        case 'rolled_back':
+        case 'rollback_failed':
+            return 'health';
+        case 'succeeded':
+            return '__done__';
+        default:
+            return 'plan';
+    }
+}
+
+function planStepState(index: number, activeIndex: number, status: TUpdateOperationStatus): TStepState {
+    if (status === 'succeeded') return 'done';
+    if (PLAN_ERROR_STATUSES.has(status)) {
+        if (index < activeIndex) return 'done';
+        return index === activeIndex ? 'error' : 'pending';
+    }
+    if (index < activeIndex) return 'done';
+    return index === activeIndex ? 'active' : 'pending';
+}
+
+/**
+ * Planned-steps checklist for an in-flight update, shown BEFORE the SelfHelp
+ * Manager writes back its detailed per-step report. It lets the operator know
+ * what is about to happen and watch it advance live (driven by the SSE-refreshed
+ * lifecycle status) — instead of only seeing the steps appear once it's over.
+ */
+function PlannedUpdateTimeline({ kind, status }: { kind: TUpdateKind; status: TUpdateOperationStatus }) {
+    const plan = kind === 'frontend' ? FRONTEND_UPDATE_PLAN : CORE_UPDATE_PLAN;
+    const phaseId = statusPlanStepId(status);
+    const activeIndex =
+        phaseId === '__done__'
+            ? plan.length
+            : phaseId === '__pending__'
+              ? -1
+              : Math.max(0, plan.findIndex((s) => s.id === phaseId));
+
+    return (
+        <Timeline active={activeIndex} bulletSize={18} lineWidth={2}>
+            {plan.map((step, i) => {
+                const state = planStepState(i, activeIndex, status);
+                return (
+                    <Timeline.Item
+                        key={step.id}
+                        color={stepColor(state)}
+                        bullet={<StepBullet state={state} />}
+                        title={<Text size="sm">{step.label}</Text>}
+                    >
+                        <Text size="xs" c="dimmed">
+                            {state === 'done'
+                                ? 'done'
+                                : state === 'active'
+                                  ? 'in progress…'
+                                  : state === 'error'
+                                    ? 'failed'
+                                    : 'waiting'}
+                        </Text>
+                    </Timeline.Item>
+                );
+            })}
+        </Timeline>
+    );
+}
+
 export function SystemMaintenancePage() {
     const { permissionChecker } = useAuth();
     const canUpdate = permissionChecker?.canUpdateSystem() ?? false;
@@ -121,15 +309,23 @@ export function SystemMaintenancePage() {
     const [acceptedRisk, setAcceptedRisk] = useState(false);
     const [typedConfirmation, setTypedConfirmation] = useState('');
     const [maintMessage, setMaintMessage] = useState('');
+    const [frontendTargetInput, setFrontendTargetInput] = useState('');
+    const [frontendCheckedTarget, setFrontendCheckedTarget] = useState<string | null>(null);
 
+    // SSE drives freshness: the `system-update` event invalidates health too
+    // (terminal states flip component status), so no background health poll.
+    const sseConnected = useAuthSseConnected();
     const version = useSystemVersion();
-    const health = useSystemHealth(true, 15000);
+    const health = useSystemHealth(true);
     const advisories = useSystemAdvisories();
     const maintenance = useSystemMaintenance();
     const setMaintenance = useSetMaintenanceMutation();
     const preflight = useUpdatePreflight(checkedTarget);
     const requestUpdate = useRequestUpdateMutation();
     const releases = useUpdateReleases();
+    const frontendReleases = useFrontendUpdateReleases();
+    const frontendPreflight = useFrontendUpdatePreflight(frontendCheckedTarget);
+    const requestFrontendUpdate = useRequestFrontendUpdateMutation();
 
     const versionData = version.data;
     const healthData = health.data;
@@ -137,6 +333,8 @@ export function SystemMaintenancePage() {
     const maintenanceData = maintenance.data;
     const preflightData = preflight.data;
     const releasesData = releases.data;
+    const frontendReleasesData = frontendReleases.data;
+    const frontendPreflightData = frontendPreflight.data;
 
     // Registry-published core versions for the picker (newest first), excluding
     // the version this instance already runs. Blocked releases stay listed —
@@ -145,12 +343,45 @@ export function SystemMaintenancePage() {
         .filter((r) => r.version !== releasesData?.current_version)
         .map((r) => r.version);
 
-    // Poll the status while an operation is active.
-    const status = useUpdateStatus(true, undefined);
+    // Registry-published frontend versions for the frontend-only picker (newest
+    // first), excluding the frontend version this instance already runs.
+    const frontendReleaseOptions = (frontendReleasesData?.releases ?? [])
+        .filter((r) => r.version !== frontendReleasesData?.current_version)
+        .map((r) => r.version);
+
+    // "Is an update available, and what is the newest version we could move to?"
+    // Derived from the SAME registry release lists that feed the pickers, so the
+    // banner and the picker can never disagree. The backend's reported
+    // current_version is authoritative for the comparison; the frontend falls
+    // back to its build-time self-report when the backend has none.
+    const coreCurrentVersion = releasesData?.current_version ?? versionData?.selfhelp_version ?? '';
+    const coreUpdate = summarizeUpdateAvailability(coreCurrentVersion, releasesData?.releases ?? []);
+    const frontendCurrentVersion = isComparableVersion(frontendReleasesData?.current_version)
+        ? (frontendReleasesData?.current_version ?? '')
+        : SELF_REPORTED_FRONTEND_VERSION;
+    const frontendUpdate = summarizeUpdateAvailability(frontendCurrentVersion, frontendReleasesData?.releases ?? []);
+    const anyUpdateAvailable = coreUpdate.updateAvailable || frontendUpdate.updateAvailable;
+    const registryChecked = (releasesData?.available ?? false) || (frontendReleasesData?.available ?? false);
+    // SSE-driven status: the `system-update` event (emitted on every CMS
+    // request + manager write-back) invalidates this query, so there is no
+    // time-based poll. A short fallback poll runs ONLY while the SSE stream is
+    // disconnected AND an operation is in flight, and stops on reconnect.
+    const status = useUpdateStatus(true, false);
     const statusData = status.data;
     const isActive = !!statusData && statusData.operation_id !== '' && ACTIVE_STATUSES.includes(statusData.status);
-    const liveStatus = useUpdateStatus(isActive, isActive ? 4000 : false);
+    const liveStatus = useUpdateStatus(isActive, isActive && !sseConnected ? UPDATE_FALLBACK_POLL_MS : false);
     const currentStatus = liveStatus.data ?? statusData;
+
+    // While an update operation (core OR frontend) is in flight, lock BOTH
+    // request paths. Otherwise an operator could fire a second, conflicting
+    // update — e.g. a frontend swap mid core update — and corrupt the instance.
+    // The buttons re-enable once the operation reaches a terminal state.
+    const canRequestFrontend =
+        canUpdate &&
+        !!frontendPreflightData &&
+        frontendPreflightData.status !== 'blocked' &&
+        !requestFrontendUpdate.isPending &&
+        !isActive;
 
     const destructive = preflightData?.database.destructive ?? false;
     const confirmationOk = !destructive || (acceptedRisk && typedConfirmation.trim() === checkedTarget);
@@ -159,7 +390,8 @@ export function SystemMaintenancePage() {
         !!preflightData &&
         preflightData.status !== 'blocked' &&
         confirmationOk &&
-        !requestUpdate.isPending;
+        !requestUpdate.isPending &&
+        !isActive;
 
     function handleCheck() {
         const next = targetInput.trim();
@@ -167,6 +399,23 @@ export function SystemMaintenancePage() {
         setAcceptedRisk(false);
         setTypedConfirmation('');
         setCheckedTarget(next);
+    }
+
+    // Prefill the picker with the newest installable version and run its
+    // compatibility preflight, so "Update available → X" is one click away from
+    // the actual (still preflight-gated) request below.
+    function handleUseLatestCore() {
+        if (!coreUpdate.latestVersion) return;
+        setTargetInput(coreUpdate.latestVersion);
+        setAcceptedRisk(false);
+        setTypedConfirmation('');
+        setCheckedTarget(coreUpdate.latestVersion);
+    }
+
+    function handleUseLatestFrontend() {
+        if (!frontendUpdate.latestVersion) return;
+        setFrontendTargetInput(frontendUpdate.latestVersion);
+        setFrontendCheckedTarget(frontendUpdate.latestVersion);
     }
 
     function handleToggleMaintenance() {
@@ -185,6 +434,20 @@ export function SystemMaintenancePage() {
             preflight_id: preflightData.preflight_id,
             accepted_migration_risk: acceptedRisk,
             typed_confirmation: typedConfirmation.trim() === '' ? undefined : typedConfirmation.trim(),
+        });
+    }
+
+    function handleCheckFrontend() {
+        const next = frontendTargetInput.trim();
+        if (next === '') return;
+        setFrontendCheckedTarget(next);
+    }
+
+    function handleRequestFrontend() {
+        if (!frontendPreflightData || !frontendCheckedTarget) return;
+        requestFrontendUpdate.mutate({
+            target_version: frontendCheckedTarget,
+            preflight_id: frontendPreflightData.preflight_id,
         });
     }
 
@@ -306,6 +569,104 @@ export function SystemMaintenancePage() {
                     </Grid.Col>
                 </Grid>
 
+                {/* Update availability — at a glance: is a newer signed release
+                    published, and what is the newest version this instance could
+                    move to. Read-only summary derived from the same registry lists
+                    that feed the pickers below; the actual request still runs
+                    through the preflight-gated forms. */}
+                <Paper p="md" radius="md" withBorder pos="relative" data-testid="update-availability">
+                    <LoadingOverlay visible={releases.isLoading || frontendReleases.isLoading} />
+                    <Group justify="space-between" mb="sm">
+                        <Title order={4}>Updates</Title>
+                        {anyUpdateAvailable ? (
+                            <Badge color="blue" variant="filled">Update available</Badge>
+                        ) : registryChecked ? (
+                            <Badge color="green" variant="light">Up to date</Badge>
+                        ) : (
+                            <Badge color="gray" variant="light">Could not check</Badge>
+                        )}
+                    </Group>
+
+                    {!registryChecked && (
+                        <Alert icon={<IconInfoCircle size={16} />} color="gray" variant="light" mb="sm">
+                            The official registry could not be reached, so the newest available version could not be
+                            determined. You can still request a specific version manually below.
+                        </Alert>
+                    )}
+
+                    <Stack gap="xs">
+                        {/* Core */}
+                        <Group justify="space-between" wrap="wrap" gap="xs">
+                            <div>
+                                <Text size="sm" fw={600}>SelfHelp core</Text>
+                                <Text size="xs" c="dimmed">
+                                    current <Code>{isComparableVersion(coreCurrentVersion) ? coreCurrentVersion : '—'}</Code>
+                                    {' · '}latest{' '}
+                                    {coreUpdate.latestVersion ? <Code>{coreUpdate.latestVersion}</Code> : 'unknown'}
+                                </Text>
+                            </div>
+                            {coreUpdate.updateAvailable ? (
+                                <Group gap="xs">
+                                    <Badge color="blue" variant="light">New: {coreUpdate.latestVersion}</Badge>
+                                    {canUpdate && (
+                                        <Button
+                                            size="xs"
+                                            variant="light"
+                                            leftSection={<IconRefresh size={14} />}
+                                            onClick={handleUseLatestCore}
+                                            disabled={isActive}
+                                        >
+                                            Use latest
+                                        </Button>
+                                    )}
+                                </Group>
+                            ) : releasesData?.available ? (
+                                <Badge color="green" variant="light" leftSection={<IconCircleCheck size={12} />}>
+                                    Up to date
+                                </Badge>
+                            ) : (
+                                <Badge color="gray" variant="light">Unknown</Badge>
+                            )}
+                        </Group>
+
+                        <Divider />
+
+                        {/* Frontend (ships independently of the core) */}
+                        <Group justify="space-between" wrap="wrap" gap="xs">
+                            <div>
+                                <Text size="sm" fw={600}>Frontend</Text>
+                                <Text size="xs" c="dimmed">
+                                    current <Code>{isComparableVersion(frontendCurrentVersion) ? frontendCurrentVersion : '—'}</Code>
+                                    {' · '}latest{' '}
+                                    {frontendUpdate.latestVersion ? <Code>{frontendUpdate.latestVersion}</Code> : 'unknown'}
+                                </Text>
+                            </div>
+                            {frontendUpdate.updateAvailable ? (
+                                <Group gap="xs">
+                                    <Badge color="blue" variant="light">New: {frontendUpdate.latestVersion}</Badge>
+                                    {canUpdate && (
+                                        <Button
+                                            size="xs"
+                                            variant="light"
+                                            leftSection={<IconRefresh size={14} />}
+                                            onClick={handleUseLatestFrontend}
+                                            disabled={isActive}
+                                        >
+                                            Use latest
+                                        </Button>
+                                    )}
+                                </Group>
+                            ) : frontendReleasesData?.available ? (
+                                <Badge color="green" variant="light" leftSection={<IconCircleCheck size={12} />}>
+                                    Up to date
+                                </Badge>
+                            ) : (
+                                <Badge color="gray" variant="light">Unknown</Badge>
+                            )}
+                        </Group>
+                    </Stack>
+                </Paper>
+
                 {/* Aggregated health / status */}
                 <Paper p="md" radius="md" withBorder pos="relative">
                     <LoadingOverlay visible={health.isLoading} />
@@ -334,7 +695,7 @@ export function SystemMaintenancePage() {
                             <Table.Tbody>
                                 {healthData.components.map((c) => (
                                     <Table.Tr key={c.name}>
-                                        <Table.Td><Text size="sm" tt="capitalize">{c.name}</Text></Table.Td>
+                                        <Table.Td><Text size="sm" tt="capitalize">{c.name.replace(/_/g, ' ')}</Text></Table.Td>
                                         <Table.Td>
                                             <Badge color={COMPONENT_COLOR[c.status]} variant="light">{c.status}</Badge>
                                         </Table.Td>
@@ -536,6 +897,10 @@ export function SystemMaintenancePage() {
                                 </Text>
                             </List.Item>
                         </List>
+                        <Text size="xs" c="dimmed">
+                            Using the wrapper? Replace <Code>sh-manager</Code> with <Code>./shm.ps1</Code> (Windows) or{' '}
+                            <Code>./shm.sh</Code> (Linux/macOS) in the commands above.
+                        </Text>
                     </Stack>
                 </Paper>
 
@@ -552,15 +917,56 @@ export function SystemMaintenancePage() {
                             Operation <Code>{currentStatus.operation_id}</Code> → <Code>{currentStatus.target_version}</Code>
                         </Text>
                         <Progress value={currentStatus.progress_percent} mb="sm" />
+                        {currentStatus.status === 'requested' && currentStatus.manager?.requested_stale && (
+                            <Alert
+                                icon={<IconAlertTriangle size={16} />}
+                                color="orange"
+                                variant="light"
+                                mb="sm"
+                                title="The SelfHelp Manager has not picked this up"
+                            >
+                                <Stack gap={4}>
+                                    <Text size="sm">
+                                        This request has been waiting longer than expected — verify the SelfHelp Manager
+                                        is running on the server host
+                                        {currentStatus.manager.configured
+                                            ? currentStatus.manager.last_seen_at
+                                                ? ` (manager last seen ${new Date(currentStatus.manager.last_seen_at).toLocaleString()})`
+                                                : ' (no manager has ever polled this instance)'
+                                            : ''}.
+                                    </Text>
+                                    {!currentStatus.manager.configured && (
+                                        <Text size="sm">
+                                            This instance has no manager token (<Code>SELFHELP_MANAGER_TOKEN</Code> is empty), so
+                                            the manager loop is disabled. Re-run{' '}
+                                            <Code>sh-manager instance update {currentStatus.instance_id}</Code> on the server to
+                                            backfill it.
+                                        </Text>
+                                    )}
+                                    <Text size="sm">
+                                        The persistent manager web console drains operations automatically. For headless
+                                        setups run{' '}
+                                        <Code>sh-manager instance process-operations {currentStatus.instance_id}</Code> on the
+                                        server (or schedule it with <Code>--watch</Code>).
+                                    </Text>
+                                    <Text size="xs" c="dimmed">
+                                        Using the wrapper? Replace <Code>sh-manager</Code> with <Code>./shm.ps1</Code> (Windows)
+                                        or <Code>./shm.sh</Code> (Linux/macOS).
+                                    </Text>
+                                </Stack>
+                            </Alert>
+                        )}
                         {currentStatus.message && <Text size="sm" mb="xs">{currentStatus.message}</Text>}
-                        {currentStatus.steps.length > 0 && (
-                            <List size="sm" spacing="xs">
-                                {currentStatus.steps.map((step) => (
-                                    <List.Item key={step.name} icon={<IconCircleCheck size={14} />}>
-                                        {step.name} — {step.status}{step.detail ? `: ${step.detail}` : ''}
-                                    </List.Item>
-                                ))}
-                            </List>
+                        {currentStatus.steps.length > 0 ? (
+                            <UpdateStepsTimeline steps={currentStatus.steps} />
+                        ) : (
+                            <Stack gap={6}>
+                                <Text size="xs" c="dimmed">
+                                    Planned steps — the SelfHelp Manager performs these on the server and this list
+                                    advances live as each one runs.
+                                </Text>
+                                <PlannedUpdateTimeline kind={currentStatus.kind} status={currentStatus.status} />
+                            </Stack>
                         )}
                     </Paper>
                 )}
@@ -698,15 +1104,136 @@ export function SystemMaintenancePage() {
                                     </Alert>
                                 )}
 
+                                {canUpdate && isActive && (
+                                    <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
+                                        An update is already in progress. Wait for it to finish before requesting another
+                                        update — core and frontend updates cannot run at the same time.
+                                    </Alert>
+                                )}
+
                                 {canUpdate && (
                                     <Group justify="flex-end">
                                         <Button
                                             color="blue"
                                             disabled={!canRequest}
-                                            loading={requestUpdate.isPending}
+                                            // Spin for the WHOLE operation, not just the POST, so the
+                                            // button reads as in-progress (disabled alone is too subtle)
+                                            // and can never be re-triggered mid-update.
+                                            loading={requestUpdate.isPending || isActive}
                                             onClick={handleRequest}
                                         >
                                             Request update for this instance
+                                        </Button>
+                                    </Group>
+                                )}
+                            </Stack>
+                        )}
+                    </Stack>
+                </Paper>
+
+                <Divider label="Update frontend only" labelPosition="center" />
+
+                {/* Frontend-only update request. The frontend ships independently
+                    of the core and is stateless, so this is a lightweight swap:
+                    no destructive migration, no backup, no typed confirmation.
+                    The SelfHelp Manager re-resolves the signed frontend release
+                    and performs the authoritative compatibility check. */}
+                <Paper p="md" radius="md" withBorder pos="relative" data-testid="frontend-update-section">
+                    <LoadingOverlay visible={frontendPreflight.isFetching || requestFrontendUpdate.isPending} />
+                    <Stack gap="sm">
+                        <Text size="sm" c="dimmed">
+                            The frontend ships independently of the SelfHelp core. If this instance is already on the
+                            newest core, you can still move it to a newer compatible frontend here. A frontend swap is
+                            stateless — there is no database migration or backup — and the SelfHelp Manager rolls it back
+                            automatically if the new container fails its health check.
+                        </Text>
+
+                        <Group align="flex-end" gap="sm">
+                            <Autocomplete
+                                label="Target frontend version"
+                                data-testid="frontend-target-version-input"
+                                placeholder={frontendReleaseOptions.length > 0 ? `e.g. ${frontendReleaseOptions[0]}` : 'e.g. 0.1.7'}
+                                description={
+                                    frontendReleasesData?.available
+                                        ? 'Frontend releases from the official registry (newest first). You can also type a version manually.'
+                                        : 'The registry could not be reached — type the target frontend version manually.'
+                                }
+                                data={frontendReleaseOptions}
+                                value={frontendTargetInput}
+                                onChange={setFrontendTargetInput}
+                                style={{ flex: 1 }}
+                            />
+                            <Button
+                                leftSection={<IconRefresh size={16} />}
+                                onClick={handleCheckFrontend}
+                                disabled={frontendTargetInput.trim() === ''}
+                                variant="default"
+                            >
+                                Check frontend compatibility
+                            </Button>
+                        </Group>
+
+                        {frontendPreflight.isError && (
+                            <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+                                Frontend preflight failed. Check the target version and try again.
+                            </Alert>
+                        )}
+
+                        {frontendPreflightData && (
+                            <Stack gap="sm">
+                                <Group gap="xs">
+                                    <Text fw={600}>Preflight</Text>
+                                    <Badge color={PREFLIGHT_COLOR[frontendPreflightData.status]} variant="filled">
+                                        {frontendPreflightData.status.toUpperCase()}
+                                    </Badge>
+                                    <Text size="sm" c="dimmed">
+                                        <Code>{frontendPreflightData.current_version}</Code> → <Code>{frontendPreflightData.target_version}</Code>
+                                    </Text>
+                                </Group>
+
+                                {frontendPreflightData.checks.length > 0 && (
+                                    <Stack gap={6}>
+                                        {frontendPreflightData.checks.map((check, idx) => (
+                                            <Group key={`${check.code}-${idx}`} gap="xs" align="flex-start" wrap="nowrap">
+                                                <Badge size="xs" color={SEVERITY_COLOR[check.severity]} variant="light">
+                                                    {check.severity}
+                                                </Badge>
+                                                <Text size="sm">{check.message}</Text>
+                                            </Group>
+                                        ))}
+                                    </Stack>
+                                )}
+
+                                {frontendPreflightData.status === 'blocked' && (
+                                    <Alert icon={<IconAlertTriangle size={16} />} color="red" variant="light">
+                                        This frontend update is blocked. Resolve the errors above before requesting it.
+                                    </Alert>
+                                )}
+
+                                {!canUpdate && (
+                                    <Alert icon={<IconShieldCheck size={16} />} color="gray" variant="light">
+                                        You can view compatibility but need the <Code>admin.system.update</Code> permission to request a frontend update.
+                                    </Alert>
+                                )}
+
+                                {canUpdate && isActive && (
+                                    <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
+                                        An update is already in progress. Wait for it to finish before requesting a
+                                        frontend update — core and frontend updates cannot run at the same time.
+                                    </Alert>
+                                )}
+
+                                {canUpdate && (
+                                    <Group justify="flex-end">
+                                        <Button
+                                            color="blue"
+                                            disabled={!canRequestFrontend}
+                                            // Spin for the WHOLE operation (core or frontend), matching the
+                                            // core button: while any update runs both paths are locked.
+                                            loading={requestFrontendUpdate.isPending || isActive}
+                                            onClick={handleRequestFrontend}
+                                        >
+                                            Request frontend update for this instance
                                         </Button>
                                     </Group>
                                 )}

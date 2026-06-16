@@ -14,6 +14,278 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.17 — 2026-06-16
+
+### Added
+- **The System Maintenance page now tells you at a glance whether an update is
+  available and what the newest version is.** Previously the page showed the
+  current versions and a manual target-version picker, but never answered the
+  first question an operator asks — "am I behind, and what is the latest I can
+  move to?". A new **Updates** panel summarizes core and frontend separately,
+  showing the current version, the newest installable version published in the
+  official registry, and an **Update available** / **Up to date** badge. When a
+  newer version exists, a one-click **Use latest** button seeds the target-version
+  picker with it and runs the compatibility preflight, so the (still
+  preflight-gated) request is one step away. The newest version ignores blocked
+  releases, never claims an update when the current version is unknown, and
+  degrades to "Could not check" when the registry is unreachable. Backed by a new
+  tested `version.utils` comparator and `SystemMaintenancePage` tests.
+
+## v0.1.16 — 2026-06-16
+
+### Changed
+- **The System Maintenance update view now shows the planned steps up front and
+  ticks them live.** While an update ran, the SelfHelp Manager only wrote back
+  its detailed per-step report at the very end, so the page showed just a status
+  badge and a progress bar mid-update and then revealed every step at once when
+  it finished ("after the end we see all the actions, but not while they're
+  happening"). The active-operation panel now renders a planned checklist
+  derived from the update kind — core (resolve → backup → pull → recreate →
+  migrate → health) or frontend-only (resolve → pull → recreate → health) — and
+  advances it from the live lifecycle status over the existing `system-update`
+  SSE stream, mirroring the SelfHelp Manager's own console. Once the manager
+  reports its detailed steps, those (with per-step detail) take over. Covered by
+  `SystemMaintenancePage` tests for the in-flight plan, the frontend-only plan,
+  and the detailed-steps takeover.
+
+## v0.1.15 — 2026-06-16
+
+### Fixed
+- **The maintenance message renders its formatting instead of showing raw
+  `<p>` tags.** The system maintenance alert is authored as HTML (the
+  operator's note, surfaced through `{{system.maintenance_message}}`), but the
+  alert style printed it as plain text, so visitors saw literal `<p>…</p>`
+  markup during an outage. The alert content is now sanitized and parsed to
+  safe HTML (`sanitizeHtmlForParsing` + `html-react-parser`), so paragraphs,
+  line breaks and basic formatting render while scripts and event-handler
+  attributes are stripped. Covered by an `AlertStyle` test (plain text,
+  formatted HTML, and an XSS payload that must be dropped).
+
+## v0.1.14 — 2026-06-16
+
+### Fixed
+- **You are no longer logged out when an instance restarts.** A plugin
+  install / uninstall / update or a system update restarts the backend, which
+  made a burst of API calls all `401` at once. Each one POSTed the *same*
+  single-use refresh token: the first rotated it, every other call then sent a
+  now-consumed token, got classified as a dead session, and the BFF/edge wiped
+  a perfectly good login — so you were bounced to the sign-in page and had to
+  log back in to see the result. Refreshes are now **coalesced server-side**
+  (one upstream `/auth/refresh-token` per token, with a brief result replay for
+  the concurrent burst), so the restart no longer kills the session.
+- **Plugin info refreshes itself after install / uninstall — no manual reload.**
+  The plugin list and detail used to need a full page refresh to show the new
+  state once a background operation finished; the views now reconcile from the
+  event stream (and on stream re-connect) so the installed/removed result
+  appears on its own.
+
+### Changed
+- **Live updates are event-driven; polling is only a disconnected fallback.**
+  Plugin-operation and system-update views no longer poll on a fixed timer.
+  They refresh from the authenticated Mercure/SSE stream and fall back to a
+  short poll **only** while the stream is disconnected **and** an operation is
+  in flight, stopping on reconnect. On reconnect the views invalidate once to
+  pick up anything missed while the stream was down. (New `auth-sse-status` and
+  `plugin-sse-status` connection stores.)
+- **Reads ride out a backend restart instead of erroring.** System and
+  plugin-admin read queries (and safe BFF reads) now retry transient `5xx` /
+  network failures with backoff during the manager's restart window — a genuine
+  `4xx` still fails fast and a `401` still means "signed out".
+
+### Added
+- **Step tracking for plugin operations.** Install / update / uninstall now show
+  a step checklist (queued → running → propagate → done, or the failure step)
+  driven by the live operation, with the action button staying disabled and
+  showing the current step for the whole background run (survives a reload
+  mid-operation, can't be double-fired).
+- **Step tracking for system updates.** The System Maintenance page shows the
+  update progressing through its phases live over SSE — requested → claimed →
+  backing up → updating → migrating → health-check → done — instead of a bare
+  spinner, and repaints the moment the manager advances it.
+
+### Fixed (UI)
+- **Status pills are no longer clipped.** A global Mantine `Badge` theme override
+  lets every pill render its full label (no mid-word truncation) across the CMS
+  tables.
+
+## v0.1.13 — 2026-06-15
+
+### Fixed
+- **Every cookie is now namespaced per instance — no more cross-instance bleed.**
+  v0.1.12 isolated only the httpOnly session cookies; the browser-readable ones
+  (`sh_csrf`, `sh_lang`, `sh_accept_locale`, `sh_color_scheme`, `sh_preview`,
+  `sh_impersonate_target_email`) were still shared across instances on the same
+  host, so language, theme and preview state could leak between
+  `localhost:9111` and `localhost:9100`. All cookies now carry the
+  `…_<SELFHELP_INSTANCE_ID>` suffix. The server reads the id from its env; the
+  browser reads it back from `<html data-sh-instance>` (mirrored by the root
+  layout), so the SET name always matches the READ name on both sides. A plain
+  dev checkout (no instance id) keeps the historical names.
+- **Plugin install shows real, sticky progress.** The **Install** button used to
+  pop back to a clickable "Install" the moment the request was *queued* (and a
+  background poll could reset it), so it looked installable again while the worker
+  was still running. The button is now driven by the backend operation: it stays
+  disabled and shows the live step (**Installing… / Updating…**) for the whole
+  background run, survives a page reload mid-install, and can't be triggered twice.
+
+### Changed
+- **System update buttons reflect the whole operation.** "Request update / Request
+  frontend update" now stay in their loading state for the entire in-flight update
+  (not just the brief request), matching the plugin install button — so an update
+  in progress is obvious and the buttons can't be re-fired mid-operation.
+
+## v0.1.12 — 2026-06-15
+
+### Fixed
+- **Logging into / updating one instance no longer logs you out of the others.**
+  When several instances run on the same host separated only by port
+  (`localhost:9111`, `localhost:9100`, …) the browser shared ONE cookie jar
+  (cookies are scoped by host, not port), so the httpOnly `sh_auth` / `sh_refresh`
+  session cookies collided: a token minted by one instance was rejected by the
+  next, whose silent refresh then wiped the shared cookie and bounced every
+  instance to the login screen. The session cookies (`sh_auth`, `sh_refresh`,
+  `sh_impersonate`) are now namespaced per instance (`…_<SELFHELP_INSTANCE_ID>`),
+  so each instance keeps its own session and a restart/update of one no longer
+  disturbs the others. The double-submit CSRF cookie stays shared (harmless).
+  After upgrading, each instance asks for a single fresh login as the old shared
+  cookie is retired.
+
+## v0.1.11 — 2026-06-15
+
+### Added
+- **Maintenance page.** While the instance is in maintenance the backend returns
+  a clean `503` for normal page traffic; the slug route now detects that and
+  renders the seeded, styled `maintenance` CMS page — including the operator's
+  live note via `{{system.maintenance_message}}` — instead of the 404 page. A
+  self-contained `MaintenanceClient` fallback (the maintenance counterpart of the
+  404 page) is shown when the seeded page is missing or unreachable, so visitors
+  always get a styled "we'll be right back" screen rather than a raw error.
+
+### Changed
+- **Adaptive plugin-operation status tracking.** The admin plugin manager now
+  polls quickly (every 2s) only while an install / uninstall / disable / purge
+  operation is actually in flight, and stops once every operation reaches a
+  terminal state — so progress stays live during an action without relying solely
+  on Mercure, and there is no constant background polling when idle. The
+  operations query drives the plugin list, detail, and available-plugins views,
+  and uninstall / purge now invalidate the operations cache so fast polling
+  engages immediately when an action is triggered.
+
+## v0.1.10 — 2026-06-15
+
+### Fixed
+- **The System Maintenance page locks both update requests while one runs.**
+  While an update operation (core OR frontend) is in flight, the "Request update"
+  and "Request frontend update" buttons are now disabled and a notice explains
+  why — so an admin can no longer fire a second, conflicting update (for example
+  a frontend swap mid core update) and corrupt the instance. The buttons
+  re-enable when the operation reaches a terminal state.
+
+## v0.1.9 — 2026-06-15
+
+### Fixed
+- **A backend restart no longer logs the operator out.** Installing or updating
+  a plugin briefly restarts the backend; during that window a silent-refresh
+  attempt that could not reach the backend (a network error or a `502`/`503`
+  while it restarts) was treated the same as a *rejected* refresh token, so the
+  BFF/edge cleared the session cookies and bounced the admin to the login page.
+  Silent refresh now distinguishes **unreachable** (transient — keep the
+  session and let the client retry) from **invalid** (the backend reached a
+  verdict and rejected the token — the only case that logs you out). The
+  catch-all proxy returns `503` (with the cookies intact) instead of a
+  session-killing `401` when the backend is briefly unavailable.
+
+## v0.1.8 — 2026-06-15
+
+### Added
+- **Frontend-only updates from the CMS.** The System Maintenance page gains an
+  "Update frontend only" section: an admin can pick a registry-published
+  frontend version (newest first, with manual entry as an offline fallback), run
+  a lightweight compatibility preflight, and request a frontend-only update for
+  the current instance. Because the frontend ships independently of the core, an
+  instance already on the newest core can still move to a newer compatible
+  frontend. The swap is stateless — no destructive-migration warning, no backup
+  prompt, no typed confirmation — and, like every update request, the browser
+  never sends an `instance_id` and needs `admin.system.update` to submit. The
+  SelfHelp Manager re-resolves the signed frontend release and performs the
+  authoritative compatibility check before swapping only the frontend container.
+
+## v0.1.7 — 2026-06-15
+
+### Fixed
+- **Public pages no longer 500 with `Cannot find module 'jsdom-<hash>'`.**
+  Server-side HTML sanitization (`isomorphic-dompurify`, which lazily loads
+  `jsdom`) crashed every server-rendered page that sanitizes content — the
+  public `[[...slug]]` route and admin styles — in the production image. Next
+  16's Turbopack build externalizes those packages under a content-hashed
+  specifier resolved via a symlink in `.next/node_modules`, but that symlink
+  pointed one directory level too high once the standalone `build/` wrapper is
+  flattened into the image, leaving it dangling. The packages are now declared
+  as `serverExternalPackages` and the Docker build re-points the hashed
+  external symlinks at the real packages it already ships, so sanitization
+  resolves at runtime. (vercel/next.js#89037, #88844)
+- **No more "logged out every few minutes" on production instances.** The
+  admin auth guard re-validates by parsing `/api/auth/user-data` (a ~2 KB
+  permission payload, above the proxy compression threshold). Before the
+  v0.1.6 BFF encoding fix that response could arrive zstd-garbled, so the JSON
+  parse threw, the guard treated it as "not authenticated", and the admin was
+  bounced to the login page on the next focus/navigation — roughly every few
+  minutes of active use even though the JWT was still valid for an hour. With
+  the proxy encoding fix the payload now parses cleanly and the session lasts
+  its full TTL.
+
+## v0.1.6 — 2026-06-12
+
+### Fixed
+- **Creates no longer "succeed silently then 409" behind the BFF.** The
+  catch-all proxy forwarded the browser's `Accept-Encoding` (Chrome includes
+  `zstd`) to Symfony, whose web server compressed large responses with
+  zstd — a coding Node's fetch does not decode. Successful create/update
+  responses above the compression threshold reached the browser as binary
+  garbage: the entity (user, page, …) WAS created server-side, but the UI
+  showed no success, and retrying surfaced `409 already exists`. The proxy
+  now lets Node negotiate codings it can decode and stops relaying
+  `Content-Encoding` for bodies it already decoded.
+- **Plugin runtime shims now work in the production image.** The
+  `/api/plugins/runtime-shim/<specifier>` route enumerated module exports
+  with a live `import()`, which the Next standalone image cannot satisfy
+  (its pruned `node_modules` lacks `@selfhelp/shared`, `@mantine/*`, and
+  `@tanstack/react-query`), so every plugin failed to load with a 500 on
+  managed installs. The Docker build now emits a build-time export
+  manifest (`runtime-shim-exports.json`) next to `server.js`, and the
+  route serves shims from it, falling back to live import only in dev.
+- **Mutations are no longer auto-retried** (`retry: 0` in the React Query
+  defaults). A failed create (timeout, transient 5xx, deadlock) was silently
+  re-POSTed after 1s; when the first attempt had already committed
+  server-side, the retry surfaced as a confusing `409 Conflict`
+  ("User/Page already exists") even though the user only clicked once.
+  Errors now surface immediately and retrying stays an explicit user action.
+
+---
+
+## v0.1.5 — 2026-06-12
+
+### Added
+- **Manager-loop status on the System page**: the update status now renders
+  the backend's `manager` block — a warning when a requested update sits
+  unclaimed (the SelfHelp Manager is not picking it up), an explanation when
+  no manager token is configured, and the `manager_loop` health component.
+  All operator command snippets are wrapper-aware (`./shm.ps1` / `./shm.sh`).
+
+### Changed
+- **System/update types now come from `@selfhelp/shared@1.6.0`**: the
+  in-tree mirror (`src/types/responses/admin/system.types.ts`) is deleted —
+  it only existed while the published shared package predated the system
+  contracts. `ISystemVersion`, `IUpdatePreflight`, `IUpdateStatus`,
+  `IUpdateStatusManager`, … are imported from the shared bridge
+  (`src/shared`), so the cross-repo contract has a single definition.
+
+### Removed
+- The hardcoded `v3.1.2` badge in the admin navbar (the real version is
+  reported on the System page).
+
+---
+
 ## v0.1.4 — 2026-06-10
 
 ### Added
