@@ -11,7 +11,7 @@ import {
 import { IconTrash, IconSearch, IconAlertCircle, IconChevronUp, IconChevronDown, IconSelector, IconDownload } from '@tabler/icons-react';
 import { useDeleteFormMutation } from '../../../../hooks/useFormSubmission';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
-import type { IShowUserInputStyle, IShowUserInputEntry } from '../../../../types/common/styles.types';
+import type { IShowUserInputStyle, IShowUserInputEntry } from '../../../../shared';
 
 
 interface IFieldMapping {

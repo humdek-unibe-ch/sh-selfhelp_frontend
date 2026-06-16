@@ -402,6 +402,8 @@ export type {
     IEntryRecordStyle,
     IEntryRecordDeleteStyle,
     ILoopStyle,
+    IShowUserInputStyle,
+    IShowUserInputEntry,
 } from '../../shared';
 
 // ===== Frontend-only legacy styles =====
@@ -421,38 +423,8 @@ export interface IVersionStyle extends IBaseStyle {
     style_name: 'version';
 }
 
-export interface IShowUserInputEntry {
-    record_id: number;
-    id_users: number;
-    _can_delete?: boolean;
-    [key: string]: unknown;
-}
-
-export interface IShowUserInputStyle extends IBaseStyle {
-    style_name: 'showUserInput';
-    own_entries_only?: IContentField<string>;
-    show_timestamp?: IContentField<string>;
-    dt_sortable?: IContentField<string>;
-    dt_searching?: IContentField<string>;
-    dt_paginate?: IContentField<string>;
-    dt_info?: IContentField<string>;
-    dt_default_order_column?: IContentField<string>;
-    dt_default_order_dir?: IContentField<string>;
-    csv_export?: IContentField<string>;
-    delete_entry?: IContentField<string>;
-    fields_map?: IContentField<string>;
-    delete_modal_title?: IContentField<string>;
-    delete_modal_body?: IContentField<string>;
-    mantine_spacing_margin_padding?: IContentField<string>;
-    mantine_table_striped?: IContentField<string>;
-    mantine_table_highlight_on_hover?: IContentField<string>;
-    mantine_table_with_table_border?: IContentField<string>;
-    mantine_table_with_column_borders?: IContentField<string>;
-    mantine_table_with_row_borders?: IContentField<string>;
-    mantine_table_sticky_header?: IContentField<string>;
-    mantine_table_caption_side?: IContentField<string>;
-    entries?: IShowUserInputEntry[];
-}
+// `IShowUserInputStyle` / `IShowUserInputEntry` are owned by `@selfhelp/shared`
+// (re-exported above) so the web + mobile renderers share one source of truth.
 
 // ===== Discriminated union of all styles =====
 // Imports are resolved through this file's own re-exports above.
@@ -539,6 +511,7 @@ import type {
     IEntryRecordStyle,
     IEntryRecordDeleteStyle,
     ILoopStyle,
+    IShowUserInputStyle,
 } from '../../shared';
 
 export type TStyle =
