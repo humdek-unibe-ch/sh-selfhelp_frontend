@@ -163,23 +163,25 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
 
     const tableContent = (
         <>
-            <Table.Thead>
-                <Table.Tr>
-                    {allColumns.map(col => (
-                        <Table.Th
-                            key={col.key}
-                            onClick={sortable ? () => handleSort(col.key) : undefined}
-                            style={sortable ? { cursor: 'pointer', userSelect: 'none' } : undefined}
-                        >
-                            <Group gap={4} wrap="nowrap">
-                                <Text size="sm" fw={600}>{col.label}</Text>
-                                <SortIcon colKey={col.key} />
-                            </Group>
-                        </Table.Th>
-                    ))}
-                    {deleteEntry && <Table.Th style={{ width: 40 }}>Actions</Table.Th>}
-                </Table.Tr>
-            </Table.Thead>
+            {rows.length > 0 && (
+                <Table.Thead>
+                    <Table.Tr>
+                        {allColumns.map(col => (
+                            <Table.Th
+                                key={col.key}
+                                onClick={sortable ? () => handleSort(col.key) : undefined}
+                                style={sortable ? { cursor: 'pointer', userSelect: 'none' } : undefined}
+                            >
+                                <Group gap={4} wrap="nowrap">
+                                    <Text size="sm" fw={600}>{col.label}</Text>
+                                    <SortIcon colKey={col.key} />
+                                </Group>
+                            </Table.Th>
+                        ))}
+                        {deleteEntry && <Table.Th style={{ width: 40 }}>Actions</Table.Th>}
+                    </Table.Tr>
+                </Table.Thead>
+            )}
             <Table.Tbody>
                 {pageRows.length === 0 ? (
                     <Table.Tr>
