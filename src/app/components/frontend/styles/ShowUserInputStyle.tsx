@@ -70,7 +70,7 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
     const mappedCols: IColumn[] = fieldMappings.length
         ? fieldMappings.map(m => ({ key: m.field_name, label: m.field_new_name }))
         : Object.keys(rows[0] ?? {})
-            .filter(k => k !== 'entry_date' && k !== 'record_id')
+            .filter(k => k !== 'entry_date' && k !== 'record_id' && k !== '_can_delete' && k !== 'id_users')
             .map(k => ({ key: k, label: k }));
 
     const leadingCol: IColumn = showTimestamp
