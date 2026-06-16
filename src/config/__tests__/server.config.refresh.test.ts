@@ -13,8 +13,8 @@ SPDX-License-Identifier: MPL-2.0
  * reaches a verdict and rejects the token (4xx / 2xx without a token). This is
  * what stops a plugin-install/update restart from logging the operator out.
  */
-import { afterEach, describe, it, expect, vi } from 'vitest';
-import { callSymfonyRefreshToken } from '../server.config';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
+import { callSymfonyRefreshToken, __resetRefreshSingleFlightForTests } from '../server.config';
 
 function jsonResponse(body: unknown, status = 200): Response {
     return new Response(JSON.stringify(body), {
@@ -22,6 +22,12 @@ function jsonResponse(body: unknown, status = 200): Response {
         headers: { 'content-type': 'application/json' },
     });
 }
+
+beforeEach(() => {
+    // The single-flight guard keeps a short-lived per-token result cache; clear
+    // it so cases that reuse the same token are independent.
+    __resetRefreshSingleFlightForTests();
+});
 
 afterEach(() => {
     vi.restoreAllMocks();
