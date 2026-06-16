@@ -14,6 +14,53 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.14 — 2026-06-16
+
+### Fixed
+- **You are no longer logged out when an instance restarts.** A plugin
+  install / uninstall / update or a system update restarts the backend, which
+  made a burst of API calls all `401` at once. Each one POSTed the *same*
+  single-use refresh token: the first rotated it, every other call then sent a
+  now-consumed token, got classified as a dead session, and the BFF/edge wiped
+  a perfectly good login — so you were bounced to the sign-in page and had to
+  log back in to see the result. Refreshes are now **coalesced server-side**
+  (one upstream `/auth/refresh-token` per token, with a brief result replay for
+  the concurrent burst), so the restart no longer kills the session.
+- **Plugin info refreshes itself after install / uninstall — no manual reload.**
+  The plugin list and detail used to need a full page refresh to show the new
+  state once a background operation finished; the views now reconcile from the
+  event stream (and on stream re-connect) so the installed/removed result
+  appears on its own.
+
+### Changed
+- **Live updates are event-driven; polling is only a disconnected fallback.**
+  Plugin-operation and system-update views no longer poll on a fixed timer.
+  They refresh from the authenticated Mercure/SSE stream and fall back to a
+  short poll **only** while the stream is disconnected **and** an operation is
+  in flight, stopping on reconnect. On reconnect the views invalidate once to
+  pick up anything missed while the stream was down. (New `auth-sse-status` and
+  `plugin-sse-status` connection stores.)
+- **Reads ride out a backend restart instead of erroring.** System and
+  plugin-admin read queries (and safe BFF reads) now retry transient `5xx` /
+  network failures with backoff during the manager's restart window — a genuine
+  `4xx` still fails fast and a `401` still means "signed out".
+
+### Added
+- **Step tracking for plugin operations.** Install / update / uninstall now show
+  a step checklist (queued → running → propagate → done, or the failure step)
+  driven by the live operation, with the action button staying disabled and
+  showing the current step for the whole background run (survives a reload
+  mid-operation, can't be double-fired).
+- **Step tracking for system updates.** The System Maintenance page shows the
+  update progressing through its phases live over SSE — requested → claimed →
+  backing up → updating → migrating → health-check → done — instead of a bare
+  spinner, and repaints the moment the manager advances it.
+
+### Fixed (UI)
+- **Status pills are no longer clipped.** A global Mantine `Badge` theme override
+  lets every pill render its full label (no mid-word truncation) across the CMS
+  tables.
+
 ## v0.1.13 — 2026-06-15
 
 ### Fixed
