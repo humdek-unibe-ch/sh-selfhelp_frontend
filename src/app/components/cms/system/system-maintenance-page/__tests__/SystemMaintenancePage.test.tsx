@@ -502,6 +502,74 @@ describe('SystemMaintenancePage', () => {
         expect(screen.getByText(/permission to request a frontend update/i)).toBeInTheDocument();
     });
 
+    it('shows the planned update steps in advance and advances them live before the manager reports details', () => {
+        // Regression: while an update runs the manager only writes back its
+        // detailed `steps` at the very end, so the operator used to see nothing
+        // happening. The page must show the planned checklist up front and tick
+        // it from the coarse lifecycle status — like the manager's own console.
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_live',
+            status: 'backup_running',
+            target_version: '0.2.0',
+            progress_percent: 25,
+            steps: [], // manager has not reported per-step detail yet
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        // The whole core plan is visible in advance...
+        expect(screen.getByText(/Planned steps/i)).toBeInTheDocument();
+        expect(screen.getByText('Resolve & plan update')).toBeInTheDocument();
+        expect(screen.getByText('Pre-update backup')).toBeInTheDocument();
+        expect(screen.getByText('Run database migrations')).toBeInTheDocument();
+        expect(screen.getByText('Health check')).toBeInTheDocument();
+        // ...and the current phase (backup) is shown as in progress.
+        expect(screen.getAllByText(/in progress/i).length).toBeGreaterThan(0);
+    });
+
+    it('shows the frontend-only plan (no backup/migration rows) for a frontend update', () => {
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_fe_live',
+            status: 'update_running',
+            kind: 'frontend',
+            target_version: '0.1.7',
+            target_frontend_version: '0.1.7',
+            progress_percent: 60,
+            steps: [],
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(screen.getByText('Pull verified frontend image')).toBeInTheDocument();
+        expect(screen.getByText('Recreate frontend container')).toBeInTheDocument();
+        // A frontend swap is stateless — no backup or DB migration rows.
+        expect(screen.queryByText('Pre-update backup')).not.toBeInTheDocument();
+        expect(screen.queryByText('Run database migrations')).not.toBeInTheDocument();
+    });
+
+    it('prefers the manager-reported detailed steps once they arrive', () => {
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_done',
+            status: 'succeeded',
+            target_version: '0.2.0',
+            progress_percent: 100,
+            steps: [
+                { name: 'pull', status: 'succeeded', detail: 'pulled selfhelp-backend@0.2.0' },
+                { name: 'health', status: 'succeeded' },
+            ],
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        // The real per-step report wins over the synthesized plan (detail is
+        // rendered inline as "<status>: <detail>", so match on the detail text).
+        expect(screen.getByText(/pulled selfhelp-backend@0\.2\.0/)).toBeInTheDocument();
+        expect(screen.queryByText(/Planned steps/i)).not.toBeInTheDocument();
+    });
+
     it('locks BOTH update request buttons while an operation is in flight', () => {
         // An active core update is running: the operator must not be able to fire
         // a second (core OR frontend) update on top of it.

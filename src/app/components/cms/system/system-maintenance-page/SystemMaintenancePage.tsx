@@ -36,7 +36,7 @@ import {
 } from '../../../../../hooks/useSystem';
 import { useAuthSseConnected } from '../../../../../hooks/auth-sse-status';
 import type {
-    TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus,
+    TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus, TUpdateKind,
     TSystemHealthOverall, TSystemComponentStatus, TSystemAdvisorySeverity, IUpdateStep,
 } from '../../../../../shared';
 
@@ -181,6 +181,115 @@ function UpdateStepsTimeline({ steps }: { steps: IUpdateStep[] }) {
                         <Text size="xs" c="dimmed">
                             {step.status}
                             {step.detail ? `: ${step.detail}` : ''}
+                        </Text>
+                    </Timeline.Item>
+                );
+            })}
+        </Timeline>
+    );
+}
+
+/**
+ * What a core / frontend update is going to do, mirrored from the SelfHelp
+ * Manager's own operation checklist so the operator sees the SAME plan on both
+ * sides. Shown in advance and ticked live (below) while the manager works.
+ */
+const CORE_UPDATE_PLAN: { id: string; label: string }[] = [
+    { id: 'plan', label: 'Resolve & plan update' },
+    { id: 'backup', label: 'Pre-update backup' },
+    { id: 'pull', label: 'Pull verified images' },
+    { id: 'recreate', label: 'Recreate containers' },
+    { id: 'migrate', label: 'Run database migrations' },
+    { id: 'health', label: 'Health check' },
+];
+
+const FRONTEND_UPDATE_PLAN: { id: string; label: string }[] = [
+    { id: 'plan', label: 'Resolve & plan frontend update' },
+    { id: 'pull', label: 'Pull verified frontend image' },
+    { id: 'recreate', label: 'Recreate frontend container' },
+    { id: 'health', label: 'Health check' },
+];
+
+const PLAN_ERROR_STATUSES = new Set<TUpdateOperationStatus>([
+    'failed', 'preflight_failed', 'rejected', 'rolled_back', 'rollback_failed',
+]);
+
+/** Maps the coarse lifecycle status onto the plan-step id it corresponds to. */
+function statusPlanStepId(status: TUpdateOperationStatus): string {
+    switch (status) {
+        // Requested but not yet claimed: show the whole plan as "waiting" so the
+        // operator knows what's coming without implying the manager has started.
+        case 'requested':
+        case 'approved':
+            return '__pending__';
+        case 'accepted':
+        case 'preflight_running':
+        case 'preflight_failed':
+            return 'plan';
+        case 'backup_running':
+            return 'backup';
+        case 'running':
+        case 'update_running':
+            return 'pull';
+        case 'migration_running':
+            return 'migrate';
+        case 'health_check_running':
+        case 'rollback_running':
+        case 'rolled_back':
+        case 'rollback_failed':
+            return 'health';
+        case 'succeeded':
+            return '__done__';
+        default:
+            return 'plan';
+    }
+}
+
+function planStepState(index: number, activeIndex: number, status: TUpdateOperationStatus): TStepState {
+    if (status === 'succeeded') return 'done';
+    if (PLAN_ERROR_STATUSES.has(status)) {
+        if (index < activeIndex) return 'done';
+        return index === activeIndex ? 'error' : 'pending';
+    }
+    if (index < activeIndex) return 'done';
+    return index === activeIndex ? 'active' : 'pending';
+}
+
+/**
+ * Planned-steps checklist for an in-flight update, shown BEFORE the SelfHelp
+ * Manager writes back its detailed per-step report. It lets the operator know
+ * what is about to happen and watch it advance live (driven by the SSE-refreshed
+ * lifecycle status) — instead of only seeing the steps appear once it's over.
+ */
+function PlannedUpdateTimeline({ kind, status }: { kind: TUpdateKind; status: TUpdateOperationStatus }) {
+    const plan = kind === 'frontend' ? FRONTEND_UPDATE_PLAN : CORE_UPDATE_PLAN;
+    const phaseId = statusPlanStepId(status);
+    const activeIndex =
+        phaseId === '__done__'
+            ? plan.length
+            : phaseId === '__pending__'
+              ? -1
+              : Math.max(0, plan.findIndex((s) => s.id === phaseId));
+
+    return (
+        <Timeline active={activeIndex} bulletSize={18} lineWidth={2}>
+            {plan.map((step, i) => {
+                const state = planStepState(i, activeIndex, status);
+                return (
+                    <Timeline.Item
+                        key={step.id}
+                        color={stepColor(state)}
+                        bullet={<StepBullet state={state} />}
+                        title={<Text size="sm">{step.label}</Text>}
+                    >
+                        <Text size="xs" c="dimmed">
+                            {state === 'done'
+                                ? 'done'
+                                : state === 'active'
+                                  ? 'in progress…'
+                                  : state === 'error'
+                                    ? 'failed'
+                                    : 'waiting'}
                         </Text>
                     </Timeline.Item>
                 );
@@ -718,8 +827,16 @@ export function SystemMaintenancePage() {
                             </Alert>
                         )}
                         {currentStatus.message && <Text size="sm" mb="xs">{currentStatus.message}</Text>}
-                        {currentStatus.steps.length > 0 && (
+                        {currentStatus.steps.length > 0 ? (
                             <UpdateStepsTimeline steps={currentStatus.steps} />
+                        ) : (
+                            <Stack gap={6}>
+                                <Text size="xs" c="dimmed">
+                                    Planned steps — the SelfHelp Manager performs these on the server and this list
+                                    advances live as each one runs.
+                                </Text>
+                                <PlannedUpdateTimeline kind={currentStatus.kind} status={currentStatus.status} />
+                            </Stack>
                         )}
                     </Paper>
                 )}
