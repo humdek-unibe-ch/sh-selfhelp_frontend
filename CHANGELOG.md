@@ -14,6 +14,19 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.15 — 2026-06-16
+
+### Fixed
+- **The maintenance message renders its formatting instead of showing raw
+  `<p>` tags.** The system maintenance alert is authored as HTML (the
+  operator's note, surfaced through `{{system.maintenance_message}}`), but the
+  alert style printed it as plain text, so visitors saw literal `<p>…</p>`
+  markup during an outage. The alert content is now sanitized and parsed to
+  safe HTML (`sanitizeHtmlForParsing` + `html-react-parser`), so paragraphs,
+  line breaks and basic formatting render while scripts and event-handler
+  attributes are stripped. Covered by an `AlertStyle` test (plain text,
+  formatted HTML, and an XSS payload that must be dropped).
+
 ## v0.1.14 — 2026-06-16
 
 ### Fixed
