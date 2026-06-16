@@ -14,6 +14,23 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.16 — 2026-06-16
+
+### Changed
+- **The System Maintenance update view now shows the planned steps up front and
+  ticks them live.** While an update ran, the SelfHelp Manager only wrote back
+  its detailed per-step report at the very end, so the page showed just a status
+  badge and a progress bar mid-update and then revealed every step at once when
+  it finished ("after the end we see all the actions, but not while they're
+  happening"). The active-operation panel now renders a planned checklist
+  derived from the update kind — core (resolve → backup → pull → recreate →
+  migrate → health) or frontend-only (resolve → pull → recreate → health) — and
+  advances it from the live lifecycle status over the existing `system-update`
+  SSE stream, mirroring the SelfHelp Manager's own console. Once the manager
+  reports its detailed steps, those (with per-step detail) take over. Covered by
+  `SystemMaintenancePage` tests for the in-flight plan, the frontend-only plan,
+  and the detailed-steps takeover.
+
 ## v0.1.15 — 2026-06-16
 
 ### Fixed
