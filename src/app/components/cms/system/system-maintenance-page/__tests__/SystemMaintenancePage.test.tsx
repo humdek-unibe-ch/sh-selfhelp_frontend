@@ -19,7 +19,7 @@ SPDX-License-Identifier: MPL-2.0
  * request/response shapes are guarded by the shared schema-parity check).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, within } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 import type {
     ISystemAdvisories, ISystemHealth, ISystemMaintenance, ISystemVersion,
@@ -247,6 +247,90 @@ describe('SystemMaintenancePage', () => {
         fireEvent.change(screen.getByTestId('target-version-input'), { target: { value: '0.2.0' } });
         fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
         expect(screen.getByRole('button', { name: /Request update for this instance/i })).toBeInTheDocument();
+    });
+
+    it('shows at a glance whether an update is available and the newest version to move to', () => {
+        // Default fixtures: core 0.1.0 → 0.2.0 published, frontend 0.1.5 → 0.1.7.
+        renderWithProviders(<SystemMaintenancePage />);
+
+        const panel = within(screen.getByTestId('update-availability'));
+        expect(panel.getByText('Update available')).toBeInTheDocument();
+        // The newest installable version for each component is surfaced directly.
+        expect(panel.getByText('New: 0.2.0')).toBeInTheDocument();
+        expect(panel.getByText('New: 0.1.7')).toBeInTheDocument();
+    });
+
+    it('marks the instance up to date when it already runs the newest releases', () => {
+        state.releases = {
+            available: true,
+            current_version: '0.2.0',
+            releases: [
+                { version: '0.2.0', channel: 'stable', blocked: false },
+                { version: '0.1.0', channel: 'stable', blocked: false },
+            ],
+        };
+        state.frontendReleases = {
+            available: true,
+            current_version: '0.1.7',
+            releases: [{ version: '0.1.7', channel: 'stable', blocked: false }],
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        const panel = within(screen.getByTestId('update-availability'));
+        expect(panel.queryByText('Update available')).not.toBeInTheDocument();
+        // Header + both component rows all report "Up to date".
+        expect(panel.getAllByText('Up to date').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('ignores a newer BLOCKED release when deciding the latest installable version', () => {
+        // A 0.3.0 exists but is blocked (e.g. a pulled release); the newest version
+        // the operator can actually move to is 0.2.0, so no update is offered over it.
+        state.releases = {
+            available: true,
+            current_version: '0.2.0',
+            releases: [
+                { version: '0.3.0', channel: 'stable', blocked: true },
+                { version: '0.2.0', channel: 'stable', blocked: false },
+            ],
+        };
+        state.frontendReleases = {
+            available: true,
+            current_version: '0.1.7',
+            releases: [{ version: '0.1.7', channel: 'stable', blocked: false }],
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        const panel = within(screen.getByTestId('update-availability'));
+        expect(panel.queryByText('New: 0.3.0')).not.toBeInTheDocument();
+        expect(panel.queryByText('Update available')).not.toBeInTheDocument();
+    });
+
+    it('one-click "Use latest" seeds the picker with the newest version and runs its preflight', () => {
+        renderWithProviders(<SystemMaintenancePage />);
+
+        // No request button before a target is checked.
+        expect(screen.queryByRole('button', { name: /Request update for this instance/i })).not.toBeInTheDocument();
+
+        const panel = within(screen.getByTestId('update-availability'));
+        // First "Use latest" is the core row.
+        fireEvent.click(panel.getAllByRole('button', { name: /Use latest/i })[0]!);
+
+        expect(screen.getByTestId('target-version-input')).toHaveValue('0.2.0');
+        // The preflight ran, so the (still preflight-gated) request button appears.
+        expect(screen.getByRole('button', { name: /Request update for this instance/i })).toBeInTheDocument();
+    });
+
+    it('reports it could not check for updates when the registry is unreachable', () => {
+        state.releases = { available: false, current_version: '0.1.0', releases: [] };
+        state.frontendReleases = { available: false, current_version: '0.1.5', releases: [] };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        const panel = within(screen.getByTestId('update-availability'));
+        expect(panel.getByText('Could not check')).toBeInTheDocument();
+        expect(panel.getByText(/newest available version could not be determined/i)).toBeInTheDocument();
     });
 
     it('renders security advisories filtered to this instance', () => {

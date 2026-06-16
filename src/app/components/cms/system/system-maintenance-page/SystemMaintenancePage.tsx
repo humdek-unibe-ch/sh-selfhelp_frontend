@@ -35,6 +35,7 @@ import {
     useFrontendUpdateReleases, useFrontendUpdatePreflight, useRequestFrontendUpdateMutation,
 } from '../../../../../hooks/useSystem';
 import { useAuthSseConnected } from '../../../../../hooks/auth-sse-status';
+import { summarizeUpdateAvailability, isComparableVersion } from '../../../../../utils/version.utils';
 import type {
     TUpdatePreflightStatus, TUpdateCheckSeverity, TUpdateOperationStatus, TUpdateKind,
     TSystemHealthOverall, TSystemComponentStatus, TSystemAdvisorySeverity, IUpdateStep,
@@ -347,6 +348,20 @@ export function SystemMaintenancePage() {
     const frontendReleaseOptions = (frontendReleasesData?.releases ?? [])
         .filter((r) => r.version !== frontendReleasesData?.current_version)
         .map((r) => r.version);
+
+    // "Is an update available, and what is the newest version we could move to?"
+    // Derived from the SAME registry release lists that feed the pickers, so the
+    // banner and the picker can never disagree. The backend's reported
+    // current_version is authoritative for the comparison; the frontend falls
+    // back to its build-time self-report when the backend has none.
+    const coreCurrentVersion = releasesData?.current_version ?? versionData?.selfhelp_version ?? '';
+    const coreUpdate = summarizeUpdateAvailability(coreCurrentVersion, releasesData?.releases ?? []);
+    const frontendCurrentVersion = isComparableVersion(frontendReleasesData?.current_version)
+        ? (frontendReleasesData?.current_version ?? '')
+        : SELF_REPORTED_FRONTEND_VERSION;
+    const frontendUpdate = summarizeUpdateAvailability(frontendCurrentVersion, frontendReleasesData?.releases ?? []);
+    const anyUpdateAvailable = coreUpdate.updateAvailable || frontendUpdate.updateAvailable;
+    const registryChecked = (releasesData?.available ?? false) || (frontendReleasesData?.available ?? false);
     // SSE-driven status: the `system-update` event (emitted on every CMS
     // request + manager write-back) invalidates this query, so there is no
     // time-based poll. A short fallback poll runs ONLY while the SSE stream is
@@ -384,6 +399,23 @@ export function SystemMaintenancePage() {
         setAcceptedRisk(false);
         setTypedConfirmation('');
         setCheckedTarget(next);
+    }
+
+    // Prefill the picker with the newest installable version and run its
+    // compatibility preflight, so "Update available → X" is one click away from
+    // the actual (still preflight-gated) request below.
+    function handleUseLatestCore() {
+        if (!coreUpdate.latestVersion) return;
+        setTargetInput(coreUpdate.latestVersion);
+        setAcceptedRisk(false);
+        setTypedConfirmation('');
+        setCheckedTarget(coreUpdate.latestVersion);
+    }
+
+    function handleUseLatestFrontend() {
+        if (!frontendUpdate.latestVersion) return;
+        setFrontendTargetInput(frontendUpdate.latestVersion);
+        setFrontendCheckedTarget(frontendUpdate.latestVersion);
     }
 
     function handleToggleMaintenance() {
@@ -536,6 +568,104 @@ export function SystemMaintenancePage() {
                         </Paper>
                     </Grid.Col>
                 </Grid>
+
+                {/* Update availability — at a glance: is a newer signed release
+                    published, and what is the newest version this instance could
+                    move to. Read-only summary derived from the same registry lists
+                    that feed the pickers below; the actual request still runs
+                    through the preflight-gated forms. */}
+                <Paper p="md" radius="md" withBorder pos="relative" data-testid="update-availability">
+                    <LoadingOverlay visible={releases.isLoading || frontendReleases.isLoading} />
+                    <Group justify="space-between" mb="sm">
+                        <Title order={4}>Updates</Title>
+                        {anyUpdateAvailable ? (
+                            <Badge color="blue" variant="filled">Update available</Badge>
+                        ) : registryChecked ? (
+                            <Badge color="green" variant="light">Up to date</Badge>
+                        ) : (
+                            <Badge color="gray" variant="light">Could not check</Badge>
+                        )}
+                    </Group>
+
+                    {!registryChecked && (
+                        <Alert icon={<IconInfoCircle size={16} />} color="gray" variant="light" mb="sm">
+                            The official registry could not be reached, so the newest available version could not be
+                            determined. You can still request a specific version manually below.
+                        </Alert>
+                    )}
+
+                    <Stack gap="xs">
+                        {/* Core */}
+                        <Group justify="space-between" wrap="wrap" gap="xs">
+                            <div>
+                                <Text size="sm" fw={600}>SelfHelp core</Text>
+                                <Text size="xs" c="dimmed">
+                                    current <Code>{isComparableVersion(coreCurrentVersion) ? coreCurrentVersion : '—'}</Code>
+                                    {' · '}latest{' '}
+                                    {coreUpdate.latestVersion ? <Code>{coreUpdate.latestVersion}</Code> : 'unknown'}
+                                </Text>
+                            </div>
+                            {coreUpdate.updateAvailable ? (
+                                <Group gap="xs">
+                                    <Badge color="blue" variant="light">New: {coreUpdate.latestVersion}</Badge>
+                                    {canUpdate && (
+                                        <Button
+                                            size="xs"
+                                            variant="light"
+                                            leftSection={<IconRefresh size={14} />}
+                                            onClick={handleUseLatestCore}
+                                            disabled={isActive}
+                                        >
+                                            Use latest
+                                        </Button>
+                                    )}
+                                </Group>
+                            ) : releasesData?.available ? (
+                                <Badge color="green" variant="light" leftSection={<IconCircleCheck size={12} />}>
+                                    Up to date
+                                </Badge>
+                            ) : (
+                                <Badge color="gray" variant="light">Unknown</Badge>
+                            )}
+                        </Group>
+
+                        <Divider />
+
+                        {/* Frontend (ships independently of the core) */}
+                        <Group justify="space-between" wrap="wrap" gap="xs">
+                            <div>
+                                <Text size="sm" fw={600}>Frontend</Text>
+                                <Text size="xs" c="dimmed">
+                                    current <Code>{isComparableVersion(frontendCurrentVersion) ? frontendCurrentVersion : '—'}</Code>
+                                    {' · '}latest{' '}
+                                    {frontendUpdate.latestVersion ? <Code>{frontendUpdate.latestVersion}</Code> : 'unknown'}
+                                </Text>
+                            </div>
+                            {frontendUpdate.updateAvailable ? (
+                                <Group gap="xs">
+                                    <Badge color="blue" variant="light">New: {frontendUpdate.latestVersion}</Badge>
+                                    {canUpdate && (
+                                        <Button
+                                            size="xs"
+                                            variant="light"
+                                            leftSection={<IconRefresh size={14} />}
+                                            onClick={handleUseLatestFrontend}
+                                            disabled={isActive}
+                                        >
+                                            Use latest
+                                        </Button>
+                                    )}
+                                </Group>
+                            ) : frontendReleasesData?.available ? (
+                                <Badge color="green" variant="light" leftSection={<IconCircleCheck size={12} />}>
+                                    Up to date
+                                </Badge>
+                            ) : (
+                                <Badge color="gray" variant="light">Unknown</Badge>
+                            )}
+                        </Group>
+                    </Stack>
+                </Paper>
 
                 {/* Aggregated health / status */}
                 <Paper p="md" radius="md" withBorder pos="relative">
