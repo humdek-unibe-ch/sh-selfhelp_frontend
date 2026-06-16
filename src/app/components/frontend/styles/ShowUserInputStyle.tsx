@@ -11,8 +11,7 @@ import {
 import { IconTrash, IconSearch, IconAlertCircle, IconChevronUp, IconChevronDown, IconSelector, IconDownload } from '@tabler/icons-react';
 import { useDeleteFormMutation } from '../../../../hooks/useFormSubmission';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
-import { useAuthUser } from '../../../../hooks/useUserData';
-import { IShowUserInputStyle } from '../../../../shared';
+import type { IShowUserInputStyle, IShowUserInputEntry } from '../../../../types/common/styles.types';
 
 
 interface IFieldMapping {
@@ -37,10 +36,8 @@ const PAGE_SIZE = 10;
 
 const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, styleProps, cssClass }) => {
     const pageContent = usePageContentValue();
-    const { user } = useAuthUser();
     const deleteMutation = useDeleteFormMutation();
 
-    const ownEntriesOnly = style.own_entries_only?.content === '1';
     const showTimestamp = style.show_timestamp?.content === '1';
 
     const sortable = style.dt_sortable?.content === '1';
@@ -68,7 +65,7 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
         return [];
     })();
 
-    const rows = (style.entries ?? []) as Array<Record<string, unknown>>;
+    const rows: IShowUserInputEntry[] = style.entries ?? [];
 
     const mappedCols: IColumn[] = fieldMappings.length
         ? fieldMappings.map(m => ({ key: m.field_name, label: m.field_new_name }))
@@ -118,12 +115,6 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
 
     const totalPages = paginate ? Math.max(1, Math.ceil(sorted.length / PAGE_SIZE)) : 1;
     const pageRows = paginate ? sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : sorted;
-
-    const canDelete = (row: Record<string, unknown>) => {
-        if (!ownEntriesOnly) return true;
-        if (!user) return false;
-        return Number(row['id_users']) === user.id;
-    };
 
     const handleDeleteConfirm = () => {
         if (!deleteTarget || !pageContent?.id) return;
@@ -198,7 +189,7 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
                         ))}
                         {deleteEntry && (
                             <Table.Td>
-                                {canDelete(row) && (
+                                {row._can_delete && (
                                     <ActionIcon
                                         color="red"
                                         variant="subtle"
