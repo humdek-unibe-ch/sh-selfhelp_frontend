@@ -14,6 +14,23 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.17 — 2026-06-16
+
+### Added
+- **The System Maintenance page now tells you at a glance whether an update is
+  available and what the newest version is.** Previously the page showed the
+  current versions and a manual target-version picker, but never answered the
+  first question an operator asks — "am I behind, and what is the latest I can
+  move to?". A new **Updates** panel summarizes core and frontend separately,
+  showing the current version, the newest installable version published in the
+  official registry, and an **Update available** / **Up to date** badge. When a
+  newer version exists, a one-click **Use latest** button seeds the target-version
+  picker with it and runs the compatibility preflight, so the (still
+  preflight-gated) request is one step away. The newest version ignores blocked
+  releases, never claims an update when the current version is unknown, and
+  degrades to "Could not check" when the registry is unreachable. Backed by a new
+  tested `version.utils` comparator and `SystemMaintenancePage` tests.
+
 ## v0.1.16 — 2026-06-16
 
 ### Changed
