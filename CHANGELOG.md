@@ -14,6 +14,66 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.18 — 2026-06-16
+
+### Added
+- **Styled system error pages.** The 404 (`notFound`), 403 (`noAccess` /
+  no-access-guest) and generic "missing" pages now render through dedicated
+  CMS-driven styles (`NotFoundStyle`, `NoAccessStyle`, `MissingStyle`) instead
+  of bare/hardcoded screens, with a configurable title, message and action
+  button, an optional login link, an optional icon, and Mantine
+  color/radius/shadow/variant presentation. The `/auth/*` static fallbacks and
+  the global `NotFoundClient` were rewired onto the new styles, and the styles
+  are covered by component tests.
+- **`refContainer` style.** A new transparent, structural style that renders
+  its referenced children inline with no wrapper, so a single section subtree
+  can be reused across multiple pages.
+- **`showUserInput` style.** Renders a form's collected entries as a Mantine
+  table with optional sorting, search, pagination, an info line, CSV export and
+  per-row delete (behind a confirmation modal). Columns can be remapped via
+  `fields_map`, a leading date or `#` column is shown, and the per-row trash
+  icon only appears for rows the backend marks as deletable (`_can_delete`).
+
+### Changed
+- **Deleting a section now permanently destroys it everywhere, independent of
+  any page.** `deleteSection` calls the new `DELETE /admin/sections/{id}`
+  endpoint (no page id) and invalidates the page-sections, ref-container and
+  unused-section caches; the section inspector first lists which pages a section
+  belongs to (via the new `useSectionPages` hook) so you can see the impact, and
+  the page-sections panel gained a manual refresh button.
+- **Publishing warns about shared refContainers.** The publish-version modal now
+  lists other already-published pages that share a `refContainer` being
+  published — resolved through the new batch `GET /admin/sections/pages?ids[]=`
+  endpoint with support for multiple section ids — so you don't unknowingly
+  alter other live pages.
+- **System page URLs are kebab-case.** Reset-password moved from `/reset` to
+  `/reset-password` and the underscore→hyphen alias map was dropped now that CMS
+  keywords match URL segments directly.
+- **Notification / email action editor** shows localized placeholder hints
+  (`{{user_name}}`, `{{user_email}}`, `{{user_code}}`, `{{id_users}}`) inside the
+  empty subject/body fields, demonstrating the placeholders the backend expands
+  at send time. The hints are display-only and disappear as soon as you type.
+- **`showUserInput` types come from `@selfhelp/shared`.** `IShowUserInputStyle`
+  and `IShowUserInputEntry` are now imported from the shared package and the
+  local duplicate definitions were deleted, matching the error-style imports and
+  removing the drift risk of two diverging copies of the same contract.
+
+### Fixed
+- The select field placeholder now renders correctly.
+- The publishing panel reads correctly in dark mode (inline styles replace the
+  theme-blind ones).
+- Page content authored as HTML is sanitized and rendered as HTML instead of
+  showing escaped markup.
+
+### Removed
+- **The orphaned client-side `forceDeleteSection` stack.** The
+  `ADMIN_SECTIONS_FORCE_DELETE` endpoint entry, the `forceDeleteSection` API
+  client method, the `useForceDeleteSectionMutation` hook and the
+  never-rendered `ForceDeleteSectionModal` were deleted. They targeted a backend
+  `/sections/{id}/force-delete` route that no longer exists (it returned 404);
+  permanently destroying a section now goes solely through the new
+  `DELETE /admin/sections/{id}` endpoint.
+
 ## v0.1.17 — 2026-06-16
 
 ### Added
