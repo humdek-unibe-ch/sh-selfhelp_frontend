@@ -24,7 +24,8 @@ import { renderWithProviders } from '../../../../../../test-utils/renderWithProv
 import type {
     ISystemAdvisories, ISystemHealth, ISystemMaintenance, ISystemVersion,
     IUpdatePreflight, IUpdateStatus, IUpdateReleases,
-} from '../../../../../../types/responses/admin/system.types';
+    IFrontendUpdatePreflight, IFrontendUpdateReleases,
+} from '../../../../../../shared';
 
 const state = vi.hoisted(() => ({
     canUpdate: true,
@@ -36,7 +37,10 @@ const state = vi.hoisted(() => ({
     status: null as IUpdateStatus | null,
     preflight: null as IUpdatePreflight | null,
     releases: null as IUpdateReleases | null,
+    frontendReleases: null as IFrontendUpdateReleases | null,
+    frontendPreflight: null as IFrontendUpdatePreflight | null,
     requestMutate: vi.fn(),
+    frontendRequestMutate: vi.fn(),
 }));
 
 vi.mock('../../../../../../hooks/useAuth', () => ({
@@ -64,6 +68,14 @@ vi.mock('../../../../../../hooks/useSystem', () => ({
     useUpdateStatus: () => ({ data: state.status }),
     useRequestUpdateMutation: () => ({ mutate: state.requestMutate, isPending: false }),
     useUpdateReleases: () => ({ data: state.releases, isLoading: false, isError: false }),
+    useFrontendUpdateReleases: () => ({ data: state.frontendReleases, isLoading: false, isError: false }),
+    // Mirror the real hook: the frontend preflight is gated on a non-null target.
+    useFrontendUpdatePreflight: (target: string | null) => ({
+        data: target ? state.frontendPreflight : undefined,
+        isError: false,
+        isFetching: false,
+    }),
+    useRequestFrontendUpdateMutation: () => ({ mutate: state.frontendRequestMutate, isPending: false }),
 }));
 
 vi.mock('../../../../shared/common/PageHeader', () => ({
@@ -116,11 +128,14 @@ function idleStatus(): IUpdateStatus {
         instance_id: 'qa-instance',
         operation_id: '',
         status: 'idle',
+        kind: 'core',
         target_version: '0.1.0',
+        target_frontend_version: null,
         progress_percent: 0,
         steps: [],
         requested_at: '2026-06-08T00:00:00Z',
         updated_at: '2026-06-08T00:00:00Z',
+        manager: { configured: true, last_seen_at: '2026-06-08T00:00:00Z', requested_stale: false },
     };
 }
 
@@ -135,6 +150,22 @@ function preflight(overrides: Partial<IUpdatePreflight> = {}): IUpdatePreflight 
         options: [],
         database: { destructive: false, requires_backup: true, manual_confirmation_required: false },
         rollback: { automatic_before_migrations: true, automatic_after_destructive_migrations: false },
+        ...overrides,
+    };
+}
+
+/** A frontend-only preflight: stateless, so never destructive / backup-required. */
+function frontendPreflight(overrides: Partial<IFrontendUpdatePreflight> = {}): IFrontendUpdatePreflight {
+    return {
+        preflight_id: 'fe-pf-qa-001',
+        status: 'ok',
+        instance_id: 'qa-instance',
+        current_version: '0.1.5',
+        target_version: '0.1.7',
+        checks: [{ code: 'resource', severity: 'info', message: 'The SelfHelp Manager performs the authoritative checks at execution time.' }],
+        options: [{ type: 'frontend', version: '0.1.7', label: 'SelfHelp frontend 0.1.7' }],
+        database: { destructive: false, requires_backup: false, manual_confirmation_required: false },
+        rollback: { automatic_before_migrations: true, automatic_after_destructive_migrations: true },
         ...overrides,
     };
 }
@@ -157,7 +188,17 @@ describe('SystemMaintenancePage', () => {
                 { version: '0.1.0', channel: 'stable', blocked: false },
             ],
         };
+        state.frontendReleases = {
+            available: true,
+            current_version: '0.1.5',
+            releases: [
+                { version: '0.1.7', channel: 'stable', blocked: false },
+                { version: '0.1.5', channel: 'stable', blocked: false },
+            ],
+        };
+        state.frontendPreflight = frontendPreflight();
         state.requestMutate = vi.fn();
+        state.frontendRequestMutate = vi.fn();
     });
 
     it('shows the deployment kind and distinguishes a source checkout from a Docker install', () => {
@@ -327,5 +368,170 @@ describe('SystemMaintenancePage', () => {
 
         expect(screen.queryByRole('button', { name: /Request update for this instance/i })).not.toBeInTheDocument();
         expect(screen.getByText(/need the/i)).toBeInTheDocument();
+    });
+
+    it('warns when a requested update sits unclaimed by the manager (stale)', () => {
+        // Backend flags the operation as stale: requested 10+ minutes ago, the
+        // manager loop never polled. The page must say so instead of showing a
+        // silent 0% progress bar, and give the wrapper-aware recovery command.
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_42',
+            status: 'requested',
+            target_version: '0.2.0',
+            manager: { configured: true, last_seen_at: null, requested_stale: true },
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(screen.getByText(/The SelfHelp Manager has not picked this up/i)).toBeInTheDocument();
+        expect(screen.getByText(/no manager has ever polled this instance/i)).toBeInTheDocument();
+        expect(screen.getByText('sh-manager instance process-operations qa-instance')).toBeInTheDocument();
+        // Wrapper-aware note so operators on the wrapper do not copy a broken command.
+        expect(screen.getAllByText('./shm.ps1').length).toBeGreaterThan(0);
+    });
+
+    it('explains a missing manager token in the stale warning', () => {
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_43',
+            status: 'requested',
+            target_version: '0.2.0',
+            manager: { configured: false, last_seen_at: null, requested_stale: true },
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(screen.getByText(/SELFHELP_MANAGER_TOKEN/)).toBeInTheDocument();
+        expect(screen.getByText('sh-manager instance update qa-instance')).toBeInTheDocument();
+    });
+
+    it('does not warn while a fresh requested operation waits within the grace window', () => {
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_44',
+            status: 'requested',
+            target_version: '0.2.0',
+            manager: { configured: true, last_seen_at: '2026-06-08T00:00:00Z', requested_stale: false },
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(screen.queryByText(/has not picked this up/i)).not.toBeInTheDocument();
+    });
+
+    it('renders the manager_loop health component with a readable name', () => {
+        state.health = {
+            ...health(),
+            overall: 'degraded',
+            components: [
+                { name: 'database', status: 'ok', detail: 'reachable' },
+                { name: 'manager_loop', status: 'down', detail: 'Manager token is configured but no manager has ever polled this instance.' },
+            ],
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        // Underscored component names render as words (capitalized via CSS).
+        expect(screen.getByText('manager loop')).toBeInTheDocument();
+        expect(screen.getByText(/no manager has ever polled/i)).toBeInTheDocument();
+    });
+
+    it('feeds the frontend-only picker from the registry frontend releases and excludes the current frontend version', () => {
+        renderWithProviders(<SystemMaintenancePage />);
+
+        const input = screen.getByTestId('frontend-target-version-input');
+        fireEvent.focus(input);
+        fireEvent.change(input, { target: { value: '0.' } });
+        // 0.1.7 is offered; the currently installed frontend 0.1.5 is not.
+        expect(screen.getByRole('option', { name: '0.1.7' })).toBeInTheDocument();
+        expect(screen.queryByRole('option', { name: '0.1.5' })).not.toBeInTheDocument();
+    });
+
+    it('runs a frontend preflight then requests a frontend-only update with NO instance_id and NO migration risk', () => {
+        renderWithProviders(<SystemMaintenancePage />);
+
+        // No frontend preflight yet, so no frontend request button.
+        expect(
+            screen.queryByRole('button', { name: /Request frontend update for this instance/i }),
+        ).not.toBeInTheDocument();
+
+        fireEvent.change(screen.getByTestId('frontend-target-version-input'), { target: { value: '0.1.7' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check frontend compatibility/i }));
+
+        const requestButton = screen.getByRole('button', { name: /Request frontend update for this instance/i });
+        expect(requestButton).toBeEnabled();
+
+        fireEvent.click(requestButton);
+
+        expect(state.frontendRequestMutate).toHaveBeenCalledTimes(1);
+        const body = state.frontendRequestMutate.mock.calls[0][0];
+        // Hard rules for a frontend swap: no instance_id, no migration-risk fields.
+        expect(body).not.toHaveProperty('instance_id');
+        expect(body).not.toHaveProperty('accepted_migration_risk');
+        expect(body).not.toHaveProperty('typed_confirmation');
+        expect(body.target_version).toBe('0.1.7');
+        expect(body.preflight_id).toBe('fe-pf-qa-001');
+    });
+
+    it('disables the frontend request button when the frontend preflight is blocked', () => {
+        state.frontendPreflight = frontendPreflight({
+            status: 'blocked',
+            checks: [{ code: 'downgrade', severity: 'error', message: 'Frontend downgrades are not supported.' }],
+        });
+
+        renderWithProviders(<SystemMaintenancePage />);
+        fireEvent.change(screen.getByTestId('frontend-target-version-input'), { target: { value: '0.1.3' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check frontend compatibility/i }));
+
+        expect(screen.getByRole('button', { name: /Request frontend update for this instance/i })).toBeDisabled();
+        expect(screen.getByText(/This frontend update is blocked/i)).toBeInTheDocument();
+    });
+
+    it('hides the frontend request button for an admin without admin.system.update', () => {
+        state.canUpdate = false;
+
+        renderWithProviders(<SystemMaintenancePage />);
+        fireEvent.change(screen.getByTestId('frontend-target-version-input'), { target: { value: '0.1.7' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check frontend compatibility/i }));
+
+        expect(
+            screen.queryByRole('button', { name: /Request frontend update for this instance/i }),
+        ).not.toBeInTheDocument();
+        // The notice text is split by a <Code> node, so match the trailing segment.
+        expect(screen.getByText(/permission to request a frontend update/i)).toBeInTheDocument();
+    });
+
+    it('locks BOTH update request buttons while an operation is in flight', () => {
+        // An active core update is running: the operator must not be able to fire
+        // a second (core OR frontend) update on top of it.
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_active',
+            status: 'update_running',
+            target_version: '0.2.0',
+            progress_percent: 50,
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        // Core request button renders but is locked.
+        fireEvent.change(screen.getByTestId('target-version-input'), { target: { value: '0.2.0' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check compatibility/i }));
+        const coreButton = screen.getByRole('button', { name: /Request update for this instance/i });
+        expect(coreButton).toBeDisabled();
+        // It also visibly spins for the WHOLE operation (not just the POST), so the
+        // in-progress state is obvious — matching the plugin install button.
+        expect(coreButton).toHaveAttribute('data-loading', 'true');
+
+        // Frontend request button is locked too.
+        fireEvent.change(screen.getByTestId('frontend-target-version-input'), { target: { value: '0.1.7' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check frontend compatibility/i }));
+        const frontendButton = screen.getByRole('button', { name: /Request frontend update for this instance/i });
+        expect(frontendButton).toBeDisabled();
+        expect(frontendButton).toHaveAttribute('data-loading', 'true');
+
+        // The operator is told why the buttons are locked (shown in both sections).
+        expect(screen.getAllByText(/An update is already in progress/i).length).toBeGreaterThan(0);
     });
 });

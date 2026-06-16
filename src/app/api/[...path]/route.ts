@@ -71,7 +71,8 @@ async function buildResponseWithCookieRotation(
         const res = new NextResponse(null, { status: upstream.status });
         upstream.headers.forEach((v, k) => {
             const key = k.toLowerCase();
-            if (key === 'set-cookie' || key === 'transfer-encoding' || key === 'content-length') return;
+            // `content-encoding` no longer matches the (empty, decoded) body.
+            if (key === 'set-cookie' || key === 'transfer-encoding' || key === 'content-length' || key === 'content-encoding') return;
             res.headers.set(k, v);
         });
         if (fallbackTokens) setAuthCookies(res, fallbackTokens);
@@ -128,16 +129,37 @@ async function handle(req: NextRequest, context: { params: Promise<{ path: strin
 
     if (upstream.status === 401) {
         const refreshed = await refreshInternal();
-        if (refreshed) {
+        if (refreshed.status === 'ok') {
             // Transparent retry with rotated token. Works for every HTTP
             // method because `buffered.body` is an `ArrayBuffer` we can
             // replay any number of times.
-            upstream = await forwardBufferedToSymfony(buffered, upstreamUrl, refreshed.access_token);
-            return buildResponseWithCookieRotation(upstream, refreshed);
+            upstream = await forwardBufferedToSymfony(buffered, upstreamUrl, refreshed.tokens.access_token);
+            return buildResponseWithCookieRotation(upstream, refreshed.tokens);
         }
 
-        // Refresh failed — session is genuinely dead. Clear cookies and
-        // surface the original 401 payload so the client can react.
+        if (refreshed.status === 'unreachable') {
+            // The backend is briefly unavailable (e.g. mid plugin-install /
+            // update restart): we could not even complete the refresh. The
+            // session is NOT dead — do NOT clear cookies and do NOT surface a
+            // 401 that would bounce the operator to the login page. Return a
+            // 503 with `logged_in: true` so the client simply retries once the
+            // backend is back. This is what stops an install/update restart
+            // from logging the operator out.
+            return NextResponse.json(
+                {
+                    error: 'backend_unavailable',
+                    logged_in: true,
+                    status: 503,
+                    message: 'The server is briefly unavailable (it may be restarting). Please retry.',
+                    meta: {},
+                    data: null,
+                },
+                { status: 503 }
+            );
+        }
+
+        // Refresh genuinely failed (`invalid`) — session is dead. Clear cookies
+        // and surface the original 401 payload so the client can react.
         const response = cloneUpstreamResponse(upstream);
         clearAuthCookies(response);
         return response;

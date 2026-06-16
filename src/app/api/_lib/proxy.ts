@@ -39,10 +39,13 @@ import {
     SYMFONY_API_PREFIX,
     SYMFONY_INTERNAL_URL,
     callSymfonyRefreshToken,
+    type RefreshOutcome,
 } from '../../../config/server.config';
 import {
     IMPERSONATE_COOKIE,
     IMPERSONATE_TARGET_EMAIL_COOKIE,
+    LEGACY_AUTH_COOKIE,
+    LEGACY_REFRESH_COOKIE,
 } from '../../../config/cookie-names';
 
 export {
@@ -83,6 +86,19 @@ const HOP_BY_HOP_HEADERS = new Set([
     // multipart uploads (typically > ~1 KB), so forwarding it verbatim
     // breaks the catch-all proxy for plugin archive uploads. Drop it.
     'expect',
+    // Content negotiation is per hop. Forwarding the browser's
+    // `Accept-Encoding` (Chrome sends `gzip, deflate, br, zstd`) makes the
+    // backend's Caddy pick zstd — which undici does NOT decode — so every
+    // response above the compression threshold reaches the BFF as raw zstd
+    // bytes. Mutation handlers then read `.text()`, fail to parse, and relay
+    // binary garbage to the browser ("page created but the UI showed
+    // nothing / a later 409"). Let undici negotiate its own codings
+    // (gzip/br), which it transparently decodes.
+    'accept-encoding',
+    // undici hands us the DECODED body for the codings it negotiates, so a
+    // forwarded `Content-Encoding` header would describe an encoding the
+    // relayed body no longer has and make browsers/clients fail to decode.
+    'content-encoding',
 ]);
 
 const UPSTREAM_HEADERS_TO_DROP = new Set([
@@ -187,6 +203,15 @@ export function clearImpersonationCookies(res: NextResponse): void {
 export function clearAuthCookies(res: NextResponse): void {
     res.cookies.set(AUTH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
     res.cookies.set(REFRESH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
+    // Flush the pre-namespacing shared cookies left over from before the
+    // per-instance suffix landed (no-op once they are gone / in dev where the
+    // suffix is empty and these equal the names above).
+    if (LEGACY_AUTH_COOKIE !== AUTH_COOKIE) {
+        res.cookies.set(LEGACY_AUTH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
+    }
+    if (LEGACY_REFRESH_COOKIE !== REFRESH_COOKIE) {
+        res.cookies.set(LEGACY_REFRESH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
+    }
     clearImpersonationCookies(res);
 }
 
@@ -345,16 +370,18 @@ export async function forwardBufferedToSymfony(
 }
 
 /**
- * Attempt an internal refresh using the sh_refresh cookie. Returns the new
- * tokens on success, or null on failure (in which case the caller should
- * respond 401 and clear cookies). Thin wrapper around
- * `callSymfonyRefreshToken` that pulls the refresh token from the Node
- * request cookie jar.
+ * Attempt an internal refresh using the sh_refresh cookie. Returns a
+ * {@link RefreshOutcome} so the caller can tell a genuinely dead session
+ * (`invalid` → clear cookies, surface 401) apart from a transient backend
+ * outage (`unreachable` → keep cookies, surface 503 so the client retries).
+ * Thin wrapper around `callSymfonyRefreshToken` that pulls the refresh token
+ * from the Node request cookie jar.
  */
-export async function refreshInternal(): Promise<{ access_token: string; refresh_token: string } | null> {
+export async function refreshInternal(): Promise<RefreshOutcome> {
     const jar = await cookies();
     const refresh = jar.get(REFRESH_COOKIE)?.value;
-    if (!refresh) return null;
+    // No refresh cookie at all → there is nothing to refresh: genuinely logged out.
+    if (!refresh) return { status: 'invalid' };
     return callSymfonyRefreshToken(refresh);
 }
 

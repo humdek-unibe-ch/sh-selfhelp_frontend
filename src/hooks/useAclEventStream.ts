@@ -50,6 +50,12 @@ import { useAuthStatus } from './useUserData';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useImpersonationStore } from '../app/store/impersonation.store';
 import { ROUTES } from '../config/routes.config';
+import { setAuthSseConnected } from './auth-sse-status';
+
+/** React Query keys for the system-update views fed by the `system-update` SSE event. */
+const SYSTEM_UPDATE_STATUS_KEY = ['systemUpdateStatus'] as const;
+const SYSTEM_VERSION_KEY = ['systemVersion'] as const;
+const SYSTEM_HEALTH_KEY = ['systemHealth'] as const;
 
 interface ImpersonationStatusPayload {
     active: boolean;
@@ -99,6 +105,17 @@ export function useAclEventStream(): void {
         let reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
         let cancelled = false;
         let checkingAuth = false;
+        // Distinguish the first connect (SSR already gave fresh data) from a
+        // RE-connect after a drop, where `system-update` events were likely
+        // missed (e.g. the manager restarted the backend mid-update) and the
+        // UI must reconcile.
+        let hasConnectedBefore = false;
+
+        const invalidateSystemUpdate = () => {
+            queryClient.invalidateQueries({ queryKey: SYSTEM_UPDATE_STATUS_KEY });
+            queryClient.invalidateQueries({ queryKey: SYSTEM_VERSION_KEY });
+            queryClient.invalidateQueries({ queryKey: SYSTEM_HEALTH_KEY });
+        };
 
         const handleExpiredSession = async (): Promise<boolean> => {
             if (checkingAuth || cancelled) return false;
@@ -148,6 +165,17 @@ export function useAclEventStream(): void {
                 // Successful handshake — reset backoff so the next
                 // disconnection starts retrying quickly again.
                 reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
+                // SSE is live → the System Maintenance page can stop any
+                // fallback poll.
+                setAuthSseConnected(true);
+                // On a RE-connect, reconcile state that may have changed while
+                // the stream was down (the whole point of dropping the timer
+                // poll): one targeted invalidation brings the update view back
+                // in sync.
+                if (hasConnectedBefore) {
+                    invalidateSystemUpdate();
+                }
+                hasConnectedBefore = true;
             });
 
             es.addEventListener('acl-changed', () => {
@@ -183,12 +211,22 @@ export function useAclEventStream(): void {
                 }
             });
 
+            // A CMS update operation this user requested changed state (CMS
+            // request or manager write-back). Refetch the status so the System
+            // Maintenance page repaints its step tracker live — no polling.
+            es.addEventListener('system-update', () => {
+                invalidateSystemUpdate();
+            });
+
             // The browser auto-reconnects on transient errors, but if the
             // upstream returns 4xx (e.g. expired JWT) it stays closed.
             // Re-open with backoff so the user does not silently lose
             // permission updates.
             es.addEventListener('error', async () => {
                 if (!es) return;
+                // The stream dropped → allow the fallback poll to take over
+                // while an operation is in flight.
+                setAuthSseConnected(false);
                 if (es.readyState === EventSource.CLOSED && !cancelled) {
                     es.close();
                     es = null;
@@ -206,6 +244,7 @@ export function useAclEventStream(): void {
 
         return () => {
             cancelled = true;
+            setAuthSseConnected(false);
             if (reconnectTimer !== null) {
                 window.clearTimeout(reconnectTimer);
             }

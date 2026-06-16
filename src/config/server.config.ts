@@ -87,21 +87,36 @@ export interface IRefreshedTokens {
 }
 
 /**
- * POST to Symfony `/auth/refresh-token` with the given refresh token. Returns
- * a new `{ access_token, refresh_token }` pair on success or `null` on any
- * failure (network error, non-2xx response, missing access token in the
- * payload). Every successful call **rotates** the refresh token on the
- * backend, so callers must persist the new value before any other code path
- * can use the old one.
+ * Outcome of a silent-refresh attempt. The distinction between `invalid` and
+ * `unreachable` is security-relevant: only `invalid` (the backend was reached
+ * and rejected the refresh token) may destroy the session. `unreachable` (a
+ * network error or a 5xx — e.g. the backend is briefly restarting during a
+ * plugin install/update) is TRANSIENT and must NEVER log the user out; the
+ * caller keeps the cookies and lets the client retry.
  *
- * Shared between `src/proxy.ts` (Edge) and the BFF routes (Node) to keep the
- * upstream contract in a single place.
+ *   - `ok`          → refresh succeeded; use `tokens`.
+ *   - `invalid`     → backend reached, refresh rejected (4xx / no token in a
+ *                     2xx body / no refresh cookie) → genuine logout.
+ *   - `unreachable` → could not reach/complete the call (network error, 5xx,
+ *                     unparseable 2xx) → transient; keep the session.
  */
-export async function callSymfonyRefreshToken(
+export type RefreshOutcome =
+    | { status: 'ok'; tokens: IRefreshedTokens }
+    | { status: 'invalid' }
+    | { status: 'unreachable' };
+
+/**
+ * Low-level POST to Symfony `/auth/refresh-token`. Prefer the single-flighted
+ * {@link callSymfonyRefreshToken} wrapper, which coalesces concurrent
+ * refreshes so a burst of 401s never rotates the single-use refresh token more
+ * than once.
+ */
+async function performSymfonyRefreshToken(
     refreshToken: string
-): Promise<IRefreshedTokens | null> {
+): Promise<RefreshOutcome> {
+    let res: Response;
     try {
-        const res = await fetch(
+        res = await fetch(
             `${SYMFONY_INTERNAL_URL}${SYMFONY_API_PREFIX}/auth/refresh-token`,
             {
                 method: 'POST',
@@ -114,13 +129,134 @@ export async function callSymfonyRefreshToken(
                 cache: 'no-store',
             }
         );
-        if (!res.ok) return null;
-        const payload = await res.json();
-        const access = payload?.data?.access_token;
-        const newRefresh = payload?.data?.refresh_token ?? refreshToken;
-        if (!access) return null;
-        return { access_token: access, refresh_token: newRefresh };
     } catch {
-        return null;
+        // Network-level failure (DNS, connection refused while the backend is
+        // down) → transient, never a reason to destroy the session.
+        return { status: 'unreachable' };
     }
+    // 5xx (incl. the 502/503 Traefik returns while the backend container is
+    // restarting) is a server-side problem, NOT a rejected refresh token.
+    if (res.status >= 500) return { status: 'unreachable' };
+    // 4xx → the backend actively rejected the refresh token: session is dead.
+    if (!res.ok) return { status: 'invalid' };
+    let payload: unknown;
+    try {
+        payload = await res.json();
+    } catch {
+        return { status: 'unreachable' };
+    }
+    const data = (payload as { data?: { access_token?: string; refresh_token?: string } } | null)?.data;
+    const access = data?.access_token;
+    if (!access) return { status: 'invalid' };
+    const newRefresh = data?.refresh_token ?? refreshToken;
+    return { status: 'ok', tokens: { access_token: access, refresh_token: newRefresh } };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Single-flight guard for concurrent refreshes
+// ──────────────────────────────────────────────────────────────────────────
+//
+// Symfony rotates the refresh token on every successful `/auth/refresh-token`
+// call (single-use). When the access token expires and several requests 401 at
+// once — exactly what happens while the backend restarts during a plugin
+// install/update/uninstall, amplified by any in-flight polling — each request
+// would otherwise POST the SAME refresh token. The first rotates it; every
+// other call then sends a now-consumed token, gets a 4xx, is classified
+// `invalid`, and the BFF/edge wipe a perfectly good session → the operator is
+// bounced to the login page.
+//
+// The guard coalesces all concurrent refreshes for a token into ONE upstream
+// call and briefly replays the result to stragglers still carrying the old
+// (now-rotated) token until the browser has the rotated cookie. State is
+// in-memory, per-process, short-lived, and never logged.
+
+interface RefreshResultCacheEntry {
+    outcome: RefreshOutcome;
+    at: number;
+}
+
+const refreshInFlight = new Map<string, Promise<RefreshOutcome>>();
+const refreshResultCache = new Map<string, RefreshResultCacheEntry>();
+
+/**
+ * How long a SUCCESSFUL refresh result is replayed to concurrent callers that
+ * still present the old token. The browser needs a moment to receive the
+ * Set-Cookie carrying the rotated pair; until then, in-flight requests still
+ * carry the old token. Once the browser has the new cookie, new requests key
+ * on the new token and never hit this cache.
+ */
+const REFRESH_OK_REPLAY_MS = 30_000;
+
+/**
+ * `invalid` / `unreachable` outcomes are replayed only briefly — just long
+ * enough to absorb the immediate burst — then evicted so recovery (after a
+ * transient outage) or a real re-authentication can proceed without delay.
+ */
+const REFRESH_TERMINAL_REPLAY_MS = 1_500;
+
+function replayWindowMs(outcome: RefreshOutcome): number {
+    return outcome.status === 'ok' ? REFRESH_OK_REPLAY_MS : REFRESH_TERMINAL_REPLAY_MS;
+}
+
+/** Drop expired replay-cache entries so the map stays bounded. */
+function sweepRefreshResultCache(now: number): void {
+    for (const [token, entry] of refreshResultCache) {
+        if (now - entry.at >= replayWindowMs(entry.outcome)) {
+            refreshResultCache.delete(token);
+        }
+    }
+}
+
+/**
+ * POST to Symfony `/auth/refresh-token`, coalescing concurrent calls for the
+ * same refresh token into a single upstream request (see the single-flight
+ * note above). Every successful call **rotates** the refresh token on the
+ * backend, so callers must persist the new value before any other code path
+ * can use the old one.
+ *
+ * Returns a {@link RefreshOutcome} so callers can tell a genuinely dead
+ * session (`invalid`) apart from a transient backend outage (`unreachable`)
+ * and only clear cookies / bounce to login in the former case. This — with the
+ * single-flight guard — is what keeps a plugin-install/update restart from
+ * kicking the operator out.
+ *
+ * Shared between `src/proxy.ts` (Edge) and the BFF routes (Node) to keep the
+ * upstream contract in a single place.
+ */
+export async function callSymfonyRefreshToken(
+    refreshToken: string
+): Promise<RefreshOutcome> {
+    const now = Date.now();
+    sweepRefreshResultCache(now);
+
+    // Replay a very recent result for the same token to the concurrent burst.
+    const cached = refreshResultCache.get(refreshToken);
+    if (cached && now - cached.at < replayWindowMs(cached.outcome)) {
+        return cached.outcome;
+    }
+
+    // Coalesce concurrent refreshes for the same token into one upstream call.
+    const inFlight = refreshInFlight.get(refreshToken);
+    if (inFlight) return inFlight;
+
+    const promise = (async () => {
+        try {
+            const outcome = await performSymfonyRefreshToken(refreshToken);
+            refreshResultCache.set(refreshToken, { outcome, at: Date.now() });
+            return outcome;
+        } finally {
+            refreshInFlight.delete(refreshToken);
+        }
+    })();
+    refreshInFlight.set(refreshToken, promise);
+    return promise;
+}
+
+/**
+ * Test-only: clear the single-flight + replay state so each unit test starts
+ * from a clean slate (the guard is module-level process state).
+ */
+export function __resetRefreshSingleFlightForTests(): void {
+    refreshInFlight.clear();
+    refreshResultCache.clear();
 }

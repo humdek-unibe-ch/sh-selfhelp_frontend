@@ -19,5 +19,15 @@ export const theme = createTheme({
         },
       },
     },
+    // Status pills must never be clipped in dense table cells. Mantine's default
+    // Badge label is `overflow: hidden; text-overflow: ellipsis` with a capped
+    // width, which cut off statuses like "incompatible"/"pre-restore". Let the
+    // label show in full (it still stays on one line) across every table.
+    Badge: {
+      styles: {
+        root: { maxWidth: 'none' },
+        label: { overflow: 'visible', textOverflow: 'clip' },
+      },
+    },
   },
 });

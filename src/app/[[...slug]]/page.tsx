@@ -31,9 +31,12 @@ import { notFound, redirect } from 'next/navigation';
 import {
     getFrontendPageSeoSSR,
     getPageByKeywordSSRCached,
+    getPageByKeywordSSRStatus,
     resolveLanguageSSR,
     resolvePreviewSSR,
 } from '../_lib/server-fetch';
+import { MaintenanceClient } from '../MaintenanceClient';
+import { MAINTENANCE_KEYWORD, hasRenderableMaintenancePage, isMaintenanceStatus } from '../maintenance';
 import DynamicPageClient from './DynamicPageClient';
 import { buildStaticFallbackPath, keywordFromSlug } from './slug-routing';
 
@@ -106,7 +109,28 @@ export default async function SlugPage({
         resolvePreviewSSR(),
     ]);
 
-    const envelope = await getPageByKeywordSSRCached(keyword, languageId, preview);
+    const { status, data: envelope } = await getPageByKeywordSSRStatus(keyword, languageId, preview);
+
+    // Instance in maintenance: Symfony returns a clean 503 for normal page
+    // traffic while keeping the `maintenance` page reachable. Render the styled
+    // seeded maintenance page (with the operator's `{{system.maintenance_message}}`),
+    // falling back to the hardcoded client page when it is missing/unreachable.
+    if (isMaintenanceStatus(status)) {
+        const maintenanceEnvelope = await getPageByKeywordSSRCached(
+            MAINTENANCE_KEYWORD,
+            languageId,
+            preview
+        );
+        const maintenancePage =
+            maintenanceEnvelope?.data?.page ?? maintenanceEnvelope?.data ?? null;
+        if (hasRenderableMaintenancePage(maintenancePage)) {
+            return (
+                <DynamicPageClient keyword={MAINTENANCE_KEYWORD} initialPageId={maintenancePage.id} />
+            );
+        }
+        return <MaintenanceClient />;
+    }
+
     const page = envelope?.data?.page ?? envelope?.data ?? null;
 
     const fallbackPath = buildStaticFallbackPath(keyword, slug);

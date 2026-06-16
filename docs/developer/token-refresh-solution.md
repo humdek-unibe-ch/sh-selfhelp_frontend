@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-03.
+Last verified: 2026-06-16.
 Source of truth: Runtime code, configuration, and tests in this repository.
 
 ## Problem
@@ -134,4 +134,51 @@ The solution includes comprehensive debug logging:
 2. **Better Performance**: Reduces server load and response times
 3. **Improved UX**: Faster authentication recovery
 4. **Debugging**: Clear visibility into refresh process
-5. **Flexibility**: Supports both strict and lenient auth modes 
+5. **Flexibility**: Supports both strict and lenient auth modes
+
+## Server-side single-flight (BFF / Edge) — no logout on instance restart
+
+The section above covers the **browser** axios interceptor. The same hazard
+exists **server-side**: the Edge proxy (`src/proxy.ts`) and the BFF routes both
+refresh against Symfony `/auth/refresh-token`, and Symfony **rotates the refresh
+token on every successful call** (it is single-use).
+
+When the SelfHelp Manager restarts the backend during a **plugin
+install / update / uninstall** or a **system update**, a burst of in-flight
+requests all `401` at once. Without coordination each one POSTs the *same*
+refresh token: the first call rotates it; every later call then sends a
+now-consumed token, gets a `4xx`, is classified `invalid`, and the BFF/edge
+**wipe a perfectly good session** — so the operator is bounced to the login page
+right after asking for the operation, then has to sign back in to see whether it
+succeeded.
+
+`callSymfonyRefreshToken` in `src/config/server.config.ts` removes that hazard
+with a **per-process single-flight + short replay cache**, keyed by the refresh
+token:
+
+- **Coalesce**: concurrent refreshes for the same token share **one** upstream
+  POST (`refreshInFlight` map). Only one rotation happens.
+- **Replay**: a *successful* result is replayed for ~30s (`REFRESH_OK_REPLAY_MS`)
+  to stragglers that still carry the pre-rotation token (the browser needs a
+  moment to receive the rotated `Set-Cookie`). `invalid` / `unreachable`
+  outcomes replay for only ~1.5s so real recovery / re-auth is not delayed.
+- **Outcome-typed**: it still returns the `RefreshOutcome` union, so callers
+  clear cookies and bounce to login **only** on `invalid` — never on
+  `unreachable` (a transient outage).
+
+State is in-memory, per-process, short-lived, and never logged.
+`__resetRefreshSingleFlightForTests()` clears it between unit tests
+(`src/config/__tests__/server.config.singleflight.test.ts`).
+
+### Transient read retry (the restart window is invisible)
+
+Refresh coordination stops the logout; **transient read retry** stops the error
+flashes. While the backend restarts, **safe** reads come back as `5xx` / network
+errors (Traefik `502/503`), not `401`. `src/utils/transient-error.utils.ts`
+classifies those (`isTransientApiError`) and the base axios client
+(`src/api/base.api.ts`) retries **idempotent** requests (`GET/HEAD/OPTIONS`) a
+few times with backoff. Mutations are **never** retried (not idempotent) and a
+`5xx` is **never** treated as a logout. React Query layers a longer transient
+retry on top for system + plugin-admin reads (`makeTransientRetry`), and the SSE
+reconnect reconciles anything missed — so a manager-driven restart looks like a
+brief "reconnecting", not an error or a forced re-login.

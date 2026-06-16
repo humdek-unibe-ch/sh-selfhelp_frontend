@@ -15,7 +15,11 @@ import type {
     IUpdateRequestResponse,
     IUpdateReleasesResponse,
     IUpdateRequest,
-} from '../../types/responses/admin/system.types';
+    IFrontendUpdateReleasesResponse,
+    IFrontendUpdatePreflightResponse,
+    IFrontendUpdateRequestResponse,
+    IFrontendUpdateRequest,
+} from '../../shared';
 
 /**
  * Admin client for the instance-scoped system maintenance / update flow.
@@ -101,6 +105,46 @@ export class AdminSystemApi {
      */
     static async getUpdateReleases(): Promise<IUpdateReleasesResponse> {
         const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_RELEASES);
+        return response.data;
+    }
+
+    /**
+     * GET /admin/system/update/frontend/releases — frontend versions published
+     * in the official registry (newest first) for the frontend-only update
+     * picker. Fails soft to `available: false` when the registry is unreachable.
+     */
+    static async getFrontendUpdateReleases(): Promise<IFrontendUpdateReleasesResponse> {
+        const response = await permissionAwareApiClient.get(
+            API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_FRONTEND_RELEASES
+        );
+        return response.data;
+    }
+
+    /**
+     * GET /admin/system/update/frontend/preflight?target=… — lightweight
+     * compatibility verdict for a frontend-only target. The frontend is
+     * stateless, so the preflight never reports a destructive migration; the
+     * SelfHelp Manager performs the authoritative frontend ⇄ core + signature
+     * checks at execution time.
+     */
+    static async getFrontendUpdatePreflight(target: string): Promise<IFrontendUpdatePreflightResponse> {
+        const response = await permissionAwareApiClient.get(
+            API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_FRONTEND_PREFLIGHT,
+            { params: { target } }
+        );
+        return response.data;
+    }
+
+    /**
+     * POST /admin/system/update/frontend/request — request a frontend-only
+     * update for THIS instance. The payload intentionally has no `instance_id`
+     * and no `accepted_migration_risk` (a frontend swap is stateless).
+     */
+    static async requestFrontendUpdate(body: IFrontendUpdateRequest): Promise<IFrontendUpdateRequestResponse> {
+        const response = await permissionAwareApiClient.post(
+            API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_FRONTEND_REQUEST,
+            body
+        );
         return response.data;
     }
 }

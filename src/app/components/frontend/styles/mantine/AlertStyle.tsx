@@ -4,10 +4,12 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React, { useState } from 'react';
 import { Alert } from '@mantine/core';
+import parse from 'html-react-parser';
 import BasicStyle from '../BasicStyle';
 import { IAlertStyle } from '../../../../../types/common/styles.types';
 import IconComponent from '../../../shared/common/IconComponent';
 import { castMantineRadius } from '../../../../../utils/style-field-extractor';
+import { sanitizeHtmlForParsing } from '../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for AlertStyle component
@@ -28,6 +30,14 @@ interface IAlertStyleProps {
 const AlertStyle: React.FC<IAlertStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const message = style.content?.content;
+    // Render the body as sanitized HTML (XSS- + hydration-safe via the shared
+    // sanitizer) instead of a raw string, so authored markup — e.g. the
+    // `{{system.maintenance_message}}` operator note that arrives wrapped in
+    // `<p>…</p>` — renders as formatted text rather than literal tags.
+    const renderedMessage =
+        typeof message === 'string' && message.trim() !== ''
+            ? parse(sanitizeHtmlForParsing(message))
+            : null;
     const title = style.mantine_alert_title?.content;
     const variant = style.mantine_variant?.content || 'light';
     const color = style.mantine_color?.content || 'blue';
@@ -69,7 +79,7 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style, styleProps, cssClass })
             radius={radius === 'none' ? 0 : radius}
             onClose={withCloseButton ? handleClose : undefined}
         >
-            {message}
+            {renderedMessage}
             {children.map((childStyle, index) => (
                 childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
             ))}

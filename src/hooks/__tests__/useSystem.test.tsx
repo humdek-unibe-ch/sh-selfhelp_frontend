@@ -16,7 +16,8 @@ import { createTestQueryClient } from '../../test-utils/renderWithProviders';
  * `instance_id` (the backend derives + verifies it).
  */
 const {
-    getVersion, getHealth, getMaintenance, setMaintenance, getUpdatePreflight, getUpdateStatus, requestUpdate, notifyShow,
+    getVersion, getHealth, getMaintenance, setMaintenance, getUpdatePreflight, getUpdateStatus, requestUpdate,
+    getFrontendUpdateReleases, getFrontendUpdatePreflight, requestFrontendUpdate, notifyShow,
 } = vi.hoisted(() => ({
     getVersion: vi.fn(),
     getHealth: vi.fn(),
@@ -25,11 +26,17 @@ const {
     getUpdatePreflight: vi.fn(),
     getUpdateStatus: vi.fn(),
     requestUpdate: vi.fn(),
+    getFrontendUpdateReleases: vi.fn(),
+    getFrontendUpdatePreflight: vi.fn(),
+    requestFrontendUpdate: vi.fn(),
     notifyShow: vi.fn(),
 }));
 
 vi.mock('../../api/admin/system.api', () => ({
-    AdminSystemApi: { getVersion, getHealth, getMaintenance, setMaintenance, getUpdatePreflight, getUpdateStatus, requestUpdate },
+    AdminSystemApi: {
+        getVersion, getHealth, getMaintenance, setMaintenance, getUpdatePreflight, getUpdateStatus, requestUpdate,
+        getFrontendUpdateReleases, getFrontendUpdatePreflight, requestFrontendUpdate,
+    },
 }));
 vi.mock('@mantine/notifications', () => ({
     notifications: { show: notifyShow },
@@ -38,6 +45,7 @@ vi.mock('@mantine/notifications', () => ({
 import {
     useSystemVersion, useSystemHealth, useUpdatePreflight, useRequestUpdateMutation,
     useSystemMaintenance, useSetMaintenanceMutation,
+    useFrontendUpdateReleases, useFrontendUpdatePreflight, useRequestFrontendUpdateMutation,
 } from '../useSystem';
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -52,6 +60,9 @@ beforeEach(() => {
     getUpdatePreflight.mockReset();
     getUpdateStatus.mockReset();
     requestUpdate.mockReset();
+    getFrontendUpdateReleases.mockReset();
+    getFrontendUpdatePreflight.mockReset();
+    requestFrontendUpdate.mockReset();
     notifyShow.mockReset();
 });
 
@@ -200,6 +211,77 @@ describe('useRequestUpdateMutation', () => {
 
         const { result } = renderHook(() => useRequestUpdateMutation(), { wrapper });
         result.current.mutate({ target_version: '1.6.0', preflight_id: 'pf1', accepted_migration_risk: false });
+
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        expect(notifyShow).toHaveBeenCalledWith(expect.objectContaining({ color: 'red' }));
+    });
+});
+
+describe('useFrontendUpdateReleases', () => {
+    it('unwraps the registry frontend-releases envelope', async () => {
+        getFrontendUpdateReleases.mockResolvedValue({
+            data: {
+                available: true,
+                current_version: '0.1.5',
+                releases: [
+                    { version: '0.1.7', channel: 'stable', blocked: false },
+                    { version: '0.1.5', channel: 'stable', blocked: false },
+                ],
+            },
+        });
+
+        const { result } = renderHook(() => useFrontendUpdateReleases(), { wrapper });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(result.current.data?.current_version).toBe('0.1.5');
+        expect(result.current.data?.releases[0]?.version).toBe('0.1.7');
+        expect(getFrontendUpdateReleases).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('useFrontendUpdatePreflight', () => {
+    it('does not call the API while the target is null', async () => {
+        renderHook(() => useFrontendUpdatePreflight(null), { wrapper });
+        await new Promise((r) => setTimeout(r, 10));
+        expect(getFrontendUpdatePreflight).not.toHaveBeenCalled();
+    });
+
+    it('calls the frontend preflight with the target once one is supplied', async () => {
+        getFrontendUpdatePreflight.mockResolvedValue({
+            data: { preflight_id: 'fe-pf1', status: 'ok', current_version: '0.1.5', target_version: '0.1.7' },
+        });
+
+        const { result } = renderHook(() => useFrontendUpdatePreflight('0.1.7'), { wrapper });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(getFrontendUpdatePreflight).toHaveBeenCalledWith('0.1.7');
+        expect(result.current.data?.preflight_id).toBe('fe-pf1');
+    });
+});
+
+describe('useRequestFrontendUpdateMutation', () => {
+    it('posts the frontend request with ONLY target+preflight (no instance_id, no migration risk) and notifies on success', async () => {
+        requestFrontendUpdate.mockResolvedValue({
+            data: { operation_id: 'op-fe-1', instance_id: 'inst-1', status: 'requested', kind: 'frontend', target_frontend_version: '0.1.7' },
+        });
+
+        const { result } = renderHook(() => useRequestFrontendUpdateMutation(), { wrapper });
+        result.current.mutate({ target_version: '0.1.7', preflight_id: 'fe-pf1' });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+        const body = requestFrontendUpdate.mock.calls[0][0];
+        expect(body).toEqual({ target_version: '0.1.7', preflight_id: 'fe-pf1' });
+        expect(body).not.toHaveProperty('instance_id');
+        expect(body).not.toHaveProperty('accepted_migration_risk');
+        expect(notifyShow).toHaveBeenCalledWith(expect.objectContaining({ color: 'green' }));
+    });
+
+    it('notifies in red when the frontend request is rejected', async () => {
+        requestFrontendUpdate.mockRejectedValue(new Error('cross-instance'));
+
+        const { result } = renderHook(() => useRequestFrontendUpdateMutation(), { wrapper });
+        result.current.mutate({ target_version: '0.1.7', preflight_id: 'fe-pf1' });
 
         await waitFor(() => expect(result.current.isError).toBe(true));
         expect(notifyShow).toHaveBeenCalledWith(expect.objectContaining({ color: 'red' }));

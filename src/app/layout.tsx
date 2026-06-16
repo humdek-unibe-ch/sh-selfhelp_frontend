@@ -58,10 +58,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     const htmlColorSchemeAttr =
         colorScheme === 'light' || colorScheme === 'dark' ? colorScheme : undefined;
 
+    // Mirror the manager-injected instance id onto the document so the browser
+    // can derive the per-instance cookie suffix (see `config/cookie-names.ts`).
+    // The id is NOT a NEXT_PUBLIC_* var (it is a runtime value, different per
+    // container started from the same image), so it cannot be inlined into the
+    // client bundle — the DOM is the transport. Empty/undefined in a plain dev
+    // checkout, which keeps the historical single-instance cookie names.
+    const instanceId = process.env.SELFHELP_INSTANCE_ID || undefined;
+
     return (
         <html
             lang={htmlLang}
             data-mantine-color-scheme={htmlColorSchemeAttr}
+            data-sh-instance={instanceId}
             suppressHydrationWarning
         >
             <head>

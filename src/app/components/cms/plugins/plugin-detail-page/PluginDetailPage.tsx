@@ -813,7 +813,7 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                         (() => {
                             const allLogs = (operations.data ?? [])
                                 .flatMap((op) => (op.logs ?? []).map((entry) => ({ ...entry, operationId: op.id, operationType: op.type })))
-                                .sort((a, b) => (b.at ?? '').localeCompare(a.at ?? ''));
+                                .sort((a, b) => (b.ts ?? '').localeCompare(a.ts ?? ''));
                             if (allLogs.length === 0) return <EmptyTab message="No log entries available." />;
                             return (
                                 <ScrollArea h={400}>
@@ -824,7 +824,7 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                                                     <Code>#{entry.operationId}</Code>
                                                     <Badge variant="light">{entry.operationType}</Badge>
                                                     {entry.stage && <Badge variant="outline">{entry.stage}</Badge>}
-                                                    <Text size="xs" c="dimmed">{entry.at}</Text>
+                                                    <Text size="xs" c="dimmed">{entry.ts}</Text>
                                                 </Group>
                                                 {entry.data !== undefined && (
                                                     <Box component="pre" style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: 11 }}>

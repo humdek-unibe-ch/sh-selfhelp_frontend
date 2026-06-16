@@ -83,7 +83,23 @@ export interface IAdminPluginOperation {
     startedAt?: string | null;
     finishedAt?: string | null;
     createdAt: string;
-    logs?: Array<{ stage?: string; at: string; data?: unknown }> | null;
+    /**
+     * Raw `plugin_operations.logs_json` entries as recorded by
+     * `PluginOperationRecorder` / `PluginOperation::appendLog`. Each entry is
+     * stamped with `ts` (ISO-8601) on append and usually carries a human
+     * `stage`; terminal entries also carry `status`
+     * (`succeeded`/`failed`/`rolled_back`) and `error`. Orchestrator-specific
+     * keys are preserved verbatim, hence the index signature.
+     */
+    logs?: Array<{
+        stage?: string;
+        ts?: string;
+        status?: string;
+        error?: string;
+        /** Legacy/optional structured payload some log entries attach. */
+        data?: unknown;
+        [key: string]: unknown;
+    }> | null;
 }
 
 /**

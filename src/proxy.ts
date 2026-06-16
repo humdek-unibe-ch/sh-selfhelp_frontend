@@ -140,8 +140,9 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
 
     if (authCookie && isAccessTokenExpired(authCookie)) {
         if (refreshCookie) {
-            refreshed = await callSymfonyRefreshToken(refreshCookie);
-            if (refreshed) {
+            const outcome = await callSymfonyRefreshToken(refreshCookie);
+            if (outcome.status === 'ok') {
+                refreshed = outcome.tokens;
                 // Forward updated cookies to the downstream request so any
                 // Server Component that calls `cookies()` during this render
                 // sees the freshly rotated access token, not the expired one.
@@ -156,10 +157,23 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
                         { pathname }
                     );
                 }
+            } else if (outcome.status === 'unreachable') {
+                // The backend is briefly unavailable (e.g. mid plugin-install /
+                // update restart). This is TRANSIENT — keep the (expired) cookies
+                // intact instead of wiping the session and bouncing to login.
+                // The next navigation refreshes cleanly once the backend is back,
+                // so an install/update restart no longer logs the operator out.
+                if (process.env.NODE_ENV !== 'production') {
+                    // eslint-disable-next-line no-console
+                    console.log(
+                        '[proxy] silent refresh skipped — backend unreachable, keeping session',
+                        { pathname }
+                    );
+                }
             } else {
-                // Refresh token itself was invalid/expired. Wipe both so the
-                // downstream admin gate (and any client-side auth check)
-                // treats this as logged-out.
+                // Refresh token itself was invalid/expired (`invalid`). Wipe
+                // both so the downstream admin gate (and any client-side auth
+                // check) treats this as logged-out.
                 req.cookies.delete(AUTH_COOKIE);
                 req.cookies.delete(REFRESH_COOKIE);
                 sessionCleared = true;
