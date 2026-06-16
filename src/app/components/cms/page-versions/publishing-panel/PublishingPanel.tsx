@@ -92,7 +92,10 @@ export function PublishingPanel({
         const ids: number[] = [];
         const collect = (sections: IPageSectionWithFields[]) => {
             for (const s of sections) {
-                if (s.style_name === 'refContainer') ids.push(s.id);
+                // `refContainer` is a frontend-only style, so it isn't part of
+                // the shared `TStyleName` discriminator — widen to string to
+                // compare against the runtime value.
+                if ((s.style_name as string) === 'refContainer') ids.push(s.id);
                 if (s.children?.length) collect(s.children as IPageSectionWithFields[]);
             }
         };
