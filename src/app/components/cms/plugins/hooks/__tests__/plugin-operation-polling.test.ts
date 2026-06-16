@@ -100,16 +100,26 @@ describe('plugin operation adaptive polling', () => {
         });
     });
 
-    describe('refetch intervals', () => {
-        it('polls fast while an operation is in flight and stops otherwise', () => {
-            expect(operationsRefetchInterval([op('running')])).toBe(PLUGIN_OPERATION_ACTIVE_POLL_MS);
-            expect(operationsRefetchInterval([op('succeeded')])).toBe(false);
-            expect(operationsRefetchInterval(undefined)).toBe(false);
+    describe('refetch intervals (SSE-aware fallback)', () => {
+        const SSE_DOWN = false;
+        const SSE_UP = true;
+
+        it('polls fast only while SSE is DOWN and an operation is in flight', () => {
+            expect(operationsRefetchInterval([op('running')], SSE_DOWN)).toBe(PLUGIN_OPERATION_ACTIVE_POLL_MS);
+            expect(operationsRefetchInterval([op('succeeded')], SSE_DOWN)).toBe(false);
+            expect(operationsRefetchInterval(undefined, SSE_DOWN)).toBe(false);
         });
 
-        it('drives the plugin surface queries from the active flag', () => {
-            expect(pluginSurfaceRefetchInterval(true)).toBe(PLUGIN_OPERATION_ACTIVE_POLL_MS);
-            expect(pluginSurfaceRefetchInterval(false)).toBe(false);
+        it('never polls the operations query while SSE is connected', () => {
+            expect(operationsRefetchInterval([op('running')], SSE_UP)).toBe(false);
+            expect(operationsRefetchInterval([op('requested')], SSE_UP)).toBe(false);
+        });
+
+        it('drives the plugin surface queries from active flag AND SSE state', () => {
+            expect(pluginSurfaceRefetchInterval(true, SSE_DOWN)).toBe(PLUGIN_OPERATION_ACTIVE_POLL_MS);
+            expect(pluginSurfaceRefetchInterval(false, SSE_DOWN)).toBe(false);
+            // SSE connected → trust the stream, no polling even with an active op.
+            expect(pluginSurfaceRefetchInterval(true, SSE_UP)).toBe(false);
         });
     });
 });

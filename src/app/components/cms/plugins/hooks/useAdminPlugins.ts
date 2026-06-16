@@ -16,27 +16,44 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AdminPluginApi } from '../../../../../api/admin/plugins.api';
+import { makeTransientRetry, transientRetryDelay } from '../../../../../utils/transient-error.utils';
 import {
     hasActivePluginOperation,
     operationsRefetchInterval,
     pluginSurfaceRefetchInterval,
 } from './plugin-operation-polling';
+import { usePluginSseConnected } from './plugin-sse-status';
 
 const KEY = ['admin-plugins'] as const;
 const OPERATIONS_KEY = ['admin-plugin-operations'] as const;
 const SOURCES_KEY = ['admin-plugin-sources'] as const;
 const AVAILABLE_KEY = [...KEY, 'available'] as const;
 
+/**
+ * Read-query resilience: a manager-driven service restart (plugin / system
+ * operation) makes the backend briefly unavailable. Keep retrying transient
+ * errors (network / 5xx) with backoff for ~30s instead of surfacing a dead
+ * "Failed to load plugins" screen; a genuine error still surfaces after the
+ * retries are exhausted. The UI reads `isTransientApiError(error)` to show a
+ * quiet "reconnecting" state meanwhile.
+ */
+const TRANSIENT_READ_RETRY = {
+    retry: makeTransientRetry(),
+    retryDelay: transientRetryDelay,
+} as const;
+
 export function useAdminPlugins() {
     // Subscribe to operations so the list repaints (installed/enabled
     // state) while an action runs, even if the Mercure event is missed.
     const operations = useAdminPluginOperations();
     const active = hasActivePluginOperation(operations.data);
+    const sseConnected = usePluginSseConnected();
     return useQuery({
         queryKey: [...KEY, 'list'],
         queryFn: async () => (await AdminPluginApi.listPlugins()).data,
         staleTime: Infinity,
-        refetchInterval: pluginSurfaceRefetchInterval(active),
+        refetchInterval: pluginSurfaceRefetchInterval(active, sseConnected),
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -52,6 +69,7 @@ export function useAdminPlugins() {
 export function useAdminPluginsAvailable(enabled: boolean = true) {
     const operations = useAdminPluginOperations();
     const active = hasActivePluginOperation(operations.data);
+    const sseConnected = usePluginSseConnected();
     return useQuery({
         queryKey: AVAILABLE_KEY,
         queryFn: async () => (await AdminPluginApi.listAvailable()).data,
@@ -62,31 +80,36 @@ export function useAdminPluginsAvailable(enabled: boolean = true) {
         // unmounted, refetch as soon as the tab mounts again.
         refetchOnMount: true,
         // An install moves a plugin out of "Available"; poll while it runs.
-        refetchInterval: pluginSurfaceRefetchInterval(active),
+        refetchInterval: pluginSurfaceRefetchInterval(active, sseConnected),
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
 export function useAdminPlugin(pluginId: string | null) {
     const operations = useAdminPluginOperations(pluginId ?? undefined);
     const active = hasActivePluginOperation(operations.data);
+    const sseConnected = usePluginSseConnected();
     return useQuery({
         queryKey: [...KEY, 'detail', pluginId ?? ''],
         queryFn: async () => (await AdminPluginApi.getPlugin(pluginId as string)).data,
         enabled: Boolean(pluginId),
         staleTime: Infinity,
-        refetchInterval: pluginSurfaceRefetchInterval(active),
+        refetchInterval: pluginSurfaceRefetchInterval(active, sseConnected),
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
 export function useAdminPluginOperations(pluginId?: string) {
+    const sseConnected = usePluginSseConnected();
     return useQuery({
         queryKey: [...OPERATIONS_KEY, pluginId ?? 'all'],
         queryFn: async () => (await AdminPluginApi.listOperations(pluginId)).data,
         staleTime: Infinity,
-        // Self-driven adaptive polling: fast while an operation is in
-        // flight (so logs/progress stay live without Mercure), off once
-        // every operation is terminal.
-        refetchInterval: (query) => operationsRefetchInterval(query.state.data),
+        // SSE-driven fallback: poll fast ONLY while SSE is disconnected AND an
+        // operation is in flight (so logs/progress stay live during an SSE
+        // outage), off once SSE reconnects or every operation is terminal.
+        refetchInterval: (query) => operationsRefetchInterval(query.state.data, sseConnected),
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -95,6 +118,7 @@ export function useAdminPluginSources() {
         queryKey: [...SOURCES_KEY],
         queryFn: async () => (await AdminPluginApi.listSources()).data,
         staleTime: Infinity,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -233,6 +257,7 @@ export function useAdminPluginHealth(pluginId: string | null) {
         queryFn: async () => (await AdminPluginApi.health(pluginId as string)).data,
         enabled: Boolean(pluginId),
         staleTime: Infinity,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 
@@ -241,6 +266,7 @@ export function useAdminPluginDoctor() {
         queryKey: [...KEY, 'doctor'],
         queryFn: async () => (await AdminPluginApi.doctor()).data,
         staleTime: Infinity,
+        ...TRANSIENT_READ_RETRY,
     });
 }
 

@@ -15,15 +15,17 @@ SPDX-License-Identifier: MPL-2.0
  * the "status tracking is unreliable" symptom.
  *
  * The helpers here add a belt-and-suspenders fallback that complements
- * Mercure instead of replacing it:
+ * Mercure instead of replacing it. Per the operator-chosen policy the
+ * fallback poll runs ONLY when BOTH conditions hold:
  *
- *   - while ANY plugin operation is in a non-terminal state
- *     (`requested` / `running`) the relevant queries poll FAST
- *     ({@link PLUGIN_OPERATION_ACTIVE_POLL_MS}) so progress is visible
- *     even when SSE is down;
- *   - once every operation has reached a terminal state the polling
- *     stops and Mercure alone drives idle reactivity — no constant
- *     background traffic when nothing is happening.
+ *   - the SSE stream is currently DISCONNECTED (see `plugin-sse-status`);
+ *     while SSE is live we trust it and never poll, and
+ *   - at least one plugin operation is in a non-terminal state
+ *     (`requested` / `running`).
+ *
+ * The moment SSE reconnects the poll stops (and `useAdminPluginsRealtime`
+ * runs one full invalidation to reconcile anything missed). When nothing is
+ * happening there is no background traffic at all.
  */
 
 import type { IAdminPluginOperation } from '../../../../../types/responses/admin/plugins.types';
@@ -103,13 +105,16 @@ export function pluginOperationBusyLabel(type: IAdminPluginOperation['type']): s
 }
 
 /**
- * `refetchInterval` value for the operations query itself: poll fast
- * while it carries an in-flight operation, otherwise stop. Pass the
- * query's own `data` (`query.state.data`).
+ * `refetchInterval` value for the operations query itself: poll fast ONLY
+ * while SSE is disconnected AND it carries an in-flight operation; otherwise
+ * stop. Pass the query's own `data` (`query.state.data`) and the live SSE
+ * connection state from `usePluginSseConnected()`.
  */
 export function operationsRefetchInterval(
     operations: readonly IAdminPluginOperation[] | null | undefined,
+    sseConnected: boolean,
 ): number | false {
+    if (sseConnected) return false;
     return hasActivePluginOperation(operations) ? PLUGIN_OPERATION_ACTIVE_POLL_MS : false;
 }
 
@@ -117,8 +122,13 @@ export function operationsRefetchInterval(
  * `refetchInterval` value for the plugin list / detail / available
  * queries. They have no operation field of their own, so they piggyback
  * on whether an operation is currently in flight (derived from the
- * operations query they subscribe to).
+ * operations query they subscribe to). Polls ONLY while SSE is disconnected
+ * AND an operation is active.
  */
-export function pluginSurfaceRefetchInterval(hasActiveOperation: boolean): number | false {
+export function pluginSurfaceRefetchInterval(
+    hasActiveOperation: boolean,
+    sseConnected: boolean,
+): number | false {
+    if (sseConnected) return false;
     return hasActiveOperation ? PLUGIN_OPERATION_ACTIVE_POLL_MS : false;
 }

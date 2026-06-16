@@ -40,6 +40,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useAuthStatus } from '../../../../../hooks/useUserData';
 import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
+import { setPluginSseConnected } from './plugin-sse-status';
 
 const SSE_ENDPOINT = '/api/plugins/events';
 const MAX_RECONNECT_DELAY_MS = 30_000;
@@ -74,6 +75,11 @@ export function useAdminPluginsRealtime(): void {
         let reconnectTimer: number | null = null;
         let reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
         let cancelled = false;
+        // Distinguishes the first successful connect (SSR already provided
+        // fresh data) from a RE-connect after a drop (where events were likely
+        // missed — e.g. the manager restarted Symfony for a plugin/system
+        // operation — and the UI must reconcile).
+        let hasConnectedBefore = false;
 
         const invalidatePluginSurfaceCaches = () => {
             queryClient.invalidateQueries({ queryKey: ADMIN_PLUGINS_KEY });
@@ -107,6 +113,15 @@ export function useAdminPluginsRealtime(): void {
 
             es.addEventListener('open', () => {
                 reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
+                // SSE is live → stop any fallback polling.
+                setPluginSseConnected(true);
+                // On a RE-connect, reconcile state that may have changed while
+                // the stream was down (the whole point of dropping the timer
+                // poll): one full invalidation brings the UI back in sync.
+                if (hasConnectedBefore) {
+                    invalidatePluginSurfaceCaches();
+                }
+                hasConnectedBefore = true;
             });
 
             for (const eventName of PLUGIN_STATE_EVENTS) {
@@ -120,6 +135,9 @@ export function useAdminPluginsRealtime(): void {
 
             es.addEventListener('error', () => {
                 if (!es) return;
+                // The stream dropped → allow the fallback poll to take over
+                // while an operation is in flight.
+                setPluginSseConnected(false);
                 if (es.readyState === EventSource.CLOSED && !cancelled) {
                     es.close();
                     es = null;
@@ -133,6 +151,7 @@ export function useAdminPluginsRealtime(): void {
 
         return () => {
             cancelled = true;
+            setPluginSseConnected(false);
             if (reconnectTimer !== null) {
                 window.clearTimeout(reconnectTimer);
             }
