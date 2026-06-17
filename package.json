@@ -20,8 +20,8 @@
         "test:visual": "node scripts/e2e-stack.mjs visual",
         "test:visual:update": "node scripts/e2e-stack.mjs visual --update-snapshots",
         "tsc": "tsc",
-        "lint": "eslint . --ext .ts,.tsx",
-        "lint:fix": "eslint . --ext .ts,.tsx --fix",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "dead": "knip",
         "unused": "npx ts-unused-exports tsconfig.json --excludePathsFromReport=.next --ignoreFiles=\"page.tsx\"",
         "prune": "ts-prune",
@@ -116,6 +116,7 @@
         "ts-prune": "^0.10.3",
         "ts-unused-exports": "^11.0.1",
         "typescript": "5.9.3",
+        "typescript-eslint": "^8.61.1",
         "vite": "^6.4.3",
         "vitest": "^3.2.6"
     },
