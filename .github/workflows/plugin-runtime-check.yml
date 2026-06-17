@@ -56,7 +56,6 @@ jobs:
 
       - name: ESLint
         run: npm run lint -- --max-warnings=0
-        continue-on-error: true
 
       - name: Plugins sync dry-run
         env:

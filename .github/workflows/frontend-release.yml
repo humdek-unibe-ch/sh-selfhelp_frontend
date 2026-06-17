@@ -53,12 +53,20 @@ jobs:
       - name: Install dependencies (npm ci)
         run: npm ci
 
-      # --- BLOCKING: license headers + types are sound ---------------------
+      # --- BLOCKING: quality gate (headers + types + lint + tests) ---------
+      # A tagged image must pass the same lint/type/test gate as a PR before it
+      # is built and pushed — never publish an artifact that would fail CI.
       - name: License headers
         run: npm run headers:check
 
       - name: Type-check (tsc --noEmit)
         run: npx tsc --noEmit
+
+      - name: ESLint
+        run: npm run lint -- --max-warnings=0
+
+      - name: Vitest (unit + component)
+        run: npm test
 
       # --- ADVISORY: production dependency license summary -----------------
       - name: License report
