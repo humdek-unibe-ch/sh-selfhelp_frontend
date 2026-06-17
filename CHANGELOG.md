@@ -14,6 +14,19 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.19 — 2026-06-17
+
+### Fixed
+- **No more forced logout when the backend restarts.** Applying a plugin or
+  system operation restarts the instance's Symfony services for a few seconds,
+  during which `/api/auth/user-data` answers with a transient network error or
+  5xx. The Refine auth `check()` read that as "not authenticated" and bounced
+  the operator to `/auth/login` mid-operation. It now distinguishes a transient
+  backend outage (session kept — the BFF already preserves the httpOnly cookies
+  and answers an in-flight refresh with `503 logged_in:true`) from a genuine
+  `401 logged_in:false` expiry, so a restart is ridden out in place and only a
+  real session expiry signs you out.
+
 ## v0.1.18 — 2026-06-16
 
 ### Added

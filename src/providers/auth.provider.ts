@@ -25,6 +25,7 @@ import { ROUTES } from '../config/routes.config';
 import { info, warn, error } from '../utils/debug-logger';
 import { permissionManager } from '../api/permission-wrapper.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { isTransientApiError } from '../utils/transient-error.utils';
 import { getQueryClient } from './query-client';
 
 const PENDING_2FA_KEY = 'pending_2fa_user_id';
@@ -125,14 +126,39 @@ export const authProvider: AuthProvider = {
             };
         }
 
-        const me = await fetchMeOrNull();
-        if (!me) {
+        try {
+            const envelope = await getQueryClient().fetchQuery<IUserDataResponse>({
+                queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
+                queryFn: () => AuthApi.getUserData(),
+                staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.staleTime,
+                gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.gcTime,
+                retry: false,
+            });
+            if (envelope?.data) return { authenticated: true };
+            return {
+                authenticated: false,
+                error: { message: 'Not authenticated', name: 'Not authenticated' },
+            };
+        } catch (err) {
+            // A transient backend outage (Symfony restarting while the manager
+            // applies a plugin / system operation) is NOT a logout: the
+            // httpOnly session cookies are intact and the BFF deliberately
+            // keeps them (it answers an in-flight refresh with 503
+            // `logged_in:true`). Bouncing to /auth/login here is precisely the
+            // "I got kicked out and had to log in again when the backend
+            // restarted" report. Stay authenticated and let the Axios/React
+            // Query transient retries + the SSE reconnect recover the data once
+            // the backend is back. A GENUINE expiry returns 401
+            // `logged_in:false` (NOT transient) and still logs the operator out.
+            if (isTransientApiError(err)) {
+                warn('Backend briefly unavailable during auth check — keeping session', 'AuthProvider', err);
+                return { authenticated: true };
+            }
             return {
                 authenticated: false,
                 error: { message: 'Not authenticated', name: 'Not authenticated' },
             };
         }
-        return { authenticated: true };
     },
 
     getIdentity: async () => {
