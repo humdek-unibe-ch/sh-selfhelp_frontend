@@ -84,6 +84,7 @@ CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` t
 - Even before 1.0.0, document contract impact and coordinate changes that affect Symfony APIs, `@selfhelp/shared`, mobile clients, persisted CMS content, or public URLs.
 - After version 1.0.0, preserve backward compatibility unless explicitly told otherwise.
 - Post-1.0.0 breaking changes require explicit approval and migration notes.
+- **Frontend ⇄ backend version pinning (always check on coupled changes).** When a frontend feature starts depending on a backend feature (a new / changed / removed `/cms-api` endpoint, response field, permission, or behavior), update the version contract in the SAME change: raise `release-manifest.json` → `supports.core` here to the first backend (`core`) version that ships it, AND raise the backend's `release-manifest.json` → `supports.frontend` to this frontend version. These two SemVer ranges are the bidirectional gate the registry resolver (`sh2-plugin-registry/scripts/resolve-core-candidate.mjs`) uses to refuse an incompatible frontend+backend release; `@selfhelp/shared` only catches typed response-shape drift, not version pairing. Keep the backend's `docs/developer/cross-repo-compatibility-matrix.md` "Current floor" note in sync, and re-check both `supports.*` floors before finishing any change that touches the frontend↔backend contract.
 
 ## Tech Stack
 - Next.js 16 App Router, React 19, TypeScript strict mode.

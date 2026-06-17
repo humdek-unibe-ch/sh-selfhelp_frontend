@@ -1,8 +1,8 @@
 {
-  "$comment": "Release self-declaration consumed by the unified registry's auto-core-release resolver (sh2-plugin-registry/scripts/resolve-core-candidate.mjs) at the git tag being released, and by this repo's release-descriptor step. supports.core is the semver range of core versions this frontend works with; while the platform is pre-1.0, every 0.x minor is breaking, so widen/bump it deliberately.",
+  "$comment": "Release self-declaration consumed by the unified registry's auto-core-release resolver (sh2-plugin-registry/scripts/resolve-core-candidate.mjs) at the git tag being released, and by this repo's release-descriptor step. supports.core is the semver range of core (backend) versions this frontend works with; while the platform is pre-1.0, every 0.x minor is breaking, so widen/bump it deliberately. Raise the lower bound whenever a frontend feature starts depending on a newer backend feature (e.g. a new/changed /cms-api endpoint): the current floor 0.1.12 is the core release that shipped the section detach/destroy + batch /admin/sections/pages API this frontend (>=0.1.18) requires, so an incompatible frontend+backend pair can never be auto-assembled into a release.",
   "kind": "frontend",
   "supports": {
-    "core": ">=0.1.0 <0.2.0"
+    "core": ">=0.1.12 <0.2.0"
   },
   "requiredApiVersion": "0.1.0"
 }
