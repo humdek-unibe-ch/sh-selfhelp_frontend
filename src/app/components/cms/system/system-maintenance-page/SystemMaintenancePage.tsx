@@ -1136,8 +1136,11 @@ export function SystemMaintenancePage() {
                 {/* Frontend-only update request. The frontend ships independently
                     of the core and is stateless, so this is a lightweight swap:
                     no destructive migration, no backup, no typed confirmation.
-                    The SelfHelp Manager re-resolves the signed frontend release
-                    and performs the authoritative compatibility check. */}
+                    The preflight already reports the frontend ⇄ core compatibility
+                    verdict (computed by the CMS against the signed registry, so it
+                    matches the manager); the SelfHelp Manager re-resolves the signed
+                    release, re-verifies signatures + image digests, and remains the
+                    final authority at execution time. */}
                 <Paper p="md" radius="md" withBorder pos="relative" data-testid="frontend-update-section">
                     <LoadingOverlay visible={frontendPreflight.isFetching || requestFrontendUpdate.isPending} />
                     <Stack gap="sm">
