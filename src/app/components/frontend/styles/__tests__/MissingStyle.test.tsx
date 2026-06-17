@@ -18,7 +18,7 @@ import MissingStyle from '../MissingStyle';
 
 describe('MissingStyle', () => {
     it('renders the page-not-found message and a home button', () => {
-        renderWithProviders(<MissingStyle />);
+        renderWithProviders(<MissingStyle style={{}} styleProps={{}} cssClass="" />);
         expect(screen.getByText('Page not found')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Back to home/i })).toBeInTheDocument();
     });

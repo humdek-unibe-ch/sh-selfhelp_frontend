@@ -46,6 +46,8 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
                 queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] }),
+                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
             ]);
             
             if (showNotifications) {

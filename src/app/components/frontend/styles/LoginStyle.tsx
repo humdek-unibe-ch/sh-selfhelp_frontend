@@ -115,7 +115,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                     <Anchor
                         ta="center"
                         size="sm"
-                        href="/reset"
+                        href={ROUTES.RESET_PASSWORD}
                     >
                         {labelPasswordReset}
                     </Anchor>

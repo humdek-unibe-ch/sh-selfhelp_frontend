@@ -7,5 +7,5 @@ SPDX-License-Identifier: MPL-2.0
 import MissingStyle from '../../components/frontend/styles/MissingStyle';
 
 export default function MissingFallbackPage() {
-    return <MissingStyle />;
+    return <MissingStyle style={{}} styleProps={{}} cssClass="" />;
 }

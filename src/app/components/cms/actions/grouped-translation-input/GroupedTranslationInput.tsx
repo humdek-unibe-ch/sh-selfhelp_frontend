@@ -14,6 +14,9 @@ interface IGroupedTranslationInputProps {
   bodyValue?: { [languageId: number]: string };
   subjectPlaceholder?: string;
   bodyPlaceholder?: string;
+  /** Per-language placeholder hints; the active language's entry takes precedence over the single string. */
+  subjectPlaceholders?: { [languageId: number]: string };
+  bodyPlaceholders?: { [languageId: number]: string };
   onSubjectChange: (translations: { [languageId: number]: string }) => void;
   onBodyChange: (translations: { [languageId: number]: string }) => void;
   required?: boolean;
@@ -24,6 +27,8 @@ export function GroupedTranslationInput({
   bodyValue = {},
   subjectPlaceholder,
   bodyPlaceholder,
+  subjectPlaceholders,
+  bodyPlaceholders,
   onSubjectChange,
   onBodyChange,
   required = false,
@@ -113,7 +118,7 @@ export function GroupedTranslationInput({
             <TextInput
               value={subjectValue[activeLanguageData.id] || ''}
               onChange={(e) => handleSubjectChange(e.currentTarget.value)}
-              placeholder={subjectPlaceholder || `Enter subject for ${activeLanguageData.language}`}
+              placeholder={subjectPlaceholders?.[activeLanguageData.id] || subjectPlaceholder || `Enter subject for ${activeLanguageData.language}`}
               required={required}
             />
           </Stack>
@@ -130,7 +135,7 @@ export function GroupedTranslationInput({
               fieldId={parseInt(activeLanguage) * 1000 + 2} // Unique field ID
               value={bodyValue[activeLanguageData.id] || ''}
               onChange={handleBodyChange}
-              placeholder={bodyPlaceholder || `Enter body content for ${activeLanguageData.language}`}
+              placeholder={bodyPlaceholders?.[activeLanguageData.id] || bodyPlaceholder || `Enter body content for ${activeLanguageData.language}`}
               label=""
               required={required}
             />

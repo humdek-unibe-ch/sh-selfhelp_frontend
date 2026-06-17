@@ -55,3 +55,12 @@ interface IUnusedSectionsResponse extends IBaseApiResponse<IUnusedSectionsData> 
  * RefContainer Sections API Response
  */
 interface IRefContainerSectionsResponse extends IBaseApiResponse<IRefContainerSectionsData> {}
+
+/**
+ * A page entry returned by GET /admin/sections/{sectionId}/pages
+ */
+export interface ISectionPage {
+    id: number;
+    keyword: string;
+    isPublished: boolean;
+}

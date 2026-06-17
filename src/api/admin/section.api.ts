@@ -14,12 +14,13 @@ import { API_CONFIG } from '../../config/api.config';
 import { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import { TSectionDetailsResponse, ISectionDetailsData } from '../../types/responses/admin/admin.types';
 import type { AxiosRequestConfig } from 'axios';
-import { 
+import {
     IAddSectionInSectionData,
     ICreateSectionInPageData,
     ICreateSectionInSectionData,
     IUpdateSectionInPageData
 } from '../../types/requests/admin/create-section.types';
+import type { ISectionPage } from '../../types/responses/admin/section-utility.types';
 
 export const AdminSectionApi = {
     /**
@@ -212,19 +213,28 @@ export const AdminSectionApi = {
     },
 
     /**
-     * Deletes a section by ID (permanently removes it)
-     * @param {number} pageId - The page ID
+     * Returns all pages that contain any of the given sections (direct or via ancestor).
+     * @param {number[]} sectionIds - One or more section IDs
+     */
+    async getSectionPages(sectionIds: number[]): Promise<ISectionPage[]> {
+        const response = await permissionAwareApiClient.get(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_PAGES,
+            { params: { ids: sectionIds } }
+        );
+        return response.data.data ?? [];
+    },
+
+    /**
+     * Permanently destroys a section everywhere (all pages lose it).
      * @param {number} sectionId - The section ID to delete
      * @returns {Promise<{ success: boolean }>} Success response
      * @throws {Error} When API request fails
      */
-    async deleteSection(pageId: number, sectionId: number): Promise<{ success: boolean }> {
+    async deleteSection(sectionId: number): Promise<{ success: boolean }> {
         const response = await permissionAwareApiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_REMOVE_SECTION,
-            pageId,
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_DELETE,
             sectionId
         );
-        // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
     }
 };

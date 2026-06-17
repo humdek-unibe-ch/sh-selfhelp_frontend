@@ -270,7 +270,8 @@ export type TStyleName =
     | 'card' | 'card-segment'
     | 'list' | 'list-item'
     | 'datepicker'
-    | 'typography';
+    | 'typography'
+    | 'showUserInput';
 
 // ===== IContentField — re-exported from shared =====
 export type IContentField<T> = ISharedContentField<T>;
@@ -401,10 +402,12 @@ export type {
     IEntryRecordStyle,
     IEntryRecordDeleteStyle,
     ILoopStyle,
+    IShowUserInputStyle,
+    IShowUserInputEntry,
 } from '../../shared';
 
 // ===== Frontend-only legacy styles =====
-// These three styles exist in the admin/CMS UI and are emitted by the
+// These styles exist in the admin/CMS UI and are emitted by the
 // page editor, but they don't reach the mobile app and aren't part of
 // the shared `STYLE_REGISTRY`. They live here so the frontend's
 // renderer can still discriminate them.
@@ -419,6 +422,9 @@ export interface IDataContainerStyle extends IBaseStyle {
 export interface IVersionStyle extends IBaseStyle {
     style_name: 'version';
 }
+
+// `IShowUserInputStyle` / `IShowUserInputEntry` are owned by `@selfhelp/shared`
+// (re-exported above) so the web + mobile renderers share one source of truth.
 
 // ===== Discriminated union of all styles =====
 // Imports are resolved through this file's own re-exports above.
@@ -505,6 +511,7 @@ import type {
     IEntryRecordStyle,
     IEntryRecordDeleteStyle,
     ILoopStyle,
+    IShowUserInputStyle,
 } from '../../shared';
 
 export type TStyle =
@@ -538,7 +545,7 @@ export type TStyle =
     | IAccordionStyle | IAccordionItemStyle | ITabsStyle | ITabStyle
     | ITimelineStyle | IListStyle | IListItemStyle
     | IEntryListStyle | IEntryRecordStyle | IEntryRecordDeleteStyle
-    | ILoopStyle | IVersionStyle;
+    | ILoopStyle | IVersionStyle | IShowUserInputStyle;
 
 export interface IUnknownStyle extends IBaseStyle {
     style_name: TStyleName;

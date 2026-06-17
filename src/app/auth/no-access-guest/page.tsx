@@ -9,8 +9,13 @@ import NoAccessStyle from '../../components/frontend/styles/NoAccessStyle';
 export default function NoAccessGuestFallbackPage() {
     return (
         <NoAccessStyle
-            title="Access denied"
-            message="You need to be logged in to view this page. Please sign in to continue."
+            style={{
+                title: { content: 'Access denied' },
+                message: { content: 'You need to be logged in to view this page. Please sign in to continue.' },
+                show_login: { content: '1' },
+            }}
+            styleProps={{}}
+            cssClass=""
         />
     );
 }

@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useState, useEffect, useCallback, memo, useMemo, useDeferredValue, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -29,7 +30,8 @@ import {
     IconX,
     IconArrowLeft,
     IconArrowRight,
-    IconTrash
+    IconTrash,
+    IconRefresh
 } from '@tabler/icons-react';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
 import { useSectionOperations } from '../../../../../hooks/useSectionOperations';
@@ -231,7 +233,7 @@ interface IMoveData {
 }
 
 function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSectionsProps) {
-    const { data, isLoading, error } = usePageSections(pageId);
+    const { data, isLoading, isFetching, error, refetch } = usePageSections(pageId);
     const { data: styleGroups } = useStyleGroups();
     const sections = data?.sections;
 
@@ -857,6 +859,17 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                </Tooltip>
              </Group>
            )}
+           <Tooltip label="Refresh sections" withArrow>
+             <ActionIcon
+               size="xl"
+               variant="light"
+               onClick={() => refetch()}
+               loading={isFetching}
+               aria-label="Refresh sections"
+             >
+               <IconRefresh size={16} />
+             </ActionIcon>
+           </Tooltip>
          </Group>
 
          {/* 4. Main Content */}

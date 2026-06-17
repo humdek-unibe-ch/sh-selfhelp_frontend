@@ -5,30 +5,34 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { Container, Paper, ThemeIcon, Title, Text, Button, Group } from '@mantine/core';
-import { IconLock, IconHome, IconLogin } from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
-import { INoAccessStyle } from '../../../../shared';
+import { IconCompass, IconHome, IconLogin } from '@tabler/icons-react';
+import Link from 'next/link';
+import { INotFoundStyle } from '../../../../shared';
 import { ROUTES } from '../../../../config/routes.config';
 import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 
-interface INoAccessStyleProps {
-    style: Partial<INoAccessStyle>;
+
+interface INotFoundStyleProps {
+    style: Partial<INotFoundStyle>;
     styleProps: Record<string, any>;
     cssClass: string;
+    /**
+     * The 404 route is served outside the CMS, so it cannot rely on the user
+     * session being in React Query. The Server Component reads the auth cookie
+     * and hands a plain boolean down to toggle the "Sign in" call to action.
+     */
+    isAuthenticated?: boolean;
 }
 
-const NoAccessStyle: React.FC<INoAccessStyleProps> = ({ style, styleProps, cssClass }) => {
-    const router = useRouter();
-
-    const title = style.title?.content || 'Access denied';
-    const message = style.message?.content || 'Your account does not have permission to view this page. If you think this is a mistake, please contact the research team or your administrator.';
+const NotFoundStyle: React.FC<INotFoundStyleProps> = ({ style, styleProps, cssClass, isAuthenticated = false }) => {
+    const title = style.title?.content || 'Page not found';
+    const message = style.message?.content || 'The page you are looking for does not exist or has been moved.';
     const buttonLabel = stripHtmlTags(style.button_label?.content || 'Back to home');
     const loginLabel = stripHtmlTags(style.login_label?.content || 'Sign in');
-    const showLogin = style.show_login?.content === '1';
-    const color = style.mantine_color?.content || 'red';
+    const color = style.mantine_color?.content || 'gray';
     const radius = style.mantine_radius?.content || 'md';
     const shadow = style.mantine_shadow?.content || undefined;
-    const buttonVariant = style.mantine_button_variant?.content || 'light';
+    const buttonVariant = style.mantine_button_variant?.content || (isAuthenticated ? 'filled' : 'light');
     const showIcon = style.show_icon?.content !== '0';
 
     return (
@@ -37,7 +41,7 @@ const NoAccessStyle: React.FC<INoAccessStyleProps> = ({ style, styleProps, cssCl
                 {showIcon && (
                     <div className="flex justify-center mb-4">
                         <ThemeIcon variant="light" color={color} size={64} radius="xl">
-                            <IconLock size={32} />
+                            <IconCompass size={32} />
                         </ThemeIcon>
                     </div>
                 )}
@@ -45,20 +49,22 @@ const NoAccessStyle: React.FC<INoAccessStyleProps> = ({ style, styleProps, cssCl
                 <Text ta="center" c="dimmed" mb="xl">{message}</Text>
                 <Group justify="center">
                     <Button
+                        component={Link}
+                        href={ROUTES.HOME}
+                        size="md"
                         variant={buttonVariant}
                         color={color}
-                        size="md"
                         leftSection={<IconHome size={16} />}
-                        onClick={() => router.push(ROUTES.HOME)}
                     >
                         {buttonLabel}
                     </Button>
-                    {showLogin && (
+                    {!isAuthenticated && (
                         <Button
-                            color={color}
+                            component={Link}
+                            href={ROUTES.LOGIN}
                             size="md"
+                            color={color}
                             leftSection={<IconLogin size={16} />}
-                            onClick={() => router.push(ROUTES.LOGIN)}
                         >
                             {loginLabel}
                         </Button>
@@ -69,4 +75,4 @@ const NoAccessStyle: React.FC<INoAccessStyleProps> = ({ style, styleProps, cssCl
     );
 };
 
-export default NoAccessStyle;
+export default NotFoundStyle;

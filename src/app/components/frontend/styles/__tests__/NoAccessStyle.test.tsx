@@ -19,13 +19,19 @@ import NoAccessStyle from '../NoAccessStyle';
 
 describe('NoAccessStyle', () => {
     it('renders the default access-denied message and a home button', () => {
-        renderWithProviders(<NoAccessStyle />);
+        renderWithProviders(<NoAccessStyle style={{}} styleProps={{}} cssClass="" />);
         expect(screen.getByText('Access denied')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Back to home/i })).toBeInTheDocument();
     });
 
-    it('renders a custom title and message when provided', () => {
-        renderWithProviders(<NoAccessStyle title="Locked out" message="You cannot view this." />);
+    it('renders a custom title and message from style content fields', () => {
+        renderWithProviders(
+            <NoAccessStyle
+                style={{ title: { content: 'Locked out' }, message: { content: 'You cannot view this.' } }}
+                styleProps={{}}
+                cssClass=""
+            />
+        );
         expect(screen.getByText('Locked out')).toBeInTheDocument();
         expect(screen.getByText('You cannot view this.')).toBeInTheDocument();
     });

@@ -198,7 +198,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
       const payload: ICreateActionRequest = {
         name,
         id_action_trigger_types: Number(trigger) || trigger,
-        id_data_tables,
+        id_data_tables: id_data_tables,
         config: parsed || undefined,
         translations: translations.length > 0 ? translations : undefined
       };
@@ -208,7 +208,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
       const payload: IUpdateActionRequest = {
         name,
         id_action_trigger_types: Number(trigger) || trigger,
-        id_data_tables,
+        id_data_tables: id_data_tables,
         config: parsed || undefined,
         translations: translations.length > 0 ? translations : undefined
       };

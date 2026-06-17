@@ -5,9 +5,10 @@ SPDX-License-Identifier: MPL-2.0
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { AdminSectionUtilityApi } from '../api/admin/section-utility.api';
+import { AdminSectionApi } from '../api/admin/section.api';
 import { AdminCacheApi } from '../api/admin/cache.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import type { IUnusedSectionsData, IRefContainerSectionsData } from '../types/responses/admin/section-utility.types';
+import type { IUnusedSectionsData, IRefContainerSectionsData, ISectionPage } from '../types/responses/admin/section-utility.types';
 
 /**
  * Hook to fetch unused sections (not in hierarchy and not assigned to pages)
@@ -42,6 +43,22 @@ export function useRefContainerSections(enabled: boolean = true) {
         retry: 3,
         retryDelay: 1000,
         enabled,
+    });
+}
+
+/**
+ * Hook to fetch all pages that contain any of the given sections (direct or via ancestor).
+ * Pass a single-element array for the delete-modal case, multiple IDs for the publish case.
+ */
+export function useSectionPages(sectionIds: number[], enabled: boolean = true) {
+    return useQuery<ISectionPage[]>({
+        queryKey: ['admin', 'sections', 'pages', sectionIds],
+        queryFn: async (): Promise<ISectionPage[]> => {
+            return AdminSectionApi.getSectionPages(sectionIds);
+        },
+        staleTime: 0,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        enabled: enabled && sectionIds.length > 0,
     });
 }
 
@@ -127,40 +144,6 @@ export function useDeleteAllUnusedSectionsMutation() {
             notifications.show({
                 title: 'Error',
                 message: error?.response?.data?.message || 'Failed to delete all sections',
-                color: 'red',
-                autoClose: false,
-            });
-        },
-    });
-}
-
-/**
- * Hook to force delete a section from a page
- */
-export function useForceDeleteSectionMutation() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({ pageId, sectionId }: { pageId: number; sectionId: number }) => 
-            AdminSectionUtilityApi.forceDeleteSection(pageId, sectionId),
-        onSuccess: (data, variables) => {
-            notifications.show({
-                title: 'Success',
-                message: data.message || 'Section force deleted successfully',
-                color: 'green',
-            });
-
-            // Invalidate page sections and unused sections queries
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] });
-            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'pages', variables.pageId, 'sections'] });
-        },
-        onError: (error: any) => {
-
-            notifications.show({
-                title: 'Error',
-                message: error?.response?.data?.message || 'Failed to force delete section',
                 color: 'red',
                 autoClose: false,
             });

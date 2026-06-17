@@ -46,12 +46,4 @@ export const AdminSectionUtilityApi = {
         const response = await permissionAwareApiClient.delete<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UNUSED_DELETE_ALL);
         return response.data;
     },
-
-    /**
-     * Force delete a section from a page (even if it has children or references)
-     */
-    async forceDeleteSection(pageId: number, sectionId: number): Promise<IBaseApiResponse<any>> {
-        const response = await permissionAwareApiClient.delete<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_FORCE_DELETE, pageId, sectionId);
-        return response.data;
-    },
 };

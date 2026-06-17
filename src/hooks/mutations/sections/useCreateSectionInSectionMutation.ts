@@ -51,7 +51,8 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
             
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] })
+                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
             ];
             
             // If pageId is provided, also invalidate page-specific queries
