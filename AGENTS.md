@@ -225,6 +225,21 @@ CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` t
 - Keep imports consistent with nearby files. The code mostly uses relative imports; confirm aliases before introducing `@/...`.
 - Use `@tabler/icons-react` for icons because that is the installed icon set.
 
+## Linting Rules (mandatory)
+Linting is mandatory whenever code is changed. ESLint uses the flat config in `eslint.config.mjs` (type-aware: `projectService` + `tseslint.parser`) layered on top of `eslint-config-next`.
+
+- After changing any TypeScript / JavaScript / React / Next.js code, run `npm run lint` (and `npm run lint:fix` for the safe autofixes). Type-aware rules also require `npm run tsc` to pass.
+- If lint fails on code you touched, fix it before finishing. Do not hand back work with new lint errors you introduced.
+- All lint fixes must be behavior-preserving. Never change functionality, control flow, return values, async ordering, side effects, or public/runtime contracts only to satisfy a lint rule. If "fix the lint" and "don't change behavior" conflict, preserving behavior wins.
+- Unused imports are not allowed (`unused-imports/no-unused-imports`). Remove them.
+- Unused variables/arguments are not allowed unless intentionally prefixed with `_` (`unused-imports/no-unused-vars` with `^_` ignore patterns). Prefer `_`-prefixing params, destructured rebindings, and hook results you must keep calling; drop genuinely dead, side-effect-free locals/imports.
+- Explicit `any` is forbidden and enforced as an error (`@typescript-eslint/no-explicit-any`); do not add new `any`. Replace it with a precise type, an existing project type, generics, or `unknown` only when that does not change runtime behavior — never as a quick fix. A narrow, documented `// eslint-disable-next-line` exception is allowed only when correct typing is infeasible (the lone current exception lives in `src/types/common/styles.types.ts`).
+- Unhandled/floating promises are not allowed (`@typescript-eslint/no-floating-promises`, `@typescript-eslint/no-misused-promises`). Mark intentionally unawaited promises with `void`; only add `await` when it does not change execution order.
+- Also enforced: `consistent-return`, `no-unreachable`, `no-duplicate-imports`, `no-debugger`, and `consistent-type-imports`. `no-console` allows only `console.warn`/`console.error`; other `console.*` is a (non-blocking) warning — do not add new ones.
+- Do not disable ESLint rules globally or add broad file-level disables to hide problems. If a rule genuinely cannot be satisfied without risking behavior, use a single-line `// eslint-disable-next-line <rule> -- <reason>` with a clear justification, keep it minimal, and report it.
+- The final response for a change must mention the lint/tsc/test commands run and their result.
+- CI enforces this gate as blocking: `npm run lint -- --max-warnings=0`, the TypeScript check, and `npm test` must pass on every PR/push to `main` (`plugin-runtime-check.yml` runs headers/tsc/lint/build; `frontend-tests.yml` runs the Vitest suite) and again before any tagged Docker publish/GitHub release (`frontend-release.yml`, `publish-verify.yml`). Generated output (`coverage/**`, `.next/**`, `dist/**`, `test-results/**`, `playwright-report/**`) is ignored by the flat config so `--max-warnings=0` is deterministic. Never merge or release on a red gate, and do not weaken these workflows to go green.
+
 ## Modal Rules
 - **Always use the shared `ModalWrapper`** from
   `src/app/components/shared/common/CustomModal/CustomModal.tsx` for
