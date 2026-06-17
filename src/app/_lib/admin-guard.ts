@@ -22,24 +22,43 @@ import { redirect } from 'next/navigation';
 import { ROUTES } from '../../config/routes.config';
 import { AUTH_COOKIE } from '../../config/server.config';
 import { PERMISSIONS } from '../../types/auth/jwt-payload.types';
-import { getAuthMeSSR } from './server-fetch';
+import { getAuthMeSSRResult } from './server-fetch';
 
 /**
- * Resolve the current user's permission strings during SSR.
+ * Resolve the SSR admin authorization decision once, distinguishing three
+ * cases so a transient backend outage is never mistaken for a logout:
  *
- * Returns `null` when there is no auth cookie or the user-data envelope is
- * empty/invalid (treated by callers as "not logged in"). Returns `[]` for an
- * authenticated user that simply holds no permissions.
+ *   - `login`       → no auth cookie, or a definitive 4xx / empty envelope
+ *                     from `/auth/user-data`: genuinely logged out.
+ *   - `unreachable` → the backend is briefly down (5xx / network) while the
+ *                     manager restarts Symfony for a plugin / system
+ *                     operation. The httpOnly session cookies are intact;
+ *                     callers FAIL-OPEN (see `requireAdminAccessSSR`).
+ *   - `ok`          → authenticated; carries the user's permission strings
+ *                     (`[]` for an authenticated user holding none).
  */
-async function readPermissionsSSR(): Promise<string[] | null> {
+type SsrAccessDecision =
+    | { decision: 'login' }
+    | { decision: 'unreachable' }
+    | { decision: 'ok'; permissions: string[] };
+
+async function resolveSsrAccess(): Promise<SsrAccessDecision> {
     const jar = await cookies();
-    if (!jar.get(AUTH_COOKIE)) return null;
+    if (!jar.get(AUTH_COOKIE)) return { decision: 'login' };
 
-    const me = (await getAuthMeSSR()) as { data?: { permissions?: unknown } } | null;
-    if (!me || !me.data) return null;
+    const result = await getAuthMeSSRResult();
+    if (result.status === 'unreachable') return { decision: 'unreachable' };
 
-    const perms = me.data.permissions;
-    return Array.isArray(perms) ? perms.filter((p): p is string => typeof p === 'string') : [];
+    const envelope = (result.status === 'ok' ? result.data : null) as
+        | { data?: { permissions?: unknown } }
+        | null;
+    if (!envelope || !envelope.data) return { decision: 'login' };
+
+    const perms = envelope.data.permissions;
+    return {
+        decision: 'ok',
+        permissions: Array.isArray(perms) ? perms.filter((p): p is string => typeof p === 'string') : [],
+    };
 }
 
 /**
@@ -48,16 +67,30 @@ async function readPermissionsSSR(): Promise<string[] | null> {
  * Redirects to login when unauthenticated and to the no-access page when the
  * user lacks `admin.access`. Returns the permission list so callers can run
  * additional per-page checks without re-fetching.
+ *
+ * Transient backend outage (`unreachable`): the manager is restarting
+ * Symfony for a plugin / system operation, so `/auth/user-data` is briefly
+ * answering 5xx / not at all. The session is NOT dead (the httpOnly cookies
+ * are intact and the proxy + BFF keep them). Bouncing to login here is
+ * exactly the "I got kicked to the login page when I installed a plugin"
+ * report. FAIL-OPEN instead: let the admin shell render — the client guard
+ * rides out the restart (transient-aware user-data retry) and every admin
+ * DATA endpoint independently re-checks permissions server-side once the
+ * backend is back, so nothing privileged leaks during the few-second window.
  */
 export async function requireAdminAccessSSR(): Promise<string[]> {
-    const permissions = await readPermissionsSSR();
-    if (permissions === null) {
+    const access = await resolveSsrAccess();
+
+    if (access.decision === 'login') {
         redirect(ROUTES.LOGIN);
     }
-    if (!permissions.includes(PERMISSIONS.ADMIN_ACCESS)) {
+    if (access.decision === 'unreachable') {
+        return [];
+    }
+    if (!access.permissions.includes(PERMISSIONS.ADMIN_ACCESS)) {
         redirect(ROUTES.NO_ACCESS);
     }
-    return permissions;
+    return access.permissions;
 }
 
 /**
@@ -67,13 +100,27 @@ export async function requireAdminAccessSSR(): Promise<string[]> {
  * ANY of them (matching the navbar's "can read this section" logic). Lacking
  * the permission redirects to the no-access page server-side, so the page's
  * client component — and its data fetch — never mounts.
+ *
+ * Like `requireAdminAccessSSR`, this fails open during a transient backend
+ * outage (`unreachable`) so a plugin / system-update restart does not bounce
+ * the operator to login mid-operation.
  */
 export async function requireAdminPermission(required?: string | string[]): Promise<void> {
-    const permissions = await requireAdminAccessSSR();
+    const access = await resolveSsrAccess();
+
+    if (access.decision === 'login') {
+        redirect(ROUTES.LOGIN);
+    }
+    if (access.decision === 'unreachable') {
+        return;
+    }
+    if (!access.permissions.includes(PERMISSIONS.ADMIN_ACCESS)) {
+        redirect(ROUTES.NO_ACCESS);
+    }
     if (!required) return;
 
     const candidates = Array.isArray(required) ? required : [required];
-    if (!candidates.some((permission) => permissions.includes(permission))) {
+    if (!candidates.some((permission) => access.permissions.includes(permission))) {
         redirect(ROUTES.NO_ACCESS);
     }
 }

@@ -11,6 +11,15 @@ import { IUserDataResponse, IAuthUser, IUserData } from '../types/auth/jwt-paylo
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { createPermissionChecker, PermissionChecker } from '../utils/permissions.utils';
 import { permissionManager } from '../api/permission-wrapper.api';
+import { isTransientApiError, transientRetryDelay } from '../utils/transient-error.utils';
+
+/**
+ * How many times the user-data probe is retried while the backend is briefly
+ * unavailable (a manager-driven service restart during a plugin/system
+ * operation). Long enough to cover a typical restart window so the operator's
+ * auth state never flickers to "logged out" mid-operation.
+ */
+const USER_DATA_TRANSIENT_RETRIES = 6;
 
 /**
  * Fetch + cache the current user envelope from `/auth/user-data` and keep
@@ -34,9 +43,18 @@ export function useUserData() {
         refetchOnWindowFocus: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.refetchOnWindowFocus,
         refetchOnMount: false,
         retry: (failureCount, error: any) => {
+            // A genuine `401` (session expired) must surface immediately so the
+            // shell can react — never retry it.
             if (error?.response?.status === 401) return false;
+            // A backend restart (plugin/system operation) makes user-data
+            // answer 5xx / network for a few seconds. Ride it out so the
+            // operator's auth state does not flicker to "logged out"
+            // mid-operation; React Query keeps the last-known envelope while
+            // retrying, so `isAuthenticated` stays stable.
+            if (isTransientApiError(error)) return failureCount < USER_DATA_TRANSIENT_RETRIES;
             return failureCount < 1;
         },
+        retryDelay: transientRetryDelay,
         meta: { errorMessage: 'Failed to fetch user data' },
     });
 
@@ -102,17 +120,26 @@ function transformUserData(userData: IUserData): IAuthUser {
 }
 
 /**
- * Lightweight `{ isAuthenticated, isLoading, user }` view over `useAuthUser`
- * for UI components that only need to gate render on auth state (header
- * profile button, admin shell). Replaces Refine's `useIsAuthenticated`,
- * whose own internal query starts every mount with `isLoading: true` and
- * defeated our SSR-hydrated cache.
+ * Lightweight `{ isAuthenticated, isLoading, isBackendUnavailable, user }`
+ * view over `useAuthUser` for UI components that only need to gate render on
+ * auth state (header profile button, admin shell). Replaces Refine's
+ * `useIsAuthenticated`, whose own internal query starts every mount with
+ * `isLoading: true` and defeated our SSR-hydrated cache.
+ *
+ * `isBackendUnavailable` is `true` when there is no resolved user AND the
+ * failure was a TRANSIENT backend outage (5xx / network — the manager
+ * restarting Symfony for a plugin/system operation) rather than a genuine
+ * `401`. Auth gates use it to stay put instead of bouncing to login while the
+ * backend briefly restarts. It is `false` once a real user resolves (the
+ * common case) and for a genuine session expiry.
  */
 export function useAuthStatus(): {
     isAuthenticated: boolean;
     isLoading: boolean;
+    isBackendUnavailable: boolean;
     user: IAuthUser | null;
 } {
-    const { user, isLoading } = useAuthUser();
-    return { isAuthenticated: user !== null, isLoading, user };
+    const { user, isLoading, error } = useAuthUser();
+    const isBackendUnavailable = user === null && isTransientApiError(error);
+    return { isAuthenticated: user !== null, isLoading, isBackendUnavailable, user };
 }

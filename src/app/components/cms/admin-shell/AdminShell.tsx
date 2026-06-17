@@ -28,21 +28,28 @@ export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProp
     // render with `isLoading: true` and caused the admin shell to flash
     // empty on every reload even though the cookie + user payload were
     // already present.
-    const { isAuthenticated, isLoading: isAuthLoading } = useAuthStatus();
+    const { isAuthenticated, isLoading: isAuthLoading, isBackendUnavailable } = useAuthStatus();
     const router = useRouter();
 
     // The server layout (`src/app/admin/layout.tsx`) already verifies
     // `sh_auth` exists and calls `/auth/user-data`. This effect only handles
-    // the *mid-session expiry* case: the BFF returns a 401 and
+    // the *mid-session expiry* case: the BFF returns a genuine 401 and
     // `useAuthStatus` resolves to `isAuthenticated === false`, so we bounce
     // the user to login.
+    //
+    // It deliberately does NOT bounce on a TRANSIENT backend outage
+    // (`isBackendUnavailable`): while the manager restarts Symfony for a
+    // plugin/system operation, user-data briefly answers 5xx/network and the
+    // operator must stay put — the transient-aware retry recovers in place
+    // instead of sending them to the login page (and making them think the
+    // session expired).
     useEffect(() => {
-        if (!isAuthLoading && !isAuthenticated) {
+        if (!isAuthLoading && !isAuthenticated && !isBackendUnavailable) {
             router.replace(ROUTES.LOGIN);
         }
-    }, [isAuthenticated, isAuthLoading, router]);
+    }, [isAuthenticated, isAuthLoading, isBackendUnavailable, router]);
 
-    if (!isAuthLoading && !isAuthenticated) {
+    if (!isAuthLoading && !isAuthenticated && !isBackendUnavailable) {
         return null;
     }
 

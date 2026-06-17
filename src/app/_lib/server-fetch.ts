@@ -292,15 +292,64 @@ export async function getSystemLookupsSSR(): Promise<any | null> {
 }
 
 /**
- * Fetch the current authenticated user's profile + ACL version.
+ * Discriminated outcome of the SSR `/auth/user-data` probe so the admin
+ * guards can tell a GENUINE "logged out" apart from a TRANSIENT backend
+ * outage.
  *
- * Wrapped in `cache()` so `ServerProviders` (which seeds `['user-data']`
- * for every render that has an `sh_auth` cookie) and `admin/layout.tsx`
- * (which uses the same payload to gate access via redirect) share a single
- * Symfony round-trip per request.
+ * This mirrors the client `isTransientApiError` classification and the
+ * proxy / BFF `RefreshOutcome` (`ok` / `invalid` / `unreachable`) so all
+ * three layers agree on what counts as "the backend is briefly down while
+ * the manager restarts Symfony for a plugin/system operation" vs. "the
+ * session is dead":
+ *
+ *   - `ok`             → 2xx carrying a user envelope.
+ *   - `unauthenticated`→ a definitive 4xx (incl. `401`) or an empty 2xx
+ *                        envelope: the session is genuinely gone → redirect
+ *                        to login.
+ *   - `unreachable`    → no response (network) or a 5xx: the backend is
+ *                        briefly unavailable mid-restart. NOT a logout — the
+ *                        httpOnly cookies are intact, so callers must keep
+ *                        the operator in place and let the client recover.
+ */
+export type SsrAuthOutcome =
+    | { status: 'ok'; data: any }
+    | { status: 'unauthenticated' }
+    | { status: 'unreachable' };
+
+/**
+ * Probe `/auth/user-data` for the SSR admin guards, classifying the result
+ * into {@link SsrAuthOutcome}. Unlike {@link getAuthMeSSR} it preserves the
+ * transient-vs-genuine distinction so a plugin/system-update restart no
+ * longer renders as a logout (the guard fails open instead of bouncing to
+ * `/login`).
+ *
+ * Wrapped in `cache()` so the admin layout, every admin `page.tsx` guard,
+ * and the `getAuthMeSSR` envelope reader all share a single Symfony
+ * round-trip per request.
+ */
+export const getAuthMeSSRResult = cache(async (): Promise<SsrAuthOutcome> => {
+    const { status, data } = await fetchJsonWithStatus<any>(`/auth/user-data`);
+    // No HTTP status at all (request never completed) or any 5xx → the
+    // backend is briefly down (connection refused / mid-boot): transient.
+    if (status === null || status >= 500) return { status: 'unreachable' };
+    // A 2xx carrying an envelope is the only "logged in" outcome.
+    if (status >= 200 && status < 300 && data) return { status: 'ok', data };
+    // Any 4xx (incl. `401`) or an empty 2xx envelope → genuinely not authed.
+    return { status: 'unauthenticated' };
+});
+
+/**
+ * Fetch the current authenticated user's profile + ACL version, returning
+ * the raw envelope on success and `null` otherwise.
+ *
+ * Used by `ServerProviders` to seed the `['user-data']` cache — it
+ * deliberately only seeds on a non-null result, so a transient outage never
+ * seeds a logout sentinel. Derived from {@link getAuthMeSSRResult} so the
+ * two share a single `cache()`-wrapped Symfony round-trip per request.
  */
 export const getAuthMeSSR = cache(async (): Promise<any | null> => {
-    return fetchJson(`/auth/user-data`);
+    const result = await getAuthMeSSRResult();
+    return result.status === 'ok' ? result.data : null;
 });
 
 /**

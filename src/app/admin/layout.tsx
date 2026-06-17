@@ -7,7 +7,12 @@ SPDX-License-Identifier: MPL-2.0
  *
  * Responsibilities (in order):
  *  1. Hard gate: if the httpOnly `sh_auth` cookie is missing OR
- *     `/auth/user-data` returns an empty envelope, redirect to login.
+ *     `/auth/user-data` returns a definitive "not authenticated" answer
+ *     (4xx / empty envelope), redirect to login. A *transient* backend
+ *     outage (5xx / network while the manager restarts Symfony for a
+ *     plugin/system operation) is NOT a logout — the guard fails open and
+ *     lets the shell render so the operator is not bounced mid-operation
+ *     (see `requireAdminAccessSSR`).
  *  2. Prefetch the admin pages tree + lookups and dehydrate them into a
  *     `HydrationBoundary` so the navbar / inspector dropdowns render on
  *     first paint instead of flashing empty.

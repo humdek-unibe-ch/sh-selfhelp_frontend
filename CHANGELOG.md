@@ -14,6 +14,22 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.20 — 2026-06-17
+
+### Fixed
+- **Installing a plugin no longer bounces you to the login page.** The
+  v0.1.19 fix covered the Refine `check()`, but two other layers still read a
+  brief backend restart (while the manager applies a plugin / system
+  operation) as "logged out": the server-side admin guard (`/auth/user-data`
+  returning a transient 5xx / network error made it `redirect('/login')`,
+  which the plugin SSE hook triggered via `router.refresh()`), and the client
+  `AdminShell` (which redirected on any `isAuthenticated === false`). Both now
+  distinguish a transient outage (`unreachable`) from a genuine `401`: the SSR
+  guard fails open and renders the shell, and the admin shell stays put while
+  the transient-aware `user-data` retry rides out the restart. Your session
+  cookies were always intact — now the UI knows it, so a plugin install no
+  longer makes you think you have to sign in again.
+
 ## v0.1.19 — 2026-06-17
 
 ### Fixed

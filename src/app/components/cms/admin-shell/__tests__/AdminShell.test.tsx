@@ -12,7 +12,7 @@ import { renderWithProviders } from '../../../../../test-utils/renderWithProvide
  * redirecting to login. Hooks/children are mocked so the test isolates the gate.
  */
 const { authState, replaceMock } = vi.hoisted(() => ({
-    authState: { value: { isAuthenticated: true, isLoading: false } },
+    authState: { value: { isAuthenticated: true, isLoading: false, isBackendUnavailable: false } },
     replaceMock: vi.fn(),
 }));
 
@@ -37,11 +37,11 @@ import { AdminShell } from '../AdminShell';
 describe('AdminShell gate', () => {
     beforeEach(() => {
         replaceMock.mockClear();
-        authState.value = { isAuthenticated: true, isLoading: false };
+        authState.value = { isAuthenticated: true, isLoading: false, isBackendUnavailable: false };
     });
 
     it('renders children for an authenticated session', () => {
-        authState.value = { isAuthenticated: true, isLoading: false };
+        authState.value = { isAuthenticated: true, isLoading: false, isBackendUnavailable: false };
 
         renderWithProviders(
             <AdminShell>
@@ -53,8 +53,8 @@ describe('AdminShell gate', () => {
         expect(replaceMock).not.toHaveBeenCalled();
     });
 
-    it('renders nothing and redirects to login when unauthenticated', () => {
-        authState.value = { isAuthenticated: false, isLoading: false };
+    it('renders nothing and redirects to login when genuinely unauthenticated', () => {
+        authState.value = { isAuthenticated: false, isLoading: false, isBackendUnavailable: false };
 
         renderWithProviders(
             <AdminShell>
@@ -64,5 +64,21 @@ describe('AdminShell gate', () => {
 
         expect(screen.queryByText('admin-content')).not.toBeInTheDocument();
         expect(replaceMock).toHaveBeenCalled();
+    });
+
+    it('stays put (renders children, no redirect) during a transient backend outage', () => {
+        // Manager is restarting Symfony for a plugin/system operation: user-data
+        // is briefly unavailable so `isAuthenticated` is false, but the outage is
+        // transient. The operator must NOT be bounced to login.
+        authState.value = { isAuthenticated: false, isLoading: false, isBackendUnavailable: true };
+
+        renderWithProviders(
+            <AdminShell>
+                <div>admin-content</div>
+            </AdminShell>,
+        );
+
+        expect(screen.getByText('admin-content')).toBeInTheDocument();
+        expect(replaceMock).not.toHaveBeenCalled();
     });
 });
