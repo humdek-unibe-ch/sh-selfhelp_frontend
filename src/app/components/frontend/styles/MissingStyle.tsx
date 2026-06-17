@@ -12,7 +12,7 @@ import { ROUTES } from '../../../../config/routes.config';
 import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 
 interface IMissingStyleProps {
-    style: IMissingStyle;
+    style: Partial<IMissingStyle>;
     styleProps: Record<string, any>;
     cssClass: string;
 }

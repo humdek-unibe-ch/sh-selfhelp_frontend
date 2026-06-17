@@ -12,7 +12,7 @@ import { ROUTES } from '../../../../config/routes.config';
 import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 
 interface INoAccessStyleProps {
-    style: INoAccessStyle;
+    style: Partial<INoAccessStyle>;
     styleProps: Record<string, any>;
     cssClass: string;
 }

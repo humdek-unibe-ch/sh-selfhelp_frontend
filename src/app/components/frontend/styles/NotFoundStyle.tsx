@@ -13,7 +13,7 @@ import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 
 
 interface INotFoundStyleProps {
-    style: INotFoundStyle;
+    style: Partial<INotFoundStyle>;
     styleProps: Record<string, any>;
     cssClass: string;
     /**
