@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { notifications } from '@mantine/notifications';
 import { AuthApi } from '../api/auth.api';
 import { ROUTES } from '../config/routes.config';
-import { ITwoFactorVerifyRequest } from '../types/requests/auth/auth.types';
+import { type ITwoFactorVerifyRequest } from '../types/requests/auth/auth.types';
 
 export const TWO_FACTOR_CONSTANTS = {
     TIMER_KEY: '2fa_time_remaining',
@@ -173,7 +173,7 @@ export function useTwoFactorAuth(options: UseTwoFactorAuthOptions = {}) {
             }
 
             if (next.every(d => d) && timer > 0) {
-                setTimeout(() => submitCode(next), 100);
+                setTimeout(() => void submitCode(next), 100);
             }
 
             return next;
@@ -208,7 +208,7 @@ export function useTwoFactorAuth(options: UseTwoFactorAuthOptions = {}) {
             });
 
             if (digits.length === CODE_LENGTH && next.every(d => d) && timer > 0) {
-                setTimeout(() => submitCode(next), 500);
+                setTimeout(() => void submitCode(next), 500);
             } else {
                 const firstEmpty = next.findIndex(d => !d);
                 if (firstEmpty !== -1) {

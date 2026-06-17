@@ -34,7 +34,9 @@ import {
     getPageByKeywordSSRStatus,
     resolveLanguageSSR,
     resolvePreviewSSR,
+    extractSsrPage,
 } from '../_lib/server-fetch';
+import type { IPageContent } from '../../shared';
 import { MaintenanceClient } from '../MaintenanceClient';
 import { MAINTENANCE_KEYWORD, hasRenderableMaintenancePage, isMaintenanceStatus } from '../maintenance';
 import DynamicPageClient from './DynamicPageClient';
@@ -47,7 +49,7 @@ import { buildStaticFallbackPath, keywordFromSlug } from './slug-routing';
  * missing its required functional section). Falls back to the old
  * zero-sections check when the flag is absent (older BE versions).
  */
-function shouldFallback(page: any): boolean {
+function shouldFallback(page: (IPageContent & { should_fallback?: boolean }) | null): boolean {
     if (!page) return true;
     if (typeof page.should_fallback === 'boolean') return page.should_fallback;
     const sections = Array.isArray(page?.sections) ? page.sections : [];
@@ -71,7 +73,7 @@ export async function generateMetadata({
         getFrontendPageSeoSSR(keyword, languageId),
     ]);
 
-    const page = envelope?.data?.page ?? envelope?.data ?? null;
+    const page = extractSsrPage(envelope);
 
     const payloadTitle =
         typeof page?.title === 'string' && page.title.trim() ? page.title.trim() : null;
@@ -121,8 +123,7 @@ export default async function SlugPage({
             languageId,
             preview
         );
-        const maintenancePage =
-            maintenanceEnvelope?.data?.page ?? maintenanceEnvelope?.data ?? null;
+        const maintenancePage = extractSsrPage(maintenanceEnvelope);
         if (hasRenderableMaintenancePage(maintenancePage)) {
             return (
                 <DynamicPageClient keyword={MAINTENANCE_KEYWORD} initialPageId={maintenancePage.id} />
@@ -131,7 +132,7 @@ export default async function SlugPage({
         return <MaintenanceClient />;
     }
 
-    const page = envelope?.data?.page ?? envelope?.data ?? null;
+    const page = extractSsrPage(envelope);
 
     const fallbackPath = buildStaticFallbackPath(keyword, slug);
     if (fallbackPath && shouldFallback(page)) {

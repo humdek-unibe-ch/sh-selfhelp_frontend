@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import React, { useState, Fragment, useEffect } from 'react';
+import React, { useState, Fragment } from 'react';
 import {
     Paper,
     Title,
@@ -25,7 +25,7 @@ import { IconUser, IconKey, IconTrash, IconAlertTriangle, IconCheck, IconX, Icon
 import { useAuthUser } from '../../../../hooks/useUserData';
 import { useUpdateUsernameMutation, useUpdateNameMutation, useUpdatePasswordMutation, useUpdateTimezoneMutation, useUpdateCommunicationPreferencesMutation, useDeleteAccountMutation } from '../../../../hooks/mutations/useProfileMutations';
 import { useLookupsByType } from '../../../../hooks/useLookups';
-import { IProfileStyle } from '../../../../types/common/styles.types';
+import { type IProfileStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline } from '../../../../utils/html-sanitizer.utils';
 
 /**
@@ -49,7 +49,7 @@ const HtmlContent: React.FC<{ html: string; className?: string }> = ({ html, cla
  */
 interface IProfileStyleProps {
     style: IProfileStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, unknown>;
     cssClass: string;
 }
 
@@ -64,7 +64,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
     const timezoneLookups = useLookupsByType('timezones');
 
     // Mutations
-    const updateUsernameMutation = useUpdateUsernameMutation();
+    const _updateUsernameMutation = useUpdateUsernameMutation();
     const updateNameMutation = useUpdateNameMutation();
     const updatePasswordMutation = useUpdatePasswordMutation();
     const updateTimezoneMutation = useUpdateTimezoneMutation();
@@ -114,15 +114,15 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
     // Modal states
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
-    // Initialize timezone form with user's current timezone
-    useEffect(() => {
-        if (user?.timezoneId && timezoneForm.timezoneId === '' && !timezoneForm.success) {
-            setTimezoneForm(prev => ({
-                ...prev,
-                timezoneId: user.timezoneId!.toString()
-            }));
-        }
-    }, [user?.timezoneId, timezoneForm.timezoneId, timezoneForm.success]);
+    // Initialize timezone form with user's current timezone. Render-phase
+    // update: the `timezoneId === '' && !success` guard makes it run once,
+    // replacing the previous effect.
+    if (user?.timezoneId && timezoneForm.timezoneId === '' && !timezoneForm.success) {
+        setTimezoneForm(prev => ({
+            ...prev,
+            timezoneId: user.timezoneId!.toString()
+        }));
+    }
 
     // Derived communication preference values: pending override, else the loaded
     // user's value, else a safe default.
@@ -151,7 +151,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
     // Name change messages
     const nameSuccess = style.profile_name_change_success?.content || 'Display name updated successfully!';
     const nameErrorRequired = style.profile_name_change_error_required?.content || 'Display name is required';
-    const nameErrorInvalid = style.profile_name_change_error_invalid?.content || 'Display name contains invalid characters';
+    const _nameErrorInvalid = style.profile_name_change_error_invalid?.content || 'Display name contains invalid characters';
     const nameErrorGeneral = style.profile_name_change_error_general?.content || 'Failed to update display name. Please try again.';
 
     // Password reset fields
@@ -222,9 +222,9 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
         ['user_info'];
 
     // Styling options
-    const cardVariant = (style.profile_variant?.content as any) || 'default';
-    const cardRadius = (style.profile_radius?.content as any) || 'sm';
-    const cardShadow = (style.profile_shadow?.content as any) || 'sm';
+    const cardVariant = style.profile_variant?.content || 'default';
+    const cardRadius = style.profile_radius?.content || 'sm';
+    const cardShadow = style.profile_shadow?.content || 'sm';
 
     // Layout configuration
     const columns = parseInt(style.profile_columns?.content || '1');
@@ -232,16 +232,17 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
     
 
     // Convert spacing values to CSS
-    const getSpacingValue = (value: string) => {
+    const _getSpacingValue = (value: string) => {
         if (value === 'none') return undefined;
         return value; // Mantine handles xs, sm, md, lg, xl
     };
 
     // Extract backend error message from API response
-    const getBackendErrorMessage = (error: any) => {
-        return error?.response?.data?.error ||
-               error?.response?.data?.message ||
-               error?.message;
+    const getBackendErrorMessage = (error: unknown) => {
+        const err = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
+        return err?.response?.data?.error ||
+               err?.response?.data?.message ||
+               err?.message;
     };
 
     // Format date helper
@@ -275,7 +276,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
                         isSubmitting: false
                     }));
                 },
-                onError: (error: any) => {
+                onError: (error: unknown) => {
                     let errorMessage = nameErrorGeneral;
 
                     // Include backend error message if available
@@ -328,11 +329,12 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
                         isSubmitting: false
                     }));
                 },
-                onError: (error: any) => {
+                onError: (error: unknown) => {
                     let errorMessage = passwordErrorGeneral;
-                    if (error?.response?.status === 401) {
+                    const err = error as { response?: { status?: number } };
+                    if (err?.response?.status === 401) {
                         errorMessage = passwordErrorCurrentWrong;
-                    } else if (error?.response?.status === 400) {
+                    } else if (err?.response?.status === 400) {
                         errorMessage = passwordErrorWeak;
                     }
 
@@ -368,7 +370,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
                         isSubmitting: false
                     }));
                 },
-                onError: (error: any) => {
+                onError: (error: unknown) => {
                     let errorMessage = timezoneErrorGeneral;
 
                     // Include backend error message if available
@@ -397,7 +399,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
                 onSuccess: () => {
                     setCommunicationMessage({ error: '', success: communicationSuccess });
                 },
-                onError: (error: any) => {
+                onError: (error: unknown) => {
                     let errorMessage = communicationErrorGeneral;
 
                     const backendError = getBackendErrorMessage(error);
@@ -437,7 +439,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
                     }));
                     setDeleteModalOpen(false);
                 },
-                onError: (error: any) => {
+                onError: (error: unknown) => {
                     let errorMessage = deleteErrorGeneral;
 
                     // Include backend error message if available

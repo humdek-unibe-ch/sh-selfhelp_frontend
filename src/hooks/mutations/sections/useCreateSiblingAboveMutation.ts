@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { AdminApi } from '../../../api/admin';
-import { ICreateSectionInPageData, ICreateSectionInSectionData } from '../../../types/requests/admin/create-section.types';
+import { type ICreateSectionInPageData, type ICreateSectionInSectionData } from '../../../types/requests/admin/create-section.types';
 
 interface ICreateSiblingAboveParams {
     referenceSectionId: number;
@@ -20,7 +20,7 @@ export function useCreateSiblingAboveMutation() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ referenceSectionId, parentId, pageId, sectionData }: ICreateSiblingAboveParams) => {
+        mutationFn: async ({ parentId, pageId, sectionData }: ICreateSiblingAboveParams) => {
 
             // Calculate position: reference position - 1
             // TODO: Get reference section position from cache or API
@@ -48,13 +48,13 @@ export function useCreateSiblingAboveMutation() {
 
             // Invalidate relevant queries
             if (variables.parentId !== null) {
-                queryClient.invalidateQueries({ 
+                void queryClient.invalidateQueries({ 
                     queryKey: ['admin', 'sections', variables.parentId] 
                 });
             }
             
             if (variables.pageId) {
-                queryClient.invalidateQueries({ 
+                void queryClient.invalidateQueries({ 
                     queryKey: ['admin', 'pages', variables.pageId, 'sections'] 
                 });
             }
@@ -65,11 +65,11 @@ export function useCreateSiblingAboveMutation() {
                 color: 'green',
             });
         },
-        onError: (error: any, variables) => {
+        onError: (error: unknown, _variables) => {
             
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to create section above',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to create section above',
                 color: 'red',
             });
         },

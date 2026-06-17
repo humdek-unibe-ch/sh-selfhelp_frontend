@@ -33,19 +33,56 @@ import type {
     IAdminPluginSource,
 } from '../../types/responses/admin/plugins.types';
 
+/**
+ * Result payload of the pre-install `.shplugin` archive inspection.
+ *
+ * `manifest` and `compatibility` may be `null` when the archive fails
+ * before reaching those stages (e.g. corrupted ZIP, missing plugin.json,
+ * invalid JSON). `errors[]` always carries the human-readable rejection
+ * reasons; the UI should branch on them before reading `manifest.*`.
+ */
+interface IAdminPluginInspectResult {
+    ok: boolean;
+    manifest: Record<string, unknown> | null;
+    compatibility: { severity: 'ok' | 'warning' | 'blocking'; reasons: string[] } | null;
+    capabilities: string[];
+    // Canonical signature descriptor — `status` is the single source of
+    // truth (no parallel top-level field), `keyId` is parsed from
+    // `signature.json` when readable, and `unknownKey` drives the trust
+    // helper UI for the recoverable "unknown signing key" failure.
+    signature: {
+        status: 'verified' | 'invalid' | 'unsigned' | 'unverifiable';
+        keyId: string | null;
+        unknownKey: { keyId: string; envSnippet: string } | null;
+    };
+    errors: string[];
+    warnings: string[];
+    // Describes how the host will install the backend bundle for this
+    // archive. `mode=connected` means the host pulls the Composer package
+    // from Packagist / VCS; `standalone` means the package is included in
+    // the archive and installed via a Composer path repository.
+    archive: {
+        mode: 'connected' | 'standalone';
+        backendIncluded: boolean;
+        backendPackage: string | null;
+        backendVersion: string | null;
+        installMode: 'composer-path-repository' | 'composer-packagist';
+    };
+}
+
 export const AdminPluginApi = {
     async listPlugins(): Promise<IBaseApiResponse<IAdminPluginListResponse>> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_LIST);
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPluginListResponse>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_LIST);
         return response.data;
     },
 
     async listAvailable(): Promise<IBaseApiResponse<IAdminPluginAvailableResponse>> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_AVAILABLE);
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPluginAvailableResponse>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_AVAILABLE);
         return response.data;
     },
 
     async getPlugin(pluginId: string): Promise<IBaseApiResponse<IAdminPluginDetail>> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_DETAIL, pluginId);
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPluginDetail>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_DETAIL, pluginId);
         return response.data;
     },
 
@@ -69,14 +106,14 @@ export const AdminPluginApi = {
             formData.append('archive', body.archive);
             if (body.forceMajor !== undefined) formData.append('forceMajor', String(body.forceMajor));
             if (body.backupBefore !== undefined) formData.append('backupBefore', String(body.backupBefore));
-            const response = await permissionAwareApiClient.post(
+            const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPluginInstallResult>>(
                 API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_INSTALL,
                 formData,
                 { headers: { 'Content-Type': 'multipart/form-data' } },
             );
             return response.data;
         }
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_INSTALL, body);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPluginInstallResult>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_INSTALL, body);
         return response.data;
     },
 
@@ -104,47 +141,14 @@ export const AdminPluginApi = {
     async inspectArchive(
         archive: File,
         trustedKey?: { keyId: string; publicKeyBase64: string },
-    ): Promise<IBaseApiResponse<{
-        ok: boolean;
-        manifest: Record<string, unknown> | null;
-        compatibility: { severity: 'ok' | 'warning' | 'blocking'; reasons: string[] } | null;
-        capabilities: string[];
-        // Canonical signature descriptor — `status` is the single
-        // source of truth (no parallel top-level field), `keyId` is
-        // parsed from `signature.json` when readable, and `unknownKey`
-        // drives the trust helper UI for the recoverable "unknown
-        // signing key" failure.
-        signature: {
-            status: 'verified' | 'invalid' | 'unsigned' | 'unverifiable';
-            keyId: string | null;
-            unknownKey: { keyId: string; envSnippet: string } | null;
-        };
-        errors: string[];
-        warnings: string[];
-        // Describes how the host will install the backend bundle for
-        // this archive. `mode=connected` means the host pulls the
-        // Composer package from Packagist / VCS; `standalone` means
-        // the package is included in the archive and installed via a
-        // Composer path repository. Both modes still require Composer
-        // to reach a package source for the plugin's third-party PHP
-        // dependencies — `.shplugin` is not a fully offline install
-        // bundle, so there is intentionally no `internetRequired`
-        // flag here.
-        archive: {
-            mode: 'connected' | 'standalone';
-            backendIncluded: boolean;
-            backendPackage: string | null;
-            backendVersion: string | null;
-            installMode: 'composer-path-repository' | 'composer-packagist';
-        };
-    }>> {
+    ): Promise<IBaseApiResponse<IAdminPluginInspectResult>> {
         const formData = new FormData();
         formData.append('archive', archive);
         if (trustedKey) {
             formData.append('trustedKeyId', trustedKey.keyId);
             formData.append('trustedKeyBase64', trustedKey.publicKeyBase64);
         }
-        const response = await permissionAwareApiClient.post(
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPluginInspectResult>>(
             API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_INSPECT_ARCHIVE,
             formData,
             { headers: { 'Content-Type': 'multipart/form-data' } },
@@ -170,7 +174,7 @@ export const AdminPluginApi = {
             formData.append('archive', body.archive);
             if (body.forceMajor !== undefined) formData.append('forceMajor', String(body.forceMajor));
             if (body.backupBefore !== undefined) formData.append('backupBefore', String(body.backupBefore));
-            const response = await permissionAwareApiClient.post(
+            const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPluginOperation>>(
                 API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_UPDATE,
                 formData,
                 pluginId,
@@ -178,27 +182,27 @@ export const AdminPluginApi = {
             );
             return response.data;
         }
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_UPDATE, body, pluginId);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPluginOperation>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_UPDATE, body, pluginId);
         return response.data;
     },
 
     async enable(pluginId: string): Promise<IBaseApiResponse<IAdminPluginDetail>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_ENABLE, undefined, pluginId);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPluginDetail>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_ENABLE, undefined, pluginId);
         return response.data;
     },
 
     async disable(pluginId: string): Promise<IBaseApiResponse<IAdminPluginDetail>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_DISABLE, undefined, pluginId);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPluginDetail>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_DISABLE, undefined, pluginId);
         return response.data;
     },
 
     async uninstall(pluginId: string): Promise<IBaseApiResponse<{ pluginId: string }>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_UNINSTALL, undefined, pluginId);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<{ pluginId: string }>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_UNINSTALL, undefined, pluginId);
         return response.data;
     },
 
     async purge(pluginId: string, confirmedPluginId: string): Promise<IBaseApiResponse<{ pluginId: string }>> {
-        const response = await permissionAwareApiClient.post(
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<{ pluginId: string }>>(
             API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_PURGE,
             { confirmedPluginId },
             pluginId,
@@ -208,47 +212,47 @@ export const AdminPluginApi = {
 
     async repair(pluginId?: string): Promise<IBaseApiResponse<unknown>> {
         if (pluginId) {
-            const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_REPAIR, undefined, pluginId);
+            const response = await permissionAwareApiClient.post<IBaseApiResponse<unknown>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_REPAIR, undefined, pluginId);
             return response.data;
         }
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_REPAIR_ALL);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<unknown>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_REPAIR_ALL);
         return response.data;
     },
 
     async listSources(): Promise<IBaseApiResponse<IAdminPluginSource[]>> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_SOURCES_LIST);
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPluginSource[]>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_SOURCES_LIST);
         return response.data;
     },
 
     async createSource(body: Partial<IAdminPluginSource> & { name: string; kind: string; url: string }): Promise<IBaseApiResponse<IAdminPluginSource>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_SOURCES_CREATE, body);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPluginSource>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_SOURCES_CREATE, body);
         return response.data;
     },
 
     async updateSource(sourceId: number, body: Partial<IAdminPluginSource>): Promise<IBaseApiResponse<IAdminPluginSource>> {
-        const response = await permissionAwareApiClient.put(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_SOURCE_UPDATE, body, sourceId);
+        const response = await permissionAwareApiClient.put<IBaseApiResponse<IAdminPluginSource>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_SOURCE_UPDATE, body, sourceId);
         return response.data;
     },
 
     async deleteSource(sourceId: number): Promise<IBaseApiResponse<unknown>> {
-        const response = await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_SOURCE_DELETE, sourceId);
+        const response = await permissionAwareApiClient.delete<IBaseApiResponse<unknown>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_SOURCE_DELETE, sourceId);
         return response.data;
     },
 
     async listOperations(pluginId?: string): Promise<IBaseApiResponse<IAdminPluginOperation[]>> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_OPERATIONS_LIST, {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPluginOperation[]>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_OPERATIONS_LIST, {
             params: pluginId ? { pluginId } : undefined,
         });
         return response.data;
     },
 
     async getOperation(operationId: number): Promise<IBaseApiResponse<IAdminPluginOperation>> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_OPERATION_DETAIL, operationId);
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPluginOperation>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_OPERATION_DETAIL, operationId);
         return response.data;
     },
 
     async rollbackOperation(operationId: number): Promise<IBaseApiResponse<IAdminPluginOperation>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_OPERATION_ROLLBACK, undefined, operationId);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPluginOperation>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_OPERATION_ROLLBACK, undefined, operationId);
         return response.data;
     },
 
@@ -258,37 +262,37 @@ export const AdminPluginApi = {
      * clear a stuck operation without dropping to a shell.
      */
     async cancelOperation(operationId: number): Promise<IBaseApiResponse<IAdminPluginOperation>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_OPERATION_CANCEL, undefined, operationId);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPluginOperation>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_OPERATION_CANCEL, undefined, operationId);
         return response.data;
     },
 
     async listFeatureFlags(pluginId: string): Promise<IBaseApiResponse<IAdminPluginFeatureFlag[]>> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_FEATURE_FLAGS_LIST, pluginId);
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPluginFeatureFlag[]>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_FEATURE_FLAGS_LIST, pluginId);
         return response.data;
     },
 
     async setFeatureFlag(pluginId: string, body: { flagKey: string; scope?: string; scopeValue?: string; enabled: boolean }): Promise<IBaseApiResponse<IAdminPluginFeatureFlag>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_FEATURE_FLAGS_SET, body, pluginId);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPluginFeatureFlag>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_FEATURE_FLAGS_SET, body, pluginId);
         return response.data;
     },
 
     async health(pluginId: string): Promise<IBaseApiResponse<IAdminPluginHealthReport>> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_HEALTH, pluginId);
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPluginHealthReport>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_HEALTH, pluginId);
         return response.data;
     },
 
     async doctor(): Promise<IBaseApiResponse<IAdminPluginDoctorReport>> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_DOCTOR);
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPluginDoctorReport>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_DOCTOR);
         return response.data;
     },
 
     async enableSafeMode(): Promise<IBaseApiResponse<{ safeMode: boolean }>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_SAFE_MODE_ENABLE);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<{ safeMode: boolean }>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_SAFE_MODE_ENABLE);
         return response.data;
     },
 
     async disableSafeMode(): Promise<IBaseApiResponse<{ safeMode: boolean }>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_SAFE_MODE_DISABLE);
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<{ safeMode: boolean }>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_SAFE_MODE_DISABLE);
         return response.data;
     },
 };

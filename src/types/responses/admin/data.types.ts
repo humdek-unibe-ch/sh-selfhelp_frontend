@@ -14,7 +14,7 @@ export interface IDataTablesListResponse {
 }
 
 export interface IDataRowsResponse {
-  rows: Array<Record<string, any>>;
+  rows: Array<Record<string, unknown>>;
 }
 
 export interface IDataTableColumnsResponse {

@@ -41,9 +41,9 @@ export function useAclVersionWatcher(): void {
             // so we invalidate every cache that encodes permission-filtered
             // content: navigation, admin tree, and the public page content
             // itself (keyed by keyword via PAGE_BY_KEYWORD).
-            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
-            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
-            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
+            void queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
+            void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
         }
     }, [user?.aclVersion, queryClient]);
 }

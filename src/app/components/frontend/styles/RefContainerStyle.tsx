@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import BasicStyle from './BasicStyle';
-import { IRefContainerStyle } from '../../../../types/common/styles.types';
+import { type IRefContainerStyle, type TStyle } from '../../../../types/common/styles.types';
 
 interface IRefContainerStyleProps {
     style: IRefContainerStyle;
@@ -16,7 +16,7 @@ const RefContainerStyle: React.FC<IRefContainerStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
     return (
         <>
-            {children.map((child: any, index: number) =>
+            {children.map((child: TStyle, index: number) =>
                 child ? <BasicStyle key={index} style={child} /> : null
             )}
         </>

@@ -8,13 +8,13 @@ import {
     createContext,
     useContext,
     useState,
-    ReactNode,
+    type ReactNode,
     useMemo,
     useCallback,
     useEffect,
     useRef,
 } from 'react';
-import { ILanguage } from '../../../types/responses/admin/languages.types';
+import { type ILanguage } from '../../../types/responses/admin/languages.types';
 import { useAuthUser } from '../../../hooks/useUserData';
 import { usePublicLanguages } from '../../../hooks/useLanguages';
 import { writeBrowserCookie } from '../../../utils/auth.utils';
@@ -89,11 +89,16 @@ export function LanguageProvider({ children, initialLanguageId, initialLanguages
         Array.isArray(initialLanguages) ? initialLanguages : []
     );
 
-    useEffect(() => {
+    // Adopt the fetched public languages once they load. Render-phase update
+    // tracking the previous query result (matching the previous effect's
+    // [publicLanguages] dependency, including running on mount).
+    const [prevPublicLanguages, setPrevPublicLanguages] = useState<unknown>(() => ({}));
+    if (prevPublicLanguages !== publicLanguages) {
+        setPrevPublicLanguages(publicLanguages);
         if (publicLanguages && publicLanguages.length > 0) {
             setLanguages(publicLanguages);
         }
-    }, [publicLanguages]);
+    }
 
     const setCurrentLanguageId = useCallback((languageId: number) => {
         // The cookie write is idempotent and safe to run twice; we keep it
@@ -118,6 +123,7 @@ export function LanguageProvider({ children, initialLanguageId, initialLanguages
         const userLangId =
             typeof user.languageId === 'number' ? user.languageId : parseInt(String(user.languageId), 10);
         if (Number.isFinite(userLangId) && userLangId !== currentLanguageId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- setCurrentLanguageId performs a deliberate synchronous cookie write for SSR consistency and is guarded by a per-user ref, so this reconciliation must run in an effect.
             setCurrentLanguageId(userLangId);
         }
         lastSyncedUserRef.current = user.id;
@@ -127,6 +133,7 @@ export function LanguageProvider({ children, initialLanguageId, initialLanguages
         if (user) return;
         if (!languages || languages.length === 0) return;
         if (!languages.some((lang) => lang.id === currentLanguageId)) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- setCurrentLanguageId performs a deliberate synchronous cookie write for SSR consistency, so this no-user fallback must run in an effect.
             setCurrentLanguageId(languages[0].id);
         }
     }, [user, languages, currentLanguageId, setCurrentLanguageId]);

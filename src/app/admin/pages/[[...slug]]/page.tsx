@@ -21,10 +21,10 @@ import {
 import { AdminShell } from '../../../components/cms/admin-shell/AdminShell';
 import { PageSections } from '../../../components/cms/pages/page-sections/PageSections';
 import { ConfigurationPageEditor } from '../../../components/cms/pages/configuration-page-editor/ConfigurationPageEditor';
-import { useAdminPages } from '../../../../hooks/useAdminPages';
+import { useAdminPages ,type  IPageHierarchy } from '../../../../hooks/useAdminPages';
 import { useSelectedAdminPage } from '../../../../hooks/useSelectedAdminPage';
 import { useSyncDocumentMetadata } from '../../../../hooks/useSyncDocumentMetadata';
-import type { IPageHierarchy } from '../../../../hooks/useAdminPages';
+
 import { PageInspector } from '../../../components/cms/pages/page-inspector/PageInspector';
 import { SectionInspector } from '../../../components/cms/sections';
 
@@ -33,7 +33,7 @@ const ADMIN_TAB_SUFFIX = 'Pages · Admin · SelfHelp';
 /**
  * Utility function to flatten a hierarchical pages array into a flat array
  */
-function flattenPages(pages: IPageHierarchy[]): IPageHierarchy[] {
+function _flattenPages(pages: IPageHierarchy[]): IPageHierarchy[] {
   const flattened: IPageHierarchy[] = [];
 
   function flatten(pageList: IPageHierarchy[]) {

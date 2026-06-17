@@ -83,11 +83,11 @@ export function useDeleteColumns() {
     {
       mutationFn: async ({ tableName, body }) => ({ tableName, result: await AdminDataApi.deleteColumns(tableName, body) }),
       onSuccess: ({ tableName }) => {
-        queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.columns(tableName) });
+        void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.columns(tableName) });
         // Also refresh any rows for this table (all users, both deleted/non-deleted)
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           predicate: (q) => {
-            const key = q.queryKey as any[];
+            const key = q.queryKey;
             if (!Array.isArray(key) || key.length < 4) return false;
             if (key[0] !== 'admin' || key[1] !== 'data' || key[2] !== 'rows') return false;
             const params = key[3] as { tableName?: string };
@@ -105,7 +105,7 @@ export function useDeleteRecord() {
     {
       mutationFn: ({ recordId, tableName, ownEntriesOnly }) => AdminDataApi.deleteRecord(recordId, tableName, { own_entries_only: ownEntriesOnly }),
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.all });
+        void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.all });
       },
     }
   );
@@ -117,11 +117,11 @@ export function useDeleteTable() {
     {
       mutationFn: ({ tableName }) => AdminDataApi.deleteTable(tableName),
       onSuccess: (_, variables) => {
-        queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.tables() });
+        void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.tables() });
         // Invalidate any rows queries for this table
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           predicate: (q) => {
-            const key = q.queryKey as any[];
+            const key = q.queryKey;
             if (!Array.isArray(key) || key.length < 4) return false;
             if (key[0] !== 'admin' || key[1] !== 'data' || key[2] !== 'rows') return false;
             const params = key[3] as { tableName?: string };

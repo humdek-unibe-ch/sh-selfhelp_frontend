@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { ActionIcon } from '@mantine/core';
 import { useRouter } from 'next/navigation';
-import { IActionIconStyle } from '../../../../../types/common/styles.types';
+import { type IActionIconStyle } from '../../../../../types/common/styles.types';
 import IconComponent from '../../../shared/common/IconComponent';
 import { castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
 
@@ -17,7 +17,7 @@ import { castMantineSize, castMantineRadius } from '../../../../../utils/style-f
  */
 interface IActionIconStyleProps {
     style: IActionIconStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -35,11 +35,11 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style, styleProps, c
     // Extract field values using the new unified field structure
     const variant = style.mantine_variant?.content || 'subtle';
     const loading = style.mantine_action_icon_loading?.content === '1';
-    const size = castMantineSize((style as any).mantine_size?.content);
-    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const size = castMantineSize(style.mantine_size?.content);
+    const radius = castMantineRadius(style.mantine_radius?.content);
     const color = style.mantine_color?.content || 'blue';
     const disabled = style.disabled?.content === '1';
-    const use_mantine_style = style.use_mantine_style?.content === '1';
+    const _use_mantine_style = style.use_mantine_style?.content === '1';
 
     // New fields for icon and link functionality
     const iconName = style.mantine_left_icon?.content;
@@ -82,7 +82,7 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style, styleProps, c
     };
 
     // Handle anchor click for internal links
-    const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const _handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         if (url && url !== '#') {
             const isInternal = url.startsWith('/') ||
                 (typeof window !== 'undefined' && url.startsWith(window.location.origin));
@@ -97,7 +97,7 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style, styleProps, c
 
     return (
         <ActionIcon
-            variant={variant as any}
+            variant={variant}
             loading={loading}
             size={size}
             radius={radius === 'none' ? 0 : radius}

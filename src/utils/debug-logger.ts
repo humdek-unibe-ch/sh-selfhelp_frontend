@@ -17,7 +17,7 @@ interface ILogEntry {
     level: LogLevel;
     message: string;
     component?: string;
-    data?: any;
+    data?: unknown;
     timestamp: string;
 }
 
@@ -57,7 +57,7 @@ class DebugLogger {
         return `${timestamp} ${levelIcon} ${componentName} ${message}`.trim();
     }
 
-    private addLog(level: LogLevel, message: string, component?: string, data?: any): void {
+    private addLog(level: LogLevel, message: string, component?: string, data?: unknown): void {
         const logEntry: ILogEntry = {
             level,
             message,
@@ -75,38 +75,38 @@ class DebugLogger {
 
         // Store in window for debugging
         if (typeof window !== 'undefined') {
-            (window as any).__DEBUG_LOGS__ = this.logs;
+            (window as unknown as Record<string, unknown>).__DEBUG_LOGS__ = this.logs;
         }
     }
 
-    debug(message: string, component?: string, data?: any): void {
+    debug(message: string, component?: string, data?: unknown): void {
         if (!this.shouldLog('debug')) return;
         
-        const formattedMessage = this.formatMessage('debug', message, component);
+        const _formattedMessage = this.formatMessage('debug', message, component);
 
         this.addLog('debug', message, component, data);
     }
 
-    info(message: string, component?: string, data?: any): void {
+    info(message: string, component?: string, data?: unknown): void {
         if (!this.shouldLog('info')) return;
         
-        const formattedMessage = this.formatMessage('info', message, component);
+        const _formattedMessage = this.formatMessage('info', message, component);
 
         this.addLog('info', message, component, data);
     }
 
-    warn(message: string, component?: string, data?: any): void {
+    warn(message: string, component?: string, data?: unknown): void {
         if (!this.shouldLog('warn')) return;
         
-        const formattedMessage = this.formatMessage('warn', message, component);
+        const _formattedMessage = this.formatMessage('warn', message, component);
 
         this.addLog('warn', message, component, data);
     }
 
-    error(message: string, component?: string, data?: any): void {
+    error(message: string, component?: string, data?: unknown): void {
         if (!this.shouldLog('error')) return;
         
-        const formattedMessage = this.formatMessage('error', message, component);
+        const _formattedMessage = this.formatMessage('error', message, component);
 
         this.addLog('error', message, component, data);
     }
@@ -132,11 +132,13 @@ class DebugLogger {
     group(label: string, component?: string): void {
         if (!this.shouldLog('debug')) return;
         const formattedLabel = this.formatMessage('debug', label, component);
+        // eslint-disable-next-line no-console -- central debug logger: grouped console output is the intended sink
         console.group(formattedLabel);
     }
 
     groupEnd(): void {
         if (!this.shouldLog('debug')) return;
+        // eslint-disable-next-line no-console -- central debug logger: grouped console output is the intended sink
         console.groupEnd();
     }
 
@@ -153,7 +155,7 @@ class DebugLogger {
     clearLogs(): void {
         this.logs = [];
         if (typeof window !== 'undefined') {
-            (window as any).__DEBUG_LOGS__ = [];
+            (window as unknown as Record<string, unknown>).__DEBUG_LOGS__ = [];
         }
     }
 

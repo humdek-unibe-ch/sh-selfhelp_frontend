@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Highlight } from '@mantine/core';
-import { IHighlightStyle } from '../../../../../types/common/styles.types';
+import { type IHighlightStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for HighlightStyle component
@@ -14,7 +14,7 @@ import { IHighlightStyle } from '../../../../../types/common/styles.types';
  */
 interface IHighlightStyleProps {
     style: IHighlightStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -31,7 +31,7 @@ const HighlightStyle: React.FC<IHighlightStyleProps> = ({ style, styleProps, css
     const content = style.text?.content || 'Highlight some text in this content';
     const highlightText = style.mantine_highlight_highlight?.content || 'highlight';
     const color = style.mantine_color?.content || 'yellow';
-    const use_mantine_style = style.use_mantine_style?.content === '1';
+    const _use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
 

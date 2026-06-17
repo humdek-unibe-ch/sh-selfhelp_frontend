@@ -5,10 +5,10 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { Modal, Stack, Select, Box, Text, Loader, Alert, Paper, ScrollArea, Code, Group } from '@mantine/core';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PageVersionApi } from '../../../../../api/admin/page-version.api';
-import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
+import { type IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 import DOMPurify from 'isomorphic-dompurify';
 
 interface IVersionComparisonViewerProps {
@@ -32,13 +32,21 @@ export function VersionComparisonViewer({
     const [version2Id, setVersion2Id] = useState<number | null>(initialVersion2Id || null);
     const [format, setFormat] = useState<'unified' | 'side_by_side' | 'json_patch' | 'summary'>('side_by_side');
 
-    // Update state when modal opens with new initial values
-    useEffect(() => {
+    // Update state when modal opens with new initial values. Render-phase
+    // update tracking the previous inputs (matching the previous effect's
+    // [opened, initialVersion1Id, initialVersion2Id] dependency).
+    const [prevOpened, setPrevOpened] = useState(opened);
+    const [prevInitial1, setPrevInitial1] = useState(initialVersion1Id);
+    const [prevInitial2, setPrevInitial2] = useState(initialVersion2Id);
+    if (prevOpened !== opened || prevInitial1 !== initialVersion1Id || prevInitial2 !== initialVersion2Id) {
+        setPrevOpened(opened);
+        setPrevInitial1(initialVersion1Id);
+        setPrevInitial2(initialVersion2Id);
         if (opened) {
             setVersion1Id(initialVersion1Id || null);
             setVersion2Id(initialVersion2Id || null);
         }
-    }, [opened, initialVersion1Id, initialVersion2Id]);
+    }
 
     // Handle draft comparison specially
     const isDraftComparison = version1Id === -1 || version2Id === -1;
@@ -105,7 +113,7 @@ export function VersionComparisonViewer({
                   { value: "summary", label: "Summary" },
                 ]}
                 value={format}
-                onChange={(value) => setFormat(value as any)}
+                onChange={(value) => setFormat(value as 'unified' | 'side_by_side' | 'json_patch' | 'summary')}
               />
             </Group>
           </Paper>

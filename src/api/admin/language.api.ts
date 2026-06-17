@@ -11,8 +11,8 @@ SPDX-License-Identifier: MPL-2.0
 
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
-import { TLanguagesResponse, TLanguageResponse, ILanguage } from '../../types/responses/admin/languages.types';
-import { ICreateLanguageRequest, IUpdateLanguageRequest } from '../../types/requests/admin/languages.types';
+import { type TLanguagesResponse, type TLanguageResponse, type ILanguage } from '../../types/responses/admin/languages.types';
+import { type ICreateLanguageRequest, type IUpdateLanguageRequest } from '../../types/requests/admin/languages.types';
 
 export const AdminLanguageApi = {
     /**

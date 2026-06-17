@@ -9,7 +9,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module api/permission-aware-client.api
  */
 
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { apiClient } from './base.api';
 
 // Extend Axios request config to include permission metadata
@@ -26,7 +26,7 @@ declare module 'axios' {
  * Endpoint configuration type from API_CONFIG
  */
 type TEndpointConfig = { 
-    route: string | ((...args: any[]) => string); 
+    route: string | ((...args: never[]) => string); 
     permissions: string[] 
 };
 
@@ -48,22 +48,22 @@ type TEndpointConfig = {
  * // Dynamic route with multiple parameters
  * await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE, pageId);
  */
-async function get<T = any>(
+async function get<T = unknown>(
     endpointConfig: TEndpointConfig,
-    ...args: any[]
+    ...args: unknown[]
 ): Promise<AxiosResponse<T>> {
     // Last argument might be AxiosRequestConfig
-    const lastArg = args[args.length - 1];
-    const isLastArgConfig = lastArg && typeof lastArg === 'object' && 
+    const lastArg = args[args.length - 1] as AxiosRequestConfig | undefined;
+    const isLastArgConfig = !!lastArg && typeof lastArg === 'object' && 
         (lastArg.headers !== undefined || lastArg.params !== undefined || lastArg.baseURL !== undefined);
     
-    const config: AxiosRequestConfig | undefined = isLastArgConfig ? args.pop() : undefined;
+    const config: AxiosRequestConfig | undefined = isLastArgConfig ? (args.pop() as AxiosRequestConfig) : undefined;
     const routeParams = args;
 
     // Extract URL from config
     const url = typeof endpointConfig.route === 'string' 
         ? endpointConfig.route 
-        : endpointConfig.route(...routeParams);
+        : (endpointConfig.route as (...a: unknown[]) => string)(...routeParams);
 
     const enhancedConfig: AxiosRequestConfig = {
         ...config,
@@ -97,23 +97,23 @@ async function get<T = any>(
  * // Dynamic route with parameter and config
  * await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_USERS_GROUPS_ADD, groupData, userId, { headers: {...} });
  */
-async function post<T = any>(
+async function post<T = unknown>(
     endpointConfig: TEndpointConfig,
-    data?: any,
-    ...args: any[]
+    data?: unknown,
+    ...args: unknown[]
 ): Promise<AxiosResponse<T>> {
     // Last argument might be AxiosRequestConfig
-    const lastArg = args[args.length - 1];
-    const isLastArgConfig = lastArg && typeof lastArg === 'object' && 
+    const lastArg = args[args.length - 1] as AxiosRequestConfig | undefined;
+    const isLastArgConfig = !!lastArg && typeof lastArg === 'object' && 
         (lastArg.headers !== undefined || lastArg.params !== undefined || lastArg.baseURL !== undefined);
     
-    const config: AxiosRequestConfig | undefined = isLastArgConfig ? args.pop() : undefined;
+    const config: AxiosRequestConfig | undefined = isLastArgConfig ? (args.pop() as AxiosRequestConfig) : undefined;
     const routeParams = args;
 
     // Extract URL from config
     const url = typeof endpointConfig.route === 'string' 
         ? endpointConfig.route 
-        : endpointConfig.route(...routeParams);
+        : (endpointConfig.route as (...a: unknown[]) => string)(...routeParams);
 
     const enhancedConfig: AxiosRequestConfig = {
         ...config,
@@ -141,23 +141,23 @@ async function post<T = any>(
  * // Dynamic route with parameter and config
  * await permissionAwareApiClient.put(API_CONFIG.ENDPOINTS.ADMIN_USERS_UPDATE, userData, userId, { headers: {...} });
  */
-async function put<T = any>(
+async function put<T = unknown>(
     endpointConfig: TEndpointConfig,
-    data?: any,
-    ...args: any[]
+    data?: unknown,
+    ...args: unknown[]
 ): Promise<AxiosResponse<T>> {
     // Last argument might be AxiosRequestConfig
-    const lastArg = args[args.length - 1];
-    const isLastArgConfig = lastArg && typeof lastArg === 'object' && 
+    const lastArg = args[args.length - 1] as AxiosRequestConfig | undefined;
+    const isLastArgConfig = !!lastArg && typeof lastArg === 'object' && 
         (lastArg.headers !== undefined || lastArg.params !== undefined || lastArg.baseURL !== undefined);
     
-    const config: AxiosRequestConfig | undefined = isLastArgConfig ? args.pop() : undefined;
+    const config: AxiosRequestConfig | undefined = isLastArgConfig ? (args.pop() as AxiosRequestConfig) : undefined;
     const routeParams = args;
 
     // Extract URL from config
     const url = typeof endpointConfig.route === 'string' 
         ? endpointConfig.route 
-        : endpointConfig.route(...routeParams);
+        : (endpointConfig.route as (...a: unknown[]) => string)(...routeParams);
 
     const enhancedConfig: AxiosRequestConfig = {
         ...config,
@@ -184,22 +184,22 @@ async function put<T = any>(
  * // Dynamic route with parameter and config (e.g., with data for DELETE body)
  * await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.FORMS_DELETE, { data: deleteRequest });
  */
-async function del<T = any>(
+async function del<T = unknown>(
     endpointConfig: TEndpointConfig,
-    ...args: any[]
+    ...args: unknown[]
 ): Promise<AxiosResponse<T>> {
     // Last argument might be AxiosRequestConfig
-    const lastArg = args[args.length - 1];
-    const isLastArgConfig = lastArg && typeof lastArg === 'object' && 
+    const lastArg = args[args.length - 1] as AxiosRequestConfig | undefined;
+    const isLastArgConfig = !!lastArg && typeof lastArg === 'object' && 
         (lastArg.headers !== undefined || lastArg.params !== undefined || lastArg.baseURL !== undefined || lastArg.data !== undefined);
     
-    const config: AxiosRequestConfig | undefined = isLastArgConfig ? args.pop() : undefined;
+    const config: AxiosRequestConfig | undefined = isLastArgConfig ? (args.pop() as AxiosRequestConfig) : undefined;
     const routeParams = args;
 
     // Extract URL from config
     const url = typeof endpointConfig.route === 'string' 
         ? endpointConfig.route 
-        : endpointConfig.route(...routeParams);
+        : (endpointConfig.route as (...a: unknown[]) => string)(...routeParams);
 
     const enhancedConfig: AxiosRequestConfig = {
         ...config,
@@ -224,23 +224,23 @@ async function del<T = any>(
  * // Dynamic route with parameter
  * await permissionAwareApiClient.patch(API_CONFIG.ENDPOINTS.ADMIN_USERS_BLOCK, blockData, userId);
  */
-async function patch<T = any>(
+async function patch<T = unknown>(
     endpointConfig: TEndpointConfig,
-    data?: any,
-    ...args: any[]
+    data?: unknown,
+    ...args: unknown[]
 ): Promise<AxiosResponse<T>> {
     // Last argument might be AxiosRequestConfig
-    const lastArg = args[args.length - 1];
-    const isLastArgConfig = lastArg && typeof lastArg === 'object' && 
+    const lastArg = args[args.length - 1] as AxiosRequestConfig | undefined;
+    const isLastArgConfig = !!lastArg && typeof lastArg === 'object' && 
         (lastArg.headers !== undefined || lastArg.params !== undefined || lastArg.baseURL !== undefined);
     
-    const config: AxiosRequestConfig | undefined = isLastArgConfig ? args.pop() : undefined;
+    const config: AxiosRequestConfig | undefined = isLastArgConfig ? (args.pop() as AxiosRequestConfig) : undefined;
     const routeParams = args;
 
     // Extract URL from config
     const url = typeof endpointConfig.route === 'string' 
         ? endpointConfig.route 
-        : endpointConfig.route(...routeParams);
+        : (endpointConfig.route as (...a: unknown[]) => string)(...routeParams);
 
     const enhancedConfig: AxiosRequestConfig = {
         ...config,

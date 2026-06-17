@@ -38,7 +38,7 @@ interface IGroupFormValues {
   requires_2fa: boolean;
 }
 
-export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls }: IGroupFormModalProps) {
+export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormModalProps) {
   // Hooks
   const createGroupMutation = useCreateGroup();
   const updateGroupMutation = useUpdateGroup();
@@ -64,7 +64,8 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
     },
   });
 
-  // Load group data for editing
+  // Load group data for editing. `form.setValues` is a side effect, so it stays
+  // in an effect; the `selectedPages` sync is handled render-phase below.
   useEffect(() => {
     if (mode === 'edit' && groupDetails) {
       form.setValues({
@@ -72,22 +73,38 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
         description: groupDetails.description || '',
         requires_2fa: groupDetails.requires_2fa || false,
       });
-
-      // Load ACL data if available
-      if (groupDetails.acls && Array.isArray(groupDetails.acls)) {
-        const aclPages = convertApiAclsToUiFormat(groupDetails.acls);
-        setSelectedPages(aclPages);
-      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional init-on-edit; `form` is a fresh object each render, so depending on it would re-run every render and clobber edits. `form.setValues` is stable.
   }, [mode, groupDetails]);
 
-  // Reset form when modal closes
+  // Reset form when modal closes. `form.reset` is a side effect, so it stays in
+  // an effect; the `selectedPages` reset is handled render-phase below.
   useEffect(() => {
     if (!opened) {
       form.reset();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional reset-on-close; `form` is a fresh object each render, so depending on it would re-run every render. `form.reset` is stable.
+  }, [opened]);
+
+  // Keep `selectedPages` in sync with edit data / close transitions without a
+  // set-state-in-effect, tracking the previous inputs (matching the effects'
+  // [mode, groupDetails] and [opened] dependencies).
+  const [prevMode, setPrevMode] = useState(mode);
+  const [prevGroupDetails, setPrevGroupDetails] = useState(groupDetails);
+  const [prevOpened, setPrevOpened] = useState(opened);
+  if (prevMode !== mode || prevGroupDetails !== groupDetails) {
+    setPrevMode(mode);
+    setPrevGroupDetails(groupDetails);
+    if (mode === 'edit' && groupDetails && groupDetails.acls && Array.isArray(groupDetails.acls)) {
+      setSelectedPages(convertApiAclsToUiFormat(groupDetails.acls));
+    }
+  }
+  if (prevOpened !== opened) {
+    setPrevOpened(opened);
+    if (!opened) {
       setSelectedPages([]);
     }
-  }, [opened]);
+  }
 
 
 
@@ -124,10 +141,11 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
       }
 
       onClose();
-    } catch (error: any) {
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || `Failed to ${mode} group`,
+        message: message || `Failed to ${mode} group`,
         color: 'red',
       });
     }

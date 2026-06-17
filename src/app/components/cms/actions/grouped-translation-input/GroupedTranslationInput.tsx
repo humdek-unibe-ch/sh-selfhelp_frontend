@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Group, Stack, Text, TextInput, Badge } from '@mantine/core';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { RichTextField } from '../../shared/field-components/RichTextField';
@@ -52,12 +52,11 @@ export function GroupedTranslationInput({
     };
   }) || [];
 
-  // Auto-select first language on mount
-  useEffect(() => {
-    if (languagesWithStatus.length > 0 && !activeLanguage) {
-      setActiveLanguage(languagesWithStatus[0].id.toString());
-    }
-  }, [languagesWithStatus, activeLanguage]);
+  // Auto-select first language once languages load. Render-phase update: the
+  // `!activeLanguage` guard makes it run once, replacing the previous effect.
+  if (languagesWithStatus.length > 0 && !activeLanguage) {
+    setActiveLanguage(languagesWithStatus[0].id.toString());
+  }
 
   const handleSubjectChange = (value: string) => {
     const languageId = parseInt(activeLanguage);

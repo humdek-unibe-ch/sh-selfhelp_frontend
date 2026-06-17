@@ -113,7 +113,8 @@ function PluginsProvider({ apiBaseUrl = '/api', initialManifest, children }: IPl
     });
 
     useEffect(() => {
-        if (!data) return;
+        if (!data) return undefined;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- this effect subscribes to the plugin runtime and starts the async boot (dynamic plugin imports); isBooting is the loading flag coupled to that effect-driven async lifecycle, so it cannot move to render.
         setIsBooting(true);
         // Stash the host's singleton modules on `globalThis` BEFORE we
         // dynamically import any plugin bundle. The plugin bundle's
@@ -133,7 +134,6 @@ function PluginsProvider({ apiBaseUrl = '/api', initialManifest, children }: IPl
                 if (!cancelled) setSnapshot(next);
             })
             .catch((err) => {
-                // eslint-disable-next-line no-console
                 console.error('[plugins-provider] boot failed', err);
             })
             .finally(() => {

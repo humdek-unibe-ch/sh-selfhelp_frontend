@@ -32,7 +32,7 @@ import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/el
 import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
-import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
+import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { calculateMenuPosition } from '../../../../../utils/position-calculator';
 
 interface IMenuPageItem {
@@ -100,7 +100,7 @@ function MenuPageItem({
         const element = elementRef.current;
         const dragHandle = dragHandleRef.current;
 
-        if (!element || !dragHandle) return;
+        if (!element || !dragHandle) return undefined;
 
         return draggable({
             element: dragHandle,
@@ -153,7 +153,7 @@ function MenuPageItem({
     // Setup drop target
     useEffect(() => {
         const element = elementRef.current;
-        if (!element) return;
+        if (!element) return undefined;
 
         return dropTargetForElements({
             element,
@@ -283,59 +283,69 @@ export function MenuPositionEditor({
         return calculateMenuPosition(targetPage, edge, pages);
     }, []);
 
-    // Filter and prepare menu pages with parent context
-    useEffect(() => {
-        if (!pages) return;
+    // Filter and prepare menu pages with parent context. Render-phase update
+    // tracking the previous inputs (matching the previous effect's
+    // [pages, currentPage, menuType, position, parentPage] dependency, including
+    // running on mount), replacing the set-state-in-effect.
+    const menuDeps = [pages, currentPage, menuType, position, parentPage];
+    const [prevMenuDeps, setPrevMenuDeps] = useState<unknown[] | null>(null);
+    if (
+        prevMenuDeps === null ||
+        prevMenuDeps.length !== menuDeps.length ||
+        menuDeps.some((dep, index) => dep !== prevMenuDeps[index])
+    ) {
+        setPrevMenuDeps(menuDeps);
+        if (pages) {
+            const positionField = menuType === 'header' ? 'nav_position' : 'footer_position';
 
-        const positionField = menuType === 'header' ? 'nav_position' : 'footer_position';
-        
-        // Determine the parent context for filtering
-        const targetParentId = parentPage ? parentPage.id_pages : currentPage.id_parent_page;
-        
-        // Get pages that have positions in this menu type and belong to the same parent
-        const existingMenuPages = pages
-            .filter(page => {
-                // Must have position in this menu type
-                if (page[positionField] === null) return false;
-                
-                // Must not be the current page (we'll add it separately)
-                if (page.keyword === currentPage.keyword) return false;
-                
-                // Must belong to the same parent context
-                return page.id_parent_page === targetParentId;
-            })
-            .sort((a, b) => (a[positionField] || 0) - (b[positionField] || 0))
-            .map(page => ({
-                id: page.id_pages.toString(),
-                keyword: page.keyword,
-                label: page.keyword,
-                position: page[positionField] || 0
-            }));
+            // Determine the parent context for filtering
+            const targetParentId = parentPage ? parentPage.id_pages : currentPage.id_parent_page;
 
-        // Add current page if it has a position
-        if (position !== null) {
-            const currentPageItem: IMenuPageItem = {
-                id: currentPage.id_pages.toString(),
-                keyword: currentPage.keyword,
-                label: currentPage.keyword,
-                position: position,
-                isCurrentPage: true
-            };
+            // Get pages that have positions in this menu type and belong to the same parent
+            const existingMenuPages = pages
+                .filter(page => {
+                    // Must have position in this menu type
+                    if (page[positionField] === null) return false;
 
-            // Insert current page at correct position
-            const allPages = [...existingMenuPages, currentPageItem]
-                .sort((a, b) => a.position - b.position);
+                    // Must not be the current page (we'll add it separately)
+                    if (page.keyword === currentPage.keyword) return false;
 
-            setMenuPages(allPages);
-        } else {
-            setMenuPages(existingMenuPages);
+                    // Must belong to the same parent context
+                    return page.id_parent_page === targetParentId;
+                })
+                .sort((a, b) => (a[positionField] || 0) - (b[positionField] || 0))
+                .map(page => ({
+                    id: page.id_pages.toString(),
+                    keyword: page.keyword,
+                    label: page.keyword,
+                    position: page[positionField] || 0
+                }));
+
+            // Add current page if it has a position
+            if (position !== null) {
+                const currentPageItem: IMenuPageItem = {
+                    id: currentPage.id_pages.toString(),
+                    keyword: currentPage.keyword,
+                    label: currentPage.keyword,
+                    position: position,
+                    isCurrentPage: true
+                };
+
+                // Insert current page at correct position
+                const allPages = [...existingMenuPages, currentPageItem]
+                    .sort((a, b) => a.position - b.position);
+
+                setMenuPages(allPages);
+            } else {
+                setMenuPages(existingMenuPages);
+            }
         }
-    }, [pages, currentPage, menuType, position, parentPage]);
+    }
 
     // Setup auto-scroll
     useEffect(() => {
         const container = containerRef.current;
-        if (!container) return;
+        if (!container) return undefined;
 
         return autoScrollForElements({
             element: container,

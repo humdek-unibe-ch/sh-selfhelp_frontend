@@ -89,7 +89,7 @@ SPDX-License-Identifier: MPL-2.0
  * attach custom headers, and SSE is GET-only and idempotent.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import {
     AUTH_COOKIE,

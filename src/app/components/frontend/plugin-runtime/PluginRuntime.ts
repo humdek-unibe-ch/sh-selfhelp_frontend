@@ -29,19 +29,19 @@ SPDX-License-Identifier: MPL-2.0
  *     manifest disposes the previous registrations first.
  */
 
-import type {
-    IAdminPageDefinition,
-    IMenuItemDefinition,
-    IPluginApi,
-    IPluginFeatureFlag,
-    IPluginFieldRendererProps,
-    IPluginHealthCheck,
-    IPluginRealtimeTopic,
-    IPluginRegistration,
-    IRichTextEditorAdapter,
-    IStyleDefinition,
-} from '@selfhelp/shared/plugin-sdk';
-import { PLUGIN_API_VERSION, isPluginApiCompatible } from '@selfhelp/shared/plugin-sdk';
+import {
+    type IAdminPageDefinition,
+    type IMenuItemDefinition,
+    type IPluginApi,
+    type IPluginFeatureFlag,
+    type IPluginFieldRendererProps,
+    type IPluginHealthCheck,
+    type IPluginRealtimeTopic,
+    type IPluginRegistration,
+    type IRichTextEditorAdapter,
+    type IStyleDefinition,
+ PLUGIN_API_VERSION, isPluginApiCompatible } from '@selfhelp/shared/plugin-sdk';
+
 import {
     extendStyleRegistry,
     type IStyleRegistryEntry,
@@ -217,11 +217,9 @@ const DEFAULT_LOGGER = {
         console.info('[plugin-runtime]', message, context);
     },
     warn: (message: string, context?: Record<string, unknown>) => {
-        // eslint-disable-next-line no-console
         console.warn('[plugin-runtime]', message, context);
     },
     error: (message: string, context?: Record<string, unknown>) => {
-        // eslint-disable-next-line no-console
         console.error('[plugin-runtime]', message, context);
     },
 };
@@ -426,7 +424,6 @@ export class PluginRuntime {
     constructor(options: IPluginRuntimeOptions = {}) {
         this.logger = options.logger ?? DEFAULT_LOGGER;
         this.importPlugin = options.importPlugin ?? ((runtimeUrl: string) =>
-            // eslint-disable-next-line @typescript-eslint/no-implied-eval
             (Function('p', 'return import(/* webpackIgnore: true */ p)') as (p: string) => Promise<unknown>)(runtimeUrl));
         this.injectStylesheet = options.injectStylesheet ?? defaultInjectStylesheet;
         this.richTextEditor = options.richTextEditor ?? createStubRichTextAdapter(this.logger);

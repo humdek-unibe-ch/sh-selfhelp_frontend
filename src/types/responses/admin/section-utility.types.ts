@@ -2,8 +2,6 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { IBaseApiResponse } from '../common/response-envelope.types';
-
 /**
  * Unused Section Item
  * Represents a section that is not in hierarchy and not assigned to pages
@@ -45,16 +43,6 @@ export type IUnusedSectionsData = IUnusedSection[];
  * Array of sections with refContainer style
  */
 export type IRefContainerSectionsData = IRefContainerSection[];
-
-/**
- * Unused Sections API Response
- */
-interface IUnusedSectionsResponse extends IBaseApiResponse<IUnusedSectionsData> {}
-
-/**
- * RefContainer Sections API Response
- */
-interface IRefContainerSectionsResponse extends IBaseApiResponse<IRefContainerSectionsData> {}
 
 /**
  * A page entry returned by GET /admin/sections/{sectionId}/pages

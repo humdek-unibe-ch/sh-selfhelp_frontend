@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Typography } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { ITypographyStyle } from '../../../../../types/common/styles.types';
+import { type ITypographyStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for TypographyStyle component
@@ -15,7 +15,7 @@ import { ITypographyStyle } from '../../../../../types/common/styles.types';
  */
 interface ITypographyStyleProps {
     style: ITypographyStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -43,7 +43,7 @@ const TypographyStyle: React.FC<ITypographyStyleProps> = ({ style, styleProps, c
     if (use_mantine_style) {
         return (
             <Typography {...styleProps} className={cssClass} style={styleObj}>
-                {children.map((child: any, index: number) => (
+                {children.map((child, index: number) => (
                     child ? <BasicStyle key={index} style={child} /> : null
                 ))}
             </Typography>

@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { IAdminPage } from '../../types/responses/admin/admin.types';
+import { type IAdminPage } from '../../types/responses/admin/admin.types';
 
 /**
  * Admin store — holds only *navigation UI state*, not page content.
@@ -77,9 +77,11 @@ export const useAdminStore = create<AdminState>()(
         {
             name: 'admin-store',
             partialize: (state) => ({ expandedPageIds: Array.from(state.expandedPageIds) }),
-            merge: (persistedState: any, currentState) => ({
+            merge: (persistedState: unknown, currentState) => ({
                 ...currentState,
-                expandedPageIds: new Set(persistedState?.expandedPageIds || []),
+                expandedPageIds: new Set(
+                    (persistedState as { expandedPageIds?: number[] })?.expandedPageIds || []
+                ),
             }),
         }
     )

@@ -10,33 +10,40 @@ SPDX-License-Identifier: MPL-2.0
  * @param fieldName - The name of the field to extract
  * @returns The field content as a string, or empty string if not found
  */
-export const getFieldContent = (style: any, fieldName: string): string => {
+export const getFieldContent = (style: unknown, fieldName: string): string => {
+    const s = style as Record<string, unknown>;
+
     // Check if it's a direct property with content
-    if (style[fieldName] && typeof style[fieldName] === 'object' && 'content' in style[fieldName]) {
-        return String(style[fieldName].content || '');
+    const direct = s[fieldName];
+    if (direct && typeof direct === 'object' && 'content' in direct) {
+        return String((direct as { content?: unknown }).content || '');
     }
-    
+
     // Check in fields object with new structure: fields.fieldName.languageCode.content
-    if (style.fields && style.fields[fieldName]) {
-        const fieldData = style.fields[fieldName];
-        
+    const fields = s.fields as Record<string, Record<string, { content?: unknown } | undefined>> | undefined;
+    if (fields && fields[fieldName]) {
+        const fieldData = fields[fieldName];
+
         // Try 'all' first for non-translatable fields like CSS, level, img_src, etc.
-        if (fieldData.all && fieldData.all.content !== undefined) {
-            return String(fieldData.all.content || '');
+        const all = fieldData.all;
+        if (all && all.content !== undefined) {
+            return String(all.content || '');
         }
-        
+
         // Try 'en-GB' for translatable fields like title, alt, text_md, etc.
-        if (fieldData['en-GB'] && fieldData['en-GB'].content !== undefined) {
-            return String(fieldData['en-GB'].content || '');
+        const enGB = fieldData['en-GB'];
+        if (enGB && enGB.content !== undefined) {
+            return String(enGB.content || '');
         }
-        
+
         // Try any available language code as fallback
         const firstLanguage = Object.keys(fieldData)[0];
-        if (firstLanguage && fieldData[firstLanguage] && fieldData[firstLanguage].content !== undefined) {
-            return String(fieldData[firstLanguage].content || '');
+        const firstData = firstLanguage ? fieldData[firstLanguage] : undefined;
+        if (firstData && firstData.content !== undefined) {
+            return String(firstData.content || '');
         }
     }
-    
+
     return '';
 };
 
@@ -48,7 +55,7 @@ export const getFieldContent = (style: any, fieldName: string): string => {
  * @param value - The value to check against (default: '1')
  * @returns True if the field matches the value, false otherwise
  */
-export const hasFieldValue = (style: any, fieldName: string, value: string = '1'): boolean => {
+export const hasFieldValue = (style: unknown, fieldName: string, value: string = '1'): boolean => {
     return getFieldContent(style, fieldName) === value;
 };
 
@@ -60,7 +67,7 @@ export const hasFieldValue = (style: any, fieldName: string, value: string = '1'
 export function castMantineSize(sizeString: string | undefined): 'xs' | 'sm' | 'md' | 'lg' | 'xl' {
     const validSizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
     const size = sizeString || 'sm';
-    return validSizes.includes(size as any) ? size as 'xs' | 'sm' | 'md' | 'lg' | 'xl' : 'sm';
+    return (validSizes as readonly string[]).includes(size) ? size as 'xs' | 'sm' | 'md' | 'lg' | 'xl' : 'sm';
 }
 
 /**
@@ -71,5 +78,5 @@ export function castMantineSize(sizeString: string | undefined): 'xs' | 'sm' | '
 export function castMantineRadius(radiusString: string | undefined): 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' {
     const validRadii = ['none', 'xs', 'sm', 'md', 'lg', 'xl'] as const;
     const radius = radiusString || 'sm';
-    return validRadii.includes(radius as any) ? radius as 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' : 'sm';
+    return (validRadii as readonly string[]).includes(radius) ? radius as 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' : 'sm';
 } 

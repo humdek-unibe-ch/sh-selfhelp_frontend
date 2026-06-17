@@ -18,11 +18,11 @@ import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveBulkSectionsFromPageMutationOptions {
     onSuccess?: (
-        data: any,
+        data: unknown,
         variables: { pageId: number; sectionIds: number[] }
     ) => void;
     onError?: (
-        error: any,
+        error: unknown,
         variables: { pageId: number; sectionIds: number[] }
     ) => void;
     showNotifications?: boolean;
@@ -46,8 +46,8 @@ export function useRemoveBulkSectionsFromPageMutation(
         mutationFn: ({ pageId, sectionIds }: IRemoveBulkSectionsFromPageVariables) =>
             AdminApi.removeBulkSectionsFromPage(pageId, sectionIds),
 
-        onSuccess: async (result: any, variables) => {
-            const deletedCount = result?.deleted_count ?? variables.sectionIds.length;
+        onSuccess: async (result: unknown, variables) => {
+            const deletedCount = (result as { deleted_count?: number } | undefined)?.deleted_count ?? variables.sectionIds.length;
 
             await Promise.all([
                 queryClient.invalidateQueries({
@@ -72,7 +72,7 @@ export function useRemoveBulkSectionsFromPageMutation(
             onSuccess?.(result, variables);
         },
 
-        onError: (error: any, variables) => {
+        onError: (error: unknown, variables) => {
             const { errorMessage, errorTitle } = parseApiError(error);
 
             if (showNotifications) {

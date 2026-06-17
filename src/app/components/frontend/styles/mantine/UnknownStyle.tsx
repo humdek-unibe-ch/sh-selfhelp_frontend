@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Alert, Text, Code, Group } from '@mantine/core';
 import { IconAlertTriangle, IconCode } from '@tabler/icons-react';
-import { IBaseStyle } from '../../../../../types/common/styles.types';
+import { type IBaseStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for UnknownStyle component

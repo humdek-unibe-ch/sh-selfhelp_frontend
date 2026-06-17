@@ -31,19 +31,31 @@ import { pointerOutsideOfPreview } from '@atlaskit/pragmatic-drag-and-drop/eleme
 import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
 import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 
-import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
+import { type IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { PageSection } from './PageSection';
+import { type IMoveData } from './PageSections';
 import { calculateDragDropPosition, calculateContainerDropPosition } from '../../../../../utils/position-calculator';
-import { IStyleGroup } from '../../../../../types/responses/admin/styles.types';
+import { type IStyleGroup } from '../../../../../types/responses/admin/styles.types';
 import { isStyleRelationshipValid, findStyleById } from '../../../../../utils/style-relationship.utils';
 import styles from './SectionsList.module.css';
+
+// Pure recursive lookup (no component scope) — kept at module level so it has a
+// stable identity and does not need to be a hook dependency.
+const findParentId = (sectionId: number, items: IPageSectionWithFields[]): number | null => {
+    for (const item of items) {
+        if (item.children?.some(c => c.id === sectionId)) return item.id;
+        const found = findParentId(sectionId, item.children || []);
+        if (found !== null) return found;
+    }
+    return null;
+};
 
 // Types
 interface ISectionsListProps {
     sections: IPageSectionWithFields[] | undefined;
     expandedSections: Set<number>;
     onToggleExpand: (sectionId: number) => void;
-    onSectionMove: (moveData: any) => void;
+    onSectionMove: (moveData: IMoveData) => void;
     onRemoveSection: (sectionId: number, parentId: number | null) => void;
     onAddChildSection?: (parentSectionId: number) => void;
     onAddSiblingAbove?: (referenceSectionId: number, parentId: number | null) => void;
@@ -363,7 +375,7 @@ const SectionItem = memo(function SectionItem({
         const element = elementRef.current;
         const dragHandle = dragHandleRef.current;
 
-        if (!element || !dragHandle) return;
+        if (!element || !dragHandle) return undefined;
 
         return draggable({
             element: dragHandle,
@@ -400,12 +412,12 @@ const SectionItem = memo(function SectionItem({
                 setIsDragging(false);
             }
         });
-    }, [section, level, parentId, index]);
+    }, [section, level, parentId, index, canHaveChildren]);
 
     // Setup drop targets with improved logic based on requirements
     useEffect(() => {
         const element = elementRef.current;
-        if (!element) return;
+        if (!element) return undefined;
 
         return dropTargetForElements({
             element,
@@ -428,24 +440,24 @@ const SectionItem = memo(function SectionItem({
                 const isNearEdge = isNearTopEdge || isNearBottomEdge;
 
                 let targetParentId: number | null;
-                let dropType: string;
+                let _dropType: string;
 
                 if (isNearEdge) {
                     // Sibling drop - target parent is the parent of current section
                     targetParentId = parentId;
-                    dropType = 'sibling';
+                    _dropType = 'sibling';
                 } else if (hasChildren && canHaveChildren) {
                     // Container drop - target parent is the current section itself
                     targetParentId = section.id;
-                    dropType = 'container';
+                    _dropType = 'container';
                 } else if (!hasChildren && canHaveChildren) {
                     // Empty container drop - target parent is the current section itself
                     targetParentId = section.id;
-                    dropType = 'empty-container';
+                    _dropType = 'empty-container';
                 } else {
                     // Default to sibling drop
                     targetParentId = parentId;
-                    dropType = 'sibling';
+                    _dropType = 'sibling';
                 }
 
                 // Check style relationship validity
@@ -552,12 +564,12 @@ const SectionItem = memo(function SectionItem({
                 });
             }
         });
-    }, [section, level, parentId, index, isDescendantOfDragged, canHaveChildren, hasChildren, isCurrentDropTargetInvalid]);
+    }, [section, level, parentId, index, isDescendantOfDragged, canHaveChildren, hasChildren, isCurrentDropTargetInvalid, isValidDropTarget]);
 
     // Setup separate drop target for the drop zone area
     useEffect(() => {
         const dropZoneElement = dropZoneRef.current;
-        if (!dropZoneElement || !canHaveChildren || hasChildren) return;
+        if (!dropZoneElement || !canHaveChildren || hasChildren) return undefined;
 
         return dropTargetForElements({
             element: dropZoneElement,
@@ -573,7 +585,7 @@ const SectionItem = memo(function SectionItem({
 
                 // For drop zone, this is always a container drop - target parent is the current section
                 const targetParentId = section.id;
-                const dropType = 'drop-zone';
+                const _dropType = 'drop-zone';
 
                 // Check style relationship validity
                 if (!isValidDropTarget(draggedStyleId, targetParentId)) {
@@ -619,7 +631,7 @@ const SectionItem = memo(function SectionItem({
                 });
             }
         });
-    }, [section, level, parentId, isDescendantOfDragged, canHaveChildren, hasChildren, isCurrentDropTargetInvalid]);
+    }, [section, level, parentId, isDescendantOfDragged, canHaveChildren, hasChildren, isCurrentDropTargetInvalid, isValidDropTarget]);
 
     // Get wrapper classes based on states
     const getWrapperClasses = () => {
@@ -764,14 +776,6 @@ function useSectionsContext() {
     return context;
 }
 
-function useHoverPreviewContext() {
-    const context = useContext(HoverPreviewContext);
-    if (!context) {
-        throw new Error('useHoverPreviewContext must be used within HoverPreviewContext');
-    }
-    return context;
-}
-
 // Main sections list component - memoized for performance
 const SectionsListComponent = function SectionsList({
     sections,
@@ -838,15 +842,6 @@ const SectionsListComponent = function SectionsList({
         targetSectionName: null
     });
 
-   const findParentId = (sectionId: number, items: IPageSectionWithFields[]): number | null => {
-    for (const item of items) {
-        if (item.children?.some(c => c.id === sectionId)) return item.id;
-        const found = findParentId(sectionId, item.children || []);
-        if (found !== null) return found;
-    }
-    return null;
-};
-
     /**
      * Calculates the new position for a dropped section using centralized positioning logic
      */
@@ -880,7 +875,7 @@ const SectionsListComponent = function SectionsList({
     // Set up auto-scroll with proper reinitialization
     useEffect(() => {
         const container = containerRef.current;
-        if (!container) return;
+        if (!container) return undefined;
 
         return autoScrollForElements({
             element: container,
@@ -975,7 +970,7 @@ const SectionsListComponent = function SectionsList({
                 });
             },
         });
-    }, [sections, calculateNewPosition, pageId, findParentId, onSectionMove]);
+    }, [sections, calculateNewPosition, pageId, onSectionMove]);
 
 
     return (

@@ -8,14 +8,14 @@ import React, { useState } from 'react';
 import { Box, Card, TextInput, Button, Alert, Text } from '@mantine/core';
 import { IconCheck, IconMail, IconLock, IconX } from '@tabler/icons-react';
 import { useParams, useRouter } from 'next/navigation';
-import { IResetPasswordStyle } from '../../../../types/common/styles.types';
+import { type IResetPasswordStyle } from '../../../../types/common/styles.types';
 import { ROUTES } from '../../../../config/routes.config';
 import { AuthApi } from '../../../../api/auth.api';
 import DOMPurify from 'isomorphic-dompurify';
 
 interface IResetPasswordStyleProps {
     style: IResetPasswordStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, unknown>;
     cssClass: string;
 }
 
@@ -70,7 +70,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     const { userId, token } = extractResetTarget(params?.slug as string | string[] | undefined);
     const isSetMode = userId > 0 && token !== '';
 
-    const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
+    const mantineColor = ((style as { mantine_color?: { content?: string } }).mantine_color?.content as string | undefined) || 'blue';
     const isHtml = style.is_html?.content === '1';
     const labelPwReset = style.label_pw_reset?.content || 'Send reset link';
     const alertSuccess = style.alert_success?.content
@@ -145,8 +145,8 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
                     router.push(ROUTES.LOGIN);
                 }
             }, 1000);
-        } catch (err: any) {
-            setError(err?.message || resetErrorInvalidToken);
+        } catch (err) {
+            setError((err as { message?: string })?.message || resetErrorInvalidToken);
         } finally {
             setSubmitting(false);
         }

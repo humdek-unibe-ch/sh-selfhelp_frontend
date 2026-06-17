@@ -15,7 +15,7 @@ export interface IPublishVersionRequest {
     metadata?: {
         description?: string;
         tags?: string[];
-        [key: string]: any;
+        [key: string]: unknown;
     };
 }
 

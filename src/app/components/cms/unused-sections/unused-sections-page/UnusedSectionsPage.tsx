@@ -65,12 +65,12 @@ export function UnusedSectionsPage() {
     };
 
     const handleSectionDeleted = () => {
-        refetch();
+        void refetch();
         setDeleteModalSection(null);
     };
 
     const handleAllSectionsDeleted = () => {
-        refetch();
+        void refetch();
         setDeleteAllModalOpened(false);
     };
 

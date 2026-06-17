@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Center } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { ICenterStyle } from '../../../../../types/common/styles.types';
+import { type ICenterStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for CenterStyle component
@@ -17,7 +17,7 @@ import { ICenterStyle } from '../../../../../types/common/styles.types';
  */
 interface ICenterStyleProps {
     style: ICenterStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -60,7 +60,7 @@ const CenterStyle: React.FC<ICenterStyleProps> = ({ style, styleProps, cssClass 
             {...styleProps} className={cssClass}
             style={styleObj}
         >
-            {children.map((child: any, index: number) => (
+            {children.map((child, index: number) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}
         </Center>

@@ -17,8 +17,8 @@ import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromSectionMutationOptions {
-    onSuccess?: (data: any, variables: { pageId: number; parentSectionId: number; childSectionId: number }) => void;
-    onError?: (error: any, variables: { pageId: number; parentSectionId: number; childSectionId: number }) => void;
+    onSuccess?: (data: unknown, variables: { pageId: number; parentSectionId: number; childSectionId: number }) => void;
+    onError?: (error: unknown, variables: { pageId: number; parentSectionId: number; childSectionId: number }) => void;
     showNotifications?: boolean;
     pageId?: number; // Optional page ID for cache invalidation
 }
@@ -42,7 +42,7 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
         mutationFn: ({ pageId, parentSectionId, childSectionId }: IRemoveSectionFromSectionVariables) => 
             AdminApi.removeSectionFromSection(pageId, parentSectionId, childSectionId),
         
-        onSuccess: async (result: any, variables: IRemoveSectionFromSectionVariables) => {
+        onSuccess: async (result: unknown, variables: IRemoveSectionFromSectionVariables) => {
 
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
@@ -82,7 +82,7 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
             onSuccess?.(result, variables);
         },
         
-        onError: (error: any, variables: IRemoveSectionFromSectionVariables) => {
+        onError: (error: unknown, variables: IRemoveSectionFromSectionVariables) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

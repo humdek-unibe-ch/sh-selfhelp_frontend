@@ -13,8 +13,8 @@ SPDX-License-Identifier: MPL-2.0
 import { useQuery } from '@tanstack/react-query';
 import { permissionAwareApiClient } from '../api/base.api';
 import { API_CONFIG } from '../config/api.config';
-import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
-import { ILanguage } from '../types/responses/admin/languages.types';
+import { type IBaseApiResponse } from '../types/responses/common/response-envelope.types';
+import { type ILanguage } from '../types/responses/admin/languages.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
 import { AdminApi } from '../api/admin';

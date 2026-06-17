@@ -8,13 +8,13 @@ SPDX-License-Identifier: MPL-2.0
  * from the API response structure with translations array
  */
 
-import { ILanguage } from '../types/responses/admin/languages.types';
+import { type ILanguage } from '../types/responses/admin/languages.types';
 
 interface IFieldTranslation {
     language_id: number;
     language_code?: string;
     content: string;
-    meta?: any;
+    meta?: unknown;
 }
 
 interface IFieldWithTranslations {
@@ -28,7 +28,7 @@ interface IFieldWithTranslations {
     hidden?: number;
     display: boolean;
     translations: IFieldTranslation[];
-    config?: any;
+    config?: unknown;
 }
 
 /**

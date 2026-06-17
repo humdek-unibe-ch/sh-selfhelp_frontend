@@ -78,13 +78,13 @@ export function useClearApiRoutesCacheMutation() {
             });
 
             // Invalidate cache-related queries
-            queryClient.invalidateQueries({ queryKey: ['admin', 'cache'] });
+            void queryClient.invalidateQueries({ queryKey: ['admin', 'cache'] });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
 
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to clear API routes cache',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to clear API routes cache',
                 color: 'red',
             });
         },
@@ -107,13 +107,13 @@ export function useDeleteUnusedSectionMutation() {
             });
 
             // Invalidate unused sections queries
-            queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
+            void queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
 
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to delete section',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to delete section',
                 color: 'red',
                 autoClose: false,
             });
@@ -137,13 +137,13 @@ export function useDeleteAllUnusedSectionsMutation() {
             });
 
             // Invalidate unused sections queries
-            queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
+            void queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
 
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to delete all sections',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to delete all sections',
                 color: 'red',
                 autoClose: false,
             });

@@ -59,7 +59,7 @@ export function AuditLogsList({ onViewDetails }: AuditLogsListProps) {
   };
 
   const handleRefresh = () => {
-    refetch();
+    void refetch();
   };
 
   const auditLogs = data?.logs || [];

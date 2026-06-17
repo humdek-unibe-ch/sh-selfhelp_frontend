@@ -22,9 +22,9 @@ import { LockedField } from '../../ui/locked-field/LockedField';
 import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { MenuType } from './PageInspector';
-import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
+import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { PagePropertyField } from './page-field-connectors';
-import { IPageField } from '../../../../../types/common/pages.type';
+import { type IPageField } from '../../../../../types/common/pages.type';
 import styles from './PageInspector.module.css';
 
 // ==================== Page Info Panel ====================
@@ -231,6 +231,10 @@ export const PageMenuPositions = React.memo(function PageMenuPositions({
         setFooterPosition(position);
     }, [setFooterPosition]);
 
+    // Stable reference so the positioner's drag monitor isn't torn down and
+    // re-registered mid-drag (onGlobalDragStart re-renders this component).
+    const handleGlobalDragEnd = useCallback(() => setActiveDrag(null), []);
+
     return (
         <Paper p="md" withBorder>
             <Stack gap="md">
@@ -251,7 +255,7 @@ export const PageMenuPositions = React.memo(function PageMenuPositions({
                     currentPage={page}
                     activeDrag={activeDrag}
                     onGlobalDragStart={setActiveDrag}
-                    onGlobalDragEnd={() => setActiveDrag(null)}
+                    onGlobalDragEnd={handleGlobalDragEnd}
                     menuType={MenuType.HEADER}
                     title="Header Menu Position"
                     enabled={headerMenuEnabled}
@@ -270,7 +274,7 @@ export const PageMenuPositions = React.memo(function PageMenuPositions({
                     currentPage={page}
                     activeDrag={activeDrag}
                     onGlobalDragStart={setActiveDrag}
-                    onGlobalDragEnd={() => setActiveDrag(null)}
+                    onGlobalDragEnd={handleGlobalDragEnd}
                     menuType={MenuType.FOOTER}
                     title="Footer Menu Position"
                     enabled={footerMenuEnabled}

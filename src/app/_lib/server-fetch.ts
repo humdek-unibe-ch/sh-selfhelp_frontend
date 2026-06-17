@@ -56,7 +56,7 @@ import {
     transformNavigationPages,
     selectFooterPages
 } from '../../utils/navigation.utils';
-import type { IPageItem } from '../../shared';
+import type { IPageItem, IGetPageResponse, IPageContent, ILanguage } from '../../shared';
 
 /** SSR cache lifetime for `/languages` in seconds. */
 const LANGUAGES_REVALIDATE_SECONDS = 300;
@@ -138,6 +138,30 @@ async function fetchJsonWithStatus<T>(
 }
 
 /**
+ * Unwrap a Symfony SSR list envelope to its array payload. Accepts the raw
+ * `{ data: [...] }` envelope or a bare array (older shapes), returning `[]`
+ * otherwise. Mirrors the previous inline
+ * `Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : []`.
+ */
+export function unwrapSsrList(raw: unknown): unknown[] {
+    if (Array.isArray(raw)) return raw;
+    const data = (raw as { data?: unknown } | null | undefined)?.data;
+    return Array.isArray(data) ? data : [];
+}
+
+/**
+ * Extract the page node from a `/pages/by-keyword` envelope. The payload is
+ * `{ data: { page } }`; older shapes returned the page directly under `data`,
+ * so we fall back to `data` itself (matching the previous inline
+ * `envelope?.data?.page ?? envelope?.data ?? null`).
+ */
+export function extractSsrPage(envelope: IGetPageResponse | null): IPageContent | null {
+    const data = envelope?.data;
+    if (!data) return null;
+    return (data.page ?? (data as unknown as IPageContent)) ?? null;
+}
+
+/**
  * Fetch navigation (frontend pages) for the given language. Returned shape
  * matches the public `/pages/language/{id}` endpoint, which is also what the
  * React Query `['frontend-pages', languageId]` entry expects so the client
@@ -146,7 +170,7 @@ async function fetchJsonWithStatus<T>(
  * Wrapped in `cache()` so the slug layout prefetch and `generateMetadata`
  * share one round-trip per request.
  */
-export const getFrontendPagesSSR = cache(async (languageId: number): Promise<any | null> => {
+export const getFrontendPagesSSR = cache(async (languageId: number): Promise<unknown> => {
     return fetchJson(`/pages/language/${languageId}`);
 });
 
@@ -165,9 +189,9 @@ export const getFrontendPagesSSR = cache(async (languageId: number): Promise<any
  */
 export const getMenuPagesSSR = cache(async (languageId: number): Promise<IPageItem[]> => {
     const raw = await getFrontendPagesSSR(languageId);
-    const list = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+    const list = unwrapSsrList(raw);
     if (list.length === 0) return [];
-    const transformed = transformNavigationPages(list);
+    const transformed = transformNavigationPages(list as Parameters<typeof transformNavigationPages>[0]);
     return selectMenuPages(transformed);
 });
 
@@ -177,9 +201,9 @@ export const getMenuPagesSSR = cache(async (languageId: number): Promise<IPageIt
  */
 export const getFooterPagesSSR = cache(async (languageId: number): Promise<IPageItem[]> => {
     const raw = await getFrontendPagesSSR(languageId);
-    const list = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+    const list = unwrapSsrList(raw);
     if (list.length === 0) return [];
-        const transformed = transformNavigationPages(list);
+        const transformed = transformNavigationPages(list as Parameters<typeof transformNavigationPages>[0]);
         return selectFooterPages(transformed);
 });
 
@@ -201,9 +225,9 @@ export const getFooterPagesSSR = cache(async (languageId: number): Promise<IPage
  */
 export const getProfilePagesSSR = cache(async (languageId: number): Promise<IPageItem[]> => {
     const raw = await getFrontendPagesSSR(languageId);
-    const list = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+    const list = unwrapSsrList(raw);
     if (list.length === 0) return [];
-    const transformed = transformNavigationPages(list);
+    const transformed = transformNavigationPages(list as Parameters<typeof transformNavigationPages>[0]);
     return selectProfilePages(transformed);
 });
 
@@ -227,22 +251,23 @@ export async function getFrontendPageSeoSSR(
 ): Promise<{ title: string | null; description: string | null }> {
     const empty = { title: null, description: null };
     const raw = await getFrontendPagesSSR(languageId);
-    const list = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+    const list = unwrapSsrList(raw);
     if (list.length === 0) return empty;
 
-    const find = (nodes: any[]): { title: string | null; description: string | null } | null => {
+    const find = (nodes: unknown[]): { title: string | null; description: string | null } | null => {
         for (const node of nodes) {
-            if (!node) continue;
-            if (node.keyword === keyword) {
-                const title = typeof node.title === 'string' && node.title.trim() ? node.title.trim() : null;
+            if (!node || typeof node !== 'object') continue;
+            const n = node as { keyword?: unknown; title?: unknown; description?: unknown; children?: unknown };
+            if (n.keyword === keyword) {
+                const title = typeof n.title === 'string' && n.title.trim() ? n.title.trim() : null;
                 const description =
-                    typeof node.description === 'string' && node.description.trim()
-                        ? node.description.trim()
+                    typeof n.description === 'string' && n.description.trim()
+                        ? n.description.trim()
                         : null;
                 return { title, description };
             }
-            if (Array.isArray(node.children) && node.children.length > 0) {
-                const hit = find(node.children);
+            if (Array.isArray(n.children) && n.children.length > 0) {
+                const hit = find(n.children);
                 if (hit) return hit;
             }
         }
@@ -261,7 +286,7 @@ async function getPageByKeywordSSR(
     keyword: string,
     languageId: number,
     preview = false
-): Promise<any | null> {
+): Promise<IGetPageResponse | null> {
     const params = new URLSearchParams({ language_id: String(languageId) });
     if (preview) params.set('preview', '1');
     return fetchJson(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`);
@@ -272,7 +297,7 @@ async function getPageByKeywordSSR(
  * by the admin SSR layout to prefill the navbar so the admin console doesn't
  * need to flash an empty tree on first paint.
  */
-export async function getAdminPagesSSR(): Promise<any | null> {
+export async function getAdminPagesSSR(): Promise<unknown> {
     return fetchJson(`/admin/pages`);
 }
 
@@ -287,7 +312,7 @@ export async function getAdminPagesSSR(): Promise<any | null> {
  * Was `getAdminLookupsSSR()` calling `/admin/lookups` until the route
  * was demoted to `/lookups` in Symfony migration Version20260508160000.
  */
-export async function getSystemLookupsSSR(): Promise<any | null> {
+export async function getSystemLookupsSSR(): Promise<unknown> {
     return fetchJson(`/lookups`);
 }
 
@@ -312,7 +337,7 @@ export async function getSystemLookupsSSR(): Promise<any | null> {
  *                        the operator in place and let the client recover.
  */
 export type SsrAuthOutcome =
-    | { status: 'ok'; data: any }
+    | { status: 'ok'; data: unknown }
     | { status: 'unauthenticated' }
     | { status: 'unreachable' };
 
@@ -328,7 +353,7 @@ export type SsrAuthOutcome =
  * round-trip per request.
  */
 export const getAuthMeSSRResult = cache(async (): Promise<SsrAuthOutcome> => {
-    const { status, data } = await fetchJsonWithStatus<any>(`/auth/user-data`);
+    const { status, data } = await fetchJsonWithStatus<unknown>(`/auth/user-data`);
     // No HTTP status at all (request never completed) or any 5xx → the
     // backend is briefly down (connection refused / mid-boot): transient.
     if (status === null || status >= 500) return { status: 'unreachable' };
@@ -347,7 +372,7 @@ export const getAuthMeSSRResult = cache(async (): Promise<SsrAuthOutcome> => {
  * seeds a logout sentinel. Derived from {@link getAuthMeSSRResult} so the
  * two share a single `cache()`-wrapped Symfony round-trip per request.
  */
-export const getAuthMeSSR = cache(async (): Promise<any | null> => {
+export const getAuthMeSSR = cache(async (): Promise<unknown> => {
     const result = await getAuthMeSSRResult();
     return result.status === 'ok' ? result.data : null;
 });
@@ -365,14 +390,15 @@ export const getAuthMeSSR = cache(async (): Promise<any | null> => {
  * immediately; SSR renders naturally pick up the new list within the TTL
  * window.
  */
-export const getPublicLanguagesSSR = cache(async (): Promise<any[] | null> => {
-    const raw = await fetchJson<any>(`/languages`, {
+export const getPublicLanguagesSSR = cache(async (): Promise<ILanguage[] | null> => {
+    const raw = await fetchJson<unknown>(`/languages`, {
         cache: 'force-cache',
         next: { revalidate: LANGUAGES_REVALIDATE_SECONDS },
-    } as any);
+    } as RequestInit & { next?: { revalidate?: number } });
     if (!raw) return null;
-    const list = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : null;
-    return list;
+    if (Array.isArray(raw)) return raw as ILanguage[];
+    const data = (raw as { data?: unknown }).data;
+    return Array.isArray(data) ? (data as ILanguage[]) : null;
 });
 
 /**
@@ -394,7 +420,7 @@ export const resolveLanguageSSR = cache(async (): Promise<{
     id: number;
     locale: string;
     htmlLang: string;
-    languages: any[];
+    languages: ILanguage[];
 }> => {
     const jar = await cookies();
     const languages = (await getPublicLanguagesSSR()) ?? [];
@@ -407,7 +433,7 @@ export const resolveLanguageSSR = cache(async (): Promise<{
         return languages.find((l) => String(l.locale || '').toLowerCase().split('-')[0] === prefix);
     };
 
-    let selected: any | undefined;
+    let selected: ILanguage | undefined;
 
     const cookieId = jar.get(LANG_COOKIE)?.value;
     const parsedId = cookieId ? parseInt(cookieId, 10) : NaN;
@@ -442,7 +468,7 @@ export const resolveLanguageSSR = cache(async (): Promise<{
  * Symfony twice in a row.
  */
 export const getPageByKeywordSSRCached = cache(
-    async (keyword: string, languageId: number, preview = false): Promise<any | null> => {
+    async (keyword: string, languageId: number, preview = false): Promise<IGetPageResponse | null> => {
         return getPageByKeywordSSR(keyword, languageId, preview);
     }
 );
@@ -458,7 +484,7 @@ export const getPageByKeywordSSRStatus = cache(
         keyword: string,
         languageId: number,
         preview = false
-    ): Promise<{ status: number | null; data: any | null }> => {
+    ): Promise<{ status: number | null; data: IGetPageResponse | null }> => {
         const params = new URLSearchParams({ language_id: String(languageId) });
         if (preview) params.set('preview', '1');
         return fetchJsonWithStatus(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`);

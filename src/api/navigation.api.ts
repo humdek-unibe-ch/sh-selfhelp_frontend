@@ -11,12 +11,15 @@ SPDX-License-Identifier: MPL-2.0
 
 import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
-import { IBaseApiResponse } from '../shared';
+import { transformPageData, type IBaseApiResponse } from '../shared';
 
 // Re-export the shared transformer so existing imports keep working.
 // The implementation lives in `@selfhelp/shared` so the mobile app and
 // the web frontend share a single source of truth.
-export { transformPageData } from '../shared';
+export { transformPageData };
+
+/** Raw navigation page shape accepted by the shared {@link transformPageData}. */
+type TRawNavigationPage = Parameters<typeof transformPageData>[0];
 
 export const NavigationApi = {
 
@@ -28,8 +31,8 @@ export const NavigationApi = {
      * @returns {Promise<any[]>} Raw API response data (transformed in React Query select)
      * @throws {Error} When API request fails
      */
-    async getPagesWithLanguage(languageId: number): Promise<any[]> {
-        const response = await permissionAwareApiClient.get<IBaseApiResponse<any[]>>(
+    async getPagesWithLanguage(languageId: number): Promise<TRawNavigationPage[]> {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<TRawNavigationPage[]>>(
             API_CONFIG.ENDPOINTS.PAGES_GET_ALL_WITH_LANGUAGE,
             languageId
         );

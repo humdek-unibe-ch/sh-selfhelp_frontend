@@ -9,14 +9,21 @@ SPDX-License-Identifier: MPL-2.0
  * @module utils/json-logic-conversion
  */
 
-import { RQBJsonLogic, RuleGroupType, formatQuery } from 'react-querybuilder';
+import { type RQBJsonLogic, type RuleGroupType, formatQuery } from 'react-querybuilder';
 import { parseJsonLogic } from 'react-querybuilder/parseJsonLogic';
+
+/** Mutable shape used while walking cloned RQB rule trees. */
+interface IMutableRule {
+    rules?: IMutableRule[];
+    field?: string;
+    value?: unknown;
+}
 
 /**
  * Converts React Query Builder rules to JSON Logic format using built-in formatQuery
  * with special handling for custom variable field names
  */
-export function rulesToJsonLogic(rules: RuleGroupType): any {
+export function rulesToJsonLogic(rules: RuleGroupType): string | null {
     if (!rules || !rules.combinator || !rules.rules || rules.rules.length === 0) {
         return null;
     }
@@ -25,9 +32,9 @@ export function rulesToJsonLogic(rules: RuleGroupType): any {
         // Custom processing for custom variable field names
         const processedRules = JSON.parse(JSON.stringify(rules)); // Deep clone
 
-        const processRules = (ruleGroup: any) => {
+        const processRules = (ruleGroup: IMutableRule) => {
             if (ruleGroup.rules && Array.isArray(ruleGroup.rules)) {
-                ruleGroup.rules.forEach((rule: any) => {
+                ruleGroup.rules.forEach((rule) => {
                     if (rule.rules) {
                         // This is a nested rule group
                         processRules(rule);
@@ -39,7 +46,7 @@ export function rulesToJsonLogic(rules: RuleGroupType): any {
                         }
                         // For field_name field with a value, use the value as the variable name
                         else if (rule.field === 'field_name' && rule.value) {
-                            rule.field = rule.value;
+                            rule.field = rule.value as string;
                         }
                     }
                 });
@@ -52,7 +59,7 @@ export function rulesToJsonLogic(rules: RuleGroupType): any {
         const jsonLogic = formatQuery(processedRules, 'jsonlogic');
 
         return jsonLogic === '{}' ? null : JSON.stringify(jsonLogic);
-    } catch (error) {
+    } catch {
 
         return null;
     }
@@ -69,9 +76,9 @@ export function jsonLogicToRules(jsonLogic: string | RQBJsonLogic): RuleGroupTyp
         const rules = parseJsonLogic(jsonLogic);
 
         // Post-process rules to handle custom variables
-        const processRules = (ruleGroup: any) => {
+        const processRules = (ruleGroup: IMutableRule) => {
             if (ruleGroup.rules && Array.isArray(ruleGroup.rules)) {
-                ruleGroup.rules.forEach((rule: any) => {
+                ruleGroup.rules.forEach((rule) => {
                     if (rule.rules) {
                         // This is a nested rule group
                         processRules(rule);
@@ -81,7 +88,7 @@ export function jsonLogicToRules(jsonLogic: string | RQBJsonLogic): RuleGroupTyp
                         
                         // Also trim the value if it's a string
                         if (rule.value && typeof rule.value === 'string') {
-                            rule.value = rule.value.trim();
+                            rule.value = (rule.value as string).trim();
                         }
                         
                         // Check if this field is a custom variable (contains {{ anywhere)
@@ -108,7 +115,7 @@ export function jsonLogicToRules(jsonLogic: string | RQBJsonLogic): RuleGroupTyp
         }
 
         return rules;
-    } catch (error) {
+    } catch {
 
         return {
             combinator: 'and',
@@ -121,14 +128,14 @@ export function jsonLogicToRules(jsonLogic: string | RQBJsonLogic): RuleGroupTyp
 /**
  * Validates if a JSON Logic object is valid
  */
-export function isValidJsonLogic(jsonLogic: any): boolean {
+export function isValidJsonLogic(jsonLogic: unknown): boolean {
     if (!jsonLogic) {
         return false;
     }
 
     try {
         // Try to parse it back to rules to validate
-        const rules = jsonLogicToRules(jsonLogic);
+        const rules = jsonLogicToRules(jsonLogic as string | RQBJsonLogic);
         return rules !== null && rules.rules.length > 0;
     } catch {
         return false;

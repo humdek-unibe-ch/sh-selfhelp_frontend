@@ -4,9 +4,9 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { ActionIcon, TextInput, Tooltip, TextInputProps } from '@mantine/core';
+import { ActionIcon, TextInput, Tooltip, type TextInputProps } from '@mantine/core';
 import { IconEdit, IconLock } from '@tabler/icons-react';
-import { useState, ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 interface ILockedFieldProps extends Omit<TextInputProps, 'rightSection' | 'label'> {
     /** The field label - can be string or ReactNode */

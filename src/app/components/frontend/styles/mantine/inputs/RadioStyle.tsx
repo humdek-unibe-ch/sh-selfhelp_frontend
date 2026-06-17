@@ -2,10 +2,10 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Radio, Tooltip, Group, Text, Input } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
-import { IRadioStyle } from '../../../../../../types/common/styles.types';
+import { type IRadioStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing, sanitizeHtmlForInline } from '../../../../../../utils/html-sanitizer.utils';
@@ -16,9 +16,19 @@ import { castMantineSize } from '../../../../../../utils/style-field-extractor';
  */
 interface IRadioStyleProps {
     style: IRadioStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
+
+/** Parsed radio option shape from the `mantine_radio_options` JSON field. */
+interface IRadioOption {
+    value: string;
+    text: string;
+    description?: string;
+}
+
+/** Loosely-typed prop bag passed to the Mantine `Radio` / `Radio.Card` element. */
+type TRadioProps = { style?: React.CSSProperties;[key: string]: unknown };
 
 /**
  * Unified RadioStyle component that handles both single radio buttons and radio groups.
@@ -52,7 +62,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
     const value = style.value?.content;
     const description = style.description?.content || '';
     const orientation = style.mantine_orientation?.content || 'vertical';
-    const size = castMantineSize((style as any).mantine_size?.content);
+    const size = castMantineSize(style.mantine_size?.content);
     const color = style.mantine_color?.content || 'blue';
     const required = style.is_required?.content === '1';
     const disabled = style.disabled?.content === '1';
@@ -80,23 +90,29 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
         return (formValue && typeof formValue === 'string') ? formValue : (value || '');
     });
 
-    // Update state when form context or value prop changes
-    useEffect(() => {
+    // Keep state in sync with the (async) form value via a render-phase update
+    // instead of an effect; the sentinel initial runs it on first render too,
+    // and prevValue mirrors the original [formValue, value] deps.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    const [prevValue, setPrevValue] = useState(value);
+    if (prevFormValue !== formValue || prevValue !== value) {
+        setPrevFormValue(formValue);
+        setPrevValue(value);
         if (formValue !== null && typeof formValue === 'string') {
             setSelectedValue(formValue);
         } else {
             setSelectedValue(value || '');
         }
-    }, [formValue, value]);
+    }
 
     // Parse radio options from JSON textarea
-    let radioOptions: Array<{ value: string; text: string; description?: string }> = [];
+    let radioOptions: IRadioOption[] = [];
     try {
         const optionsJson = style.mantine_radio_options?.content;
         if (optionsJson) {
-            const parsed = JSON.parse(optionsJson);
+            const parsed = JSON.parse(optionsJson) as Array<{ value: string; text?: string; label?: string; description?: string }>;
             // Handle both old format (label/text) and new format with description
-            radioOptions = parsed.map((option: any) => ({
+            radioOptions = parsed.map((option) => ({
                 value: option.value,
                 text: option.text || option.label || option.value,
                 description: option.description
@@ -119,14 +135,14 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
     };
 
     // Helper function to create radio component with tooltip
-    const createRadioComponent = (radioProps: any, isCard: boolean = false, option?: any) => {
+    const createRadioComponent = (radioProps: TRadioProps, isCard: boolean = false, option?: IRadioOption) => {
         let radioElement;
 
         if (isCard && option) {
             // Create proper Radio.Card structure like in Mantine docs
             radioElement = (
                 <Radio.Card
-                    {...radioProps}
+                    {...(radioProps as React.ComponentProps<typeof Radio.Card>)}
                     radius="md"
                     style={{
                         padding: '16px',
@@ -158,7 +174,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
             );
         } else {
             // Regular Radio component
-            radioElement = <Radio {...radioProps} />;
+            radioElement = <Radio {...(radioProps as React.ComponentProps<typeof Radio>)} />;
         }
 
         // Wrap with tooltip if tooltipLabel is provided
@@ -166,7 +182,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
             return (
                 <Tooltip
                     label={tooltipLabel}
-                    position={tooltipPosition as any}
+                    position={tooltipPosition as React.ComponentProps<typeof Tooltip>['position']}
                     disabled={disabled}
                 >
                     {radioElement}
@@ -178,7 +194,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
     };
 
     // Helper function to create radio with label positioning (only for non-card mode)
-    const createRadioWithLabel = (radioProps: any, radioLabel?: string, isCard: boolean = false, option?: any) => {
+    const createRadioWithLabel = (radioProps: TRadioProps, radioLabel?: string, isCard: boolean = false, option?: IRadioOption) => {
         if (isCard || !radioLabel) return createRadioComponent(radioProps, isCard, option);
 
         const radioComponent = createRadioComponent(radioProps, false, option);
@@ -232,7 +248,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
                         ))}
 
                         {/* Render any child RadioStyle components for backwards compatibility */}
-                        {children.map((child: any, index: number) => (
+                        {children.map((child, index: number) => (
                             child ? <BasicStyle key={`child-${index}`} style={child} /> : null
                         ))}
                     </div>
@@ -298,7 +314,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
                 ))}
 
                     {/* Render any child RadioStyle components for backwards compatibility */}
-                    {children.map((child: any, index: number) => (
+                    {children.map((child, index: number) => (
                         child ? <BasicStyle key={`child-${index}`} style={child} /> : null
                     ))}
                 </div>

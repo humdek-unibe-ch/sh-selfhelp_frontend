@@ -17,8 +17,8 @@ import { API_CONFIG } from '../config/api.config';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLookupsByType } from './useLookups';
 import type { ILanguage } from '../types/responses/admin/languages.types';
-import { IAdminPage } from '../types/responses/admin/admin.types';
-import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
+import { type IAdminPage } from '../types/responses/admin/admin.types';
+import { type IBaseApiResponse } from '../types/responses/common/response-envelope.types';
 import { usePublicLanguages } from './useLanguages';
 
 /**
@@ -82,8 +82,10 @@ export function useConditionBuilderPages() {
             
             // Convert to key-value format expected by React Query Builder
             const pagesMap: Record<string, string> = {};
-            pages.forEach((page: any) => {
-                pagesMap[page.keyword] = page.title || page.keyword;
+            pages.forEach((page) => {
+                // `title` is a legacy field no longer part of IAdminPage; keep the
+                // fallback so any server still sending it continues to win.
+                pagesMap[page.keyword] = (page as { title?: string }).title || page.keyword;
             });
             
             return pagesMap;

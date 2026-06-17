@@ -2,10 +2,10 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { TextInput } from '@mantine/core';
 import IconComponent from '../../../../shared/common/IconComponent';
-import { ITextInputStyle } from '../../../../../../types/common/styles.types';
+import { type ITextInputStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import { castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 import LanguageTabsWrapper from '../../shared/LanguageTabsWrapper';
@@ -20,7 +20,7 @@ import { sanitizeHtmlForInline } from '../../../../../../utils/html-sanitizer.ut
  */
 interface ITextInputStyleProps {
     style: ITextInputStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -37,8 +37,8 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
     const translatable = style.translatable?.content === '1';
     const leftIconName = style.mantine_left_icon?.content;
     const rightIconName = style.mantine_right_icon?.content;
-    const size = castMantineSize((style as any).mantine_size?.content);
-    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const size = castMantineSize(style.mantine_size?.content);
+    const radius = castMantineRadius(style.mantine_radius?.content);
     const variant = style.mantine_text_input_variant?.content;
 
     // Get form context for pre-populated values
@@ -48,12 +48,15 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
     // Use form value if available, otherwise use initial value from style
     const [value, setValue] = useState<string | Array<{ language_id: number; value: string }> | null>(formValue || initialValue || '');
 
-    // Update value when form context changes (for record editing)
-    useEffect(() => {
+    // Keep state in sync with the (async) form value via a render-phase update
+    // instead of an effect; the sentinel initial runs it on first render too.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    if (prevFormValue !== formValue) {
+        setPrevFormValue(formValue);
         if (formValue !== null) {
             setValue(formValue);
         }
-    }, [formValue]);
+    }
 
     // Handle value change - for LanguageTabsWrapper
     const handleValueChange = (fieldName: string, newValue: string | Array<{ language_id: number; value: string }> | null) => {
@@ -70,7 +73,7 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
     const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : undefined;
 
     // Render TextInput for a specific language
-    const renderTextInput = (language: any, currentValue: string, onValueChange: (value: string) => void) => {
+    const renderTextInput = (_language: unknown, currentValue: string, onValueChange: (value: string) => void) => {
         const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
             onValueChange(event.target.value);
         };

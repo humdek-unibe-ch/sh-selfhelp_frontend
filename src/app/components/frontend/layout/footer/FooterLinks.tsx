@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { usePagePrefetch } from "../../../../../hooks/usePagePrefetch";
-import { IPageItem } from "../../../../../shared";
+import { type IPageItem } from "../../../../../shared";
 import { InternalLink } from "../../../shared";
 
 export function FooterLinks({ footerPages }: { footerPages: IPageItem[] }) {

@@ -14,20 +14,20 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminLanguageApi } from '../../api/admin/language.api';
-import { ICreateLanguageRequest, IUpdateLanguageRequest } from '../../types/requests/admin/languages.types';
-import { ILanguage } from '../../types/responses/admin/languages.types';
+import { type ICreateLanguageRequest, type IUpdateLanguageRequest } from '../../types/requests/admin/languages.types';
+import { type ILanguage } from '../../types/responses/admin/languages.types';
 import { parseApiError } from '../../utils/mutation-error-handler';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 
 interface ILanguageMutationOptions {
     onSuccess?: (data: ILanguage) => void;
-    onError?: (error: any) => void;
+    onError?: (error: unknown) => void;
     showNotifications?: boolean;
 }
 
 interface IDeleteLanguageMutationOptions {
     onSuccess?: () => void;
-    onError?: (error: any) => void;
+    onError?: (error: unknown) => void;
     showNotifications?: boolean;
 }
 
@@ -67,7 +67,7 @@ export function useCreateLanguageMutation(options: ILanguageMutationOptions = {}
             onSuccess?.(createdLanguage);
         },
 
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);
 
@@ -125,7 +125,7 @@ export function useUpdateLanguageMutation(options: ILanguageMutationOptions = {}
             onSuccess?.(updatedLanguage);
         },
 
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);
 
@@ -182,7 +182,7 @@ export function useDeleteLanguageMutation(options: IDeleteLanguageMutationOption
             onSuccess?.();
         },
 
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);
 

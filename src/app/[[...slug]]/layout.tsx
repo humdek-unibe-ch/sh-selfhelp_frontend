@@ -25,6 +25,8 @@ import {
     getPageByKeywordSSRCached,
     resolveLanguageSSR,
     resolvePreviewSSR,
+    unwrapSsrList,
+    extractSsrPage,
 } from '../_lib/server-fetch';
 import SlugShell from './SlugLayout/SlugShell';
 import { WebsiteHeader } from '../components/frontend/layout/header/WebsiteHeader';
@@ -72,7 +74,7 @@ export default async function SlugRouteLayout({
                 // deliberately do NOT pre-transform here because `select`
                 // must run on both SSR-hydrated and freshly-fetched data to
                 // stay consistent.
-                const pages = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+                const pages = unwrapSsrList(raw);
                 return pages;
             },
         }).then(() => queryClient.getQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(languageId))),
@@ -80,7 +82,7 @@ export default async function SlugRouteLayout({
             queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, languageId, preview),
             queryFn: async () => {
                 const raw = await getPageByKeywordSSRCached(keyword, languageId, preview);
-                return raw?.data?.page ?? raw?.data ?? null;
+                return extractSsrPage(raw);
             },
         }).then(() =>
             queryClient.getQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, languageId, preview))
@@ -90,7 +92,7 @@ export default async function SlugRouteLayout({
     // Pull is_headless off the page payload so the shell renders without the
     // header/footer flash. Fall back to false when prefetch failed — the
     // client will sort it out once the fetch retries.
-    const page = (pageEnvelope as any) ?? null;
+    const page = (pageEnvelope as { is_headless?: boolean } | null) ?? null;
     const isHeadless = Boolean(page?.is_headless);
 
     // Touch navEnvelope so TypeScript doesn't prune the prefetch.

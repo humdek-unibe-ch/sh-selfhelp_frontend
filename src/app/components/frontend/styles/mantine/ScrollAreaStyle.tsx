@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { ScrollArea } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { IScrollAreaStyle } from '../../../../../types/common/styles.types';
+import { type IScrollAreaStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for ScrollAreaStyle component
@@ -17,7 +17,7 @@ import { IScrollAreaStyle } from '../../../../../types/common/styles.types';
  */
 interface IScrollAreaStyleProps {
     style: IScrollAreaStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -61,7 +61,7 @@ const ScrollAreaStyle: React.FC<IScrollAreaStyleProps> = ({ style, styleProps, c
             {...styleProps} className={cssClass}
             style={styleObj}
         >
-            {children.map((child: any, index: number) => (
+            {children.map((child, index: number) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}
         </ScrollArea>

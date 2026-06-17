@@ -5,8 +5,8 @@ SPDX-License-Identifier: MPL-2.0
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormSubmissionApi } from '../api/frontend/form-submission.api';
 import {
-    IFormSubmitRequest,
-    IFormUpdateRequest
+    type IFormSubmitRequest,
+    type IFormUpdateRequest
 } from '../shared';
 import { notifications } from '@mantine/notifications';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
@@ -24,11 +24,11 @@ export function useSubmitFormMutation() {
 
     return useMutation({
         mutationFn: (data: IFormSubmitRequest | FormData) => FormSubmissionApi.submitForm(data),
-        onSuccess: async (response, variables) => {
+        onSuccess: async (response, _variables) => {
 
-            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
-            queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
-            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+            void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
+            void queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
 
             if (response.data?.success && response.data?.message) {
                 notifications.show({
@@ -38,7 +38,7 @@ export function useSubmitFormMutation() {
                 });
             }
         },
-        onError: (error, variables) => {
+        onError: (_error, _variables) => {
 
             notifications.show({
                 title: 'Submission Failed',
@@ -57,11 +57,11 @@ export function useUpdateFormMutation() {
 
     return useMutation({
         mutationFn: (data: IFormUpdateRequest | FormData) => FormSubmissionApi.updateForm(data),
-        onSuccess: async (response, variables) => {
+        onSuccess: async (response, _variables) => {
 
-            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
-            queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
-            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+            void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
+            void queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
 
             if (response.data?.success && response.data?.message) {
                 notifications.show({
@@ -71,7 +71,7 @@ export function useUpdateFormMutation() {
                 });
             }
         },
-        onError: (error, variables) => {
+        onError: (_error, _variables) => {
 
             notifications.show({
                 title: 'Update Failed',
@@ -92,9 +92,9 @@ export function useDeleteFormMutation() {
         mutationFn: (data: { record_id: number; page_id: number; section_id: number }) =>
             FormSubmissionApi.deleteForm(data),
         onSuccess: (response, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
-            queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
-            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+            void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
+            void queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
 
             notifications.show({
                 title: 'Record Deleted',
@@ -102,7 +102,7 @@ export function useDeleteFormMutation() {
                 color: 'green',
             });
         },
-        onError: (error, variables) => {
+        onError: (_error, variables) => {
 
             notifications.show({
                 title: 'Deletion Failed',

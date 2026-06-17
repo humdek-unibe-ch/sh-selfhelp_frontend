@@ -9,10 +9,31 @@ SPDX-License-Identifier: MPL-2.0
  * across all editor types (rich text and plain text input).
  */
 
-import { MentionOptions } from '@tiptap/extension-mention';
+import { type MentionOptions } from '@tiptap/extension-mention';
 import { ReactRenderer } from '@tiptap/react';
 import { PluginKey } from '@tiptap/pm/state';
-import tippy, { Instance as TippyInstance } from 'tippy.js';
+import { type SuggestionProps, type SuggestionKeyDownProps } from '@tiptap/suggestion';
+import tippy, { type Instance as TippyInstance, type GetReferenceClientRect } from 'tippy.js';
+import {
+    type ComponentClass,
+    type ForwardRefExoticComponent,
+    type FunctionComponent,
+    type PropsWithoutRef,
+    type RefAttributes,
+} from 'react';
+import type { IVariableListProps, IKeyboardHandler } from '../app/components/shared/mentions/MentionSuggestionList';
+
+/**
+ * Component used to render the mention suggestion dropdown.
+ *
+ * Mirrors the three constructor shapes Tiptap's `ReactRenderer` accepts
+ * (`@tiptap/react`'s internal `ComponentType<R, P>`): a function component, a
+ * class component, or a `forwardRef` component exposing the keyboard handler.
+ */
+type TMentionSuggestionComponent =
+    | FunctionComponent<IVariableListProps>
+    | ComponentClass<IVariableListProps>
+    | ForwardRefExoticComponent<PropsWithoutRef<IVariableListProps> & RefAttributes<IKeyboardHandler>>;
 
 /**
  * Variable suggestion item for mention dropdowns
@@ -85,7 +106,7 @@ export function sanitizeForDatabase(html: string): string {
  */
 export function createMentionConfig(
     variables: IVariableSuggestion[],
-    SuggestionComponent: any,
+    SuggestionComponent: TMentionSuggestionComponent,
     maxVisibleRows: number = 5,
     maxItems: number = 50
 ): Partial<MentionOptions> {
@@ -117,12 +138,12 @@ export function createMentionConfig(
                 return filtered.slice(0, maxItems);
             },
             render: () => {
-                let component: ReactRenderer | null = null;
+                let component: ReactRenderer<IKeyboardHandler, IVariableListProps> | null = null;
                 let popup: TippyInstance[] | null = null;
 
                 return {
-                    onStart: (props: any) => {
-                        component = new ReactRenderer(SuggestionComponent, {
+                    onStart: (props: SuggestionProps<IVariableSuggestion>) => {
+                        component = new ReactRenderer<IKeyboardHandler, IVariableListProps>(SuggestionComponent, {
                             props: {
                                 items: props.items,
                                 command: props.command,
@@ -137,7 +158,7 @@ export function createMentionConfig(
                         }
 
                         popup = tippy('body', {
-                            getReferenceClientRect: props.clientRect,
+                            getReferenceClientRect: props.clientRect as GetReferenceClientRect,
                             appendTo: () => document.body,
                             content: component.element,
                             showOnCreate: true,
@@ -151,7 +172,7 @@ export function createMentionConfig(
                         });
                     },
 
-                    onUpdate(props: any) {
+                    onUpdate(props: SuggestionProps<IVariableSuggestion>) {
                         component?.updateProps({
                             items: props.items,
                             command: props.command,
@@ -164,11 +185,11 @@ export function createMentionConfig(
                         }
 
                         popup?.[0]?.setProps({
-                            getReferenceClientRect: props.clientRect,
+                            getReferenceClientRect: props.clientRect as GetReferenceClientRect,
                         });
                     },
 
-                    onKeyDown(props: any) {
+                    onKeyDown(props: SuggestionKeyDownProps) {
                         if (props.event.key === 'Escape') {
                             popup?.[0]?.hide();
                             return true;
@@ -176,7 +197,7 @@ export function createMentionConfig(
 
                         // Check if component has ref and onKeyDown method
                         if (component && typeof component.ref === 'object' && component.ref !== null) {
-                            const ref = component.ref as any;
+                            const ref = component.ref;
                             if (typeof ref.onKeyDown === 'function') {
                                 return ref.onKeyDown(props);
                             }

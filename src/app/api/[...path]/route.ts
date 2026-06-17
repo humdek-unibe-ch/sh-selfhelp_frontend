@@ -20,7 +20,7 @@ SPDX-License-Identifier: MPL-2.0
  * dead). They never see the rotation handshake.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import {
     buildUpstreamUrl,
     cloneUpstreamResponse,
@@ -79,7 +79,7 @@ async function buildResponseWithCookieRotation(
         return res;
     }
 
-    let payload: any = null;
+    let payload: unknown = null;
     try {
         payload = JSON.parse(text);
     } catch {

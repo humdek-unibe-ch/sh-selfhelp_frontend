@@ -20,8 +20,7 @@ interface IAutoVersionComparisonProps {
 
 export function AutoVersionComparison({
     pageId,
-    publishedVersionId,
-    onRefresh
+    publishedVersionId
 }: IAutoVersionComparisonProps) {
     
     // Auto-compare draft with published using the new endpoint

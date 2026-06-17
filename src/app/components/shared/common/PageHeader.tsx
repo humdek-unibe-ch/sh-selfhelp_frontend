@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { Group, Text, Title, Badge, Container } from '@mantine/core';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 interface PageHeaderProps {
   title: string;

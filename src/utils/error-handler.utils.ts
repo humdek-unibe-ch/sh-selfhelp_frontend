@@ -17,7 +17,7 @@ export interface IApiErrorResponse {
         version: string;
         timestamp: string;
     };
-    data: any;
+    data: unknown;
 }
 
 /**

@@ -22,8 +22,6 @@ SPDX-License-Identifier: MPL-2.0
  *     without an explicit cast.
  */
 
-import type { IContentField as ISharedContentField } from '../../shared';
-
 // ===== Mantine common types — re-exported from shared =====
 import type {
     TMantineSize,
@@ -293,7 +291,8 @@ export interface IBaseStyle {
     path: string;
     children?: TStyle[];
     section_name: string;
-    section_data?: any[];
+    section_data?: unknown[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- legacy field accessor: ~80 admin/CMS files deref `style.fields.foo.content` without casts; tightening the generic to `unknown` cascades into a risky bulk rewrite (see file header).
     fields: Record<string, IContentField<any>>;
     condition: string | null;
     css: string | null;
@@ -303,9 +302,9 @@ export interface IBaseStyle {
     condition_debug?: {
         condition?: string;
         result: boolean;
-        error?: any[];
-        variables?: Record<string, any>;
-        condition_object?: any;
+        error?: unknown[];
+        variables?: Record<string, unknown>;
+        condition_object?: unknown;
     } | null;
 }
 
@@ -429,6 +428,7 @@ export interface IVersionStyle extends IBaseStyle {
 // ===== Discriminated union of all styles =====
 // Imports are resolved through this file's own re-exports above.
 import type {
+    IContentField as ISharedContentField,
     ILoginStyle,
     IRegisterStyle,
     IValidateStyle,

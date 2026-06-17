@@ -97,8 +97,8 @@ export function useAclEventStream(): void {
     const router = useRouter();
 
     useEffect(() => {
-        if (!isAuthenticated) return;
-        if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
+        if (!isAuthenticated) return undefined;
+        if (typeof window === 'undefined' || typeof EventSource === 'undefined') return undefined;
 
         let es: EventSource | null = null;
         let reconnectTimer: number | null = null;
@@ -112,9 +112,9 @@ export function useAclEventStream(): void {
         let hasConnectedBefore = false;
 
         const invalidateSystemUpdate = () => {
-            queryClient.invalidateQueries({ queryKey: SYSTEM_UPDATE_STATUS_KEY });
-            queryClient.invalidateQueries({ queryKey: SYSTEM_VERSION_KEY });
-            queryClient.invalidateQueries({ queryKey: SYSTEM_HEALTH_KEY });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_UPDATE_STATUS_KEY });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_VERSION_KEY });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_HEALTH_KEY });
         };
 
         const handleExpiredSession = async (): Promise<boolean> => {
@@ -182,7 +182,7 @@ export function useAclEventStream(): void {
                 // Invalidating user-data is enough: `useAclVersionWatcher`
                 // will detect the bumped `aclVersion` after the refetch
                 // and cascade the navigation / admin / page caches.
-                queryClient.invalidateQueries({
+                void queryClient.invalidateQueries({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
                 });
             });
@@ -222,21 +222,23 @@ export function useAclEventStream(): void {
             // upstream returns 4xx (e.g. expired JWT) it stays closed.
             // Re-open with backoff so the user does not silently lose
             // permission updates.
-            es.addEventListener('error', async () => {
-                if (!es) return;
-                // The stream dropped → allow the fallback poll to take over
-                // while an operation is in flight.
-                setAuthSseConnected(false);
-                if (es.readyState === EventSource.CLOSED && !cancelled) {
-                    es.close();
-                    es = null;
-                    const expired = await handleExpiredSession();
-                    if (expired || cancelled) {
-                        return;
+            es.addEventListener('error', () => {
+                void (async () => {
+                    if (!es) return;
+                    // The stream dropped → allow the fallback poll to take over
+                    // while an operation is in flight.
+                    setAuthSseConnected(false);
+                    if (es.readyState === EventSource.CLOSED && !cancelled) {
+                        es.close();
+                        es = null;
+                        const expired = await handleExpiredSession();
+                        if (expired || cancelled) {
+                            return;
+                        }
+                        reconnectTimer = window.setTimeout(connect, reconnectDelay);
+                        reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY_MS);
                     }
-                    reconnectTimer = window.setTimeout(connect, reconnectDelay);
-                    reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY_MS);
-                }
+                })();
             });
         };
 

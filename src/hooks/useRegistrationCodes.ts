@@ -29,10 +29,10 @@ export function useExportRegistrationCodes() {
     return useMutation({
         mutationFn: (params: Parameters<typeof AdminRegistrationCodesApi.exportCsv>[0]) =>
             AdminRegistrationCodesApi.exportCsv(params),
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             notifications.show({
                 title: 'Export Failed',
-                message: error?.response?.data?.message || 'Failed to export registration codes',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to export registration codes',
                 color: 'red',
             });
         },
@@ -45,17 +45,17 @@ export function useGenerateRegistrationCodes() {
     return useMutation({
         mutationFn: (data: IGenerateRegistrationCodesRequest) => AdminRegistrationCodesApi.generate(data),
         onSuccess: (result) => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
+            void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
             notifications.show({
                 title: 'Success',
                 message: `${result.codes.length} registration code${result.codes.length !== 1 ? 's' : ''} generated successfully`,
                 color: 'green',
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.error || error?.response?.data?.message || 'Failed to generate registration codes',
+                message: (error as { response?: { data?: { error?: string } } })?.response?.data?.error || (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to generate registration codes',
                 color: 'red',
             });
         },

@@ -102,10 +102,11 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                 blocked: userDetails.blocked,
                 receivesNotifications: userDetails.receives_notifications,
                 receivesEmails: userDetails.receives_emails,
-                groupIds: userDetails.groups?.map((g: any) => g.id.toString()) || [],
-                roleIds: userDetails.roles?.map((r: any) => r.id.toString()) || [],
+                groupIds: userDetails.groups?.map((g) => g.id.toString()) || [],
+                roleIds: userDetails.roles?.map((r) => r.id.toString()) || [],
             });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional init-on-edit; `form` is a fresh object each render, so depending on it would re-run every render and clobber edits. `form.setValues` is stable.
     }, [mode, userDetails]);
 
     // Reset form when modal closes and invalidate user query on edit
@@ -114,8 +115,9 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
             form.reset();
         } else if (mode === 'edit' && userId) {
             // Invalidate user details query to ensure fresh data
-            queryClient.invalidateQueries({ queryKey: ['adminUserDetails', userId] });
+            void queryClient.invalidateQueries({ queryKey: ['adminUserDetails', userId] });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional reset/invalidate on open-close; `form` is a fresh object each render, so depending on it would re-run every render. `form.reset` is stable.
     }, [opened, mode, userId, queryClient]);
 
     // Handle form submission
@@ -155,7 +157,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
             }
 
             onClose();
-        } catch (error: any) {
+        } catch (error) {
             showErrorNotification(
                 error,
                 'Operation Failed',

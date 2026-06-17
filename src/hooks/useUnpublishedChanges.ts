@@ -10,7 +10,7 @@ SPDX-License-Identifier: MPL-2.0
 import { useQuery } from '@tanstack/react-query';
 import { PageVersionApi } from '../api/admin/page-version.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { IUnpublishedChangesResponse } from '../types/responses/admin/page-version.types';
+import { type IUnpublishedChangesResponse } from '../types/responses/admin/page-version.types';
 
 export function useUnpublishedChanges(pageId: number | null) {
     return useQuery<IUnpublishedChangesResponse>({

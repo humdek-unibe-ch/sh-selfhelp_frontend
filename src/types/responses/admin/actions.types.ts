@@ -2,6 +2,8 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+import type { IActionConfig } from '../../requests/admin/actions.types';
+
 export interface IActionTranslationResult {
   id: number;
   translation_key: string;
@@ -37,7 +39,7 @@ export interface IActionDetails {
   };
   id_actionTriggerTypes?: number | string; // for compatibility when posting/putting
   id_dataTables?: number | null;           // for compatibility when posting/putting
-  config: any | null; // JSON schema-based config
+  config: IActionConfig | null; // JSON schema-based config
   translations?: IActionTranslationsResult; // translation results from create/update operations
   created_at?: string;
   updated_at?: string;

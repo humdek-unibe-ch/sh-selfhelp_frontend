@@ -19,7 +19,7 @@ import {
 } from '@mantine/core';
 import { IconPlus, IconTrash, IconFilter, IconAlertCircle } from '@tabler/icons-react';
 import { FilterBuilderInline } from './FilterBuilderInline';
-import { IDataSource } from './DataConfigModal';
+import { type IDataSource } from './DataConfigModal';
 import { useDataTables, useTableColumnNames } from '../../../../../hooks/useData';
 import { LockedField } from '../../ui/locked-field/LockedField';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
@@ -47,7 +47,7 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
 
     // Load tables and columns
     const { data: tablesResp, isLoading: isTablesLoading } = useDataTables();
-    const selectedTableId = useMemo(() => {
+    const _selectedTableId = useMemo(() => {
         if (!tablesResp?.dataTables || !dataSource.table) return undefined;
         const found = tablesResp.dataTables.find((t) => t.name === dataSource.table);
         return found?.id;
@@ -64,7 +64,7 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
         return unique.map((name) => ({ value: name, label: name }));
     }, [columnNames]);
 
-    const handleFieldChange = useCallback((field: keyof IDataSource, value: any) => {
+    const handleFieldChange = useCallback(<K extends keyof IDataSource>(field: K, value: IDataSource[K]) => {
         const updatedSource = { ...dataSource, [field]: value };
         onChange(updatedSource);
     }, [dataSource, onChange]);
@@ -118,12 +118,12 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
     interface IFilterConfig {
         mode?: 'builder' | 'sql';
         sql?: string;
-        rules?: any;
+        rules?: unknown;
         orderBy?: Array<{ field: string; direction: 'ASC' | 'DESC' }>;
         limit?: number;
     }
 
-    const filterSummary = useMemo(() => {
+    const _filterSummary = useMemo(() => {
         const raw = (dataSource.filter || '').trim();
         if (!raw) return '';
         try {
@@ -218,7 +218,7 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
                         </Group>
 
                         {filterOpened && (
-                            <div style={{ marginTop: 12 }} onBlurCapture={(e) => {
+                            <div style={{ marginTop: 12 }} onBlurCapture={(_e) => {
                                 // Apply on leaving the builder area
                                 // child will call onSave on its own blur hooks
                               }}>

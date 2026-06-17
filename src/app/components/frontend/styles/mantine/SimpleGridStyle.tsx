@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { SimpleGrid } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { ISimpleGridStyle } from '../../../../../types/common/styles.types';
+import { type ISimpleGridStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for SimpleGridStyle component
@@ -14,7 +14,7 @@ import { ISimpleGridStyle } from '../../../../../types/common/styles.types';
  */
 interface ISimpleGridStyleProps {
     style: ISimpleGridStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -103,7 +103,7 @@ const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style, styleProps, c
             className={cssClass}
             style={styleObj}
         >
-            {children.map((child: any, index: number) => (
+            {children.map((child, index: number) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}
         </SimpleGrid>

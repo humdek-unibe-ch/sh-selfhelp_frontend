@@ -44,7 +44,6 @@ export async function measure<T>(label: string, budgetMs: number, action: () => 
     // eslint-disable-next-line no-console
     console.log(`[perf] ${label}: ${elapsed}ms (budget ${budgetMs}ms, block > ${hardLimit}ms${scaled})`);
     if (elapsed > warnLimit) {
-        // eslint-disable-next-line no-console
         console.warn(`[perf][WARN] ${label} ${elapsed}ms exceeds 1.5× budget (${warnLimit}ms)`);
     }
 

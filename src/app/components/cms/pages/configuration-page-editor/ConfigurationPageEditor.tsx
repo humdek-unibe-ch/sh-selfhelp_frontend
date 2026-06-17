@@ -31,21 +31,21 @@ import {
 import { useForm } from '@mantine/form';
 import { useHotkeys } from '@mantine/hooks';
 import { useState, useEffect, useMemo } from 'react';
-import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
+import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
-import { IUpdatePageData, IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
+import { type IUpdatePageData, type IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { notifications } from '@mantine/notifications';
 import styles from './ConfigurationPageEditor.module.css';
-import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
+import { FieldRenderer, type IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
     processAllFields,
     validateFieldProcessing,
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
-import { IPageField } from '../../../../../types/common/pages.type';
+import { type IPageField } from '../../../../../types/common/pages.type';
 
 interface ConfigurationPageEditorProps {
     page: IAdminPage;
@@ -72,13 +72,11 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     // Fetch available languages
     const { languages: languagesData, isLoading: languagesLoading } = usePublicLanguages();
 
-    // Set default active language tab when languages are loaded
-    useEffect(() => {
-        if (languagesData.length > 0 && !activeLanguageTab) {
-            const firstLangId = languagesData[0].id.toString();
-            setActiveLanguageTab(firstLangId);
-        }
-    }, [languagesData, activeLanguageTab]);
+    // Set default active language tab once languages load. Render-phase update:
+    // the `!activeLanguageTab` guard makes it run once, replacing the effect.
+    if (languagesData.length > 0 && !activeLanguageTab) {
+        setActiveLanguageTab(languagesData[0].id.toString());
+    }
 
     // Update page mutation
     const updatePageMutation = useUpdatePageMutation({
@@ -89,21 +87,21 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                 color: 'green',
             });
             // Refetch page fields to reload the data
-            refetchPageFields();
+            void refetchPageFields();
             
             //TODO: Create a hook shareable #1
             // Invalidate relevant queries to refresh data - using consistent query keys
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
-            queryClient.invalidateQueries({ queryKey: ['pageFields', page.keyword] }); // Page fields
-            queryClient.invalidateQueries({ queryKey: ['pageSections', page.keyword] }); // Page sections
-            queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
-            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] }); // Frontend page content
-            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
+            void queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
+            void queryClient.invalidateQueries({ queryKey: ['pageFields', page.keyword] }); // Page fields
+            void queryClient.invalidateQueries({ queryKey: ['pageSections', page.keyword] }); // Page sections
+            void queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
+            void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] }); // Frontend page content
+            void queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
             
             // Also invalidate any admin-specific queries that might exist
-            queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'page', page.keyword] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', page.keyword] });
+            void queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
+            void queryClient.invalidateQueries({ queryKey: ['admin', 'page', page.keyword] });
+            void queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', page.keyword] });
         }
     });
 
@@ -154,12 +152,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
             form.setValues({ fields: fieldsObject });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional init from loaded page data; `form` is a fresh object each render, so depending on it would re-run every render and clobber edits. `form.setValues` is stable.
     }, [pageFieldsData, languagesData]);
 
     // Debug: Monitor form value changes for CSS fields
     useEffect(() => {
         if (pageFieldsData?.fields && form.values.fields) {
-            const cssFields = pageFieldsData.fields.filter(f => f.type === 'css');
+            const _cssFields = pageFieldsData.fields.filter(f => f.type === 'css');
         }
     }, [form.values.fields, pageFieldsData?.fields, languagesData]);
 
@@ -205,7 +204,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         };
 
         // Debug: Log the final payload with field analysis
-        const cssFields = processedFields.fieldEntries.filter(f => {
+        const _cssFields = processedFields.fieldEntries.filter(f => {
             const field = pageFieldsData?.fields.find(pf => pf.id === f.fieldId);
             return field?.type === 'css';
         });

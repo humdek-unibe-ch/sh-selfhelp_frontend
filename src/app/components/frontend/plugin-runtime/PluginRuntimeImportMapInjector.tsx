@@ -4,6 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
+import { useRef } from 'react';
 import { useServerInsertedHTML } from 'next/navigation';
 import { PLUGIN_RUNTIME_IMPORT_MAP } from './runtime-globals';
 
@@ -23,18 +24,21 @@ import { PLUGIN_RUNTIME_IMPORT_MAP } from './runtime-globals';
  * exactly one import map tag per request.
  */
 export function PluginRuntimeImportMapInjector(): null {
-    let inserted = false;
+    // Per-request guard. A ref (not a render-local `let`) keeps the mutation out
+    // of render: Next may invoke the insertion callback more than once during a
+    // streamed render, and on the server each request gets a fresh ref, so we
+    // still emit exactly one import map tag per request.
+    const insertedRef = useRef(false);
 
     useServerInsertedHTML(() => {
-        if (inserted) {
+        if (insertedRef.current) {
             return null;
         }
-        inserted = true;
+        insertedRef.current = true;
 
         return (
             <script
                 type="importmap"
-                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{
                     __html: JSON.stringify({ imports: PLUGIN_RUNTIME_IMPORT_MAP }),
                 }}

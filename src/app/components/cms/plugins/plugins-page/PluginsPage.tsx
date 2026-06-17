@@ -30,7 +30,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
     Alert,
     Anchor,
@@ -43,7 +43,6 @@ import {
     Paper,
     ScrollArea,
     Stack,
-    Switch,
     Table,
     Tabs,
     Text,
@@ -276,7 +275,12 @@ export function PluginsPage() {
         [sources],
     );
 
-    useEffect(() => {
+    // Reset the install modal fields when it closes. Render-phase update
+    // tracking the previous `installOpen` (matching the previous effect's
+    // [installOpen] dependency), replacing the set-state-in-effect.
+    const [prevInstallOpen, setPrevInstallOpen] = useState(installOpen);
+    if (prevInstallOpen !== installOpen) {
+        setPrevInstallOpen(installOpen);
         if (!installOpen) {
             setInstallSourceTab('archive');
             setInstallArchive(null);
@@ -287,7 +291,7 @@ export function PluginsPage() {
             setTrustHelperBase64('');
             setTrustHelperCopied(false);
         }
-    }, [installOpen]);
+    }
 
     if (isLoading) {
         return (

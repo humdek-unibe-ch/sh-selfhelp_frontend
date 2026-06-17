@@ -9,7 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminSectionApi } from '../../../api/admin/section.api';
-import { IUpdateSectionMutationVariables } from '../../../types/requests/admin/update-section.types';
+import { type IUpdateSectionMutationVariables } from '../../../types/requests/admin/update-section.types';
 
 interface IUpdateSectionMutationOptions {
     showNotifications?: boolean;
@@ -41,7 +41,7 @@ export function useUpdateSectionMutation({
             // Invalidate relevant queries to refresh data with consistent query keys
             const queryKey = pageId || variables.pageId;
             
-            queryClient.invalidateQueries({ queryKey: ['pageSections', queryKey] });
+            void queryClient.invalidateQueries({ queryKey: ['pageSections', queryKey] });
 
             if (showNotifications) {
                 notifications.show({
@@ -55,7 +55,7 @@ export function useUpdateSectionMutation({
 
             onSuccess?.();
         },
-        onError: (error: Error, variables: IUpdateSectionMutationVariables) => {
+        onError: (error: Error, _variables: IUpdateSectionMutationVariables) => {
 
             if (showNotifications) {
                 notifications.show({

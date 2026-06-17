@@ -11,7 +11,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PageVersionApi } from '../../api/admin/page-version.api';
 import { AdminPageApi } from '../../api/admin/page.api';
 import { notifications } from '@mantine/notifications';
-import { IPublishVersionRequest } from '../../types/requests/admin/page-version.types';
+import { type IPublishVersionRequest } from '../../types/requests/admin/page-version.types';
 import { debug } from '../../utils/debug-logger';
 
 export function usePublishVersionMutation() {
@@ -40,11 +40,11 @@ export function usePublishVersionMutation() {
                 color: 'green',
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             debug('Failed to publish version', 'usePublishVersionMutation', { error });
             notifications.show({
                 title: 'Publish Failed',
-                message: error.response?.data?.message || 'Failed to publish version',
+                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to publish version',
                 color: 'red',
             });
         },
@@ -76,11 +76,11 @@ export function usePublishSpecificVersionMutation() {
                 color: 'green',
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             debug('Failed to publish specific version', 'usePublishSpecificVersionMutation', { error });
             notifications.show({
                 title: 'Publish Failed',
-                message: error.response?.data?.message || 'Failed to publish version',
+                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to publish version',
                 color: 'red',
             });
         },
@@ -111,11 +111,11 @@ export function useUnpublishPageMutation() {
                 color: 'blue',
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             debug('Failed to unpublish page', 'useUnpublishPageMutation', { error });
             notifications.show({
                 title: 'Unpublish Failed',
-                message: error.response?.data?.message || 'Failed to unpublish page',
+                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to unpublish page',
                 color: 'red',
             });
         },
@@ -131,8 +131,8 @@ export function useDeleteVersionMutation() {
         onSuccess: (_, variables) => {
             debug('Version deleted', 'useDeleteVersionMutation', variables);
 
-            queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] });
-            queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] });
+            void queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] });
+            void queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] });
 
             notifications.show({
                 title: 'Version Deleted',
@@ -140,11 +140,11 @@ export function useDeleteVersionMutation() {
                 color: 'green',
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             debug('Failed to delete version', 'useDeleteVersionMutation', { error });
             notifications.show({
                 title: 'Delete Failed',
-                message: error.response?.data?.message || 'Failed to delete version',
+                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to delete version',
                 color: 'red',
             });
         },
@@ -183,11 +183,11 @@ export function useRestoreFromVersionMutation() {
                 color: 'green',
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             debug('Failed to restore from version', 'useRestoreFromVersionMutation', { error });
             notifications.show({
                 title: 'Restore Failed',
-                message: error.response?.data?.message || 'Failed to restore sections from version',
+                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to restore sections from version',
                 color: 'red',
             });
         },

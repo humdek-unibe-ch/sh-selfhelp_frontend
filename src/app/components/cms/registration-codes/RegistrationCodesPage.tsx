@@ -21,8 +21,7 @@ import {
     TableThead,
     TableTh,
     TableTr,
-} from '@mantine/core';
-import {
+
     Stack,
     Card,
     Group,
@@ -36,8 +35,8 @@ import {
     Select,
     MultiSelect,
     Pagination,
-    Box,
-} from '@mantine/core';
+    Box} from '@mantine/core';
+
 import {
     IconSearch,
     IconX,
@@ -280,6 +279,7 @@ export function RegistrationCodesPage() {
         },
     ], []);
 
+    // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by design; React Compiler intentionally skips memoizing here
     const table = useReactTable({
         data: data?.codes ?? [],
         columns,

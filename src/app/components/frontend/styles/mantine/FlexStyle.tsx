@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Flex } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { IFlexStyle } from '../../../../../types/common/styles.types';
+import { type IFlexStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for FlexStyle component
@@ -16,7 +16,7 @@ import { IFlexStyle } from '../../../../../types/common/styles.types';
  */
 interface IFlexStyleProps {
     style: IFlexStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -52,12 +52,12 @@ const FlexStyle: React.FC<IFlexStyleProps> = ({ style, styleProps, cssClass }) =
             gap={gap || 'md'}
             justify={justify || undefined}
             align={align || undefined}
-            direction={(direction as any) || 'row'}
-            wrap={(wrap as any) || undefined}
+            direction={direction || 'row'}
+            wrap={wrap || undefined}
             className={cssClass}
             style={styleObj}
         >
-            {children.map((child: any, index: number) => (
+            {children.map((child, index: number) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}
         </Flex>

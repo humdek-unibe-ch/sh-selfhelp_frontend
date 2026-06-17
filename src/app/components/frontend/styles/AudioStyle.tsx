@@ -4,31 +4,31 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Box } from '@mantine/core';
-import { IAudioStyle } from '../../../../types/common/styles.types';
+import { type IAudioStyle } from '../../../../types/common/styles.types';
 
 /**
  * Props interface for IAudioStyle component
  */
 interface IAudioStyleProps {
     style: IAudioStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, unknown>;
     cssClass: string;
 }
 
-const AudioStyle: React.FC<IAudioStyleProps> = ({ style, styleProps, cssClass }) => {
+const AudioStyle: React.FC<IAudioStyleProps> = ({ style }) => {
     // Get audio sources - handle both array and JSON string formats
-    let sources: any[] = [];
+    let sources: Array<{ source?: string; src?: string; type?: string }> = [];
     try {
         const sourcesContent = style.sources?.content;
         if (Array.isArray(sourcesContent)) {
-            sources = sourcesContent;
+            sources = sourcesContent as Array<{ source?: string; src?: string; type?: string }>;
         } else if (sourcesContent && typeof sourcesContent === 'string') {
             const stringContent = sourcesContent as string;
             if (stringContent.trim()) {
                 sources = JSON.parse(stringContent);
             }
         }
-    } catch (error) {
+    } catch {
 
         sources = [];
     }
@@ -39,7 +39,7 @@ const AudioStyle: React.FC<IAudioStyleProps> = ({ style, styleProps, cssClass })
                 controls
                 className="w-full"
             >
-                {sources.map((source: any, index: number) => (
+                {sources.map((source, index: number) => (
                     <source 
                         key={index} 
                         src={source.source || source.src} 

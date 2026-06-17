@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   flexRender,
   getCoreRowModel,
@@ -79,13 +79,13 @@ export default function SingleDataTable({ formId, tableName, displayName, select
 
   const { data, isLoading, isFetching, refetch } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted, language_id: selectedLanguageId });
 
-  const rows = data?.rows || [];
-  const columns = useMemo<ColumnDef<Record<string, any>>[]>(() => {
+  const rows = useMemo(() => data?.rows || [], [data?.rows]);
+  const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
     if (rows.length === 0) return [];
     const allKeys = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
-    const baseCols = allKeys.map((key) => ({
+    const baseCols = allKeys.map((key): ColumnDef<Record<string, unknown>> => ({
       accessorKey: key,
-      header: ({ column }: any) => {
+      header: ({ column }) => {
         const isSorted = column.getIsSorted();
         return (
           <Button
@@ -104,7 +104,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
           </Button>
         );
       },
-      cell: ({ row }: { row: any }) => <Text size="sm">{row.original[key] ?? ''}</Text>,
+      cell: ({ row }) => <Text size="sm">{(row.original[key] as ReactNode) ?? ''}</Text>,
       enableSorting: true,
     }));
     return [
@@ -112,7 +112,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
       {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }: any) => {
+        cell: ({ row }) => {
           const triggerTypeRaw = row.original.trigerType ?? row.original.triggerType ?? row.original.trigger_type ?? row.original.status;
           const isDeletedFlag = typeof row.original.deleted === 'boolean' ? row.original.deleted : undefined;
           const isDeleted = (typeof triggerTypeRaw === 'string' && triggerTypeRaw.toLowerCase() === 'deleted') || isDeletedFlag === true;
@@ -124,10 +124,11 @@ export default function SingleDataTable({ formId, tableName, displayName, select
             </Group>
           );
         },
-      } as ColumnDef<Record<string, any>>,
+      },
     ];
-  }, [rows]);
+  }, [rows, displayName]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by design; React Compiler intentionally skips memoizing here
   const table = useReactTable({
     data: rows,
     columns,

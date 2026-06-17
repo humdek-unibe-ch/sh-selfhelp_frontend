@@ -2,9 +2,9 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { NumberInput } from '@mantine/core';
-import { INumberInputStyle } from '../../../../../../types/common/styles.types';
+import { type INumberInputStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -16,7 +16,7 @@ import DOMPurify from 'isomorphic-dompurify';
  */
 interface INumberInputStyleProps {
     style: INumberInputStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -43,7 +43,7 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps,
     const min = style.mantine_numeric_min?.content;
     const max = style.mantine_numeric_max?.content;
     const step = style.mantine_numeric_step?.content || '1';
-    const decimalScale = parseInt((style as any).mantine_number_input_decimal_scale?.content || '2');
+    const decimalScale = parseInt(style.mantine_number_input_decimal_scale?.content || '2');
     const clampBehavior = style.mantine_number_input_clamp_behavior?.content || 'strict';
     const size = style.mantine_size?.content || 'sm';
     const radius = style.mantine_radius?.content || 'sm';
@@ -64,12 +64,15 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps,
     // Use form value if available, otherwise use initial value from style
     const [selectedValue, setSelectedValue] = useState(formValue && typeof formValue === 'string' ? formValue : defaultValue);
 
-    // Update value when form context changes (for record editing)
-    useEffect(() => {
+    // Keep state in sync with the (async) form value via a render-phase update
+    // instead of an effect; the sentinel initial runs it on first render too.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    if (prevFormValue !== formValue) {
+        setPrevFormValue(formValue);
         if (formValue !== null && typeof formValue === 'string') {
             setSelectedValue(formValue);
         }
-    }, [formValue]);
+    }
 
     // Handle value change
     const handleValueChange = (value: string | number) => {

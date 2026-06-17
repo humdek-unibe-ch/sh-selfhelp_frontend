@@ -5,14 +5,14 @@ SPDX-License-Identifier: MPL-2.0
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import {
-    TScheduledJobsListResponse,
-    TScheduledJobDetailResponse,
-    TScheduledJobTransactionsResponse,
-    IScheduledJobFilters,
-    TRunnerStatusResponse,
-    TRunnerRunNowResponse,
-    TScheduledJobTypesResponse,
-    IUpdateRunnerSettingsRequest
+    type TScheduledJobsListResponse,
+    type TScheduledJobDetailResponse,
+    type TScheduledJobTransactionsResponse,
+    type IScheduledJobFilters,
+    type TRunnerStatusResponse,
+    type TRunnerRunNowResponse,
+    type TScheduledJobTypesResponse,
+    type IUpdateRunnerSettingsRequest
 } from '../../types/responses/admin/scheduled-jobs.types';
 
 
@@ -38,7 +38,7 @@ export class AdminScheduledJobsApi {
         if (filters.userId) params.append('userId', filters.userId.toString());
         if (filters.actionId) params.append('actionId', filters.actionId.toString());
 
-        const response = await permissionAwareApiClient.get(
+        const response = await permissionAwareApiClient.get<TScheduledJobsListResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_GET_ALL,
             { params: Object.fromEntries(params) }
         );
@@ -49,7 +49,7 @@ export class AdminScheduledJobsApi {
      * Get a specific scheduled job by ID
      */
     static async getScheduledJob(jobId: number): Promise<TScheduledJobDetailResponse> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_GET_ONE, jobId);
+        const response = await permissionAwareApiClient.get<TScheduledJobDetailResponse>(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_GET_ONE, jobId);
         return response.data;
     }
 
@@ -57,7 +57,7 @@ export class AdminScheduledJobsApi {
      * Execute a scheduled job
      */
     static async executeScheduledJob(jobId: number): Promise<TScheduledJobDetailResponse> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_EXECUTE, undefined, jobId);
+        const response = await permissionAwareApiClient.post<TScheduledJobDetailResponse>(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_EXECUTE, undefined, jobId);
         return response.data;
     }
 
@@ -65,7 +65,7 @@ export class AdminScheduledJobsApi {
      * Delete a scheduled job (soft delete)
      */
     static async deleteScheduledJob(jobId: number): Promise<TScheduledJobDetailResponse> {
-        const response = await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_DELETE, jobId);
+        const response = await permissionAwareApiClient.delete<TScheduledJobDetailResponse>(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_DELETE, jobId);
         return response.data;
     }
 
@@ -73,7 +73,7 @@ export class AdminScheduledJobsApi {
      * Get transactions for a specific scheduled job
      */
     static async getScheduledJobTransactions(jobId: number): Promise<TScheduledJobTransactionsResponse> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_TRANSACTIONS, jobId);
+        const response = await permissionAwareApiClient.get<TScheduledJobTransactionsResponse>(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_TRANSACTIONS, jobId);
         return response.data;
     }
 
@@ -81,7 +81,7 @@ export class AdminScheduledJobsApi {
      * Get the Docker scheduled-job runner status (settings, last run, queue, health).
      */
     static async getRunnerStatus(): Promise<TRunnerStatusResponse> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_RUNNER_STATUS);
+        const response = await permissionAwareApiClient.get<TRunnerStatusResponse>(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_RUNNER_STATUS);
         return response.data;
     }
 
@@ -89,7 +89,7 @@ export class AdminScheduledJobsApi {
      * Update the runner settings (interval, max jobs, lock TTL, stale window, enabled).
      */
     static async updateRunnerSettings(settings: IUpdateRunnerSettingsRequest): Promise<TRunnerStatusResponse> {
-        const response = await permissionAwareApiClient.put(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_RUNNER_SETTINGS, settings);
+        const response = await permissionAwareApiClient.put<TRunnerStatusResponse>(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_RUNNER_SETTINGS, settings);
         return response.data;
     }
 
@@ -97,7 +97,7 @@ export class AdminScheduledJobsApi {
      * Enable the runner.
      */
     static async enableRunner(): Promise<TRunnerStatusResponse> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_RUNNER_ENABLE, undefined);
+        const response = await permissionAwareApiClient.post<TRunnerStatusResponse>(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_RUNNER_ENABLE, undefined);
         return response.data;
     }
 
@@ -105,7 +105,7 @@ export class AdminScheduledJobsApi {
      * Disable the runner.
      */
     static async disableRunner(): Promise<TRunnerStatusResponse> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_RUNNER_DISABLE, undefined);
+        const response = await permissionAwareApiClient.post<TRunnerStatusResponse>(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_RUNNER_DISABLE, undefined);
         return response.data;
     }
 
@@ -113,7 +113,7 @@ export class AdminScheduledJobsApi {
      * Execute all due jobs now through the runner service (trigger = manual, force = true).
      */
     static async runDueJobsNow(): Promise<TRunnerRunNowResponse> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_RUNNER_RUN_NOW, undefined);
+        const response = await permissionAwareApiClient.post<TRunnerRunNowResponse>(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_RUNNER_RUN_NOW, undefined);
         return response.data;
     }
 
@@ -121,7 +121,7 @@ export class AdminScheduledJobsApi {
      * Get the catalog of available scheduled-job types (core + plugin contributions).
      */
     static async getJobTypes(): Promise<TScheduledJobTypesResponse> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_TYPES);
+        const response = await permissionAwareApiClient.get<TScheduledJobTypesResponse>(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_TYPES);
         return response.data;
     }
 } 

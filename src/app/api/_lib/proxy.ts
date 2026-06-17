@@ -28,7 +28,7 @@ SPDX-License-Identifier: MPL-2.0
  *      reads it to draw the "You are impersonating ..." banner.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import {
     ACCESS_COOKIE_MAX_AGE,
@@ -123,7 +123,6 @@ export function validateCsrf(req: NextRequest): NextResponse | null {
 
     if (!cookieToken || !headerToken || cookieToken !== headerToken) {
         if (process.env.NODE_ENV !== 'production') {
-            // eslint-disable-next-line no-console
             console.warn(
                 '[BFF CSRF] validation failed',
                 {

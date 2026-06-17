@@ -10,7 +10,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module api/permission-wrapper.api
  */
 
-import { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import { API_CONFIG } from '../config/api.config';
 import { warn, error as logError } from '../utils/debug-logger';
 
@@ -125,7 +125,7 @@ function checkPermissions(config: InternalAxiosRequestConfig): void {
 
     // Check if permission metadata was attached by permissionAwareApiClient
 
-    const metadata = (config as any)._permissionMetadata;
+    const metadata = (config as InternalAxiosRequestConfig & { _permissionMetadata?: { permissions?: string[] } })._permissionMetadata;
     
     if (!metadata) {
         // NO FALLBACK - Permission metadata is REQUIRED
@@ -200,7 +200,7 @@ export function initializePermissionChecking(client: AxiosInstance): void {
  * Helper function to manually check if user has permission for an endpoint (unused - available for future use)
  * Useful for UI elements (disabling buttons, hiding options, etc.)
  */
-function canAccessEndpoint(endpointKey: keyof typeof API_CONFIG.ENDPOINTS): boolean {
+function _canAccessEndpoint(endpointKey: keyof typeof API_CONFIG.ENDPOINTS): boolean {
     const config = API_CONFIG.ENDPOINTS[endpointKey];
     
     if (!config || typeof config !== 'object' || !('permissions' in config)) {
@@ -213,7 +213,7 @@ function canAccessEndpoint(endpointKey: keyof typeof API_CONFIG.ENDPOINTS): bool
 /**
  * Helper function to get required permissions for an endpoint (unused - available for future use)
  */
-function getEndpointPermissions(endpointKey: keyof typeof API_CONFIG.ENDPOINTS): string[] {
+function _getEndpointPermissions(endpointKey: keyof typeof API_CONFIG.ENDPOINTS): string[] {
     const config = API_CONFIG.ENDPOINTS[endpointKey];
     
     if (!config || typeof config !== 'object' || !('permissions' in config)) {

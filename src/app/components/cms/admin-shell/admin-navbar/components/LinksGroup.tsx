@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import {
   Group,
   Box,
@@ -15,9 +15,20 @@ import {
 import { IconChevronRight } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
 import classes from './LinksGroup.module.css';
+import { useIsClient } from '../../../../../../hooks/useIsClient';
+
+/** A single admin navbar link, optionally containing nested children. */
+interface INavLinkItem {
+  label: string;
+  link: string;
+  selectable?: boolean;
+  onClick?: () => void;
+  id?: number | string;
+  links?: INavLinkItem[];
+}
 
 // Helper function to check if any nested link is active
-function checkForActiveChild(links: any[], pathname: string): boolean {
+function checkForActiveChild(links: INavLinkItem[], pathname: string): boolean {
   return links.some(link => {
     if (link.link === pathname) return true;
     if (link.links && link.links.length > 0) {
@@ -27,45 +38,78 @@ function checkForActiveChild(links: any[], pathname: string): boolean {
   });
 }
 
+const noopSubscribe = () => () => {};
+
+// Read the persisted open/closed boolean for a navbar group. Returns null when
+// there is no usable stored value (or on the server, via getServerSnapshot).
+function readStoredOpened(storageKey: string): boolean | null {
+  try {
+    const stored = localStorage.getItem(storageKey);
+    if (stored !== null) {
+      const parsed = JSON.parse(stored);
+      if (typeof parsed === 'boolean') return parsed;
+    }
+  } catch {
+    // Corrupt value — ignore and fall back to the deterministic default.
+  }
+  return null;
+}
+
+/**
+ * Disclosure state for a navbar group that is persisted in localStorage.
+ *
+ * The initial render is deterministic (server and first client render use
+ * `defaultOpened`) to avoid hydration mismatches; the persisted value is read
+ * SSR-safely via `useSyncExternalStore` and applied once after hydration, and
+ * the current value is written back after the first client render. This keeps
+ * the previous behaviour without any set-state-in-effect.
+ */
+function usePersistedDisclosure(
+  storageKey: string,
+  defaultOpened: boolean,
+  hasActiveChild: boolean,
+): readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>] {
+  const [opened, setOpened] = useState<boolean>(defaultOpened);
+  const hydrated = useIsClient();
+  const persisted = useSyncExternalStore(
+    noopSubscribe,
+    () => readStoredOpened(storageKey),
+    () => null,
+  );
+  const [appliedPersisted, setAppliedPersisted] = useState(false);
+  if (!appliedPersisted && persisted !== null) {
+    setAppliedPersisted(true);
+    setOpened(persisted);
+  }
+  // Auto-open when a descendant route is active.
+  if (hasActiveChild && !opened) {
+    setOpened(true);
+  }
+  // Persist after the first client render, so the deterministic default cannot
+  // overwrite a previously-stored choice.
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(opened));
+    } catch {
+      // Quota / private-mode — best-effort, don't throw.
+    }
+  }, [opened, storageKey, hydrated]);
+  return [opened, setOpened] as const;
+}
+
 interface ILinksGroupProps {
   icon?: React.ReactNode;
   label: string;
   initiallyOpened?: boolean;
   id?: number | string;
-  links?: Array<{
-    label: string;
-    link: string;
-    selectable?: boolean;
-    onClick?: () => void;
-    id?: number | string;
-    links?: Array<{
-      label: string;
-      link: string;
-      selectable?: boolean;
-      onClick?: () => void;
-      id?: number | string;
-      links?: Array<{
-        label: string;
-        link: string;
-        selectable?: boolean;
-        onClick?: () => void;
-        id?: number | string;
-        links?: Array<{
-          label: string;
-          link: string;
-          selectable?: boolean;
-          onClick?: () => void;
-          id?: number | string;
-        }>;
-      }>;
-    }>;
-  }>;
+  links?: INavLinkItem[];
   link?: string;
   selectable?: boolean;
   onClick?: () => void;
 }
 
-export function LinksGroup({ icon, label, initiallyOpened, links, link, selectable = true, onClick }: ILinksGroupProps) {
+export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick }: ILinksGroupProps) {
   const router = useRouter();
   const pathname = usePathname();
   const hasLinks = Array.isArray(links);
@@ -75,52 +119,14 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
   const isActive = link === pathname;
   const hasActiveChild = hasLinks && checkForActiveChild(links || [], pathname);
 
-  // Initial render must be identical on server and client, so we do NOT read
-  // localStorage during useState init (that would cause a hydration mismatch
-  // — the server never has localStorage, the client does). Instead the
-  // `opened` state starts deterministically from `initiallyOpened` or
-  // `hasActiveChild`, and we reconcile with the persisted value in a
-  // post-mount effect below.
-  const [opened, setOpened] = useState<boolean>(
-    () => Boolean(initiallyOpened || hasActiveChild)
+  // Initial render must be identical on server and client, so the persisted
+  // localStorage value is reconciled after hydration (see usePersistedDisclosure)
+  // rather than read during the initial render, which would cause a mismatch.
+  const [opened, setOpened] = usePersistedDisclosure(
+    storageKey,
+    Boolean(initiallyOpened || hasActiveChild),
+    hasActiveChild,
   );
-  const hasHydratedFromStorage = useRef(false);
-
-  // Hydrate persisted open/closed state once, after mount.
-  useEffect(() => {
-    if (hasHydratedFromStorage.current) return;
-    hasHydratedFromStorage.current = true;
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored !== null) {
-        const parsed = JSON.parse(stored);
-        if (typeof parsed === 'boolean') {
-          setOpened(parsed);
-        }
-      }
-    } catch {
-      // Corrupt value — ignore and fall back to the deterministic default.
-    }
-  }, [storageKey]);
-
-  // Auto-open if has active child.
-  useEffect(() => {
-    if (hasActiveChild && !opened) {
-      setOpened(true);
-    }
-  }, [hasActiveChild, opened]);
-
-  // Persist state to localStorage — but only *after* we've hydrated the
-  // stored value, so the hydration effect cannot overwrite a user's
-  // previously-persisted choice with the deterministic default.
-  useEffect(() => {
-    if (!hasHydratedFromStorage.current) return;
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(opened));
-    } catch {
-      // Quota / private-mode — best-effort, don't throw.
-    }
-  }, [opened, storageKey]);
 
   const handleItemClick = (href: string, clickHandler?: () => void, e?: React.MouseEvent) => {
     // Support middle click and ctrl+click for new tab
@@ -151,7 +157,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
     }
   };
 
-  const renderNestedLinks = (linkItems: any[], level: number = 0): React.ReactNode => {
+  const renderNestedLinks = (linkItems: INavLinkItem[], level: number = 0): React.ReactNode => {
     if (level >= 4) return null; // Limit to 4 levels as requested
 
     return linkItems?.map((item) => {
@@ -164,7 +170,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
             key={item.id || item.label}
             label={item.label}
             link={item.link}
-            links={item.links}
+            links={item.links ?? []}
             level={level}
             pathname={pathname}
             selectable={item.selectable}
@@ -267,27 +273,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
 interface INestedLinksGroupProps {
   label: string;
   link: string;
-  links: Array<{
-    label: string;
-    link: string;
-    selectable?: boolean;
-    onClick?: () => void;
-    id?: number | string;
-    links?: Array<{
-      label: string;
-      link: string;
-      selectable?: boolean;
-      onClick?: () => void;
-      id?: number | string;
-      links?: Array<{
-        label: string;
-        link: string;
-        selectable?: boolean;
-        onClick?: () => void;
-        id?: number | string;
-      }>;
-    }>;
-  }>;
+  links: INavLinkItem[];
   level: number;
   pathname: string;
   selectable?: boolean;
@@ -302,39 +288,11 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
 
   // Deterministic initial state to keep SSR and first client render in sync.
   // See the matching comment in `LinksGroup` above.
-  const [opened, setOpened] = useState<boolean>(() => Boolean(hasActiveChild));
-  const hasHydratedFromStorage = useRef(false);
-
-  useEffect(() => {
-    if (hasHydratedFromStorage.current) return;
-    hasHydratedFromStorage.current = true;
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored !== null) {
-        const parsed = JSON.parse(stored);
-        if (typeof parsed === 'boolean') {
-          setOpened(parsed);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, [storageKey]);
-
-  useEffect(() => {
-    if (hasActiveChild && !opened) {
-      setOpened(true);
-    }
-  }, [hasActiveChild, opened]);
-
-  useEffect(() => {
-    if (!hasHydratedFromStorage.current) return;
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(opened));
-    } catch {
-      // ignore
-    }
-  }, [opened, storageKey]);
+  const [opened, setOpened] = usePersistedDisclosure(
+    storageKey,
+    Boolean(hasActiveChild),
+    hasActiveChild,
+  );
 
   const handleItemClick = (href: string, clickHandler?: () => void, e?: React.MouseEvent) => {
     // Support middle click and ctrl+click for new tab
@@ -365,7 +323,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
     }
   };
 
-  const renderNestedLinks = (linkItems: any[], currentLevel: number): React.ReactNode => {
+  const renderNestedLinks = (linkItems: INavLinkItem[], currentLevel: number): React.ReactNode => {
     if (currentLevel >= 4) return null; // Limit to 4 levels
 
     return linkItems?.map((item) => {
@@ -378,7 +336,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
             key={item.id || item.label}
             label={item.label}
             link={item.link}
-            links={item.links}
+            links={item.links ?? []}
             level={currentLevel}
             pathname={pathname}
             selectable={item.selectable}

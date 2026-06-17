@@ -529,11 +529,11 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
 }
 
 // Helper functions
-function capitalizeFirst(str: string): string {
+function _capitalizeFirst(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function getCategoryIcon(category: string): React.ReactNode {
+function _getCategoryIcon(category: string): React.ReactNode {
     switch (category.toLowerCase()) {
         case 'authentication':
         case 'profile':

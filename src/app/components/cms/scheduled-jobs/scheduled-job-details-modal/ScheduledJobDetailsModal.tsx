@@ -24,19 +24,12 @@ import {
 } from '@mantine/core';
 import { IconPlayerPlay, IconTrash, IconMail, IconSettings, IconBell, IconCalendar, IconUser, IconClock } from '@tabler/icons-react';
 import { useScheduledJob, useScheduledJobTransactions } from '../../../../../hooks/useScheduledJobs';
+import { type IScheduledJobConfig } from '../../../../../types/responses/admin/scheduled-jobs.types';
 import { getStatusColor } from '../../../../../utils/status-color.utils';
 import { isJobActionAllowed } from '../utils/job-status';
 import DOMPurify from 'isomorphic-dompurify';
 import { ModalWrapper } from '../../../shared';
 
-
-interface IScheduledJobTransaction {
-    transaction_id: number;
-    transaction_time: string;
-    transaction_type: string;
-    transaction_verbal_log: string;
-    user: string;
-}
 
 // Job type configurations for structured display
 const JOB_TYPE_CONFIGS = {
@@ -57,10 +50,22 @@ const JOB_TYPE_CONFIGS = {
     }
 } as const;
 
+// Parsed transaction-log content (the verbal log is stored as a JSON string).
+interface ITransactionLogContent {
+    verbal_log?: string;
+    url?: string;
+    table_row_entry?: Record<string, unknown>;
+    session?: string;
+}
+
+type TFormattedTransactionLog =
+    | { type: 'json'; content: ITransactionLogContent }
+    | { type: 'text'; content: string };
+
 // Utility function to format transaction log
-function formatTransactionLog(log: string): { type: 'text' | 'json', content: any } {
+function formatTransactionLog(log: string): TFormattedTransactionLog {
     try {
-        const parsed = JSON.parse(log);
+        const parsed = JSON.parse(log) as ITransactionLogContent;
         return { type: 'json', content: parsed };
     } catch {
         return { type: 'text', content: log };
@@ -68,7 +73,7 @@ function formatTransactionLog(log: string): { type: 'text' | 'json', content: an
 }
 
 // Component to render email job configuration
-function EmailJobConfig({ config }: { config: any }) {
+function EmailJobConfig({ config }: { config: IScheduledJobConfig }) {
   const emailConfig = config.email || {};
   const cleanBody = DOMPurify.sanitize(emailConfig.body || "", {
     ALLOWED_TAGS: [],
@@ -157,7 +162,7 @@ function EmailJobConfig({ config }: { config: any }) {
             Attachments:
           </Text>
           <List size="sm">
-            {emailConfig.attachments.map((attachment: any, index: number) => (
+            {emailConfig.attachments.map((attachment, index) => (
               <List.Item key={index}>
                 {attachment.filename || attachment.path}
               </List.Item>
@@ -170,7 +175,7 @@ function EmailJobConfig({ config }: { config: any }) {
 }
 
 // Component to render task job configuration
-function TaskJobConfig({ config }: { config: any }) {
+function TaskJobConfig({ config }: { config: IScheduledJobConfig }) {
     const taskConfig = config.task || {};
 
     return (
@@ -247,7 +252,7 @@ function TaskJobConfig({ config }: { config: any }) {
 }
 
 // Component to render notification job configuration
-function NotificationJobConfig({ config }: { config: any }) {
+function NotificationJobConfig({ config }: { config: unknown }) {
     return (
         <Stack gap="md">
             <Text c="dimmed" ta="center" py="md">
@@ -259,7 +264,7 @@ function NotificationJobConfig({ config }: { config: any }) {
 }
 
 // Main configuration renderer
-function JobConfiguration({ jobType, config }: { jobType: string, config: any }) {
+function JobConfiguration({ jobType, config }: { jobType: string, config: unknown }) {
     const jobTypeKey = jobType.toLowerCase() as keyof typeof JOB_TYPE_CONFIGS;
     const jobConfig = JOB_TYPE_CONFIGS[jobTypeKey];
 
@@ -268,6 +273,7 @@ function JobConfiguration({ jobType, config }: { jobType: string, config: any })
     }
 
     const IconComponent = jobConfig.icon;
+    const typedConfig = config as IScheduledJobConfig;
 
     return (
         <Stack gap="md">
@@ -278,8 +284,8 @@ function JobConfiguration({ jobType, config }: { jobType: string, config: any })
                 <Text fw={500}>{jobConfig.displayName} Configuration</Text>
             </Group>
 
-            {jobTypeKey === 'email' && <EmailJobConfig config={config} />}
-            {jobTypeKey === 'task' && <TaskJobConfig config={config} />}
+            {jobTypeKey === 'email' && <EmailJobConfig config={typedConfig} />}
+            {jobTypeKey === 'task' && <TaskJobConfig config={typedConfig} />}
             {jobTypeKey === 'notification' && <NotificationJobConfig config={config} />}
         </Stack>
     );

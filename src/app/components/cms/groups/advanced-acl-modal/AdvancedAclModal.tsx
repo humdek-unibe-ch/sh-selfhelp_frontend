@@ -66,7 +66,7 @@ interface IAdvancedAclModalProps {
     groupName: string;
 }
 
-const PAGE_TYPE_INFO = {
+const _PAGE_TYPE_INFO = {
     1: { label: 'Internal', color: 'gray', description: 'Internal system pages' },
     2: { label: 'Core', color: 'blue', description: 'Core system functionality' },
     3: { label: 'Experiment', color: 'green', description: 'User-accessible experiment pages' },
@@ -84,7 +84,6 @@ export function AclManagement({
     onChange,
     readonly = false,
     showHeader = true,
-    maxHeight = 400,
     initiallyExpanded = false,
 }: IAclManagementProps) {
     const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
@@ -373,43 +372,40 @@ export function AdvancedAclModal({
     const existingAcls = groupDetails?.acls || [];
     const isLoadingAcls = isLoadingGroup;
 
-    // Refetch group details when modal opens to get fresh data
+    // Side effects on open (invalidate + refetch fresh data) stay in an effect.
     useEffect(() => {
         if (opened) {
-
-            // Reset selected pages first to avoid stale data
-            setSelectedPages([]);
             // First invalidate to ensure we don't get cached data
-            queryClient.invalidateQueries({ queryKey: ['groups', 'detail', groupId] });
+            void queryClient.invalidateQueries({ queryKey: ['groups', 'detail', groupId] });
             // Then refetch to get fresh data
-            refetchGroupDetails();
+            void refetchGroupDetails();
         }
     }, [opened, groupId, refetchGroupDetails, queryClient]);
 
-    // Load existing ACLs when data is available
-    useEffect(() => {
-        // Only process if modal is open and we have group details
-        if (opened && groupDetails) {
-
-
-            if (existingAcls.length > 0) {
-                const aclPages = convertApiAclsToUiFormat(existingAcls);
-
-                setSelectedPages(aclPages);
-            } else {
-                // No existing ACLs, start with empty state
-
-                setSelectedPages([]);
-            }
-        }
-    }, [opened, groupDetails, existingAcls]);
-
-    // Reset state when modal closes
-    useEffect(() => {
-        if (!opened) {
+    // Keep selectedPages in sync with open/close, group changes, and loaded ACLs
+    // without a set-state-in-effect, tracking the previous inputs (this mirrors
+    // the previous open-reset + load + close-reset effects).
+    const [prevOpened, setPrevOpened] = useState(opened);
+    const [prevGroupId, setPrevGroupId] = useState(groupId);
+    const [prevGroupDetails, setPrevGroupDetails] = useState(groupDetails);
+    if (prevOpened !== opened || prevGroupId !== groupId) {
+        setPrevOpened(opened);
+        setPrevGroupId(groupId);
+        setPrevGroupDetails(groupDetails);
+        if (opened && groupDetails && existingAcls.length > 0) {
+            setSelectedPages(convertApiAclsToUiFormat(existingAcls));
+        } else {
             setSelectedPages([]);
         }
-    }, [opened]);
+    } else if (opened && prevGroupDetails !== groupDetails) {
+        // Fresh group details arrived after the refetch above.
+        setPrevGroupDetails(groupDetails);
+        if (existingAcls.length > 0) {
+            setSelectedPages(convertApiAclsToUiFormat(existingAcls));
+        } else {
+            setSelectedPages([]);
+        }
+    }
 
     const handleSave = async () => {
         try {
@@ -433,7 +429,7 @@ export function AdvancedAclModal({
 
 
             onClose();
-        } catch (error) {
+        } catch {
             // Error handling is done in the mutation hook
 
         }

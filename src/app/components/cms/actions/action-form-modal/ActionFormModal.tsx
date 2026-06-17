@@ -9,15 +9,36 @@ import { LoadingOverlay, Select, Stack, TextInput } from '@mantine/core';
 import classes from './ActionFormModal.module.css';
 import { useCreateAction, useActionDetails, useUpdateAction } from '../../../../../hooks/useActions';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
-import type { ICreateActionRequest, IUpdateActionRequest, IActionTranslationRequest } from '../../../../../types/requests/admin/actions.types';
+import type { ICreateActionRequest, IUpdateActionRequest, IActionTranslationRequest, IActionConfig } from '../../../../../types/requests/admin/actions.types';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { ACTION_TRIGGER_TYPES } from '../../../../../constants/lookups.constants';
 import dynamic from 'next/dynamic';
 import { useDataTables } from '../../../../../hooks/useData';
 import { ActionConfigBuilder } from '../action-config-builder/ActionConfigBuilder';
 
+// Default action config used for the initial state, the dedupe ref seed, and
+// the create-mode reset (previously duplicated inline in three places).
+const DEFAULT_ACTION_CONFIG = {
+  blocks: [{
+    block_name: 'Block',
+    jobs: [{
+      job_name: 'Job',
+      job_type: 'notification',
+      schedule_time: {
+        job_schedule_types: 'immediately'
+      },
+      notification: {
+        notification_types: 'email',
+        recipient: '{{recipient.email}}',
+        subject: 'block_0.job_0.notification.subject',
+        body: 'block_0.job_0.notification.body'
+      }
+    }]
+  }]
+};
+
 // Load Monaco JSON editor dynamically
-const MonacoFieldEditor = dynamic(() => import('../../shared/monaco-field-editor/MonacoFieldEditor').then(m => m.MonacoFieldEditor), { ssr: false });
+const _MonacoFieldEditor = dynamic(() => import('../../shared/monaco-field-editor/MonacoFieldEditor').then(m => m.MonacoFieldEditor), { ssr: false });
 
 interface IActionFormModalProps {
   opened: boolean;
@@ -37,43 +58,9 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
   const [name, setName] = useState('');
   const [trigger, setTrigger] = useState<string>('finished'); // Default to "finished"
   const [dataTableId, setDataTableId] = useState<string>('');
-  const [configObj, setConfigObj] = useState<any>({
-    blocks: [{
-      block_name: 'Block',
-      jobs: [{
-        job_name: 'Job',
-        job_type: 'notification',
-        schedule_time: {
-          job_schedule_types: 'immediately'
-        },
-        notification: {
-          notification_types: 'email',
-          recipient: '{{recipient.email}}',
-          subject: 'block_0.job_0.notification.subject',
-          body: 'block_0.job_0.notification.body'
-        }
-      }]
-    }]
-  });
+  const [configObj, setConfigObj] = useState<IActionConfig>(DEFAULT_ACTION_CONFIG);
   const [actionTranslations, setActionTranslations] = useState<{ [key: string]: { [languageId: number]: string } }>({});
-  const lastBuilderJsonRef = useRef<string>(JSON.stringify({
-    blocks: [{
-      block_name: 'Block',
-      jobs: [{
-        job_name: 'Job',
-        job_type: 'notification',
-        schedule_time: {
-          job_schedule_types: 'immediately'
-        },
-        notification: {
-          notification_types: 'email',
-          recipient: '{{recipient.email}}',
-          subject: 'block_0.job_0.notification.subject',
-          body: 'block_0.job_0.notification.body'
-        }
-      }]
-    }]
-  }));
+  const lastBuilderJsonRef = useRef<string>(JSON.stringify(DEFAULT_ACTION_CONFIG));
 
   const { data: tables } = useDataTables();
   const dataTablesOptions = useMemo(
@@ -82,7 +69,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
   );
 
   // Memoized callback functions to prevent re-renders
-  const handleConfigChange = useCallback((cfg: any) => {
+  const handleConfigChange = useCallback((cfg: IActionConfig) => {
     const next = JSON.stringify(cfg);
     if (next !== lastBuilderJsonRef.current) {
       lastBuilderJsonRef.current = next;
@@ -94,45 +81,43 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
     setActionTranslations(translations);
   }, []);
 
+  // Keep the dedupe ref (a non-render value) in sync with the initialized
+  // config; ref writes must stay out of render, so this stays an effect.
   useEffect(() => {
     if (mode === 'edit' && details && opened) {
-      setName(details.name || '');
-      const triggerId = (details.action_trigger_type?.id ?? details.id_actionTriggerTypes) as any;
-      setTrigger(triggerId ? String(triggerId) : 'finished');
       try {
-        setConfigObj(details.config || { blocks: [] });
         lastBuilderJsonRef.current = JSON.stringify(details.config || { blocks: [] });
       } catch {
-        setConfigObj({ blocks: [] });
         lastBuilderJsonRef.current = JSON.stringify({ blocks: [] });
       }
-      const dtId = (details.data_table?.id ?? details.id_dataTables) as any;
+    } else if (mode === 'create' && opened) {
+      lastBuilderJsonRef.current = JSON.stringify(DEFAULT_ACTION_CONFIG);
+    }
+  }, [mode, details, opened]);
+
+  // Initialize the form fields when the modal opens. Render-phase update
+  // tracking the previous inputs (matching the previous effect's
+  // [mode, details, opened] dependency), replacing the set-state-in-effect.
+  const [prevMode, setPrevMode] = useState(mode);
+  const [prevDetails, setPrevDetails] = useState(details);
+  const [prevOpened, setPrevOpened] = useState(opened);
+  if (prevMode !== mode || prevDetails !== details || prevOpened !== opened) {
+    setPrevMode(mode);
+    setPrevDetails(details);
+    setPrevOpened(opened);
+    if (mode === 'edit' && details && opened) {
+      setName(details.name || '');
+      const triggerId = details.action_trigger_type?.id ?? details.id_actionTriggerTypes;
+      setTrigger(triggerId ? String(triggerId) : 'finished');
+      setConfigObj(details.config || { blocks: [] });
+      const dtId = details.data_table?.id ?? details.id_dataTables;
       setDataTableId(dtId ? String(dtId) : '');
     }
     if (mode === 'create' && opened) {
       setName(''); setTrigger('finished'); setDataTableId('');
-      const defaultConfig = {
-        blocks: [{
-          block_name: 'Block',
-          jobs: [{
-            job_name: 'Job',
-            job_type: 'notification',
-            schedule_time: {
-              job_schedule_types: 'immediately'
-            },
-            notification: {
-              notification_types: 'email',
-              recipient: '{{recipient.email}}',
-              subject: 'block_0.job_0.notification.subject',
-              body: 'block_0.job_0.notification.body'
-            }
-          }]
-        }]
-      };
-      setConfigObj(defaultConfig);
-      lastBuilderJsonRef.current = JSON.stringify(defaultConfig);
+      setConfigObj(DEFAULT_ACTION_CONFIG);
     }
-  }, [mode, details, opened]);
+  }
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
@@ -176,10 +161,10 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
     })();
 
     return valid;
-  }, [name, trigger, dataTableId, configObj, mode, opened]); // Removed actionTranslations dependency as it's not used in validation
+  }, [name, trigger, dataTableId, configObj]); // validation reads only these form fields
 
   const handleSave = async () => {
-    let parsed: any = configObj || null;
+    const parsed: IActionConfig | null = configObj || null;
 
     const id_data_tables = Number(dataTableId) || 0;
 

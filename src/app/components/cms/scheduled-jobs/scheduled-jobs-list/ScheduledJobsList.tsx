@@ -35,7 +35,6 @@ import {
   Box,
   Checkbox,
   Paper,
-  Container,
   Tooltip,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
@@ -52,7 +51,7 @@ import {
 import { useScheduledJobs } from '../../../../../hooks/useScheduledJobs';
 import { useLookups } from '../../../../../hooks/useLookups';
 import { getScheduledJobStatuses, getScheduledJobTypes, getScheduledJobSearchDateTypes } from '../../../../../utils/lookup-filters.utils';
-import { IScheduledJobFilters, IScheduledJob, IScheduledJobTransaction } from '../../../../../types/responses/admin/scheduled-jobs.types';
+import { type IScheduledJobFilters, type IScheduledJob, type IScheduledJobTransaction } from '../../../../../types/responses/admin/scheduled-jobs.types';
 import classes from './ScheduledJobsList.module.css';
 import { getJobStatusColor } from '../utils/job-status';
 import { ScheduledJobActionsMenuItems } from '../utils/ScheduledJobActionsMenuItems';
@@ -171,7 +170,7 @@ export function ScheduledJobsList({
 
     // Real API calls
     const { data: scheduledJobsData, isFetching, error, refetch } = useScheduledJobs(params);
-    const { data: lookupsData, isLoading: lookupsLoading } = useLookups();
+    const { data: lookupsData } = useLookups();
 
     // Process lookups for filters
     const statusOptions = lookupsData ? getScheduledJobStatuses(lookupsData.lookups) : [];
@@ -180,7 +179,7 @@ export function ScheduledJobsList({
 
 
 
-    const scheduledJobs = scheduledJobsData?.data?.scheduledJobs || [];
+    const scheduledJobs = useMemo(() => scheduledJobsData?.data?.scheduledJobs || [], [scheduledJobsData?.data?.scheduledJobs]);
     const pagination = {
         totalCount: scheduledJobsData?.data?.totalCount || 0,
         page: scheduledJobsData?.data?.page || 1,
@@ -629,6 +628,7 @@ export function ScheduledJobsList({
     );
 
     // Initialize table
+    // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by design; React Compiler intentionally skips memoizing here
     const table = useReactTable({
         data: scheduledJobs,
         columns,

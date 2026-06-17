@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { Text, Badge, LoadingOverlay, Group } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconUsers } from '@tabler/icons-react';
@@ -17,7 +17,7 @@ import type { IGroupDetails } from '../../../../../types/responses/admin/groups.
 import {
   parseCrudPermissions,
   stringifyCrudPermissions,
-  ICrudPermissions,
+  type ICrudPermissions,
   DEFAULT_CRUD_PERMISSIONS,
 } from '../../../../../utils/permissions.utils';
 
@@ -39,19 +39,12 @@ const GROUP_PERMISSION_TYPES: (keyof ICrudPermissions)[] = ['view', 'create', 'u
 export function GroupPermissionsModal({ opened, onClose, roleId, roleName }: IGroupPermissionsModalProps) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [groups, setGroups] = useState<IGroupDetails[]>([]);
+  const [_groups, setGroups] = useState<IGroupDetails[]>([]);
   const [rolePermissions, setRolePermissions] = useState<IRoleEffectivePermissions | null>(null);
   const [permissionRows, setPermissionRows] = useState<IGroupPermissionRow[]>([]);
   const [resourceTypeId, setResourceTypeId] = useState<number | null>(null);
 
-  // Load groups and current permissions
-  useEffect(() => {
-    if (opened && roleId) {
-      loadData();
-    }
-  }, [opened, roleId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [groupsResponse, permissionsResponse, resourceTypeIdResponse] = await Promise.all([
@@ -81,16 +74,25 @@ export function GroupPermissionsModal({ opened, onClose, roleId, roleName }: IGr
       });
 
       setPermissionRows(rows);
-    } catch (error: any) {
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to load group permissions',
+        message: message || 'Failed to load group permissions',
         color: 'red',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [roleId]);
+
+  // Load groups and current permissions
+  useEffect(() => {
+    if (opened && roleId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- loadData performs asynchronous data fetching when the modal opens; its loading-state management is part of that async fetch lifecycle (canonical data-fetch effect).
+      void loadData();
+    }
+  }, [opened, roleId, loadData]);
 
   // Update permission for a specific group and permission type
   const updatePermission = (groupId: number, permissionType: keyof ICrudPermissions, value: boolean) => {
@@ -182,10 +184,11 @@ export function GroupPermissionsModal({ opened, onClose, roleId, roleName }: IGr
       });
 
       onClose();
-    } catch (error: any) {
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to save group permissions',
+        message: message || 'Failed to save group permissions',
         color: 'red',
       });
     } finally {
@@ -194,7 +197,7 @@ export function GroupPermissionsModal({ opened, onClose, roleId, roleName }: IGr
   };
 
   // Check if any row has changes
-  const hasChanges = useMemo(() => permissionRows.some(row => row.hasChanges), [permissionRows]);
+  const _hasChanges = useMemo(() => permissionRows.some(row => row.hasChanges), [permissionRows]);
 
   // Transform permission rows for the matrix component
   const matrixRows: IPermissionRow[] = useMemo(() =>

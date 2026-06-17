@@ -14,18 +14,41 @@ export interface IParsedError {
     errorTitle: string;
 }
 
+/** Per-item error detail returned inside a bulk-operation response. */
+interface IApiErrorItem {
+    sectionId?: string | number;
+    id?: string | number;
+    error?: string;
+}
+
+/** Structural view of the error shapes {@link parseApiError} understands. */
+interface IApiErrorShape {
+    response?: {
+        status?: number;
+        data?: {
+            error?: string;
+            message?: string;
+            data?: { errors?: IApiErrorItem[] };
+        };
+    };
+    status?: number;
+    error?: string;
+    message?: string;
+}
+
 /**
  * Parses API errors into consistent format for user display
  * @param error - The error object from API call or mutation
  * @returns Parsed error with title and message
  */
-export function parseApiError(error: any): IParsedError {
+export function parseApiError(error: unknown): IParsedError {
+    const err = error as IApiErrorShape | null | undefined;
     let errorMessage = 'Operation failed. Please try again.';
     let errorTitle = 'Operation Failed';
     
     // Handle Axios errors (most common)
-    if (error?.response) {
-        const status = error.response.status;
+    if (err?.response) {
+        const status = err.response.status;
         
         // 204 No Content is a success status, not an error
         if (status === 204) {
@@ -35,16 +58,16 @@ export function parseApiError(error: any): IParsedError {
             };
         }
         
-        const responseData = error.response.data;
+        const responseData = err.response.data;
         
         if (responseData?.error || responseData?.message) {
-            errorMessage = responseData.error || responseData.message;
+            errorMessage = responseData.error || responseData.message || errorMessage;
 
             const itemErrors = responseData?.data?.errors;
             if (Array.isArray(itemErrors) && itemErrors.length > 0) {
                 const details = itemErrors
                     .slice(0, 5)
-                    .map((item: any) => `#${item.sectionId ?? item.id}: ${item.error ?? 'Failed'}`)
+                    .map((item) => `#${item.sectionId ?? item.id}: ${item.error ?? 'Failed'}`)
                     .join('; ');
                 const suffix = itemErrors.length > 5 ? `; +${itemErrors.length - 5} more` : '';
                 errorMessage = `${errorMessage}: ${details}${suffix}`;
@@ -75,34 +98,34 @@ export function parseApiError(error: any): IParsedError {
             } else if (status === 404) {
                 errorTitle = 'Not Found';
                 errorMessage = 'The requested resource was not found.';
-            } else if (status >= 400) {
+            } else if (status !== undefined && status >= 400) {
                 errorMessage = `Request failed with status ${status}.`;
             }
         }
     }
     // Handle direct error objects
-    else if (error?.status && (error.error || error.message)) {
-        errorMessage = error.error || error.message;
-        if (error.status === 500) {
+    else if (err?.status && (err.error || err.message)) {
+        errorMessage = err.error || err.message || errorMessage;
+        if (err.status === 500) {
             errorTitle = 'Server Error';
-        } else if (error.status === 400 || error.status === 422) {
+        } else if (err.status === 400 || err.status === 422) {
             errorTitle = 'Validation Error';
-        } else if (error.status === 403) {
+        } else if (err.status === 403) {
             errorTitle = 'Access Denied';
-        } else if (error.status === 404) {
+        } else if (err.status === 404) {
             errorTitle = 'Not Found';
         }
     }
     // Handle network errors
-    else if (error?.message) {
-        if (error.message.includes('fetch') || error.message.includes('network')) {
+    else if (err?.message) {
+        if (err.message.includes('fetch') || err.message.includes('network')) {
             errorTitle = 'Network Error';
             errorMessage = 'Unable to connect to the server. Please check your connection.';
-        } else if (error.message.includes('timeout')) {
+        } else if (err.message.includes('timeout')) {
             errorTitle = 'Request Timeout';
             errorMessage = 'The request took too long to complete. Please try again.';
         } else {
-            errorMessage = error.message;
+            errorMessage = err.message;
         }
     }
     
@@ -169,7 +192,7 @@ export function getOperationErrorMessage(
  * @param autoClose - Auto close delay in ms (default: 8000)
  */
 export function showErrorNotification(
-    error: any,
+    error: unknown,
     customTitle?: string,
     customMessage?: string,
     position: 'top-center' | 'top-right' | 'bottom-center' = 'top-center',
@@ -178,9 +201,9 @@ export function showErrorNotification(
     const { errorMessage, errorTitle } = parseApiError(error);
 
     // Import notifications dynamically to avoid circular dependencies
-    import('@mantine/notifications').then(({ notifications }) => {
-        import('@tabler/icons-react').then(({ IconX }) => {
-            import('react').then((React) => {
+    void import('@mantine/notifications').then(({ notifications }) => {
+        void import('@tabler/icons-react').then(({ IconX }) => {
+            void import('react').then((React) => {
                 notifications.show({
                     title: customTitle || errorTitle,
                     message: customMessage || errorMessage,
@@ -208,9 +231,9 @@ export function showSuccessNotification(
     autoClose: number = 5000
 ) {
     // Import notifications dynamically to avoid circular dependencies
-    import('@mantine/notifications').then(({ notifications }) => {
-        import('@tabler/icons-react').then(({ IconCheck }) => {
-            import('react').then((React) => {
+    void import('@mantine/notifications').then(({ notifications }) => {
+        void import('@tabler/icons-react').then(({ IconCheck }) => {
+            void import('react').then((React) => {
                 notifications.show({
                     title,
                     message,
@@ -242,7 +265,6 @@ export async function withErrorHandling<T>(
     } = {}
 ): Promise<T> {
     const {
-        operationType,
         customTitle,
         customMessage,
         showNotification = true,

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import { useQuery } from '@tanstack/react-query';
 import { AdminSectionApi } from '../api/admin/section.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { ISectionDetailsData } from '../types/responses/admin/admin.types';
+import { type ISectionDetailsData } from '../types/responses/admin/admin.types';
 
 // Query key helper aligned with invalidation pattern
 const SECTION_DETAILS_QUERY_KEY = (pageId: number, sectionId: number) => ['admin', 'sections', 'details', pageId, sectionId] as const;

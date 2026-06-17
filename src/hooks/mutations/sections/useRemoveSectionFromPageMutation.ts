@@ -17,8 +17,8 @@ import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromPageMutationOptions {
-    onSuccess?: (data: any, variables: { pageId: number; sectionId: number; }) => void;
-    onError?: (error: any, variables: { pageId: number; sectionId: number; }) => void;
+    onSuccess?: (data: unknown, variables: { pageId: number; sectionId: number; }) => void;
+    onError?: (error: unknown, variables: { pageId: number; sectionId: number; }) => void;
     showNotifications?: boolean;
 }
 
@@ -40,7 +40,7 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
         mutationFn: ({ pageId, sectionId }: IRemoveSectionFromPageVariables) => 
             AdminApi.removeSectionFromPage(pageId, sectionId),
         
-        onSuccess: async (result: any, variables: IRemoveSectionFromPageVariables) => {
+        onSuccess: async (result: unknown, variables: IRemoveSectionFromPageVariables) => {
 
             // Invalidate relevant queries to update the UI
             await Promise.all([
@@ -65,7 +65,7 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
             onSuccess?.(result, variables);
         },
         
-        onError: (error: any, variables: IRemoveSectionFromPageVariables) => {
+        onError: (error: unknown, variables: IRemoveSectionFromPageVariables) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

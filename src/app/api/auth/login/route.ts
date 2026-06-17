@@ -8,7 +8,7 @@ SPDX-License-Identifier: MPL-2.0
  * tokens. The browser never sees the access or refresh tokens.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import {
     SYMFONY_API_PREFIX,
     SYMFONY_INTERNAL_URL,

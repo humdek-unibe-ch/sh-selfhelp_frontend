@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Stack } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { IStackStyle } from '../../../../../types/common/styles.types';
+import { type IStackStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for StackStyle component
@@ -17,7 +17,7 @@ import { IStackStyle } from '../../../../../types/common/styles.types';
  */
 interface IStackStyleProps {
     style: IStackStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -56,7 +56,7 @@ const StackStyle: React.FC<IStackStyleProps> = ({ style, styleProps, cssClass })
             {...styleProps} className={cssClass}
             style={styleObj}
         >
-            {children.map((child: any, index: number) => (
+            {children.map((child, index: number) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}
         </Stack>

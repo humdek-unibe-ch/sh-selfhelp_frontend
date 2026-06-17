@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { Alert } from '@mantine/core';
 import parse from 'html-react-parser';
 import BasicStyle from '../BasicStyle';
-import { IAlertStyle } from '../../../../../types/common/styles.types';
+import { type IAlertStyle } from '../../../../../types/common/styles.types';
 import IconComponent from '../../../shared/common/IconComponent';
 import { castMantineRadius } from '../../../../../utils/style-field-extractor';
 import { sanitizeHtmlForParsing } from '../../../../../utils/html-sanitizer.utils';
@@ -19,7 +19,7 @@ import { sanitizeHtmlForParsing } from '../../../../../utils/html-sanitizer.util
  */
 interface IAlertStyleProps {
     style: IAlertStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -41,7 +41,7 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style, styleProps, cssClass })
     const title = style.mantine_alert_title?.content;
     const variant = style.mantine_variant?.content || 'light';
     const color = style.mantine_color?.content || 'blue';
-    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const radius = castMantineRadius(style.mantine_radius?.content);
     const withCloseButton = style.mantine_with_close_button?.content === '1';
     const closeButtonLabel = style.close_button_label?.content || 'Close';
     const iconName = style.mantine_left_icon?.content;
@@ -69,7 +69,7 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style, styleProps, cssClass })
 
     return (
         <Alert
-            variant={variant as any}
+            variant={variant}
             color={color}
             title={title}
             icon={icon}

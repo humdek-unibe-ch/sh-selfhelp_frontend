@@ -33,13 +33,13 @@ import type {
 export class AdminSystemApi {
     /** GET /admin/system/version — current instance version summary. */
     static async getVersion(): Promise<ISystemVersionResponse> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_VERSION);
+        const response = await permissionAwareApiClient.get<ISystemVersionResponse>(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_VERSION);
         return response.data;
     }
 
     /** GET /admin/system/health — aggregated, instance-scoped health/status. */
     static async getHealth(): Promise<ISystemHealthResponse> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_HEALTH);
+        const response = await permissionAwareApiClient.get<ISystemHealthResponse>(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_HEALTH);
         return response.data;
     }
 
@@ -49,13 +49,13 @@ export class AdminSystemApi {
      * `available: false` when the registry is unreachable.
      */
     static async getAdvisories(): Promise<ISystemAdvisoriesResponse> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_ADVISORIES);
+        const response = await permissionAwareApiClient.get<ISystemAdvisoriesResponse>(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_ADVISORIES);
         return response.data;
     }
 
     /** GET /admin/system/maintenance — current maintenance-mode state. */
     static async getMaintenance(): Promise<ISystemMaintenanceResponse> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_MAINTENANCE);
+        const response = await permissionAwareApiClient.get<ISystemMaintenanceResponse>(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_MAINTENANCE);
         return response.data;
     }
 
@@ -64,7 +64,7 @@ export class AdminSystemApi {
      * instance. The payload intentionally has no `instance_id`.
      */
     static async setMaintenance(body: IMaintenanceSetRequest): Promise<ISystemMaintenanceResponse> {
-        const response = await permissionAwareApiClient.put(
+        const response = await permissionAwareApiClient.put<ISystemMaintenanceResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_MAINTENANCE_SET,
             body
         );
@@ -73,7 +73,7 @@ export class AdminSystemApi {
 
     /** GET /admin/system/update/preflight?target=… — compatibility verdict. */
     static async getUpdatePreflight(target: string): Promise<IUpdatePreflightResponse> {
-        const response = await permissionAwareApiClient.get(
+        const response = await permissionAwareApiClient.get<IUpdatePreflightResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_PREFLIGHT,
             { params: { target } }
         );
@@ -85,7 +85,7 @@ export class AdminSystemApi {
      * The payload intentionally has no `instance_id`.
      */
     static async requestUpdate(body: IUpdateRequest): Promise<IUpdateRequestResponse> {
-        const response = await permissionAwareApiClient.post(
+        const response = await permissionAwareApiClient.post<IUpdateRequestResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_REQUEST,
             body
         );
@@ -94,7 +94,7 @@ export class AdminSystemApi {
 
     /** GET /admin/system/update/status — status/progress for THIS instance. */
     static async getUpdateStatus(): Promise<IUpdateStatusResponse> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_STATUS);
+        const response = await permissionAwareApiClient.get<IUpdateStatusResponse>(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_STATUS);
         return response.data;
     }
 
@@ -104,7 +104,7 @@ export class AdminSystemApi {
      * soft to `available: false` when the registry is unreachable.
      */
     static async getUpdateReleases(): Promise<IUpdateReleasesResponse> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_RELEASES);
+        const response = await permissionAwareApiClient.get<IUpdateReleasesResponse>(API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_RELEASES);
         return response.data;
     }
 
@@ -114,7 +114,7 @@ export class AdminSystemApi {
      * picker. Fails soft to `available: false` when the registry is unreachable.
      */
     static async getFrontendUpdateReleases(): Promise<IFrontendUpdateReleasesResponse> {
-        const response = await permissionAwareApiClient.get(
+        const response = await permissionAwareApiClient.get<IFrontendUpdateReleasesResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_FRONTEND_RELEASES
         );
         return response.data;
@@ -128,7 +128,7 @@ export class AdminSystemApi {
      * checks at execution time.
      */
     static async getFrontendUpdatePreflight(target: string): Promise<IFrontendUpdatePreflightResponse> {
-        const response = await permissionAwareApiClient.get(
+        const response = await permissionAwareApiClient.get<IFrontendUpdatePreflightResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_FRONTEND_PREFLIGHT,
             { params: { target } }
         );
@@ -141,7 +141,7 @@ export class AdminSystemApi {
      * and no `accepted_migration_risk` (a frontend swap is stateless).
      */
     static async requestFrontendUpdate(body: IFrontendUpdateRequest): Promise<IFrontendUpdateRequestResponse> {
-        const response = await permissionAwareApiClient.post(
+        const response = await permissionAwareApiClient.post<IFrontendUpdateRequestResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_FRONTEND_REQUEST,
             body
         );

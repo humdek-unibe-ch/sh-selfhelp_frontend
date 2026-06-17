@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { SegmentedControl, Input } from '@mantine/core';
-import { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+import { type IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 
 interface ISegmentedControlFieldProps {
     fieldId: number;

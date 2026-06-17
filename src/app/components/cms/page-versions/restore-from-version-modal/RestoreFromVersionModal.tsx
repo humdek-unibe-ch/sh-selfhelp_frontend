@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { Modal, Stack, Text, Alert, Group, Button, Divider, Badge, Box } from '@mantine/core';
 import { IconAlertTriangle, IconInfoCircle, IconGitBranch, IconClock } from '@tabler/icons-react';
-import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
+import { type IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 import { format } from 'date-fns';
 
 interface IRestoreFromVersionModalProps {
@@ -94,7 +94,7 @@ export function RestoreFromVersionModal({
                 <Box p="sm" bg="blue.0" style={{ borderRadius: 'var(--mantine-radius-sm)', border: '1px solid var(--mantine-color-blue-3)' }}>
                     <Text size="sm" fw={500} c="blue.9" mb={4}>What happens next:</Text>
                     <Text size="sm" c="blue.9">
-                        After restoration, you'll have a fresh draft containing the sections from version "{version.version_name || `v${version.version_number}`}"
+                        After restoration, you&apos;ll have a fresh draft containing the sections from version &quot;{version.version_name || `v${version.version_number}`}&quot;
                         that you can modify and publish when ready.
                     </Text>
                 </Box>

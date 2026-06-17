@@ -17,8 +17,8 @@ import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface ICreateSectionInPageMutationOptions {
-    onSuccess?: (data: any, variables: ICreateSectionInPageVariables) => void;
-    onError?: (error: any, variables: ICreateSectionInPageVariables) => void;
+    onSuccess?: (data: unknown, variables: ICreateSectionInPageVariables) => void;
+    onError?: (error: unknown, variables: ICreateSectionInPageVariables) => void;
     showNotifications?: boolean;
 }
 
@@ -45,7 +45,7 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
         mutationFn: ({ pageId, sections }: ICreateSectionInPageVariables) => 
             AdminApi.createSectionInPage(pageId, sections),
         
-        onSuccess: async (createdSection: any, variables: ICreateSectionInPageVariables) => {
+        onSuccess: async (createdSection: unknown, variables: ICreateSectionInPageVariables) => {
             
             // Invalidate relevant queries to update the UI with consistent query keys
             await Promise.all([
@@ -69,7 +69,7 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
             onSuccess?.(createdSection, variables);
         },
         
-        onError: (error: any, variables: ICreateSectionInPageVariables) => {
+        onError: (error: unknown, variables: ICreateSectionInPageVariables) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

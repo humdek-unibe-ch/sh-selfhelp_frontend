@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { AspectRatio } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { IAspectRatioStyle } from '../../../../../types/common/styles.types';
+import { type IAspectRatioStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for AspectRatioStyle component
@@ -15,7 +15,7 @@ import { IAspectRatioStyle } from '../../../../../types/common/styles.types';
  */
 interface IAspectRatioStyleProps {
     style: IAspectRatioStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -71,7 +71,7 @@ const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style, styleProps,
                 {...styleProps} className={cssClass}
             >
                 {children.length > 0 ? (
-                    children.map((child: any, index: number) => (
+                    children.map((child, index: number) => (
                         child ? <BasicStyle key={index} style={child} /> : null
                     ))
                 ) : (

@@ -13,6 +13,7 @@ import { usePageContentByKeyword } from '../../hooks/usePageContentByKeyword';
 import { useSyncDocumentMetadata } from '../../hooks/useSyncDocumentMetadata';
 import { PageContextProvider } from '../components/contexts/PageContext';
 import { PageContentRenderer } from '../components';
+import { type TStyle } from '../../types/common/styles.types';
 
 interface IDynamicPageClientProps {
     keyword: string;
@@ -84,7 +85,7 @@ export default function DynamicPageClient({ keyword, initialPageId }: IDynamicPa
 
     const rendered = (
         <PageContextProvider keyword={keyword} pageId={pageId} languageId={currentLanguageId}>
-            <PageContentRenderer sections={sections as any} />
+            <PageContentRenderer sections={sections as unknown as TStyle[]} />
         </PageContextProvider>
     );
 

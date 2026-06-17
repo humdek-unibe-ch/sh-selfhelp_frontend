@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Tabs } from '@mantine/core';
-import { ITabsStyle, ITabStyle } from '../../../../../../types/common/styles.types';
+import { type ITabsStyle, type ITabStyle } from '../../../../../../types/common/styles.types';
 import TabStyle from './TabStyle';
 import BasicStyle, { getCssClass, getSpacingProps } from '../../BasicStyle';
 
@@ -16,7 +16,7 @@ import BasicStyle, { getCssClass, getSpacingProps } from '../../BasicStyle';
  */
 interface ITabsStyleProps {
     style: ITabsStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -25,7 +25,7 @@ interface ITabsStyleProps {
  * Children must be TabStyle components
  * Uses Mantine UI Tabs component with new database fields
  */
-const TabsStyle: React.FC<ITabsStyleProps> = ({ style, styleProps, cssClass }) => {
+const TabsStyle: React.FC<ITabsStyleProps> = ({ style, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -51,7 +51,7 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style, styleProps, cssClass }) =
     // Calculate default tab value using section ID
     const defaultTab = firstTab?.id?.toString() || 'default-tab';
 
-    const tabsProps: any = {
+    const tabsProps = {
         defaultValue: defaultTab,
         variant,
         orientation: orientation as 'horizontal' | 'vertical',
@@ -62,13 +62,13 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style, styleProps, cssClass }) =
     };
 
     return (
-        <Tabs {...tabsProps}>
+        <Tabs {...(tabsProps as React.ComponentProps<typeof Tabs>)}>
             <Tabs.List>
-                {children.map((child: any, index: number) => {
+                {children.map((child, index: number) => {
                     if (!child || child.style_name !== 'tab' || !child.id) return null;
 
                     const tabStyle = child as ITabStyle;
-                    const tabValue = tabStyle.id.toString();
+                    const _tabValue = tabStyle.id.toString();
                     const tabStyleProps = getSpacingProps(tabStyle);
                     const tabCssClass = getCssClass(tabStyle);
 
@@ -84,7 +84,7 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style, styleProps, cssClass }) =
                 })}
             </Tabs.List>
 
-            {children.map((child: any, index: number) => {
+            {children.map((child, index: number) => {
                 if (!child || child.style_name !== 'tab' || !child.id) return null;
 
                 const tabStyle = child as ITabStyle;
@@ -93,7 +93,7 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style, styleProps, cssClass }) =
                 return (
                     <Tabs.Panel key={`${child.id}-${index}-panel`} value={tabValue}>
                         {Array.isArray(tabStyle.children)
-                            ? tabStyle.children.map((childStyle: any, childIndex: number) => (
+                            ? tabStyle.children.map((childStyle, childIndex: number) => (
                                 childStyle && childStyle.id
                                     ? <BasicStyle key={`${childStyle.id}-${childIndex}`} style={childStyle} />
                                     : null

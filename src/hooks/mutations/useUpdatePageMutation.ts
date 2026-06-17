@@ -14,13 +14,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../api/admin';
-import { IUpdatePageRequest } from '../../types/requests/admin/update-page.types';
-import { IAdminPage } from '../../types/responses/admin/admin.types';
+import { type IUpdatePageRequest } from '../../types/requests/admin/update-page.types';
+import { type IAdminPage } from '../../types/responses/admin/admin.types';
 import { parseApiError } from '../../utils/mutation-error-handler';
 
 interface IUpdatePageMutationOptions {
     onSuccess?: (data: IAdminPage, pageId: number) => void;
-    onError?: (error: any, pageId: number) => void;
+    onError?: (error: unknown, pageId: number) => void;
     showNotifications?: boolean;
 }
 
@@ -90,7 +90,7 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
             onSuccess?.(updatedPage, pageId);
         },
         
-        onError: (error: any, { pageId }: IUpdatePageMutationVariables) => {
+        onError: (error: unknown, { pageId }: IUpdatePageMutationVariables) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

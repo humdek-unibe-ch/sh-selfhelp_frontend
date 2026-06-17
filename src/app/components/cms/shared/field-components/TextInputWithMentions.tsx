@@ -36,7 +36,6 @@ interface ITextInputWithMentionsProps {
  * Behaves like a standard Mantine Input but with mention and optional rich text functionality.
  */
 export function TextInputWithMentions({
-    fieldId,
     value,
     onChange,
     placeholder,

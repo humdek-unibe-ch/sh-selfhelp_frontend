@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Image } from '@mantine/core';
-import { IImageStyle } from '../../../../types/common/styles.types';
+import { type IImageStyle } from '../../../../types/common/styles.types';
 import { getAssetUrl } from '../../../../utils/asset-url.utils';
 import { castMantineRadius } from '../../../../utils/style-field-extractor';
 
@@ -18,7 +18,7 @@ import { castMantineRadius } from '../../../../utils/style-field-extractor';
  */
 interface IImageStyleProps {
     style: IImageStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, unknown>;
     cssClass: string;
 }
 
@@ -44,7 +44,7 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style, styleProps, cssClass })
     const width = style.mantine_width?.content;
     const height = style.mantine_height?.content;
     const fit = style.mantine_image_fit?.content || 'contain';
-    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const radius = castMantineRadius((style as { mantine_radius?: { content?: string } }).mantine_radius?.content);
     const use_mantine_style = style.use_mantine_style?.content === '1';
 
     
@@ -67,6 +67,7 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style, styleProps, cssClass })
     // Fallback to basic img element when Mantine styling is disabled
 
     return (
+        // eslint-disable-next-line @next/next/no-img-element -- CMS-driven arbitrary image URLs with string dimensions; next/image's domain allow-list and numeric sizing don't fit this dynamic fallback
         <img
             src={src}
             alt={alt}

@@ -31,13 +31,13 @@ import {
 import { useHotkeys } from '@mantine/hooks';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
+import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useDeletePageMutation } from '../../../../../hooks/mutations/useDeletePageMutation';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
-import { IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
+import { type IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
@@ -148,19 +148,19 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
         if (languagesData.length > 0 && !activeLanguageTab) {
             setActiveLanguageTab(languagesData[0].id.toString());
         }
-    }, [languagesData.length, activeLanguageTab]);
+    }, [languagesData, activeLanguageTab]);
 
     const updatePageMutation = useUpdatePageMutation({
         onSuccess: (_updatedPage, pageId) => {
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] });
-            queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] });
-            queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
-            queryClient.invalidateQueries({ queryKey: ['pages'] });
-            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
-            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', pageId] });
+            void queryClient.invalidateQueries({ queryKey: ['adminPages'] });
+            void queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] });
+            void queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
+            void queryClient.invalidateQueries({ queryKey: ['pages'] });
+            void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
+            void queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
+            void queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
+            void queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });
+            void queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', pageId] });
         },
         onError: () => {}
     });

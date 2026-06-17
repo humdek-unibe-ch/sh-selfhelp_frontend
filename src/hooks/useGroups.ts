@@ -61,17 +61,17 @@ export function useCreateGroup() {
   return useMutation({
     mutationFn: (data: ICreateGroupRequest) => AdminGroupApi.createGroup(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
+      void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
       notifications.show({
         title: 'Success',
         message: 'Group created successfully',
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to create group',
+        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to create group',
         color: 'red',
       });
     },
@@ -86,18 +86,18 @@ export function useUpdateGroup() {
     mutationFn: ({ groupId, data }: { groupId: number; data: IUpdateGroupRequest }) =>
       AdminGroupApi.updateGroup(groupId, data),
     onSuccess: (_, { groupId }) => {
-      queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
-      queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.detail(groupId) });
+      void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
+      void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.detail(groupId) });
       notifications.show({
         title: 'Success',
         message: 'Group updated successfully',
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to update group',
+        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update group',
         color: 'red',
       });
     },
@@ -111,17 +111,17 @@ export function useDeleteGroup() {
   return useMutation({
     mutationFn: (groupId: number) => AdminGroupApi.deleteGroup(groupId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
+      void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
       notifications.show({
         title: 'Success',
         message: 'Group deleted successfully',
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to delete group',
+        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to delete group',
         color: 'red',
       });
     },
@@ -137,19 +137,19 @@ export function useUpdateGroupAcls() {
       AdminGroupApi.updateGroupAcls(groupId, data),
     onSuccess: (_, { groupId }) => {
       // Invalidate all group-related queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
-      queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.acls(groupId) });
-      queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.detail(groupId) });
+      void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
+      void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.acls(groupId) });
+      void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.detail(groupId) });
       notifications.show({
         title: 'Success',
         message: 'Group ACLs updated successfully',
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to update group ACLs',
+        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update group ACLs',
         color: 'red',
       });
     },

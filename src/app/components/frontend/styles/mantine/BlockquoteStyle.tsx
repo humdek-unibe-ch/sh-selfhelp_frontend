@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Blockquote } from '@mantine/core';
 import IconComponent from '../../../shared/common/IconComponent';
-import { IBlockquoteStyle } from '../../../../../types/common/styles.types';
+import { type IBlockquoteStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for BlockquoteStyle component
@@ -15,7 +15,7 @@ import { IBlockquoteStyle } from '../../../../../types/common/styles.types';
  */
 interface IBlockquoteStyleProps {
     style: IBlockquoteStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -32,7 +32,7 @@ const BlockquoteStyle: React.FC<IBlockquoteStyleProps> = ({ style, styleProps, c
     const content = style.content?.content || 'This is a blockquote with some quoted text content.';
     const cite = style.cite?.content;
     const iconName = style.mantine_left_icon?.content || 'icon-quote';
-    const iconSize = parseInt((style as any).mantine_icon_size?.content || '20');
+    const iconSize = parseInt(style.mantine_icon_size?.content || '20');
     const color = style.mantine_color?.content || 'gray';
     const use_mantine_style = style.use_mantine_style?.content === '1';
 

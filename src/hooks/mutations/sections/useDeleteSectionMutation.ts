@@ -10,8 +10,8 @@ import { AdminSectionApi } from '../../../api/admin/section.api';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IDeleteSectionMutationOptions {
-    onSuccess?: (data: any, variables: { sectionId: number }) => void;
-    onError?: (error: any, variables: { sectionId: number }) => void;
+    onSuccess?: (data: unknown, variables: { sectionId: number }) => void;
+    onError?: (error: unknown, variables: { sectionId: number }) => void;
     showNotifications?: boolean;
 }
 
@@ -27,7 +27,7 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
         mutationFn: ({ sectionId }: IDeleteSectionVariables) =>
             AdminSectionApi.deleteSection(sectionId),
 
-        onSuccess: async (result: any, variables: IDeleteSectionVariables) => {
+        onSuccess: async (result: unknown, variables: IDeleteSectionVariables) => {
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['pageSections'] }),
                 queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
@@ -52,7 +52,7 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
             onSuccess?.(result, variables);
         },
 
-        onError: (error: any, variables: IDeleteSectionVariables) => {
+        onError: (error: unknown, variables: IDeleteSectionVariables) => {
             const { errorMessage, errorTitle } = parseApiError(error);
 
             if (showNotifications) {

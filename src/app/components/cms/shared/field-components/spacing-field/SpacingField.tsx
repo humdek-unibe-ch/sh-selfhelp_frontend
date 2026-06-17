@@ -46,9 +46,6 @@ const SPACING_LABELS: Record<TSpacingValue, string> = {
 };
 
 export function SpacingField({
-    fieldId,
-    fieldName,
-    fieldTitle,
     fieldType,
     value,
     onChange,

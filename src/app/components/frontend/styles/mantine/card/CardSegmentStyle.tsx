@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Card } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
-import { ICardSegmentStyle } from '../../../../../../types/common/styles.types';
+import { type ICardSegmentStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for CardSegmentStyle component
@@ -15,7 +15,7 @@ import { ICardSegmentStyle } from '../../../../../../types/common/styles.types';
  */
 interface ICardSegmentStyleProps {
     style: ICardSegmentStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 

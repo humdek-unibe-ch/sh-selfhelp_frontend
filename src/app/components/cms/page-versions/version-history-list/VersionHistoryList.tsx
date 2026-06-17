@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { Stack, Paper, Group, Text, Badge, ActionIcon, Tooltip, Box, ScrollArea, Loader, Alert, Center } from '@mantine/core';
 import { IconCheck, IconTrash, IconEye, IconGitBranch, IconGitCommit, IconGitCompare, IconRestore } from '@tabler/icons-react';
-import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
+import { type IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 import { format } from 'date-fns';
 import styles from './VersionHistoryList.module.css';
 
@@ -61,7 +61,7 @@ export function VersionHistoryList({
                         No versions yet
                     </Text>
                     <Text size="xs" c="dimmed" ta="center">
-                        Click "Publish" to create your first version
+                        Click &quot;Publish&quot; to create your first version
                     </Text>
                 </Stack>
             </Paper>

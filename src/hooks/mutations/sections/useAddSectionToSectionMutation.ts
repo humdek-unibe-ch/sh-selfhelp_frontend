@@ -15,11 +15,11 @@ import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
-import { IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
+import { type IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
 
 interface IAddSectionToSectionMutationOptions {
   onSuccess?: (
-    data: any,
+    data: unknown,
     variables: {
       pageId: number;
       parentSectionId: number;
@@ -28,7 +28,7 @@ interface IAddSectionToSectionMutationOptions {
   ) => void;
 
   onError?: (
-    error: any,
+    error: unknown,
     variables: {
       pageId: number;
       parentSectionId: number;
@@ -52,13 +52,13 @@ interface IAddSectionToSectionVariables {
  */
 export function useAddSectionToSectionMutation(options: IAddSectionToSectionMutationOptions = {}) {
     const queryClient = useQueryClient();
-    const { onSuccess, onError, showNotifications = true, pageId: cachePageId } = options;
+    const { onSuccess, onError, showNotifications = true } = options;
 
     return useMutation({
         mutationFn: ({ pageId, parentSectionId, sections }: IAddSectionToSectionVariables) => 
             AdminApi.addSectionToSection(pageId, parentSectionId, sections),
         
-        onSuccess: async (createdSection: any, variables: IAddSectionToSectionVariables) => {
+        onSuccess: async (createdSection: unknown, variables: IAddSectionToSectionVariables) => {
 
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
@@ -82,7 +82,7 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
             onSuccess?.(createdSection, variables);
         },
         
-        onError: (error: any, variables: IAddSectionToSectionVariables) => {
+        onError: (error: unknown, variables: IAddSectionToSectionVariables) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

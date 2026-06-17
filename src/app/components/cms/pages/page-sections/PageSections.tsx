@@ -5,7 +5,6 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useState, useEffect, useCallback, memo, useMemo, useDeferredValue, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -36,7 +35,7 @@ import {
 import { usePageSections } from '../../../../../hooks/usePageDetails';
 import { useSectionOperations } from '../../../../../hooks/useSectionOperations';
 import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
-import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
+import { type IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './add-section-modal/AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
@@ -218,7 +217,7 @@ interface IPageSectionsProps {
     initialSelectedSectionId?: number | null;
 }
 
-interface IMoveData {
+export interface IMoveData {
     draggedSectionId: number;
     newParentId: number | null;
     pageId?: number;
@@ -445,7 +444,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     specificPosition: newPosition,
                     oldParentPageId,
                     oldParentSectionId
-                } as any);
+                });
             } else {
                 // Moving to another section - use section mutation
                 if (!pageId) {
@@ -455,7 +454,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     specificPosition: newPosition,
                     oldParentPageId,
                     oldParentSectionId
-                } as any);
+                });
             }
 
         } catch {

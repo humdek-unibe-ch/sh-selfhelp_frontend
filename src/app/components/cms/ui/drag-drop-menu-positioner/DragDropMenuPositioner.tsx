@@ -31,7 +31,7 @@ import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/el
 import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
-import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
+import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { calculateMenuPosition, calculateFinalMenuPosition } from '../../../../../utils/position-calculator';
 import styles from './DragDropMenuPositioner.module.css';
 import { MenuType } from '../../pages/page-inspector/PageInspector';
@@ -97,7 +97,6 @@ const DragContext = createContext<IDragState>({
 function MenuPageItem({
     item,
     index,
-    onPositionChange,
     activeDrag,
     menuType,
 
@@ -127,7 +126,7 @@ function MenuPageItem({
         const element = elementRef.current;
         const dragHandle = dragHandleRef.current;
 
-        if (!element || !dragHandle || !canDrag) return;
+        if (!element || !dragHandle || !canDrag) return undefined;
 
         return draggable({
             element: dragHandle,
@@ -170,12 +169,12 @@ function MenuPageItem({
                 });
             },
         });
-    }, [item, index, canDrag]);
+    }, [item, index, canDrag, menuType]);
 
     // Setup drop target
     useEffect(() => {
         const element = elementRef.current;
-        if (!element) return;
+        if (!element) return undefined;
 
         return dropTargetForElements({
             element,
@@ -225,7 +224,7 @@ function MenuPageItem({
                 });
             }
         });
-    }, [item, index]);
+    }, [item, index, menuType]);
 
     return (
         <Paper
@@ -279,7 +278,6 @@ export function DragDropMenuPositioner({
     currentPage,
     newPageKeyword,
     enabled,
-    position,
     onEnabledChange,
     onPositionChange,
     onGetFinalPosition,
@@ -301,7 +299,7 @@ export function DragDropMenuPositioner({
     });
 
     // Fetch admin pages
-    const { pages, isLoading: pagesLoading } = useAdminPages();
+    const { pages } = useAdminPages();
 
     // Helper functions
     const findPageById = useCallback((id: string, items: IMenuPageItem[]): IMenuPageItem | null => {
@@ -360,8 +358,13 @@ export function DragDropMenuPositioner({
         return menuPages;
     }, [pages, parentPageId, menuType]);
 
-    // Initialize menu pages when data is available - with stability check
-    useEffect(() => {
+    // Initialize menu pages when the processed data changes. Render-phase update
+    // tracking the previous processMenuPages (matching the previous effect's
+    // [processMenuPages] dependency, including running on mount); the inner
+    // content check keeps the same reference when nothing actually changed.
+    const [prevProcessMenuPages, setPrevProcessMenuPages] = useState<typeof processMenuPages | null>(null);
+    if (prevProcessMenuPages === null || prevProcessMenuPages !== processMenuPages) {
+        setPrevProcessMenuPages(processMenuPages);
         setMenuPages(prevMenuPages => {
             // Only update if the processed pages are actually different
             // This prevents unnecessary re-renders when the same data is recalculated
@@ -376,7 +379,7 @@ export function DragDropMenuPositioner({
             }
             return processMenuPages;
         });
-    }, [processMenuPages]);
+    }
 
     // Add new page to menu list when enabled
     const menuPagesWithNew = useMemo(() => {
@@ -427,12 +430,12 @@ export function DragDropMenuPositioner({
                 return [...menuPages, newPage];
             }
         }
-    }, [menuPages, enabled, currentPage, newPageKeyword, droppedIndex, menuType]);
+    }, [menuPages, enabled, currentPage, newPageKeyword, droppedIndex]);
 
     // Setup auto-scroll
     useEffect(() => {
         const container = containerRef.current;
-        if (!container) return;
+        if (!container) return undefined;
 
         return autoScrollForElements({
             element: container,
@@ -495,12 +498,12 @@ export function DragDropMenuPositioner({
                 }
             }
         });
-    }, [menuPagesWithNew, findPageById, calculateNewPosition, onPositionChange, menuType]);
+    }, [menuPagesWithNew, findPageById, calculateNewPosition, onPositionChange, menuType, onGlobalDragStart, onGlobalDragEnd]);
 
-    // Calculate final position helper
-    const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
+    // Calculate final position helper (stable identity so it can be a hook dep)
+    const calculateFinalPosition = useCallback((pages: IMenuPageItem[], targetIndex: number): number => {
         return calculateFinalMenuPosition(pages, targetIndex);
-    };
+    }, []);
     
 
     // Get final calculated position for external use
@@ -550,7 +553,7 @@ export function DragDropMenuPositioner({
                 return endPosition;
             }
         }
-    }, [enabled, newPageKeyword, currentPage, menuPages, droppedIndex, calculateFinalPosition, menuType]);
+    }, [enabled, newPageKeyword, currentPage, menuPages, droppedIndex, calculateFinalPosition]);
 
     // Expose getFinalPosition function to parent component
     useEffect(() => {

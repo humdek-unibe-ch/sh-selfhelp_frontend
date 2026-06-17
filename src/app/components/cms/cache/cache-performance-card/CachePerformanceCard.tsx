@@ -9,7 +9,7 @@ SPDX-License-Identifier: MPL-2.0
 
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Title, Text, Stack, Badge, SimpleGrid, Skeleton, Alert, Group, Progress, Divider } from '@mantine/core';
 import { IconInfoCircle, IconTrophy, IconActivity, IconClock } from '@tabler/icons-react';
 import type { ICacheStatsResponse } from '../../../../../types/responses/admin/cache.types';
@@ -38,6 +38,15 @@ const CATEGORY_DESCRIPTIONS: Record<string, { label: string; color: string }> = 
 };
 
 export function CachePerformanceCard({ stats, isLoading }: ICachePerformanceCardProps) {
+    // Live clock for the "within the last minute" freshness badge. Reading the
+    // clock off the render path (in an interval callback) keeps render pure
+    // while keeping the "Active" indicator accurate as time passes.
+    const [now, setNow] = useState(() => Date.now());
+    useEffect(() => {
+        const intervalId = setInterval(() => setNow(Date.now()), 15000);
+        return () => clearInterval(intervalId);
+    }, []);
+
     if (isLoading) {
         return (
             <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
@@ -100,7 +109,7 @@ export function CachePerformanceCard({ stats, isLoading }: ICachePerformanceCard
                             };
                             
                             const lastActivity = new Date(categoryStats.last_activity);
-                            const isRecent = Date.now() - lastActivity.getTime() < 60000; // Within last minute
+                            const isRecent = now - lastActivity.getTime() < 60000; // Within last minute
 
                             return (
                                 <div key={category}>

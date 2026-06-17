@@ -24,7 +24,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthApi } from '../../api/auth.api';
-import { ILanguagePreferenceUpdateResponse } from '../../types/responses/auth.types';
+import { type ILanguagePreferenceUpdateResponse } from '../../types/responses/auth.types';
 import { notifications } from '@mantine/notifications';
 import { error } from '../../utils/debug-logger';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
@@ -47,7 +47,7 @@ export function useUpdateLanguagePreferenceMutation() {
                 color: 'green',
             });
         },
-        onError: (err: any, languageId) => {
+        onError: (err: unknown, languageId) => {
             error('Failed to update language preference', 'useUpdateLanguagePreferenceMutation', {
                 error: err,
                 requestedLanguageId: languageId,

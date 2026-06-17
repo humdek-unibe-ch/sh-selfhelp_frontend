@@ -17,17 +17,25 @@ SPDX-License-Identifier: MPL-2.0
 
 import { permissionAwareApiClient } from './base.api';
 import type { IForgotPasswordRequest, IResetPasswordRequest } from '../shared';
-import { ILoginRequest, ITwoFactorVerifyRequest, IRegisterRequest } from '../types/requests/auth/auth.types';
+import { type ILoginRequest, type ITwoFactorVerifyRequest, type IRegisterRequest } from '../types/requests/auth/auth.types';
 import {
-    ILoginSuccessResponse,
-    ITwoFactorRequiredResponse,
-    ITwoFactorVerifySuccessResponse,
-    ILogoutSuccessResponse,
-    ILanguagePreferenceUpdateResponse,
-    IRegisterSuccessResponse,
+    type ILoginSuccessResponse,
+    type ITwoFactorRequiredResponse,
+    type ITwoFactorVerifySuccessResponse,
+    type ILogoutSuccessResponse,
+    type ILanguagePreferenceUpdateResponse,
+    type IRegisterSuccessResponse,
 } from '../types/responses/auth.types';
-import { IUserDataResponse } from '../types/auth/jwt-payload.types';
+import { type IUserDataResponse } from '../types/auth/jwt-payload.types';
+import { type IBaseApiResponse } from '../types/responses/common/response-envelope.types';
 import { API_CONFIG } from '../config/api.config';
+
+/** Inner payload of the user token-validation endpoint. */
+export interface ITokenValidationData {
+    token_valid: boolean;
+    name?: string;
+    message?: string;
+}
 
 export const AuthApi = {
     /**
@@ -233,7 +241,7 @@ export const AuthApi = {
     },
 
     async validateToken(userId: number, token: string) {
-        const response = await permissionAwareApiClient.get(
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<ITokenValidationData>>(
             API_CONFIG.ENDPOINTS.USER_VALIDATE_TOKEN,
             userId,
             token
@@ -248,7 +256,7 @@ export const AuthApi = {
             password: string;
             name?: string;
             section_id: number;
-            form_inputs?: Record<string, any>;
+            form_inputs?: Record<string, unknown>;
         }
     ) {
         const response = await permissionAwareApiClient.post(

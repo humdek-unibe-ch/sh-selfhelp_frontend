@@ -2,9 +2,9 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { ColorInput } from '@mantine/core';
-import { IColorInputStyle } from '../../../../../../types/common/styles.types';
+import { type IColorInputStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -16,7 +16,7 @@ import DOMPurify from 'isomorphic-dompurify';
  */
 interface IColorInputStyleProps {
     style: IColorInputStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -70,12 +70,15 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style, styleProps, c
         return defaultValue;
     });
 
-    // Update selected color when form context changes (for record editing)
-    useEffect(() => {
+    // Keep state in sync with the (async) form value via a render-phase update
+    // instead of an effect; the sentinel initial runs it on first render too.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    if (prevFormValue !== formValue) {
+        setPrevFormValue(formValue);
         if (formValue !== null && typeof formValue === 'string') {
             setSelectedColor(formValue);
         }
-    }, [formValue]);
+    }
 
     // Handle color change
     const handleColorChange = (color: string) => {

@@ -73,9 +73,7 @@ export function AclSelector({
 }: IAclSelectorProps) {
   const { 
     pages, 
-    systemPages, 
     regularPages, 
-    configurationPages, 
     isLoading 
   } = useAdminPages();
 
@@ -113,7 +111,7 @@ export function AclSelector({
         delete: selectedPages.some(p => p.id === page.id_pages && p.permissions.delete),
       },
     }));
-  }, [pages, systemPages, regularPages, configurationPages, pageFilter, selectedPages]);
+  }, [pages, regularPages, pageFilter, selectedPages]);
 
   // Group pages by type for better organization
   const groupedPages = useMemo(() => {

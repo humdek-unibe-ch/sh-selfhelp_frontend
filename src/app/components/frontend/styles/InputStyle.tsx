@@ -2,8 +2,9 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useContext, useEffect } from 'react';
-import { IInputStyle } from '../../../../types/common/styles.types';
+import React, { useState, useContext } from 'react';
+import { type IInputStyle } from '../../../../types/common/styles.types';
+import { type ILanguage } from '../../../../types/responses/admin/languages.types';
 import { FormFieldValueContext } from './FormStyle';
 import LanguageTabsWrapper from './shared/LanguageTabsWrapper';
 import DOMPurify from 'isomorphic-dompurify';
@@ -43,12 +44,15 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style, cssClass }) => {
     // Use form value if available, otherwise use initial value from style
     const [value, setValue] = useState<string | Array<{ language_id: number; value: string }> | null>(formValue || initialValue);
 
-    // Update value when form context changes (for record editing)
-    useEffect(() => {
+    // Keep state in sync with the (async) form value via a render-phase update
+    // instead of an effect; the sentinel initial runs it on first render too.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    if (prevFormValue !== formValue) {
+        setPrevFormValue(formValue);
         if (formValue !== null) {
             setValue(formValue);
         }
-    }, [formValue]);
+    }
 
     // Handle value change - for LanguageTabsWrapper
     const handleValueChange = (fieldName: string, newValue: string | Array<{ language_id: number; value: string }> | null) => {
@@ -58,7 +62,7 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style, cssClass }) => {
     };
 
     // Render input for a specific language
-    const renderInput = (language: any, currentValue: string, onValueChange: (value: string) => void) => {
+    const renderInput = (language: ILanguage, currentValue: string, onValueChange: (value: string) => void) => {
         // For checkboxes, use checked instead of value
         const checkboxProps = inputType === 'checkbox' ? {
             checked: currentValue === '1',

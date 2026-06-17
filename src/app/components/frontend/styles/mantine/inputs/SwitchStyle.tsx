@@ -2,9 +2,9 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Switch, Input } from '@mantine/core';
-import { ISwitchStyle } from '../../../../../../types/common/styles.types';
+import { type ISwitchStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
@@ -18,7 +18,7 @@ import { castMantineSize } from '../../../../../../utils/style-field-extractor';
  */
 interface ISwitchStyleProps {
     style: ISwitchStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -36,9 +36,9 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style, styleProps, cssClass 
     const description = style.description?.content || '';
     const onLabel = style.mantine_switch_on_label?.content || 'On';
     const offLabel = style.mantine_switch_off_label?.content || 'Off';
-    const size = castMantineSize((style as any).mantine_size?.content);
+    const size = castMantineSize(style.mantine_size?.content);
     const color = style.mantine_color?.content || 'blue';
-    const radius = castMantineSize((style as any).mantine_radius?.content);
+    const radius = castMantineSize(style.mantine_radius?.content);
     const disabled = style.disabled?.content === '1';
     const name = style.name?.content;
     const value = style.value?.content;
@@ -62,12 +62,18 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style, styleProps, cssClass 
         return value === onValue;
     });
 
-    // Update checked state when form context changes (for record editing)
-    useEffect(() => {
+    // Keep checked state in sync with the (async) form value via a render-phase
+    // update instead of an effect; the sentinel initial runs it on first render
+    // too, and prevOnValue mirrors the original [formValue, onValue] deps.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    const [prevOnValue, setPrevOnValue] = useState(onValue);
+    if (prevFormValue !== formValue || prevOnValue !== onValue) {
+        setPrevFormValue(formValue);
+        setPrevOnValue(onValue);
         if (formValue !== null) {
             setIsChecked(formValue === onValue);
         }
-    }, [formValue, onValue]);
+    }
 
     // Handle switch change
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {

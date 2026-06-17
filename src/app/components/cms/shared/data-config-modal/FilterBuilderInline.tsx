@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Stack, Text, Divider, Group, Select as MantineSelect, NumberInput, ActionIcon, Button } from '@mantine/core';
-import { QueryBuilder, RuleGroupType, defaultValidator, formatQuery } from 'react-querybuilder';
+import { QueryBuilder, type RuleGroupType, type RuleType, type ValueEditorProps, defaultValidator, formatQuery } from 'react-querybuilder';
 import { mantineControlElements } from '@react-querybuilder/mantine';
 import { useTableColumnNames } from '../../../../../hooks/useData';
 import { parseSQL } from 'react-querybuilder/parseSQL';
@@ -22,6 +22,67 @@ interface IProps {
 
 const initialQuery: RuleGroupType = { combinator: 'and', rules: [] };
 
+const TIME_TOKENS = ['LAST_HOUR', 'LAST_DAY', 'LAST_WEEK', 'LAST_MONTH', 'LAST_YEAR'] as const;
+type TTimeToken = typeof TIME_TOKENS[number];
+
+// Helpers to split combined SQL into where/order/limit and extract time token.
+// Pure (no component scope), so they live at module level.
+function splitCombinedSql(sqlCombined: string | undefined) {
+  const result = {
+    whereSql: '',
+    orderBy: [] as Array<{ field: string; direction: 'ASC' | 'DESC' }>,
+    limit: undefined as number | undefined,
+    timeToken: '' as TTimeToken | '',
+  };
+  if (!sqlCombined) return result;
+  const input = sqlCombined.trim();
+  const limitMatch = input.match(/\blimit\s+(\d+)\s*$/i);
+  if (limitMatch) {
+    result.limit = Number(limitMatch[1]);
+  }
+  const orderMatch = input.match(/\border\s+by\s+(.+?)(?:\s+limit\s+\d+)?\s*$/i);
+  if (orderMatch) {
+    const parts = orderMatch[1].split(',').map((p) => p.trim()).filter(Boolean);
+    result.orderBy = parts.map((p) => {
+      const [field, dir] = p.split(/\s+/);
+      const direction = (dir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as 'ASC' | 'DESC';
+      return { field, direction };
+    }).filter((o) => o.field);
+  }
+  let where = input.replace(/\border\s+by\s+.+?(?:\s+limit\s+\d+)?\s*$/i, '').trim();
+  where = where.replace(/\blimit\s+\d+\s*$/i, '').trim();
+  // Strip wrapping (1 = 1) placeholder if present
+  if (/^\(?\s*1\s*=\s*1\s*\)?$/i.test(where)) {
+    where = '';
+  }
+  // Remove leading AND if present (stored filter requires leading AND, but parser does not)
+  where = where.replace(/^\s*AND\s+/i, '');
+  // Extract time token if present at the beginning
+  for (const token of TIME_TOKENS) {
+    const tokenExpr = `\'${token}\'\s*=\s*\'${token}\'`;
+    const tokenRegex = new RegExp(`^\s*${tokenExpr}(?:\s+AND\s+)?`, 'i');
+    if (tokenRegex.test(where)) {
+      result.timeToken = token;
+      where = where.replace(tokenRegex, '').trim();
+      break;
+    }
+  }
+  result.whereSql = where;
+  return result;
+}
+
+// Ensure stable IDs on initial query to prevent input remount/focus loss
+function ensureIds(node: RuleGroupType | RuleType): RuleGroupType | RuleType {
+  const withId = { ...node };
+  if (!withId.id) {
+    withId.id = `q_${Math.random().toString(36).slice(2, 10)}`;
+  }
+  if ('rules' in withId && Array.isArray(withId.rules)) {
+    withId.rules = withId.rules.map((child) => ensureIds(child)) as RuleGroupType['rules'];
+  }
+  return withId;
+}
+
 
 export function FilterBuilderInline(props: IProps & { dataVariables?: Record<string, string> }) {
   const { tableName, initialSql, onSave, dataVariables } = props;
@@ -31,17 +92,28 @@ export function FilterBuilderInline(props: IProps & { dataVariables?: Record<str
     return unique.map((name) => ({ name, label: name, dataType: 'text' as const }));
   }, [columnNames]);
 
-  const [query, setQuery] = useState<RuleGroupType>(initialQuery);
-  const [orderBy, setOrderBy] = useState<Array<{ field: string; direction: 'ASC' | 'DESC' }>>([]);
-  const [limit, setLimit] = useState<number | undefined>(undefined);
-  const TIME_TOKENS = ['LAST_HOUR', 'LAST_DAY', 'LAST_WEEK', 'LAST_MONTH', 'LAST_YEAR'] as const;
-  type TTimeToken = typeof TIME_TOKENS[number];
-  const [timeToken, setTimeToken] = useState<TTimeToken | ''>('');
+  // Parse the combined initial SQL once for the lazy state initializers below
+  // (replaces the previous one-time init effect; `splitCombinedSql` is pure).
+  const initialParsed = splitCombinedSql(initialSql);
+  const [query, setQuery] = useState<RuleGroupType>(() => {
+    try {
+      if (initialParsed.whereSql) {
+        const qb = parseSQL(initialParsed.whereSql) as RuleGroupType;
+        return qb ? (ensureIds(qb) as RuleGroupType) : initialQuery;
+      }
+      return initialQuery;
+    } catch {
+      return initialQuery;
+    }
+  });
+  const [orderBy, setOrderBy] = useState<Array<{ field: string; direction: 'ASC' | 'DESC' }>>(initialParsed.orderBy);
+  const [limit, setLimit] = useState<number | undefined>(initialParsed.limit);
+  const [timeToken, setTimeToken] = useState<TTimeToken | ''>(initialParsed.timeToken);
 
   // Custom value editor that supports mentions for text inputs
   const ValueEditorWithMentions = React.useMemo(() => {
-    return (props: any) => {
-      const { value, handleOnChange, fieldData, type, operator } = props;
+    function ValueEditor(props: ValueEditorProps) {
+      const { value, handleOnChange, fieldData, type } = props;
 
       // For text inputs - be more inclusive
       const isTextInput = type === 'text' || fieldData?.dataType === 'text';
@@ -55,7 +127,7 @@ export function FilterBuilderInline(props: IProps & { dataVariables?: Record<str
           <TextInputWithMentions
               fieldId={stableId}
               value={value || ''}
-              onChange={handleOnChange || ((val: string) => {})}
+              onChange={handleOnChange || ((_val: string) => {})}
               placeholder="Enter value or use {{variable}}"
               dataVariables={dataVariables}
             />
@@ -64,9 +136,10 @@ export function FilterBuilderInline(props: IProps & { dataVariables?: Record<str
       }
 
       // Fall back to default Mantine value editor for other types
-      const ValueEditorComponent = mantineControlElements.valueEditor as any;
+      const ValueEditorComponent = mantineControlElements.valueEditor as React.ComponentType<ValueEditorProps>;
       return <ValueEditorComponent {...props} />;
-    };
+    }
+    return ValueEditor;
   }, [dataVariables]);
 
   // Custom control elements with mentions support
@@ -75,81 +148,9 @@ export function FilterBuilderInline(props: IProps & { dataVariables?: Record<str
     valueEditor: ValueEditorWithMentions,
   }), [ValueEditorWithMentions]);
 
-  // Helpers to split combined SQL into where/order/limit and extract time token
-  function splitCombinedSql(sqlCombined: string | undefined) {
-    const result = {
-      whereSql: '',
-      orderBy: [] as Array<{ field: string; direction: 'ASC' | 'DESC' }>,
-      limit: undefined as number | undefined,
-    };
-    if (!sqlCombined) return result;
-    const input = sqlCombined.trim();
-    const limitMatch = input.match(/\blimit\s+(\d+)\s*$/i);
-    if (limitMatch) {
-      result.limit = Number(limitMatch[1]);
-    }
-    const orderMatch = input.match(/\border\s+by\s+(.+?)(?:\s+limit\s+\d+)?\s*$/i);
-    if (orderMatch) {
-      const parts = orderMatch[1].split(',').map((p) => p.trim()).filter(Boolean);
-      result.orderBy = parts.map((p) => {
-        const [field, dir] = p.split(/\s+/);
-        const direction = (dir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as 'ASC' | 'DESC';
-        return { field, direction };
-      }).filter((o) => o.field);
-    }
-    let where = input.replace(/\border\s+by\s+.+?(?:\s+limit\s+\d+)?\s*$/i, '').trim();
-    where = where.replace(/\blimit\s+\d+\s*$/i, '').trim();
-    // Strip wrapping (1 = 1) placeholder if present
-    if (/^\(?\s*1\s*=\s*1\s*\)?$/i.test(where)) {
-      where = '';
-    }
-    // Remove leading AND if present (stored filter requires leading AND, but parser does not)
-    where = where.replace(/^\s*AND\s+/i, '');
-    // Extract time token if present at the beginning
-    const upperWhere = where.toUpperCase();
-    for (const token of TIME_TOKENS) {
-      const tokenExpr = `\'${token}\'\s*=\s*\'${token}\'`;
-      const tokenRegex = new RegExp(`^\s*${tokenExpr}(?:\s+AND\s+)?`, 'i');
-      if (tokenRegex.test(where)) {
-        setTimeToken(token);
-        where = where.replace(tokenRegex, '').trim();
-        break;
-      }
-    }
-    result.whereSql = where;
-    return result;
-  }
-
-  // Ensure stable IDs on initial query to prevent input remount/focus loss
-  function ensureIds(node: any): any {
-    const withId = { ...node } as any;
-    if (!withId.id) {
-      withId.id = `q_${Math.random().toString(36).slice(2, 10)}`;
-    }
-    if (Array.isArray(withId.rules)) {
-      withId.rules = withId.rules.map((child: any) => ensureIds(child));
-    }
-    return withId;
-  }
-
-  // Initialize from initialSql only once to avoid feedback loops with parent state
-  useEffect(() => {
-    const { whereSql, orderBy: initialOrderBy, limit: initialLimit } = splitCombinedSql(initialSql);
-    try {
-      if (whereSql) {
-        const qb = parseSQL(whereSql) as RuleGroupType;
-        const qbWithIds = qb ? (ensureIds(qb) as RuleGroupType) : initialQuery;
-        setQuery(qbWithIds);
-      } else {
-        setQuery(initialQuery);
-      }
-    } catch {
-      setQuery(initialQuery);
-    }
-    setOrderBy(initialOrderBy);
-    setLimit(initialLimit);
-    lastSubmittedSqlRef.current = (initialSql || '').trim();
-  }, []);
+  // Initialization from `initialSql` now happens once via the lazy state
+  // initializers above (and the `lastSubmittedSqlRef` seed), replacing the
+  // previous mount effect that set state synchronously.
 
   const addOrderBy = () => setOrderBy((prev) => [...prev, { field: '', direction: 'ASC' }]);
   const removeOrderBy = (idx: number) => setOrderBy((prev) => prev.filter((_, i) => i !== idx));
@@ -178,7 +179,7 @@ export function FilterBuilderInline(props: IProps & { dataVariables?: Record<str
     return `${whereSql}${orderSql}${limitSql}`.trim();
   };
 
-  const lastSubmittedSqlRef = useRef<string>('');
+  const lastSubmittedSqlRef = useRef<string>((initialSql || '').trim());
   const debounceRef = useRef<number | null>(null);
 
   // Auto-apply with debounce on any builder change (no blur needed)

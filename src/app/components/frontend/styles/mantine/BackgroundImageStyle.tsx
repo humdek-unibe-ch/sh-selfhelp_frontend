@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { BackgroundImage } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { IBackgroundImageStyle } from '../../../../../types/common/styles.types';
+import { type IBackgroundImageStyle } from '../../../../../types/common/styles.types';
 import { getAssetUrl } from '../../../../../utils/asset-url.utils';
 
 /**
@@ -16,7 +16,7 @@ import { getAssetUrl } from '../../../../../utils/asset-url.utils';
  */
 interface IBackgroundImageStyleProps {
     style: IBackgroundImageStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -50,7 +50,7 @@ const BackgroundImageStyle: React.FC<IBackgroundImageStyleProps> = ({ style, sty
             style={styleObj}
         >
             {children.length > 0 ? (
-                children.map((child: any, index: number) => (
+                children.map((child, index: number) => (
                     child ? <BasicStyle key={index} style={child} /> : null
                 ))
             ) : (

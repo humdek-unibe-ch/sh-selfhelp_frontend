@@ -5,12 +5,13 @@ SPDX-License-Identifier: MPL-2.0
 import React, { useState, useCallback, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { FileInput, Text, Alert, Box, rem, Paper, Group, Button, Stack, Badge } from '@mantine/core';
 import { IconComponent } from '../../../../shared';
-import { IFileInputStyle } from '../../../../../../types/common/styles.types';
+import { type IFileInputStyle } from '../../../../../../types/common/styles.types';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconCheck, IconX, IconUpload, IconFile, IconTrash, IconClearAll } from '@tabler/icons-react';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, type FileRejection } from 'react-dropzone';
 import { FileInputRegistrationContext } from '../../FormStyle';
 import { castMantineRadius, castMantineSize } from '../../../../../../utils/style-field-extractor';
+import { debug } from '../../../../../../utils/debug-logger';
 import DOMPurify from 'isomorphic-dompurify';
 
 /**
@@ -18,7 +19,7 @@ import DOMPurify from 'isomorphic-dompurify';
  */
 interface IFileInputStyleProps {
     style: IFileInputStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -76,8 +77,8 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
     const maxSizeStr = style.mantine_file_input_max_size?.content;
     const maxFilesStr = style.mantine_file_input_max_files?.content;
     const name = style.name?.content || `section-${style.id}`;
-    const size = castMantineSize((style as any).mantine_size?.content) || 'sm';
-    const radius = castMantineRadius((style as any).mantine_radius?.content) || 'sm';
+    const size = castMantineSize(style.mantine_size?.content) || 'sm';
+    const radius = castMantineRadius(style.mantine_radius?.content) || 'sm';
     const leftIconName = style.mantine_left_icon?.content;
     const rightIconName = style.mantine_right_icon?.content;
     const disabled = style.disabled?.content === '1';
@@ -238,6 +239,7 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
                 fileInputRegistrationContext.registerFileInputRef(fieldName, null);
             };
         }
+        return undefined;
     }, [fileInputRegistrationContext, name, selectedFiles, clearAllFiles]);
 
     // Format file size helper
@@ -256,24 +258,22 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
                 const dt = new DataTransfer();
                 selectedFiles.forEach(file => dt.items.add(file));
                 dropzoneInputRef.current.files = dt.files;
-                console.log('Updated dropzone input files:', selectedFiles.length, 'files');
+                debug('Updated dropzone input files', 'FileInputStyle', { count: selectedFiles.length });
             } else {
                 dropzoneInputRef.current.files = null;
-                console.log('Cleared dropzone input files');
+                debug('Cleared dropzone input files', 'FileInputStyle');
             }
         }
     }, [selectedFiles, dragDrop]);
 
     // Debug form submission
     const handleFormSubmit = useCallback(() => {
-        console.log('FileInput form submission - selected files:', selectedFiles);
-        console.log('FileInput name:', name);
-        console.log('FileInput multiple:', multiple);
+        debug('FileInput form submission', 'FileInputStyle', { selectedFiles, name, multiple });
     }, [selectedFiles, name, multiple]);
 
     // Add form submit listener for debugging
     useEffect(() => {
-        const handleSubmit = (e: Event) => {
+        const handleSubmit = (_e: Event) => {
             handleFormSubmit();
         };
 
@@ -285,6 +285,7 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
                 form.removeEventListener('submit', handleSubmit);
             };
         }
+        return undefined;
     }, [handleFormSubmit, selectedFiles]);
 
     // Prepare icon components
@@ -309,10 +310,10 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
         maxSize,
         maxFiles,
         disabled,
-        onDrop: (acceptedFiles: File[], rejectedFiles: any[]) => {
+        onDrop: (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
             if (rejectedFiles.length > 0) {
                 const errors = rejectedFiles.map(rejection =>
-                    rejection.errors.map((error: any) => error.message).join(', ')
+                    rejection.errors.map((error) => error.message).join(', ')
                 ).join('; ');
                 setValidationError(`Rejected files: ${errors}`);
                 notifications.show({

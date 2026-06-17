@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Card,
   Group,
@@ -21,7 +21,7 @@ import {
   Divider,
   Table,
 } from '@mantine/core';
-import { IconAlertCircle, IconDatabase, IconShield, IconShieldCheck, IconTrendingUp, IconFilter, IconX } from '@tabler/icons-react';
+import { IconAlertCircle, IconDatabase, IconShield, IconShieldCheck, IconTrendingUp, IconFilter } from '@tabler/icons-react';
 import { useAuditStats, useAuditLogs } from '../../../../../hooks/useAuditLogs';
 import { DatePickerInput } from '@mantine/dates';
 import type { IAuditStatsParams } from '../../../../../types/responses/admin/audit.types';
@@ -47,12 +47,15 @@ export function AuditLogsStats() {
     pageSize: 10, // Show last 10 entries
   });
 
-  // Sync local state with props
-  useEffect(() => {
+  // Sync local state with props. Render-phase update tracking the previous prop
+  // (matching the previous effect's [dateRange] dependency).
+  const [prevDateRange, setPrevDateRange] = useState(dateRange);
+  if (prevDateRange !== dateRange) {
+    setPrevDateRange(dateRange);
     setLocalDateRange(dateRange);
-  }, [dateRange]);
+  }
 
-  const handleDateChange = (field: 'date_from' | 'date_to', value: any) => {
+  const handleDateChange = (field: 'date_from' | 'date_to', value: string | Date | null) => {
     let dateStr: string | undefined;
     if (value) {
       const dateObj = typeof value === 'string' ? new Date(value) : value;
@@ -83,7 +86,7 @@ export function AuditLogsStats() {
     setDateRange(emptyFilters);
   };
 
-  const hasActiveFilters = Object.entries(localDateRange).some(([key, value]) => {
+  const hasActiveFilters = Object.entries(localDateRange).some(([_key, value]) => {
     return value !== undefined && value !== null && value !== '';
   });
 
@@ -401,7 +404,7 @@ export function AuditLogsStats() {
           <Card withBorder mt="md">
             <Text fw={600} mb="md">Recent Security Events</Text>
             <Stack gap="sm">
-              {recentDeniedAttempts.slice(0, 5).map((attempt, index) => (
+              {recentDeniedAttempts.slice(0, 5).map((attempt, _index) => (
                 <Group key={attempt.id} justify="space-between" align="flex-start">
                   <Group>
                     <IconShield size={16} style={{ color: 'var(--mantine-color-red-6)' }} />

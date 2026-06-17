@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Group } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { IGroupStyle } from '../../../../../types/common/styles.types';
+import { type IGroupStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for GroupStyle component
@@ -17,7 +17,7 @@ import { IGroupStyle } from '../../../../../types/common/styles.types';
  */
 interface IGroupStyleProps {
     style: IGroupStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -60,7 +60,7 @@ const GroupStyle: React.FC<IGroupStyleProps> = ({ style, styleProps, cssClass })
             {...styleProps} className={cssClass}
             style={styleObj}
         >
-            {children.map((child: any, index: number) => (
+            {children.map((child, index: number) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}
         </Group>

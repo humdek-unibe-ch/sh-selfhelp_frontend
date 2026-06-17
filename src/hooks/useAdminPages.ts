@@ -11,10 +11,10 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { IAdminPage } from '../types/responses/admin/admin.types';
+import { type IAdminPage } from '../types/responses/admin/admin.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
-import { parseCrudPermissions, ICrudPermissions } from '../utils/permissions.utils';
+import { parseCrudPermissions, type ICrudPermissions } from '../utils/permissions.utils';
 import { AdminApi } from '../api/admin';
 
 export interface ISystemPageLink {

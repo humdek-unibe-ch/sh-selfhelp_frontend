@@ -159,7 +159,10 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
     const [updateManifest, setUpdateManifest] = useState('');
     const [updateForceMajor, setUpdateForceMajor] = useState(false);
 
-    const manifest = (detail.data?.manifest ?? {}) as Record<string, unknown>;
+    const manifest = useMemo(
+        () => (detail.data?.manifest ?? {}) as Record<string, unknown>,
+        [detail.data?.manifest]
+    );
 
     const dependencies = useMemo(() => {
         const deps = (manifest.dependencies as Record<string, string> | undefined) ?? {};

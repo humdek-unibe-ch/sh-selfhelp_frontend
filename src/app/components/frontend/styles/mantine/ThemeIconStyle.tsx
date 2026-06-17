@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { ThemeIcon } from '@mantine/core';
 import IconComponent from '../../../shared/common/IconComponent';
-import { IThemeIconStyle } from '../../../../../types/common/styles.types';
+import { type IThemeIconStyle } from '../../../../../types/common/styles.types';
 import { castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
 
 /**
@@ -16,7 +16,7 @@ import { castMantineSize, castMantineRadius } from '../../../../../utils/style-f
  */
 interface IThemeIconStyleProps {
     style: IThemeIconStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -31,8 +31,8 @@ interface IThemeIconStyleProps {
 const ThemeIconStyle: React.FC<IThemeIconStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const variant = style.mantine_variant?.content || 'filled';
-    const size = castMantineSize((style as any).mantine_size?.content) || 'md';
-    const radius = castMantineRadius((style as any).mantine_radius?.content) || 'sm';
+    const size = castMantineSize(style.mantine_size?.content) || 'md';
+    const radius = castMantineRadius(style.mantine_radius?.content) || 'sm';
     const color = style.mantine_color?.content || 'blue';
     const leftIconName = style.mantine_left_icon?.content;
 

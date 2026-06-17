@@ -51,10 +51,10 @@ export function useClearAllCachesMutation() {
 
     return useMutation({
         mutationFn: () => AdminCacheApi.clearAllCaches(),
-        onSuccess: (response) => {
+        onSuccess: (_response) => {
             // Invalidate cache-related queries
-            queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
-            queryClient.invalidateQueries({ queryKey: ['cache-health'] });
+            void queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
+            void queryClient.invalidateQueries({ queryKey: ['cache-health'] });
             
             notifications.show({
                 title: 'Success',
@@ -63,10 +63,10 @@ export function useClearAllCachesMutation() {
                 autoClose: 3000,
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to clear all caches',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to clear all caches',
                 color: 'red',
                 autoClose: 5000,
             });
@@ -84,8 +84,8 @@ export function useClearCacheCategoryMutation() {
         mutationFn: (data: IClearCacheCategoryRequest) => AdminCacheApi.clearCacheCategory(data),
         onSuccess: (response, variables) => {
             // Invalidate cache-related queries
-            queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
-            queryClient.invalidateQueries({ queryKey: ['cache-health'] });
+            void queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
+            void queryClient.invalidateQueries({ queryKey: ['cache-health'] });
             
             notifications.show({
                 title: 'Success',
@@ -94,10 +94,10 @@ export function useClearCacheCategoryMutation() {
                 autoClose: 3000,
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to clear cache category',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to clear cache category',
                 color: 'red',
                 autoClose: 5000,
             });
@@ -115,8 +115,8 @@ export function useClearUserCacheMutation() {
         mutationFn: (data: IClearUserCacheRequest) => AdminCacheApi.clearUserCache(data),
         onSuccess: (response, variables) => {
             // Invalidate cache-related queries
-            queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
-            queryClient.invalidateQueries({ queryKey: ['cache-health'] });
+            void queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
+            void queryClient.invalidateQueries({ queryKey: ['cache-health'] });
             
             notifications.show({
                 title: 'Success',
@@ -125,10 +125,10 @@ export function useClearUserCacheMutation() {
                 autoClose: 3000,
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to clear user cache',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to clear user cache',
                 color: 'red',
                 autoClose: 5000,
             });
@@ -146,8 +146,8 @@ export function useResetCacheStatsMutation() {
         mutationFn: () => AdminCacheApi.resetCacheStats(),
         onSuccess: () => {
             // Invalidate cache-related queries
-            queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
-            queryClient.invalidateQueries({ queryKey: ['cache-health'] });
+            void queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
+            void queryClient.invalidateQueries({ queryKey: ['cache-health'] });
             
             notifications.show({
                 title: 'Success',
@@ -156,10 +156,10 @@ export function useResetCacheStatsMutation() {
                 autoClose: 3000,
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to reset cache statistics',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to reset cache statistics',
                 color: 'red',
                 autoClose: 5000,
             });

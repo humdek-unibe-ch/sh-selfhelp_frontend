@@ -10,7 +10,7 @@ SPDX-License-Identifier: MPL-2.0
 import { useQuery } from '@tanstack/react-query';
 import { PageVersionApi } from '../api/admin/page-version.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { IVersionListParams } from '../types/requests/admin/page-version.types';
+import { type IVersionListParams } from '../types/requests/admin/page-version.types';
 
 export function usePageVersions(pageId: number | null, params?: IVersionListParams) {
     return useQuery({

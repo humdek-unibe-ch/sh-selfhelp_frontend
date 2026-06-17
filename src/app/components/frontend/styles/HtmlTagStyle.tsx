@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
-import { IHtmlTagStyle } from '../../../../types/common/styles.types';
+import { type IHtmlTagStyle } from '../../../../types/common/styles.types';
 import BasicStyle from './BasicStyle';
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -12,7 +12,7 @@ import DOMPurify from 'isomorphic-dompurify';
  */
 interface IHtmlTagStyleProps {
     style: IHtmlTagStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -43,7 +43,6 @@ const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style, styleProps, cssClas
     if (children.length > 0) {
         const isInlineOnly = INLINE_ONLY_HTML_TAGS.has(requestedTag);
         if (isInlineOnly && process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
             console.warn(
                 `[HtmlTagStyle] section ${style.id}: inline-only tag <${requestedTag}> ` +
                 `had ${children.length} child style(s); rendered as <div> to avoid a hydration crash.`

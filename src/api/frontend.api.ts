@@ -13,7 +13,7 @@ export const FrontendApi = {
      * Get CSS classes for select fields
      */
     async getCssClasses(): Promise<ICssClassesResponse> {
-        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.FRONTEND_CSS_CLASSES_GET_ALL);
+        const response = await permissionAwareApiClient.get<ICssClassesResponse>(API_CONFIG.ENDPOINTS.FRONTEND_CSS_CLASSES_GET_ALL);
         return response.data;
     },
 

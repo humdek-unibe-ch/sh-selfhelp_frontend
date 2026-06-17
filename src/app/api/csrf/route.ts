@@ -23,7 +23,7 @@ SPDX-License-Identifier: MPL-2.0
  * does, so it's safe to call from any origin we already trust.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { CSRF_COOKIE, LONG_LIVED_COOKIE_MAX_AGE, randomHexToken } from '../../../config/server.config';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {

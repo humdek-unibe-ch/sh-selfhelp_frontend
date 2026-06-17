@@ -40,8 +40,8 @@ export function LanguagesPage() {
     });
 
     // Mutations
-    const createLanguageMutation = useCreateLanguageMutation();
-    const updateLanguageMutation = useUpdateLanguageMutation();
+    const _createLanguageMutation = useCreateLanguageMutation();
+    const _updateLanguageMutation = useUpdateLanguageMutation();
     const deleteLanguageMutation = useDeleteLanguageMutation();
 
     // Handle create language

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Accordion } from '@mantine/core';
 import IconComponent from '../../../../shared/common/IconComponent';
-import { IAccordionItemStyle } from '../../../../../../types/common/styles.types';
+import { type IAccordionItemStyle } from '../../../../../../types/common/styles.types';
 import BasicStyle from '../../BasicStyle';
 
 /**
@@ -16,7 +16,7 @@ import BasicStyle from '../../BasicStyle';
  */
 interface IAccordionItemStyleProps {
     style: IAccordionItemStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -62,7 +62,7 @@ const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style, stylePr
                     {label}
                 </Accordion.Control>
                 <Accordion.Panel>
-                    {children.map((child: any, index: number) => (
+                    {children.map((child, index: number) => (
                         child ? <BasicStyle key={index} style={child} /> : null
                     ))}
                 </Accordion.Panel>

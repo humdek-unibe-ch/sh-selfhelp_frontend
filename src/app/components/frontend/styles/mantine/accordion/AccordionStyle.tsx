@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Accordion } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
-import { IAccordionStyle } from '../../../../../../types/common/styles.types';
+import { type IAccordionStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for AccordionStyle component
@@ -15,7 +15,7 @@ import { IAccordionStyle } from '../../../../../../types/common/styles.types';
  */
 interface IAccordionStyleProps {
     style: IAccordionStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -35,10 +35,10 @@ const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style, styleProps, css
     const variant = style.mantine_accordion_variant?.content || 'default';
     const multiple = style.mantine_accordion_multiple?.content === '1';
     const chevronPosition = style.mantine_accordion_chevron_position?.content || 'left';
-    const chevronSize = parseInt((style as any).mantine_accordion_chevron_size?.content || '16');
+    const chevronSize = parseInt(style.mantine_accordion_chevron_size?.content || '16');
     const disableChevronRotation = style.mantine_accordion_disable_chevron_rotation?.content === '1';
     const loop = style.mantine_accordion_loop?.content !== '0'; // Default to true
-    const transitionDuration = parseInt((style as any).mantine_accordion_transition_duration?.content || '200');
+    const transitionDuration = parseInt(style.mantine_accordion_transition_duration?.content || '200');
     const defaultValue = style.mantine_accordion_default_value?.content;
     const radius = style.mantine_radius?.content || 'sm';
     const use_mantine_style = style.use_mantine_style?.content === '1';
@@ -72,7 +72,7 @@ const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style, styleProps, css
                 {...styleProps} className={cssClass}
                 style={styleObj}
             >
-                {children.map((child: any, index: number) => (
+                {children.map((child, index: number) => (
                     child ? <BasicStyle key={index} style={child} /> : null
                 ))}
             </Accordion>

@@ -6,7 +6,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Box, Card, Title, TextInput, Button, Group, Alert, Text, LoadingOverlay } from '@mantine/core';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { ROUTES } from '../../../../config/routes.config';
-import { IValidateStyle } from '../../../../types/common/styles.types';
+import { type IValidateStyle } from '../../../../types/common/styles.types';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
 import { useParams, useRouter } from 'next/navigation';
@@ -17,7 +17,7 @@ import { useValidateTokenMutation, useCompleteValidationMutation, useTokenValida
  */
 interface IValidateStyleProps {
     style: IValidateStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, unknown>;
     cssClass: string;
 }
 
@@ -25,7 +25,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     const params = useParams();
     const router = useRouter();
     const pageContent = usePageContentValue();
-    const [formKey, setFormKey] = useState(0);
+    const [formKey, _setFormKey] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -37,7 +37,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
         passwordConfirm: ''
     });
     const [errors, setErrors] = useState<string[]>([]);
-    const [success, setSuccess] = useState(false);
+    const [_success, _setSuccess] = useState(false);
     const [passwordError, setPasswordError] = useState<string>('');
     const [redirectCountdown, setRedirectCountdown] = useState(3);
 
@@ -60,7 +60,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
 
     // Token validation hooks
     const { data: tokenValidation, isLoading: isValidatingToken, error: tokenValidationError } = useTokenValidation(userId, token);
-    const validateTokenMutation = useValidateTokenMutation();
+    const _validateTokenMutation = useValidateTokenMutation();
     const completeValidationMutation = useCompleteValidationMutation();
 
     // Extract form configuration from style
@@ -89,9 +89,8 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     const redirectText = style.redirect_text?.content ?? (style.fields?.redirect_text?.content as string | undefined) ?? 'Redirecting to login in {seconds}s...';
 
     // Form configuration fields
-    const formName = style.name?.content || 'validate_form';
+    const _formName = style.name?.content || 'validate_form';
     const alertSuccessConfig = style.alert_success?.content || alertSuccess;
-    const redirectUrl = style.redirect_at_end?.content;
     const cancelUrl = style.cancel_url?.content;
     const saveLabel = style.label_save?.content || 'Save';
     const updateLabel = style.label_update?.content || 'Update';
@@ -121,11 +120,15 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
 
     // For validate style, these are always false (validate forms don't use record/log behavior)
     const isRecord = false;
-    const isLogType = false;
+    const _isLogType = false;
 
 
-    // Pre-populate form data when token validation succeeds
-    useEffect(() => {
+    // Pre-populate form data when token validation succeeds. Render-phase
+    // update that runs the body only when `tokenValidation` changes (matching
+    // the previous effect's [tokenValidation] dependency), replacing the effect.
+    const [prevTokenValidation, setPrevTokenValidation] = useState<unknown>(() => ({}));
+    if (prevTokenValidation !== tokenValidation) {
+        setPrevTokenValidation(tokenValidation);
         if (tokenValidation?.data?.token_valid && tokenValidation?.data) {
             const userData = tokenValidation.data;
             setFormData(prev => ({
@@ -134,24 +137,24 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
                 // Don't pre-populate password for security
             }));
         }
-    }, [tokenValidation]);
+    }
 
     // React Query hooks
-    const submitFormMutation = useSubmitFormMutation();
-    const updateFormMutation = useUpdateFormMutation();
+    const _submitFormMutation = useSubmitFormMutation();
+    const _updateFormMutation = useUpdateFormMutation();
 
     // For record types, derive existing data from section_data of this style
     const { existingRecordId, existingFormDataFromSection } = useMemo(() => {
-        if (!isRecord) return { existingRecordId: null as number | null, existingFormDataFromSection: null as Record<string, any> | null };
+        if (!isRecord) return { existingRecordId: null as number | null, existingFormDataFromSection: null as Record<string, unknown> | null };
 
         // The record form's section_data lives on the parent form style (`style.section_data`)
         // and contains key-value pairs where keys match input names inside the form.
-        const sectionDataArray: any[] | undefined = style.section_data;
+        const sectionDataArray = style.section_data as Array<Record<string, unknown>> | undefined;
         const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
 
         if (!firstRecord) return { existingRecordId: null, existingFormDataFromSection: null };
 
-        const { record_id, ...rest } = firstRecord as Record<string, any>;
+        const { record_id, ...rest } = firstRecord as { record_id?: number } & Record<string, unknown>;
         return { existingRecordId: record_id ?? null, existingFormDataFromSection: rest };
     }, [isRecord, style]);
 
@@ -248,7 +251,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
         const formDataObject = Object.fromEntries(cleanFormData.entries());
 
         // Convert empty strings to null for better data handling
-        const processedFormData: Record<string, any> = {};
+        const processedFormData: Record<string, unknown> = {};
         Object.keys(formDataObject).forEach(key => {
             const value = formDataObject[key];
             processedFormData[key] = value === '' ? null : value;
@@ -285,18 +288,19 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
                 }
             }, 1000);
 
-        } catch (error: any) {
+        } catch (error) {
             // Prefer validation field errors from the backend envelope
-            const validationErrors: string[] = error?.response?.data?.validation?.errors;
+            const err = error as { response?: { data?: { validation?: { errors?: string[] }; error?: string; message?: string } }; message?: string };
+            const validationErrors = err?.response?.data?.validation?.errors;
             let errorMessage = 'Failed to complete validation. Please try again.';
-            if (validationErrors?.length > 0) {
+            if (validationErrors && validationErrors.length > 0) {
                 errorMessage = validationErrors.join('\n');
-            } else if (error?.response?.data?.error) {
-                errorMessage = error.response.data.error;
-            } else if (error?.response?.data?.message) {
-                errorMessage = error.response.data.message;
-            } else if (error?.message) {
-                errorMessage = error.message;
+            } else if (err?.response?.data?.error) {
+                errorMessage = err.response.data.error;
+            } else if (err?.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err?.message) {
+                errorMessage = err.message;
             }
 
             setSubmitError(errorMessage);
@@ -309,9 +313,8 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
         token,
         sectionId,
         formData,
-        alertSuccessConfig,
-        redirectUrl,
-        completeValidationMutation
+        completeValidationMutation,
+        router
     ]);
 
     const handleInputChange = (field: string, value: string) => {
@@ -516,7 +519,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
                             />
 
 
-                            <Group justify={cancelUrl || cancelLabel ? buttonPosition as any : "center"} mt="xl">
+                            <Group justify={cancelUrl || cancelLabel ? buttonPosition as React.ComponentProps<typeof Group>['justify'] : "center"} mt="xl">
                                 {buttonOrder === 'cancel-save' && (cancelUrl || cancelLabel) && (
                                     <Button
                                         type="button"

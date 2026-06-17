@@ -19,7 +19,7 @@ import { AdminApi } from '../../api/admin';
 
 interface IDeletePageMutationOptions {
     onSuccess?: (pageId: number) => void;
-    onError?: (error: any) => void;
+    onError?: (error: unknown) => void;
     showNotifications?: boolean;
 }
 
@@ -71,7 +71,7 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
             onSuccess?.(pageId);
         },
         
-        onError: (error: any, pageId: number) => {
+        onError: (error: unknown, _pageId: number) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

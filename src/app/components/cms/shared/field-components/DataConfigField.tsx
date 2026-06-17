@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 import { useState } from 'react';
 import { Button, Group, Stack, Text } from '@mantine/core';
 import { IconPlus, IconEdit } from '@tabler/icons-react';
-import { DataConfigModal } from '../data-config-modal/DataConfigModal';
+import { DataConfigModal, type IDataSource } from '../data-config-modal/DataConfigModal';
 
 interface IDataConfigFieldProps {
     fieldId: number;
@@ -25,7 +25,6 @@ export function DataConfigField({
     value,
     onChange,
     disabled = false,
-    placeholder,
     dataVariables
 }: IDataConfigFieldProps) {
     const [modalOpened, setModalOpened] = useState(false);
@@ -42,7 +41,7 @@ export function DataConfigField({
         }
     })();
 
-    const handleSave = async (dataConfig: any[]) => {
+    const handleSave = async (dataConfig: IDataSource[]) => {
         const jsonString = dataConfig && dataConfig.length > 0 ? JSON.stringify(dataConfig, null, 2) : '';
 
         onChange(jsonString);
@@ -76,9 +75,9 @@ export function DataConfigField({
         if (!hasDataConfig) return null;
         
         try {
-            const parsed = JSON.parse(value);
+            const parsed = JSON.parse(value) as IDataSource[];
             const count = parsed.length;
-            const scopes = parsed.map((config: any) => config.scope).filter(Boolean);
+            const scopes = parsed.map((config) => config.scope).filter(Boolean);
             return `${count} data source${count !== 1 ? 's' : ''} configured${scopes.length > 0 ? ` (${scopes.join(', ')})` : ''}`;
         } catch {
             return 'Configuration present';

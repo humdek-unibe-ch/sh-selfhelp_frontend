@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 import { Modal, Stack, Group, Text, Badge, Divider, Paper, Button, ActionIcon, CopyButton, Tooltip, Code, Box, Alert } from '@mantine/core';
 import { IconCheck, IconCopy, IconGitCommit, IconUser, IconClock, IconTag } from '@tabler/icons-react';
 import { format } from 'date-fns';
-import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
+import { type IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 
 interface IVersionDetailsModalProps {
     opened: boolean;

@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Progress, Tooltip } from '@mantine/core';
-import { IProgressSectionStyle } from '../../../../../../types/common/styles.types';
+import { type IProgressSectionStyle } from '../../../../../../types/common/styles.types';
 import BasicStyle from '../../BasicStyle';
 
 /**
@@ -15,7 +15,7 @@ import BasicStyle from '../../BasicStyle';
  */
 interface IProgressSectionStyleProps {
     style: IProgressSectionStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -29,7 +29,7 @@ interface IProgressSectionStyleProps {
  */
 const ProgressSectionStyle: React.FC<IProgressSectionStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const value = parseFloat((style as any).value?.content || '0');
+    const value = parseFloat(style.value?.content || '0');
     const color = style.mantine_color?.content || 'blue';
     const striped = style.mantine_progress_striped?.content === '1';
     const animated = style.mantine_progress_animated?.content === '1';
@@ -64,7 +64,7 @@ const ProgressSectionStyle: React.FC<IProgressSectionStyleProps> = ({ style, sty
         return (
             <Tooltip
                 label={tooltipLabel}
-                position={tooltipPosition as any}
+                position={tooltipPosition as React.ComponentProps<typeof Tooltip>['position']}
             >
                 {sectionContent}
             </Tooltip>

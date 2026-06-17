@@ -2,9 +2,9 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { ColorPicker, Input } from '@mantine/core';
-import { IColorPickerStyle } from '../../../../../../types/common/styles.types';
+import { type IColorPickerStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
@@ -17,7 +17,7 @@ import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.u
  */
 interface IColorPickerStyleProps {
     style: IColorPickerStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -63,7 +63,7 @@ const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style, styleProps,
         if (swatchesJson) {
             swatches = JSON.parse(swatchesJson);
         }
-    } catch (error) {
+    } catch {
         console.warn('Invalid swatches JSON for ColorPicker:', swatchesJson);
         // Fallback to default swatches
         swatches = ['#2e2e2e', '#868e96', '#fa5252', '#e64980', '#be4bdb', '#7950f2', '#4c6ef5', '#228be6', '#15aabf', '#12b886', '#40c057', '#82c91e', '#fab005', '#fd7e14'];
@@ -87,12 +87,15 @@ const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style, styleProps,
         return defaultValue;
     });
 
-    // Update selected color when form context changes (for record editing)
-    useEffect(() => {
+    // Keep state in sync with the (async) form value via a render-phase update
+    // instead of an effect; the sentinel initial runs it on first render too.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    if (prevFormValue !== formValue) {
+        setPrevFormValue(formValue);
         if (formValue !== null && typeof formValue === 'string') {
             setSelectedColor(formValue);
         }
-    }, [formValue]);
+    }
 
     // Handle color change
     const handleColorChange = (color: string) => {

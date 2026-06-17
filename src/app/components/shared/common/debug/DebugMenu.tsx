@@ -42,7 +42,7 @@ import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useLanguageContext } from '../../../contexts/LanguageContext';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { notifications } from '@mantine/notifications';
-import { IPageItem } from '../../../../../shared';
+import { type IPageItem } from '../../../../../shared';
 import { 
     getRenderStats, 
     getWarnings, 
@@ -53,7 +53,7 @@ interface IDebugLogEntry {
     timestamp: string;
     component?: string;
     message: string;
-    data?: any;
+    data?: unknown;
     level: 'debug' | 'info' | 'warn' | 'error';
 }
 
@@ -62,7 +62,7 @@ let debugLogs: IDebugLogEntry[] = [];
 let debugListeners: Array<(logs: IDebugLogEntry[]) => void> = [];
 
 // Enhanced debug function that captures logs
-const captureDebugLog = (message: string, component: string, data?: any, level: 'info' | 'warn' | 'error' = 'info') => {
+const captureDebugLog = (message: string, component: string, data?: unknown, level: 'info' | 'warn' | 'error' = 'info') => {
     const logEntry: IDebugLogEntry = {
         timestamp: new Date().toISOString(),
         component,
@@ -89,7 +89,7 @@ const captureDebugLog = (message: string, component: string, data?: any, level: 
 // from Server Components without blowing up during SSR — the attachment is
 // only ever useful in the browser anyway.
 if (typeof window !== 'undefined') {
-    (window as any).captureDebug = captureDebugLog;
+    (window as unknown as { captureDebug?: typeof captureDebugLog }).captureDebug = captureDebugLog;
 }
 
 
@@ -176,11 +176,11 @@ interface IDebugMenuPanelProps {
 }
 
 function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
-    const [activeTab, setActiveTab] = useState<string>('all');
+    const [activeTab, _setActiveTab] = useState<string>('all');
     const [logs, setLogs] = useState<IDebugLogEntry[]>([]);
-    const [filterSectionInspector, setFilterSectionInspector] = useState(false);
-    const [filterPageInspector, setFilterPageInspector] = useState(false);
-    const [filterFieldHandler, setFilterFieldHandler] = useState(false);
+    const [filterSectionInspector, _setFilterSectionInspector] = useState(false);
+    const [filterPageInspector, _setFilterPageInspector] = useState(false);
+    const [filterFieldHandler, _setFilterFieldHandler] = useState(false);
     const [performanceStats, setPerformanceStats] = useState(getRenderStats());
     const [performanceWarnings, setPerformanceWarnings] = useState(getWarnings());
     const [reportCopied, setReportCopied] = useState(false);
@@ -189,7 +189,7 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
     // user has actually opened the menu). On a public page where the menu
     // stays closed these queries never fire, so `/admin/pages` no longer
     // hits Symfony on every reload of a public route.
-    const { pages, menuPages, footerPages, routes, isLoading, profilePages } = useAppNavigation();
+    const { pages, menuPages, footerPages, routes, profilePages } = useAppNavigation();
     const { systemPageLinks, categorizedSystemPages } = useAdminPages();
     const { currentLanguageId, languages, setCurrentLanguageId } = useLanguageContext();
     const pendingPageFetches = useIsFetching({ queryKey: ['page-by-keyword'] });
@@ -210,7 +210,10 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
         };
         
         debugListeners.push(listener);
-        setLogs([...debugLogs]);
+        // Catch up on logs accumulated before subscription, deferred via the
+        // listener's own setTimeout so there is no synchronous setState in the
+        // effect body (the listener already defers updates off the render path).
+        listener([...debugLogs]);
         
         return () => {
             debugListeners = debugListeners.filter(l => l !== listener);
@@ -219,7 +222,7 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
 
     // Auto-refresh performance data when debug menu is opened
     useEffect(() => {
-        if (!opened) return;
+        if (!opened) return undefined;
 
         const interval = setInterval(() => {
             setPerformanceStats(getRenderStats());
@@ -231,7 +234,7 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
 
     // WDYR is now set up globally in providers.tsx - no need for component-level control
 
-    const handleExportLogs = () => {
+    const _handleExportLogs = () => {
         const logs = debugLogger.exportLogs();
         const blob = new Blob([logs], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -244,7 +247,7 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
         URL.revokeObjectURL(url);
     };
 
-    const handleClearLogs = () => {
+    const _handleClearLogs = () => {
         debugLogger.clearLogs();
     };
 
@@ -282,7 +285,7 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
         return componentGroups;
     };
 
-    const renderLogEntry = (log: IDebugLogEntry, index: number) => (
+    const _renderLogEntry = (log: IDebugLogEntry, index: number) => (
         <Paper key={index} p="sm" withBorder mb="xs">
             <Group justify="space-between" mb="xs">
                 <Group gap="xs">
@@ -303,19 +306,19 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
                 {log.message}
             </Text>
             
-            {log.data && (
+            {log.data ? (
                 <Code block style={{ maxHeight: '200px', overflow: 'auto', fontSize: '12px' }}>
                     {JSON.stringify(log.data, null, 2)}
                 </Code>
-            )}
+            ) : null}
         </Paper>
     );
 
-    const filteredLogs = getFilteredLogs();
-    const componentGroups = getLogsByComponent();
-    const sectionInspectorLogs = logs.filter(log => log.component?.includes('SectionInspector'));
-    const pageInspectorLogs = logs.filter(log => log.component?.includes('PageInspector'));
-    const fieldHandlerLogs = logs.filter(log => log.component?.includes('FieldFormHandler') || log.component?.includes('FieldsSection'));
+    const _filteredLogs = getFilteredLogs();
+    const _componentGroups = getLogsByComponent();
+    const _sectionInspectorLogs = logs.filter(log => log.component?.includes('SectionInspector'));
+    const _pageInspectorLogs = logs.filter(log => log.component?.includes('PageInspector'));
+    const _fieldHandlerLogs = logs.filter(log => log.component?.includes('FieldFormHandler') || log.component?.includes('FieldsSection'));
 
     const handleLanguageTest = () => {
         if (languages.length > 0) {
@@ -436,15 +439,13 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
                             <div>
                                 <Text fw={500} mb="xs">Profile Pages Category:</Text>
                                 <Code block style={{ maxHeight: 200, overflow: 'auto' }}>
-                                    {JSON.stringify(categorizedSystemPages.profile.map((p: any) => ({
+                                    {JSON.stringify(categorizedSystemPages.profile.map((p) => ({
                                         keyword: p.keyword,
                                         label: p.label,
                                         link: p.link,
-                                        children: p.children?.map((c: any) => ({
-                                            keyword: c.keyword,
-                                            label: c.label,
-                                            link: c.link
-                                        })) || []
+                                        // `profile` entries are flat (no `children`); the previous
+                                        // optional-chained map always resolved to [] at runtime.
+                                        children: [] as Array<{ keyword: string; label: string; link: string }>
                                     })), null, 2)}
                                 </Code>
                             </div>
@@ -630,7 +631,7 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
                                     <Button
                                         leftSection={<IconInfoCircle size={16} />}
                                         onClick={() => {
-                                            const languageInfo = {
+                                            const _languageInfo = {
                                                 currentId: currentLanguageId,
                                                 currentLanguage: currentLanguage,
                                                 available: languages.map(l => ({ 
@@ -1211,7 +1212,7 @@ End of Analysis Report - Send this complete report to your AI assistant for comp
                                                             icon: <IconCheck size={16} />,
                                                         });
                                                         setTimeout(() => setReportCopied(false), 3000);
-                                                    } catch (error) {
+                                                    } catch {
                                                         notifications.show({
                                                             title: 'Copy Failed',
                                                             message: 'Failed to copy AI analysis report to clipboard',
@@ -1315,7 +1316,7 @@ function MyComponent(props) {
                                                                                                    `${Math.floor(timeAgo / 60000)}m ago`;
                                                                                     
                                                                                     // Simplified value display
-                                                                                    const formatValue = (val: any): string => {
+                                                                                    const formatValue = (val: unknown): string => {
                                                                                         if (val === undefined) return 'undefined';
                                                                                         if (val === null) return 'null';
                                                                                         if (typeof val === 'function') return '[Function]';
@@ -1410,7 +1411,7 @@ function MyComponent(props) {
                                                                 <Stack gap={4}>
                                                                     <Text size="sm" fw={500}>{warning.componentName}</Text>
                                                                     <Text size="xs">{warning.message}</Text>
-                                                                    {warning.details && (
+                                                                    {!!warning.details && (
                                                                         <Code block>
                                                                             {JSON.stringify(warning.details, null, 2)}
                                                                         </Code>

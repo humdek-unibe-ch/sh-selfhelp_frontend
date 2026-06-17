@@ -17,7 +17,7 @@ SPDX-License-Identifier: MPL-2.0
  * - Default append: calculated from existing sections
  */
 
-import { ISectionExportData } from "../api/admin/section.api";
+import { type ISectionExportData } from "../api/admin/section.api";
 
 export interface ISectionOperationPosition {
   position: number;

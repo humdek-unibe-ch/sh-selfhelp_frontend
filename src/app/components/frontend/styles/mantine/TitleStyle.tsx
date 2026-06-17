@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Title } from '@mantine/core';
-import { ITitleStyle } from '../../../../../types/common/styles.types';
+import { type ITitleStyle } from '../../../../../types/common/styles.types';
 import DOMPurify from 'isomorphic-dompurify';
 
 /**
@@ -15,7 +15,7 @@ import DOMPurify from 'isomorphic-dompurify';
  */
 interface ITitleStyleProps {
     style: ITitleStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -43,7 +43,7 @@ const TitleStyle: React.FC<ITitleStyleProps> = ({ style, styleProps, cssClass })
     return (
         <Title
             order={order}
-            size={size as any}
+            size={size}
             textWrap={textWrap}
             lineClamp={lineClamp ? parseInt(lineClamp) : undefined}
             // inherit={inherit}

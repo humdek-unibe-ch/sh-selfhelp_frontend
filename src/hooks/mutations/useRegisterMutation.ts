@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useMutation } from '@tanstack/react-query';
 import { AuthApi } from '../../api/auth.api';
-import { IRegisterRequest } from '../../types/requests/auth/auth.types';
+import { type IRegisterRequest } from '../../types/requests/auth/auth.types';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 
 export function useRegisterMutation() {

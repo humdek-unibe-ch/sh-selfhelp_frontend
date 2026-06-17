@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Indicator } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { IIndicatorStyle } from '../../../../../types/common/styles.types';
+import { type IIndicatorStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for IndicatorStyle component
@@ -15,7 +15,7 @@ import { IIndicatorStyle } from '../../../../../types/common/styles.types';
  */
 interface IIndicatorStyleProps {
     style: IIndicatorStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -44,15 +44,15 @@ const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style, styleProps, css
     // Extract field values using the new unified field structure
     const processing = style.mantine_indicator_processing?.content === '1';
     const disabled = style.mantine_indicator_disabled?.content === '1';
-    const size = parseInt((style as any).mantine_indicator_size?.content || '10');
+    const size = parseInt(style.mantine_indicator_size?.content || '10');
     const color = style.mantine_color?.content || 'red';
     const position = style.mantine_indicator_position?.content || 'top-end';
     const label = style.label?.content || '';
     const inline = style.mantine_indicator_inline?.content === '1';
-    const offset = parseInt((style as any).mantine_indicator_offset?.content || '0');
+    const offset = parseInt(style.mantine_indicator_offset?.content || '0');
     const withBorder = style.mantine_border?.content === '1';
     const radius = style.mantine_radius?.content || 'xl';
-    const use_mantine_style = style.use_mantine_style?.content === '1';
+    const _use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
 
@@ -67,7 +67,7 @@ const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style, styleProps, css
             disabled={disabled}
             size={size}
             color={color}
-            position={position as any}
+            position={position as React.ComponentProps<typeof Indicator>['position']}
             label={label || undefined}
             inline={inline}
             offset={offset}
@@ -77,7 +77,7 @@ const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style, styleProps, css
             style={styleObj}
         >
             {children.length > 0 ? (
-                children.map((child: any, index: number) => (
+                children.map((child, index: number) => (
                     child ? <BasicStyle key={index} style={child} /> : null
                 ))
             ) : (

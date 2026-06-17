@@ -15,11 +15,11 @@ import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
-import { IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
+import { type IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
 
 interface IAddSectionToPageMutationOptions {
   onSuccess?: (
-    data: any,
+    data: unknown,
     variables: {
       pageId: number;
       sections: IAddSectionInSectionData[];
@@ -27,7 +27,7 @@ interface IAddSectionToPageMutationOptions {
   ) => void;
 
   onError?: (
-    error: any,
+    error: unknown,
     variables: {
       pageId: number;
       sections: IAddSectionInSectionData[];
@@ -54,7 +54,7 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
         mutationFn: ({ pageId, sections }: IAddSectionToPageVariables) => 
             AdminApi.addSectionToPage(pageId, sections),
         
-        onSuccess: async (createdSection: any, variables: IAddSectionToPageVariables) => {
+        onSuccess: async (createdSection: unknown, variables: IAddSectionToPageVariables) => {
             
             // Invalidate relevant queries to update the UI with consistent query keys
             await Promise.all([
@@ -76,7 +76,7 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
             onSuccess?.(createdSection, variables);
         },
         
-        onError: (error: any, variables: IAddSectionToPageVariables) => {
+        onError: (error: unknown, variables: IAddSectionToPageVariables) => {
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);
             

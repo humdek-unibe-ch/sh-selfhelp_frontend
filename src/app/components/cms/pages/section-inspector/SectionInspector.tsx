@@ -27,6 +27,7 @@ import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
+import { type IUpdateSectionRequest, type IUpdateSectionGlobalFields } from '../../../../../types/requests/admin/update-section.types';
 import { useSectionPages } from '../../../../../hooks/useSectionUtility';
 import { exportSection } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
@@ -66,7 +67,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
 
     // Actions don't trigger re-renders, only used for updating
-    const setFormValues = useSectionFormStore((state: any) => state.setFormValues);
+    const setFormValues = useSectionFormStore((state) => state.setFormValues);
 
     // For comparison, keep original values in a ref to avoid re-renders
     const originalValuesRef = React.useRef<ISectionFormState>({
@@ -111,13 +112,13 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         onSuccess: () => {
             setFormValues({ ...useSectionFormStore.getState() }); // Update store to reflect changes
             if (pageId) {
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] });
-                queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] });
-                queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', pageId, sectionId] });
-                queryClient.invalidateQueries({ queryKey: ['pages'] });
-                queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
-                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
+                void queryClient.invalidateQueries({ queryKey: ['adminPages'] });
+                void queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] });
+                void queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
+                void queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', pageId, sectionId] });
+                void queryClient.invalidateQueries({ queryKey: ['pages'] });
+                void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
+                void queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             }
         }
     });
@@ -152,7 +153,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         if (languagesData.length > 0 && !activeLanguageTab) {
             setActiveLanguageTab(languagesData[0].id.toString());
         }
-    }, [languagesData.length, activeLanguageTab]);
+    }, [languagesData, activeLanguageTab]);
 
     // Load section data into store
     useEffect(() => {
@@ -232,12 +233,12 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
 
     const contentFields = useMemo(() =>
         sectionDetailsData?.fields?.filter(field => field.display) || [],
-        [sectionDetailsData?.fields?.length]
+        [sectionDetailsData?.fields]
     );
 
     const propertyFields = useMemo(() =>
         sectionDetailsData?.fields?.filter(field => !field.display) || [],
-        [sectionDetailsData?.fields?.length]
+        [sectionDetailsData?.fields]
     );
 
     const fields = sectionDetailsData?.fields || [];
@@ -260,7 +261,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
             }
         }
 
-        const submitData: any = {
+        const submitData: IUpdateSectionRequest = {
             contentFields: [],
             propertyFields: [],
             globalFields: {}
@@ -290,11 +291,12 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
             });
         });
 
-        const cleanGlobalFields: any = {};
+        const cleanGlobalFields: IUpdateSectionGlobalFields = {};
+        const cleanGlobalFieldsView = cleanGlobalFields as Record<string, string | boolean | null>;
         const storeState = useSectionFormStore.getState();
         Object.keys(storeState.globalFields).forEach(key => {
             const value = storeState.globalFields[key as keyof typeof storeState.globalFields];
-            cleanGlobalFields[key] = (value === '' || value === null) ? null : value;
+            cleanGlobalFieldsView[key] = (value === '' || value === null) ? null : value;
         });
         submitData.globalFields = cleanGlobalFields;
 
@@ -304,10 +306,10 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 sectionId,
                 sectionData: submitData
             });
-        } catch (error) {
+        } catch {
             // Error handled by mutation
         }
-    }, [sectionId, sectionDetailsData, languagesData, pageId, updateSectionMutation]);
+    }, [sectionId, sectionDetailsData, languagesData, pageId, updateSectionMutation, contentFields, propertyFields]);
 
     const handleDeleteSection = useCallback(() => {
         if (!sectionId || !sectionDetailsData || !pageId) return;
@@ -324,7 +326,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
             const response = await exportSection(pageId, sectionId);
             const filename = generateExportFilename(`section_${sectionDetailsData.section.name}_${sectionId}`);
             downloadJsonFile(response.data.sectionsData, filename);
-        } catch (error) {
+        } catch {
             // Error handled
         }
     }, [sectionId, sectionDetailsData, pageId]);
@@ -338,7 +340,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
             ...(section.style.canHaveChildren ? [{ label: 'Can Have Children', color: 'green' as const }] : []),
             { label: `Type ID: ${section.style.typeId}`, color: 'gray' as const }
         ];
-    }, [sectionDetailsData?.section?.id, sectionDetailsData?.section?.style]);
+    }, [sectionDetailsData]);
 
     const headerActions = useMemo(() => {
         if (!sectionDetailsData) return [];
@@ -367,7 +369,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 disabled: !sectionId || deleteSectionMutation.isPending
             }
         ];
-    }, [sectionDetailsData?.section?.id, sectionId, updateSectionMutation.isPending, deleteSectionMutation.isPending, handleSave, handleExportSection]);
+    }, [sectionDetailsData, sectionId, updateSectionMutation.isPending, deleteSectionMutation.isPending, handleSave, handleExportSection]);
 
     if (!sectionId) {
         return (

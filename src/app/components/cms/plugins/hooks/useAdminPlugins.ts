@@ -127,9 +127,9 @@ export function useAdminPluginEnable() {
     return useMutation({
         mutationFn: (pluginId: string) => AdminPluginApi.enable(pluginId),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
-            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
-            qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
+            void qc.invalidateQueries({ queryKey: KEY });
+            void qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
+            void qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
         },
     });
 }
@@ -139,9 +139,9 @@ export function useAdminPluginDisable() {
     return useMutation({
         mutationFn: (pluginId: string) => AdminPluginApi.disable(pluginId),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
-            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
-            qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
+            void qc.invalidateQueries({ queryKey: KEY });
+            void qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
+            void qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
         },
     });
 }
@@ -151,10 +151,10 @@ export function useAdminPluginUninstall() {
     return useMutation({
         mutationFn: (pluginId: string) => AdminPluginApi.uninstall(pluginId),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
-            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
-            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
-            qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
+            void qc.invalidateQueries({ queryKey: KEY });
+            void qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
+            void qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
+            void qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
         },
     });
 }
@@ -165,10 +165,10 @@ export function useAdminPluginPurge() {
         mutationFn: ({ pluginId, confirmedPluginId }: { pluginId: string; confirmedPluginId: string }) =>
             AdminPluginApi.purge(pluginId, confirmedPluginId),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
-            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
-            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
-            qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
+            void qc.invalidateQueries({ queryKey: KEY });
+            void qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
+            void qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
+            void qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
         },
     });
 }
@@ -178,8 +178,8 @@ export function useAdminPluginRollback() {
     return useMutation({
         mutationFn: (operationId: number) => AdminPluginApi.rollbackOperation(operationId),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
-            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
+            void qc.invalidateQueries({ queryKey: KEY });
+            void qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
         },
     });
 }
@@ -189,8 +189,8 @@ export function useAdminPluginCancelOperation() {
     return useMutation({
         mutationFn: (operationId: number) => AdminPluginApi.cancelOperation(operationId),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
-            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
+            void qc.invalidateQueries({ queryKey: KEY });
+            void qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
         },
     });
 }
@@ -200,8 +200,8 @@ export function useAdminPluginRepair() {
     return useMutation({
         mutationFn: (pluginId?: string) => AdminPluginApi.repair(pluginId),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
-            qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
+            void qc.invalidateQueries({ queryKey: KEY });
+            void qc.invalidateQueries({ queryKey: ['plugins-manifest'] });
         },
     });
 }
@@ -211,7 +211,7 @@ export function useAdminPluginSafeMode(enabled: boolean) {
     return useMutation({
         mutationFn: () => (enabled ? AdminPluginApi.enableSafeMode() : AdminPluginApi.disableSafeMode()),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
+            void qc.invalidateQueries({ queryKey: KEY });
         },
     });
 }
@@ -222,8 +222,8 @@ export function useAdminPluginSourceCreate() {
         mutationFn: (body: Parameters<typeof AdminPluginApi.createSource>[0]) =>
             AdminPluginApi.createSource(body),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: SOURCES_KEY });
-            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
+            void qc.invalidateQueries({ queryKey: SOURCES_KEY });
+            void qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
         },
     });
 }
@@ -234,8 +234,8 @@ export function useAdminPluginSourceUpdate() {
         mutationFn: ({ sourceId, body }: { sourceId: number; body: Parameters<typeof AdminPluginApi.updateSource>[1] }) =>
             AdminPluginApi.updateSource(sourceId, body),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: SOURCES_KEY });
-            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
+            void qc.invalidateQueries({ queryKey: SOURCES_KEY });
+            void qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
         },
     });
 }
@@ -245,8 +245,8 @@ export function useAdminPluginSourceDelete() {
     return useMutation({
         mutationFn: (sourceId: number) => AdminPluginApi.deleteSource(sourceId),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: SOURCES_KEY });
-            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
+            void qc.invalidateQueries({ queryKey: SOURCES_KEY });
+            void qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
         },
     });
 }
@@ -281,9 +281,9 @@ export function useAdminPluginInstall() {
         mutationFn: (body: Parameters<typeof AdminPluginApi.install>[0]) =>
             AdminPluginApi.install(body),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
-            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
-            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
+            void qc.invalidateQueries({ queryKey: KEY });
+            void qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
+            void qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
         },
     });
 }
@@ -318,9 +318,9 @@ export function useAdminPluginUpdate() {
             body: Parameters<typeof AdminPluginApi.update>[1];
         }) => AdminPluginApi.update(pluginId, body),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: KEY });
-            qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
-            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
+            void qc.invalidateQueries({ queryKey: KEY });
+            void qc.invalidateQueries({ queryKey: AVAILABLE_KEY });
+            void qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
         },
     });
 }
@@ -331,8 +331,8 @@ export function useAdminPluginFeatureFlagSet() {
         mutationFn: ({ pluginId, flagKey, scope, scopeValue, enabled }: { pluginId: string; flagKey: string; scope?: string; scopeValue?: string; enabled: boolean }) =>
             AdminPluginApi.setFeatureFlag(pluginId, { flagKey, scope, scopeValue, enabled }),
         onSuccess: (_data, variables) => {
-            qc.invalidateQueries({ queryKey: [...KEY, 'detail', variables.pluginId] });
-            qc.invalidateQueries({ queryKey: [...KEY, 'feature-flags', variables.pluginId] });
+            void qc.invalidateQueries({ queryKey: [...KEY, 'detail', variables.pluginId] });
+            void qc.invalidateQueries({ queryKey: [...KEY, 'feature-flags', variables.pluginId] });
         },
     });
 }

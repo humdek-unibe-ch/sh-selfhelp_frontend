@@ -23,7 +23,7 @@ SPDX-License-Identifier: MPL-2.0
  * exact same way the regular `sh_auth` JWT is.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import {
     AUTH_COOKIE,

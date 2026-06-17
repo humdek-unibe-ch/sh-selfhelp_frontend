@@ -39,6 +39,7 @@ import { useServerInsertedHTML } from 'next/navigation';
  */
 export function ColorSchemeInjector(): null {
     useServerInsertedHTML(() => (
+        // eslint-disable-next-line @next/next/no-sync-scripts -- intentional synchronous theme bootstrap (must run before hydration to avoid a color-scheme flash); injected outside React's tree via useServerInsertedHTML
         <script src="/mantine-color-scheme.js" />
     ));
     return null;

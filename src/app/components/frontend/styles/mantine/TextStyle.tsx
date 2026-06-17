@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Text } from '@mantine/core';
-import { ITextStyle } from '../../../../../types/common/styles.types';
+import { type ITextStyle } from '../../../../../types/common/styles.types';
 import DOMPurify from 'isomorphic-dompurify';
 
 /**
@@ -15,7 +15,7 @@ import DOMPurify from 'isomorphic-dompurify';
  */
 interface ITextStyleProps {
     style: ITextStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -64,7 +64,7 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) =
         if (gradientStr) {
             try {
                 gradient = JSON.parse(gradientStr);
-            } catch (error) {
+            } catch {
                 console.warn('Invalid gradient configuration:', gradientStr);
             }
         }

@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Progress } from '@mantine/core';
-import { IProgressRootStyle } from '../../../../../../types/common/styles.types';
+import { type IProgressRootStyle } from '../../../../../../types/common/styles.types';
 import { castMantineSize } from '../../../../../../utils/style-field-extractor';
 import BasicStyle from '../../BasicStyle';
 
@@ -16,7 +16,7 @@ import BasicStyle from '../../BasicStyle';
  */
 interface IProgressRootStyleProps {
     style: IProgressRootStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -30,7 +30,7 @@ interface IProgressRootStyleProps {
  */
 const ProgressRootStyle: React.FC<IProgressRootStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const size = castMantineSize((style as any).mantine_size?.content);
+    const size = castMantineSize(style.mantine_size?.content);
     const autoContrast = style.mantine_progress_auto_contrast?.content === '1';
 
     // Handle CSS field - use direct property from API response

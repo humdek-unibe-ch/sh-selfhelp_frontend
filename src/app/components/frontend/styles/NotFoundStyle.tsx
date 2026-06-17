@@ -7,14 +7,14 @@ SPDX-License-Identifier: MPL-2.0
 import { Container, Paper, ThemeIcon, Title, Text, Button, Group } from '@mantine/core';
 import { IconCompass, IconHome, IconLogin } from '@tabler/icons-react';
 import Link from 'next/link';
-import { INotFoundStyle } from '../../../../shared';
+import { type INotFoundStyle } from '../../../../shared';
 import { ROUTES } from '../../../../config/routes.config';
 import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 
 
 interface INotFoundStyleProps {
     style: Partial<INotFoundStyle>;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
     /**
      * The 404 route is served outside the CMS, so it cannot rely on the user

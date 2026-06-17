@@ -67,13 +67,13 @@ export const PreserveSpaces = Extension.create({
 
                     if (mentionInserted) {
                         // Check if there's an unwanted space right after the mention
-                        const { tr, selection } = newState;
+                        const { selection } = newState;
                         const { $from } = selection;
                         
                         // Look for text node right before cursor
                         const beforePos = $from.pos - 1;
                         if (beforePos >= 0) {
-                            const beforeNode = newState.doc.nodeAt(beforePos);
+                            const _beforeNode = newState.doc.nodeAt(beforePos);
                             // If there's an unwanted trailing space, we could remove it here
                             // But with proper CSS (white-space: pre), spaces are preserved as typed
                             // So we don't modify anything - let the user control spacing

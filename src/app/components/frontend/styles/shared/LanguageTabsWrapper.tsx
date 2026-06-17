@@ -3,9 +3,9 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import React, { useMemo, useState } from 'react';
-import { Tabs, Text, Box } from '@mantine/core';
+import { Tabs, Text, Box, type BoxProps } from '@mantine/core';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
-import { ILanguage } from '../../../../../types/responses/admin/languages.types';
+import { type ILanguage } from '../../../../../types/responses/admin/languages.types';
 
 /**
  * Props interface for LanguageTabsWrapper component
@@ -24,7 +24,7 @@ interface ILanguageTabsWrapperProps {
     /** Optional className for styling */
     className?: string;
     /** Optional style props for Mantine components */
-    styleProps?: Record<string, any>;
+    styleProps?: BoxProps;
 }
 
 type TLanguageEntry = { language_id: number; value: string };

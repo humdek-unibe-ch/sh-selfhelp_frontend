@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { IBaseApiResponse } from '../common/response-envelope.types';
+import { type IBaseApiResponse } from '../common/response-envelope.types';
 
 export interface IScheduledJobTransaction {
     transaction_id: number;
@@ -10,6 +10,40 @@ export interface IScheduledJobTransaction {
     transaction_type: string;
     transaction_verbal_log: string;
     user: string;
+}
+
+/**
+ * Email-job configuration payload. All fields are optional because the renderers
+ * defensively read whatever the backend stored for the job.
+ */
+export interface IScheduledJobEmailConfig {
+    from_name?: string;
+    from_email?: string;
+    reply_to?: string;
+    subject?: string;
+    is_html?: boolean;
+    recipient_emails?: string;
+    cc_emails?: string;
+    bcc_emails?: string;
+    body?: string;
+    attachments?: Array<{ filename?: string; path?: string }>;
+}
+
+/** Task-job configuration payload. */
+export interface IScheduledJobTaskConfig {
+    task_type?: string;
+    groups?: string[] | string;
+    reason?: string;
+    notify_user?: boolean;
+    notification_config?: { type?: string; subject?: string };
+    rollback_config?: { enabled?: boolean; rollback_after?: number; max_attempts?: number };
+}
+
+/** Loosely-typed per-job config object. Extra keys are preserved as `unknown`. */
+export interface IScheduledJobConfig {
+    email?: IScheduledJobEmailConfig;
+    task?: IScheduledJobTaskConfig;
+    [key: string]: unknown;
 }
 
 /**
@@ -57,7 +91,7 @@ export interface IScheduledJob {
     email_subject?: string | null;
     /** Timezone-aware schedule intent (calculated local time + timezone). */
     schedule?: IScheduledJobSchedule;
-    config: Record<string, any>;
+    config: IScheduledJobConfig;
     transactions?: IScheduledJobTransaction[];
 }
 

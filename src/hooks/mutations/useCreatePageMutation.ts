@@ -14,13 +14,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../api/admin';
-import { ICreatePageRequest } from '../../types/requests/admin/create-page.types';
-import { IAdminPage } from '../../types/responses/admin/admin.types';
+import { type ICreatePageRequest } from '../../types/requests/admin/create-page.types';
+import { type IAdminPage } from '../../types/responses/admin/admin.types';
 import { parseApiError } from '../../utils/mutation-error-handler';
 
 interface ICreatePageMutationOptions {
-    onSuccess?: (data: IAdminPage) => void;
-    onError?: (error: any) => void;
+    onSuccess?: (data: IAdminPage) => void | Promise<void>;
+    onError?: (error: unknown) => void;
     showNotifications?: boolean;
 }
 
@@ -76,10 +76,10 @@ export function useCreatePageMutation(options: ICreatePageMutationOptions = {}) 
             }
             
             // Call custom success handler if provided
-            onSuccess?.(createdPage);
+            void onSuccess?.(createdPage);
         },
         
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

@@ -6,8 +6,8 @@ SPDX-License-Identifier: MPL-2.0
 
 import { Switch, Text, Group, Box } from '@mantine/core';
 import { IconEye, IconEyeOff } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
 import { usePreviewMode } from '../../contexts/PreviewModeContext';
+import { useIsClient } from '../../../../hooks/useIsClient';
 
 interface IPreviewModeToggleProps {
     /** Custom label for the toggle */
@@ -38,8 +38,7 @@ export function PreviewModeToggle({
     showLabel = true,
 }: IPreviewModeToggleProps) {
     const { isPreviewMode, togglePreviewMode } = usePreviewMode();
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => setMounted(true), []);
+    const mounted = useIsClient();
 
     return (
         <Box>
