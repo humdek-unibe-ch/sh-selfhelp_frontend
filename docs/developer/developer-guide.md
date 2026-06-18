@@ -191,11 +191,12 @@ export class PageApi {
 }
 
 // Custom hook (current — see src/hooks/usePageContentByKeyword.ts)
+// Key comes from the registry, which encodes the 'published'|'preview' suffix.
 export function usePageContentByKeyword(keyword: string) {
   const { currentLanguageId } = useLanguageContext();
   const { isPreviewMode } = usePreviewMode();
   return useQuery({
-    queryKey: ['page-by-keyword', keyword, currentLanguageId, isPreviewMode],
+    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, currentLanguageId, isPreviewMode),
     queryFn: () => PageApi.getPageByKeyword(keyword, currentLanguageId, isPreviewMode),
     enabled: !!keyword,
   });
