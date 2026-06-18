@@ -33,6 +33,31 @@ No engineering diary, no implementation detail — that belongs in
 - Centralized permission-aware API request building, single-sourced the
   admin-session route prefixes, and renamed the permission CRUD helpers /
   extracted the permission bit constants — no behavior change.
+- **Condition builder is easier to read and use.** Scoped, theme-aware styling
+  gives the rule rows consistent alignment and spacing and wraps each AND/OR
+  group in a subtle card outline in both light and dark mode (the builder
+  previously shipped only structural CSS and looked cramped/misaligned inside the
+  admin modal).
+- **CMS style names are now kebab-case (cross-repo rename).** The camelCase CMS
+  style names were renamed to kebab-case in lockstep with `@selfhelp/shared`
+  1.8.0 (which moved the `style_name` discriminator) and the backend `styles`
+  rows: `resetPassword`→`reset-password`, `twoFactorAuth`→`two-factor-auth`,
+  `noAccess`→`no-access`, `notFound`→`not-found`, `entryList`→`entry-list`,
+  `entryRecord`→`entry-record`, `entryRecordDelete`→`entry-record-delete`,
+  `showUserInput`→`show-user-input`, `refContainer`→`ref-container`,
+  `dataContainer`→`data-container`, `multiSelect`→`multi-select`. The
+  `BasicStyle` dispatcher keys, the local `TStyleName` union and the
+  `MANTINE_COMPONENT_MAP` lookup were updated to match; camelCase JS identifiers
+  (`AuthApi.resetPassword()`, the `multiSelect` field-config flag, the
+  `RefContainerStyle` component) are intentionally unchanged. Sections reference
+  styles by FK id, so the DB side is a metadata rename, not a content migration.
+- Bumped the `@selfhelp/shared` dependency to `^1.8.0` to pick up the kebab-case
+  style contract.
+- **CMS identifier naming conventions are documented in `AGENTS.md`** as a
+  cross-repo contract so backend seeds/DB, `@selfhelp/shared`, the frontend
+  `BasicStyle`/`FieldRenderer`, and the mobile renderers stay in lockstep:
+  **style names → `kebab-case`**, **field names → `snake_case`**, **field types →
+  `kebab-case`**.
 
 ### Fixed
 - **Editing a page or its sections now refreshes the screen reliably.** Page and
@@ -54,11 +79,27 @@ No engineering diary, no implementation detail — that belongs in
   bootstrap is now inlined into `<head>` (it ran from an external script that
   executed after first paint), and is emitted once per page instead of once per
   SSR stream flush, so an `auto` + OS-dark visitor paints dark on the first frame.
+  The bootstrap now also defaults to `auto` (resolving the OS preference) rather
+  than `light` when no choice is saved, and the resolved choice is persisted to
+  the `sh_color_scheme` cookie on the first visit — so a brand-new OS-dark
+  visitor no longer flashes light-then-dark, and the preference is initialised
+  instead of being re-derived on every reload.
 - **Adding a section now selects it and flags the page as publishable.** The
   create endpoint returns the new section(s) as an array; the extractor now reads
   that shape (selecting the first when several are added), and every section
   mutation invalidates the unpublished-changes query so "Publish Changes" lights
   up immediately instead of after the 30s poll.
+- **Reopening an action in edit now repopulates the form.** The Action edit
+  modal synced its fields off a `prevDetails !== details` guard that never fired
+  when the action-details query was already cached (i.e. reopening an action),
+  leaving every field blank. It now keys the one-time populate on a stable
+  open/mode/action/loaded signature, so a cached action fills the form
+  immediately and a later background refetch no longer clobbers in-progress edits.
+- **Actions can no longer be saved without a subject and body.** The Action
+  form's required-field check now treats the notification subject and body (the
+  per-language translation content) as mandatory for every notification job,
+  alongside the existing recipient check, so Save stays disabled until they are
+  filled.
 
 ### Removed
 - Dead code: the unreachable 401 branch in the Refine auth `onError`, the unused
