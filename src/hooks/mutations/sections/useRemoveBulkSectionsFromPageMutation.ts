@@ -50,12 +50,17 @@ export function useRemoveBulkSectionsFromPageMutation(
         onSuccess: async (result: unknown, variables) => {
             const deletedCount = (result as { deleted_count?: number } | undefined)?.deleted_count ?? variables.sectionIds.length;
 
+            // UNPUBLISHED_CHANGES refreshes the publish-state reader so the
+            // "Publish Changes" button reflects the removed sections immediately.
             await Promise.all([
                 queryClient.invalidateQueries({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId),
                 }),
                 queryClient.refetchQueries({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId),
+                }),
+                queryClient.invalidateQueries({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId),
                 }),
             ]);
 

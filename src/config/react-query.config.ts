@@ -154,6 +154,11 @@ export const REACT_QUERY_CONFIG = {
             format: string,
         ) => ['version-comparison', pageId, version1Id, version2Id, format],
         UNPUBLISHED_CHANGES: (pageId: number | null) => ['unpublished-changes', pageId],
+        // Prefix base: section mutations that change a page's draft must refresh
+        // the publish-state reader (`useUnpublishedChanges`). Page-scoped writers
+        // use `UNPUBLISHED_CHANGES(pageId)`; the few that lack a pageId (e.g.
+        // permanent section delete) invalidate every page's flag via this prefix.
+        UNPUBLISHED_CHANGES_ALL: ['unpublished-changes'],
 
         // ── Admin section utilities (shared read/write) ───────────────────
         ADMIN_SECTIONS_UNUSED: ['admin', 'sections', 'unused'],

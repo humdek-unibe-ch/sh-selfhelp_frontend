@@ -43,12 +43,15 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
         
         onSuccess: async (result: unknown, variables: IRemoveSectionFromPageVariables) => {
 
-            // Invalidate relevant queries to update the UI
+            // Invalidate relevant queries to update the UI. UNPUBLISHED_CHANGES
+            // refreshes the publish-state reader so the "Publish Changes" button
+            // reflects the removed section immediately.
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
                 queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
             ]);
             
             if (showNotifications) {

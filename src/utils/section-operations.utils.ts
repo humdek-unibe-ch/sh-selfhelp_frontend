@@ -193,10 +193,22 @@ interface ISectionCreateResultProbe {
 }
 
 /**
- * Extracts the id of a freshly created/added section from the possible result
- * shapes (`{ id }` or `{ section: { id } }`). Returns `undefined` when absent.
+ * Extracts the id of a freshly created/added section for auto-selection.
+ *
+ * The create/add endpoints return the created section(s) as an ARRAY
+ * (`[{ id, position }, …]`); a few legacy paths return a single object
+ * (`{ id }` or `{ section: { id } }`). All shapes are handled. When several
+ * sections are created at once we select the FIRST one (matching the product
+ * rule "if we add multiple, select the first newly added section"). Returns
+ * `undefined` when no id is present.
  */
 export function extractCreatedSectionId(result: unknown): number | undefined {
-  const created = result as ISectionCreateResultProbe;
-  return created?.id || created?.section?.id;
+  const pick = (probe: ISectionCreateResultProbe | undefined): number | undefined =>
+    probe?.id ?? probe?.section?.id;
+
+  if (Array.isArray(result)) {
+    return pick(result[0] as ISectionCreateResultProbe | undefined);
+  }
+
+  return pick(result as ISectionCreateResultProbe);
 }

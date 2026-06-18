@@ -46,11 +46,30 @@ describe('extractImportedSectionIds', () => {
 });
 
 describe('extractCreatedSectionId', () => {
-    it('reads a top-level id', () => {
+    it('reads the id from the array the create endpoint actually returns', () => {
+        // Real backend shape verified via MCP: POST .../sections/create →
+        // data: [{ id: 234, position: 0 }]. Auto-selection depends on this.
+        expect(extractCreatedSectionId([{ id: 234, position: 0 }])).toBe(234);
+    });
+
+    it('selects the FIRST section when several are created at once', () => {
+        // Product rule: "if we add multiple, select the first newly added section".
+        expect(extractCreatedSectionId([{ id: 51, position: 0 }, { id: 52, position: 1 }])).toBe(51);
+    });
+
+    it('reads a nested section.id from an array element', () => {
+        expect(extractCreatedSectionId([{ section: { id: 77 } }])).toBe(77);
+    });
+
+    it('returns undefined for an empty array', () => {
+        expect(extractCreatedSectionId([])).toBeUndefined();
+    });
+
+    it('reads a top-level id (legacy object shape)', () => {
         expect(extractCreatedSectionId({ id: 42 })).toBe(42);
     });
 
-    it('falls back to a nested section.id', () => {
+    it('falls back to a nested section.id (legacy object shape)', () => {
         expect(extractCreatedSectionId({ section: { id: 13 } })).toBe(13);
     });
 

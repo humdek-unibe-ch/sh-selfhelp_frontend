@@ -57,9 +57,12 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
         
         onSuccess: async (createdSection: unknown, variables: IAddSectionToPageVariables) => {
             
-            // Invalidate relevant queries to update the UI with consistent query keys
+            // Invalidate relevant queries to update the UI with consistent query keys.
+            // UNPUBLISHED_CHANGES refreshes the publish-state reader so the
+            // "Publish Changes" button reflects the new section immediately.
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
             ]);
             
             if (showNotifications) {

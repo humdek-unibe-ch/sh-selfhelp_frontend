@@ -29,10 +29,14 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
             AdminSectionApi.deleteSection(sectionId),
 
         onSuccess: async (result: unknown, variables: IDeleteSectionVariables) => {
+            // A permanent delete affects whichever page referenced the section and
+            // no pageId is available here, so refresh the publish-state reader for
+            // every page via the prefix (UNPUBLISHED_CHANGES_ALL).
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS_ALL }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES_ALL }),
             ]);
 
             if (showNotifications) {

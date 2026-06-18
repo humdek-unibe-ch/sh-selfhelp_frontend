@@ -39,10 +39,13 @@ export function useUpdateSectionMutation({
             return result;
         },
         onSuccess: (data, variables) => {
-            // Invalidate relevant queries to refresh data with consistent query keys
+            // Invalidate relevant queries to refresh data with consistent query keys.
+            // UNPUBLISHED_CHANGES refreshes the publish-state reader so the
+            // "Publish Changes" button reflects the edited section immediately.
             const sectionsPageId = pageId || variables.pageId;
 
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(sectionsPageId) });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(sectionsPageId) });
 
             if (showNotifications) {
                 notifications.show({

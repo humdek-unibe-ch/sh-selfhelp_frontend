@@ -50,10 +50,13 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
         
         onSuccess: async (createdSection: unknown, variables: ICreateSectionInSectionVariables) => {
             
-            // Invalidate relevant queries to update the UI
+            // Invalidate relevant queries to update the UI. UNPUBLISHED_CHANGES
+            // refreshes the publish-state reader so the "Publish Changes" button
+            // reflects the new child section immediately.
             const invalidationPromises = [
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
             ];
             
             // If pageId is provided, also invalidate page-specific queries
