@@ -292,7 +292,7 @@ export function CreatableSelectField({
             <Stack gap="xs">
                 <Combobox
                     store={combobox}
-                    withinPortal={false}
+                    withinPortal
                     onOptionSubmit={(val) => {
                         onChange(val);
                         combobox.closeDropdown();
@@ -426,7 +426,7 @@ export function CreatableSelectField({
         <Stack gap="xs">
             <Combobox
                 store={combobox}
-                withinPortal={false}
+                withinPortal
                 onOptionSubmit={handleToggleValue}
             >
                 <Combobox.Target>
