@@ -24,9 +24,12 @@ No engineering diary, no implementation detail — that belongs in
 
 ### Changed
 - **React Query keys for the page list, public page content, page
-  sections/fields, page versions, unpublished changes and the admin section
-  utilities now come from one registry** (`REACT_QUERY_CONFIG.QUERY_KEYS`), so a
-  writer's invalidation can no longer drift from a reader's key.
+  sections/fields, page versions, unpublished changes, the admin section
+  utilities and the cache stats/health views now come from one registry**
+  (`REACT_QUERY_CONFIG.QUERY_KEYS`), so a writer's invalidation can no longer
+  drift from a reader's key. As part of this, clearing the API-routes cache now
+  refreshes the cache stats/health cards (it previously invalidated a key no
+  view subscribed to, so the cards stayed stale until reload).
 - Centralized permission-aware API request building, single-sourced the
   admin-session route prefixes, and renamed the permission CRUD helpers /
   extracted the permission bit constants — no behavior change.
@@ -40,8 +43,11 @@ No engineering diary, no implementation detail — that belongs in
 
 ### Removed
 - Dead code: the unreachable 401 branch in the Refine auth `onError`, the unused
-  `endpointKey` API argument, and the stale `registered.ts` reference in the
-  plugins-sync CI check.
+  `endpointKey` API argument, the stale `registered.ts` reference in the
+  plugins-sync CI check, and two unused section-sibling mutation hooks
+  (`useCreateSiblingAbove/BelowMutation`) that duplicated the create-section flow
+  and invalidated keys no reader subscribed to (the add-sibling UI uses the
+  Add-Section modal, not these hooks).
 
 ## v0.1.20 — 2026-06-17
 

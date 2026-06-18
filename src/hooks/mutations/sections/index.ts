@@ -22,10 +22,6 @@ export { useRemoveSectionFromSectionMutation } from './useRemoveSectionFromSecti
 export { useCreateSectionInPageMutation } from './useCreateSectionInPageMutation';
 export { useCreateSectionInSectionMutation } from './useCreateSectionInSectionMutation';
 
-// Sibling creation mutations
-export { useCreateSiblingAboveMutation } from './useCreateSiblingAboveMutation';
-export { useCreateSiblingBelowMutation } from './useCreateSiblingBelowMutation';
-
 // Section update mutations
 export { useUpdateSectionMutation } from './useUpdateSectionMutation';
 

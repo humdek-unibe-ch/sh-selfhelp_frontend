@@ -77,8 +77,11 @@ export function useClearApiRoutesCacheMutation() {
                 color: 'green',
             });
 
-            // Invalidate cache-related queries
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'cache'] });
+            // Refresh the cache stats/health views the cache management card
+            // reads. Keys come from the registry so this writer can't drift from
+            // the useCacheStats/useCacheHealth readers.
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_STATS });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_HEALTH });
         },
         onError: (error: unknown) => {
 

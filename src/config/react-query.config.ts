@@ -164,6 +164,11 @@ export const REACT_QUERY_CONFIG = {
         SECTION_DETAILS: (pageId: number | null, sectionId: number | null) =>
             ['admin', 'sections', 'details', pageId, sectionId],
 
+        // ── Admin cache management (read by useCacheStats/useCacheHealth,
+        //    invalidated by the cache + section-utility clear mutations) ─────
+        CACHE_STATS: ['cache-stats'],
+        CACHE_HEALTH: ['cache-health'],
+
         // ── Static / misc ─────────────────────────────────────────────────
         LANGUAGES: ['languages'],
         PUBLIC_LANGUAGES: ['public-languages'],

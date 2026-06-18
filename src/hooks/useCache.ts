@@ -18,7 +18,7 @@ import type { IClearCacheCategoryRequest, IClearUserCacheRequest } from '../type
  */
 export function useCacheStats() {
     return useQuery({
-        queryKey: ['cache-stats'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_STATS,
         queryFn: async () => {
             const response = await AdminCacheApi.getCacheStats();
             return response.data;
@@ -33,7 +33,7 @@ export function useCacheStats() {
  */
 export function useCacheHealth() {
     return useQuery({
-        queryKey: ['cache-health'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_HEALTH,
         queryFn: async () => {
             const response = await AdminCacheApi.getCacheHealth();
             return response.data;
@@ -53,8 +53,8 @@ export function useClearAllCachesMutation() {
         mutationFn: () => AdminCacheApi.clearAllCaches(),
         onSuccess: (_response) => {
             // Invalidate cache-related queries
-            void queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
-            void queryClient.invalidateQueries({ queryKey: ['cache-health'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_STATS });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_HEALTH });
             
             notifications.show({
                 title: 'Success',
@@ -84,8 +84,8 @@ export function useClearCacheCategoryMutation() {
         mutationFn: (data: IClearCacheCategoryRequest) => AdminCacheApi.clearCacheCategory(data),
         onSuccess: (response, variables) => {
             // Invalidate cache-related queries
-            void queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
-            void queryClient.invalidateQueries({ queryKey: ['cache-health'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_STATS });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_HEALTH });
             
             notifications.show({
                 title: 'Success',
@@ -115,8 +115,8 @@ export function useClearUserCacheMutation() {
         mutationFn: (data: IClearUserCacheRequest) => AdminCacheApi.clearUserCache(data),
         onSuccess: (response, variables) => {
             // Invalidate cache-related queries
-            void queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
-            void queryClient.invalidateQueries({ queryKey: ['cache-health'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_STATS });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_HEALTH });
             
             notifications.show({
                 title: 'Success',
@@ -146,8 +146,8 @@ export function useResetCacheStatsMutation() {
         mutationFn: () => AdminCacheApi.resetCacheStats(),
         onSuccess: () => {
             // Invalidate cache-related queries
-            void queryClient.invalidateQueries({ queryKey: ['cache-stats'] });
-            void queryClient.invalidateQueries({ queryKey: ['cache-health'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_STATS });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_HEALTH });
             
             notifications.show({
                 title: 'Success',
