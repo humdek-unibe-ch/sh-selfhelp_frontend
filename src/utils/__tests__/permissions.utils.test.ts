@@ -7,8 +7,8 @@ import {
     createPermissionChecker,
     parseCrudPermissions,
     stringifyCrudPermissions,
-    hasAnyPermission,
-    hasAllPermissions,
+    hasAnyCrudPermission,
+    hasAllCrudPermissions,
 } from '../permissions.utils';
 import { PERMISSIONS } from '../../types/auth/jwt-payload.types';
 
@@ -28,12 +28,12 @@ describe('stringifyCrudPermissions', () => {
     });
 });
 
-describe('hasAnyPermission / hasAllPermissions', () => {
+describe('hasAnyCrudPermission / hasAllCrudPermissions', () => {
     it('reports any vs all correctly', () => {
-        expect(hasAnyPermission({ view: true })).toBe(true);
-        expect(hasAnyPermission({ view: false, create: false })).toBe(false);
-        expect(hasAllPermissions({ view: true, create: true })).toBe(true);
-        expect(hasAllPermissions({ view: true, create: false })).toBe(false);
+        expect(hasAnyCrudPermission({ view: true })).toBe(true);
+        expect(hasAnyCrudPermission({ view: false, create: false })).toBe(false);
+        expect(hasAllCrudPermissions({ view: true, create: true })).toBe(true);
+        expect(hasAllCrudPermissions({ view: true, create: false })).toBe(false);
     });
 });
 
