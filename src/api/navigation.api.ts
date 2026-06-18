@@ -28,7 +28,7 @@ export const NavigationApi = {
      * This endpoint always contains the title field based on the selected language.
      * Returns raw API data - transformation happens in React Query select function for caching.
      * @param {number} languageId - The language ID to fetch pages for
-     * @returns {Promise<any[]>} Raw API response data (transformed in React Query select)
+     * @returns {Promise<unknown[]>} Raw API response data (transformed in React Query select)
      * @throws {Error} When API request fails
      */
     async getPagesWithLanguage(languageId: number): Promise<TRawNavigationPage[]> {
