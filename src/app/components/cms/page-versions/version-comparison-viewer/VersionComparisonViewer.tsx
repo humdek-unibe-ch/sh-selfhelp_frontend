@@ -8,6 +8,7 @@ import { Modal, Stack, Select, Box, Text, Loader, Alert, Paper, ScrollArea, Code
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PageVersionApi } from '../../../../../api/admin/page-version.api';
+import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { type IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -55,7 +56,7 @@ export function VersionComparisonViewer({
     const { data: comparison, isLoading, error } = useQuery({
         queryKey: isDraftComparison
             ? ['draft-comparison', pageId, draftVersionId, format]
-            : ['version-comparison', pageId, version1Id, version2Id, format],
+            : REACT_QUERY_CONFIG.QUERY_KEYS.VERSION_COMPARISON(pageId, version1Id, version2Id, format),
         queryFn: () => isDraftComparison
             ? PageVersionApi.compareDraftWithVersion(pageId!, draftVersionId!, format)
             : PageVersionApi.compareVersions(pageId!, version1Id!, version2Id!, { format }),

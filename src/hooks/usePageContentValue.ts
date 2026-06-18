@@ -50,7 +50,9 @@ export function usePageContentValue(options: IUsePageContentValueOptions = {}): 
     const { data } = useQuery<IPageContent>({
         queryKey: keyword && languageId
             ? REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, languageId, preview)
-            : ['page-by-keyword', 'inactive'],
+            // Disabled-query sentinel (never fetched); reuse the registry prefix
+            // so the 'page-by-keyword' literal lives in exactly one place.
+            : [...REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL, 'inactive'],
         queryFn: () => PageApi.getPageByKeyword(keyword as string, languageId as number, preview),
         enabled: Boolean(keyword && languageId),
         staleTime: preview ? 0 : REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.staleTime,

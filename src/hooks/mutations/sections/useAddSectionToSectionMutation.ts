@@ -14,6 +14,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 import { type IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
 
@@ -62,8 +63,8 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
 
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
-                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.invalidateQueries({queryKey: ['admin', 'sections', 'unused']}),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED }),
             ];
             await Promise.all(invalidationPromises);
             

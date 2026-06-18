@@ -15,7 +15,7 @@ import type { IUnusedSectionsData, IRefContainerSectionsData, ISectionPage } fro
  */
 export function useUnusedSections(enabled: boolean = true) {
     return useQuery<IUnusedSectionsData>({
-        queryKey: ['admin', 'sections', 'unused'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED,
         queryFn: async (): Promise<IUnusedSectionsData> => {
             const response = await AdminSectionUtilityApi.getUnusedSections();
             return response || [];
@@ -33,7 +33,7 @@ export function useUnusedSections(enabled: boolean = true) {
  */
 export function useRefContainerSections(enabled: boolean = true) {
     return useQuery<IRefContainerSectionsData>({
-        queryKey: ['admin', 'sections', 'ref-containers'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS,
         queryFn: async (): Promise<IRefContainerSectionsData> => {
             const response = await AdminSectionUtilityApi.getRefContainers();
             return response || [];
@@ -52,7 +52,7 @@ export function useRefContainerSections(enabled: boolean = true) {
  */
 export function useSectionPages(sectionIds: number[], enabled: boolean = true) {
     return useQuery<ISectionPage[]>({
-        queryKey: ['admin', 'sections', 'pages', sectionIds],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_PAGES(sectionIds),
         queryFn: async (): Promise<ISectionPage[]> => {
             return AdminSectionApi.getSectionPages(sectionIds);
         },
@@ -107,7 +107,7 @@ export function useDeleteUnusedSectionMutation() {
             });
 
             // Invalidate unused sections queries
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED });
         },
         onError: (error: unknown) => {
 
@@ -137,7 +137,7 @@ export function useDeleteAllUnusedSectionsMutation() {
             });
 
             // Invalidate unused sections queries
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED });
         },
         onError: (error: unknown) => {
 

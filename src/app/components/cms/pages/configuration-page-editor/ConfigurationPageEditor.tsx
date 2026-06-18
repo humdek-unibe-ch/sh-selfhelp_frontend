@@ -95,13 +95,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }); // Admin pages list
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(page.keyword) }); // Page fields
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(page.keyword) }); // Page sections
-            void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] }); // Frontend page content
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL }); // Frontend page content
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL }); // Frontend pages with language
-            
-            // Also invalidate any admin-specific queries that might exist
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'page', page.keyword] });
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', page.keyword] });
         }
     });
 

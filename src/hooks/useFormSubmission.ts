@@ -26,7 +26,7 @@ export function useSubmitFormMutation() {
         mutationFn: (data: IFormSubmitRequest | FormData) => FormSubmissionApi.submitForm(data),
         onSuccess: async (response, _variables) => {
 
-            void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
             void queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
 
@@ -59,7 +59,7 @@ export function useUpdateFormMutation() {
         mutationFn: (data: IFormUpdateRequest | FormData) => FormSubmissionApi.updateForm(data),
         onSuccess: async (response, _variables) => {
 
-            void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
             void queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
 
@@ -92,7 +92,7 @@ export function useDeleteFormMutation() {
         mutationFn: (data: { record_id: number; page_id: number; section_id: number }) =>
             FormSubmissionApi.deleteForm(data),
         onSuccess: (response, variables) => {
-            void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
             void queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
 

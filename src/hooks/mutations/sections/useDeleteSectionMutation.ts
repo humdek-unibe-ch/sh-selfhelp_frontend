@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminSectionApi } from '../../../api/admin/section.api';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IDeleteSectionMutationOptions {
@@ -29,14 +30,10 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
 
         onSuccess: async (result: unknown, variables: IDeleteSectionVariables) => {
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['pageSections'] }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS_ALL }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED }),
             ]);
-
-            queryClient.removeQueries({
-                queryKey: ['sectionDetails', variables.sectionId],
-            });
 
             if (showNotifications) {
                 notifications.show({

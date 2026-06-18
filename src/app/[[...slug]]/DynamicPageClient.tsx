@@ -7,6 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 import { useMemo } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
 import { useIsFetching } from '@tanstack/react-query';
+import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import { useLanguageContext } from '../components/contexts/LanguageContext';
 import { usePreviewMode } from '../components/contexts/PreviewModeContext';
 import { usePageContentByKeyword } from '../../hooks/usePageContentByKeyword';
@@ -49,7 +50,7 @@ export default function DynamicPageClient({ keyword, initialPageId }: IDynamicPa
     // React Query is the single source of truth for "language change in
     // flight": a language switch invalidates `page-by-keyword`, which
     // surfaces here as `useIsFetching` > 0.
-    const pendingLangFetches = useIsFetching({ queryKey: ['page-by-keyword'] });
+    const pendingLangFetches = useIsFetching({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
     const isLanguageChanging = pendingLangFetches > 0;
 
     const pageId = pageContent?.id ?? initialPageId;

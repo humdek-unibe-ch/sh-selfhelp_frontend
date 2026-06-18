@@ -49,8 +49,8 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
             const invalidationPromises = [
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
                 queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(cachePageId) }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS }),
             ];
 
             // If pageId is provided, also invalidate page-specific queries

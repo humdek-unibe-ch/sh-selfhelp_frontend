@@ -6,6 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import React, { useState, useEffect } from 'react';
 import { useIsFetching } from '@tanstack/react-query';
+import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { 
     Button, 
     Modal, 
@@ -192,7 +193,7 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
     const { pages, menuPages, footerPages, routes, profilePages } = useAppNavigation();
     const { systemPageLinks, categorizedSystemPages } = useAdminPages();
     const { currentLanguageId, languages, setCurrentLanguageId } = useLanguageContext();
-    const pendingPageFetches = useIsFetching({ queryKey: ['page-by-keyword'] });
+    const pendingPageFetches = useIsFetching({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
     const isUpdatingLanguage = pendingPageFetches > 0;
     const { permissionChecker } = useAuth();
 

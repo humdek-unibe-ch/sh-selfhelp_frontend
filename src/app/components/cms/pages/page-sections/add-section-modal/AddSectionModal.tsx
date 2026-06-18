@@ -39,6 +39,7 @@ import { ImportSectionTab } from './tabs/ImportSectionTab';
 import { ReferenceSectionTab } from './tabs/ReferenceSectionTab';
 import { UnusedSectionTab } from './tabs/UnusedSectionTab';
 import { useQueryClient } from '@tanstack/react-query';
+import { REACT_QUERY_CONFIG } from '../../../../../../config/react-query.config';
 import { type AddSectionTab, ADD_SECTION_TAB, MAX_SECTIONS, MAX_UNUSED_SECTIONS } from './addSectionModal.constants';
 import { getNewSectionLimitState, getUnusedSectionLimitState, getStatusText, isSingleMode, getStatusColor } from './addSectionModal.utils';
 
@@ -321,7 +322,7 @@ export function AddSectionModal({
        }
 
        handleClose();
-       void queryClient.invalidateQueries({queryKey: ['admin', 'sections', 'unused']})
+       void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED })
      } catch {
        // handled by hook
      }

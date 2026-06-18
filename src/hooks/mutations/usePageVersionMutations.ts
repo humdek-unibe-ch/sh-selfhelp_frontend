@@ -26,14 +26,14 @@ export function usePublishVersionMutation() {
 
             // Invalidate and refetch relevant queries to ensure fresh data
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
 
             // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: ['page-versions', variables.pageId] });
+            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) });
             
             notifications.show({
                 title: 'Version Published',
@@ -63,13 +63,13 @@ export function usePublishSpecificVersionMutation() {
             
             // Invalidate and refetch relevant queries to ensure fresh data
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
             
             // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: ['page-versions', variables.pageId] });
+            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) });
             
             notifications.show({
                 title: 'Version Published',
@@ -98,13 +98,13 @@ export function useUnpublishPageMutation() {
             
             // Invalidate and refetch relevant queries to ensure fresh data
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['page-versions', pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['page-details', pageId] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(pageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
             
             // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: ['page-versions', pageId] });
+            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(pageId) });
             
             notifications.show({
                 title: 'Page Unpublished',
@@ -132,8 +132,8 @@ export function useDeleteVersionMutation() {
         onSuccess: (_, variables) => {
             debug('Version deleted', 'useDeleteVersionMutation', variables);
 
-            void queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] });
-            void queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) });
 
             notifications.show({
                 title: 'Version Deleted',
@@ -167,15 +167,15 @@ export function useRestoreFromVersionMutation() {
 
             // Invalidate and refetch relevant queries to ensure fresh data
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
 
             // Force immediate refetch of page data
-            await queryClient.refetchQueries({ queryKey: ['page-details', variables.pageId] });
+            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) });
             await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) });
 
             notifications.show({

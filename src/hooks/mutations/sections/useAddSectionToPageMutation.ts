@@ -14,6 +14,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 import { type IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
 
@@ -58,7 +59,7 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
             
             // Invalidate relevant queries to update the UI with consistent query keys
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
             ]);
             
             if (showNotifications) {

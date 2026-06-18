@@ -156,11 +156,8 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) });
-            void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', pageId] });
         },
         onError: () => {}
     });

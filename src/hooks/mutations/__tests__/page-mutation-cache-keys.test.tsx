@@ -65,6 +65,31 @@ describe('page mutation cache keys', () => {
         expect(QK.ADMIN_PAGES).not.toEqual(['adminPages']);
     });
 
+    it('page editor / section / version registry keys reproduce the exact reader-hook shapes', () => {
+        // Prefix bases used by writers + `useIsFetching`.
+        expect(QK.PAGE_SECTIONS_ALL).toEqual(['pageSections']);
+        expect(QK.PAGE_BY_KEYWORD_ALL).toEqual(['page-by-keyword']);
+        // `usePageContentByKeyword` / SSR layout read this full shape.
+        expect(QK.PAGE_BY_KEYWORD('kw', 2, false)).toEqual(['page-by-keyword', 'kw', 2, 'published']);
+        expect(QK.PAGE_BY_KEYWORD('kw', 2, true)).toEqual(['page-by-keyword', 'kw', 2, 'preview']);
+        // `usePageVersions` list reader appends params to the writer prefix.
+        expect(QK.PAGE_VERSIONS(4)).toEqual(['page-versions', 4]);
+        expect([...QK.PAGE_VERSIONS(4), undefined]).toEqual(['page-versions', 4, undefined]);
+        expect(QK.PAGE_VERSION(4, 9, false)).toEqual(['page-version', 4, 9, false]);
+        expect(QK.VERSION_COMPARISON(4, 9, 10, 'side_by_side')).toEqual(
+            ['version-comparison', 4, 9, 10, 'side_by_side'],
+        );
+        // `useUnpublishedChanges` reader.
+        expect(QK.UNPUBLISHED_CHANGES(4)).toEqual(['unpublished-changes', 4]);
+        // `useSectionUtility` readers.
+        expect(QK.ADMIN_SECTIONS_UNUSED).toEqual(['admin', 'sections', 'unused']);
+        expect(QK.ADMIN_SECTIONS_REF_CONTAINERS).toEqual(['admin', 'sections', 'ref-containers']);
+        expect(QK.ADMIN_SECTIONS_PAGES([7])).toEqual(['admin', 'sections', 'pages', [7]]);
+        // `useSectionDetails` reader (must NOT be the old camelCase/`section-details` shape).
+        expect(QK.SECTION_DETAILS(4, 9)).toEqual(['admin', 'sections', 'details', 4, 9]);
+        expect(QK.SECTION_DETAILS(4, 9)).not.toEqual(['sectionDetails', 9]);
+    });
+
     it('create invalidates the admin-pages + frontend-pages keys, never the dead literals', async () => {
         createPage.mockResolvedValue({ id: 1, keyword: 'qa-page' });
         const queryClient = createTestQueryClient();

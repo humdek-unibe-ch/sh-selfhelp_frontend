@@ -14,7 +14,7 @@ import { type IUnpublishedChangesResponse } from '../types/responses/admin/page-
 
 export function useUnpublishedChanges(pageId: number | null) {
     return useQuery<IUnpublishedChangesResponse>({
-        queryKey: ['unpublished-changes', pageId],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(pageId),
         queryFn: () => PageVersionApi.hasUnpublishedChanges(pageId!),
         enabled: !!pageId,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,

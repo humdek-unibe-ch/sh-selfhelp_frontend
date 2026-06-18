@@ -14,7 +14,7 @@ import { type IVersionListParams } from '../types/requests/admin/page-version.ty
 
 export function usePageVersions(pageId: number | null, params?: IVersionListParams) {
     return useQuery({
-        queryKey: ['page-versions', pageId, params],
+        queryKey: [...REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(pageId), params],
         queryFn: () => PageVersionApi.listVersions(pageId!, params),
         enabled: !!pageId,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
@@ -24,7 +24,7 @@ export function usePageVersions(pageId: number | null, params?: IVersionListPara
 
 export function usePageVersion(pageId: number | null, versionId: number | null, includePageJson: boolean = false) {
     return useQuery({
-        queryKey: ['page-version', pageId, versionId, includePageJson],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSION(pageId, versionId, includePageJson),
         queryFn: () => PageVersionApi.getVersion(pageId!, versionId!, { include_page_json: includePageJson }),
         enabled: !!pageId && !!versionId,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
@@ -39,7 +39,7 @@ export function useVersionComparison(
     format: 'unified' | 'side_by_side' | 'json_patch' | 'summary' = 'side_by_side'
 ) {
     return useQuery({
-        queryKey: ['version-comparison', pageId, version1Id, version2Id, format],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.VERSION_COMPARISON(pageId, version1Id, version2Id, format),
         queryFn: () => PageVersionApi.compareVersions(pageId!, version1Id!, version2Id!, { format }),
         enabled: !!pageId && !!version1Id && !!version2Id,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
