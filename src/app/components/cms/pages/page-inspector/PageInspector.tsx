@@ -53,7 +53,6 @@ import {
     validateFieldProcessing,
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
-import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
 import { usePageVersions } from '../../../../../hooks/usePageVersions';
 import {
     usePublishVersionMutation,
@@ -89,22 +88,6 @@ interface PageInspectorProps {
 
 export const PageInspector = React.memo(function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
     const router = useRouter();
-
-    const monitoringProps = useMemo(() => ({
-        pageId: page?.id_pages,
-        isConfigurationPage
-    }), [page?.id_pages, isConfigurationPage]);
-
-    useRenderMonitor('PageInspector', monitoringProps, {
-        trackState: false,
-        trackContext: true,
-        trackHooks: false,
-        enableStackTrace: true
-    });
-
-    useWhyDidYouUpdate('PageInspector', monitoringProps);
-    useMountMonitor('PageInspector');
-    useRenderLogger('PageInspector', monitoringProps);
 
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
