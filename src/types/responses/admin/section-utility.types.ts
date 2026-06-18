@@ -28,7 +28,7 @@ interface IRefContainerSection {
     name: string;
     /** Style ID */
     idStyles: number;
-    /** Style name (should be 'refContainer') */
+    /** Style name (should be 'ref-container') */
     styleName: string;
 }
 

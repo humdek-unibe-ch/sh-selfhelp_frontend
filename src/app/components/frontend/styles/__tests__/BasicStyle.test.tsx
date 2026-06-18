@@ -26,6 +26,19 @@ describe('BasicStyle dispatcher map', () => {
         expect(STYLE_IMPLS['definitely-not-a-real-style']).toBeUndefined();
     });
 
+    it('dispatches the kebab-cased style names renamed from camelCase in @selfhelp/shared 1.8.0', () => {
+        // The dispatcher key must match the backend style_name; these were
+        // renamed to kebab-case in lockstep (shared + backend + frontend).
+        for (const name of ['reset-password', 'two-factor-auth', 'no-access', 'not-found', 'ref-container', 'show-user-input']) {
+            expect(typeof STYLE_IMPLS[name], name).toBe('function');
+        }
+        // The legacy camelCase keys must no longer resolve, or a backend that
+        // still served them would silently fall through to UnknownStyle.
+        for (const legacy of ['resetPassword', 'twoFactorAuth', 'noAccess', 'notFound', 'refContainer', 'showUserInput']) {
+            expect(STYLE_IMPLS[legacy], legacy).toBeUndefined();
+        }
+    });
+
     it('dispatches the "text" entry to a valid React element', () => {
         const renderer = STYLE_IMPLS.text;
         type RProps = Parameters<typeof renderer>[0];

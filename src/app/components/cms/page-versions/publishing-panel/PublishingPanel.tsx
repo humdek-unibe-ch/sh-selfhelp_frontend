@@ -93,7 +93,7 @@ export function PublishingPanel({
                 // `refContainer` is a frontend-only style, so it isn't part of
                 // the shared `TStyleName` discriminator — widen to string to
                 // compare against the runtime value.
-                if ((s.style_name as string) === 'refContainer') ids.push(s.id);
+                if ((s.style_name as string) === 'ref-container') ids.push(s.id);
                 if (s.children?.length) collect(s.children as IPageSectionWithFields[]);
             }
         };

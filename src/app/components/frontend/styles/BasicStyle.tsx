@@ -217,21 +217,21 @@ const styleImpls: Record<string, TStyleRenderer> = {
         <RegisterStyle style={style as IRegisterStyle} styleProps={styleProps} cssClass={cssClass} />,
     validate: ({ style, styleProps, cssClass }) =>
         <ValidateStyle style={style as IValidateStyle} styleProps={styleProps} cssClass={cssClass} />,
-    resetPassword: ({ style, styleProps, cssClass }) =>
+    'reset-password': ({ style, styleProps, cssClass }) =>
         <ResetPasswordStyle style={style as IResetPasswordStyle} styleProps={styleProps} cssClass={cssClass} />,
-    twoFactorAuth: ({ style, styleProps, cssClass }) =>
+    'two-factor-auth': ({ style, styleProps, cssClass }) =>
         <TwoFactorAuthStyle style={style as ITwoFactorAuthStyle} styleProps={styleProps} cssClass={cssClass} />,
     profile: ({ style, styleProps, cssClass }) =>
         <ProfileStyle style={style as IProfileStyle} styleProps={styleProps} cssClass={cssClass} />,
-    noAccess: ({ style, styleProps, cssClass }) =>
+    'no-access': ({ style, styleProps, cssClass }) =>
         <NoAccessStyle style={style as unknown as Partial<INoAccessStyle>} styleProps={styleProps} cssClass={cssClass} />,
     missing: ({ style, styleProps, cssClass }) =>
         <MissingStyle style={style as unknown as Partial<IMissingStyle>} styleProps={styleProps} cssClass={cssClass} />,
-    notFound: ({ style, styleProps, cssClass }) =>
+    'not-found': ({ style, styleProps, cssClass }) =>
         <NotFoundStyle style={style as unknown as Partial<INotFoundStyle>} styleProps={styleProps} cssClass={cssClass} />,
 
     // ===== layout =====
-    refContainer: ({ style }) =>
+    'ref-container': ({ style }) =>
         <RefContainerStyle style={style as IRefContainerStyle} />,
     container: ({ style, styleProps, cssClass }) =>
         <ContainerStyle style={style as IContainerStyle} styleProps={styleProps} cssClass={cssClass} />,
@@ -389,7 +389,7 @@ const styleImpls: Record<string, TStyleRenderer> = {
         <TypographyStyle style={style as ITypographyStyle} styleProps={styleProps} cssClass={cssClass} />,
 
     // ===== data display =====
-    showUserInput: ({ style, styleProps, cssClass }) =>
+    'show-user-input': ({ style, styleProps, cssClass }) =>
         <ShowUserInputStyle style={style as IShowUserInputStyle} styleProps={styleProps} cssClass={cssClass} />,
 };
 

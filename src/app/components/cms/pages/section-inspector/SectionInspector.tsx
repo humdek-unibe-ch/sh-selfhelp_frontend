@@ -37,7 +37,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
 import { InspectorHeader } from '../../shared/inspector-header/InspectorHeader';
-import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { SectionInfoPanel } from './section-field-groups';
 import { SectionFieldPanels } from './SectionFieldPanels';
@@ -84,18 +83,6 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         }
     });
 
-    // Performance monitoring
-    useRenderMonitor('SectionInspector', { pageId, sectionId }, {
-        trackState: false,
-        trackContext: true,
-        trackHooks: false,
-        enableStackTrace: true
-    });
-
-    useWhyDidYouUpdate('SectionInspector', { pageId, sectionId });
-    useMountMonitor('SectionInspector');
-    useRenderLogger('SectionInspector', { pageId, sectionId });
-
     // Fetch section details
     const {
         data: sectionDetailsData,
@@ -123,7 +110,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         }
     });
 
-    const isRefContainer = sectionDetailsData?.section?.style?.name === 'refContainer';
+    const isRefContainer = sectionDetailsData?.section?.style?.name === 'ref-container';
 
     const {
         data: sectionPages,
