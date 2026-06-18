@@ -284,6 +284,12 @@ export const API_CONFIG = {
             route: (userId: number) => `/admin/users/${userId}/groups`,
             permissions: []
         },
+        // NOTE: the user-management mutations below (group/role assignment,
+        // activation mail, clean-data) are enforced by the backend
+        // (admin.user.* on Symfony). Their client `permissions` arrays are
+        // empty pending a backend-confirmed client mapping — do not assume a
+        // permission here without coordination (see the "every mutating
+        // endpoint must declare permissions" API rule in AGENTS.md).
         ADMIN_USERS_GROUPS_ADD: {
             route: (userId: number) => `/admin/users/${userId}/groups`,
             permissions: []
@@ -558,6 +564,9 @@ export const API_CONFIG = {
             route: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
             permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_READ]
         },
+        // NOTE: destructive version delete — backend-gated (admin.page.version.*).
+        // Client `permissions` empty pending a backend-confirmed mapping; see the
+        // "every mutating endpoint must declare permissions" API rule in AGENTS.md.
         ADMIN_PAGE_VERSIONS_DELETE: {
             route: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
             permissions: []

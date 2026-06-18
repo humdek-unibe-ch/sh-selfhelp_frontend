@@ -27,7 +27,7 @@ export const AdminSectionApi = {
      * Adds an existing section to a page
      * @param {number} pageId - The page ID
      * @param {IAddSectionInSectionData[]} sections - The sections to add and data
-     * @returns {Promise<any>} The created section data
+     * @returns {Promise<unknown>} The created section data
      * @throws {Error} When API request fails
      */
     async addSectionToPage(pageId: number, sections: IAddSectionInSectionData[]): Promise<unknown> {
@@ -48,7 +48,7 @@ export const AdminSectionApi = {
      * @param {number} pageId - The page ID
      * @param {number} sectionId - The section ID to update
      * @param {IUpdateSectionInPageData} sectionData - The section data to update (position)
-     * @returns {Promise<any>} The updated section data
+     * @returns {Promise<unknown>} The updated section data
      * @throws {Error} When API request fails
      */
     async updateSectionInPage(pageId: number, sectionId: number, sectionData: IUpdateSectionInPageData): Promise<unknown> {
@@ -65,8 +65,8 @@ export const AdminSectionApi = {
      * Updates a section (generic update for section content/properties)
      * @param {number} pageId - The page ID
      * @param {number} sectionId - The section ID to update
-     * @param {any} sectionData - The section data to update
-     * @returns {Promise<any>} The updated section data
+     * @param {unknown} sectionData - The section data to update
+     * @returns {Promise<unknown>} The updated section data
      * @throws {Error} When API request fails
      */
     async updateSection(pageId: number, sectionId: number, sectionData: unknown): Promise<unknown> {
@@ -122,7 +122,7 @@ export const AdminSectionApi = {
      * @param {number} pageId - The page ID
      * @param {number} parentSectionId - The parent section ID
      * @param {IAddSectionInSectionData[]} sections - The sections to add with data
-     * @returns {Promise<any>} The created section data
+     * @returns {Promise<unknown>} The created section data
      * @throws {Error} When API request fails
      */
     async addSectionToSection(pageId: number, parentSectionId: number, sections: IAddSectionInSectionData[]): Promise<unknown> {
@@ -162,7 +162,7 @@ export const AdminSectionApi = {
      * Creates a new section in a page from a style
      * @param {number} pageId - The page ID
      * @param {ICreateSectionInPageData} sectionData - The section data to create (styleId, position)
-     * @returns {Promise<any>} The created section data
+     * @returns {Promise<unknown>} The created section data
      * @throws {Error} When API request fails
      */
     async createSectionInPage(pageId: number, sections: ICreateSectionInPageData | ICreateSectionInPageData[]): Promise<unknown> {
@@ -179,7 +179,7 @@ export const AdminSectionApi = {
      * @param {number} pageId - The page ID
      * @param {number} parentSectionId - The parent section ID
      * @param {ICreateSectionInSectionData} sectionData - The section data to create (styleId, position)
-     * @returns {Promise<any>} The created section data
+     * @returns {Promise<unknown>} The created section data
      * @throws {Error} When API request fails
      */
     async createSectionInSection(
