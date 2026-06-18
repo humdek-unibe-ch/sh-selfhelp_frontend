@@ -73,3 +73,12 @@ describe('authProvider.check (transient backend outage)', () => {
         await expect(authProvider.check!({})).resolves.toMatchObject({ authenticated: false });
     });
 });
+
+describe('authProvider.onError', () => {
+    it('surfaces the error to Refine unchanged regardless of status', async () => {
+        const err401 = axiosError(401, { logged_in: false });
+        const err500 = axiosError(500);
+        await expect(authProvider.onError!(err401)).resolves.toEqual({ error: err401 });
+        await expect(authProvider.onError!(err500)).resolves.toEqual({ error: err500 });
+    });
+});

@@ -172,9 +172,9 @@ export const authProvider: AuthProvider = {
     },
 
     onError: async (err) => {
-        if (err.response?.status === 401 && !err.config?._retry) {
-            return { error: err };
-        }
+        // Surface the error to Refine unchanged. Auth-driven redirects (e.g. a
+        // genuine 401) are owned by `check()` and the Axios refresh/redirect
+        // interceptor, so there is no per-status branching to do here.
         return { error: err };
     },
 };
