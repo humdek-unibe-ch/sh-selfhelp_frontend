@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { Text, LoadingOverlay } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconDatabase } from '@tabler/icons-react';
@@ -17,7 +17,7 @@ import type { IDataTableSummary } from '../../../../../types/responses/admin/dat
 import {
   parseCrudPermissions,
   stringifyCrudPermissions,
-  ICrudPermissions,
+  type ICrudPermissions,
   DEFAULT_CRUD_PERMISSIONS,
 } from '../../../../../utils/permissions.utils';
 
@@ -36,19 +36,12 @@ interface IDataTablePermissionRow extends IDataTableSummary {
 export function DataTablePermissionsModal({ opened, onClose, roleId, roleName }: IDataTablePermissionsModalProps) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [dataTables, setDataTables] = useState<IDataTableSummary[]>([]);
+  const [_dataTables, setDataTables] = useState<IDataTableSummary[]>([]);
   const [rolePermissions, setRolePermissions] = useState<IRoleEffectivePermissions | null>(null);
   const [permissionRows, setPermissionRows] = useState<IDataTablePermissionRow[]>([]);
   const [resourceTypeId, setResourceTypeId] = useState<number | null>(null);
 
-  // Load data tables and current permissions
-  useEffect(() => {
-    if (opened && roleId) {
-      loadData();
-    }
-  }, [opened, roleId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [dataTablesResponse, permissionsResponse, resourceTypeIdResponse] = await Promise.all([
@@ -78,16 +71,25 @@ export function DataTablePermissionsModal({ opened, onClose, roleId, roleName }:
       });
 
       setPermissionRows(rows);
-    } catch (error: any) {
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to load data table permissions',
+        message: message || 'Failed to load data table permissions',
         color: 'red',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [roleId]);
+
+  // Load data tables and current permissions
+  useEffect(() => {
+    if (opened && roleId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- loadData performs asynchronous data fetching when the modal opens; its loading-state management is part of that async fetch lifecycle (canonical data-fetch effect).
+      void loadData();
+    }
+  }, [opened, roleId, loadData]);
 
   // Update permission for a specific data table and permission type
   const updatePermission = (tableName: string, permissionType: keyof ICrudPermissions, value: boolean) => {
@@ -179,10 +181,11 @@ export function DataTablePermissionsModal({ opened, onClose, roleId, roleName }:
       });
 
       onClose();
-    } catch (error: any) {
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to save data table permissions',
+        message: message || 'Failed to save data table permissions',
         color: 'red',
       });
     } finally {
@@ -191,7 +194,7 @@ export function DataTablePermissionsModal({ opened, onClose, roleId, roleName }:
   };
 
   // Check if any row has changes
-  const hasChanges = useMemo(() => permissionRows.some(row => row.hasChanges), [permissionRows]);
+  const _hasChanges = useMemo(() => permissionRows.some(row => row.hasChanges), [permissionRows]);
 
   // Transform permission rows for the matrix component
   const matrixRows: IPermissionRow[] = useMemo(() =>
@@ -221,7 +224,7 @@ export function DataTablePermissionsModal({ opened, onClose, roleId, roleName }:
     </div>
   );
 
-  const renderInfoCell = (row: IPermissionRow) => null; // No additional info for data tables
+  const renderInfoCell = (_row: IPermissionRow) => null; // No additional info for data tables
 
   const renderStatusCell = (row: IPermissionRow) => (
     row.hasChanges ? (

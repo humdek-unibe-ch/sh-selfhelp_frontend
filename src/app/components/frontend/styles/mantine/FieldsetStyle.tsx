@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Fieldset } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { IFieldsetStyle } from '../../../../../types/common/styles.types';
+import { type IFieldsetStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for FieldsetStyle component
@@ -15,7 +15,7 @@ import { IFieldsetStyle } from '../../../../../types/common/styles.types';
  */
 interface IFieldsetStyleProps {
     style: IFieldsetStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -49,7 +49,7 @@ const FieldsetStyle: React.FC<IFieldsetStyleProps> = ({ style, styleProps, cssCl
                 disabled={disabled}
                 {...styleProps} className={cssClass}
             >
-                {children.map((child: any, index: number) => (
+                {children.map((child, index: number) => (
                     child ? <BasicStyle key={index} style={child} /> : null
                 ))}
             </Fieldset>

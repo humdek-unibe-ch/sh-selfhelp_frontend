@@ -31,13 +31,14 @@ import {
 import { useHotkeys } from '@mantine/hooks';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
+import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
+import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useDeletePageMutation } from '../../../../../hooks/mutations/useDeletePageMutation';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
-import { IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
+import { type IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
@@ -52,7 +53,6 @@ import {
     validateFieldProcessing,
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
-import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
 import { usePageVersions } from '../../../../../hooks/usePageVersions';
 import {
     usePublishVersionMutation,
@@ -88,22 +88,6 @@ interface PageInspectorProps {
 
 export const PageInspector = React.memo(function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
     const router = useRouter();
-
-    const monitoringProps = useMemo(() => ({
-        pageId: page?.id_pages,
-        isConfigurationPage
-    }), [page?.id_pages, isConfigurationPage]);
-
-    useRenderMonitor('PageInspector', monitoringProps, {
-        trackState: false,
-        trackContext: true,
-        trackHooks: false,
-        enableStackTrace: true
-    });
-
-    useWhyDidYouUpdate('PageInspector', monitoringProps);
-    useMountMonitor('PageInspector');
-    useRenderLogger('PageInspector', monitoringProps);
 
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -148,19 +132,15 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
         if (languagesData.length > 0 && !activeLanguageTab) {
             setActiveLanguageTab(languagesData[0].id.toString());
         }
-    }, [languagesData.length, activeLanguageTab]);
+    }, [languagesData, activeLanguageTab]);
 
     const updatePageMutation = useUpdatePageMutation({
         onSuccess: (_updatedPage, pageId) => {
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] });
-            queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] });
-            queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
-            queryClient.invalidateQueries({ queryKey: ['pages'] });
-            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
-            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', pageId] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
         },
         onError: () => {}
     });

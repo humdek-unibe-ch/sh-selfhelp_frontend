@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { Text, Badge, LoadingOverlay, Group } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconFileText } from '@tabler/icons-react';
@@ -17,7 +17,7 @@ import type { IAdminPage } from '../../../../../types/responses/admin/admin.type
 import {
   parseCrudPermissions,
   stringifyCrudPermissions,
-  ICrudPermissions,
+  type ICrudPermissions,
   DEFAULT_CRUD_PERMISSIONS,
 } from '../../../../../utils/permissions.utils';
 
@@ -36,19 +36,12 @@ interface IPagePermissionRow extends IAdminPage {
 export function PagePermissionsModal({ opened, onClose, roleId, roleName }: IPagePermissionsModalProps) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [pages, setPages] = useState<IAdminPage[]>([]);
+  const [_pages, setPages] = useState<IAdminPage[]>([]);
   const [rolePermissions, setRolePermissions] = useState<IRoleEffectivePermissions | null>(null);
   const [permissionRows, setPermissionRows] = useState<IPagePermissionRow[]>([]);
   const [resourceTypeId, setResourceTypeId] = useState<number | null>(null);
 
-  // Load pages and current permissions
-  useEffect(() => {
-    if (opened && roleId) {
-      loadData();
-    }
-  }, [opened, roleId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [pagesResponse, permissionsResponse, resourceTypeIdResponse] = await Promise.all([
@@ -78,16 +71,25 @@ export function PagePermissionsModal({ opened, onClose, roleId, roleName }: IPag
       });
 
       setPermissionRows(rows);
-    } catch (error: any) {
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to load page permissions',
+        message: message || 'Failed to load page permissions',
         color: 'red',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [roleId]);
+
+  // Load pages and current permissions
+  useEffect(() => {
+    if (opened && roleId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- loadData performs asynchronous data fetching when the modal opens; its loading-state management is part of that async fetch lifecycle (canonical data-fetch effect).
+      void loadData();
+    }
+  }, [opened, roleId, loadData]);
 
   // Update permission for a specific page and permission type
   const updatePermission = (pageId: number, permissionType: keyof ICrudPermissions, value: boolean) => {
@@ -179,10 +181,11 @@ export function PagePermissionsModal({ opened, onClose, roleId, roleName }: IPag
       });
 
       onClose();
-    } catch (error: any) {
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to save page permissions',
+        message: message || 'Failed to save page permissions',
         color: 'red',
       });
     } finally {
@@ -191,7 +194,7 @@ export function PagePermissionsModal({ opened, onClose, roleId, roleName }: IPag
   };
 
   // Check if any row has changes
-  const hasChanges = useMemo(() => permissionRows.some(row => row.hasChanges), [permissionRows]);
+  const _hasChanges = useMemo(() => permissionRows.some(row => row.hasChanges), [permissionRows]);
 
   // Transform permission rows for the matrix component
   const matrixRows: IPermissionRow[] = useMemo(() =>

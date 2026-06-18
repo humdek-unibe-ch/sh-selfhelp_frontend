@@ -14,11 +14,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromSectionMutationOptions {
-    onSuccess?: (data: any, variables: { pageId: number; parentSectionId: number; childSectionId: number }) => void;
-    onError?: (error: any, variables: { pageId: number; parentSectionId: number; childSectionId: number }) => void;
+    onSuccess?: (data: unknown, variables: { pageId: number; parentSectionId: number; childSectionId: number }) => void;
+    onError?: (error: unknown, variables: { pageId: number; parentSectionId: number; childSectionId: number }) => void;
     showNotifications?: boolean;
     pageId?: number; // Optional page ID for cache invalidation
 }
@@ -42,21 +43,24 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
         mutationFn: ({ pageId, parentSectionId, childSectionId }: IRemoveSectionFromSectionVariables) => 
             AdminApi.removeSectionFromSection(pageId, parentSectionId, childSectionId),
         
-        onSuccess: async (result: any, variables: IRemoveSectionFromSectionVariables) => {
+        onSuccess: async (result: unknown, variables: IRemoveSectionFromSectionVariables) => {
 
-            // Invalidate relevant queries to update the UI
+            // Invalidate relevant queries to update the UI. UNPUBLISHED_CHANGES
+            // refreshes the publish-state reader so the "Publish Changes" button
+            // reflects the removed child section immediately.
             const invalidationPromises = [
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                queryClient.refetchQueries({ queryKey: ['pageSections', cachePageId] }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
+                queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(cachePageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
             ];
 
             // If pageId is provided, also invalidate page-specific queries
             if (cachePageId) {
                 invalidationPromises.push(
-                    queryClient.invalidateQueries({ queryKey: ['pageSections', cachePageId] }),
-                    queryClient.invalidateQueries({ queryKey: ['pageFields', cachePageId] })
+                    queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(cachePageId) }),
+                    queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(cachePageId) })
                 );
             }
 
@@ -64,7 +68,7 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
 
             // Also directly refetch the page sections query as a backup
             if (cachePageId) {
-                await queryClient.refetchQueries({ queryKey: ['pageSections', cachePageId] });
+                await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(cachePageId) });
             }
             
             if (showNotifications) {
@@ -82,7 +86,7 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
             onSuccess?.(result, variables);
         },
         
-        onError: (error: any, variables: IRemoveSectionFromSectionVariables) => {
+        onError: (error: unknown, variables: IRemoveSectionFromSectionVariables) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

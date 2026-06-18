@@ -7,11 +7,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminSectionApi } from '../../../api/admin/section.api';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IDeleteSectionMutationOptions {
-    onSuccess?: (data: any, variables: { sectionId: number }) => void;
-    onError?: (error: any, variables: { sectionId: number }) => void;
+    onSuccess?: (data: unknown, variables: { sectionId: number }) => void;
+    onError?: (error: unknown, variables: { sectionId: number }) => void;
     showNotifications?: boolean;
 }
 
@@ -27,16 +28,16 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
         mutationFn: ({ sectionId }: IDeleteSectionVariables) =>
             AdminSectionApi.deleteSection(sectionId),
 
-        onSuccess: async (result: any, variables: IDeleteSectionVariables) => {
+        onSuccess: async (result: unknown, variables: IDeleteSectionVariables) => {
+            // A permanent delete affects whichever page referenced the section and
+            // no pageId is available here, so refresh the publish-state reader for
+            // every page via the prefix (UNPUBLISHED_CHANGES_ALL).
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['pageSections'] }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS_ALL }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES_ALL }),
             ]);
-
-            queryClient.removeQueries({
-                queryKey: ['sectionDetails', variables.sectionId],
-            });
 
             if (showNotifications) {
                 notifications.show({
@@ -52,7 +53,7 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
             onSuccess?.(result, variables);
         },
 
-        onError: (error: any, variables: IDeleteSectionVariables) => {
+        onError: (error: unknown, variables: IDeleteSectionVariables) => {
             const { errorMessage, errorTitle } = parseApiError(error);
 
             if (showNotifications) {

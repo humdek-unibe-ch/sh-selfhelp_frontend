@@ -11,26 +11,22 @@ import {
     TableThead,
     TableTh,
     TableTr,
-} from '@mantine/core';
-import {
+
     Card,
     Group,
-    Button,
     ActionIcon,
     Tooltip,
     LoadingOverlay,
     Text,
     Stack,
-    Center,
-} from '@mantine/core';
+    Center} from '@mantine/core';
+
 import {
     IconEdit,
     IconTrash,
-    IconPlus,
-    IconLanguage,
 } from '@tabler/icons-react';
 import { useAdminLanguages } from '../../../../../hooks/useLanguages';
-import { ILanguage } from '../../../../../types/responses/admin/languages.types';
+import { type ILanguage } from '../../../../../types/responses/admin/languages.types';
 import { EmptyState } from '../../../shared/common/EmptyState';
 
 interface ILanguagesListProps {
@@ -40,7 +36,6 @@ interface ILanguagesListProps {
 }
 
 export function LanguagesList({
-    onCreateLanguage,
     onEditLanguage,
     onDeleteLanguage,
 }: ILanguagesListProps) {

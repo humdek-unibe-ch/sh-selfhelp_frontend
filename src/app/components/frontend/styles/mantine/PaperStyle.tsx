@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Paper } from '@mantine/core';
-import { IPaperStyle } from '../../../../../types/common/styles.types';
+import { type IPaperStyle } from '../../../../../types/common/styles.types';
 import { castMantineRadius } from '../../../../../utils/style-field-extractor';
 import BasicStyle from '../BasicStyle';
 
@@ -16,7 +16,7 @@ import BasicStyle from '../BasicStyle';
  */
 interface IPaperStyleProps {
     style: IPaperStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -32,7 +32,7 @@ const PaperStyle: React.FC<IPaperStyleProps> = ({ style, styleProps, cssClass })
 
     // Extract Mantine-specific props
     const shadow = style.mantine_paper_shadow?.content || 'sm';
-    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const radius = castMantineRadius(style.mantine_radius?.content);
     const px = style.mantine_px?.content || 'md';
     const py = style.mantine_py?.content || 'md';
     const withBorder = style.mantine_border?.content === '1';

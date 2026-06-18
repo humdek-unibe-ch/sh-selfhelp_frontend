@@ -16,7 +16,7 @@ SPDX-License-Identifier: MPL-2.0
  * state on the client is cleaned up.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import {
     IMPERSONATE_COOKIE,

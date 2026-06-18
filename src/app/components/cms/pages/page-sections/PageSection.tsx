@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { forwardRef, useState } from 'react';
+import { forwardRef, useState, type ComponentPropsWithRef } from 'react';
 import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip, Checkbox } from '@mantine/core';
 import { 
     IconChevronRight, 
@@ -16,7 +16,7 @@ import {
     IconFolderOpen,
     IconFile
 } from '@tabler/icons-react';
-import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
+import { type IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { RemoveSectionModal } from './RemoveSectionModal';
 import styles from './PageSection.module.css';
 import SectionLink from './SectionLink';
@@ -40,7 +40,7 @@ interface IPageSectionProps {
     isDragActive: boolean;
     overId: string | number | null;
     draggedSectionId?: number | null;
-    dragHandleProps?: any;
+    dragHandleProps?: ComponentPropsWithRef<'div'> & { 'data-drag-handle'?: boolean };
     isDragging?: boolean;
 
     showInsideDropZone?: boolean;

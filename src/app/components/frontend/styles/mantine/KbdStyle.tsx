@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Kbd } from '@mantine/core';
-import { IKbdStyle } from '../../../../../types/common/styles.types';
+import { type IKbdStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for KbdStyle component
@@ -14,7 +14,7 @@ import { IKbdStyle } from '../../../../../types/common/styles.types';
  */
 interface IKbdStyleProps {
     style: IKbdStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -38,7 +38,7 @@ const KbdStyle: React.FC<IKbdStyleProps> = ({ style, styleProps, cssClass }) => 
     const styleObj: React.CSSProperties = {};
 
     return (
-        <Kbd size={size as any} {...styleProps} className={cssClass} style={styleObj}>
+        <Kbd size={size} {...styleProps} className={cssClass} style={styleObj}>
             {key}
         </Kbd>
     );

@@ -8,7 +8,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module types/forms/create-page.types
  */
 
-import { IAdminPage } from '../responses/admin/admin.types';
+import { type IAdminPage } from '../responses/admin/admin.types';
 
 export interface ICreatePageFormValues {
     keyword: string;

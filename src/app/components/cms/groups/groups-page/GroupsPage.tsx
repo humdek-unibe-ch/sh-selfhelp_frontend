@@ -69,10 +69,11 @@ export function GroupsPage() {
           setDeleteModalOpened(false);
           setDeletingGroup(null);
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+          const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
           notifications.show({
             title: 'Error',
-            message: error.response?.data?.message || 'Failed to delete group',
+            message: message || 'Failed to delete group',
             color: 'red',
           });
         },

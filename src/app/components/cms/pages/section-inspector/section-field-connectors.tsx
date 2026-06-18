@@ -5,15 +5,15 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import React, { useCallback } from 'react';
-import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
+import { FieldRenderer, type IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
-import { ISectionField } from '../../../../../types/responses/admin/admin.types';
+import { type ISectionField } from '../../../../../types/responses/admin/admin.types';
 
 interface ISectionContentFieldProps {
     field: ISectionField;
     languageId: number;
     locale?: string;
-    dataVariables?: Record<string, any>;
+    dataVariables?: Record<string, string>;
     className?: string;
 }
 
@@ -69,7 +69,7 @@ export const SectionContentField = React.memo(function SectionContentField({
 
 interface ISectionPropertyFieldProps {
     field: ISectionField;
-    dataVariables?: Record<string, any>;
+    dataVariables?: Record<string, string>;
     className?: string;
 }
 

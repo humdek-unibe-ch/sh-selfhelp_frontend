@@ -1,6 +1,6 @@
 {
     "name": "selfhelp-frontend",
-    "version": "0.1.20",
+    "version": "0.1.21",
     "private": true,
     "license": "MPL-2.0",
     "scripts": {
@@ -20,8 +20,8 @@
         "test:visual": "node scripts/e2e-stack.mjs visual",
         "test:visual:update": "node scripts/e2e-stack.mjs visual --update-snapshots",
         "tsc": "tsc",
-        "lint": "eslint . --ext .ts,.tsx",
-        "lint:fix": "eslint . --ext .ts,.tsx --fix",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "dead": "knip",
         "unused": "npx ts-unused-exports tsconfig.json --excludePathsFromReport=.next --ignoreFiles=\"page.tsx\"",
         "prune": "ts-prune",
@@ -50,7 +50,7 @@
         "@refinedev/core": "^5.0.12",
         "@refinedev/nextjs-router": "^7.0.5",
         "@refinedev/simple-rest": "^6.0.1",
-        "@selfhelp/shared": "^1.7.0",
+        "@selfhelp/shared": "^1.8.0",
         "@tabler/icons-react": "^3.41.1",
         "@tanstack/react-query": "^5.99.2",
         "@tanstack/react-table": "^8.21.3",
@@ -74,7 +74,7 @@
         "axios": "^1.15.1",
         "date-fns": "^4.1.0",
         "dayjs": "^1.11.20",
-        "dompurify": "^3.4.2",
+        "dompurify": "^3.4.9",
         "embla-carousel": "^8.6.0",
         "embla-carousel-react": "^8.6.0",
         "html-react-parser": "^6.0.1",
@@ -116,12 +116,20 @@
         "ts-prune": "^0.10.3",
         "ts-unused-exports": "^11.0.1",
         "typescript": "5.9.3",
+        "typescript-eslint": "^8.61.1",
         "vite": "^6.4.3",
         "vitest": "^3.2.6"
     },
     "overrides": {
         "monaco-editor": {
-            "dompurify": "^3.4.2"
+            "dompurify": "^3.4.9"
+        },
+        "qs": "^6.15.2",
+        "js-yaml": "^4.2.0",
+        "form-data": "^4.0.6",
+        "glob": "^13.0.6",
+        "tsx": {
+            "esbuild": "^0.28.1"
         },
         "next": {
             "postcss": "^8.5.10"

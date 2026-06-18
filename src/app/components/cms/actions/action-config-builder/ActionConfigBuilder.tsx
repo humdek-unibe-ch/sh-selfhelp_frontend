@@ -19,6 +19,14 @@ import { useActionTranslations } from '../../../../../hooks/useActionTranslation
 import { GroupedTranslationInput } from '../grouped-translation-input/GroupedTranslationInput';
 import { usePageKeywords } from '../../../../../hooks/usePageKeywords';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
+import type {
+    IActionConfig,
+    IActionBlockConfig,
+    IActionJobConfig,
+    IActionReminderConfig,
+    IActionScheduleTimeConfig,
+    IActionNotificationConfig,
+} from '../../../../../types/requests/admin/actions.types';
 // Removed custom CSS import - using Mantine and Tailwind instead
 
 /**
@@ -66,8 +74,8 @@ const MonacoFieldEditor = dynamic(() => import('../../shared/monaco-field-editor
 
 interface IActionConfigBuilderProps {
     actionId?: number;
-    value?: any;
-    onChange: (cfg: any) => void;
+    value?: IActionConfig;
+    onChange: (cfg: IActionConfig) => void;
     onTranslationsChange?: (translations: { [key: string]: { [languageId: number]: string } }) => void;
 }
 
@@ -88,7 +96,7 @@ const ordinal20Options = Array.from({ length: 20 }, (_, i) => ({ value: String(i
 const daysOfMonthOptions = Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }));
 
 export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsChange }: IActionConfigBuilderProps) {
-    const [config, setConfig] = useState<any>(value || { blocks: [] });
+    const [config, setConfig] = useState<IActionConfig>(value || { blocks: [] });
     const lastPropJsonRef = useRef<string>(JSON.stringify(value || { blocks: [] }));
     const lastEmittedJsonRef = useRef<string>(JSON.stringify(value || { blocks: [] }));
 
@@ -98,8 +106,12 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     // Load translations when editing an existing action
     const { data: actionTranslations } = useActionTranslations(actionId || 0);
 
-    // Transform fetched translations to local format
-    useEffect(() => {
+    // Transform fetched translations to local format. Render-phase update that
+    // runs when `actionTranslations` changes (matching the previous effect's
+    // [actionTranslations] dependency), replacing the set-state-in-effect.
+    const [prevActionTranslations, setPrevActionTranslations] = useState<unknown>(() => ({}));
+    if (prevActionTranslations !== actionTranslations) {
+        setPrevActionTranslations(actionTranslations);
         if (actionTranslations && actionTranslations.length > 0) {
             const transformed: { [key: string]: { [languageId: number]: string } } = {};
 
@@ -113,7 +125,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
             setLocalTranslations(transformed);
         }
-    }, [actionTranslations]);
+    }
 
     // Notify parent when local translations change
     useEffect(() => {
@@ -132,6 +144,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             lastPropJsonRef.current = incoming;
             setConfig(value);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally syncs only on incoming `value`; depending on `config` would revert local edits (feedback loop with the emit effect). Loop prevention via lastEmittedJsonRef/lastPropJsonRef.
     }, [value]);
     const scheduleTypes = useLookupsByType(ACTION_SCHEDULE_TYPES);
     const timePeriod = useLookupsByType(TIME_PERIOD);
@@ -160,11 +173,11 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     }, [publicLanguages]);
 
     useEffect(() => {
-        (async () => {
+        void (async () => {
             const groups = await AdminGroupApi.getGroups({ page: 1, pageSize: 1000 });
             setGroupsOptions(groups.groups.map(g => ({ value: String(g.id), label: g.name })));
             const tables = await AdminDataApi.listDataTables();
-            setFormOptions((tables.dataTables || []).map((t: any) => ({ value: String(t.id), label: t.displayName || t.name })));
+            setFormOptions((tables.dataTables || []).map((t) => ({ value: String(t.id), label: t.displayName || t.name })));
             const assets = await AdminAssetApi.getAssets({ page: 1, pageSize: 1000 });
             setAssetOptions(assets.assets.map(a => ({ value: a.file_path, label: a.original_name || a.file_name })));
         })();
@@ -177,13 +190,13 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             lastEmittedJsonRef.current = nextJson;
             onChange(config);
         }
-    }, [config]);
+    }, [config, onChange]);
 
     const scheduleTypeData = useMemo(() => scheduleTypes.map(l => ({ value: l.lookupCode, label: l.lookupValue })), [scheduleTypes]);
     const timePeriodData = useMemo(() => timePeriod.map(l => ({ value: l.lookupCode, label: l.lookupValue })), [timePeriod]);
     const weekdaysData = useMemo(() => weekdays.map(l => ({ value: l.lookupCode, label: l.lookupValue })), [weekdays]);
 
-    const addBlock = () => setConfig((prev: any) => ({
+    const addBlock = () => setConfig((prev) => ({
         ...prev,
         blocks: [
             ...ensureArray(prev.blocks),
@@ -203,14 +216,14 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             }
         ]
     }));
-    const copyBlock = (index: number) => setConfig((prev: any) => {
+    const copyBlock = (index: number) => setConfig((prev) => {
         const blocks = ensureArray(prev.blocks);
         const blockToCopy = blocks[index];
         if (!blockToCopy) return prev;
 
         const copiedBlock = {
             ...blockToCopy,
-            block_name: `${(blockToCopy as any).block_name || 'Block'} (Copy)`
+            block_name: `${blockToCopy.block_name || 'Block'} (Copy)`
         };
 
         return {
@@ -222,8 +235,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             ]
         };
     });
-    const removeBlock = (index: number) => setConfig((prev: any) => ({ ...prev, blocks: ensureArray(prev.blocks).filter((_: any, i: number) => i !== index) }));
-    const setBlock = (index: number, patch: any) => setConfig((prev: any) => ({ ...prev, blocks: ensureArray(prev.blocks).map((b: any, i: number) => i === index ? { ...b, ...patch } : b) }));
+    const removeBlock = (index: number) => setConfig((prev) => ({ ...prev, blocks: ensureArray(prev.blocks).filter((_, i) => i !== index) }));
+    const setBlock = (index: number, patch: Partial<IActionBlockConfig>) => setConfig((prev) => ({ ...prev, blocks: ensureArray(prev.blocks).map((b, i) => i === index ? { ...b, ...patch } : b) }));
 
     const addJob = (bIndex: number) => {
         const newJobIndex = ensureArray(config.blocks?.[bIndex]?.jobs).length;
@@ -251,7 +264,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
             const copiedJob = {
                 ...jobToCopy,
-                job_name: `${(jobToCopy as any).job_name || 'Job'} (Copy)`
+                job_name: `${jobToCopy.job_name || 'Job'} (Copy)`
             };
 
             return [
@@ -261,8 +274,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             ];
         })()
     });
-    const removeJob = (bIndex: number, jIndex: number) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).filter((_: any, i: number) => i !== jIndex) });
-    const setJob = (bIndex: number, jIndex: number, patch: any) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).map((j: any, i: number) => i === jIndex ? { ...j, ...patch } : j) });
+    const removeJob = (bIndex: number, jIndex: number) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).filter((_, i) => i !== jIndex) });
+    const setJob = (bIndex: number, jIndex: number, patch: Partial<IActionJobConfig>) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).map((j, i) => i === jIndex ? { ...j, ...patch } : j) });
 
     const addReminder = (bIndex: number, jIndex: number) => {
         const newReminderIndex = ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders).length;
@@ -301,18 +314,25 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     });
 
     const removeReminder = (bIndex: number, jIndex: number, rIndex: number) => setJob(bIndex, jIndex, {
-        reminders: ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders).filter((_: any, idx: number) => idx !== rIndex)
+        reminders: ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders).filter((_, idx) => idx !== rIndex)
     });
 
-    const setReminder = (bIndex: number, jIndex: number, rIndex: number, patch: any) => setJob(bIndex, jIndex, {
-        reminders: ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders).map((r: any, idx: number) => idx === rIndex ? { ...r, ...patch } : r)
+    const setReminder = (bIndex: number, jIndex: number, rIndex: number, patch: Partial<IActionReminderConfig>) => setJob(bIndex, jIndex, {
+        reminders: ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders).map((r, idx) => idx === rIndex ? { ...r, ...patch } : r)
     });
 
     // active tabs
     const [activeBlock, setActiveBlock] = useState<string>('0');
     const [activeJobByBlock, setActiveJobByBlock] = useState<Record<number, string>>({ 0: '0' });
     const [activeReminderByJobAndBlock, setActiveReminderByJobAndBlock] = useState<Record<string, string>>({ '0-0': '0' });
-    useEffect(() => {
+    // Keep active block/job indices in bounds. Render-phase update tracking the
+    // previous inputs (matching the previous effect's [config.blocks, activeBlock]
+    // dependency), replacing the set-state-in-effect.
+    const [prevBlocksForJobs, setPrevBlocksForJobs] = useState(config.blocks);
+    const [prevActiveBlock, setPrevActiveBlock] = useState(activeBlock);
+    if (prevBlocksForJobs !== config.blocks || prevActiveBlock !== activeBlock) {
+        setPrevBlocksForJobs(config.blocks);
+        setPrevActiveBlock(activeBlock);
         // keep active indices in bounds
         const blocks = ensureArray(config.blocks);
         const bi = Number(activeBlock) || 0;
@@ -322,7 +342,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
         const newJobMap = { ...activeJobByBlock };
 
         blocks.forEach((_, i) => {
-            const jobs = ensureArray((blocks[i] as any).jobs);
+            const jobs = ensureArray(blocks[i].jobs);
             const aj = Number(newJobMap[i] || '0');
             if (aj >= jobs.length) {
                 newJobMap[i] = '0';
@@ -333,18 +353,22 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
         if (needsJobUpdate) {
             setActiveJobByBlock(newJobMap);
         }
-    }, [config.blocks, activeBlock]);
+    }
 
-    useEffect(() => {
-        // Keep reminder indices in bounds - separate effect to avoid circular dependencies
+    // Keep reminder indices in bounds. Render-phase update tracking the previous
+    // config.blocks (matching the previous effect's [config.blocks] dependency),
+    // replacing the set-state-in-effect.
+    const [prevBlocksForReminders, setPrevBlocksForReminders] = useState(config.blocks);
+    if (prevBlocksForReminders !== config.blocks) {
+        setPrevBlocksForReminders(config.blocks);
         const blocks = ensureArray(config.blocks);
         let needsReminderUpdate = false;
         const newReminderMap = { ...activeReminderByJobAndBlock };
 
         blocks.forEach((_, i) => {
-            const jobs = ensureArray((blocks[i] as any).jobs);
+            const jobs = ensureArray(blocks[i].jobs);
             jobs.forEach((_, j) => {
-                const reminders = ensureArray((jobs[j] as any).reminders);
+                const reminders = ensureArray(jobs[j].reminders);
                 const key = `${i}-${j}`;
                 const ar = Number(newReminderMap[key] || '0');
                 if (ar >= reminders.length) {
@@ -357,15 +381,15 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
         if (needsReminderUpdate) {
             setActiveReminderByJobAndBlock(newReminderMap);
         }
-    }, [config.blocks]);
+    }
 
     // memoized date value for Mantine component, avoids TS complaints
+    const deadlineStr = (config?.repeater_until_date?.deadline ?? '') as unknown as string;
     const deadlineDate = useMemo<Date | null>(() => {
-        const str = (config?.repeater_until_date?.deadline ?? '') as unknown as string;
-        if (!str) return null;
-        const d = new Date(str);
+        if (!deadlineStr) return null;
+        const d = new Date(deadlineStr);
         return isNaN(d.getTime()) ? null : d;
-    }, [config?.repeater_until_date?.deadline]);
+    }, [deadlineStr]);
 
     const top = (
         <Stack gap="md">
@@ -435,7 +459,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                         <Grid.Col span={2}>
                             <Stack gap="sm">
                                 {/* <Text fw={600} size="sm">Global Condition</Text> */}
-                                <ConditionBuilderField fieldId={1} fieldName="root.condition" value={config.condition || ''} onChange={(v) => setConfig((p: any) => ({ ...p, condition: v }))} />
+                                <ConditionBuilderField fieldId={1} fieldName="root.condition" value={config.condition || ''} onChange={(v) => setConfig((p) => ({ ...p, condition: v }))} />
                             </Stack>
                         </Grid.Col>
                     </Grid>
@@ -597,7 +621,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                         <TimeInput
                                             label="Schedule at"
                                             value={config.repeater_until_date?.schedule_at || ''}
-                                            onChange={(e) => setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date || {}), schedule_at: (e.currentTarget as any).value } })}
+                                            onChange={(e) => setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date || {}), schedule_at: (e.currentTarget as HTMLInputElement).value } })}
                                             size="sm"
                                         />
                                     </Grid.Col>
@@ -659,7 +683,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
         </Stack>
     );
 
-    const renderScheduleTime = (job: any, onPatch: (patch: any) => void, blockIndex: number, jobIndex: number) => {
+    const renderScheduleTime = (job: IActionJobConfig, onPatch: (patch: Partial<IActionJobConfig>) => void, blockIndex: number, jobIndex: number) => {
         const st = job.schedule_time || {};
         const customDate: Date | null = st.custom_time ? new Date(String(st.custom_time)) : null;
         return (
@@ -774,7 +798,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
         );
     };
 
-    const renderNotification = (job: any, onPatch: (patch: any) => void, blockIndex: number, jobIndex: number, reminderIndex?: number) => {
+    const renderNotification = (job: { notification?: IActionNotificationConfig }, onPatch: (patch: { notification?: IActionNotificationConfig }) => void, blockIndex: number, jobIndex: number, reminderIndex?: number) => {
         const n = job.notification || {};
 
         const isReminder = reminderIndex !== undefined;
@@ -897,7 +921,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
         );
     };
 
-    const renderReminderScheduleTime = (reminder: any, onPatch: (patch: any) => void, parentJobType: string) => {
+    const renderReminderScheduleTime = (reminder: IActionReminderConfig, onPatch: (patch: { schedule_time?: IActionScheduleTimeConfig }) => void, parentJobType: string) => {
         const st = reminder.schedule_time || {};
         return (
             <Card withBorder>
@@ -955,7 +979,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
         );
     };
 
-    const renderReminder = (reminder: any, onPatch: (patch: any) => void, blockIndex: number, jobIndex: number, reminderIndex: number, parentJobType: string) => {
+    const renderReminder = (reminder: IActionReminderConfig, onPatch: (patch: Partial<IActionReminderConfig>) => void, blockIndex: number, jobIndex: number, reminderIndex: number, parentJobType: string) => {
         return (
             <Stack gap="sm">
                 {/* Reminder conditions on same row */}
@@ -1004,7 +1028,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                         <Tabs value={activeBlock} onChange={(v) => setActiveBlock(v || '0')}>
                             <Group justify="space-between" mb="sm">
                                 <Tabs.List>
-                                    {blocks.map((b: any, i: number) => (
+                                    {blocks.map((b, i) => (
                                         <Tabs.Tab key={i} value={String(i)}>
                                             <Group gap={6} align="center">
                                                 <Text>{b.block_name ? `${i + 1} - ${b.block_name}` : `Block ${i + 1}`}</Text>
@@ -1029,7 +1053,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                 </Group>
                             </Group>
 
-                            {blocks.map((block: any, bIndex: number) => (
+                            {blocks.map((block, bIndex) => (
                                 <Tabs.Panel key={bIndex} value={String(bIndex)}>
                                     <Stack gap="sm">
                                         <Group align="end" gap="sm">
@@ -1057,7 +1081,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                             <Tabs value={activeJobByBlock[bIndex] || '0'} onChange={(v) => setActiveJobByBlock((prev) => ({ ...prev, [bIndex]: v || '0' }))}>
                                                 <Group justify="space-between" mb="sm">
                                                     <Tabs.List>
-                                                        {ensureArray(block.jobs).map((jobIt: any, jIndex: number) => (
+                                                        {ensureArray(block.jobs).map((jobIt, jIndex) => (
                                                             <Tabs.Tab key={jIndex} value={String(jIndex)}>
                                                                 {jobIt?.job_name ? `${jIndex + 1} - ${jobIt.job_name}` : `Job ${jIndex + 1}`}
                                                             </Tabs.Tab>
@@ -1080,7 +1104,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                     </Group>
                                                 </Group>
 
-                                                {ensureArray(block.jobs).map((job: any, jIndex: number) => (
+                                                {ensureArray(block.jobs).map((job, jIndex) => (
                                                     <Tabs.Panel key={jIndex} value={String(jIndex)}>
                                                         <Card withBorder>
                                                             <Stack gap="sm">
@@ -1126,7 +1150,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                         size="sm"
                                                                         flex={1}
                                                                     />
-                                                                    {['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) && (
+                                                                    {['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type ?? '') && (
                                                                         <Select
                                                                             label="Reminder for"
                                                                             data={formOptions}
@@ -1143,7 +1167,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                 {renderScheduleTime(job, (patch) => setJob(bIndex, jIndex, patch), bIndex, jIndex)}
 
                                                                 {/* Group add/remove */}
-                                                                {['add_group', 'remove_group'].includes(job.job_type) && (
+                                                                {['add_group', 'remove_group'].includes(job.job_type ?? '') && (
                                                                     <MultiSelect
                                                                         label="Group"
                                                                         data={groupsOptions}
@@ -1155,12 +1179,12 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                 )}
 
                                                                 {/* Notification */}
-                                                                {['notification', 'notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) && (
+                                                                {['notification', 'notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type ?? '') && (
                                                                     renderNotification(job, (patch) => setJob(bIndex, jIndex, patch), bIndex, jIndex)
                                                                 )}
 
                                                                 {/* Reminders */}
-                                                                {['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) && (
+                                                                {['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type ?? '') && (
                                                                     <Card withBorder>
                                                                         <Tabs
                                                                             value={activeReminderByJobAndBlock[`${bIndex}-${jIndex}`] || '0'}
@@ -1168,7 +1192,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                         >
                                                                             <Group justify="space-between" mb="sm">
                                                                                 <Tabs.List>
-                                                                                    {ensureArray(job.reminders).map((reminder: any, rIndex: number) => (
+                                                                                    {ensureArray(job.reminders).map((reminder, rIndex) => (
                                                                                         <Tabs.Tab key={rIndex} value={String(rIndex)}>
                                                                                             {`Reminder ${rIndex + 1}`}
                                                                                         </Tabs.Tab>
@@ -1201,10 +1225,10 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                                 </Group>
                                                                             </Group>
 
-                                                                            {ensureArray(job.reminders).map((reminder: any, rIndex: number) => (
+                                                                            {ensureArray(job.reminders).map((reminder, rIndex) => (
                                                                                 <Tabs.Panel key={rIndex} value={String(rIndex)}>
                                                                                     <Stack gap="sm">
-                                                                                        {renderReminder(reminder, (patch) => setReminder(bIndex, jIndex, rIndex, patch), bIndex, jIndex, rIndex, job.job_type)}
+                                                                                        {renderReminder(reminder, (patch) => setReminder(bIndex, jIndex, rIndex, patch), bIndex, jIndex, rIndex, job.job_type ?? '')}
                                                                                     </Stack>
                                                                                 </Tabs.Panel>
                                                                             ))}

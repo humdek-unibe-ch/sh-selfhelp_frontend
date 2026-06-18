@@ -29,7 +29,7 @@ SPDX-License-Identifier: MPL-2.0
 import type { Metadata } from 'next';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
-import { getSystemLookupsSSR, getAdminPagesSSR } from '../_lib/server-fetch';
+import { getSystemLookupsSSR, getAdminPagesSSR, unwrapSsrList } from '../_lib/server-fetch';
 import { requireAdminAccessSSR } from '../_lib/admin-guard';
 import { getQueryClient } from '../../providers/query-client';
 
@@ -72,7 +72,7 @@ export default async function AdminRouteLayout({ children }: { children: React.R
                 queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES,
                 queryFn: async () => {
                     const raw = await getAdminPagesSSR();
-                    return Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+                    return unwrapSsrList(raw);
                 },
             })
             .catch(() => undefined),
@@ -81,7 +81,7 @@ export default async function AdminRouteLayout({ children }: { children: React.R
                 queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LOOKUPS,
                 queryFn: async () => {
                     const raw = await getSystemLookupsSSR();
-                    return Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+                    return unwrapSsrList(raw);
                 },
                 staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.LOOKUPS.staleTime,
             })

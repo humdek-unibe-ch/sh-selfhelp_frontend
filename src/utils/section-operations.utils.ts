@@ -17,7 +17,7 @@ SPDX-License-Identifier: MPL-2.0
  * - Default append: calculated from existing sections
  */
 
-import { ISectionExportData } from "../api/admin/section.api";
+import { type ISectionExportData } from "../api/admin/section.api";
 
 export interface ISectionOperationPosition {
   position: number;
@@ -139,4 +139,76 @@ export function flattenSections(
       oldParentSectionId: options.oldParentSectionId,
     }),
   }));
+}
+
+/** Shapes the import-sections endpoints may return (probed at runtime). */
+interface IImportSectionsResultProbe {
+  data?: {
+    sections?: Array<{ id: number }>;
+    importedSections?: Array<{ id: number }>;
+    sectionIds?: number[];
+  };
+  sections?: Array<{ id: number }>;
+  importedSections?: Array<{ id: number }>;
+  sectionIds?: number[];
+}
+
+/**
+ * Extracts the ids of freshly imported sections from the several response
+ * shapes the import-sections endpoints have historically returned, in
+ * precedence order (`data.*` envelope first, then top-level). Returns an empty
+ * array when none of the known shapes are present.
+ *
+ * Centralized here so the page- and section-level import handlers share one
+ * runtime contract instead of duplicating the probe.
+ */
+export function extractImportedSectionIds(result: unknown): number[] {
+  const data = result as IImportSectionsResultProbe;
+
+  if (data?.data?.sections && Array.isArray(data.data.sections)) {
+    return data.data.sections.map((s) => s.id).filter(Boolean);
+  }
+  if (data?.data?.importedSections && Array.isArray(data.data.importedSections)) {
+    return data.data.importedSections.map((s) => s.id).filter(Boolean);
+  }
+  if (data?.data?.sectionIds && Array.isArray(data.data.sectionIds)) {
+    return data.data.sectionIds;
+  }
+  if (data?.sections && Array.isArray(data.sections)) {
+    return data.sections.map((s) => s.id).filter(Boolean);
+  }
+  if (data?.importedSections && Array.isArray(data.importedSections)) {
+    return data.importedSections.map((s) => s.id).filter(Boolean);
+  }
+  if (data?.sectionIds && Array.isArray(data.sectionIds)) {
+    return data.sectionIds;
+  }
+  return [];
+}
+
+/** Minimal shape of a created/added section result consumed for auto-selection. */
+interface ISectionCreateResultProbe {
+  id?: number;
+  section?: { id?: number };
+}
+
+/**
+ * Extracts the id of a freshly created/added section for auto-selection.
+ *
+ * The create/add endpoints return the created section(s) as an ARRAY
+ * (`[{ id, position }, …]`); a few legacy paths return a single object
+ * (`{ id }` or `{ section: { id } }`). All shapes are handled. When several
+ * sections are created at once we select the FIRST one (matching the product
+ * rule "if we add multiple, select the first newly added section"). Returns
+ * `undefined` when no id is present.
+ */
+export function extractCreatedSectionId(result: unknown): number | undefined {
+  const pick = (probe: ISectionCreateResultProbe | undefined): number | undefined =>
+    probe?.id ?? probe?.section?.id;
+
+  if (Array.isArray(result)) {
+    return pick(result[0] as ISectionCreateResultProbe | undefined);
+  }
+
+  return pick(result as ISectionCreateResultProbe);
 }

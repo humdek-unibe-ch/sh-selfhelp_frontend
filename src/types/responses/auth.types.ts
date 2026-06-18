@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { IBaseApiResponse } from "./common/response-envelope.types";
+import { type IBaseApiResponse } from "./common/response-envelope.types";
 
 // Common User interface for login and 2FA verify success
 export interface IUser {

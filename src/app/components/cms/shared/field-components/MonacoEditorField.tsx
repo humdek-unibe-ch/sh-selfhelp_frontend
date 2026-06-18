@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useMantineColorScheme } from '@mantine/core';
-import { MonacoFieldEditor, TMonacoLanguage } from '../monaco-field-editor/MonacoFieldEditor';
+import { MonacoFieldEditor, type TMonacoLanguage } from '../monaco-field-editor/MonacoFieldEditor';
 
 interface IMonacoEditorFieldProps {
     fieldId: number;

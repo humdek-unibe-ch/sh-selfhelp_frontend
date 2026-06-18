@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useCallback, useContext } from 'react';
 import {
     Combobox,
     Input,
@@ -18,7 +18,7 @@ import {
     ScrollArea
 } from '@mantine/core';
 import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react';
-import { IComboboxStyle } from '../../../../../../types/common/styles.types';
+import { type IComboboxStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForInline, sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
@@ -32,7 +32,7 @@ import DOMPurify from 'isomorphic-dompurify';
  */
 interface IComboboxStyleProps {
     style: IComboboxStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -122,10 +122,6 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
         return predefinedValues.has(optionValue);
     };
 
-    if (!use_mantine_style) {
-        return null;
-    }
-
     // State management
     const [showCreateInput, setShowCreateInput] = useState(false);
     const [showMultiInput, setShowMultiInput] = useState(false);
@@ -158,8 +154,16 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
         return [];
     });
 
-    // Update selected values when form context changes (for record editing)
-    useEffect(() => {
+    // Keep selected values in sync with the (async) form value via a render-phase
+    // update instead of an effect; the sentinel initial runs it on first render
+    // too, and prev* mirror the original [formValue, multiSelect, separator] deps.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    const [prevMultiSelect, setPrevMultiSelect] = useState(multiSelect);
+    const [prevSeparator, setPrevSeparator] = useState(separator);
+    if (prevFormValue !== formValue || prevMultiSelect !== multiSelect || prevSeparator !== separator) {
+        setPrevFormValue(formValue);
+        setPrevMultiSelect(multiSelect);
+        setPrevSeparator(separator);
         if (formValue !== null) {
             if (multiSelect && typeof formValue === 'string') {
                 setSelectedValues(formValue.split(separator).filter(Boolean));
@@ -167,7 +171,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                 setSelectedValues([formValue]);
             }
         }
-    }, [formValue, multiSelect, separator]);
+    }
 
     // Initialize combobox hook
     const combobox = useCombobox({
@@ -183,7 +187,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
             if (searchable) {
                 try {
                     combobox.focusSearchInput();
-                } catch (error) {
+                } catch {
                     // Silently ignore focus errors when search input is not available
                 }
             }
@@ -257,13 +261,18 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
             setSelectedValues([toggleValue]);
             combobox.closeDropdown();
         }
-    }, [currentValues, multiSelect, maxValues]);
+    }, [currentValues, multiSelect, maxValues, combobox]);
 
     // Handle removing a pill
     const handleRemovePill = useCallback((valueToRemove: string) => {
         const newValues = currentValues.filter(v => v !== valueToRemove);
         setSelectedValues(newValues);
     }, [currentValues]);
+
+    // Rendering is gated after all hooks so hook order stays stable (rules-of-hooks).
+    if (!use_mantine_style) {
+        return null;
+    }
 
     // Create combined options including custom values
     const allOptions = [

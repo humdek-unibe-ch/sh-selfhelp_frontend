@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
     Group,
     Select,
@@ -64,18 +64,21 @@ export function AuditLogsFilters({ filters, onFiltersChange, onRefresh, isFetchi
         { value: 'DELETE', label: 'DELETE' },
     ];
 
-    // Update local state when filters prop changes
-    useEffect(() => {
+    // Update local state when filters prop changes. Render-phase update tracking
+    // the previous prop (matching the previous effect's [filters] dependency).
+    const [prevFilters, setPrevFilters] = useState(filters);
+    if (prevFilters !== filters) {
+        setPrevFilters(filters);
         setLocalFilters(filters);
-    }, [filters]);
+    }
 
-    const handleFilterChange = (key: keyof IAuditLogsListParams, value: any) => {
+    const handleFilterChange = <K extends keyof IAuditLogsListParams>(key: K, value: IAuditLogsListParams[K]) => {
         const newFilters = { ...localFilters, [key]: value };
         setLocalFilters(newFilters);
         // Note: We don't call onFiltersChange here - only when Apply Filters is clicked
     };
 
-    const handleImmediateFilterChange = (key: keyof IAuditLogsListParams, value: any) => {
+    const handleImmediateFilterChange = <K extends keyof IAuditLogsListParams>(key: K, value: IAuditLogsListParams[K]) => {
         const newFilters = { ...localFilters, [key]: value };
         setLocalFilters(newFilters);
         // Apply immediately for date filters

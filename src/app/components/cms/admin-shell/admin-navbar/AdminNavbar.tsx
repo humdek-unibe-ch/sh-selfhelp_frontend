@@ -19,7 +19,7 @@ import {
     IconPlus,
     IconPuzzle,
 } from '@tabler/icons-react';
-import { useAdminPages } from '../../../../../hooks/useAdminPages';
+import { useAdminPages, type IPageHierarchy } from '../../../../../hooks/useAdminPages';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { usePluginMenuItems } from '../../../frontend/plugin-runtime/PluginsProvider';
 import { LinksGroup } from './components/LinksGroup';
@@ -38,8 +38,8 @@ interface INavigationLink {
 }
 
 // Helper function to transform pages into navigation structure (supports hierarchical structure)
-function transformPagesToNavigation(pages: any[]): INavigationLink[] {
-    return pages.map((page: any): INavigationLink => ({
+function transformPagesToNavigation(pages: IPageHierarchy[]): INavigationLink[] {
+    return pages.map((page): INavigationLink => ({
         label: page.keyword, // Use keyword since title field no longer exists
         link: `/admin/pages/${page.keyword}`,
         links: page.children && page.children.length > 0
@@ -343,7 +343,7 @@ export function AdminNavbar() {
         }
 
         return menuItems;
-    }, [pages, configurationPageLinks, categorizedSystemPages, categorizedRegularPages, isLoading, permissionChecker, pluginMenuItems, hasPermission]);
+    }, [pages, configurationPageLinks, categorizedSystemPages, hierarchicalPages, isLoading, permissionChecker, pluginMenuItems, hasPermission]);
 
     const links = navigationData.map((item) => <LinksGroup {...item} key={item.id || item.label} />);
 

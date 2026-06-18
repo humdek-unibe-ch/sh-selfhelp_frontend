@@ -10,8 +10,9 @@ SPDX-License-Identifier: MPL-2.0
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PageVersionApi } from '../../api/admin/page-version.api';
 import { AdminPageApi } from '../../api/admin/page.api';
+import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import { notifications } from '@mantine/notifications';
-import { IPublishVersionRequest } from '../../types/requests/admin/page-version.types';
+import { type IPublishVersionRequest } from '../../types/requests/admin/page-version.types';
 import { debug } from '../../utils/debug-logger';
 
 export function usePublishVersionMutation() {
@@ -25,14 +26,14 @@ export function usePublishVersionMutation() {
 
             // Invalidate and refetch relevant queries to ensure fresh data
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
 
             // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: ['page-versions', variables.pageId] });
+            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) });
             
             notifications.show({
                 title: 'Version Published',
@@ -40,11 +41,11 @@ export function usePublishVersionMutation() {
                 color: 'green',
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             debug('Failed to publish version', 'usePublishVersionMutation', { error });
             notifications.show({
                 title: 'Publish Failed',
-                message: error.response?.data?.message || 'Failed to publish version',
+                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to publish version',
                 color: 'red',
             });
         },
@@ -62,13 +63,13 @@ export function usePublishSpecificVersionMutation() {
             
             // Invalidate and refetch relevant queries to ensure fresh data
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
             
             // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: ['page-versions', variables.pageId] });
+            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) });
             
             notifications.show({
                 title: 'Version Published',
@@ -76,11 +77,11 @@ export function usePublishSpecificVersionMutation() {
                 color: 'green',
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             debug('Failed to publish specific version', 'usePublishSpecificVersionMutation', { error });
             notifications.show({
                 title: 'Publish Failed',
-                message: error.response?.data?.message || 'Failed to publish version',
+                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to publish version',
                 color: 'red',
             });
         },
@@ -97,13 +98,13 @@ export function useUnpublishPageMutation() {
             
             // Invalidate and refetch relevant queries to ensure fresh data
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['page-versions', pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['page-details', pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
             
             // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: ['page-versions', pageId] });
+            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(pageId) });
             
             notifications.show({
                 title: 'Page Unpublished',
@@ -111,11 +112,11 @@ export function useUnpublishPageMutation() {
                 color: 'blue',
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             debug('Failed to unpublish page', 'useUnpublishPageMutation', { error });
             notifications.show({
                 title: 'Unpublish Failed',
-                message: error.response?.data?.message || 'Failed to unpublish page',
+                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to unpublish page',
                 color: 'red',
             });
         },
@@ -131,8 +132,8 @@ export function useDeleteVersionMutation() {
         onSuccess: (_, variables) => {
             debug('Version deleted', 'useDeleteVersionMutation', variables);
 
-            queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] });
-            queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) });
 
             notifications.show({
                 title: 'Version Deleted',
@@ -140,11 +141,11 @@ export function useDeleteVersionMutation() {
                 color: 'green',
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             debug('Failed to delete version', 'useDeleteVersionMutation', { error });
             notifications.show({
                 title: 'Delete Failed',
-                message: error.response?.data?.message || 'Failed to delete version',
+                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to delete version',
                 color: 'red',
             });
         },
@@ -166,16 +167,16 @@ export function useRestoreFromVersionMutation() {
 
             // Invalidate and refetch relevant queries to ensure fresh data
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
 
             // Force immediate refetch of page data
-            await queryClient.refetchQueries({ queryKey: ['page-details', variables.pageId] });
-            await queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] });
+            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) });
+            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) });
 
             notifications.show({
                 title: 'Sections Restored',
@@ -183,11 +184,11 @@ export function useRestoreFromVersionMutation() {
                 color: 'green',
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             debug('Failed to restore from version', 'useRestoreFromVersionMutation', { error });
             notifications.show({
                 title: 'Restore Failed',
-                message: error.response?.data?.message || 'Failed to restore sections from version',
+                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to restore sections from version',
                 color: 'red',
             });
         },

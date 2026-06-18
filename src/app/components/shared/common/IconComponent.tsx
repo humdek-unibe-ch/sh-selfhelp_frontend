@@ -27,15 +27,15 @@ interface IIconComponentProps {
 const IconComponent: React.FC<IIconComponentProps> = ({ iconName, size = 16 }) => {
     if (!iconName || !iconName.trim()) return null;
 
-    try {
-        const IconComponent = TablerIcons[iconName as keyof typeof TablerIcons] as React.ElementType;
-        if (IconComponent) {
-            return <IconComponent size={size} key={iconName} />;
-        }
-    } catch (error) {
-        console.warn(`Failed to load icon: ${iconName}`, error);
+    // Looking up a missing key just yields `undefined` (no throw), and a
+    // try/catch around JSX cannot catch render-time errors anyway, so we resolve
+    // the icon component and render it conditionally instead.
+    const Icon = TablerIcons[iconName as keyof typeof TablerIcons] as React.ElementType | undefined;
+    if (!Icon) {
+        return null;
     }
-    return null;
+
+    return <Icon size={size} key={iconName} />;
 };
 
 export default IconComponent;

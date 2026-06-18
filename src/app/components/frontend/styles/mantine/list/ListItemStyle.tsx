@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { List } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
-import { IListItemStyle } from '../../../../../../types/common/styles.types';
+import { type IListItemStyle } from '../../../../../../types/common/styles.types';
 import IconComponent from '../../../../shared/common/IconComponent';
 
 /**
@@ -16,7 +16,7 @@ import IconComponent from '../../../../shared/common/IconComponent';
  */
 interface IListItemStyleProps {
     style: IListItemStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 

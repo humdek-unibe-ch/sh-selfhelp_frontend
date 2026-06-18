@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Table,
   Text,
@@ -72,7 +72,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100); // Increased for better grouping
   const [search, setSearch] = useState('');
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, _setSorting] = useState<SortingState>([]);
   const [debouncedSearch] = useDebouncedValue(search, 300);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [deleteModal, setDeleteModal] = useState<IDeleteModalState>({ opened: false, asset: null });
@@ -105,10 +105,11 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
         color: 'green',
       });
       setDeleteModal({ opened: false, asset: null });
-    } catch (error: any) {
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to delete asset',
+        message: message || 'Failed to delete asset',
         color: 'red',
       });
     }
@@ -121,7 +122,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
   };
 
   // Determine asset type info from asset_type or file extension
-  const getAssetTypeInfo = (asset: IAsset) => {
+  const getAssetTypeInfo = useCallback((asset: IAsset) => {
     // Use asset_type if available, otherwise determine from file extension
     let typeCategory = asset.asset_type?.toLowerCase();
     
@@ -175,13 +176,13 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
       default:
         return { type: 'other', label: 'Other Files', icon: <IconFile size={20} />, color: 'gray' };
     }
-  };
+  }, []);
 
   // Check if file is an image based on extension
-  const isImageFile = (fileName: string): boolean => {
+  const isImageFile = useCallback((fileName: string): boolean => {
     const extension = getFileExtension(fileName);
     return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(extension);
-  };
+  }, []);
 
 
   // Group assets by type
@@ -208,7 +209,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
 
     // Sort groups by asset count (descending)
     return Array.from(groupMap.values()).sort((a, b) => b.assets.length - a.assets.length);
-  }, [assetsData?.assets]);
+  }, [assetsData, getAssetTypeInfo]);
 
   const toggleGroup = (groupType: string) => {
     setExpandedGroups(prev => ({
@@ -217,7 +218,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     }));
   };
 
-  const columns = useMemo(() => [
+  const _columns = useMemo(() => [
     columnHelper.accessor('id', {
       header: 'ID',
       size: 80,
@@ -314,7 +315,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
         );
       },
     }),
-  ], [deleteAssetMutation.isPending, deleteModal.asset?.id]);
+  ], [deleteAssetMutation.isPending, deleteModal.asset?.id, isImageFile]);
 
   if (error) {
     return (

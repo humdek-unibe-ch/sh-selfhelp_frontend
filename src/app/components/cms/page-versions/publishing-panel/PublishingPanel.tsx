@@ -30,7 +30,8 @@ import {
 } from '@tabler/icons-react';
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
+import { type IPageVersion } from '../../../../../types/responses/admin/page-version.types';
+import { type IPublishVersionRequest } from '../../../../../types/requests/admin/page-version.types';
 import { useUnpublishedChanges } from '../../../../../hooks/useUnpublishedChanges';
 import { useSectionPages } from '../../../../../hooks/useSectionUtility';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
@@ -48,7 +49,7 @@ interface IPublishingPanelProps {
     currentPublishedVersionId: number | null;
     isLoading: boolean;
     error: Error | null;
-    onPublishNew: (data?: any) => void;
+    onPublishNew: (data?: IPublishVersionRequest) => void;
     onPublishSpecific: (versionId: number) => void;
     onDelete: (versionId: number) => void;
     onRestore?: (versionId: number) => void;
@@ -61,10 +62,7 @@ export function PublishingPanel({
     pageId,
     versions,
     currentPublishedVersionId,
-    isLoading,
-    error,
     onPublishNew,
-    onPublishSpecific,
     onDelete,
     onRestore,
     isPublishing,
@@ -95,7 +93,7 @@ export function PublishingPanel({
                 // `refContainer` is a frontend-only style, so it isn't part of
                 // the shared `TStyleName` discriminator — widen to string to
                 // compare against the runtime value.
-                if ((s.style_name as string) === 'refContainer') ids.push(s.id);
+                if ((s.style_name as string) === 'ref-container') ids.push(s.id);
                 if (s.children?.length) collect(s.children as IPageSectionWithFields[]);
             }
         };

@@ -14,9 +14,9 @@ import {
     Stack
 } from '@mantine/core';
 import { IconChevronRight } from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useNavigationStore } from '../../../../../store/navigation.store';
-import { usePathname } from 'next/navigation';
+
 import { NavigationItem } from './NavigationItem/NavigationItem';
 
 interface INavigationLink {
@@ -52,7 +52,7 @@ export function NavigationSection({
     itemCount
 }: INavigationSectionProps) {
     const router = useRouter();
-    const pathname = usePathname();
+    const _pathname = usePathname();
     const { toggleItem, setActiveItem, openItems, activeItem } = useNavigationStore();
     
     const isOpen = openItems.includes(title) || initiallyOpen;

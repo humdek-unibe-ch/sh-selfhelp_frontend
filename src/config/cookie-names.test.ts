@@ -29,6 +29,7 @@ const ALL_COOKIES = [
     ['COLOR_SCHEME_COOKIE', 'sh_color_scheme'],
 ] as const;
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- `typeof import()` types the dynamically re-imported module; a static top-level import would execute the module at load time and defeat this test's per-case module reset.
 type Mod = typeof import('./cookie-names');
 
 /** Arrange the SERVER source (env var) and re-import the module. */

@@ -20,7 +20,7 @@ export function useUpdateUsernameMutation() {
         },
         onSuccess: () => {
             // Invalidate and refetch user data
-            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
         },
         ...REACT_QUERY_CONFIG.DEFAULT_OPTIONS.mutations
     });
@@ -38,7 +38,7 @@ export function useUpdateNameMutation() {
         },
         onSuccess: () => {
             // Invalidate and refetch user data
-            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
         },
         ...REACT_QUERY_CONFIG.DEFAULT_OPTIONS.mutations
     });
@@ -91,7 +91,7 @@ export function useUpdateTimezoneMutation() {
         },
         onSuccess: () => {
             // Invalidate and refetch user data to update timezone info
-            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
         },
         ...REACT_QUERY_CONFIG.DEFAULT_OPTIONS.mutations
     });
@@ -118,7 +118,7 @@ export function useUpdateCommunicationPreferencesMutation() {
             return AuthApi.updateCommunicationPreferences(receivesNotifications, receivesEmails);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
         },
         ...REACT_QUERY_CONFIG.DEFAULT_OPTIONS.mutations
     });

@@ -15,7 +15,7 @@ import type { IUnusedSectionsData, IRefContainerSectionsData, ISectionPage } fro
  */
 export function useUnusedSections(enabled: boolean = true) {
     return useQuery<IUnusedSectionsData>({
-        queryKey: ['admin', 'sections', 'unused'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED,
         queryFn: async (): Promise<IUnusedSectionsData> => {
             const response = await AdminSectionUtilityApi.getUnusedSections();
             return response || [];
@@ -33,7 +33,7 @@ export function useUnusedSections(enabled: boolean = true) {
  */
 export function useRefContainerSections(enabled: boolean = true) {
     return useQuery<IRefContainerSectionsData>({
-        queryKey: ['admin', 'sections', 'ref-containers'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS,
         queryFn: async (): Promise<IRefContainerSectionsData> => {
             const response = await AdminSectionUtilityApi.getRefContainers();
             return response || [];
@@ -52,7 +52,7 @@ export function useRefContainerSections(enabled: boolean = true) {
  */
 export function useSectionPages(sectionIds: number[], enabled: boolean = true) {
     return useQuery<ISectionPage[]>({
-        queryKey: ['admin', 'sections', 'pages', sectionIds],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_PAGES(sectionIds),
         queryFn: async (): Promise<ISectionPage[]> => {
             return AdminSectionApi.getSectionPages(sectionIds);
         },
@@ -77,14 +77,17 @@ export function useClearApiRoutesCacheMutation() {
                 color: 'green',
             });
 
-            // Invalidate cache-related queries
-            queryClient.invalidateQueries({ queryKey: ['admin', 'cache'] });
+            // Refresh the cache stats/health views the cache management card
+            // reads. Keys come from the registry so this writer can't drift from
+            // the useCacheStats/useCacheHealth readers.
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_STATS });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.CACHE_HEALTH });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
 
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to clear API routes cache',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to clear API routes cache',
                 color: 'red',
             });
         },
@@ -107,13 +110,13 @@ export function useDeleteUnusedSectionMutation() {
             });
 
             // Invalidate unused sections queries
-            queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
 
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to delete section',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to delete section',
                 color: 'red',
                 autoClose: false,
             });
@@ -137,13 +140,13 @@ export function useDeleteAllUnusedSectionsMutation() {
             });
 
             // Invalidate unused sections queries
-            queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
 
             notifications.show({
                 title: 'Error',
-                message: error?.response?.data?.message || 'Failed to delete all sections',
+                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to delete all sections',
                 color: 'red',
                 autoClose: false,
             });

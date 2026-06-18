@@ -212,7 +212,7 @@ export const MANTINE_COMPONENT_MAP = {
     'text-input': 'TextInputStyle',
     'rich-text-editor': 'RichTextEditorStyle',
     'combobox': 'ComboboxStyle',
-    'multiSelect': 'MultiSelectStyle',
+    'multi-select': 'MultiSelectStyle',
     'action-icon': 'ActionIconStyle',
 
     // Data Display Components
@@ -224,7 +224,7 @@ export const MANTINE_COMPONENT_MAP = {
     'kbd': 'KbdStyle',
     'theme-icon': 'ThemeIconStyle',
     'list': 'ListStyle',
-    'listItem': 'ListItemStyle',
+    'list-item': 'ListItemStyle',
     'rating': 'RatingStyle',
     'image': 'ImageStyle',
     'progress': 'ProgressStyle',

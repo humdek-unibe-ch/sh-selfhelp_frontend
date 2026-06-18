@@ -4,8 +4,8 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Avatar } from '@mantine/core';
-import { IAvatarStyle } from '../../../../../types/common/styles.types';
-import { TMantineAvatarVariant, TMantineSize } from '../../../../../types/mantine/common.types';
+import { type IAvatarStyle } from '../../../../../types/common/styles.types';
+import { type TMantineAvatarVariant, type TMantineSize } from '../../../../../types/mantine/common.types';
 import { getAssetUrl } from '../../../../../utils/asset-url.utils';
 import IconComponent from '../../../shared/common/IconComponent';
 
@@ -17,7 +17,7 @@ import IconComponent from '../../../shared/common/IconComponent';
  */
 interface IAvatarStyleProps {
     style: IAvatarStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -49,7 +49,7 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
 
 
     // Check if src is a text name (not a URL)
-    const isUrl = src && (src.startsWith('http') || src.startsWith('https') || src.includes('.'));
+    const _isUrl = src && (src.startsWith('http') || src.startsWith('https') || src.includes('.'));
 
     // Determine avatar content with priority: URL > text initials > icon > custom initials
     const avatarSrc = src ? getAssetUrl(src) : null;

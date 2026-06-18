@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Carousel } from '@mantine/carousel';
 import BasicStyle from '../BasicStyle';
-import { ICarouselStyle } from '../../../../../types/common/styles.types';
+import { type ICarouselStyle } from '../../../../../types/common/styles.types';
 import IconComponent from '../../../shared/common/IconComponent';
 
 /**
@@ -18,7 +18,7 @@ import IconComponent from '../../../shared/common/IconComponent';
  */
 interface ICarouselStyleProps {
     style: ICarouselStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -33,7 +33,7 @@ interface ICarouselStyleProps {
  */
 const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the unified field extraction utility
-    const use_mantine_style = style.use_mantine_style?.content === '1';
+    const _use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Extract Mantine Carousel props
     const height = style.mantine_height?.content;
@@ -55,8 +55,10 @@ const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style, styleProps, cssCl
     const duration = style.mantine_carousel_duration?.content;
     const emblaOptionsString = style.mantine_carousel_embla_options?.content;
 
-    // Parse Embla options if provided
-    let emblaOptions: any = {};
+    // Parse Embla options if provided. Built as a loose record because the
+    // values come from free-form CMS fields, then narrowed to the prop type
+    // at the call site below.
+    let emblaOptions: Record<string, unknown> = {};
     if (emblaOptionsString) {
         try {
             emblaOptions = JSON.parse(emblaOptionsString);
@@ -107,7 +109,7 @@ const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style, styleProps, cssCl
             controlsOffset={controlsOffset}
             nextControlIcon={nextIcon}
             previousControlIcon={previousIcon}
-            emblaOptions={emblaOptions}
+            emblaOptions={emblaOptions as React.ComponentProps<typeof Carousel>['emblaOptions']}
             {...styleProps} className={cssClass}
         >
             {style.children?.map((child, index) => (

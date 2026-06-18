@@ -2,9 +2,9 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { SegmentedControl, Input } from '@mantine/core';
-import { ISegmentedControlStyle } from '../../../../../../types/common/styles.types';
+import { type ISegmentedControlStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
@@ -17,7 +17,7 @@ import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.u
  */
 interface ISegmentedControlStyleProps {
     style: ISegmentedControlStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -54,12 +54,15 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style, s
         return (formValue && typeof formValue === 'string') ? formValue : (styleValue || '');
     });
 
-    // Update selected value when form context changes (for record editing)
-    useEffect(() => {
+    // Keep state in sync with the (async) form value via a render-phase update
+    // instead of an effect; the sentinel initial runs it on first render too.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    if (prevFormValue !== formValue) {
+        setPrevFormValue(formValue);
         if (formValue !== null && typeof formValue === 'string') {
             setSelectedValue(formValue);
         }
-    }, [formValue]);
+    }
 
     // Handle value change
     const handleValueChange = (value: string) => {
@@ -96,7 +99,7 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style, s
         <SegmentedControl
             data={controlData}
             orientation={orientation as 'horizontal' | 'vertical'}
-            size={size as any}
+            size={size as React.ComponentProps<typeof SegmentedControl>['size']}
             radius={radius === 'none' ? 0 : radius}
             color={color}
             fullWidth={fullWidth}

@@ -9,7 +9,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module api/permission-aware-client.api
  */
 
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { apiClient } from './base.api';
 
 // Extend Axios request config to include permission metadata
@@ -17,7 +17,6 @@ declare module 'axios' {
     export interface AxiosRequestConfig {
         _permissionMetadata?: {
             permissions: string[];
-            endpointKey: string;
         };
     }
 }
@@ -26,9 +25,54 @@ declare module 'axios' {
  * Endpoint configuration type from API_CONFIG
  */
 type TEndpointConfig = { 
-    route: string | ((...args: any[]) => string); 
+    route: string | ((...args: never[]) => string); 
     permissions: string[] 
 };
+
+/**
+ * Split the variadic call arguments into route params + an optional trailing
+ * `AxiosRequestConfig`, build the upstream URL, and attach the permission
+ * metadata the request interceptor enforces.
+ *
+ * The trailing argument is treated as config when it looks like one (has
+ * `headers`/`params`/`baseURL`, plus `data` for DELETE bodies); everything
+ * before it is a route parameter. This heuristic is safe because every route
+ * param in `API_CONFIG` is a primitive (id / keyword), never a config-shaped
+ * object. Centralizing it here keeps the per-verb wrappers to one line each and
+ * keeps the one fragile assumption documented in a single place.
+ */
+function buildPermissionAwareRequest(
+    endpointConfig: TEndpointConfig,
+    args: unknown[],
+    allowDataConfig = false,
+): { url: string; config: AxiosRequestConfig } {
+    const lastArg = args[args.length - 1] as AxiosRequestConfig | undefined;
+    const isLastArgConfig =
+        !!lastArg &&
+        typeof lastArg === 'object' &&
+        (lastArg.headers !== undefined ||
+            lastArg.params !== undefined ||
+            lastArg.baseURL !== undefined ||
+            (allowDataConfig && lastArg.data !== undefined));
+
+    const config: AxiosRequestConfig | undefined = isLastArgConfig
+        ? (args.pop() as AxiosRequestConfig)
+        : undefined;
+    const routeParams = args;
+
+    const url =
+        typeof endpointConfig.route === 'string'
+            ? endpointConfig.route
+            : (endpointConfig.route as (...a: unknown[]) => string)(...routeParams);
+
+    return {
+        url,
+        config: {
+            ...config,
+            _permissionMetadata: { permissions: endpointConfig.permissions },
+        },
+    };
+}
 
 /**
  * Permission-aware wrapper for permissionAwareApiClient.get
@@ -48,32 +92,12 @@ type TEndpointConfig = {
  * // Dynamic route with multiple parameters
  * await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE, pageId);
  */
-async function get<T = any>(
+async function get<T = unknown>(
     endpointConfig: TEndpointConfig,
-    ...args: any[]
+    ...args: unknown[]
 ): Promise<AxiosResponse<T>> {
-    // Last argument might be AxiosRequestConfig
-    const lastArg = args[args.length - 1];
-    const isLastArgConfig = lastArg && typeof lastArg === 'object' && 
-        (lastArg.headers !== undefined || lastArg.params !== undefined || lastArg.baseURL !== undefined);
-    
-    const config: AxiosRequestConfig | undefined = isLastArgConfig ? args.pop() : undefined;
-    const routeParams = args;
-
-    // Extract URL from config
-    const url = typeof endpointConfig.route === 'string' 
-        ? endpointConfig.route 
-        : endpointConfig.route(...routeParams);
-
-    const enhancedConfig: AxiosRequestConfig = {
-        ...config,
-        _permissionMetadata: {
-            permissions: endpointConfig.permissions,
-            endpointKey: ''
-        }
-    };
-
-    return apiClient.get<T>(url, enhancedConfig);
+    const { url, config } = buildPermissionAwareRequest(endpointConfig, args);
+    return apiClient.get<T>(url, config);
 }
 
 /**
@@ -97,33 +121,13 @@ async function get<T = any>(
  * // Dynamic route with parameter and config
  * await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_USERS_GROUPS_ADD, groupData, userId, { headers: {...} });
  */
-async function post<T = any>(
+async function post<T = unknown>(
     endpointConfig: TEndpointConfig,
-    data?: any,
-    ...args: any[]
+    data?: unknown,
+    ...args: unknown[]
 ): Promise<AxiosResponse<T>> {
-    // Last argument might be AxiosRequestConfig
-    const lastArg = args[args.length - 1];
-    const isLastArgConfig = lastArg && typeof lastArg === 'object' && 
-        (lastArg.headers !== undefined || lastArg.params !== undefined || lastArg.baseURL !== undefined);
-    
-    const config: AxiosRequestConfig | undefined = isLastArgConfig ? args.pop() : undefined;
-    const routeParams = args;
-
-    // Extract URL from config
-    const url = typeof endpointConfig.route === 'string' 
-        ? endpointConfig.route 
-        : endpointConfig.route(...routeParams);
-
-    const enhancedConfig: AxiosRequestConfig = {
-        ...config,
-        _permissionMetadata: {
-            permissions: endpointConfig.permissions,
-            endpointKey: ''
-        }
-    };
-
-    return apiClient.post<T>(url, data, enhancedConfig);
+    const { url, config } = buildPermissionAwareRequest(endpointConfig, args);
+    return apiClient.post<T>(url, data, config);
 }
 
 /**
@@ -141,33 +145,13 @@ async function post<T = any>(
  * // Dynamic route with parameter and config
  * await permissionAwareApiClient.put(API_CONFIG.ENDPOINTS.ADMIN_USERS_UPDATE, userData, userId, { headers: {...} });
  */
-async function put<T = any>(
+async function put<T = unknown>(
     endpointConfig: TEndpointConfig,
-    data?: any,
-    ...args: any[]
+    data?: unknown,
+    ...args: unknown[]
 ): Promise<AxiosResponse<T>> {
-    // Last argument might be AxiosRequestConfig
-    const lastArg = args[args.length - 1];
-    const isLastArgConfig = lastArg && typeof lastArg === 'object' && 
-        (lastArg.headers !== undefined || lastArg.params !== undefined || lastArg.baseURL !== undefined);
-    
-    const config: AxiosRequestConfig | undefined = isLastArgConfig ? args.pop() : undefined;
-    const routeParams = args;
-
-    // Extract URL from config
-    const url = typeof endpointConfig.route === 'string' 
-        ? endpointConfig.route 
-        : endpointConfig.route(...routeParams);
-
-    const enhancedConfig: AxiosRequestConfig = {
-        ...config,
-        _permissionMetadata: {
-            permissions: endpointConfig.permissions,
-            endpointKey: ''
-        }
-    };
-
-    return apiClient.put<T>(url, data, enhancedConfig);
+    const { url, config } = buildPermissionAwareRequest(endpointConfig, args);
+    return apiClient.put<T>(url, data, config);
 }
 
 /**
@@ -184,32 +168,13 @@ async function put<T = any>(
  * // Dynamic route with parameter and config (e.g., with data for DELETE body)
  * await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.FORMS_DELETE, { data: deleteRequest });
  */
-async function del<T = any>(
+async function del<T = unknown>(
     endpointConfig: TEndpointConfig,
-    ...args: any[]
+    ...args: unknown[]
 ): Promise<AxiosResponse<T>> {
-    // Last argument might be AxiosRequestConfig
-    const lastArg = args[args.length - 1];
-    const isLastArgConfig = lastArg && typeof lastArg === 'object' && 
-        (lastArg.headers !== undefined || lastArg.params !== undefined || lastArg.baseURL !== undefined || lastArg.data !== undefined);
-    
-    const config: AxiosRequestConfig | undefined = isLastArgConfig ? args.pop() : undefined;
-    const routeParams = args;
-
-    // Extract URL from config
-    const url = typeof endpointConfig.route === 'string' 
-        ? endpointConfig.route 
-        : endpointConfig.route(...routeParams);
-
-    const enhancedConfig: AxiosRequestConfig = {
-        ...config,
-        _permissionMetadata: {
-            permissions: endpointConfig.permissions,
-            endpointKey: ''
-        }
-    };
-
-    return apiClient.delete<T>(url, enhancedConfig);
+    // DELETE may carry a body via `{ data }`, so allow that as config too.
+    const { url, config } = buildPermissionAwareRequest(endpointConfig, args, true);
+    return apiClient.delete<T>(url, config);
 }
 
 /**
@@ -224,39 +189,27 @@ async function del<T = any>(
  * // Dynamic route with parameter
  * await permissionAwareApiClient.patch(API_CONFIG.ENDPOINTS.ADMIN_USERS_BLOCK, blockData, userId);
  */
-async function patch<T = any>(
+async function patch<T = unknown>(
     endpointConfig: TEndpointConfig,
-    data?: any,
-    ...args: any[]
+    data?: unknown,
+    ...args: unknown[]
 ): Promise<AxiosResponse<T>> {
-    // Last argument might be AxiosRequestConfig
-    const lastArg = args[args.length - 1];
-    const isLastArgConfig = lastArg && typeof lastArg === 'object' && 
-        (lastArg.headers !== undefined || lastArg.params !== undefined || lastArg.baseURL !== undefined);
-    
-    const config: AxiosRequestConfig | undefined = isLastArgConfig ? args.pop() : undefined;
-    const routeParams = args;
-
-    // Extract URL from config
-    const url = typeof endpointConfig.route === 'string' 
-        ? endpointConfig.route 
-        : endpointConfig.route(...routeParams);
-
-    const enhancedConfig: AxiosRequestConfig = {
-        ...config,
-        _permissionMetadata: {
-            permissions: endpointConfig.permissions,
-            endpointKey: ''
-        }
-    };
-
-    return apiClient.patch<T>(url, data, enhancedConfig);
+    const { url, config } = buildPermissionAwareRequest(endpointConfig, args);
+    return apiClient.patch<T>(url, data, config);
 }
 
 /**
- * Export permission-aware API client
- * ONLY accepts endpoint config objects with permissions
- * This is the ONLY way to make API calls - ensures all calls have permission metadata
+ * Permission-aware API client.
+ *
+ * Each method takes an endpoint config object (`{ route, permissions }` from
+ * `API_CONFIG.ENDPOINTS`) and attaches the permission metadata the request
+ * interceptor (`permission-wrapper.api.ts`) enforces. This is the default,
+ * required path for browser API calls in domain API clients.
+ *
+ * The raw `apiClient` (`base.api.ts`) remains available for the rare internal
+ * cases that legitimately cannot use an endpoint config (see the AGENTS.md API
+ * Rules); it is intentionally not re-exported from here so the permission-aware
+ * path stays the obvious default.
  */
 export const permissionAwareApiClient = {
     get,
@@ -265,9 +218,4 @@ export const permissionAwareApiClient = {
     delete: del,
     patch
 };
-
-/**
- * DO NOT export apiClient directly - force usage of permissionAwareApiClient
- * If you need the raw client for special cases, import it directly from base.api.ts
- */
 

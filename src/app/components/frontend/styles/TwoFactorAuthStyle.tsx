@@ -7,13 +7,13 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Box, Card, Title, Button, Alert, Group } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
-import { ITwoFactorAuthStyle } from '../../../../types/common/styles.types';
+import { type ITwoFactorAuthStyle } from '../../../../types/common/styles.types';
 import { useTwoFactorAuth } from '../../../../hooks/useTwoFactorAuth';
 import { TwoFactorCodeInputs } from '../../shared/common/TwoFactorCodeInputs';
 
 interface ITwoFactorAuthStyleProps {
     style: ITwoFactorAuthStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -38,7 +38,7 @@ const TwoFactorAuthStyle: React.FC<ITwoFactorAuthStyleProps> = ({ style }) => {
 
                 {textMd && <Box mb="lg">{textMd}</Box>}
 
-                <form autoComplete="off" onSubmit={e => { e.preventDefault(); submitCode(code); }}>
+                <form autoComplete="off" onSubmit={e => { e.preventDefault(); void submitCode(code); }}>
                     {errorMessage && (
                         <Alert icon={<IconX size={16} />} color="red" mb="md">
                             {errorMessage}

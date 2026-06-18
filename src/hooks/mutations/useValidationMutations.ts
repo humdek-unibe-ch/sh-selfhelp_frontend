@@ -34,7 +34,7 @@ export function useCompleteValidationMutation() {
             password: string;
             name?: string;
             section_id: number;
-            form_inputs?: Record<string, any>;
+            form_inputs?: Record<string, unknown>;
         };
         }) => {
             return await AuthApi.completeValidation(userId, token, data);

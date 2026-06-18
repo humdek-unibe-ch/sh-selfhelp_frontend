@@ -6,6 +6,8 @@
         "build/**",
         "dist/**",
         "public/**",
+        "coverage/**",
+        "**/*.log",
         "**/*.md",
         ".github/workflows/**",
         "next-env.d.ts",

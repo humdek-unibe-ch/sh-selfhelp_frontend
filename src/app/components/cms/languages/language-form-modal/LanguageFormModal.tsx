@@ -76,6 +76,7 @@ export function LanguageFormModal({ opened, onClose, languageId, mode }: ILangua
         } else if (mode === 'create') {
             form.reset();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional init/reset on mode/details change; `form` is a fresh object each render, so depending on it would re-run every render and clobber edits. `form.setValues`/`form.reset` are stable.
     }, [mode, languageDetails]);
 
     // Handle form submission

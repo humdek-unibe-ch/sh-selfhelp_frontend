@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Badge } from '@mantine/core';
 import IconComponent from '../../../shared/common/IconComponent';
-import { IBadgeStyle } from '../../../../../types/common/styles.types';
+import { type IBadgeStyle } from '../../../../../types/common/styles.types';
 import { castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
 
 /**
@@ -16,7 +16,7 @@ import { castMantineSize, castMantineRadius } from '../../../../../utils/style-f
  */
 interface IBadgeStyleProps {
     style: IBadgeStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -32,8 +32,8 @@ const BadgeStyle: React.FC<IBadgeStyleProps> = ({ style, styleProps, cssClass })
     // Extract field values using the new unified field structure
     const label = style.label?.content || 'Badge';
     const variant = style.mantine_variant?.content || 'filled';
-    const size = castMantineSize((style as any).mantine_size?.content);
-    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const size = castMantineSize(style.mantine_size?.content);
+    const radius = castMantineRadius(style.mantine_radius?.content);
     const color = style.mantine_color?.content || 'blue';
     const leftIconName = style.mantine_left_icon?.content;
     const rightIconName = style.mantine_right_icon?.content;
@@ -53,7 +53,7 @@ const BadgeStyle: React.FC<IBadgeStyleProps> = ({ style, styleProps, cssClass })
     if (use_mantine_style) {
         return (
             <Badge
-                variant={variant as any}
+                variant={variant}
                 size={size}
                 radius={radius === 'none' ? 0 : radius}
                 color={color}

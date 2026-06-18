@@ -20,7 +20,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { Dropzone, FileWithPath } from '@mantine/dropzone';
+import { Dropzone, type FileWithPath } from '@mantine/dropzone';
 import { 
   IconUpload, 
   IconFile, 
@@ -205,12 +205,13 @@ export function UploadAssetModal({ opened, onClose }: IUploadAssetModalProps) {
       setUploadProgress(0);
       setIsUploading(false);
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       setUploadProgress(0);
       setIsUploading(false);
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to upload assets',
+        message: message || 'Failed to upload assets',
         color: 'red',
       });
     }

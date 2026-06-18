@@ -21,7 +21,7 @@ import { CollapsibleSection } from '../../shared/collapsible-section/Collapsible
 import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
 import { SectionContentField } from './section-field-connectors';
 import { SectionGlobalFields, SectionProperties, SectionMantineProperties } from './section-field-groups';
-import { ISectionField } from '../../../../../types/responses/admin/admin.types';
+import { type ISectionField } from '../../../../../types/responses/admin/admin.types';
 import type { GlobalFieldType } from '../../shared';
 import styles from './SectionInspector.module.css';
 
@@ -39,7 +39,7 @@ interface ISectionFieldPanelsProps {
     languagesData: ILanguage[];
     activeLanguageTab: string;
     onLanguageTabChange: (value: string) => void;
-    dataVariables: Record<string, any>;
+    dataVariables: Record<string, string>;
     hasMultipleLanguages: boolean;
 }
 

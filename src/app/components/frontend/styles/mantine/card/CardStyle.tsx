@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Card } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
-import { ICardStyle } from '../../../../../../types/common/styles.types';
+import { type ICardStyle } from '../../../../../../types/common/styles.types';
 import { castMantineRadius } from '../../../../../../utils/style-field-extractor';
 
 /**
@@ -16,7 +16,7 @@ import { castMantineRadius } from '../../../../../../utils/style-field-extractor
  */
 interface ICardStyleProps {
     style: ICardStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -31,7 +31,7 @@ interface ICardStyleProps {
 const CardStyle: React.FC<ICardStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const shadow = style.mantine_card_shadow?.content || 'sm';
-    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const radius = castMantineRadius(style.mantine_radius?.content);
     const withBorder = style.mantine_border?.content === '1';    
 
     // Handle CSS field - use direct property from API response

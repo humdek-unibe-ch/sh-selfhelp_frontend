@@ -6,17 +6,17 @@ SPDX-License-Identifier: MPL-2.0
 
 import React from 'react';
 import { Input } from '@mantine/core';
-import { RichTextEditor } from '@mantine/tiptap';
+import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Link } from '@mantine/tiptap';
+
 import { TextStyle } from '@tiptap/extension-text-style';
 import Mention from '@tiptap/extension-mention';
-import { Extension } from '@tiptap/core';
+import { Extension, type Extensions } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { createMentionConfig, sanitizeForDatabase, IVariableSuggestion } from '../../../../config/mentions.config';
+import { createMentionConfig, sanitizeForDatabase, type IVariableSuggestion } from '../../../../config/mentions.config';
 import { MentionSuggestionList } from './MentionSuggestionList';
 import { PreserveSpaces } from './PreserveSpacesExtension';
 import styles from './MentionEditor.module.css';
@@ -85,7 +85,7 @@ export function MentionEditor({
 
     // Build extensions array based on mode
     const extensions = React.useMemo(() => {
-        const exts: any[] = [
+        const exts: Extensions = [
             StarterKit.configure({
                 // In single line mode, disable all block-level elements
                 heading: singleLineMode ? false : undefined,

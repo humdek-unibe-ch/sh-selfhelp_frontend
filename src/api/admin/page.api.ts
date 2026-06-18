@@ -11,12 +11,12 @@ SPDX-License-Identifier: MPL-2.0
 
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
-import { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
-import { IAdminPage } from '../../types/responses/admin/admin.types';
-import { ICreatePageRequest } from '../../types/requests/admin/create-page.types';
-import { IUpdatePageRequest } from '../../types/requests/admin/update-page.types';
-import { IPageFieldsResponse, IPageFieldsData, TPageFieldsResponse, IPageSectionWithFields } from '../../types/common/pages.type';
-import { IRestoreFromVersionResponse } from '../../types/responses/admin/page-version.types';
+import { type IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
+import { type IAdminPage } from '../../types/responses/admin/admin.types';
+import { type ICreatePageRequest } from '../../types/requests/admin/create-page.types';
+import { type IUpdatePageRequest } from '../../types/requests/admin/update-page.types';
+import { type IPageFieldsResponse, type IPageFieldsData, type TPageFieldsResponse, type IPageSectionWithFields } from '../../types/common/pages.type';
+import { type IRestoreFromVersionResponse } from '../../types/responses/admin/page-version.types';
 
 export const AdminPageApi = {
     /**

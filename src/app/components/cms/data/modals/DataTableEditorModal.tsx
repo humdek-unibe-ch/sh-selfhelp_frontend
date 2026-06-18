@@ -24,7 +24,7 @@ export function DataTableEditorModal({ open, onClose, formId, tableName, display
   const { data: columnsResp } = useTableColumns(open ? tableName : undefined as unknown as string);
   const deleteColumns = useDeleteColumns();
 
-  const columns = columnsResp?.columns || [];
+  const columns = useMemo(() => columnsResp?.columns || [], [columnsResp?.columns]);
 
   const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);

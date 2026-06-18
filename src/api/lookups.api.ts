@@ -16,7 +16,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
-import { ILookupsResponse, ILookup } from '../types/responses/admin/lookups.types';
+import { type ILookupsResponse, type ILookup } from '../types/responses/admin/lookups.types';
 
 export const LookupsApi = {
     /**

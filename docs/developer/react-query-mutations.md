@@ -60,7 +60,7 @@ import { [Entity]Api } from '../../api/[entity].api';
 
 interface I[Entity][Action]MutationOptions {
     onSuccess?: (data: [ReturnType]) => void;
-    onError?: (error: any) => void;
+    onError?: (error: unknown) => void;
     showNotifications?: boolean;
 }
 
@@ -73,11 +73,13 @@ export function use[Entity][Action]Mutation(options: I[Entity][Action]MutationOp
         
         onSuccess: async (result: [ReturnType]) => {
             debug('[Action] successful', 'use[Entity][Action]Mutation', result);
-            
-            // Invalidate relevant queries
+
+            // Invalidate the SAME registry keys the read hooks subscribe to.
+            // Shared keys come from REACT_QUERY_CONFIG.QUERY_KEYS so the writer
+            // can never drift from the reader.
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['[entity]'] }),
-                queryClient.invalidateQueries({ queryKey: ['[relatedEntity]'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.[ENTITY] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.[RELATED_ENTITY] }),
             ]);
             
             if (showNotifications) {
@@ -94,7 +96,7 @@ export function use[Entity][Action]Mutation(options: I[Entity][Action]MutationOp
             onSuccess?.(result);
         },
         
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             debug('Error [action]ing [entity]', 'use[Entity][Action]Mutation', { error });
             
             // Standardized error handling
@@ -200,33 +202,45 @@ src/
 
 #### Immediate Invalidation
 ```typescript
-// Invalidate immediately after mutation
+// Invalidate immediately after mutation. Use the registry keys the read hooks
+// subscribe to — NEVER ad-hoc literals like ['pages'] or a camelCase
+// ['adminPages'], which match no reader and leave the UI silently stale.
+const QK = REACT_QUERY_CONFIG.QUERY_KEYS;
 await Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['pages'] }),
-    queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-    queryClient.invalidateQueries({ queryKey: ['navigation'] }),
+    queryClient.invalidateQueries({ queryKey: QK.ADMIN_PAGES }),
+    queryClient.invalidateQueries({ queryKey: QK.PAGE_SECTIONS(pageId) }),
+    queryClient.invalidateQueries({ queryKey: QK.FRONTEND_PAGES_ALL }),
 ]);
 ```
 
+A single `invalidateQueries` per affected key already refetches active
+observers — do not stack `invalidateQueries` + `refetchQueries` +
+`removeQueries` for the same key, which discards freshly fetched data and
+causes loading flashes.
+
 #### Optimistic Updates
 ```typescript
-// For better UX, update cache optimistically
+// For better UX, update cache optimistically. Optimistic reads/writes need the
+// EXACT full key (not a prefix), so use the registry function/constant the
+// reader uses — here QK.ADMIN_PAGES (['admin-pages']).
+const QK = REACT_QUERY_CONFIG.QUERY_KEYS;
+
 onMutate: async (newData) => {
-    await queryClient.cancelQueries({ queryKey: ['pages'] });
-    const previousPages = queryClient.getQueryData(['pages']);
-    
-    queryClient.setQueryData(['pages'], (old: Page[]) => [
+    await queryClient.cancelQueries({ queryKey: QK.ADMIN_PAGES });
+    const previousPages = queryClient.getQueryData<Page[]>(QK.ADMIN_PAGES);
+
+    queryClient.setQueryData<Page[]>(QK.ADMIN_PAGES, (old = []) => [
         ...old,
-        { ...newData, id: 'temp-id' }
+        { ...newData, id: 'temp-id' },
     ]);
-    
+
     return { previousPages };
 },
 onError: (err, newData, context) => {
-    queryClient.setQueryData(['pages'], context?.previousPages);
+    queryClient.setQueryData(QK.ADMIN_PAGES, context?.previousPages);
 },
 onSettled: () => {
-    queryClient.invalidateQueries({ queryKey: ['pages'] });
+    queryClient.invalidateQueries({ queryKey: QK.ADMIN_PAGES });
 },
 ```
 
@@ -235,47 +249,54 @@ onSettled: () => {
 Create a centralized error parser:
 
 ```typescript
-// src/utils/mutation-error-handler.ts
-export function parseApiError(error: any): { errorMessage: string; errorTitle: string } {
+// src/utils/mutation-error-handler.ts (canonical implementation)
+export interface IParsedError {
+    errorMessage: string;
+    errorTitle: string;
+}
+
+// Structural view of the error shapes parseApiError understands. The handler
+// receives `unknown` (React Query / Axios reject type) and narrows ONCE with a
+// single structural cast — no `any`, per the no-explicit-any lint rule.
+interface IApiErrorShape {
+    response?: { status?: number; data?: { error?: string; message?: string; status?: number } };
+    status?: number;
+    error?: string;
+    message?: string;
+}
+
+export function parseApiError(error: unknown): IParsedError {
+    const err = error as IApiErrorShape | null | undefined;
     let errorMessage = 'Operation failed. Please try again.';
     let errorTitle = 'Operation Failed';
-    
+
     // Handle Axios errors
-    if (error?.response?.data) {
-        const responseData = error.response.data;
-        
+    if (err?.response?.data) {
+        const responseData = err.response.data;
         if (responseData.error || responseData.message) {
-            errorMessage = responseData.error || responseData.message;
-            
-            const status = responseData.status || error.response.status;
-            if (status === 500) {
-                errorTitle = 'Server Error';
-            } else if (status === 400 || status === 422) {
-                errorTitle = 'Validation Error';
-            } else if (status === 409) {
-                errorTitle = 'Conflict Error';
-            }
+            errorMessage = responseData.error || responseData.message || errorMessage;
+            const status = responseData.status || err.response.status;
+            if (status === 500) errorTitle = 'Server Error';
+            else if (status === 400 || status === 422) errorTitle = 'Validation Error';
+            else if (status === 409) errorTitle = 'Conflict Error';
         }
     }
     // Handle direct error objects
-    else if (error?.status && (error.error || error.message)) {
-        errorMessage = error.error || error.message;
-        if (error.status === 500) {
-            errorTitle = 'Server Error';
-        } else if (error.status === 400 || error.status === 422) {
-            errorTitle = 'Validation Error';
-        }
+    else if (err?.status && (err.error || err.message)) {
+        errorMessage = err.error || err.message || errorMessage;
+        if (err.status === 500) errorTitle = 'Server Error';
+        else if (err.status === 400 || err.status === 422) errorTitle = 'Validation Error';
     }
     // Handle network errors
-    else if (error?.message) {
-        if (error.message.includes('fetch') || error.message.includes('network')) {
+    else if (err?.message) {
+        if (err.message.includes('fetch') || err.message.includes('network')) {
             errorTitle = 'Network Error';
             errorMessage = 'Unable to connect to the server. Please check your connection.';
         } else {
-            errorMessage = error.message;
+            errorMessage = err.message;
         }
     }
-    
+
     return { errorMessage, errorTitle };
 }
 ```

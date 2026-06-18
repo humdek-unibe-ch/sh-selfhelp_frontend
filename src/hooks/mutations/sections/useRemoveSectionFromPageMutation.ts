@@ -14,11 +14,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromPageMutationOptions {
-    onSuccess?: (data: any, variables: { pageId: number; sectionId: number; }) => void;
-    onError?: (error: any, variables: { pageId: number; sectionId: number; }) => void;
+    onSuccess?: (data: unknown, variables: { pageId: number; sectionId: number; }) => void;
+    onError?: (error: unknown, variables: { pageId: number; sectionId: number; }) => void;
     showNotifications?: boolean;
 }
 
@@ -40,14 +41,17 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
         mutationFn: ({ pageId, sectionId }: IRemoveSectionFromPageVariables) => 
             AdminApi.removeSectionFromPage(pageId, sectionId),
         
-        onSuccess: async (result: any, variables: IRemoveSectionFromPageVariables) => {
+        onSuccess: async (result: unknown, variables: IRemoveSectionFromPageVariables) => {
 
-            // Invalidate relevant queries to update the UI
+            // Invalidate relevant queries to update the UI. UNPUBLISHED_CHANGES
+            // refreshes the publish-state reader so the "Publish Changes" button
+            // reflects the removed section immediately.
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
+                queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
             ]);
             
             if (showNotifications) {
@@ -65,7 +69,7 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
             onSuccess?.(result, variables);
         },
         
-        onError: (error: any, variables: IRemoveSectionFromPageVariables) => {
+        onError: (error: unknown, variables: IRemoveSectionFromPageVariables) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

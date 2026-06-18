@@ -3,6 +3,7 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import type { ReactNode } from 'react';
+import type { ComboboxProps } from '@mantine/core';
 
 export interface IFieldConfig {
     // Core select functionality
@@ -38,12 +39,12 @@ export interface IFieldConfig {
         value: string;
         text: string;
         disabled?: boolean;
-        [key: string]: any;
+        [key: string]: unknown;
     }>;
     apiUrl?: string;
 
     // Advanced configuration
-    comboboxProps?: Record<string, any>;
+    comboboxProps?: ComboboxProps;
     dropdownOpened?: boolean;
     onDropdownOpen?: () => void;
     onDropdownClose?: () => void;

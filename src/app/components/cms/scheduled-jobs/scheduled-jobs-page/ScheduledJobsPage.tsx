@@ -47,7 +47,7 @@ export function ScheduledJobsPage() {
         for (const jobId of jobIds) {
             try {
                 await deleteJobMutation.mutateAsync(jobId);
-            } catch (error) {
+            } catch {
 
             }
         }

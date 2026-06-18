@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Tabs } from '@mantine/core';
-import { ITabStyle } from '../../../../../../types/common/styles.types';
+import { type ITabStyle } from '../../../../../../types/common/styles.types';
 import { IconComponent } from '../../../../shared';
 
 /**
@@ -12,7 +12,7 @@ import { IconComponent } from '../../../../shared';
  */
 interface ITabStyleProps {
     style: ITabStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
     isActive?: boolean;
 }
@@ -22,7 +22,7 @@ interface ITabStyleProps {
  * Can be used standalone or within a TabsStyle container
  * Uses Mantine UI Tabs.Tab component
  */
-const TabStyle: React.FC<ITabStyleProps> = ({ style, styleProps, cssClass, isActive = false }) => {
+const TabStyle: React.FC<ITabStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values - mantine_tab_value field was removed, use section ID
     const value = style.id?.toString() || 'tab';
     const label = style.label?.content || 'Tab';
@@ -44,18 +44,16 @@ const TabStyle: React.FC<ITabStyleProps> = ({ style, styleProps, cssClass, isAct
     const leftSection = leftIconName ? <IconComponent iconName={leftIconName} size={16} /> : null;
     const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : null;
 
-    const tabProps: any = {
-        ...styleProps,
-        value,
-        disabled,
-        style: styleObj,
-        className: cssClass,
-        leftSection,
-        rightSection
-    };
-
     return (
-        <Tabs.Tab {...tabProps}>
+        <Tabs.Tab
+            {...styleProps}
+            value={value}
+            disabled={disabled}
+            style={styleObj}
+            className={cssClass}
+            leftSection={leftSection}
+            rightSection={rightSection}
+        >
             {label}
         </Tabs.Tab>
     );

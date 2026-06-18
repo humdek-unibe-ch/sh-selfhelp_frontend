@@ -4,9 +4,10 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../../../hooks/useAuth';
+import { useIsClient } from '../../../../hooks/useIsClient';
 
 /**
  * Props interface for InternalLink component
@@ -36,12 +37,8 @@ interface IInternalLinkProps {
  * @returns {JSX.Element} Rendered link component
  */
 const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className, onMouseEnter, ...props }) => {
-    const { user, isLoading: isAuthLoading } = useAuth();
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
+    const { isLoading: isAuthLoading } = useAuth();
+    const isClient = useIsClient();
 
     // Don't process URLs on server side to avoid hydration issues
     if (!isClient) {

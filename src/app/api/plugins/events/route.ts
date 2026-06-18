@@ -33,7 +33,7 @@ SPDX-License-Identifier: MPL-2.0
  * mobile equivalent. Plugin code never opens its own EventSource.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import {
     AUTH_COOKIE,

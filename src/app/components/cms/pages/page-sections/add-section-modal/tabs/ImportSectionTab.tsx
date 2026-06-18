@@ -17,7 +17,7 @@ import {
     Anchor,
 } from '@mantine/core';
 import { IconInfoCircle, IconAlertCircle, IconUpload, IconCopy, IconBrandOpenai } from '@tabler/icons-react';
-import { IImportValidationError } from '../../../../../../../api/admin/section.api';
+import { type IImportValidationError } from '../../../../../../../api/admin/section.api';
 
 interface ImportSectionTabProps {
     selectedFile: File | null;
@@ -36,7 +36,6 @@ export function ImportSectionTab({
     handleCopyAiPrompt,
     importErrors,
     setImportErrors,
-    pageId,
 }: ImportSectionTabProps) {
     return (
         <Stack gap="md">

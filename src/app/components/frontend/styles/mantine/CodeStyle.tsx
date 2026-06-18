@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Code } from '@mantine/core';
-import { ICodeStyle } from '../../../../../types/common/styles.types';
+import { type ICodeStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for CodeStyle component
@@ -14,7 +14,7 @@ import { ICodeStyle } from '../../../../../types/common/styles.types';
  */
 interface ICodeStyleProps {
     style: ICodeStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 

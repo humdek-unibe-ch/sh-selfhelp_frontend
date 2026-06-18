@@ -16,8 +16,8 @@ import type {
     IContentField,
     IGetPageResponse,
     IPageAccessTypeInfo,
+    IPageFieldTranslation,
     IPageItem,
-    IPageSectionWithFields,
     IPageSectionsData,
 } from '../../shared';
 import type { IFieldConfig } from '../requests/admin/fields.types';
@@ -47,8 +47,8 @@ export interface IPageDetails extends IBasePageInfo {
         lookupValue: string;
         lookupDescription: string | null;
     };
-    navigationSection?: any | null;
-    parentPage?: any | null;
+    navigationSection?: unknown | null;
+    parentPage?: unknown | null;
     pageType?: {
         id: number;
         name: string;
@@ -69,7 +69,7 @@ export interface IPageField {
     default_value: string | null;
     help: string;
     display: boolean;
-    translations: import('../../shared').IPageFieldTranslation[];
+    translations: IPageFieldTranslation[];
     config?: IFieldConfig;
 }
 
@@ -91,8 +91,8 @@ export interface IApiSection {
     level: number | { content: string; meta: string | null };
     path: string;
     children: IApiSection[];
-    section_data: any[];
-    fields: Record<string, IContentField<any>>;
+    section_data: unknown[];
+    fields: Record<string, IContentField<unknown>>;
     img_src?: IContentField<string>;
     alt?: IContentField<string>;
     title?: IContentField<string>;

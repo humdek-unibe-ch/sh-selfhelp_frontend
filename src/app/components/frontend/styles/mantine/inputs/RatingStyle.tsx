@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Rating, Input } from '@mantine/core';
 import {
   IconMoodCry,
@@ -12,7 +12,7 @@ import {
   IconMoodCrazyHappy,
 } from '@tabler/icons-react';
 import IconComponent from '../../../../shared/common/IconComponent';
-import { IRatingStyle } from '../../../../../../types/common/styles.types';
+import { type IRatingStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
@@ -26,7 +26,7 @@ import { castMantineSize } from '../../../../../../utils/style-field-extractor';
  */
 interface IRatingStyleProps {
     style: IRatingStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -127,21 +127,21 @@ const RatingStyle: React.FC<IRatingStyleProps> = ({ style, styleProps, cssClass 
     const name = style.name?.content;
     const disabled = style.disabled?.content === '1';
     const readonly = style.readonly?.content === '1';
-    const initialValue = parseFloat((style as any).value?.content || '0');
+    const initialValue = parseFloat(style.value?.content || '0');
 
     // Extract rating-specific field values
     const useSmiles = style.mantine_rating_use_smiles?.content === '1';
     const emptyIconName = style.mantine_rating_empty_icon?.content;
     const fullIconName = style.mantine_rating_full_icon?.content;
     const highlightSelectedOnly = style.mantine_rating_highlight_selected_only?.content === '1' || useSmiles ;
-    const baseCount = parseInt((style as any).mantine_rating_count?.content || '5') as 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
-    const fractions = parseInt((style as any).mantine_rating_fractions?.content || '1') as 1 | 2 | 3 | 4 | 5;
+    const baseCount = parseInt(style.mantine_rating_count?.content || '5') as 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+    const fractions = parseInt(style.mantine_rating_fractions?.content || '1') as 1 | 2 | 3 | 4 | 5;
 
     // When smiles are enabled, force count to 5
     const count = useSmiles ? 5 : baseCount;
 
     // Extract Mantine styling field values
-    const size = castMantineSize((style as any).mantine_size?.content);
+    const size = castMantineSize(style.mantine_size?.content);
     const color = style.mantine_color?.content || 'yellow';
 
     // Calculate icon size from Mantine size for proper scaling
@@ -164,15 +164,18 @@ const RatingStyle: React.FC<IRatingStyleProps> = ({ style, styleProps, cssClass 
         return initialValue;
     });
 
-    // Update rating value when form context changes (for record editing)
-    useEffect(() => {
+    // Keep state in sync with the (async) form value via a render-phase update
+    // instead of an effect; the sentinel initial runs it on first render too.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    if (prevFormValue !== formValue) {
+        setPrevFormValue(formValue);
         if (formValue !== null && typeof formValue === 'string') {
             const parsedValue = parseFloat(formValue);
             if (!isNaN(parsedValue)) {
                 setRatingValue(parsedValue);
             }
         }
-    }, [formValue]);
+    }
 
     // Handle rating change for controlled input
     const handleRatingChange = (value: number) => {

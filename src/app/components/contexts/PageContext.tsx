@@ -21,7 +21,7 @@ SPDX-License-Identifier: MPL-2.0
 
 'use client';
 
-import { createContext, useContext, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 export interface IPageContextValue {
     keyword: string;

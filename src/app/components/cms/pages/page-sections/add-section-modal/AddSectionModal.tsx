@@ -29,17 +29,18 @@ import { useStyleGroups } from '../../../../../../hooks/useStyleGroups';
 import { useSectionOperations } from '../../../../../../hooks/useSectionOperations';
 import { useUnusedSections, useRefContainerSections } from '../../../../../../hooks/useSectionUtility';
 import { useSectionDetails } from '../../../../../../hooks/useSectionDetails';
-import { IStyle } from '../../../../../../types/responses/admin/styles.types';
+import { type IStyle } from '../../../../../../types/responses/admin/styles.types';
 import { readJsonFile, parseImportValidationErrors } from '../../../../../../utils/export-import.utils';
-import { fetchAiSectionPromptTemplate, IImportValidationError } from '../../../../../../api/admin/section.api';
-import { ISectionOperationOptions } from '../../../../../../utils/section-operations.utils';
+import { fetchAiSectionPromptTemplate, type IImportValidationError } from '../../../../../../api/admin/section.api';
+import { type ISectionOperationOptions } from '../../../../../../utils/section-operations.utils';
 import { isStyleRelationshipValid, findStyleById } from '../../../../../../utils/style-relationship.utils';
 import { NewSectionTab } from './tabs/NewSectionTab';
 import { ImportSectionTab } from './tabs/ImportSectionTab';
 import { ReferenceSectionTab } from './tabs/ReferenceSectionTab';
 import { UnusedSectionTab } from './tabs/UnusedSectionTab';
 import { useQueryClient } from '@tanstack/react-query';
-import { AddSectionTab, ADD_SECTION_TAB, MAX_SECTIONS, MAX_UNUSED_SECTIONS } from './addSectionModal.constants';
+import { REACT_QUERY_CONFIG } from '../../../../../../config/react-query.config';
+import { type AddSectionTab, ADD_SECTION_TAB, MAX_SECTIONS, MAX_UNUSED_SECTIONS } from './addSectionModal.constants';
 import { getNewSectionLimitState, getUnusedSectionLimitState, getStatusText, isSingleMode, getStatusColor } from './addSectionModal.utils';
 
 interface IAddSectionModalProps {
@@ -86,8 +87,7 @@ export function AddSectionModal({
     // Fetch parent section details when we have a parent section ID
     const {
         data: parentSectionDetails,
-        isLoading: isLoadingParentDetails,
-        error: parentDetailsError
+        isLoading: isLoadingParentDetails
     } = useSectionDetails(pageId || null, parentSectionId, opened && !!parentSectionId);
 
     // Prefetch unused sections and ref containers when modal is opened
@@ -175,7 +175,7 @@ export function AddSectionModal({
 
         // Remove groups that have no styles after filtering
         return filteredGroups.filter(group => group.styles.length > 0);
-    }, [styleGroups, searchQuery, isStyleAllowedAsChild, parentSectionId]);
+    }, [styleGroups, searchQuery, isStyleAllowedAsChild, parentSectionId, parentSectionDetails, parentStyleWithRelationships]);
 
     // Filtered Unused Sections
     const filteredUnusedSections = useMemo(() => {
@@ -322,8 +322,8 @@ export function AddSectionModal({
        }
 
        handleClose();
-       queryClient.invalidateQueries({queryKey: ['admin', 'sections', 'unused']})
-     } catch (error) {
+       void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED })
+     } catch {
        // handled by hook
      }
    };
@@ -358,7 +358,7 @@ export function AddSectionModal({
                 // Add ref container section to page
                 await sectionOperations.addSectionToPage(  [{ sectionId: sectionId}], operationOptions);
             }
-        } catch (error) {
+        } catch {
             // Error is handled by the hook
         }
     };
@@ -383,7 +383,7 @@ export function AddSectionModal({
           name: isSingleMode(selectedStyles) ? sectionName : undefined,
         });
         }
-    } catch (error) {
+    } catch {
         // handled by hook
     }
     };

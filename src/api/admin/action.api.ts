@@ -5,8 +5,8 @@ SPDX-License-Identifier: MPL-2.0
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
-import { IActionDetails, IActionsListParams, IActionsListResponse } from '../../types/responses/admin';
-import { ICreateActionRequest, IUpdateActionRequest } from '../../types/requests/admin/actions.types';
+import { type IActionDetails, type IActionsListParams, type IActionsListResponse } from '../../types/responses/admin';
+import { type ICreateActionRequest, type IUpdateActionRequest } from '../../types/requests/admin/actions.types';
 
 export const AdminActionApi = {
   async getActions(params: IActionsListParams = {}): Promise<IActionsListResponse> {
@@ -25,7 +25,7 @@ export const AdminActionApi = {
 
   async getActionById(actionId: number): Promise<IActionDetails> {
     const response = await permissionAwareApiClient.get<IBaseApiResponse<IActionDetails>>(API_CONFIG.ENDPOINTS.ADMIN_ACTIONS_GET_ONE, actionId);
-    return response.data.data as any; // backend returns same nested structure as list
+    return response.data.data; // backend returns same nested structure as list
   },
 
   async createAction(payload: ICreateActionRequest): Promise<IActionDetails> {

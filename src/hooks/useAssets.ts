@@ -48,7 +48,7 @@ export function useCreateAsset() {
     mutationFn: (assetData: ICreateAssetRequest) => AdminAssetApi.createAsset(assetData),
     onSuccess: () => {
       // Invalidate and refetch assets list
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      void queryClient.invalidateQueries({ queryKey: ['assets'] });
     },
   });
 }
@@ -63,7 +63,7 @@ export function useCreateMultipleAssets() {
     mutationFn: (assetData: ICreateMultipleAssetsRequest) => AdminAssetApi.createMultipleAssets(assetData),
     onSuccess: () => {
       // Invalidate and refetch assets list
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      void queryClient.invalidateQueries({ queryKey: ['assets'] });
     },
   });
 }
@@ -78,7 +78,7 @@ export function useDeleteAsset() {
     mutationFn: (assetId: number) => AdminAssetApi.deleteAsset(assetId),
     onSuccess: () => {
       // Invalidate and refetch assets list
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      void queryClient.invalidateQueries({ queryKey: ['assets'] });
     },
   });
 } 

@@ -16,7 +16,7 @@ import {
   LoadingOverlay,
 } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
-import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
+import { type IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 
 interface IDeleteVersionModalProps {
   opened: boolean;

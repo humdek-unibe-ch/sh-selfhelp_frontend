@@ -50,8 +50,6 @@ const ADMIN_PLUGINS_KEY = ['admin-plugins'] as const;
 const ADMIN_PLUGINS_AVAILABLE_KEY = ['admin-plugins', 'available'] as const;
 const ADMIN_PLUGIN_OPERATIONS_KEY = ['admin-plugin-operations'] as const;
 const PLUGINS_MANIFEST_KEY = ['plugins-manifest'] as const;
-const FRONTEND_PAGES_KEY = ['frontend-pages'] as const;
-const PAGE_BY_KEYWORD_KEY = ['page-by-keyword'] as const;
 
 const PLUGIN_STATE_EVENTS = [
     'plugin-installed',
@@ -68,8 +66,8 @@ export function useAdminPluginsRealtime(): void {
     const { isAuthenticated } = useAuthStatus();
 
     useEffect(() => {
-        if (!isAuthenticated) return;
-        if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
+        if (!isAuthenticated) return undefined;
+        if (typeof window === 'undefined' || typeof EventSource === 'undefined') return undefined;
 
         let es: EventSource | null = null;
         let reconnectTimer: number | null = null;
@@ -82,15 +80,15 @@ export function useAdminPluginsRealtime(): void {
         let hasConnectedBefore = false;
 
         const invalidatePluginSurfaceCaches = () => {
-            queryClient.invalidateQueries({ queryKey: ADMIN_PLUGINS_KEY });
-            queryClient.invalidateQueries({ queryKey: ADMIN_PLUGINS_AVAILABLE_KEY });
-            queryClient.invalidateQueries({ queryKey: ADMIN_PLUGIN_OPERATIONS_KEY });
-            queryClient.invalidateQueries({ queryKey: PLUGINS_MANIFEST_KEY });
-            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
-            queryClient.invalidateQueries({ queryKey: FRONTEND_PAGES_KEY });
-            queryClient.invalidateQueries({ queryKey: PAGE_BY_KEYWORD_KEY });
-            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.STYLE_GROUPS });
-            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LOOKUPS });
+            void queryClient.invalidateQueries({ queryKey: ADMIN_PLUGINS_KEY });
+            void queryClient.invalidateQueries({ queryKey: ADMIN_PLUGINS_AVAILABLE_KEY });
+            void queryClient.invalidateQueries({ queryKey: ADMIN_PLUGIN_OPERATIONS_KEY });
+            void queryClient.invalidateQueries({ queryKey: PLUGINS_MANIFEST_KEY });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.STYLE_GROUPS });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LOOKUPS });
 
             // Plugin lifecycle changes can remove styles/admin pages that
             // are already part of the current App Router payload. A route
@@ -100,7 +98,7 @@ export function useAdminPluginsRealtime(): void {
         };
 
         const invalidateOperationsOnly = () => {
-            queryClient.invalidateQueries({ queryKey: ADMIN_PLUGIN_OPERATIONS_KEY });
+            void queryClient.invalidateQueries({ queryKey: ADMIN_PLUGIN_OPERATIONS_KEY });
         };
 
         const connect = () => {

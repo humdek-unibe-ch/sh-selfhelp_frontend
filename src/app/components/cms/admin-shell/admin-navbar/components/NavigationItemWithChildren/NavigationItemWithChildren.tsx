@@ -13,7 +13,7 @@ import {
     ActionIcon
 } from '@mantine/core';
 import { IconChevronRight, IconChevronDown } from '@tabler/icons-react';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './NavigationItemWithChildren.module.css';
 import { useNavigationStore } from '../../../../../../store/navigation.store';
@@ -44,12 +44,17 @@ export function NavigationItemWithChildren({
         (child.children && child.children.some(grandchild => activeItem === grandchild.href))
     );
 
-    // Auto-expand if this item or any child is active
-    useEffect(() => {
+    // Auto-expand when this item or a child becomes active. Render-phase update
+    // tracking the previous inputs (matching the previous effect's
+    // [isActive, hasActiveChild] dependency, including running on mount), so a
+    // manual collapse is preserved while the inputs are unchanged.
+    const [prevActiveState, setPrevActiveState] = useState<{ isActive: boolean; hasActiveChild: boolean } | null>(null);
+    if (prevActiveState === null || prevActiveState.isActive !== isActive || prevActiveState.hasActiveChild !== hasActiveChild) {
+        setPrevActiveState({ isActive, hasActiveChild });
         if (isActive || hasActiveChild) {
             setIsExpanded(true);
         }
-    }, [isActive, hasActiveChild]);
+    }
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         // Support middle click and ctrl+click for new tab

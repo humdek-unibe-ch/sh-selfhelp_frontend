@@ -15,7 +15,7 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PreferencesApi, ICMSPreferences } from '../api/admin/preferences.api';
+import { PreferencesApi, type ICMSPreferences } from '../api/admin/preferences.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { notifications } from '@mantine/notifications';
 

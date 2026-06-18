@@ -11,7 +11,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
-import { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
+import { type IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 
 export interface IPageKeyword {
     value: string;

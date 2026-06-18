@@ -9,19 +9,19 @@ SPDX-License-Identifier: MPL-2.0
 
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
-import { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
+import { type IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import {
-    IPublishVersionRequest,
-    IVersionListParams,
-    IVersionDetailsParams,
-    IVersionCompareParams
+    type IPublishVersionRequest,
+    type IVersionListParams,
+    type IVersionDetailsParams,
+    type IVersionCompareParams
 } from '../../types/requests/admin/page-version.types';
 import {
-    IPageVersion,
-    IVersionHistoryResponse,
-    IVersionComparisonResponse,
-    IPublishResponse,
-    IUnpublishedChangesResponse
+    type IPageVersion,
+    type IVersionHistoryResponse,
+    type IVersionComparisonResponse,
+    type IPublishResponse,
+    type IUnpublishedChangesResponse
 } from '../../types/responses/admin/page-version.types';
 
 export const PageVersionApi = {

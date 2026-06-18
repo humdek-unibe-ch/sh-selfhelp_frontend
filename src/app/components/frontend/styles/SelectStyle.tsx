@@ -2,8 +2,8 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext, useMemo } from 'react';
-import { ISelectStyle } from '../../../../types/common/styles.types';
+import React, { useState, useContext, useMemo } from 'react';
+import { type ISelectStyle } from '../../../../types/common/styles.types';
 import { FormFieldValueContext } from './FormStyle';
 import DOMPurify from 'isomorphic-dompurify';
 import { Select, MultiSelect } from '@mantine/core';
@@ -35,26 +35,24 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
     const disabled = style.disabled?.content === '1';
     const maxValues = style.max?.content ? parseInt(style.max.content) : undefined;
 
-    // Parse options - handle JSON string format
-    let optionsArray: any[] = [];
-    try {
-        const optionsContent = style.options?.content;
-        if (optionsContent) {
-            optionsArray = JSON.parse(optionsContent);
+    // Convert options into Mantine format. Parsing happens inside the memo so the
+    // derived `data` only changes when the raw options string changes (the
+    // intermediate parsed array is no longer a separate render-phase value).
+    const data = useMemo(() => {
+        let optionsArray: Array<{ value: string; label: string; text: string }> = [];
+        try {
+            const optionsContent = style.options?.content;
+            if (optionsContent) {
+                optionsArray = JSON.parse(optionsContent);
+            }
+        } catch {
+            optionsArray = [];
         }
-    } catch (error) {
-        optionsArray = [];
-    }
-
-    // Convert options into Mantine format
-    const data = useMemo(
-        () =>
-            optionsArray.map((option: any) => ({
-                value: option.value,
-                label: option.label || option.text,
-            })),
-        [optionsArray]
-    );
+        return optionsArray.map((option) => ({
+            value: option.value,
+            label: option.label || option.text,
+        }));
+    }, [style.options]);
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -67,12 +65,18 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
             : (formValue && typeof formValue === 'string' ? formValue : (value || ''))
     );
 
-    // Update value when form context changes (for record editing)
-    useEffect(() => {
+    // Keep state in sync with the (async) form value via a render-phase update
+    // instead of an effect; the sentinel initial runs it on first render too,
+    // and prevIsMultiple mirrors the original [formValue, isMultiple] deps.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    const [prevIsMultiple, setPrevIsMultiple] = useState(isMultiple);
+    if (prevFormValue !== formValue || prevIsMultiple !== isMultiple) {
+        setPrevFormValue(formValue);
+        setPrevIsMultiple(isMultiple);
         if (formValue !== null && typeof formValue === 'string') {
             setSelectedValue(isMultiple ? formValue.split(',') : formValue);
         }
-    }, [formValue, isMultiple]);
+    }
 
     const handleChange = (val: string | string[] | null) => {
         setSelectedValue(val ?? (isMultiple ? [] : ''));

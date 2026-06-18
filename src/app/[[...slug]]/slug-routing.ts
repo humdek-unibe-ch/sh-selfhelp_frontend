@@ -11,14 +11,18 @@ const STATIC_FALLBACK_BY_KEYWORD: Record<string, string> = {
     profile: '/auth/profile',
     register: '/auth/register',
     reset_password: '/auth/reset-password',
-    no_access: '/auth/no-access',
-    no_access_guest: '/auth/no-access-guest',
+    'no-access': '/auth/no-access',
+    'no-access-guest': '/auth/no-access-guest',
     missing: '/auth/missing',
 };
 
+// CMS page keywords are kebab-case and match the URL segments directly, so most
+// slugs need no alias. The only exception is the password-reset token URL
+// (`/reset/{id}/{token}`), whose slug differs from its CMS keyword.
+// `no-access` / `no-access-guest` are intentionally NOT aliased: their CMS
+// keywords are the kebab slugs themselves — aliasing them to underscores made
+// the by-keyword lookup 404 and bounced `/no-access` to `/auth/no-access`.
 const SLUG_TO_KEYWORD: Record<string, string> = {
-    'no-access': 'no_access',
-    'no-access-guest': 'no_access_guest',
     reset: 'reset_password',
 };
 

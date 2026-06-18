@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminScheduledJobsApi } from '../api/admin/scheduled-jobs.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { IScheduledJobFilters, IUpdateRunnerSettingsRequest } from '../types/responses/admin/scheduled-jobs.types';
+import { type IScheduledJobFilters, type IUpdateRunnerSettingsRequest } from '../types/responses/admin/scheduled-jobs.types';
 import { notifications } from '@mantine/notifications';
 
 /**
@@ -100,9 +100,9 @@ export function useExecuteScheduledJobMutation() {
             });
 
             // Invalidate relevant queries
-            queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
-            queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
-            queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
         },
         onError: (error, jobId) => {
 
@@ -161,7 +161,7 @@ export function useUpdateRunnerSettingsMutation() {
                 message: 'Scheduled-job runner settings saved',
                 color: 'green',
             });
-            queryClient.invalidateQueries({ queryKey: ['scheduledJobRunnerStatus'] });
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobRunnerStatus'] });
         },
         onError: () => {
             notifications.show({
@@ -188,7 +188,7 @@ export function useToggleRunnerMutation() {
                 message: enabled ? 'The scheduled-job runner is now enabled' : 'The scheduled-job runner is now disabled',
                 color: 'green',
             });
-            queryClient.invalidateQueries({ queryKey: ['scheduledJobRunnerStatus'] });
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobRunnerStatus'] });
         },
         onError: () => {
             notifications.show({
@@ -217,9 +217,9 @@ export function useRunDueJobsNowMutation() {
                     : 'Due jobs processed',
                 color: 'green',
             });
-            queryClient.invalidateQueries({ queryKey: ['scheduledJobRunnerStatus'] });
-            queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
-            queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] });
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobRunnerStatus'] });
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] });
         },
         onError: () => {
             notifications.show({
@@ -248,9 +248,9 @@ export function useDeleteScheduledJobMutation() {
             });
 
             // Invalidate relevant queries
-            queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
-            queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
-            queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
         },
         onError: (error, jobId) => {
 

@@ -115,9 +115,9 @@ export function useSetMaintenanceMutation() {
                     : 'Maintenance mode is now OFF for this instance.',
                 color: data?.enabled ? 'orange' : 'green',
             });
-            queryClient.invalidateQueries({ queryKey: SYSTEM_MAINTENANCE_KEY });
-            queryClient.invalidateQueries({ queryKey: SYSTEM_HEALTH_KEY });
-            queryClient.invalidateQueries({ queryKey: SYSTEM_VERSION_KEY });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_MAINTENANCE_KEY });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_HEALTH_KEY });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_VERSION_KEY });
         },
         onError: () => {
             notifications.show({
@@ -198,8 +198,8 @@ export function useRequestUpdateMutation() {
                     : 'Update request recorded',
                 color: 'green',
             });
-            queryClient.invalidateQueries({ queryKey: SYSTEM_UPDATE_STATUS_KEY });
-            queryClient.invalidateQueries({ queryKey: SYSTEM_VERSION_KEY });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_UPDATE_STATUS_KEY });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_VERSION_KEY });
         },
         onError: () => {
             notifications.show({
@@ -267,8 +267,8 @@ export function useRequestFrontendUpdateMutation() {
                     : 'Frontend update request recorded',
                 color: 'green',
             });
-            queryClient.invalidateQueries({ queryKey: SYSTEM_UPDATE_STATUS_KEY });
-            queryClient.invalidateQueries({ queryKey: SYSTEM_VERSION_KEY });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_UPDATE_STATUS_KEY });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_VERSION_KEY });
         },
         onError: () => {
             notifications.show({

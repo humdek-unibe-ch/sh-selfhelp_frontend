@@ -2,9 +2,9 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Chip, Tooltip } from '@mantine/core';
-import { IChipStyle } from '../../../../../../types/common/styles.types';
+import { type IChipStyle } from '../../../../../../types/common/styles.types';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { FormFieldValueContext } from '../../FormStyle';
 import DOMPurify from 'isomorphic-dompurify';
@@ -17,7 +17,7 @@ import parse from "html-react-parser";
  */
 interface IChipStyleProps {
     style: IChipStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -83,13 +83,19 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style, styleProps, cssClass }) =
         return style.chip_checked?.content === '1';
     });
 
-    // Update checked state when form context changes (for record editing)
-    useEffect(() => {
+    // Keep checked state in sync with the (async) form value via a render-phase
+    // update instead of an effect; the sentinel initial runs it on first render
+    // too, and prevOnValue mirrors the original [formValue, onValue] deps.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    const [prevOnValue, setPrevOnValue] = useState(onValue);
+    if (prevFormValue !== formValue || prevOnValue !== onValue) {
+        setPrevFormValue(formValue);
+        setPrevOnValue(onValue);
         if (formValue !== null) {
             const shouldBeChecked = formValue === onValue || (formValue === '1' && onValue === '1');
             setIsChecked(shouldBeChecked);
         }
-    }, [formValue, onValue]);
+    }
 
     // Handle chip change
     const handleChange = (checked: boolean) => {
@@ -104,8 +110,8 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style, styleProps, cssClass }) =
         <Chip
             checked={isChecked}
             onChange={handleChange}
-            variant={variant as any}
-            size={size as any}
+            variant={variant as React.ComponentProps<typeof Chip>['variant']}
+            size={size as React.ComponentProps<typeof Chip>['size']}
             radius={radius === 'none' ? 0 : radius}
             color={color}
             disabled={disabled}
@@ -122,7 +128,7 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style, styleProps, cssClass }) =
             {tooltip && tooltip.trim() ? (
                 <Tooltip
                     label={parse(DOMPurify.sanitize(tooltip))}
-                    position={safeTooltipPosition as any}
+                    position={safeTooltipPosition as React.ComponentProps<typeof Tooltip>['position']}
                     refProp="rootRef"
                 >
                     {chipElement}

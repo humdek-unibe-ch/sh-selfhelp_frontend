@@ -10,7 +10,7 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { IStyleGroup } from '../types/responses/admin/styles.types';
+import { type IStyleGroup } from '../types/responses/admin/styles.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
 import { AdminApi } from '../api/admin';

@@ -9,7 +9,7 @@ SPDX-License-Identifier: MPL-2.0
  *
  * Most CMS style shapes are owned by the shared package so the web
  * frontend and the new mobile app speak the same field shape. The
- * three frontend-only legacy styles (`refContainer`, `dataContainer`,
+ * three frontend-only legacy styles (`ref-container`, `data-container`,
  * `version`) and the tightened `style_name: TStyleName` discriminator
  * stay in-tree because they're either admin-only or strictly narrower
  * than the shared `string` union.
@@ -21,8 +21,6 @@ SPDX-License-Identifier: MPL-2.0
  *     for legacy admin code that derefs `style.fields.foo.content`
  *     without an explicit cast.
  */
-
-import type { IContentField as ISharedContentField } from '../../shared';
 
 // ===== Mantine common types — re-exported from shared =====
 import type {
@@ -245,21 +243,21 @@ export type TMantineCheckboxLabelPosition = TMantineLabelPosition;
 // ===== Style-name discriminator =====
 // Local literal union — narrower than the shared `string` discriminator
 // so the legacy switch/case in the frontend renderer keeps benefiting
-// from exhaustiveness. Includes admin-only styles (`refContainer`,
-// `dataContainer`, `version`, `progress-label`) that aren't part of
+// from exhaustiveness. Includes admin-only styles (`ref-container`,
+// `data-container`, `version`, `progress-label`) that aren't part of
 // the shared registry and never reach the mobile app.
 export type TStyleName =
-    | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
-    | 'container' | 'alert' | 'refContainer' | 'dataContainer' | 'html-tag' | 'center' | 'box'
+    | 'login' | 'profile' | 'validate' | 'register' | 'reset-password' | 'two-factor-auth'
+    | 'container' | 'alert' | 'ref-container' | 'data-container' | 'html-tag' | 'center' | 'box'
     | 'flex' | 'group' | 'stack' | 'simple-grid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
     | 'form-log' | 'form-record' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
     | 'button' | 'link'
-    | 'entryList' | 'entryRecord' | 'entryRecordDelete'
+    | 'entry-list' | 'entry-record' | 'entry-record-delete'
     | 'tabs' | 'tab'
     | 'version' | 'loop'
     | 'color-input' | 'color-picker' | 'file-input' | 'number-input' | 'radio-group' | 'range-slider'
-    | 'segmented-control' | 'switch' | 'combobox' | 'multiSelect' | 'action-icon' | 'rich-text-editor'
+    | 'segmented-control' | 'switch' | 'combobox' | 'multi-select' | 'action-icon' | 'rich-text-editor'
     | 'code'
     | 'badge' | 'chip' | 'avatar' | 'timeline' | 'indicator'
     | 'kbd' | 'rating' | 'theme-icon' | 'progress' | 'progress-root' | 'progress-section' | 'progress-label'
@@ -271,7 +269,7 @@ export type TStyleName =
     | 'list' | 'list-item'
     | 'datepicker'
     | 'typography'
-    | 'showUserInput';
+    | 'show-user-input';
 
 // ===== IContentField — re-exported from shared =====
 export type IContentField<T> = ISharedContentField<T>;
@@ -293,7 +291,8 @@ export interface IBaseStyle {
     path: string;
     children?: TStyle[];
     section_name: string;
-    section_data?: any[];
+    section_data?: unknown[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- legacy field accessor: ~80 admin/CMS files deref `style.fields.foo.content` without casts; tightening the generic to `unknown` cascades into a risky bulk rewrite (see file header).
     fields: Record<string, IContentField<any>>;
     condition: string | null;
     css: string | null;
@@ -303,9 +302,9 @@ export interface IBaseStyle {
     condition_debug?: {
         condition?: string;
         result: boolean;
-        error?: any[];
-        variables?: Record<string, any>;
-        condition_object?: any;
+        error?: unknown[];
+        variables?: Record<string, unknown>;
+        condition_object?: unknown;
     } | null;
 }
 
@@ -412,11 +411,11 @@ export type {
 // the shared `STYLE_REGISTRY`. They live here so the frontend's
 // renderer can still discriminate them.
 export interface IRefContainerStyle extends IBaseStyle {
-    style_name: 'refContainer';
+    style_name: 'ref-container';
 }
 
 export interface IDataContainerStyle extends IBaseStyle {
-    style_name: 'dataContainer';
+    style_name: 'data-container';
 }
 
 export interface IVersionStyle extends IBaseStyle {
@@ -429,6 +428,7 @@ export interface IVersionStyle extends IBaseStyle {
 // ===== Discriminated union of all styles =====
 // Imports are resolved through this file's own re-exports above.
 import type {
+    IContentField as ISharedContentField,
     ILoginStyle,
     IRegisterStyle,
     IValidateStyle,

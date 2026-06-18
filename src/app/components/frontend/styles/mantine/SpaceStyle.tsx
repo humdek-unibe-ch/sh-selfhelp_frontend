@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Space } from '@mantine/core';
-import { ISpaceStyle } from '../../../../../types/common/styles.types';
+import { type ISpaceStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for SpaceStyle component
@@ -16,7 +16,7 @@ import { ISpaceStyle } from '../../../../../types/common/styles.types';
  */
 interface ISpaceStyleProps {
     style: ISpaceStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 

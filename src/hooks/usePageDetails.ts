@@ -21,7 +21,7 @@ import { AdminApi } from '../api/admin';
  */
 export function usePageSections(pageId: number | null, enabled: boolean = true) {
     return useQuery({
-        queryKey: ['pageSections', pageId],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId),
         queryFn: async () => {
             if (!pageId) throw new Error('Page ID is required');
             const sections = await AdminApi.getPageSections(pageId);
@@ -45,7 +45,7 @@ export function usePageSections(pageId: number | null, enabled: boolean = true) 
  */
 export function usePageFields(pageId: number | null, enabled: boolean = true) {
     return useQuery({
-        queryKey: ['pageFields', pageId],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId),
         queryFn: async () => {
             if (!pageId) throw new Error('Page ID is required');
             const data = await AdminApi.getPageFields(pageId);

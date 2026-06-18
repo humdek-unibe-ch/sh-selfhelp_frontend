@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { AdminShell } from "./AdminShell";
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '../../../../hooks/useAuth';
 import { ROUTES } from '../../../../config/routes.config';
 import { LoadingOverlay } from "@mantine/core";
@@ -19,8 +19,8 @@ interface AdminShellWrapperProps {
 export function AdminShellWrapper({ children, aside, asideWidth }: AdminShellWrapperProps) {
     const { isAuthenticated, hasAdminAccess, isLoading } = useAuth();
     const router = useRouter();
-    const [isChecking, setIsChecking] = useState(true);
 
+    // Navigation is a side effect, so the redirect stays in an effect.
     useEffect(() => {
         // If still loading authentication data, wait
         if (isLoading) {
@@ -35,19 +35,15 @@ export function AdminShellWrapper({ children, aside, asideWidth }: AdminShellWra
             // Logged in but doesn't have admin access
             router.replace(ROUTES.NO_ACCESS);
         }
-
-        // Authentication check is complete
-        setIsChecking(false);
     }, [hasAdminAccess, isAuthenticated, isLoading, router]);
 
-    // Show loading overlay while checking authentication or while auth is loading
-    if (isChecking || isLoading) {
+    // Show the loading overlay while auth is resolving and while a redirect is
+    // pending (not authenticated or no admin access). Once resolved with admin
+    // access, render the shell. This mirrors the previous isChecking gate
+    // without a set-state-in-effect.
+    const willRedirect = !isLoading && (!isAuthenticated || !hasAdminAccess());
+    if (isLoading || willRedirect) {
         return <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />;
-    }
-
-    // Don't render content if user doesn't have admin access
-    if (!hasAdminAccess()) {
-        return null;
     }
 
     return (

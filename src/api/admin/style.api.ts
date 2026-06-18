@@ -11,7 +11,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
-import { TStyleGroupsResponse, IStyleGroup } from '../../types/responses/admin/styles.types';
+import { type TStyleGroupsResponse, type IStyleGroup } from '../../types/responses/admin/styles.types';
 
 export const AdminStyleApi = {
     /**

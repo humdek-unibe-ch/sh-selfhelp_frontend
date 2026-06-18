@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Grid } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { IGridColumnStyle } from '../../../../../types/common/styles.types';
+import { type IGridColumnStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for GridColumnStyle component
@@ -15,7 +15,7 @@ import { IGridColumnStyle } from '../../../../../types/common/styles.types';
  */
 interface IGridColumnStyleProps {
     style: IGridColumnStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -58,12 +58,12 @@ const parseResponsiveSpan = (
  * `mantine_grid_span` accepts a number ("6"), the keywords "auto"/"content",
  * or a JSON object ({"base":12,"sm":6,"md":4}) for responsive layouts.
  */
-const GridColumnStyle: React.FC<IGridColumnStyleProps> = ({ style, styleProps, cssClass }) => {
+const GridColumnStyle: React.FC<IGridColumnStyleProps> = ({ style, cssClass }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     const span = parseResponsiveSpan(style.mantine_grid_span?.content);
-    const offset = parseInt((style as any).mantine_grid_offset?.content || '0');
-    const order = style.mantine_grid_order?.content ? parseInt((style as any).mantine_grid_order?.content!) : undefined;
+    const offset = parseInt(style.mantine_grid_offset?.content || '0');
+    const order = style.mantine_grid_order?.content ? parseInt(style.mantine_grid_order.content) : undefined;
     const grow = style.mantine_grid_grow?.content === '1';
     const width = style.mantine_width?.content;
     const height = style.mantine_height?.content;
@@ -76,8 +76,8 @@ const GridColumnStyle: React.FC<IGridColumnStyleProps> = ({ style, styleProps, c
     if (width) styleObj.width = width;
     if (height) styleObj.height = height;
 
-    const colProps: any = {
-        span: span,
+    const colProps = {
+        span: span as React.ComponentProps<typeof Grid.Col>['span'],
         ...(offset > 0 && { offset }),
         ...(order && { order }),
         ...(grow && { grow }),
@@ -87,7 +87,7 @@ const GridColumnStyle: React.FC<IGridColumnStyleProps> = ({ style, styleProps, c
 
     return (
         <Grid.Col {...colProps}>
-            {children.map((child: any, index: number) => (
+            {children.map((child, index: number) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}
         </Grid.Col>

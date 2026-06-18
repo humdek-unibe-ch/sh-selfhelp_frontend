@@ -161,9 +161,9 @@ export function DataAdminPage() {
 
     // Refresh
     const handleRefresh = useCallback(() => {
-    refetchUsers();
-    refetchTables();
-    refetchLanguages();
+    void refetchUsers();
+    void refetchTables();
+    void refetchLanguages();
   }, [refetchUsers, refetchTables, refetchLanguages]);
 
   return (

@@ -4,31 +4,31 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Box } from '@mantine/core';
-import { IVideoStyle } from '../../../../types/common/styles.types';
+import { type IVideoStyle } from '../../../../types/common/styles.types';
 
 /**
  * Props interface for IVideoStyle component
  */
 interface IVideoStyleProps {
     style: IVideoStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, unknown>;
     cssClass: string;
 }
 
-const VideoStyle: React.FC<IVideoStyleProps> = ({ style, styleProps, cssClass }) => {
+const VideoStyle: React.FC<IVideoStyleProps> = ({ style }) => {
     // Get video sources - handle both array and JSON string formats
-    let sources: any[] = [];
+    let sources: Array<{ source?: string; src?: string; type?: string }> = [];
     try {
         const sourcesContent = style.sources?.content;
         if (Array.isArray(sourcesContent)) {
-            sources = sourcesContent;
+            sources = sourcesContent as Array<{ source?: string; src?: string; type?: string }>;
         } else if (sourcesContent && typeof sourcesContent === 'string') {
             const stringContent = sourcesContent as string;
             if (stringContent.trim()) {
                 sources = JSON.parse(stringContent);
             }
         }
-    } catch (error) {
+    } catch {
 
         sources = [];
     }
@@ -46,7 +46,7 @@ const VideoStyle: React.FC<IVideoStyleProps> = ({ style, styleProps, cssClass })
                     height: 'auto'
                 }}
             >
-                {sources.map((source: any, index: number) => (
+                {sources.map((source, index: number) => (
                     <source 
                         key={index} 
                         src={source.source || source.src} 

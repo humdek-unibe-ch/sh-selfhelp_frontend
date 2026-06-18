@@ -57,7 +57,7 @@ SPDX-License-Identifier: MPL-2.0
  * old name is deprecated and no longer guaranteed to execute.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import {
     ACCESS_COOKIE_MAX_AGE,
     AUTH_COOKIE,

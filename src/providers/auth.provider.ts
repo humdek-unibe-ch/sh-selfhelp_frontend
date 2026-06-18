@@ -16,10 +16,10 @@ SPDX-License-Identifier: MPL-2.0
  * same slot the hook observes.
  */
 
-import { AuthProvider } from '@refinedev/core';
-import { ILoginRequest } from '../types/requests/auth/auth.types';
+import { type AuthProvider } from '@refinedev/core';
+import { type ILoginRequest } from '../types/requests/auth/auth.types';
 import { AuthApi } from '../api/auth.api';
-import { ITwoFactorRequiredResponse } from '../types/responses/auth.types';
+import { type ITwoFactorRequiredResponse } from '../types/responses/auth.types';
 import type { IUserDataResponse, IUserData } from '../types/auth/jwt-payload.types';
 import { ROUTES } from '../config/routes.config';
 import { info, warn, error } from '../utils/debug-logger';
@@ -88,11 +88,11 @@ export const authProvider: AuthProvider = {
             }
             info('Login successful', 'AuthProvider');
             return { success: true, redirectTo: ROUTES.HOME };
-        } catch (apiError: any) {
+        } catch (apiError) {
             error('Login error', 'AuthProvider', apiError);
             return {
                 success: false,
-                error: { message: apiError?.message || 'Login failed', name: 'Login Error' },
+                error: { message: (apiError as { message?: string })?.message || 'Login failed', name: 'Login Error' },
             };
         }
     },
@@ -105,7 +105,7 @@ export const authProvider: AuthProvider = {
             }
             permissionManager.clearPermissions();
             info('Logout successful', 'AuthProvider');
-        } catch (err: any) {
+        } catch (err) {
             warn('Logout error', 'AuthProvider', err);
             permissionManager.clearPermissions();
         }
@@ -172,9 +172,9 @@ export const authProvider: AuthProvider = {
     },
 
     onError: async (err) => {
-        if (err.response?.status === 401 && !err.config?._retry) {
-            return { error: err };
-        }
+        // Surface the error to Refine unchanged. Auth-driven redirects (e.g. a
+        // genuine 401) are owned by `check()` and the Axios refresh/redirect
+        // interceptor, so there is no per-status branching to do here.
         return { error: err };
     },
 };

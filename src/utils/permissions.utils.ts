@@ -26,15 +26,23 @@ export const DEFAULT_CRUD_PERMISSIONS: ICrudPermissions = {
   import: false,
 };
 
+/** Bitwise CRUD flags as packed into the backend `crud` integer. */
+const CRUD_BIT = {
+  CREATE: 1,
+  READ: 2,
+  UPDATE: 4,
+  DELETE: 8,
+} as const;
+
 /**
  * Parse CRUD permissions from bitwise number format
  */
 export function parseCrudPermissions(permissionsNumber: number): ICrudPermissions {
   return {
-    create: (permissionsNumber & 1) !== 0, // CREATE = 1
-    view: (permissionsNumber & 2) !== 0,   // READ = 2
-    update: (permissionsNumber & 4) !== 0, // UPDATE = 4
-    delete: (permissionsNumber & 8) !== 0, // DELETE = 8
+    create: (permissionsNumber & CRUD_BIT.CREATE) !== 0,
+    view: (permissionsNumber & CRUD_BIT.READ) !== 0,
+    update: (permissionsNumber & CRUD_BIT.UPDATE) !== 0,
+    delete: (permissionsNumber & CRUD_BIT.DELETE) !== 0,
     export: false, // Not part of standard CRUD in API
     import: false, // Not part of standard CRUD in API
   };
@@ -45,10 +53,10 @@ export function parseCrudPermissions(permissionsNumber: number): ICrudPermission
  */
 export function stringifyCrudPermissions(permissions: ICrudPermissions): number {
   let result = 0;
-  if (permissions.create) result |= 1; // CREATE = 1
-  if (permissions.view) result |= 2;   // READ = 2
-  if (permissions.update) result |= 4; // UPDATE = 4
-  if (permissions.delete) result |= 8; // DELETE = 8
+  if (permissions.create) result |= CRUD_BIT.CREATE;
+  if (permissions.view) result |= CRUD_BIT.READ;
+  if (permissions.update) result |= CRUD_BIT.UPDATE;
+  if (permissions.delete) result |= CRUD_BIT.DELETE;
   return result;
 }
 
@@ -77,16 +85,19 @@ export const PERMISSION_DESCRIPTIONS: Record<keyof ICrudPermissions, string> = {
 };
 
 /**
- * Check if any permission is enabled
+ * Check if any CRUD permission flag is enabled on an {@link ICrudPermissions}
+ * object. Named `*Crud*` to disambiguate from the permission-string checks on
+ * {@link PermissionChecker} / `PermissionManager`, which take `string[]`.
  */
-export function hasAnyPermission(permissions: ICrudPermissions): boolean {
+export function hasAnyCrudPermission(permissions: ICrudPermissions): boolean {
   return Object.values(permissions).some(Boolean);
 }
 
 /**
- * Check if all permissions are enabled
+ * Check if all CRUD permission flags are enabled on an {@link ICrudPermissions}
+ * object. See {@link hasAnyCrudPermission} for the naming rationale.
  */
-export function hasAllPermissions(permissions: ICrudPermissions): boolean {
+export function hasAllCrudPermissions(permissions: ICrudPermissions): boolean {
   return Object.values(permissions).every(Boolean);
 }
 

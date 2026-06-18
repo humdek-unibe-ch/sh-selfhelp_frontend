@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { IStyle } from '../types/responses/admin/styles.types';
+import { type IStyle } from '../types/responses/admin/styles.types';
 
 /**
  * Checks if a style is allowed as a child of a parent style based on relationships

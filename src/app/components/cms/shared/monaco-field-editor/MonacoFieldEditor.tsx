@@ -6,6 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { Box, LoadingOverlay } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
+import type { BeforeMount, EditorProps, Monaco, OnMount } from '@monaco-editor/react';
 
 // Dynamic import for Monaco Editor to avoid SSR issues
 import dynamic from 'next/dynamic';
@@ -15,6 +16,9 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
 });
 
 export type TMonacoLanguage = 'css' | 'json' | 'markdown';
+
+/** The Monaco editor instance handed to `onMount`. */
+type TMonacoEditorInstance = Parameters<OnMount>[0];
 
 interface IMonacoFieldEditorProps {
     value: string;
@@ -29,7 +33,7 @@ interface IMonacoFieldEditorProps {
 const languageConfig: Record<TMonacoLanguage, {
     language: string;
     defaultValue: string;
-    editorOptions?: any;
+    editorOptions?: EditorProps['options'];
 }> = {
     css: {
         language: 'css',
@@ -45,7 +49,6 @@ const languageConfig: Record<TMonacoLanguage, {
         editorOptions: {
             formatOnType: true,
             formatOnPaste: true,
-            validateOnType: true,
         }
     },
     markdown: {
@@ -68,8 +71,8 @@ export function MonacoFieldEditor({
     className
 }: IMonacoFieldEditorProps) {
     const [isEditorReady, setIsEditorReady] = useState(false);
-    const editorRef = useRef<any>(null);
-    const monacoRef = useRef<any>(null);
+    const editorRef = useRef<TMonacoEditorInstance | null>(null);
+    const monacoRef = useRef<Monaco | null>(null);
     const currentValueRef = useRef<string>(value || '');
 
     const config = languageConfig[language];
@@ -79,7 +82,7 @@ export function MonacoFieldEditor({
         currentValueRef.current = value || '';
     }, [value]);
 
-    const handleBeforeMount = (monaco: any) => {
+    const handleBeforeMount: BeforeMount = (monaco) => {
         monacoRef.current = monaco;
         
         // Set up JSON schema validation if needed
@@ -91,14 +94,14 @@ export function MonacoFieldEditor({
         }
     };
 
-    const handleMount = (editor: any, monaco: any) => {
+    const handleMount: OnMount = (editor, monaco) => {
         editorRef.current = editor;
         monacoRef.current = monaco;
         setIsEditorReady(true);
 
         // Format document on mount for better initial display
         setTimeout(() => {
-            editor.getAction('editor.action.formatDocument')?.run();
+            void editor.getAction('editor.action.formatDocument')?.run();
         }, 100);
     };
 
@@ -114,13 +117,13 @@ export function MonacoFieldEditor({
     useEffect(() => {
         if (isEditorReady && editorRef.current) {
             // Add a custom method to get current value
-            (editorRef.current as any).getCurrentValue = () => {
+            (editorRef.current as TMonacoEditorInstance & { getCurrentValue?: () => string }).getCurrentValue = () => {
                 return editorRef.current?.getValue() || currentValueRef.current;
             };
         }
     }, [isEditorReady]);
 
-    const editorOptions = {
+    const editorOptions: EditorProps['options'] = {
         selectOnLineNumbers: true,
         minimap: {
             enabled: false

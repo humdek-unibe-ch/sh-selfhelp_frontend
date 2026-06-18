@@ -13,7 +13,7 @@ import {
     getTimeRange
 } from '@mantine/dates';
 import dayjs from 'dayjs';
-import { IDatePickerStyle } from '../../../../../../types/common/styles.types';
+import { type IDatePickerStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
@@ -42,7 +42,7 @@ const setDayjsLocale = (locale: string) => {
  */
 interface IDatePickerStyleProps {
     style: IDatePickerStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -63,7 +63,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
     const placeholder = style.mantine_datepicker_placeholder?.content;
     const minDateStr = style.mantine_datepicker_min_date?.content;
     const maxDateStr = style.mantine_datepicker_max_date?.content;
-    const firstDayOfWeek = parseInt((style as any).mantine_datepicker_first_day_of_week?.content || '1') as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    const firstDayOfWeek = parseInt(style.mantine_datepicker_first_day_of_week?.content || '1') as 0 | 1 | 2 | 3 | 4 | 5 | 6;
     const weekendDaysStr = style.mantine_datepicker_weekend_days?.content || '[0,6]';
     const clearable = style.mantine_datepicker_clearable?.content === '1';
     const allowDeselect = style.mantine_datepicker_allow_deselect?.content === '1';
@@ -74,7 +74,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
     const hideOutsideDates = style.mantine_datepicker_hide_outside_dates?.content === '1';
     // hideWeekends: Hides Saturday and Sunday from the calendar, useful for business applications
     const hideWeekends = style.mantine_datepicker_hide_weekends?.content === '1';
-    const timeStep = parseInt((style as any).mantine_datepicker_time_step?.content || '15');
+    const timeStep = parseInt(style.mantine_datepicker_time_step?.content || '15');
     const timeFormat = style.mantine_datepicker_time_format?.content || '24';
     // timeStep is used with TimeGrid interval generation when withTimeGrid is enabled
     // dateFormat: Used for form submission and storage (separate from display format)
@@ -83,18 +83,18 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
     const withSeconds = style.mantine_datepicker_with_seconds?.content === '1';
 
     // Parse TimeGrid configuration
-    let timeGridConfig: any = {};
+    let timeGridConfig: Record<string, unknown> = {};
     try {
         if (timeGridConfigStr) {
             timeGridConfig = JSON.parse(timeGridConfigStr);
         }
-    } catch (e) {
+    } catch {
         console.warn('Invalid time grid config JSON:', timeGridConfigStr);
     }
 
     // Mantine-specific fields
-    const size = castMantineSize((style as any).mantine_size?.content);
-    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const size = castMantineSize(style.mantine_size?.content);
+    const radius = castMantineRadius(style.mantine_radius?.content);
 
     // Handle CSS field - use direct property from API response
     
@@ -113,7 +113,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
     try {
         const parsed = JSON.parse(weekendDaysStr);
         weekendDays = parsed.map((day: number) => day as 0 | 1 | 2 | 3 | 4 | 5 | 6);
-    } catch (e) {
+    } catch {
         console.warn('Invalid weekend days format:', weekendDaysStr);
     }
 
@@ -130,7 +130,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
             // Use form value if available and it's a string
             try {
                 return dayjs(formContextValue).toDate();
-            } catch (error) {
+            } catch {
                 console.warn('Failed to parse form date value:', formContextValue);
             }
         }
@@ -139,16 +139,19 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
         return value ? dayjs(value).toDate() : null;
     });
 
-    // Update value when form context changes (for record editing)
-    useEffect(() => {
+    // Keep state in sync with the (async) form value via a render-phase update
+    // instead of an effect; the sentinel initial runs it on first render too.
+    const [prevFormContextValue, setPrevFormContextValue] = useState<unknown>(() => ({}));
+    if (prevFormContextValue !== formContextValue) {
+        setPrevFormContextValue(formContextValue);
         if (formContextValue !== null && typeof formContextValue === 'string') {
             try {
                 setCurrentValue(dayjs(formContextValue).toDate());
-            } catch (error) {
+            } catch {
                 console.warn('Failed to parse updated form date value:', formContextValue);
             }
         }
-    }, [formContextValue]);
+    }
 
     // Handle value change for different component types
     const handleDateTimeChange = (value: Date | string | null) => {
@@ -229,7 +232,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
                     : null;
 
                 // Create TimeGrid props with configuration
-                const timeGridProps: any = {
+                const timeGridProps: Record<string, unknown> = {
                     value: gridValue,
                     onChange: (value: string | null) => {
                         if (value) {
@@ -256,7 +259,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
                     timeGridProps.simpleGridProps = timeGridConfig.simpleGridProps;
                 }
 
-                datePickerElement = <TimeGrid {...timeGridProps} />;
+                datePickerElement = <TimeGrid {...(timeGridProps as unknown as React.ComponentProps<typeof TimeGrid>)} />;
             } else {
                 // Use TimeInput for free-form time entry
                 const timeFormatPattern = withSeconds
@@ -309,7 +312,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
         case 'date':
         default:
             // Create DatePickerInput props with all available options
-            const datePickerProps: any = {
+            const datePickerProps: Record<string, unknown> = {
                 value: currentValue,
                 onChange: handleDateTimeChange,
                 label: label,
@@ -342,7 +345,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
                 datePickerProps.hideWeekends = hideWeekends;
             }
 
-            datePickerElement = <DatePickerInput {...datePickerProps} />;
+            datePickerElement = <DatePickerInput {...(datePickerProps as React.ComponentProps<typeof DatePickerInput>)} />;
             break;
     }
 

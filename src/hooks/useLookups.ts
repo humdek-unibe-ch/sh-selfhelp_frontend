@@ -11,7 +11,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useQuery } from '@tanstack/react-query';
 import { LookupsApi } from '../api/lookups.api';
-import { ILookup, IProcessedLookups, ILookupMap, ILookupsByType } from '../types/responses/admin/lookups.types';
+import { type ILookup, type IProcessedLookups, type ILookupMap, type ILookupsByType } from '../types/responses/admin/lookups.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 
 /**

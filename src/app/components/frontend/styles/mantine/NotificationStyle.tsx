@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React, { useState } from 'react';
 import { Notification } from '@mantine/core';
 import IconComponent from '../../../shared/common/IconComponent';
-import { INotificationStyle } from '../../../../../types/common/styles.types';
+import { type INotificationStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for NotificationStyle component
@@ -15,7 +15,7 @@ import { INotificationStyle } from '../../../../../types/common/styles.types';
  */
 interface INotificationStyleProps {
     style: INotificationStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -53,7 +53,7 @@ const NotificationStyle: React.FC<INotificationStyleProps> = ({ style, styleProp
     const styleObj: React.CSSProperties = {};
 
     // Get icon - use selected icon or fall back to color-based default
-    const getIcon = () => {
+    const _getIcon = () => {
         // If user selected an icon, use it
         if (selectedIcon) {
             return selectedIcon;

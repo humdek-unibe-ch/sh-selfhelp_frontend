@@ -38,7 +38,7 @@ export const DEBUG_CONFIG: IDebugConfig = {
     enabled: process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG === 'true',
     logging: {
         enabled: process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_LOGGING === 'true',
-        level: (process.env.NEXT_PUBLIC_DEBUG_LEVEL as any) || 'debug',
+        level: (process.env.NEXT_PUBLIC_DEBUG_LEVEL as IDebugConfig['logging']['level']) || 'debug',
         showTimestamp: true,
         showComponent: true,
     },

@@ -15,34 +15,32 @@ import {
   UnstyledButton,
   HoverCard,
   Menu,
-  Badge,
   NumberInput,
-  Container,
 } from "@mantine/core";
 import {
   Schedule,
-  ScheduleEventData,
+  type ScheduleEventData,
   ScheduleHeader,
-  ScheduleViewLevel,
+  type ScheduleViewLevel,
 } from "@mantine/schedule";
 import "@mantine/schedule/styles.css";
 import dayjs from "dayjs";
 import { useQueryClient } from "@tanstack/react-query";
 import { useScheduledJobsAll } from "../../../../../hooks/useScheduledJobs";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { IScheduledJobFilters } from "../../../../../types/responses/admin/scheduled-jobs.types";
+import { type IScheduledJobFilters } from "../../../../../types/responses/admin/scheduled-jobs.types";
 import { STATUS_LEGEND } from "../utils/job-status";
 import { useUsers } from "../../../../../hooks/useUsers";
-import { IUserBasic } from "../../../../../types/responses/admin/users.types";
+import { type IUserBasic } from "../../../../../types/responses/admin/users.types";
 import { useActions } from "../../../../../hooks/useActions";
 import { ScheduledJobDetailsModal } from "../scheduled-job-details-modal/ScheduledJobDetailsModal";
 import { useScheduledJobManager } from "../utils/hooks/useScheduledJobManager";
 import { DeleteJobModal } from "../delete-job-modal/DeleteJobModal";
-import { mapJobsToEvents, IJobEventPayload } from "./calendar-helpers";
+import { mapJobsToEvents, type IJobEventPayload } from "./calendar-helpers";
 import { EventHoverDetails } from "./EventHoverDetails";
 import classes from "./ScheduledJobsCalendar.module.css";
 import { ScheduledJobActionsMenuItems } from "../utils/ScheduledJobActionsMenuItems";
-import { DateStringValue, getStartOfWeek } from "@mantine/dates";
+import { type DateStringValue, getStartOfWeek } from "@mantine/dates";
 import { FilterActions } from "../../../shared/common/FilterControls";
 import { EmptyState } from "../../../shared/common/EmptyState";
 import { PageHeader } from "../../../shared/common/PageHeader";
@@ -219,7 +217,7 @@ export default function ScheduledJobsCalendar() {
    * Used by the Refresh button as a clean alternative to mutating params.
    */
   const handleRefresh = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["scheduledJobsAll"] });
+    void queryClient.invalidateQueries({ queryKey: ["scheduledJobsAll"] });
   }, [queryClient]);
 
   /**
@@ -304,7 +302,7 @@ export default function ScheduledJobsCalendar() {
 
   /** Closes the context menu on Escape key or scroll anywhere on the page. */
   useEffect(() => {
-    if (!contextMenu) return;
+    if (!contextMenu) return undefined;
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setContextMenu(null);
@@ -326,6 +324,7 @@ export default function ScheduledJobsCalendar() {
     !!params.userId ||
     !!params.actionId;
 
+  // eslint-disable-next-line consistent-return -- exhaustive switch over ScheduleViewLevel; all reachable paths return, so an explicit trailing return would only widen the type to `| undefined` and break callers.
   function getNavigationHandlers(
     date: DateStringValue,
     view: ScheduleViewLevel,
@@ -355,6 +354,7 @@ export default function ScheduledJobsCalendar() {
     }
   }
 
+  // eslint-disable-next-line consistent-return -- exhaustive switch over ScheduleViewLevel; all reachable paths return, so an explicit trailing return would only widen the type to `| undefined` and break callers.
   function getHeaderLabel(date: DateStringValue, view: ScheduleViewLevel) {
     const d = dayjs(date);
     switch (view) {

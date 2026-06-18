@@ -27,7 +27,7 @@ import {
     IconFileText
 } from '@tabler/icons-react';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
-import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
+import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import {
     useSelectedKeyword,
     useSetSelectedKeyword,

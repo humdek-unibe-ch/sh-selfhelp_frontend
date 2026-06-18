@@ -14,13 +14,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../api/admin';
-import { IUpdatePageRequest } from '../../types/requests/admin/update-page.types';
-import { IAdminPage } from '../../types/responses/admin/admin.types';
+import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
+import { type IUpdatePageRequest } from '../../types/requests/admin/update-page.types';
+import { type IAdminPage } from '../../types/responses/admin/admin.types';
 import { parseApiError } from '../../utils/mutation-error-handler';
 
 interface IUpdatePageMutationOptions {
     onSuccess?: (data: IAdminPage, pageId: number) => void;
-    onError?: (error: any, pageId: number) => void;
+    onError?: (error: unknown, pageId: number) => void;
     showNotifications?: boolean;
 }
 
@@ -44,37 +45,17 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
         
         onSuccess: async (updatedPage: IAdminPage, { pageId }: IUpdatePageMutationVariables) => {
 
-            // Enhanced cache invalidation strategy with consistent query keys
+            // Invalidate the caches the read hooks subscribe to (keys from the
+            // central registry to prevent drift). `invalidateQueries` already
+            // refetches active observers, so no extra refetch/remove churn.
             await Promise.all([
-                // Main admin pages list
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                // Page-specific data
-                queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }),
-                // Frontend navigation pages
-                queryClient.invalidateQueries({ queryKey: ['pages'] }),
-                queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] }),
-                // Frontend pages with language support
-                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }),
-                // Force refetch to ensure fresh data
-                queryClient.refetchQueries({ queryKey: ['adminPages'] }),
-                queryClient.refetchQueries({ queryKey: ['pages'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL }),
             ]);
-            
-            // Clear any stale cached data that might cause duplication
-            queryClient.removeQueries({ 
-                queryKey: ['adminPages'], 
-                exact: false 
-            });
-            queryClient.removeQueries({ 
-                queryKey: ['pages'], 
-                exact: false 
-            });
-            queryClient.removeQueries({ 
-                queryKey: ['frontend-pages'], 
-                exact: false 
-            });
-            
+
             if (showNotifications) {
                 notifications.show({
                     title: 'Page Updated Successfully',
@@ -90,7 +71,7 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
             onSuccess?.(updatedPage, pageId);
         },
         
-        onError: (error: any, { pageId }: IUpdatePageMutationVariables) => {
+        onError: (error: unknown, { pageId }: IUpdatePageMutationVariables) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

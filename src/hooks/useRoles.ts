@@ -63,17 +63,17 @@ export function useCreateRole() {
   return useMutation({
     mutationFn: (data: ICreateRoleRequest) => AdminRoleApi.createRole(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.all });
+      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.all });
       notifications.show({
         title: 'Success',
         message: 'Role created successfully',
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to create role',
+        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to create role',
         color: 'red',
       });
     },
@@ -88,18 +88,18 @@ export function useUpdateRole() {
     mutationFn: ({ roleId, data }: { roleId: number; data: IUpdateRoleRequest }) =>
       AdminRoleApi.updateRole(roleId, data),
     onSuccess: (_, { roleId }) => {
-      queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.all });
-      queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.detail(roleId) });
+      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.all });
+      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.detail(roleId) });
       notifications.show({
         title: 'Success',
         message: 'Role updated successfully',
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to update role',
+        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update role',
         color: 'red',
       });
     },
@@ -113,17 +113,17 @@ export function useDeleteRole() {
   return useMutation({
     mutationFn: (roleId: number) => AdminRoleApi.deleteRole(roleId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.all });
+      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.all });
       notifications.show({
         title: 'Success',
         message: 'Role deleted successfully',
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to delete role',
+        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to delete role',
         color: 'red',
       });
     },
@@ -138,18 +138,18 @@ export function useUpdateRolePermissions() {
     mutationFn: ({ roleId, data }: { roleId: number; data: IUpdateRolePermissionsRequest }) =>
       AdminRoleApi.updateRolePermissions(roleId, data),
     onSuccess: (_, { roleId }) => {
-      queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.permissions(roleId) });
-      queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.detail(roleId) });
+      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.permissions(roleId) });
+      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.detail(roleId) });
       notifications.show({
         title: 'Success',
         message: 'Role permissions updated successfully',
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to update role permissions',
+        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update role permissions',
         color: 'red',
       });
     },
@@ -164,18 +164,18 @@ export function useAddPermissionsToRole() {
     mutationFn: ({ roleId, data }: { roleId: number; data: IAddPermissionsToRoleRequest }) =>
       AdminRoleApi.addPermissionsToRole(roleId, data),
     onSuccess: (_, { roleId }) => {
-      queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.permissions(roleId) });
-      queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.detail(roleId) });
+      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.permissions(roleId) });
+      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.detail(roleId) });
       notifications.show({
         title: 'Success',
         message: 'Permissions added to role successfully',
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to add permissions to role',
+        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to add permissions to role',
         color: 'red',
       });
     },
@@ -190,18 +190,18 @@ export function useRemovePermissionsFromRole() {
     mutationFn: ({ roleId, data }: { roleId: number; data: IRemovePermissionsFromRoleRequest }) =>
       AdminRoleApi.removePermissionsFromRole(roleId, data),
     onSuccess: (_, { roleId }) => {
-      queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.permissions(roleId) });
-      queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.detail(roleId) });
+      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.permissions(roleId) });
+      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.detail(roleId) });
       notifications.show({
         title: 'Success',
         message: 'Permissions removed from role successfully',
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to remove permissions from role',
+        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to remove permissions from role',
         color: 'red',
       });
     },

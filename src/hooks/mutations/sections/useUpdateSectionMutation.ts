@@ -9,7 +9,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminSectionApi } from '../../../api/admin/section.api';
-import { IUpdateSectionMutationVariables } from '../../../types/requests/admin/update-section.types';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
+import { type IUpdateSectionMutationVariables } from '../../../types/requests/admin/update-section.types';
 
 interface IUpdateSectionMutationOptions {
     showNotifications?: boolean;
@@ -38,10 +39,13 @@ export function useUpdateSectionMutation({
             return result;
         },
         onSuccess: (data, variables) => {
-            // Invalidate relevant queries to refresh data with consistent query keys
-            const queryKey = pageId || variables.pageId;
-            
-            queryClient.invalidateQueries({ queryKey: ['pageSections', queryKey] });
+            // Invalidate relevant queries to refresh data with consistent query keys.
+            // UNPUBLISHED_CHANGES refreshes the publish-state reader so the
+            // "Publish Changes" button reflects the edited section immediately.
+            const sectionsPageId = pageId || variables.pageId;
+
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(sectionsPageId) });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(sectionsPageId) });
 
             if (showNotifications) {
                 notifications.show({
@@ -55,7 +59,7 @@ export function useUpdateSectionMutation({
 
             onSuccess?.();
         },
-        onError: (error: Error, variables: IUpdateSectionMutationVariables) => {
+        onError: (error: Error, _variables: IUpdateSectionMutationVariables) => {
 
             if (showNotifications) {
                 notifications.show({

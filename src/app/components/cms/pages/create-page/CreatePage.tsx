@@ -32,11 +32,11 @@ import { IconInfoCircle, IconEdit, IconLock } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { PAGE_ACCESS_TYPES, PAGE_ACCESS_TYPES_MOBILE_AND_WEB } from '../../../../../constants/lookups.constants';
-import { ICreatePageFormValues, ICreatePageModalProps } from '../../../../../types/forms/create-page.types';
-import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
+import { type ICreatePageFormValues, type ICreatePageModalProps } from '../../../../../types/forms/create-page.types';
+import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { MenuType } from '../page-inspector/PageInspector';
-import { ICreatePageRequest } from '../../../../../types/requests/admin/create-page.types';
+import { type ICreatePageRequest } from '../../../../../types/requests/admin/create-page.types';
 
 
 export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreatePageModalProps) => {
@@ -67,7 +67,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
     
     // Fetch lookups and admin pages
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
-    const { pages, isLoading: pagesLoading } = useAdminPages();
+    const { isLoading: pagesLoading } = useAdminPages();
 
     // Use Mantine's useForm for form management
     const form = useForm<ICreatePageFormValues>({
@@ -127,6 +127,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
     useEffect(() => {
         const urlPattern = generateUrlPattern(form.values.keyword, form.values.navigationPage, parentPage);
         form.setFieldValue('urlPattern', urlPattern);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on the specific form values read; `form` is a fresh object each render, so depending on it would re-run every render and call setFieldValue in a loop. `form.setFieldValue` is stable.
     }, [form.values.keyword, form.values.navigationPage, parentPage]);
 
 
@@ -185,7 +186,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         >
             <LoadingOverlay visible={pagesLoading} />
 
-            <form onSubmit={form.onSubmit(handleSubmit)}>
+            <form onSubmit={(event) => form.onSubmit(handleSubmit)(event)}>
                 <Stack gap="lg">
                                 {/* Context Information */}
                                 {parentPage && (

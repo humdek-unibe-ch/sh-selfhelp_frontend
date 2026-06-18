@@ -2,8 +2,8 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { Modal, ModalProps, Group, Button, ScrollArea, Text, CloseButton } from '@mantine/core';
-import { ReactNode } from 'react';
+import { Modal, type ModalProps, Group, Button, ScrollArea, Text, CloseButton } from '@mantine/core';
+import { type ReactNode } from 'react';
 import styles from './CustomModal.module.css';
 
 interface CustomModalProps extends Omit<ModalProps, 'opened'> {

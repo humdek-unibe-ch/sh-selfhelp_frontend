@@ -48,7 +48,7 @@ interface AuditLogsTableProps {
   onPageChange: (page: number) => void;
   onViewDetails?: (auditLogId: number) => void;
   loading: boolean;
-  error: any;
+  error: Error | null;
 }
 
 export function AuditLogsTable({
@@ -221,9 +221,10 @@ export function AuditLogsTable({
         enableSorting: false,
       },
     ],
-    []
+    [onViewDetails]
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by design; React Compiler intentionally skips memoizing here
   const table = useReactTable({
     data,
     columns,

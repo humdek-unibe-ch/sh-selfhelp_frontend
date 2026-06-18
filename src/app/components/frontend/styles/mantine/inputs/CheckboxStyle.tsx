@@ -2,10 +2,10 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Checkbox, Input } from '@mantine/core';
 import IconComponent from '../../../../shared/common/IconComponent';
-import { ICheckboxStyle } from '../../../../../../types/common/styles.types';
+import { type ICheckboxStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
@@ -16,7 +16,7 @@ import { castMantineSize, castMantineRadius } from '../../../../../../utils/styl
  */
 interface ICheckboxStyleProps {
     style: ICheckboxStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -31,8 +31,8 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style, styleProps, cssCl
     const description = style.description?.content || '';
 
     // Mantine-specific fields
-    const size = castMantineSize((style as any).mantine_size?.content);
-    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const size = castMantineSize(style.mantine_size?.content);
+    const radius = castMantineRadius(style.mantine_radius?.content);
     const color = style.mantine_color?.content;
     const iconName = style.mantine_checkbox_icon?.content;
     const labelPosition = style.mantine_checkbox_labelPosition?.content as 'left' | 'right';
@@ -42,7 +42,7 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style, styleProps, cssCl
     
 
     // Get icon component if specified
-    const icon = iconName ? ({ indeterminate, className }: { indeterminate: boolean | undefined; className: string }) =>
+    const icon = iconName ? ({ className }: { indeterminate: boolean | undefined; className: string }) =>
         <span className={className}><IconComponent iconName={iconName} size={16} /></span> : undefined;
 
     // Build style object for wrapper props
@@ -62,13 +62,19 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style, styleProps, cssCl
         return value === checkboxValue;
     });
 
-    // Update checked state when form context changes (for record editing)
-    useEffect(() => {
+    // Keep checked state in sync with the (async) form value via a render-phase
+    // update instead of an effect; the sentinel initial runs it on first render
+    // too, and prevCheckboxValue mirrors the original [formValue, checkboxValue] deps.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    const [prevCheckboxValue, setPrevCheckboxValue] = useState(checkboxValue);
+    if (prevFormValue !== formValue || prevCheckboxValue !== checkboxValue) {
+        setPrevFormValue(formValue);
+        setPrevCheckboxValue(checkboxValue);
         if (formValue !== null) {
             const shouldBeChecked = formValue === checkboxValue || (formValue === '1' && checkboxValue === '1');
             setIsChecked(shouldBeChecked);
         }
-    }, [formValue, checkboxValue]);
+    }
 
     // Handle checkbox change
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {

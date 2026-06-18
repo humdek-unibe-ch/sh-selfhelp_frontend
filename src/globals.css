@@ -87,8 +87,62 @@ SPDX-License-Identifier: MPL-2.0
     transition: min-height 0.3s ease-in-out;
 }
 
+/* ── Condition builder (react-querybuilder + Mantine) ──────────────────────
+   The builder ships only structural CSS, which looked cramped/misaligned in the
+   admin modal. These scoped rules give it the spacing, alignment and grouped
+   "card" look the rest of the admin UI uses, in BOTH color schemes. Everything
+   is namespaced under `.selfhelp-condition-builder` so no other UI is affected. */
 .selfhelp-condition-builder .rule {
-    align-items: baseline !important;
+    /* Center every control on the row (field / operator / value / remove). The
+       previous `baseline` alignment left the datetime/select inputs visibly
+       offset from the buttons. */
+    align-items: center !important;
+    gap: var(--mantine-spacing-xs);
+    flex-wrap: wrap;
+    padding: 6px var(--mantine-spacing-xs);
+    border-radius: var(--mantine-radius-sm);
+}
+
+.selfhelp-condition-builder .rule:hover {
+    background: var(--mantine-color-gray-0);
+}
+
+/* Group container: a subtle card so nested AND/OR groups read as distinct
+   blocks and the tree branches have breathing room. */
+.selfhelp-condition-builder .ruleGroup {
+    background: var(--mantine-color-gray-0);
+    border: 1px solid var(--mantine-color-gray-3);
+    border-radius: var(--mantine-radius-md);
+    padding: var(--mantine-spacing-sm);
+}
+
+.selfhelp-condition-builder .ruleGroup .ruleGroup {
+    background: var(--mantine-color-white);
+}
+
+/* Header row (combinator + add rule/group) gets consistent vertical alignment
+   and spacing instead of buttons crowding the combinator select. */
+.selfhelp-condition-builder .ruleGroup-header {
+    align-items: center;
+    gap: var(--mantine-spacing-xs);
+    margin-bottom: var(--mantine-spacing-xs);
+}
+
+.selfhelp-condition-builder .betweenRules {
+    margin-block: 2px;
+}
+
+[data-mantine-color-scheme='dark'] .selfhelp-condition-builder .rule:hover {
+    background: var(--mantine-color-dark-6);
+}
+
+[data-mantine-color-scheme='dark'] .selfhelp-condition-builder .ruleGroup {
+    background: var(--mantine-color-dark-7);
+    border-color: var(--mantine-color-dark-4);
+}
+
+[data-mantine-color-scheme='dark'] .selfhelp-condition-builder .ruleGroup .ruleGroup {
+    background: var(--mantine-color-dark-6);
 }
 
 /* Fix placeholder overflow */

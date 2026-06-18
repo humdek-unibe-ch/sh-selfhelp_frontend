@@ -21,7 +21,7 @@ interface AdminShellProps {
 }
 
 export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProps) {
-    const [opened, { toggle }] = useDisclosure();
+    const [opened, { toggle: _toggle }] = useDisclosure();
     const isSidebarCollapsed = useIsSidebarCollapsed();
     // Derive auth from our SSR-hydrated `['user-data']` cache rather than
     // Refine's separate `useIsAuthenticated` query, which starts every

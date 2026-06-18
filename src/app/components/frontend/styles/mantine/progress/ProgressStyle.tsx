@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Progress } from '@mantine/core';
-import { IProgressStyle } from '../../../../../../types/common/styles.types';
+import { type IProgressStyle } from '../../../../../../types/common/styles.types';
 import { castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 
 /**
@@ -15,7 +15,7 @@ import { castMantineSize, castMantineRadius } from '../../../../../../utils/styl
  */
 interface IProgressStyleProps {
     style: IProgressStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -29,13 +29,13 @@ interface IProgressStyleProps {
  */
 const ProgressStyle: React.FC<IProgressStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const value = parseFloat((style as any).value?.content || '0');
+    const value = parseFloat(style.value?.content || '0');
     const color = style.mantine_color?.content || 'blue';
-    const radius = castMantineRadius((style as any).mantine_radius?.content);
-    const size = castMantineSize((style as any).mantine_size?.content);
+    const radius = castMantineRadius(style.mantine_radius?.content);
+    const size = castMantineSize(style.mantine_size?.content);
     const striped = style.mantine_progress_striped?.content === '1';
     const animated = style.mantine_progress_animated?.content === '1';
-    const transitionDuration = parseInt((style as any).mantine_progress_transition_duration?.content || '200');
+    const transitionDuration = parseInt(style.mantine_progress_transition_duration?.content || '200');
 
     // Handle CSS field - use direct property from API response
     

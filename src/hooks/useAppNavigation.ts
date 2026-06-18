@@ -11,8 +11,9 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { type IResourceItem } from '@refinedev/core';
 import { NavigationApi } from '../api/navigation.api';
-import { IPageItem } from '../shared';
+import { type IPageItem } from '../shared';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLanguageContext } from '../app/components/contexts/LanguageContext';
 import {
@@ -28,7 +29,7 @@ interface INavigationData {
     footerPages: IPageItem[];
     profilePages: IPageItem[];
     routes: IPageItem[];
-    resources?: any[]; // Refine resources for admin mode
+    resources?: IResourceItem[]; // Refine resources for admin mode
 }
 
 /**
@@ -74,7 +75,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
         refetchOnMount: false,
         retry: 1,
         placeholderData: keepPreviousData,
-        select: (rawPages: any[]): INavigationData => {
+        select: (rawPages): INavigationData => {
             // Apply the shared transform (`transformPageData` + child URL
             // fix). The same helper backs the SSR `getMenuPagesSSR` call so
             // server-rendered menu HTML matches what we render after
@@ -93,7 +94,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
             const routes = flattenPages(fixedPages);
 
             // Generate Refine resources for admin mode
-            let resources: any[] = [];
+            let resources: IResourceItem[] = [];
             if (isAdmin) {
                 resources = pages.map(page => ({
                     name: page.keyword,
@@ -127,7 +128,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
 
             // Store transformed data in window for DevTools inspection
             if (typeof window !== 'undefined') {
-                (window as any).__NAVIGATION_DATA__ = result;
+                (window as unknown as Record<string, unknown>).__NAVIGATION_DATA__ = result;
             }
 
             return result;

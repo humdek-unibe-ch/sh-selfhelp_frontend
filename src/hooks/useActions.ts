@@ -52,7 +52,7 @@ export function useCreateAction() {
     return useMutation({
         mutationFn: (payload: ICreateActionRequest) => AdminActionApi.createAction(payload),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ACTION_QUERY_KEYS.all });
+            void qc.invalidateQueries({ queryKey: ACTION_QUERY_KEYS.all });
             notifications.show({
                 title: 'Action created',
                 message: 'The action was created successfully.',
@@ -76,7 +76,7 @@ export function useUpdateAction(actionId: number) {
     return useMutation({
         mutationFn: (payload: IUpdateActionRequest) => AdminActionApi.updateAction(actionId, payload),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ACTION_QUERY_KEYS.all });
+            void qc.invalidateQueries({ queryKey: ACTION_QUERY_KEYS.all });
             notifications.show({
                 title: 'Action updated',
                 message: 'The action was updated successfully.',
@@ -100,7 +100,7 @@ export function useDeleteAction() {
     return useMutation({
         mutationFn: (actionId: number) => AdminActionApi.deleteAction(actionId),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ACTION_QUERY_KEYS.all });
+            void qc.invalidateQueries({ queryKey: ACTION_QUERY_KEYS.all });
             notifications.show({
                 title: 'Action deleted',
                 message: 'The action was deleted.',

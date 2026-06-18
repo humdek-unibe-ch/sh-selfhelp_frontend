@@ -33,7 +33,7 @@ export const USER_QUERY_KEYS = {
 };
 
 // Common error handler
-const handleMutationError = (error: any) => {
+const handleMutationError = (error: unknown) => {
   const { errorMessage, errorTitle } = parseApiError(error);
   notifications.show({
     title: errorTitle,
@@ -99,7 +99,7 @@ export function useCreateUser() {
     mutationFn: (userData: ICreateUserRequest) => AdminUserApi.createUser(userData),
     onSuccess: (data) => {
       // Invalidate users list to refresh data
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
       
       notifications.show({
         title: 'User Created',
@@ -127,7 +127,7 @@ export function useUpdateUser() {
       // Update specific user cache
       queryClient.setQueryData(USER_QUERY_KEYS.detail(userId), data);
       // Invalidate users list to refresh data
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
       
       notifications.show({
         title: 'User Updated',
@@ -154,7 +154,7 @@ export function useDeleteUser() {
       // Remove user from cache
       queryClient.removeQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
       // Invalidate users list to refresh data
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
       
       notifications.show({
         title: 'User Deleted',
@@ -182,7 +182,7 @@ export function useToggleUserBlock() {
       // Update specific user cache
       queryClient.setQueryData(USER_QUERY_KEYS.detail(userId), data);
       // Invalidate users list to refresh data
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
       
       notifications.show({
         title: blockData.blocked ? 'User Blocked' : 'User Unblocked',
@@ -210,8 +210,8 @@ export function useAddGroupsToUser() {
       // Update user groups cache
       queryClient.setQueryData(USER_QUERY_KEYS.groups(userId), data);
       // Invalidate user details and list
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
       
       notifications.show({
         title: 'Groups Added',
@@ -237,9 +237,9 @@ export function useRemoveGroupsFromUser() {
       AdminUserApi.removeGroupsFromUser(userId, data),
     onSuccess: (_, { userId }) => {
       // Invalidate user groups, details and list
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.groups(userId) });
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.groups(userId) });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
       
       notifications.show({
         title: 'Groups Removed',
@@ -267,8 +267,8 @@ export function useAddRolesToUser() {
       // Update user roles cache
       queryClient.setQueryData(USER_QUERY_KEYS.roles(userId), data);
       // Invalidate user details and list
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
       
       notifications.show({
         title: 'Roles Added',
@@ -294,9 +294,9 @@ export function useRemoveRolesFromUser() {
       AdminUserApi.removeRolesFromUser(userId, data),
     onSuccess: (_, { userId }) => {
       // Invalidate user roles, details and list
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.roles(userId) });
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.roles(userId) });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
       
       notifications.show({
         title: 'Roles Removed',

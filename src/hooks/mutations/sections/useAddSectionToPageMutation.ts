@@ -14,12 +14,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
-import { IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
+import { type IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
 
 interface IAddSectionToPageMutationOptions {
   onSuccess?: (
-    data: any,
+    data: unknown,
     variables: {
       pageId: number;
       sections: IAddSectionInSectionData[];
@@ -27,7 +28,7 @@ interface IAddSectionToPageMutationOptions {
   ) => void;
 
   onError?: (
-    error: any,
+    error: unknown,
     variables: {
       pageId: number;
       sections: IAddSectionInSectionData[];
@@ -54,11 +55,14 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
         mutationFn: ({ pageId, sections }: IAddSectionToPageVariables) => 
             AdminApi.addSectionToPage(pageId, sections),
         
-        onSuccess: async (createdSection: any, variables: IAddSectionToPageVariables) => {
+        onSuccess: async (createdSection: unknown, variables: IAddSectionToPageVariables) => {
             
-            // Invalidate relevant queries to update the UI with consistent query keys
+            // Invalidate relevant queries to update the UI with consistent query keys.
+            // UNPUBLISHED_CHANGES refreshes the publish-state reader so the
+            // "Publish Changes" button reflects the new section immediately.
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
             ]);
             
             if (showNotifications) {
@@ -76,7 +80,7 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
             onSuccess?.(createdSection, variables);
         },
         
-        onError: (error: any, variables: IAddSectionToPageVariables) => {
+        onError: (error: unknown, variables: IAddSectionToPageVariables) => {
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);
             

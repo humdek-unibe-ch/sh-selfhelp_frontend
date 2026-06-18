@@ -5,15 +5,15 @@ SPDX-License-Identifier: MPL-2.0
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import {
-    IFormSubmitRequest,
-    IFormUpdateRequest,
-    IFormDeleteRequest
+    type IFormSubmitRequest,
+    type IFormUpdateRequest,
+    type IFormDeleteRequest
+,
+    type IFormSubmitResponse,
+    type IFormUpdateResponse,
+    type IFormDeleteResponse
 } from '../../shared';
-import {
-    IFormSubmitResponse,
-    IFormUpdateResponse,
-    IFormDeleteResponse
-} from '../../shared';
+
 
 /**
  * Form Submission API Service
@@ -29,7 +29,7 @@ export class FormSubmissionApi {
             headers: { 'Content-Type': 'multipart/form-data' }
         } : undefined;
         
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.FORMS_SUBMIT, data, config);
+        const response = await permissionAwareApiClient.post<IFormSubmitResponse>(API_CONFIG.ENDPOINTS.FORMS_SUBMIT, data, config);
         return response.data;
     }
 
@@ -42,7 +42,7 @@ export class FormSubmissionApi {
             headers: { 'Content-Type': 'multipart/form-data' }
         } : undefined;
         
-        const response = await permissionAwareApiClient.put(API_CONFIG.ENDPOINTS.FORMS_UPDATE, data, config);
+        const response = await permissionAwareApiClient.put<IFormUpdateResponse>(API_CONFIG.ENDPOINTS.FORMS_UPDATE, data, config);
         return response.data;
     }
 
@@ -52,7 +52,7 @@ export class FormSubmissionApi {
      */
     static async deleteForm(body: IFormDeleteRequest): Promise<IFormDeleteResponse> {
         // Backend now expects JSON body for DELETE
-        const response = await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.FORMS_DELETE, { data: body });
+        const response = await permissionAwareApiClient.delete<IFormDeleteResponse>(API_CONFIG.ENDPOINTS.FORMS_DELETE, { data: body });
         return response.data;
     }
 

@@ -16,10 +16,11 @@ import { IconCheck, IconX } from '@tabler/icons-react';
 import { parseApiError } from '../../utils/mutation-error-handler';
 import { useAdminPages } from '../useAdminPages';
 import { AdminApi } from '../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 
 interface IDeletePageMutationOptions {
     onSuccess?: (pageId: number) => void;
-    onError?: (error: any) => void;
+    onError?: (error: unknown) => void;
     showNotifications?: boolean;
 }
 
@@ -44,16 +45,14 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
         },
         
         onSuccess: async (result, pageId: number) => {
-            // Invalidate and refetch relevant queries to update the UI with consistent query keys
+            // Invalidate the list/nav caches the read hooks subscribe to (keys
+            // from the central registry to prevent drift), and drop the deleted
+            // page's now-orphaned detail caches.
             await Promise.all([
-                // Main admin pages list
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                // Frontend navigation pages
-                queryClient.invalidateQueries({ queryKey: ['pages'] }),
-                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }),
-                // Remove specific page data from cache
-                queryClient.removeQueries({ queryKey: ['pageSections', pageId] }),
-                queryClient.removeQueries({ queryKey: ['pageFields', pageId] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL }),
+                queryClient.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) }),
+                queryClient.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) }),
             ]);
             
             if (showNotifications) {
@@ -71,7 +70,7 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
             onSuccess?.(pageId);
         },
         
-        onError: (error: any, pageId: number) => {
+        onError: (error: unknown, _pageId: number) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

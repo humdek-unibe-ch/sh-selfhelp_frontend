@@ -2,9 +2,9 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { IBaseApiResponse } from '../common/response-envelope.types';
-import { IPageField } from '../../common/pages.type';
-import { IFieldConfig } from '../../requests/admin/fields.types';
+import { type IBaseApiResponse } from '../common/response-envelope.types';
+import { type IPageField } from '../../common/pages.type';
+import { type IFieldConfig } from '../../requests/admin/fields.types';
 
 export interface IAdminPageSectionsData {
     page_keyword: string;

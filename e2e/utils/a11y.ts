@@ -61,6 +61,7 @@ export async function expectNoSeriousA11yViolations(page: Page, label: string): 
         const debtNote = trackedDebt.length
             ? `, ${trackedDebt.length} tracked-debt (${[...new Set(trackedDebt.map((v) => v.id))].join(', ')})`
             : '';
+        // eslint-disable-next-line no-console -- e2e diagnostic output to surface a11y violations during test runs
         console.log(
             `[a11y] ${label}: ${results.violations.length} violation(s), ${blocking.length} blocking${debtNote}.`,
         );

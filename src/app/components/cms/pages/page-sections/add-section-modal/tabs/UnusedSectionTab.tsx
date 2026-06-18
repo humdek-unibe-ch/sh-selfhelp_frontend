@@ -16,13 +16,14 @@ import {
     Group,
 } from '@mantine/core';
 import { IconSearch, IconInfoCircle, IconAlertCircle } from '@tabler/icons-react';
+import type { IUnusedSection } from '../../../../../../../types/responses/admin/section-utility.types';
 
 interface UnusedSectionTabProps {
     isLoadingUnused: boolean;
     isFetchingUnused: boolean;
-    unusedError: any;
-    unusedSections: any[];
-    filteredUnusedSections: any[];
+    unusedError: unknown;
+    unusedSections: IUnusedSection[];
+    filteredUnusedSections: IUnusedSection[];
     searchQuery: string;
     setSearchQuery: (query: string) => void;
     selectedUnusedSections: { sectionId: number }[];
@@ -57,7 +58,7 @@ export function UnusedSectionTab({
                 </Group>
             )}
 
-            {!(isLoadingUnused || isFetchingUnused) && unusedError && (
+            {!(isLoadingUnused || isFetchingUnused) && !!unusedError && (
                 <Alert icon={<IconAlertCircle size={16} />} color="red">
                     Failed to load unused sections. Please try again.
                 </Alert>

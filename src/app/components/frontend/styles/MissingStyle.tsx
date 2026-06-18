@@ -7,13 +7,13 @@ SPDX-License-Identifier: MPL-2.0
 import { Container, Paper, ThemeIcon, Title, Text, Button } from '@mantine/core';
 import { IconCompass, IconHome } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
-import { IMissingStyle } from '../../../../shared';
+import { type IMissingStyle } from '../../../../shared';
 import { ROUTES } from '../../../../config/routes.config';
 import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 
 interface IMissingStyleProps {
     style: Partial<IMissingStyle>;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 

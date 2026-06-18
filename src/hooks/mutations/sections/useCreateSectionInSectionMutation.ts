@@ -14,11 +14,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface ICreateSectionInSectionMutationOptions {
-    onSuccess?: (data: any, variables: ICreateSectionInSectionVariables) => void;
-    onError?: (error: any, variables: ICreateSectionInSectionVariables) => void;
+    onSuccess?: (data: unknown, variables: ICreateSectionInSectionVariables) => void;
+    onError?: (error: unknown, variables: ICreateSectionInSectionVariables) => void;
     showNotifications?: boolean;
     pageId?: number; // Optional page ID for cache invalidation
 }
@@ -47,19 +48,22 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
         mutationFn: ({ pageId, parentSectionId, sections }: ICreateSectionInSectionVariables) => 
             AdminApi.createSectionInSection(pageId, parentSectionId, sections),
         
-        onSuccess: async (createdSection: any, variables: ICreateSectionInSectionVariables) => {
+        onSuccess: async (createdSection: unknown, variables: ICreateSectionInSectionVariables) => {
             
-            // Invalidate relevant queries to update the UI
+            // Invalidate relevant queries to update the UI. UNPUBLISHED_CHANGES
+            // refreshes the publish-state reader so the "Publish Changes" button
+            // reflects the new child section immediately.
             const invalidationPromises = [
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
             ];
             
             // If pageId is provided, also invalidate page-specific queries
             if (cachePageId) {
                 invalidationPromises.push(
-                    queryClient.invalidateQueries({ queryKey: ['pageSections', cachePageId] }),
-                    queryClient.refetchQueries({ queryKey: ['pageSections', cachePageId] }),
+                    queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(cachePageId) }),
+                    queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(cachePageId) }),
                 );
             }
             
@@ -80,7 +84,7 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
             onSuccess?.(createdSection, variables);
         },
         
-        onError: (error: any, variables: ICreateSectionInSectionVariables) => {
+        onError: (error: unknown, variables: ICreateSectionInSectionVariables) => {
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);
             

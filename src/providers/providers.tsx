@@ -22,19 +22,20 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 if (process.env.NODE_ENV === 'development') {
-    import('../utils/performance-monitor.utils').then(({ enableProfiling }) => {
+    void import('../utils/performance-monitor.utils').then(({ enableProfiling }) => {
         enableProfiling();
+        // eslint-disable-next-line no-console -- dev-only one-time notice when the performance monitor activates
         console.log('[Performance Monitor] React DevTools profiling enabled automatically in development');
     });
 }
 
-import { MantineProvider } from '@mantine/core';
+import { MantineProvider ,type  MantineColorScheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { Refine } from '@refinedev/core';
 import appRouter from '@refinedev/nextjs-router';
 import dataProvider from '@refinedev/simple-rest';
 import { API_CONFIG } from '../config/api.config';
-import { QueryClientProvider, HydrationBoundary, type DehydratedState } from '@tanstack/react-query';
+import { QueryClientProvider, HydrationBoundary, type DehydratedState ,type  QueryClient } from '@tanstack/react-query';
 
 import { useAppNavigation } from '../hooks/useAppNavigation';
 import { usePathname } from 'next/navigation';
@@ -44,7 +45,7 @@ import { LanguageProvider } from '../app/components/contexts/LanguageContext';
 import { PreviewModeProvider } from '../app/components/contexts/PreviewModeContext';
 import { PluginsProvider } from '../app/components/frontend/plugin-runtime';
 import { theme } from '../../theme';
-import type { MantineColorScheme } from '@mantine/core';
+
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { cookieColorSchemeManager } from '../utils/cookie-color-scheme-manager';
 import { useMemo, useState } from 'react';
@@ -53,8 +54,9 @@ import { useAclEventStream } from '../hooks/useAclEventStream';
 import { useAdminPluginsRealtime } from '../app/components/cms/plugins/hooks/useAdminPluginsRealtime';
 import type { ILanguage } from '../types/responses/admin/languages.types';
 import { getQueryClient } from './query-client';
-import type { QueryClient } from '@tanstack/react-query';
+
 import { ImpersonationBanner } from '../app/components/shared/common/ImpersonationBanner';
+import { ColorSchemePersist } from '../app/components/shared/common/ColorSchemePersist';
 
 function RefineWrapper({
     children,
@@ -168,6 +170,12 @@ function ClientProviders({
                         theme={theme}
                     >
                         <Notifications />
+                        {/*
+                          Persists the color-scheme cookie on the first visit so
+                          the choice is initialised (Mantine otherwise only
+                          writes it when the user explicitly changes the scheme).
+                        */}
+                        <ColorSchemePersist />
                         {/*
                           Mounted at the root client boundary on purpose:
                           impersonation is most often used to debug what

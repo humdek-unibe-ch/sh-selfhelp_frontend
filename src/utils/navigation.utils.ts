@@ -45,7 +45,7 @@ function fixChildPageUrls(pageList: IPageItem[]): IPageItem[] {
  * Use this when you need the full transformed pages tree (e.g. inside the
  * `useAppNavigation` `select` to derive footer / profile / route slices).
  */
-export function transformNavigationPages(rawPages: any[]): IPageItem[] {
+export function transformNavigationPages(rawPages: Parameters<typeof transformPageData>[0][]): IPageItem[] {
     if (!Array.isArray(rawPages)) return [];
     const transformed = rawPages.map(transformPageData);
     return fixChildPageUrls(transformed);

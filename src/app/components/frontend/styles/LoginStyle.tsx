@@ -8,13 +8,13 @@ import { useState } from 'react';
 import { TextInput, PasswordInput, Button, Paper, Title, Anchor, Stack } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ILoginStyle } from '../../../../types/common/styles.types';
+import { type ILoginStyle } from '../../../../types/common/styles.types';
 import { AuthApi } from '../../../../api/auth.api';
 import { ROUTES } from '../../../../config/routes.config';
 
 interface ILoginStyleProps {
     style: ILoginStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, unknown>;
     cssClass: string;
 }
 
@@ -32,7 +32,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const labelRegister = style.label_register?.content ?? (style.fields?.label_register?.content as string | undefined) ?? 'Create account';
     const alertFail = style.alert_fail?.content || 'Invalid email or password.';
     const loginTitle = style.login_title?.content || 'Welcome back!';
-    const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
+    const mantineColor = ((style as { mantine_color?: { content?: string } }).mantine_color?.content as string | undefined) || 'blue';
     const formType = style.type?.content || style.fields?.type?.content || 'light';
 
     const handleSubmit = async (e: { preventDefault(): void }) => {
@@ -55,8 +55,8 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
             notifications.show({ title: 'Success', message: 'Successfully logged in', color: 'green' });
             const redirectTo = searchParams.get('redirectTo') || ROUTES.HOME;
             router.push(redirectTo);
-        } catch (err: any) {
-            notifications.show({ title: 'Error', message: err?.message || alertFail, color: 'red' });
+        } catch (err) {
+            notifications.show({ title: 'Error', message: (err as { message?: string })?.message || alertFail, color: 'red' });
         } finally {
             setIsLoading(false);
         }

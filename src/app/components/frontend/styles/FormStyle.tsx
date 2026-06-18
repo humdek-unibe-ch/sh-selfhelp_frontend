@@ -8,14 +8,21 @@ import { Button, Alert, LoadingOverlay, Group } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
-import { IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
-import { IFormLogStyle, IFormRecordStyle } from '../../../../types/common/styles.types';
+import { type IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
+import { type IFormLogStyle, type IFormRecordStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline } from '../../../../utils/html-sanitizer.utils';
 import parse from 'html-react-parser';
 
+/** A single translatable value entry for a record-form field. */
+type TFormTranslatedValue = { language_id: number; value: string };
+/** Value of a record-form field: a plain string or per-language entries. */
+type TFormFieldValue = string | TFormTranslatedValue[];
+/** All fields of a single form record keyed by field name. */
+type TFormRecordGroup = Record<string, TFormFieldValue>;
+
 interface FormStyleProps {
     style: IFormLogStyle | IFormRecordStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, unknown>;
     cssClass: string;
 }
 
@@ -35,7 +42,7 @@ const FormFieldValueContext = React.createContext<{
 
 export { FileInputRegistrationContext, FormFieldValueContext };
 
-const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) => {
+const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const pageContent = usePageContentValue();
     const [formKey, setFormKey] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,11 +53,10 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
     const hasInitializedForm = useRef<boolean>(false);
 
     // Extract form configuration from style
-    const name = style.name?.content || 'default_form';
+    const _name = style.name?.content || 'default_form';
     const isLog = style.is_log?.content === '1';
     const alertSuccess = style.alert_success?.content;
     const alertError = style.alert_error?.content;
-    const redirectUrl = style.redirect_at_end?.content;
 
     // Extract button configuration
     const saveLabel = style.btn_save_label?.content || 'Save';
@@ -63,7 +69,6 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
     const buttonRadius = style.buttons_radius?.content || 'sm';
     const buttonVariant = style.buttons_variant?.content || 'filled';
     const buttonPosition = style.buttons_position?.content || 'space-between';
-    const buttonOrder = 'cancel-save'; // Default order
     const useMantineStyle = style.use_mantine_style?.content === '1';
     const saveColor = style.btn_save_color?.content || 'blue';
     const updateColor = style.btn_save_color?.content || 'green'; // Use same color for update
@@ -86,20 +91,20 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
     
     // For record types, derive existing data from section_data of this style
     const { existingRecordId, existingFormDataFromSection } = useMemo(() => {
-        if (!isRecord) return { existingRecordId: null as number | null, existingFormDataFromSection: null as Record<string, any> | null };
+        if (!isRecord) return { existingRecordId: null as number | null, existingFormDataFromSection: null as TFormRecordGroup | null };
 
         // The record form's section_data lives on the parent form style (`style.section_data`)
         // and contains records with translations for different languages.
-        const sectionDataArray: any[] | undefined = style.section_data;
+        const sectionDataArray = style.section_data as Array<Record<string, unknown>> | undefined;
         if (!Array.isArray(sectionDataArray) || sectionDataArray.length === 0) {
             return { existingRecordId: null, existingFormDataFromSection: null };
         }
 
         // Group data by record_id
-        const recordGroups: Record<number, Record<string, any>> = {};
+        const recordGroups: Record<number, TFormRecordGroup> = {};
 
-        sectionDataArray.forEach((record: any) => {
-            const recordId = record.record_id;
+        sectionDataArray.forEach((record) => {
+            const recordId = record.record_id as number | undefined;
             if (!recordId) return;
 
             if (!recordGroups[recordId]) {
@@ -112,12 +117,12 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                 const skipFields = ['record_id', 'entry_date', 'id_users', 'user_name', 'user_code', 'id_actionTriggerTypes', 'triggerType', 'id_languages', 'language_locale', 'language_name'];
                 if (skipFields.includes(fieldName)) return;
 
-                const languageId = record.id_languages;
+                const languageId = record.id_languages as number | undefined;
                 const value = fieldValue as string;
 
                 // Check if this field is translatable by looking at the child components
-                const childComponent = style.children?.find((child: any) => child.name?.content === fieldName);
-                const isTranslatable = (childComponent as any)?.translatable?.content === '1';
+                const childComponent = style.children?.find((child) => (child as { name?: { content?: string } }).name?.content === fieldName);
+                const isTranslatable = (childComponent as { translatable?: { content?: string } } | undefined)?.translatable?.content === '1';
 
                 if (isTranslatable) {
                     // For translatable fields, collect values from all languages except 1
@@ -127,11 +132,12 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                         }
 
                         // Add or update the language-specific value
-                        const existingIndex = recordGroups[recordId][fieldName].findIndex((v: any) => v.language_id === languageId);
+                        const langValues = recordGroups[recordId][fieldName] as TFormTranslatedValue[];
+                        const existingIndex = langValues.findIndex((v) => v.language_id === languageId);
                         if (existingIndex >= 0) {
-                            recordGroups[recordId][fieldName][existingIndex] = { language_id: languageId, value };
+                            langValues[existingIndex] = { language_id: languageId as number, value };
                         } else {
-                            recordGroups[recordId][fieldName].push({ language_id: languageId, value });
+                            langValues.push({ language_id: languageId as number, value });
                         }
                     }
                 } else {
@@ -295,7 +301,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                         'language_id' in parsed[0] && 'value' in parsed[0]) {
                         processedValue = parsed as Array<{ language_id: number; value: string }>;
                     }
-                } catch (e) {
+                } catch {
                     // Not valid JSON, keep as string
                 }
             }
@@ -316,7 +322,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                     cleanFormData.append('page_id', String(pageId));
                     cleanFormData.append('section_id', String(sectionId));
                     cleanFormData.append('record_id', String(existingRecordId));
-                    response = await updateFormMutation.mutateAsync(cleanFormData as any);
+                    response = await updateFormMutation.mutateAsync(cleanFormData);
                 } else {
                     // Send as JSON for regular data
                     response = await updateFormMutation.mutateAsync({
@@ -332,7 +338,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                     // Send as FormData for file uploads - add required fields to clean FormData
                     cleanFormData.append('page_id', String(pageId));
                     cleanFormData.append('section_id', String(sectionId));
-                    response = await submitFormMutation.mutateAsync(cleanFormData as any);
+                    response = await submitFormMutation.mutateAsync(cleanFormData);
                 } else {
                     // Send as JSON for regular data
                     response = await submitFormMutation.mutateAsync({
@@ -355,17 +361,18 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
             }
 
             // Handle success alert - prefer backend message over style message
-            const successMessage = response?.data?.message || alertSuccess;
+            const _successMessage = response?.data?.message || alertSuccess;
 
-        } catch (error: any) {
+        } catch (error) {
             // Extract error message from API response if available
             let errorMessage = alertError || 'Failed to submit form. Please try again.';
-            if (error?.response?.data?.error) {
-                errorMessage = error.response.data.error;
-            } else if (error?.response?.data?.message) {
-                errorMessage = error.response.data.message;
-            } else if (error?.message) {
-                errorMessage = error.message;
+            const err = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
+            if (err?.response?.data?.error) {
+                errorMessage = err.response.data.error;
+            } else if (err?.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err?.message) {
+                errorMessage = err.message;
             }
 
             setSubmitError(errorMessage);
@@ -381,7 +388,6 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
         existingRecordId,
         alertSuccess,
         alertError,
-        redirectUrl,
         submitFormMutation,
         updateFormMutation,
         collectFilesFromInputs
@@ -406,7 +412,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                     onClick={handleCancel}
                     size={buttonSize}
                     radius={buttonRadius}
-                    variant={buttonVariant as any}
+                    variant={buttonVariant}
                     color={cancelColor}
                     disabled={isSubmitting}
                 >
@@ -457,7 +463,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                     disabled={!pageId}
                     size={buttonSize}
                     radius={buttonRadius}
-                    variant={buttonVariant as any}
+                    variant={buttonVariant}
                     color={isRecord && existingRecordId ? updateColor : saveColor}
                 >
                     {parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
@@ -504,7 +510,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
         // Return buttons in the specified order (always cancel-save)
         return [cancelButton, saveButton].filter(Boolean);
     }, [
-        buttonSize, buttonRadius, buttonVariant, buttonOrder, cancelColor, saveColor, updateColor,
+        buttonSize, buttonRadius, buttonVariant, cancelColor, saveColor, updateColor,
         isSubmitting, pageId, isRecord, existingRecordId, handleCancel, cancelLabel, cancelUrl,
         updateLabel, saveLabel
     ]);
@@ -609,7 +615,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                 
                 <FileInputRegistrationContext.Provider value={{ registerFileInputRef }}>
                     <FormFieldValueContext.Provider value={{ getFieldValue }}>
-                        <div className={(style as any).css?.content || ''}>
+                        <div className={(style as { css?: { content?: string } }).css?.content || ''}>
                             {style.children?.map((child, index) => (
                                 child ? <BasicStyle key={index} style={child} /> : null
                             ))}
@@ -617,7 +623,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                             {/* Form Buttons */}
                             {useMantineStyle ? (
                                 // Mantine Style Buttons
-                                <Group justify={buttonPosition as any} mt="xl">
+                                <Group justify={buttonPosition as React.ComponentProps<typeof Group>['justify']} mt="xl">
                                     {renderButtons(true)}
                                 </Group>
                             ) : (

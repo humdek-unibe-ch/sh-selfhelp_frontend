@@ -162,6 +162,8 @@ CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` t
 - Prefer SSR prefetch plus hydration for CMS/admin data where the existing architecture already does this.
 - Avoid duplicate fetching between Server Components and client hooks.
 - Reuse existing query keys and cache tiers from `REACT_QUERY_CONFIG`.
+- React Query keys that are shared across a reader/writer boundary — a hook reads a key and a *different* hook or component invalidates it — must come from `REACT_QUERY_CONFIG.QUERY_KEYS`, so a writer's invalidation key can never drift from the reader's key. This covers the page list, public page content (`PAGE_BY_KEYWORD*`), page sections/fields, page versions, unpublished changes, and the admin section utility caches (`ADMIN_SECTIONS_*`, `SECTION_DETAILS`). Do not invalidate ad-hoc literals (e.g. a camelCase `['adminPages']` when the read hook uses `['admin-pages']`); if a shared key is missing from the registry, add it there first and reference it from both sides. Keys defined and invalidated inside a single hook may stay local, but promote them to the registry the moment a second file needs them.
+- After a mutation, prefer a single `invalidateQueries` per affected registry key — it already refetches active observers. Do not stack `invalidateQueries` + `refetchQueries` + `removeQueries` for the same key "to be safe"; that discards freshly fetched data and causes loading flashes.
 - Avoid `useEffect` data fetching when React Query or Server Components already own the data.
 - Use optimistic updates only where existing flows already support them safely.
 - Prefer targeted invalidation over refetch-all patterns.
@@ -187,6 +189,10 @@ CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` t
 - Preserve field extraction, interpolation, condition, and localization behavior.
 - Do not change dynamic style registration casually.
 - Keep frontend style registration aligned with backend style definitions and `@selfhelp/shared` where applicable.
+- **CMS naming conventions (cross-repo contract — keep all four repos in lockstep).** These three identifier kinds each have ONE casing. They are shared by the backend `styles` / `fields` / `fieldType` seeds + DB, `@selfhelp/shared` (`STYLE_REGISTRY`, the `I<Name>Style` field interfaces), the frontend `BasicStyle` dispatcher + `FieldRenderer`, and the mobile renderers, so a rename in one place must land in every repo at once.
+  - **Style names → `kebab-case`.** The `style_name` (the `BasicStyle`/registry dispatcher key) must be lowercase kebab-case (e.g. `reset-password`, `two-factor-auth`, `no-access`, `not-found`, `ref-container`, `show-user-input`, `entry-list`, `entry-record`, `entry-record-delete`), never camelCase (`resetPassword`) or snake_case. Sections reference styles by `id_styles` (FK), not by the name string, so renaming a style name is a metadata change, not a content migration — but the dispatcher key must keep matching the backend `style_name`. New styles must be registered kebab-case from the start. (This is *only* the style-name string; TypeScript identifiers built from it — the `ResetPasswordStyle` component, the `AuthApi.resetPassword()` method — stay valid camelCase JS.)
+  - **Field names → `snake_case`.** A `fields.name` / style field key (e.g. `own_entries_only`, `data_table`, `mantine_color`, `ln_padding`) must be lowercase snake_case, matching the JSON content keys the renderer reads. Do not introduce camelCase field names (`mantine_checkbox_labelPosition` is a legacy outlier to fix, not a pattern to copy). Content fields stay translatable; property fields are not.
+  - **Field types → `kebab-case`** (`fieldType.name`, e.g. `markdown-inline`, `select-group`, `color-picker`, `html-tag`). The catalog is already kebab-case; the two legacy outliers (`ln_padding`, `select-data_table`) are to be renamed to match. Keep new field types kebab-case.
 - Be careful with dynamic Tailwind class generation, mobile class prefixing, and HTML sanitization.
 - Unknown or unsupported CMS styles should continue to render through the existing `UnknownStyle` path.
 
@@ -224,6 +230,21 @@ CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` t
 - Use Mantine components first, Tailwind for layout/utilities/dynamic CMS classes, and CSS modules for component-specific custom CSS.
 - Keep imports consistent with nearby files. The code mostly uses relative imports; confirm aliases before introducing `@/...`.
 - Use `@tabler/icons-react` for icons because that is the installed icon set.
+
+## Linting Rules (mandatory)
+Linting is mandatory whenever code is changed. ESLint uses the flat config in `eslint.config.mjs` (type-aware: `projectService` + `tseslint.parser`) layered on top of `eslint-config-next`.
+
+- After changing any TypeScript / JavaScript / React / Next.js code, run `npm run lint` (and `npm run lint:fix` for the safe autofixes). Type-aware rules also require `npm run tsc` to pass.
+- If lint fails on code you touched, fix it before finishing. Do not hand back work with new lint errors you introduced.
+- All lint fixes must be behavior-preserving. Never change functionality, control flow, return values, async ordering, side effects, or public/runtime contracts only to satisfy a lint rule. If "fix the lint" and "don't change behavior" conflict, preserving behavior wins.
+- Unused imports are not allowed (`unused-imports/no-unused-imports`). Remove them.
+- Unused variables/arguments are not allowed unless intentionally prefixed with `_` (`unused-imports/no-unused-vars` with `^_` ignore patterns). Prefer `_`-prefixing params, destructured rebindings, and hook results you must keep calling; drop genuinely dead, side-effect-free locals/imports.
+- Explicit `any` is forbidden and enforced as an error (`@typescript-eslint/no-explicit-any`); do not add new `any`. Replace it with a precise type, an existing project type, generics, or `unknown` only when that does not change runtime behavior — never as a quick fix. A narrow, documented `// eslint-disable-next-line` exception is allowed only when correct typing is infeasible (the lone current exception lives in `src/types/common/styles.types.ts`).
+- Unhandled/floating promises are not allowed (`@typescript-eslint/no-floating-promises`, `@typescript-eslint/no-misused-promises`). Mark intentionally unawaited promises with `void`; only add `await` when it does not change execution order.
+- Also enforced: `consistent-return`, `no-unreachable`, `no-duplicate-imports`, `no-debugger`, and `consistent-type-imports`. `no-console` allows only `console.warn`/`console.error`; other `console.*` is a (non-blocking) warning — do not add new ones.
+- Do not disable ESLint rules globally or add broad file-level disables to hide problems. If a rule genuinely cannot be satisfied without risking behavior, use a single-line `// eslint-disable-next-line <rule> -- <reason>` with a clear justification, keep it minimal, and report it.
+- The final response for a change must mention the lint/tsc/test commands run and their result.
+- CI enforces this gate as blocking: `npm run lint -- --max-warnings=0`, the TypeScript check, and `npm test` must pass on every PR/push to `main` (`plugin-runtime-check.yml` runs headers/tsc/lint/build; `frontend-tests.yml` runs the Vitest suite) and again before any tagged Docker publish/GitHub release (`frontend-release.yml`, `publish-verify.yml`). Generated output (`coverage/**`, `.next/**`, `dist/**`, `test-results/**`, `playwright-report/**`) is ignored by the flat config so `--max-warnings=0` is deterministic. Never merge or release on a red gate, and do not weaken these workflows to go green.
 
 ## Modal Rules
 - **Always use the shared `ModalWrapper`** from
@@ -425,8 +446,10 @@ When making changes, mention the relevant impact on:
 
 ## API Rules
 - Add endpoints to `src/config/api.config.ts` as `{ route, permissions }`.
+- Every mutating endpoint (`post`/`put`/`patch`/`delete`) must declare the `permissions` it requires. A write endpoint with `permissions: []` silently passes the client-side permission gate, so an empty array is only acceptable for genuinely public/self-service routes and must carry a comment saying so.
 - For shared public endpoints, align with `@selfhelp/shared` first.
 - Use `permissionAwareApiClient` in domain API clients.
+- Avoid runtime argument-shape guessing in API helpers (e.g. probing an `unknown[]` rest param to decide whether the last arg is an `AxiosRequestConfig`). Prefer explicit typed parameters; if a variadic heuristic is genuinely unavoidable, centralize it in one documented helper rather than copy-pasting it per verb.
 - `apiClient` is the raw Axios instance and should only be used for special internal cases.
 - Browser Axios base URL is `/api`.
 - Standard API data is wrapped in the Symfony envelope: `status`, `message`, `error`, `logged_in`, `meta`, `data`.

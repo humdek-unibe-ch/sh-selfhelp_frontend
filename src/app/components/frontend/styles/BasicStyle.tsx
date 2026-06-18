@@ -33,23 +33,24 @@ import MissingStyle from './MissingStyle';
 import NotFoundStyle from './NotFoundStyle';
 import DebugWrapper from './shared/debug-wrapper/DebugWrapper';
 import {
-    ILoginStyle, IProfileStyle, IValidateStyle, IRegisterStyle, IResetPasswordStyle, ITwoFactorAuthStyle, IShowUserInputStyle,
-    IContainerStyle, IRefContainerStyle, ICenterStyle, IDividerStyle, IPaperStyle, IAlertStyle, IHtmlTagStyle,
-    IFormStyle, IInputStyle, ITextInputStyle, ITextareaStyle, IRichTextEditorStyle,
-    ISelectStyle, IRadioStyle, ISliderStyle, ICheckboxStyle, IDatePickerStyle,
-    IImageStyle, IVideoStyle, IAudioStyle, IFigureStyle, ICarouselStyle, ILinkStyle, ITabsStyle, ITabStyle, IFlexStyle, IGroupStyle, ISimpleGridStyle, IScrollAreaStyle, ISpaceStyle,
-    IGridStyle, IGridColumnStyle, IStackStyle, IButtonStyle, IColorInputStyle,
-    IColorPickerStyle, IFileInputStyle, INumberInputStyle, IRangeSliderStyle,
-    ISegmentedControlStyle, ISwitchStyle, IComboboxStyle, IActionIconStyle,
-    IBadgeStyle, IBoxStyle, IChipStyle, IAvatarStyle, ITimelineStyle, IIndicatorStyle,
-    IKbdStyle, IRatingStyle, IProgressStyle, IProgressRootStyle, IProgressSectionStyle,
-    IThemeIconStyle, IAccordionStyle, IAccordionItemStyle, INotificationStyle,
-    ITitleStyle, ITextStyle, ICodeStyle, IHighlightStyle, IBlockquoteStyle,
-    IAspectRatioStyle, ICardStyle, ICardSegmentStyle, IListStyle, IListItemStyle,
-    IBackgroundImageStyle, IFieldsetStyle, ISpoilerStyle, ITypographyStyle,
-    TStyle,
-    IStyleWithSpacing
+    type ILoginStyle, type IProfileStyle, type IValidateStyle, type IRegisterStyle, type IResetPasswordStyle, type ITwoFactorAuthStyle, type IShowUserInputStyle,
+    type IContainerStyle, type IRefContainerStyle, type ICenterStyle, type IDividerStyle, type IPaperStyle, type IAlertStyle, type IHtmlTagStyle,
+    type IFormStyle, type IInputStyle, type ITextInputStyle, type ITextareaStyle, type IRichTextEditorStyle,
+    type ISelectStyle, type IRadioStyle, type ISliderStyle, type ICheckboxStyle, type IDatePickerStyle,
+    type IImageStyle, type IVideoStyle, type IAudioStyle, type IFigureStyle, type ICarouselStyle, type ILinkStyle, type ITabsStyle, type ITabStyle, type IFlexStyle, type IGroupStyle, type ISimpleGridStyle, type IScrollAreaStyle, type ISpaceStyle,
+    type IGridStyle, type IGridColumnStyle, type IStackStyle, type IButtonStyle, type IColorInputStyle,
+    type IColorPickerStyle, type IFileInputStyle, type INumberInputStyle, type IRangeSliderStyle,
+    type ISegmentedControlStyle, type ISwitchStyle, type IComboboxStyle, type IActionIconStyle,
+    type IBadgeStyle, type IBoxStyle, type IChipStyle, type IAvatarStyle, type ITimelineStyle, type IIndicatorStyle,
+    type IKbdStyle, type IRatingStyle, type IProgressStyle, type IProgressRootStyle, type IProgressSectionStyle,
+    type IThemeIconStyle, type IAccordionStyle, type IAccordionItemStyle, type INotificationStyle,
+    type ITitleStyle, type ITextStyle, type ICodeStyle, type IHighlightStyle, type IBlockquoteStyle,
+    type IAspectRatioStyle, type ICardStyle, type ICardSegmentStyle, type IListStyle, type IListItemStyle,
+    type IBackgroundImageStyle, type IFieldsetStyle, type ISpoilerStyle, type ITypographyStyle,
+    type TStyle,
+    type IStyleWithSpacing
 } from '../../../../types/common/styles.types';
+import { type INoAccessStyle, type IMissingStyle, type INotFoundStyle } from '../../../../shared';
 import { usePluginRuntime, usePluginStyleComponent } from '../plugin-runtime';
 
 /**
@@ -124,7 +125,6 @@ export const getSpacingProps = (style: IStyleWithSpacing) => {
     const spacingProps: Record<string, string> = {};
     const warnInvalid = (reason: string, value: unknown): void => {
         if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
             console.warn(
                 `[getSpacingProps] section ${style.id} (${style.style_name}): ${reason}`,
                 value
@@ -217,21 +217,21 @@ const styleImpls: Record<string, TStyleRenderer> = {
         <RegisterStyle style={style as IRegisterStyle} styleProps={styleProps} cssClass={cssClass} />,
     validate: ({ style, styleProps, cssClass }) =>
         <ValidateStyle style={style as IValidateStyle} styleProps={styleProps} cssClass={cssClass} />,
-    resetPassword: ({ style, styleProps, cssClass }) =>
+    'reset-password': ({ style, styleProps, cssClass }) =>
         <ResetPasswordStyle style={style as IResetPasswordStyle} styleProps={styleProps} cssClass={cssClass} />,
-    twoFactorAuth: ({ style, styleProps, cssClass }) =>
+    'two-factor-auth': ({ style, styleProps, cssClass }) =>
         <TwoFactorAuthStyle style={style as ITwoFactorAuthStyle} styleProps={styleProps} cssClass={cssClass} />,
     profile: ({ style, styleProps, cssClass }) =>
         <ProfileStyle style={style as IProfileStyle} styleProps={styleProps} cssClass={cssClass} />,
-    noAccess: ({ style, styleProps, cssClass }) =>
-        <NoAccessStyle style={style as any} styleProps={styleProps} cssClass={cssClass} />,
+    'no-access': ({ style, styleProps, cssClass }) =>
+        <NoAccessStyle style={style as unknown as Partial<INoAccessStyle>} styleProps={styleProps} cssClass={cssClass} />,
     missing: ({ style, styleProps, cssClass }) =>
-        <MissingStyle style={style as any} styleProps={styleProps} cssClass={cssClass} />,
-    notFound: ({ style, styleProps, cssClass }) =>
-        <NotFoundStyle style={style as any} styleProps={styleProps} cssClass={cssClass} />,
+        <MissingStyle style={style as unknown as Partial<IMissingStyle>} styleProps={styleProps} cssClass={cssClass} />,
+    'not-found': ({ style, styleProps, cssClass }) =>
+        <NotFoundStyle style={style as unknown as Partial<INotFoundStyle>} styleProps={styleProps} cssClass={cssClass} />,
 
     // ===== layout =====
-    refContainer: ({ style }) =>
+    'ref-container': ({ style }) =>
         <RefContainerStyle style={style as IRefContainerStyle} />,
     container: ({ style, styleProps, cssClass }) =>
         <ContainerStyle style={style as IContainerStyle} styleProps={styleProps} cssClass={cssClass} />,
@@ -389,7 +389,7 @@ const styleImpls: Record<string, TStyleRenderer> = {
         <TypographyStyle style={style as ITypographyStyle} styleProps={styleProps} cssClass={cssClass} />,
 
     // ===== data display =====
-    showUserInput: ({ style, styleProps, cssClass }) =>
+    'show-user-input': ({ style, styleProps, cssClass }) =>
         <ShowUserInputStyle style={style as IShowUserInputStyle} styleProps={styleProps} cssClass={cssClass} />,
 };
 

@@ -13,7 +13,7 @@ import {
     Alert
 } from '@mantine/core';
 import { IconFile } from '@tabler/icons-react';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 interface IInspectorLayoutProps {
     header: ReactNode;

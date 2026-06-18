@@ -4,10 +4,10 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ColorSwatch, Group, CheckIcon, UnstyledButton, Popover, ColorPicker as MantineColorPicker, TextInput, rem, Checkbox } from '@mantine/core';
 import classes from './ColorPickerField.module.css';
-import { IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
+import { type IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
 
 
 export function ColorWheelIcon() {
@@ -79,12 +79,8 @@ interface IColorPickerFieldProps {
 }
 
 export function ColorPickerField({
-    fieldId,
-    fieldName,
-    fieldTitle,
     value,
     onChange,
-    help,
     config,
     disabled = false
 }: IColorPickerFieldProps) {
@@ -97,8 +93,14 @@ export function ColorPickerField({
     const [isColorEnabled, setIsColorEnabled] = useState(!!value);
     const [userInteracted, setUserInteracted] = useState(false);
 
-    // Sync checkbox state with value changes
-    useEffect(() => {
+    // Sync checkbox state with value changes. Render-phase update that runs the
+    // body only when `value` or `colors` changes (matching the previous effect's
+    // [value, colors] dependency), replacing the effect.
+    const [prevValue, setPrevValue] = useState<unknown>(() => ({}));
+    const [prevColors, setPrevColors] = useState<unknown>(() => ({}));
+    if (prevValue !== value || prevColors !== colors) {
+        setPrevValue(value);
+        setPrevColors(colors);
         const hasColorValue = !!value && value.trim() !== '';
         setIsColorEnabled(hasColorValue);
         // Always set the color picker to the current value for proper initialization
@@ -108,7 +110,7 @@ export function ColorPickerField({
             // Reset user interaction flag when value changes externally
             setUserInteracted(false);
         }
-    }, [value, colors]);
+    }
 
     const handleColorPickerChange = (color: string) => {
         setColorPickerColor(color);

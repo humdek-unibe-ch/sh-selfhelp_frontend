@@ -20,8 +20,7 @@ import {
   TableThead,
   TableTh,
   TableTr,
-} from '@mantine/core';
-import {
+
   Card,
   Group,
   TextInput,
@@ -35,9 +34,8 @@ import {
   Stack,
   Button,
   Menu,
-  Center,
-  Box,
-} from '@mantine/core';
+  Box} from '@mantine/core';
+
 import {
   IconSearch,
   IconEdit,
@@ -450,6 +448,7 @@ export function RolesList({
   );
 
   // Initialize table
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by design; React Compiler intentionally skips memoizing here
   const table = useReactTable({
     data: rolesData?.roles || [],
     columns,

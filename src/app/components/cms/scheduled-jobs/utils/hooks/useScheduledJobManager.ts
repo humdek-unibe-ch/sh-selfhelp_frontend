@@ -38,7 +38,7 @@ export function useScheduledJobManager() {
         });
         setDetailsModal({ opened: false, jobId: undefined });
       },
-      onError: (error: any) => {
+      onError: (error) => {
         notifications.show({
           title: 'Error',
           message: error.message || 'Failed to execute job',
@@ -68,7 +68,7 @@ export function useScheduledJobManager() {
         });
         setDeleteModal({ opened: false, jobId: undefined, jobDescription: undefined });
       },
-      onError: (error: any) => {
+      onError: (error) => {
         notifications.show({
           title: 'Error',
           message: error.message || 'Failed to delete job',

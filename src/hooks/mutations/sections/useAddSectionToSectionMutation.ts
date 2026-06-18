@@ -14,12 +14,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
-import { IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
+import { type IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
 
 interface IAddSectionToSectionMutationOptions {
   onSuccess?: (
-    data: any,
+    data: unknown,
     variables: {
       pageId: number;
       parentSectionId: number;
@@ -28,7 +29,7 @@ interface IAddSectionToSectionMutationOptions {
   ) => void;
 
   onError?: (
-    error: any,
+    error: unknown,
     variables: {
       pageId: number;
       parentSectionId: number;
@@ -52,18 +53,21 @@ interface IAddSectionToSectionVariables {
  */
 export function useAddSectionToSectionMutation(options: IAddSectionToSectionMutationOptions = {}) {
     const queryClient = useQueryClient();
-    const { onSuccess, onError, showNotifications = true, pageId: cachePageId } = options;
+    const { onSuccess, onError, showNotifications = true } = options;
 
     return useMutation({
         mutationFn: ({ pageId, parentSectionId, sections }: IAddSectionToSectionVariables) => 
             AdminApi.addSectionToSection(pageId, parentSectionId, sections),
         
-        onSuccess: async (createdSection: any, variables: IAddSectionToSectionVariables) => {
+        onSuccess: async (createdSection: unknown, variables: IAddSectionToSectionVariables) => {
 
-            // Invalidate relevant queries to update the UI
+            // Invalidate relevant queries to update the UI. UNPUBLISHED_CHANGES
+            // refreshes the publish-state reader so the "Publish Changes" button
+            // reflects the moved/added section immediately.
             const invalidationPromises = [
-                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.invalidateQueries({queryKey: ['admin', 'sections', 'unused']}),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
             ];
             await Promise.all(invalidationPromises);
             
@@ -82,7 +86,7 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
             onSuccess?.(createdSection, variables);
         },
         
-        onError: (error: any, variables: IAddSectionToSectionVariables) => {
+        onError: (error: unknown, variables: IAddSectionToSectionVariables) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

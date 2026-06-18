@@ -17,7 +17,7 @@ import {
     IconChevronDown,
     IconChevronUp
 } from '@tabler/icons-react';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { useInspectorStore } from '../../../../../store/inspectorStore';
 
 interface ICollapsibleSectionProps {

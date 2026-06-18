@@ -21,8 +21,8 @@ import { debugLogger } from '../utils/debug-logger';
 
 interface IPropChange {
     propName: string;
-    oldValue: any;
-    newValue: any;
+    oldValue: unknown;
+    newValue: unknown;
     timestamp: number;
     renderNumber: number;
 }
@@ -47,10 +47,10 @@ interface IRenderInfo {
     lastRenderTime: number;
     totalRenderTime: number;
     averageRenderTime: number;
-    props?: Record<string, any>;
-    state?: Record<string, any>;
-    context?: Record<string, any>;
-    hooks?: Record<string, any>;
+    props?: Record<string, unknown>;
+    state?: Record<string, unknown>;
+    context?: Record<string, unknown>;
+    hooks?: Record<string, unknown>;
     changedProps?: string[];
     propChangeHistory?: IPropChange[];
     renderEvents?: IRenderEvent[];
@@ -62,7 +62,7 @@ interface IPerformanceWarning {
     type: 'excessive-renders' | 'slow-render' | 'unstable-props' | 'infinite-loop';
     componentName: string;
     message: string;
-    details?: any;
+    details?: unknown;
     timestamp: number;
 }
 
@@ -92,7 +92,7 @@ const THRESHOLDS = {
  */
 export function useRenderMonitor(
     componentName: string,
-    props?: Record<string, any>,
+    props?: Record<string, unknown>,
     options: {
         trackState?: boolean;
         trackContext?: boolean;
@@ -101,25 +101,34 @@ export function useRenderMonitor(
     } = {}
 ) {
     const renderCountRef = useRef(0);
-    const propsRef = useRef<Record<string, any>>(props || {});
-    const stateRef = useRef<Record<string, any>>({});
-    const contextRef = useRef<Record<string, any>>({});
-    const hooksRef = useRef<Record<string, any>>({});
+    const propsRef = useRef<Record<string, unknown>>(props || {});
+    const stateRef = useRef<Record<string, unknown>>({});
+    const contextRef = useRef<Record<string, unknown>>({});
+    const hooksRef = useRef<Record<string, unknown>>({});
     const renderStartTimeRef = useRef(0);
     const lastRenderTimeRef = useRef(0);
-    const firstRenderTimeRef = useRef(Date.now());
+    const firstRenderTimeRef = useRef(0);
 
-    // Only run in development
-    if (process.env.NODE_ENV !== 'development') {
-        return { renderCount: 0, warnings: [], renderEvents: [] };
+    const isDevelopment = process.env.NODE_ENV === 'development';
+
+    // Render-phase instrumentation. A render profiler must capture the
+    // render-start time and bump the render counter during render itself, so
+    // these intentionally read/write refs and call impure timing APIs during
+    // render. Gated to development so production renders stay clean.
+    let currentRenderNumber = 0;
+    if (isDevelopment) {
+        // eslint-disable-next-line react-hooks/refs, react-hooks/purity -- dev-only render profiler captures the render-start time during render
+        renderStartTimeRef.current = performance.now();
+        // eslint-disable-next-line react-hooks/refs -- dev-only render profiler counts renders during render
+        renderCountRef.current += 1;
+        currentRenderNumber = renderCountRef.current;
     }
 
-    // Track render start
-    renderStartTimeRef.current = performance.now();
-    renderCountRef.current += 1;
-    const currentRenderNumber = renderCountRef.current;
-
     useEffect(() => {
+        if (!isDevelopment) return;
+        if (firstRenderTimeRef.current === 0) {
+            firstRenderTimeRef.current = Date.now();
+        }
         const renderEndTime = performance.now();
         const renderDuration = renderEndTime - renderStartTimeRef.current;
         const currentTime = Date.now();
@@ -260,7 +269,7 @@ export function useRenderMonitor(
         if (options.enableStackTrace && (renderDuration > THRESHOLDS.SLOW_RENDER || changedProps.length > 0)) {
             try {
                 renderEvent.stackTrace = new Error().stack;
-            } catch (e) {
+            } catch {
                 // Stack trace not available
             }
         }
@@ -281,7 +290,12 @@ export function useRenderMonitor(
         cleanupOldWarnings();
     });
 
+    if (!isDevelopment) {
+        return { renderCount: 0, warnings: [], renderEvents: [] };
+    }
+
     return {
+        // eslint-disable-next-line react-hooks/refs -- dev-only render profiler returns its own render count
         renderCount: renderCountRef.current,
         warnings: warnings.filter(w => w.componentName === componentName),
         renderEvents: renderTracker.get(componentName)?.renderEvents || [],
@@ -411,6 +425,7 @@ export function getWarnings(): IPerformanceWarning[] {
  */
 export function enableProfiling() {
     isProfilingEnabled = true;
+    // eslint-disable-next-line no-console -- dev-only performance diagnostics: unconditional console status is intended
     console.log('[Performance Monitor] Performance profiling enabled');
 }
 
@@ -419,6 +434,7 @@ export function enableProfiling() {
  */
 export function disableProfiling() {
     isProfilingEnabled = false;
+    // eslint-disable-next-line no-console -- dev-only performance diagnostics: unconditional console status is intended
     console.log('[Performance Monitor] Performance profiling disabled');
 }
 
@@ -438,17 +454,18 @@ export function resetPerformanceMonitor() {
  * @param componentName - Name of the component
  * @param props - Props to track
  */
-export function useWhyDidYouUpdate(componentName: string, props: Record<string, any>) {
-    const previousProps = useRef<Record<string, any> | undefined>({});
-
-    if (process.env.NODE_ENV !== 'development') {
-        return;
-    }
+export function useWhyDidYouUpdate(componentName: string, props: Record<string, unknown>) {
+    const previousProps = useRef<Record<string, unknown> | undefined>({});
 
     useEffect(() => {
+        // Dev-only diagnostic; the effect is always registered (so hook order is
+        // stable) but no-ops in production builds.
+        if (process.env.NODE_ENV !== 'development') {
+            return;
+        }
         if (previousProps.current) {
             const allKeys = Object.keys({ ...previousProps.current, ...props });
-            const changedProps: Record<string, { from: any; to: any }> = {};
+            const changedProps: Record<string, { from: unknown; to: unknown }> = {};
 
             allKeys.forEach((key) => {
                 if (previousProps.current![key] !== props[key]) {
@@ -460,6 +477,7 @@ export function useWhyDidYouUpdate(componentName: string, props: Record<string, 
             });
 
             if (Object.keys(changedProps).length > 0) {
+                // eslint-disable-next-line no-console -- dev-only "why did you update" diagnostic output
                 console.log(`[Why Did You Update] ${componentName}`, changedProps);
             }
         }
@@ -476,18 +494,23 @@ export function useWhyDidYouUpdate(componentName: string, props: Record<string, 
  */
 export function useMountMonitor(componentName: string) {
     const mountCountRef = useRef(0);
-    const mountTimeRef = useRef(Date.now());
-
-    if (process.env.NODE_ENV !== 'development') {
-        return;
-    }
+    const mountTimeRef = useRef(0);
 
     useEffect(() => {
+        // Dev-only diagnostic; the effect is always registered (so hook order is
+        // stable) but no-ops in production builds.
+        if (process.env.NODE_ENV !== 'development') {
+            return undefined;
+        }
+        if (mountTimeRef.current === 0) {
+            mountTimeRef.current = Date.now();
+        }
         mountCountRef.current += 1;
         const mountTime = Date.now();
         const timeSinceLastMount = mountTime - mountTimeRef.current;
 
         if (mountCountRef.current > 1) {
+            // eslint-disable-next-line no-console -- dev-only mount/remount diagnostic output
             console.log(
                 `[Mount Monitor] ${componentName} remounted (${mountCountRef.current} times, ${timeSinceLastMount}ms since last mount)`
             );
@@ -503,6 +526,7 @@ export function useMountMonitor(componentName: string) {
         mountTimeRef.current = mountTime;
 
         return () => {
+            // eslint-disable-next-line no-console -- dev-only mount/unmount diagnostic output
             console.log(`[Mount Monitor] ${componentName} unmounted`);
         };
     }, [componentName]);
@@ -512,7 +536,7 @@ export function useMountMonitor(componentName: string) {
  * Performance monitoring component wrapper
  * Wraps any component with performance monitoring
  */
-export function withPerformanceMonitor<P extends Record<string, any>>(
+export function withPerformanceMonitor<P extends Record<string, unknown>>(
     Component: React.ComponentType<P>,
     componentName?: string
 ): React.ComponentType<P> {
@@ -595,7 +619,7 @@ export function generatePerformanceReport(): string {
 `;
 
     // Helper function to safely stringify values
-    const safeStringify = (value: any): string => {
+    const safeStringify = (value: unknown): string => {
         if (value === undefined) return 'undefined';
         if (value === null) return 'null';
         if (typeof value === 'function') return '[Function]';
@@ -709,7 +733,7 @@ export function generatePerformanceReport(): string {
             const recentEvents = stat.renderEvents.slice(-10);
             const firstEventTime = recentEvents[0]?.timestamp || Date.now();
 
-            recentEvents.forEach((event, index) => {
+            recentEvents.forEach((event, _index) => {
                 const timeSinceStart = event.timestamp - firstEventTime;
                 const timeStr = timeSinceStart < 1000 ? `${timeSinceStart}ms` :
                                timeSinceStart < 60000 ? `${Math.floor(timeSinceStart / 1000)}s` :
@@ -819,7 +843,7 @@ export function generatePerformanceReport(): string {
 
 `;
 
-        allRenderEvents.forEach((event, index) => {
+        allRenderEvents.forEach((event, _index) => {
             const timeAgo = Date.now() - event.timestamp;
             const timeStr = timeAgo < 1000 ? 'just now' :
                            timeAgo < 60000 ? `${Math.floor(timeAgo / 1000)}s ago` :
@@ -950,9 +974,11 @@ export function useProfilingEnabled() {
  */
 export function logPerformanceReport() {
     const report = generatePerformanceReport();
+    /* eslint-disable no-console -- dev-only: prints the grouped performance report to the console */
     console.group('🚀 React Performance Analysis Report');
     console.log(report);
     console.groupEnd();
+    /* eslint-enable no-console */
     return report;
 }
 
@@ -963,14 +989,21 @@ export function logPerformanceReport() {
  * @param name - Component name for logging
  * @param props - Component props to track changes
  */
-export function useRenderLogger(name: string, props: Record<string, any>) {
-    const prevProps = React.useRef<Record<string, any>>(props);
+export function useRenderLogger(name: string, props: Record<string, unknown>) {
+    const prevProps = React.useRef<Record<string, unknown>>(props);
     const renderCount = React.useRef(0);
+    // eslint-disable-next-line react-hooks/purity -- dev-only render logger seeds a render timestamp
     const lastRenderTime = React.useRef(Date.now());
-    const renderStack = React.useRef<string[]>([]);
+    const _renderStack = React.useRef<string[]>([]);
 
+    // Render-phase instrumentation: a render logger must count renders and read
+    // timing during render itself, so these intentionally touch refs / impure
+    // timing APIs during render.
+    // eslint-disable-next-line react-hooks/refs -- dev-only render logger counts renders during render
     renderCount.current += 1;
+    // eslint-disable-next-line react-hooks/purity -- dev-only render logger reads the clock during render
     const currentTime = Date.now();
+    // eslint-disable-next-line react-hooks/refs -- dev-only render logger reads its last render timestamp during render
     const timeSinceLastRender = currentTime - lastRenderTime.current;
 
     // Capture stack trace for this render
@@ -1000,7 +1033,7 @@ export function useRenderLogger(name: string, props: Record<string, any>) {
                         const currentKeys = Object.keys(current);
                         const previousKeys = Object.keys(previous);
                         if (currentKeys.length !== previousKeys.length ||
-                            currentKeys.some(k => (current as any)[k] !== (previous as any)[k])) {
+                            currentKeys.some(k => (current as Record<string, unknown>)[k] !== (previous as Record<string, unknown>)[k])) {
                             changedProps.push(key);
                         }
                     } else {
@@ -1038,6 +1071,7 @@ export function useRenderLogger(name: string, props: Record<string, any>) {
         // Always log renders for debugging
         if (renderCount.current === 1) {
             const message = `[RenderLogger] ${name} mounted (render #${renderCount.current})`;
+            // eslint-disable-next-line no-console -- dev-only render logger: unconditional console mirror of the debug entry
             console.log(message);
             debugLogger.debug(message, name, { renderCount: renderCount.current });
         } else {
@@ -1045,6 +1079,7 @@ export function useRenderLogger(name: string, props: Record<string, any>) {
                 ? `props: [${changedProps.join(', ')}]`
                 : `internal (${cause})`;
             const message = `[RenderLogger] ${name} re-rendered (render #${renderCount.current}) after ${timeSinceLastRender}ms because: ${reason}`;
+            // eslint-disable-next-line no-console -- dev-only render logger: unconditional console mirror of the debug entry
             console.log(message);
 
             // Also log to debug logger for AI analysis
@@ -1074,7 +1109,7 @@ export function useRenderLogger(name: string, props: Record<string, any>) {
 }
 
 // Helper function to provide suggestions for render causes
-function getRenderCauseSuggestion(cause: string, stackTrace: string): string {
+function getRenderCauseSuggestion(cause: string, _stackTrace: string): string {
     switch (cause) {
         case 'state-update':
             return 'Check useState setters called in render or effects without proper dependencies';
@@ -1099,6 +1134,7 @@ export async function copyPerformanceReportToClipboard(): Promise<boolean> {
     try {
         const report = generatePerformanceReport();
         await navigator.clipboard.writeText(report);
+        // eslint-disable-next-line no-console -- dev-only: confirms the report was copied to the clipboard
         console.log('📋 Performance report copied to clipboard!');
         return true;
     } catch (error) {
@@ -1120,7 +1156,7 @@ export function getCurrentPerformanceStats() {
 
 // Make functions available globally in development
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-    (window as any).performanceMonitor = {
+    (window as unknown as Record<string, unknown>).performanceMonitor = {
         logReport: logPerformanceReport,
         copyReport: copyPerformanceReportToClipboard,
         getStats: getCurrentPerformanceStats,
@@ -1129,10 +1165,12 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         reset: resetPerformanceMonitor
     };
 
+    /* eslint-disable no-console -- dev-only: one-time console banner documenting the global window.performanceMonitor API */
     console.log('🔍 Performance Monitor available globally as window.performanceMonitor');
     console.log('Usage:');
     console.log('  window.performanceMonitor.logReport() - Log detailed report to console');
     console.log('  window.performanceMonitor.copyReport() - Copy report to clipboard');
     console.log('  window.performanceMonitor.getStats() - Get current stats');
+    /* eslint-enable no-console */
 }
 

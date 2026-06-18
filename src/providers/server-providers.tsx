@@ -84,7 +84,7 @@ export async function ServerProviders({ children }: { children: React.ReactNode 
         <ClientProviders
             dehydratedState={dehydrate(queryClient)}
             initialLanguageId={initialLanguageId}
-            initialLanguages={languages as any}
+            initialLanguages={languages}
             initialPreviewMode={initialPreviewMode}
             initialColorScheme={initialColorScheme}
         >

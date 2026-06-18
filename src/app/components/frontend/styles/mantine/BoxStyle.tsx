@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Box } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { IBoxStyle } from '../../../../../types/common/styles.types';
+import { type IBoxStyle } from '../../../../../types/common/styles.types';
 import parse from "html-react-parser";
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -14,7 +14,7 @@ import DOMPurify from 'isomorphic-dompurify';
  */
 interface IBoxStyleProps {
     style: IBoxStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -40,7 +40,7 @@ const BoxStyle: React.FC<IBoxStyleProps> = ({ style, styleProps, cssClass }) => 
         >
             {content}
             {children.length > 0 ? (
-                children.map((child: any, index: number) => (
+                children.map((child, index: number) => (
                     child ? <BasicStyle key={index} style={child} /> : null
                 ))
             ) : null}

@@ -7,9 +7,9 @@ SPDX-License-Identifier: MPL-2.0
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { AuthApi } from '../api/auth.api';
-import { IUserDataResponse, IAuthUser, IUserData } from '../types/auth/jwt-payload.types';
+import { type IUserDataResponse, type IAuthUser, type IUserData } from '../types/auth/jwt-payload.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { createPermissionChecker, PermissionChecker } from '../utils/permissions.utils';
+import { createPermissionChecker, type PermissionChecker } from '../utils/permissions.utils';
 import { permissionManager } from '../api/permission-wrapper.api';
 import { isTransientApiError, transientRetryDelay } from '../utils/transient-error.utils';
 
@@ -42,10 +42,10 @@ export function useUserData() {
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.gcTime,
         refetchOnWindowFocus: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.refetchOnWindowFocus,
         refetchOnMount: false,
-        retry: (failureCount, error: any) => {
+        retry: (failureCount, error: unknown) => {
             // A genuine `401` (session expired) must surface immediately so the
             // shell can react — never retry it.
-            if (error?.response?.status === 401) return false;
+            if ((error as { response?: { status?: number } })?.response?.status === 401) return false;
             // A backend restart (plugin/system operation) makes user-data
             // answer 5xx / network for a few seconds. Ride it out so the
             // operator's auth state does not flicker to "logged out"

@@ -14,11 +14,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface ICreateSectionInPageMutationOptions {
-    onSuccess?: (data: any, variables: ICreateSectionInPageVariables) => void;
-    onError?: (error: any, variables: ICreateSectionInPageVariables) => void;
+    onSuccess?: (data: unknown, variables: ICreateSectionInPageVariables) => void;
+    onError?: (error: unknown, variables: ICreateSectionInPageVariables) => void;
     showNotifications?: boolean;
 }
 
@@ -45,13 +46,16 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
         mutationFn: ({ pageId, sections }: ICreateSectionInPageVariables) => 
             AdminApi.createSectionInPage(pageId, sections),
         
-        onSuccess: async (createdSection: any, variables: ICreateSectionInPageVariables) => {
+        onSuccess: async (createdSection: unknown, variables: ICreateSectionInPageVariables) => {
             
-            // Invalidate relevant queries to update the UI with consistent query keys
+            // Invalidate relevant queries to update the UI with consistent query keys.
+            // UNPUBLISHED_CHANGES refreshes the publish-state reader so the
+            // "Publish Changes" button reflects the new section immediately.
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
+                queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
             ]);
             
             if (showNotifications) {
@@ -69,7 +73,7 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
             onSuccess?.(createdSection, variables);
         },
         
-        onError: (error: any, variables: ICreateSectionInPageVariables) => {
+        onError: (error: unknown, variables: ICreateSectionInPageVariables) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

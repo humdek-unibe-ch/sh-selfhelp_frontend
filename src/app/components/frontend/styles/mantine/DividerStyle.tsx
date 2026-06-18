@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Divider } from '@mantine/core';
-import { IDividerStyle } from '../../../../../types/common/styles.types';
+import { type IDividerStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for DividerStyle component
@@ -14,7 +14,7 @@ import { IDividerStyle } from '../../../../../types/common/styles.types';
  */
 interface IDividerStyleProps {
     style: IDividerStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -40,11 +40,11 @@ const DividerStyle: React.FC<IDividerStyleProps> = ({ style, styleProps, cssClas
 
     return (
         <Divider
-            variant={variant as any}
+            variant={variant}
             size={size}
             label={label}
-            labelPosition={labelPosition as any}
-            orientation={orientation as any}
+            labelPosition={labelPosition as 'left' | 'center' | 'right'}
+            orientation={orientation}
             color={color}
             {...styleProps} className={cssClass}
         />

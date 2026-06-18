@@ -14,15 +14,16 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveBulkSectionsFromPageMutationOptions {
     onSuccess?: (
-        data: any,
+        data: unknown,
         variables: { pageId: number; sectionIds: number[] }
     ) => void;
     onError?: (
-        error: any,
+        error: unknown,
         variables: { pageId: number; sectionIds: number[] }
     ) => void;
     showNotifications?: boolean;
@@ -46,15 +47,20 @@ export function useRemoveBulkSectionsFromPageMutation(
         mutationFn: ({ pageId, sectionIds }: IRemoveBulkSectionsFromPageVariables) =>
             AdminApi.removeBulkSectionsFromPage(pageId, sectionIds),
 
-        onSuccess: async (result: any, variables) => {
-            const deletedCount = result?.deleted_count ?? variables.sectionIds.length;
+        onSuccess: async (result: unknown, variables) => {
+            const deletedCount = (result as { deleted_count?: number } | undefined)?.deleted_count ?? variables.sectionIds.length;
 
+            // UNPUBLISHED_CHANGES refreshes the publish-state reader so the
+            // "Publish Changes" button reflects the removed sections immediately.
             await Promise.all([
                 queryClient.invalidateQueries({
-                    queryKey: ['pageSections', variables.pageId],
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId),
                 }),
                 queryClient.refetchQueries({
-                    queryKey: ['pageSections', variables.pageId],
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId),
+                }),
+                queryClient.invalidateQueries({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId),
                 }),
             ]);
 
@@ -72,7 +78,7 @@ export function useRemoveBulkSectionsFromPageMutation(
             onSuccess?.(result, variables);
         },
 
-        onError: (error: any, variables) => {
+        onError: (error: unknown, variables) => {
             const { errorMessage, errorTitle } = parseApiError(error);
 
             if (showNotifications) {

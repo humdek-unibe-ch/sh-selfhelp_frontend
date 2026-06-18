@@ -18,12 +18,12 @@
 #       2. Git tag <-> package.json version consistency.
 #       3. Supply-chain audit + host-singleton duplication.
 #
-# BLOCKING (must pass to go green): npm ci, license headers, tsc, next build,
-#   runtime smoke test.
-# ADVISORY (reported, do NOT fail the run yet): ESLint, knip dead-code,
-#   npm audit, host-singleton check, version/tag consistency. Each advisory
-#   step is marked `continue-on-error: true`. To promote one to a hard gate,
-#   delete its `continue-on-error: true` line.
+# BLOCKING (must pass to go green): npm ci, license headers, tsc, ESLint,
+#   Vitest, next build, runtime smoke test.
+# ADVISORY (reported, do NOT fail the run yet): knip dead-code, npm audit,
+#   host-singleton check, version/tag consistency. Each advisory step is marked
+#   `continue-on-error: true`. To promote one to a hard gate, delete its
+#   `continue-on-error: true` line.
 #
 # Node 22 matches the rest of the frontend tooling.
 
@@ -75,10 +75,13 @@ jobs:
       - name: Type-check (tsc --noEmit)
         run: npx tsc --noEmit
 
-      # --- ADVISORY: lint ---------------------------------------------------
+      # --- BLOCKING: lint (no errors, no warnings) -------------------------
       - name: ESLint
-        continue-on-error: true
         run: npm run lint -- --max-warnings=0
+
+      # --- BLOCKING: unit / component tests --------------------------------
+      - name: Vitest (unit + component)
+        run: npm test
 
       # --- ADVISORY: dead / unused code ------------------------------------
       - name: Dead-code (knip)

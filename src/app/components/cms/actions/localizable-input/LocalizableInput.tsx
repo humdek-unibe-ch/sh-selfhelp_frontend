@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Group, Stack, Text, TextInput, Textarea, Badge } from '@mantine/core';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 
@@ -43,12 +43,11 @@ export function LocalizableInput({
     };
   }) || [];
 
-  // Auto-select first language on mount
-  useEffect(() => {
-    if (languagesWithStatus.length > 0 && !activeTab) {
-      setActiveTab(languagesWithStatus[0].id.toString());
-    }
-  }, [languagesWithStatus, activeTab]);
+  // Auto-select first language once languages load. Render-phase update: the
+  // `!activeTab` guard makes it run once, replacing the previous effect.
+  if (languagesWithStatus.length > 0 && !activeTab) {
+    setActiveTab(languagesWithStatus[0].id.toString());
+  }
 
   const handleValueChange = (languageId: number, newValue: string) => {
     const newTranslations = { ...value, [languageId]: newValue };

@@ -13,7 +13,7 @@ import {
     Button
 } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
-import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
+import { type IPageSectionWithFields } from '../../../../../types/common/pages.type';
 
 interface IRemoveSectionModalProps {
     opened: boolean;

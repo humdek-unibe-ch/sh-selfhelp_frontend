@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { SsrAuthOutcome } from '../server-fetch';
+import { type SsrAuthOutcome, getAuthMeSSRResult } from '../server-fetch';
 
 /**
  * Security regression test for the server-side admin authorization guard.
@@ -32,7 +32,7 @@ vi.mock('../server-fetch', () => ({
 
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import { getAuthMeSSRResult } from '../server-fetch';
+
 import { requireAdminAccessSSR, requireAdminPermission } from '../admin-guard';
 import { PERMISSIONS } from '../../../types/auth/jwt-payload.types';
 import { ROUTES } from '../../../config/routes.config';

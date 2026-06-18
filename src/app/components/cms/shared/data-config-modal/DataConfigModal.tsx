@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
     Button,
     Group,
@@ -62,8 +62,14 @@ export function DataConfigModal({
     const [activeTab, setActiveTab] = useState<string>('0');
     const [isSaving, setIsSaving] = useState(false);
 
-    // Initialize data sources from initial value
-    useEffect(() => {
+    // Initialize data sources from initial value. Render-phase update tracking
+    // the previous inputs (matching the previous effect's [opened, initialValue]
+    // dependency), replacing the set-state-in-effect.
+    const [prevOpened, setPrevOpened] = useState(opened);
+    const [prevInitialValue, setPrevInitialValue] = useState(initialValue);
+    if (prevOpened !== opened || prevInitialValue !== initialValue) {
+        setPrevOpened(opened);
+        setPrevInitialValue(initialValue);
         if (opened && initialValue) {
             try {
                 const parsed = JSON.parse(initialValue);
@@ -75,14 +81,14 @@ export function DataConfigModal({
                 } else {
                     setDataSources([]);
                 }
-            } catch (error) {
+            } catch {
 
                 setDataSources([]);
             }
         } else if (opened) {
             setDataSources([]);
         }
-    }, [opened, initialValue]);
+    }
 
     const createNewDataSource = (): IDataSource => ({
         current_user: true,
@@ -167,7 +173,7 @@ export function DataConfigModal({
             });
             
             onClose();
-        } catch (error) {
+        } catch {
 
             notifications.show({
                 title: 'Error',

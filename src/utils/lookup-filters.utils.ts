@@ -9,7 +9,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module utils/lookup-filters.utils
  */
 
-import { ILookup } from '../types/responses/admin/lookups.types';
+import { type ILookup } from '../types/responses/admin/lookups.types';
 
 /**
  * Filter lookups by type code and convert to Select component data format.

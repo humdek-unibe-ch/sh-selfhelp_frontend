@@ -32,7 +32,7 @@ import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/el
 import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
-import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
+import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { calculateMenuPosition } from '../../../../../utils/position-calculator';
 
 interface IMenuPageItem {
@@ -58,6 +58,54 @@ interface MenuPositionEditorProps {
     onPositionChange: (position: number | null) => void;
     /** Parent page context for filtering siblings (optional) */
     parentPage?: IAdminPage | null;
+}
+
+/**
+ * Pure derivation of the ordered menu list from the admin pages + current
+ * context. Side-effect free so it can run during render (see the "adjust state
+ * while rendering" sync in `MenuPositionEditor`). Returns `[]` when pages have
+ * not loaded yet.
+ */
+function computeMenuPages(
+    pages: IAdminPage[] | undefined,
+    currentPage: IAdminPage,
+    menuType: 'header' | 'footer',
+    position: number | null,
+    parentPage: IAdminPage | null,
+): IMenuPageItem[] {
+    if (!pages) {
+        return [];
+    }
+
+    const positionField = menuType === 'header' ? 'nav_position' : 'footer_position';
+    const targetParentId = parentPage ? parentPage.id_pages : currentPage.id_parent_page;
+
+    const existingMenuPages = pages
+        .filter((page) => {
+            if (page[positionField] === null) return false;
+            if (page.keyword === currentPage.keyword) return false;
+            return page.id_parent_page === targetParentId;
+        })
+        .sort((a, b) => (a[positionField] || 0) - (b[positionField] || 0))
+        .map((page) => ({
+            id: page.id_pages.toString(),
+            keyword: page.keyword,
+            label: page.keyword,
+            position: page[positionField] || 0,
+        }));
+
+    if (position !== null) {
+        const currentPageItem: IMenuPageItem = {
+            id: currentPage.id_pages.toString(),
+            keyword: currentPage.keyword,
+            label: currentPage.keyword,
+            position,
+            isCurrentPage: true,
+        };
+        return [...existingMenuPages, currentPageItem].sort((a, b) => a.position - b.position);
+    }
+
+    return existingMenuPages;
 }
 
 interface IDragState {
@@ -100,7 +148,7 @@ function MenuPageItem({
         const element = elementRef.current;
         const dragHandle = dragHandleRef.current;
 
-        if (!element || !dragHandle) return;
+        if (!element || !dragHandle) return undefined;
 
         return draggable({
             element: dragHandle,
@@ -153,7 +201,7 @@ function MenuPageItem({
     // Setup drop target
     useEffect(() => {
         const element = elementRef.current;
-        if (!element) return;
+        if (!element) return undefined;
 
         return dropTargetForElements({
             element,
@@ -283,59 +331,41 @@ export function MenuPositionEditor({
         return calculateMenuPosition(targetPage, edge, pages);
     }, []);
 
-    // Filter and prepare menu pages with parent context
-    useEffect(() => {
-        if (!pages) return;
-
-        const positionField = menuType === 'header' ? 'nav_position' : 'footer_position';
-        
-        // Determine the parent context for filtering
-        const targetParentId = parentPage ? parentPage.id_pages : currentPage.id_parent_page;
-        
-        // Get pages that have positions in this menu type and belong to the same parent
-        const existingMenuPages = pages
-            .filter(page => {
-                // Must have position in this menu type
-                if (page[positionField] === null) return false;
-                
-                // Must not be the current page (we'll add it separately)
-                if (page.keyword === currentPage.keyword) return false;
-                
-                // Must belong to the same parent context
-                return page.id_parent_page === targetParentId;
-            })
-            .sort((a, b) => (a[positionField] || 0) - (b[positionField] || 0))
-            .map(page => ({
-                id: page.id_pages.toString(),
-                keyword: page.keyword,
-                label: page.keyword,
-                position: page[positionField] || 0
-            }));
-
-        // Add current page if it has a position
-        if (position !== null) {
-            const currentPageItem: IMenuPageItem = {
-                id: currentPage.id_pages.toString(),
-                keyword: currentPage.keyword,
-                label: currentPage.keyword,
-                position: position,
-                isCurrentPage: true
-            };
-
-            // Insert current page at correct position
-            const allPages = [...existingMenuPages, currentPageItem]
-                .sort((a, b) => a.position - b.position);
-
-            setMenuPages(allPages);
-        } else {
-            setMenuPages(existingMenuPages);
-        }
-    }, [pages, currentPage, menuType, position, parentPage]);
+    // Reset the menu list whenever the inputs change. `menuPages` is derived
+    // from props/query data but is ALSO mutated by drag-and-drop below, so it is
+    // real state, not pure derived data — this is React's "adjust state while
+    // rendering" pattern (https://react.dev/learn/you-might-not-need-an-effect
+    // #adjusting-some-state-when-a-prop-changes), guarded by a previous-deps
+    // snapshot. The guard compares stable values only: `pages` is a stable React
+    // Query ref, `menuType`/`position` are primitives, and the page objects are
+    // compared by their `id_pages` (never by reference) so a parent re-render
+    // that hands us an equivalent object can't re-fire the sync. Using
+    // render-phase sync (not useEffect) also satisfies
+    // react-hooks/set-state-in-effect without weakening the rule.
+    const currentPageId = currentPage?.id_pages;
+    const parentPageId = parentPage?.id_pages ?? null;
+    const [prevMenuDeps, setPrevMenuDeps] = useState({
+        pages,
+        currentPageId,
+        menuType,
+        position,
+        parentPageId,
+    });
+    if (
+        prevMenuDeps.pages !== pages ||
+        prevMenuDeps.currentPageId !== currentPageId ||
+        prevMenuDeps.menuType !== menuType ||
+        prevMenuDeps.position !== position ||
+        prevMenuDeps.parentPageId !== parentPageId
+    ) {
+        setPrevMenuDeps({ pages, currentPageId, menuType, position, parentPageId });
+        setMenuPages(computeMenuPages(pages, currentPage, menuType, position, parentPage));
+    }
 
     // Setup auto-scroll
     useEffect(() => {
         const container = containerRef.current;
-        if (!container) return;
+        if (!container) return undefined;
 
         return autoScrollForElements({
             element: container,

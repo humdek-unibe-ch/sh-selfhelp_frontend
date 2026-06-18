@@ -41,7 +41,7 @@ export interface IFieldFormHandlerProps {
     componentName?: string;
 }
 
-export function useFieldFormHandler({ fields, languages, componentName = 'FieldFormHandler' }: IFieldFormHandlerProps) {
+export function useFieldFormHandler({ fields, languages }: IFieldFormHandlerProps) {
     
     const processedData = useMemo<IProcessedFormData>(() => {
         if (!fields.length || !languages.length) {
@@ -103,17 +103,23 @@ export function useFieldFormHandler({ fields, languages, componentName = 'FieldF
         };
 
         return result;
-    }, [fields, languages, componentName]);
+    }, [fields, languages]);
 
     return processedData;
+}
+
+/** Form-values shape mutated by {@link createFieldChangeHandlers}. */
+interface IFieldChangeHandlerState {
+    fields: Record<string, Record<string, string>>;
+    properties: Record<string, string | boolean>;
 }
 
 /**
  * Utility function to create form change handlers
  */
-export function createFieldChangeHandlers<T extends Record<string, any>>(
-    setFormValues: React.Dispatch<React.SetStateAction<T>>,
-    componentName?: string
+export function createFieldChangeHandlers(
+    setFormValues: React.Dispatch<React.SetStateAction<IFieldChangeHandlerState>>,
+    _componentName?: string
 ) {
     const handleContentFieldChange = (fieldName: string, languageId: number | null, value: string | boolean) => {
         if (!languageId) return;

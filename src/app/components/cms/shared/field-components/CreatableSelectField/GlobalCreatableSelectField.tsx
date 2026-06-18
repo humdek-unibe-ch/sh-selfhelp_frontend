@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useCssClasses, useMobileCssClasses } from '../../../../../../hooks/useCssClasses';
-import { IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
+import { type IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
 import { CreatableSelectField, CREATABLE_SELECT_CONFIGS } from './CreatableSelectField';
 
 /**

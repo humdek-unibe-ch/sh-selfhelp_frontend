@@ -20,8 +20,8 @@ import {
 import { TextInputWithMentions } from '../TextInputWithMentions';
 import classes from './CreatableSelectField.module.css';
 import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react';
-import React, { useState, useCallback } from 'react';
-import { IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
+import React, { useState, useCallback, useMemo } from 'react';
+import { type IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
 
 // Shared configuration types for different CreatableSelectField variants
 export interface ICreatableSelectConfig {
@@ -45,15 +45,16 @@ export interface ICreatableSelectConfig {
  * @param values - Array of values in different formats (react-querybuilder, etc.)
  * @returns Array of selectable options with value and text properties
  */
-export function createSelectable(values: any[]): Array<{value: string, text: string}> {
+export function createSelectable(values: unknown[]): Array<{value: string, text: string}> {
     if (!Array.isArray(values)) return [];
 
-    return values.map((opt: any) => {
+    return values.map((opt) => {
         // Handle react-querybuilder format: { name: string, label: string }
         if (opt && typeof opt === 'object' && 'name' in opt && 'label' in opt) {
+            const o = opt as { name: string; label?: string };
             return {
-                value: opt.name,
-                text: opt.label || opt.name
+                value: o.name,
+                text: o.label || o.name
             };
         }
 
@@ -67,9 +68,10 @@ export function createSelectable(values: any[]): Array<{value: string, text: str
 
         // Handle object with value/label format
         if (opt && typeof opt === 'object' && 'value' in opt) {
+            const o = opt as { value: string; label?: string; text?: string };
             return {
-                value: opt.value,
-                text: opt.label || opt.text || opt.value
+                value: o.value,
+                text: o.label || o.text || o.value
             };
         }
 
@@ -175,9 +177,6 @@ export function CreatableSelectField({
     multiCreatePlaceholder = CREATABLE_SELECT_CONFIGS.default.multiCreatePlaceholder,
     addSingleButtonText = CREATABLE_SELECT_CONFIGS.default.addSingleButtonText,
     addMultipleButtonText = CREATABLE_SELECT_CONFIGS.default.addMultipleButtonText,
-    addClassesButtonText = CREATABLE_SELECT_CONFIGS.default.addClassesButtonText,
-    cancelButtonText = CREATABLE_SELECT_CONFIGS.default.cancelButtonText,
-    validateSingle = CREATABLE_SELECT_CONFIGS.default.validateSingle!,
     validateMultiple = CREATABLE_SELECT_CONFIGS.default.validateMultiple!,
     validationErrorMessage = CREATABLE_SELECT_CONFIGS.default.validationErrorMessage,
     dataVariables
@@ -197,7 +196,7 @@ export function CreatableSelectField({
             if (config.searchable) {
                 try {
                     combobox.focusSearchInput();
-                } catch (error) {
+                } catch {
                     // Silently ignore focus errors when search input is not available
                     console.warn('Search input not available for focusing');
                 }
@@ -214,7 +213,7 @@ export function CreatableSelectField({
     const predefinedValues = new Set(predefinedOptions.map(option => option.value));
 
     const separator = config.separator || ' ';
-    const currentValues = value ? value.split(separator).filter(Boolean) : [];
+    const currentValues = useMemo(() => value ? value.split(separator).filter(Boolean) : [], [value, separator]);
 
     // Helper function to determine if a value is predefined
     const isPredefinedValue = (optionValue: string): boolean => {
@@ -254,7 +253,7 @@ export function CreatableSelectField({
             setSearch('');
             combobox.resetSelectedOption();
         }
-    }, [multiValues, currentValues, onChange, separator, validateMultiple, isPredefinedValue, config.multiSelect]);
+    }, [multiValues, currentValues, onChange, separator, validateMultiple, config.multiSelect, combobox]);
 
     // Handle adding/removing values
     const handleToggleValue = useCallback((toggleValue: string) => {
@@ -293,7 +292,7 @@ export function CreatableSelectField({
             <Stack gap="xs">
                 <Combobox
                     store={combobox}
-                    withinPortal={false}
+                    withinPortal
                     onOptionSubmit={(val) => {
                         onChange(val);
                         combobox.closeDropdown();
@@ -427,7 +426,7 @@ export function CreatableSelectField({
         <Stack gap="xs">
             <Combobox
                 store={combobox}
-                withinPortal={false}
+                withinPortal
                 onOptionSubmit={handleToggleValue}
             >
                 <Combobox.Target>

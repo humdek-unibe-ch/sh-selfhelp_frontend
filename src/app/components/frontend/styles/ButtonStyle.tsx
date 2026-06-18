@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React, { useState } from 'react';
 import { Button, Modal, Group } from '@mantine/core';
 import { useRouter } from 'next/navigation';
-import { IButtonStyle } from '../../../../types/common/styles.types';
+import { type IButtonStyle } from '../../../../types/common/styles.types';
 import IconComponent from '../../shared/common/IconComponent';
 import parse from "html-react-parser";
 import DOMPurify from 'isomorphic-dompurify';
@@ -19,7 +19,7 @@ import DOMPurify from 'isomorphic-dompurify';
  */
 interface IButtonStyleProps {
     style: IButtonStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, unknown>;
     cssClass: string;
 }
 
@@ -51,7 +51,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass 
     const label_cancel = style.label_cancel?.content;
     const confirmation_title = style.confirmation_title?.content;
     const confirmation_continue = style.confirmation_continue?.content;
-    const confirmation_message = parse(DOMPurify.sanitize((style as any).confirmation_message?.content));
+    const confirmation_message = parse(DOMPurify.sanitize((style as { confirmation_message?: { content?: string } }).confirmation_message?.content as string));
 
     // Modal state
     const [confirmationOpened, setConfirmationOpened] = useState(false);

@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Spoiler } from '@mantine/core';
-import { ISpoilerStyle } from '../../../../../types/common/styles.types';
+import { type ISpoilerStyle } from '../../../../../types/common/styles.types';
 import BasicStyle from '../BasicStyle';
 
 /**
@@ -15,7 +15,7 @@ import BasicStyle from '../BasicStyle';
  */
 interface ISpoilerStyleProps {
     style: ISpoilerStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -32,7 +32,7 @@ const SpoilerStyle: React.FC<ISpoilerStyleProps> = ({ style, styleProps, cssClas
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const maxHeight = style.mantine_height?.content || '200px';
+    const _maxHeight = style.mantine_height?.content || '200px';
     const showLabel = style.mantine_spoiler_show_label?.content || 'Show more';
     const hideLabel = style.mantine_spoiler_hide_label?.content || 'Hide';
 
@@ -50,7 +50,7 @@ const SpoilerStyle: React.FC<ISpoilerStyleProps> = ({ style, styleProps, cssClas
             {...styleProps} className={cssClass}
             style={styleObj}
         >
-                        {children.map((child: any, index: number) => (
+                        {children.map((child, index: number) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}
         </Spoiler>

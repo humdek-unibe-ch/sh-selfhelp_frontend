@@ -15,14 +15,14 @@ export interface IPageVersion {
     id_pages: number;
     version_number: number;
     version_name: string | null;
-    page_json?: any; // Complete page JSON structure
+    page_json?: unknown; // Complete page JSON structure
     created_by: number | { id: number; name: string } | null;
     created_at: string;
     published_at: string | null;
     metadata: {
         description?: string;
         tags?: string[];
-        [key: string]: any;
+        [key: string]: unknown;
     } | null;
     is_published?: boolean;
 }
@@ -42,7 +42,7 @@ export interface IVersionHistoryResponse {
 export interface IVersionComparisonResponse {
     version1: IPageVersion;
     version2: IPageVersion;
-    diff: string | any; // String for unified/side_by_side, object for json_patch/summary
+    diff: string | Record<string, unknown>; // String for unified/side_by_side, object for json_patch/summary
     format: 'unified' | 'side_by_side' | 'json_patch' | 'summary';
 }
 

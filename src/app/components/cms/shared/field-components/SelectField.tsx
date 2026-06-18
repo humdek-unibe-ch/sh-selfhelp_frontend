@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { Select, MultiSelect, Group, Text } from '@mantine/core';
+import { Select, MultiSelect, Group, Text, type ComboboxItem, type ComboboxLikeRenderOptionInput } from '@mantine/core';
 import { IconCheck } from '@tabler/icons-react';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 import { CreatableSelectField } from './CreatableSelectField';
@@ -97,8 +97,8 @@ export function SelectField({
     const separator = config.separator || ',';
 
     // Custom render option function with selection indicator
-    const renderOption = ({ option, ...others }: any) => (
-        <Group {...others} justify="space-between" wrap="nowrap" w="100%">
+    const renderOption = ({ option }: ComboboxLikeRenderOptionInput<ComboboxItem>) => (
+        <Group justify="space-between" wrap="nowrap" w="100%">
             <Text>
                 {option.label}
             </Text>

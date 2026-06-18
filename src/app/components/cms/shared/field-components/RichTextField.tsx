@@ -29,7 +29,6 @@ interface IRichTextFieldProps {
  * Uses the unified MentionEditor component with full rich text features.
  */
 export function RichTextField({
-    fieldId,
     value,
     onChange,
     placeholder,

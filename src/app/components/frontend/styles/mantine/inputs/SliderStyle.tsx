@@ -2,9 +2,9 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Slider, Input } from '@mantine/core';
-import { ISliderStyle } from '../../../../../../types/common/styles.types';
+import { type ISliderStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
@@ -18,7 +18,7 @@ import DOMPurify from 'isomorphic-dompurify';
  */
 interface ISliderStyleProps {
     style: ISliderStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -56,15 +56,15 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style, styleProps, cssClass 
     const description = style.description?.content || '';
     const name = style.name?.content;
     // Get form context for field registration
-    const min = parseFloat((style as any).mantine_numeric_min?.content || '0');
-    const max = parseFloat((style as any).mantine_numeric_max?.content || '100');
-    const step = parseFloat((style as any).mantine_numeric_step?.content || '1');
+    const min = parseFloat(style.mantine_numeric_min?.content || '0');
+    const max = parseFloat(style.mantine_numeric_max?.content || '100');
+    const step = parseFloat(style.mantine_numeric_step?.content || '1');
     const size = style.mantine_size?.content || 'sm';
     const color = style.mantine_color?.content || 'blue';
     const radius = style.mantine_radius?.content || 'sm';
     const disabled = style.disabled?.content === '1';
     const required = style.mantine_slider_required?.content === '1';
-    const thumbSize = parseFloat((style as any).mantine_slider_thumb_size?.content || '16');
+    const thumbSize = parseFloat(style.mantine_slider_thumb_size?.content || '16');
     const styleValue = style.value?.content || '50';
 
     // New fields
@@ -93,24 +93,27 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style, styleProps, cssClass 
         return defaultValue;
     });
 
-    // Update value when form context changes (for record editing)
-    useEffect(() => {
+    // Keep state in sync with the (async) form value via a render-phase update
+    // instead of an effect; the sentinel initial runs it on first render too.
+    const [prevFormValue, setPrevFormValue] = useState<unknown>(() => ({}));
+    if (prevFormValue !== formValue) {
+        setPrevFormValue(formValue);
         if (formValue !== null && typeof formValue === 'string') {
             const parsedValue = parseFloat(formValue);
             if (!isNaN(parsedValue)) {
                 setValue(parsedValue);
             }
         }
-    }, [formValue]);
+    }
 
     // Parse translatable marks values from JSON
     let customMarks: Array<{ value: number; label: string }> = [];
     try {
         const marksJson = style.mantine_slider_marks_values?.content;
         if (marksJson && marksJson.trim()) {
-            const parsed = JSON.parse(marksJson);
+            const parsed = JSON.parse(marksJson) as unknown;
             if (Array.isArray(parsed)) {
-                customMarks = parsed.map((mark: any) => ({
+                customMarks = (parsed as Array<{ value: number | string; label?: string }>).map((mark) => ({
                     value: Number(mark.value),
                     label: mark.label || mark.value.toString()
                 }));

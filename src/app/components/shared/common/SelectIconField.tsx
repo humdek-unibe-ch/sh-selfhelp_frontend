@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Select, Group, Text, Box } from '@mantine/core';
+import { Select, Group, Text, Box, type ComboboxItem, type ComboboxLikeRenderOptionInput } from '@mantine/core';
 import * as TablerIcons from '@tabler/icons-react';
 import type { IFieldConfig } from '../../../../types/requests/admin/fields.types';
 
@@ -84,10 +84,11 @@ export function SelectIconField({
     );
 
     // Custom option renderer with icon preview
-    const renderOption = ({ option, ...others }: any) => {
-        const IconComponent = TablerIcons[option.iconName as keyof typeof TablerIcons] as React.ElementType;
+    const renderOption = ({ option }: ComboboxLikeRenderOptionInput<ComboboxItem>) => {
+        const iconName = (option as ComboboxItem & { iconName?: string }).iconName;
+        const IconComponent = TablerIcons[iconName as keyof typeof TablerIcons] as React.ElementType;
         return (
-            <Group {...others} justify="space-between" wrap="nowrap" w="100%" gap="sm">
+            <Group justify="space-between" wrap="nowrap" w="100%" gap="sm">
                 <Group gap="sm" wrap="nowrap">
                     {IconComponent && (
                         <Box

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * React Query global configuration with tiered caching.
  *
- * See `docs/architecture/ssr-bff-architecture.md` §6 for the full
+ * See `docs/developer/ssr-bff-architecture.md` for the full
  * rationale: what is stored here vs in Zustand vs in `nuqs`, why the
  * cache-key space is kept small, and how SSR prefetches seed the cache.
  *
@@ -101,15 +101,82 @@ export const REACT_QUERY_CONFIG = {
 
     CACHE_TIERS,
 
+    /**
+     * Central registry for React Query keys shared across a reader/writer
+     * boundary — i.e. one hook reads a key and a *different* hook or component
+     * invalidates it. Sourcing both sides from here is what prevents
+     * writer/reader key drift (a writer invalidating a key no reader subscribes
+     * to → silent staleness). When a key starts being shared, add it here and
+     * reference it from both sides; keys that are defined and invalidated inside
+     * a single hook may stay local.
+     *
+     * Functions return the full key; the matching `*_ALL` constants are the
+     * prefix bases writers use to invalidate every variant at once (React Query
+     * matches by key prefix).
+     */
     QUERY_KEYS: {
+        // ── Frontend navigation (public) ──────────────────────────────────
         FRONTEND_PAGES: (languageId: number) => ['frontend-pages', languageId],
-        ADMIN_PAGES: ['admin-pages'],
-        LANGUAGES: ['languages'],
-        PUBLIC_LANGUAGES: ['public-languages'],
+        FRONTEND_PAGES_ALL: ['frontend-pages'],
+
+        // ── Public page content (keyword-driven) ──────────────────────────
         PAGE_BY_KEYWORD: (keyword: string, languageId: number, preview = false) =>
             ['page-by-keyword', keyword, languageId, preview ? 'preview' : 'published'] as const,
-        PAGE_DETAILS: (keyword: string) => ['page-details', keyword],
-        SECTION_DETAILS: (keyword: string, sectionId: number) => ['section-details', keyword, sectionId],
+        // Prefix base used by mutations and `useIsFetching` to touch every
+        // keyword + language + preview variant at once.
+        PAGE_BY_KEYWORD_ALL: ['page-by-keyword'],
+
+        // ── Admin page list ───────────────────────────────────────────────
+        ADMIN_PAGES: ['admin-pages'],
+
+        // ── Admin page editor detail caches ───────────────────────────────
+        // `pageId` is the numeric id in the editor and the keyword in
+        // keyword-driven callers; `null`/`undefined` mirror the disabled-query
+        // and optional-cache key shapes used by the read hooks and invalidations.
+        PAGE_SECTIONS: (pageId?: number | string | null) => ['pageSections', pageId],
+        PAGE_SECTIONS_ALL: ['pageSections'],
+        PAGE_FIELDS: (pageId?: number | string | null) => ['pageFields', pageId],
+        // Invalidated by the version mutations. No read hook currently
+        // subscribes to this key; kept so the writers reference the registry
+        // instead of a literal (forward-compatible invalidation target).
+        PAGE_DETAILS: (pageId: number | string) => ['page-details', pageId],
+
+        // ── Page versions / publishing ────────────────────────────────────
+        // Writers invalidate the 2-element prefix; the list reader appends its
+        // params via `[...PAGE_VERSIONS(pageId), params]`.
+        PAGE_VERSIONS: (pageId: number | null) => ['page-versions', pageId],
+        PAGE_VERSION: (pageId: number | null, versionId: number | null, includePageJson: boolean) =>
+            ['page-version', pageId, versionId, includePageJson],
+        VERSION_COMPARISON: (
+            pageId: number | null,
+            version1Id: number | null,
+            version2Id: number | null,
+            format: string,
+        ) => ['version-comparison', pageId, version1Id, version2Id, format],
+        UNPUBLISHED_CHANGES: (pageId: number | null) => ['unpublished-changes', pageId],
+        // Prefix base: section mutations that change a page's draft must refresh
+        // the publish-state reader (`useUnpublishedChanges`). Page-scoped writers
+        // use `UNPUBLISHED_CHANGES(pageId)`; the few that lack a pageId (e.g.
+        // permanent section delete) invalidate every page's flag via this prefix.
+        UNPUBLISHED_CHANGES_ALL: ['unpublished-changes'],
+
+        // ── Admin section utilities (shared read/write) ───────────────────
+        ADMIN_SECTIONS_UNUSED: ['admin', 'sections', 'unused'],
+        ADMIN_SECTIONS_REF_CONTAINERS: ['admin', 'sections', 'ref-containers'],
+        ADMIN_SECTIONS_PAGES: (sectionIds: number[]) => ['admin', 'sections', 'pages', sectionIds],
+        // Per-section detail cache read by `useSectionDetails`, invalidated by
+        // the section inspector after edits.
+        SECTION_DETAILS: (pageId: number | null, sectionId: number | null) =>
+            ['admin', 'sections', 'details', pageId, sectionId],
+
+        // ── Admin cache management (read by useCacheStats/useCacheHealth,
+        //    invalidated by the cache + section-utility clear mutations) ─────
+        CACHE_STATS: ['cache-stats'],
+        CACHE_HEALTH: ['cache-health'],
+
+        // ── Static / misc ─────────────────────────────────────────────────
+        LANGUAGES: ['languages'],
+        PUBLIC_LANGUAGES: ['public-languages'],
         LOOKUPS: ['lookups'],
         STYLE_GROUPS: ['style-groups'],
         USER_DATA: ['user-data'],

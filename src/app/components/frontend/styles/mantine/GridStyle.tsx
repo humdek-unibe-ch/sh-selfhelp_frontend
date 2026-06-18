@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Grid } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { IGridStyle } from '../../../../../types/common/styles.types';
+import { type IGridStyle } from '../../../../../types/common/styles.types';
 
 /**
  * Props interface for GridStyle component
@@ -15,7 +15,7 @@ import { IGridStyle } from '../../../../../types/common/styles.types';
  */
 interface IGridStyleProps {
     style: IGridStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -23,12 +23,12 @@ interface IGridStyleProps {
  * GridStyle component renders a responsive grid layout
  * Uses Mantine UI Grid component with 12-column system
  */
-const GridStyle: React.FC<IGridStyleProps> = ({ style, styleProps, cssClass }) => {
+const GridStyle: React.FC<IGridStyleProps> = ({ style, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values with defaults
-    const cols = parseInt((style as any).mantine_cols?.content || '12');
+    const cols = parseInt(style.mantine_cols?.content || '12');
     const gap = style.mantine_gap?.content || 'md';
     const justify = style.mantine_justify?.content;
     const align = style.mantine_align?.content;
@@ -45,7 +45,7 @@ const GridStyle: React.FC<IGridStyleProps> = ({ style, styleProps, cssClass }) =
     if (height) styleObj.height = height;
     if (overflow) styleObj.overflow = overflow;
 
-    const gridProps: any = {
+    const gridProps = {
         columns: cols,
         gutter: gap,
         ...(justify && { justify }),
@@ -56,7 +56,7 @@ const GridStyle: React.FC<IGridStyleProps> = ({ style, styleProps, cssClass }) =
 
     return (
         <Grid {...gridProps}>
-            {children.map((child: any, index: number) => (
+            {children.map((child, index: number) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}
         </Grid>

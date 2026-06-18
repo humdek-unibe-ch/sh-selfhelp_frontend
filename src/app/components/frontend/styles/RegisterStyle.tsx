@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { TextInput, Button, Paper, Title, Alert, Stack, Group } from '@mantine/core';
 import { IconCheck, IconExclamationCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
-import { IRegisterStyle } from '../../../../types/common/styles.types';
+import { type IRegisterStyle } from '../../../../types/common/styles.types';
 import { usePageContext } from '../../contexts/PageContext';
 import { useRegisterMutation } from '../../../../hooks/mutations/useRegisterMutation';
 import { useAuth } from '../../../../hooks/useAuth';
@@ -20,7 +20,7 @@ import { parseApiError } from '../../../../utils/mutation-error-handler';
  */
 interface IRegisterStyleProps {
     style: IRegisterStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, unknown>;
     cssClass: string;
 }
 
@@ -49,7 +49,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
     const labelSubmit = style.label_submit?.content || 'Register';
     const alertFail = style.alert_fail?.content || 'Invalid email or validation code.';
     const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for activation link.';
-    const mantineColor = ((style as any).mantine_color?.content as string | undefined) || 'blue';
+    const mantineColor = ((style as { mantine_color?: { content?: string } }).mantine_color?.content as string | undefined) || 'blue';
     const formType = style.fields?.type?.content || 'success';
 
     // CMS-managed labels for the previously hardcoded registration UI text.

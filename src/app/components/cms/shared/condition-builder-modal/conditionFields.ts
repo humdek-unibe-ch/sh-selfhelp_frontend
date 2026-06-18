@@ -9,13 +9,13 @@ SPDX-License-Identifier: MPL-2.0
  * @module components/admin/shared/condition-builder-modal/conditionFields
  */
 
-import type { Field } from 'react-querybuilder';
-import { defaultOperators, toFullOption } from 'react-querybuilder';
+import { type Field, type RuleType, defaultOperators, toFullOption } from 'react-querybuilder';
+
 
 /**
  * Validator function to ensure rules have values
  */
-const validator = (rule: any) => !!rule.value;
+const validator = (rule: RuleType) => !!rule.value;
 
 
 /**
@@ -32,7 +32,7 @@ export function createConditionFields(
             name: 'user_group',
             label: 'User Group',
             valueEditorType: 'select',
-            values: Object.entries(groups).map(([value, label]) => ({ name: label, label })), // Use value (ID) as name, label as display
+            values: Object.entries(groups).map(([_value, label]) => ({ name: label, label })), // Use value (ID) as name, label as display
             operators: defaultOperators.filter(op => ['in', 'notIn'].includes(op.name)),
             validator,
             valueSources: ['value'],
@@ -70,7 +70,7 @@ export function createConditionFields(
             name: 'page_keyword',
             label: 'Page Keyword',
             valueEditorType: 'select',
-            values: Object.entries(pages).map(([value, label]) => ({ name: value, label: value })),
+            values: Object.entries(pages).map(([value, _label]) => ({ name: value, label: value })),
             operators: defaultOperators.filter(op => ['=', '!='].includes(op.name)),
             validator,
             valueSources: ['value'],

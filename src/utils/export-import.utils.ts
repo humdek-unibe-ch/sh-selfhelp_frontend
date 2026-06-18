@@ -3,12 +3,12 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { notifications } from '@mantine/notifications';
-import { ISectionExportData, IImportValidationError } from '../api/admin/section.api';
+import { type ISectionExportData, type IImportValidationError } from '../api/admin/section.api';
 
 /**
  * Downloads JSON data as a file
  */
-export function downloadJsonFile(data: any, filename: string): void {
+export function downloadJsonFile(data: unknown, filename: string): void {
     try {
         const jsonString = JSON.stringify(data, null, 2);
         const blob = new Blob([jsonString], { type: 'application/json' });
@@ -28,7 +28,7 @@ export function downloadJsonFile(data: any, filename: string): void {
             message: `File "${filename}" has been downloaded`,
             color: 'green'
         });
-    } catch (error) {
+    } catch {
 
         notifications.show({
             title: 'Export Failed',
@@ -86,21 +86,22 @@ export function readJsonFile(file: File): Promise<ISectionExportData[]> {
                     throw new Error('Invalid file format: Expected an array of sections');
                 }
 
-                const checkSection = (section: any, path: string): void => {
+                const checkSection = (section: unknown, path: string): void => {
                     if (!section || typeof section !== 'object') {
                         throw new Error(`Invalid section at ${path}: expected an object`);
                     }
-                    if (!section.style_name || typeof section.style_name !== 'string') {
+                    const s = section as { style_name?: unknown; children?: unknown };
+                    if (!s.style_name || typeof s.style_name !== 'string') {
                         throw new Error(`Invalid section at ${path}: missing required field "style_name"`);
                     }
-                    if (Array.isArray(section.children)) {
-                        section.children.forEach((child: any, idx: number) =>
+                    if (Array.isArray(s.children)) {
+                        s.children.forEach((child: unknown, idx: number) =>
                             checkSection(child, `${path}.children[${idx}]`)
                         );
                     }
                 };
 
-                data.forEach((section: any, idx: number) =>
+                data.forEach((section: unknown, idx: number) =>
                     checkSection(section, `[${idx}]`)
                 );
 

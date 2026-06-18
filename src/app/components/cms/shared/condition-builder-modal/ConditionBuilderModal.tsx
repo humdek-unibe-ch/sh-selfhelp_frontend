@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, type ComponentProps } from 'react';
 import {
     Stack,
     Text,
@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconCheck, IconX } from '@tabler/icons-react';
-import { defaultValidator, QueryBuilder, RuleGroupType } from 'react-querybuilder';
+import { defaultValidator, QueryBuilder, type RuleGroupType, type FieldSelectorProps, type ValueEditorProps } from 'react-querybuilder';
 import { MantineValueEditor, QueryBuilderMantine } from '@react-querybuilder/mantine';
 import 'react-querybuilder/dist/query-builder.css';
 import { ModalWrapper } from '../../../shared/common/CustomModal';
@@ -27,7 +27,7 @@ import { QUERY_BUILDER_CONTROL_CLASSNAMES } from '../../../../../constants/query
 interface IConditionBuilderModalProps {
     opened: boolean;
     onClose: () => void;
-    onSave: (jsonLogic: any) => void;
+    onSave: (jsonLogic: string | null) => void;
     initialValue?: string;
     title?: string;
     dataVariables?: Record<string, string>;
@@ -40,9 +40,38 @@ const initialQuery: RuleGroupType = {
 
 const FIELD_SELECTOR_WIDTH = '310px';
 
+/**
+ * Pure conversion of the persisted JSON-Logic string into the query-builder
+ * model. Kept side-effect free so it can run during render (see the
+ * "adjust state while rendering" sync in `ConditionBuilderModal`).
+ */
+function parseInitialValueToQuery(initialValue: string | undefined): RuleGroupType {
+    if (!initialValue || initialValue.trim() === '') {
+        return initialQuery;
+    }
+
+    try {
+        const parsedValue = JSON.parse(initialValue);
+
+        if (!isValidJsonLogic(parsedValue)) {
+            console.warn('ConditionBuilder: Invalid JSON Logic');
+            return initialQuery;
+        }
+
+        const convertedRules = jsonLogicToRules(parsedValue);
+        if (convertedRules && convertedRules.rules && convertedRules.rules.length > 0) {
+            return convertedRules;
+        }
+        return initialQuery;
+    } catch (error) {
+        console.error('ConditionBuilder: Error parsing initial value:', error);
+        return initialQuery;
+    }
+}
+
 // Custom field selector using CreatableSelectField
-function CreatableFieldSelector(props: any) {
-    const { value, options, onChange, handleOnChange, context, ...otherProps } = props;
+function CreatableFieldSelector(props: FieldSelectorProps & { onChange?: (value: string) => void }) {
+    const { value, options, onChange, handleOnChange, context, ..._otherProps } = props;
     const { dataVariables } = context || {};
 
     // react-querybuilder might use handleOnChange instead of onChange
@@ -80,7 +109,7 @@ function CreatableFieldSelector(props: any) {
 }
 
 // Custom value editor using CreatableSelectField for select fields
-function SearchableValueEditor(props: any) {
+function SearchableValueEditor(props: ValueEditorProps & { onChange?: (value: string) => void }) {
     const {
         value,
         values,
@@ -89,7 +118,7 @@ function SearchableValueEditor(props: any) {
         fieldData,
         type,
         context,
-        ...otherProps
+        ..._otherProps
     } = props;
     const { dataVariables } = context || {};
 
@@ -136,7 +165,13 @@ function SearchableValueEditor(props: any) {
         fieldData?.inputType === 'time';
 
     if (isDateTimeField) {
-        return <MantineValueEditor {...props} style={{ width: FIELD_SELECTOR_WIDTH }} />;
+        // MantineValueEditor forwards unknown props (e.g. `style`) to the
+        // underlying input at runtime, but its public prop type omits `style`.
+        const dateTimeEditorProps = {
+            ...props,
+            style: { width: FIELD_SELECTOR_WIDTH },
+        } as ComponentProps<typeof MantineValueEditor>;
+        return <MantineValueEditor {...dateTimeEditorProps} />;
     }
 
     // For other non-select fields, use simple text input with mentions
@@ -162,43 +197,41 @@ export function ConditionBuilderModal({
     dataVariables
 }: IConditionBuilderModalProps) {
     const { groups, languages, platforms, pages, isLoading, isError } = useConditionBuilderData();
-    const [query, setQuery] = useState<RuleGroupType>(initialQuery);
+    // Lazily seed the query so a modal that mounts already-open (data ready) is
+    // initialized on the first render; the render-phase sync below handles every
+    // later open/value/loaded transition (the common case: mounts closed, opens).
+    const [query, setQuery] = useState<RuleGroupType>(() =>
+        opened && !isLoading && !isError ? parseInitialValueToQuery(initialValue) : initialQuery,
+    );
     const [isSaving, setIsSaving] = useState(false);
 
     // Create fields with dynamic data
     const fields = createConditionFields(groups, languages, platforms, pages);
 
-    // Initialize query from initial value - only after data is loaded
-    useEffect(() => {
+    // Initialize the query from the initial value once the modal is open and the
+    // builder data has finished loading. This is React's recommended "adjust
+    // state while rendering" pattern, guarded by a previous-deps snapshot
+    // (https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes).
+    //
+    // The guard compares ONLY primitive open/value/loaded flags (all compared by
+    // value): `initialValue` is a string, the rest are booleans. It deliberately
+    // never compares the groups/languages/platforms/pages objects, which
+    // useConditionBuilderData rebuilds every render (its `|| {}` fallbacks) —
+    // comparing those re-fired the sync every render and caused the infinite
+    // setState loop. Using render-phase sync (not useEffect) also satisfies
+    // react-hooks/set-state-in-effect without weakening the rule.
+    const [prevSync, setPrevSync] = useState({ opened, initialValue, isLoading, isError });
+    if (
+        prevSync.opened !== opened ||
+        prevSync.initialValue !== initialValue ||
+        prevSync.isLoading !== isLoading ||
+        prevSync.isError !== isError
+    ) {
+        setPrevSync({ opened, initialValue, isLoading, isError });
         if (opened && !isLoading && !isError) {
-            if (initialValue && initialValue.trim() !== '') {
-                try {
-                    const parsedValue = JSON.parse(initialValue);
-
-                    if (isValidJsonLogic(parsedValue)) {
-                        const convertedRules = jsonLogicToRules(parsedValue);
-
-                        if (convertedRules && convertedRules.rules && convertedRules.rules.length > 0) {
-                            setQuery(convertedRules);
-                        } else {
-                            setQuery(initialQuery);
-                        }
-                    } else {
-                        console.warn('ConditionBuilder: Invalid JSON Logic');
-                        setQuery(initialQuery);
-                    }
-                } catch (error) {
-                    console.error('ConditionBuilder: Error parsing initial value:', error);
-                    setQuery(initialQuery);
-                }
-            } else {
-                setQuery(initialQuery);
-            }
-        } else if (opened && !isLoading && !isError && !initialValue) {
-            // Reset to initial query if no initial value and data is loaded
-            setQuery(initialQuery);
+            setQuery(parseInitialValueToQuery(initialValue));
         }
-    }, [opened, initialValue, isLoading, isError, groups, languages, platforms, pages]);
+    }
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -216,7 +249,7 @@ export function ConditionBuilderModal({
             });
 
             onClose();
-        } catch (error) {
+        } catch {
 
             notifications.show({
                 title: 'Error',

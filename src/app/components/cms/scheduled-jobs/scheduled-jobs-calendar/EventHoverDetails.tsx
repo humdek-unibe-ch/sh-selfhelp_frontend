@@ -11,7 +11,7 @@ import {
   IconFileText,
 } from "@tabler/icons-react";
 import dayjs from "dayjs";
-import { IJobEventPayload, getStatusBadgeColor } from "./calendar-helpers";
+import { type IJobEventPayload, getStatusBadgeColor } from "./calendar-helpers";
 
 /** Props for the {@link EventHoverDetails} component. */
 interface IEventHoverDetailsProps {

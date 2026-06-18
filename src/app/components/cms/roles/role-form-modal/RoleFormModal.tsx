@@ -70,6 +70,7 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
         permission_ids: [],
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional reset-on-close; `form` is a fresh object each render, so depending on it would re-run every render and clobber edits. `form.setValues` is stable.
   }, [opened]);
 
   // Load role data for editing - runs when modal opens in edit mode or when roleDetails changes
@@ -78,9 +79,10 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
       form.setValues({
         name: roleDetails.name || '',
         description: roleDetails.description || '',
-        permission_ids: roleDetails.permissions?.map((p: any) => p.id.toString()) || [],
+        permission_ids: roleDetails.permissions?.map((p) => p.id.toString()) || [],
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional init-on-edit; `form` is a fresh object each render, so depending on it would re-run every render and clobber edits. `form.setValues` is stable.
   }, [mode, opened, roleDetails]);
 
   // Prepare permission options
@@ -89,7 +91,7 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
       return [];
     }
     
-    return permissionsData.permissions.map((permission: any) => ({
+    return permissionsData.permissions.map((permission) => ({
       value: permission.id.toString(),
       label: permission.name,
     }));
@@ -127,10 +129,11 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
       }
 
       onClose();
-    } catch (error: any) {
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || `Failed to ${mode} role`,
+        message: message || `Failed to ${mode} role`,
         color: 'red',
       });
     }

@@ -29,7 +29,6 @@ export function NavigationQuickActions({
     onCreatePage, 
     onRefreshData, 
     onOpenSettings,
-    onToggleSearch,
     isRefreshing = false 
 }: INavigationQuickActionsProps) {
     return (

@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Accordion, Card, Center, Loader, Text } from '@mantine/core';
 import { useDataTables } from '../../../../../hooks/useData';
 import SingleDataTable from './SingleDataTable';
@@ -19,7 +19,7 @@ interface IDataTablesViewerProps {
 
 export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, selectedLanguageId }: IDataTablesViewerProps) {
   const { data: tablesResp, isLoading } = useDataTables();
-  const tables = tablesResp?.dataTables || [];
+  const tables = useMemo(() => tablesResp?.dataTables || [], [tablesResp?.dataTables]);
   const [opened, setOpened] = useState<string[]>([]);
 
   const tableIdsKey = useMemo(
@@ -27,7 +27,14 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
     [tables]
   );
 
-  useEffect(() => {
+  // Prune `opened` when the active tables change. Render-phase update tracking
+  // the previous inputs, replacing the previous effect (same convergence:
+  // setState only runs while the tracked inputs differ).
+  const [prevActiveTableIds, setPrevActiveTableIds] = useState(activeTableIds);
+  const [prevTableIdsKey, setPrevTableIdsKey] = useState(tableIdsKey);
+  if (prevActiveTableIds !== activeTableIds || prevTableIdsKey !== tableIdsKey) {
+    setPrevActiveTableIds(activeTableIds);
+    setPrevTableIdsKey(tableIdsKey);
     setOpened(prevOpened => {
       if (activeTableIds.length === 0) return [];
       if (activeTableIds.includes(-1)) {
@@ -37,7 +44,7 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
         return prevOpened.filter(id => currentTableIds.has(id));
       }
     });
-  }, [activeTableIds, tableIdsKey]);
+  }
 
   const selectedTables = useMemo(() => {
     if (!tables.length) return [] as { id: number; name: string; displayName: string }[];

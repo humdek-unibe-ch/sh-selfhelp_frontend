@@ -60,7 +60,7 @@ The mobile app's typecheck will fail until you implement the new style — that'
 - Admin/CMS-only types (page editor, role manager, audit log, …) — these don't render on mobile.
 - Refine-specific types and adapters.
 - Next.js BFF proxy types.
-- The three legacy admin-only styles (`refContainer`, `dataContainer`, `version`).
+- The three legacy admin-only styles (`ref-container`, `data-container`, `version`).
 - `*Alias` Mantine types — kept for back-compat with old imports; safe to delete when no consumer remains.
 
 ## Don't

@@ -6,7 +6,6 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useState } from 'react';
 import { 
-    Modal, 
     Text, 
     Group, 
     Button, 
@@ -45,7 +44,7 @@ export function DeleteJobModal({
         try {
             await onConfirm(jobId);
             handleClose();
-        } catch (error) {
+        } catch {
 
         } finally {
             setIsDeleting(false);

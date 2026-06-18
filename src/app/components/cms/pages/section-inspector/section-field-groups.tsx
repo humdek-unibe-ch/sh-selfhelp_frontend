@@ -7,16 +7,17 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Stack, Paper, Group, Text, Box, TextInput } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
-import { GlobalFieldRenderer, GlobalFieldType } from '../../shared';
+import { GlobalFieldRenderer, type GlobalFieldType } from '../../shared';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { SectionPropertyField } from './section-field-connectors';
+import { type ISectionField, type ISectionDetails } from '../../../../../types/responses/admin/admin.types';
 import styles from './SectionInspector.module.css';
 
 const GLOBAL_FIELD_NAMES = new Set<GlobalFieldType>(['condition', 'data_config', 'css', 'css_mobile', 'debug']);
 
 interface ISectionGlobalFieldsProps {
     globalFieldTypes: GlobalFieldType[];
-    dataVariables?: Record<string, any>;
+    dataVariables?: Record<string, string>;
 }
 
 /**
@@ -49,8 +50,8 @@ export const SectionGlobalFields = React.memo(function SectionGlobalFields({
 });
 
 interface ISectionPropertiesProps {
-    fields: any[];
-    dataVariables?: Record<string, any>;
+    fields: ISectionField[];
+    dataVariables?: Record<string, string>;
 }
 
 /**
@@ -68,7 +69,7 @@ export const SectionProperties = React.memo(function SectionProperties({
 
     return (
         <Stack gap="md">
-            {propertyFieldsToDisplay.map((field: any) => (
+            {propertyFieldsToDisplay.map((field) => (
                 <SectionPropertyField
                     key={`${field.id}-property`}
                     field={field}
@@ -81,8 +82,8 @@ export const SectionProperties = React.memo(function SectionProperties({
 });
 
 interface ISectionMantinePropertiesProps {
-    fields: any[];
-    dataVariables?: Record<string, any>;
+    fields: ISectionField[];
+    dataVariables?: Record<string, string>;
 }
 
 /**
@@ -109,7 +110,7 @@ export const SectionMantineProperties = React.memo(function SectionMantineProper
 
     return (
         <Stack gap="md">
-            {mantineFieldsToDisplay.map((field: any) => (
+            {mantineFieldsToDisplay.map((field) => (
                 <SectionPropertyField
                     key={`${field.id}-mantine`}
                     field={field}
@@ -122,7 +123,7 @@ export const SectionMantineProperties = React.memo(function SectionMantineProper
 });
 
 interface ISectionInfoPanelProps {
-    section?: any;
+    section?: ISectionDetails;
 }
 
 /**

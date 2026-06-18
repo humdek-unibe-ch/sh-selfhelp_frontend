@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { List } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
-import { IListStyle } from '../../../../../../types/common/styles.types';
+import { type IListStyle } from '../../../../../../types/common/styles.types';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { castMantineSize } from '../../../../../../utils/style-field-extractor';
 
@@ -17,7 +17,7 @@ import { castMantineSize } from '../../../../../../utils/style-field-extractor';
  */
 interface IListStyleProps {
     style: IListStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 
@@ -35,7 +35,7 @@ const ListStyle: React.FC<IListStyleProps> = ({ style, styleProps, cssClass }) =
     const withPadding = style.mantine_list_with_padding?.content === '1';
     const center = style.mantine_list_center?.content === '1';
     const iconName = style.mantine_list_icon?.content;
-    const size = castMantineSize((style as any).mantine_size?.content);
+    const size = castMantineSize(style.mantine_size?.content);
     const spacing = style.mantine_spacing?.content || 'md';
 
     // Handle CSS field - use direct property from API response

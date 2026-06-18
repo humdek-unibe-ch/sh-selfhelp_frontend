@@ -59,10 +59,11 @@ export function RolesPage() {
           setDeleteModalOpened(false);
           setDeletingRole(null);
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+          const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
           notifications.show({
             title: 'Error',
-            message: error.response?.data?.message || 'Failed to delete role',
+            message: message || 'Failed to delete role',
             color: 'red',
           });
         },

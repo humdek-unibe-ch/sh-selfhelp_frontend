@@ -6,12 +6,13 @@ SPDX-License-Identifier: MPL-2.0
 
 import { Stack, Alert, Loader, Group, Select, Text } from '@mantine/core';
 import { IconInfoCircle, IconAlertCircle } from '@tabler/icons-react';
+import type { IRefContainerSectionsData } from '../../../../../../../types/responses/admin/section-utility.types';
 
 interface ReferenceSectionTabProps {
     isLoadingRefContainers: boolean;
     isFetchingRefContainers: boolean;
-    refContainersError: any;
-    refContainerSections: any[];
+    refContainersError: unknown;
+    refContainerSections: IRefContainerSectionsData;
     refContainerSectionsSelectData: { value: string; label: string }[];
     selectedRefContainerSection: string | null;
     setSelectedRefContainerSection: (value: string | null) => void;

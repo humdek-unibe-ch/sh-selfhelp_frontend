@@ -15,9 +15,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { 
     prepareSectionImportData, 
     prepareSectionCreateData, 
-    ISectionOperationOptions,
-    flattenSections, 
+    type ISectionOperationOptions,
+    flattenSections,
+    extractImportedSectionIds,
+    extractCreatedSectionId,
 } from '../utils/section-operations.utils';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import {
     useCreateSectionInPageMutation,
     useCreateSectionInSectionMutation,
@@ -27,9 +30,9 @@ import {
     useRemoveSectionFromSectionMutation,
     useRemoveBulkSectionsFromPageMutation
 } from './mutations';
-import { importSectionsToPage, importSectionsToSection, ISectionExportData } from '../api/admin/section.api';
+import { importSectionsToPage, importSectionsToSection, type ISectionExportData } from '../api/admin/section.api';
 import { notifications } from '@mantine/notifications';
-import { IStyle } from '../types/responses/admin/styles.types';
+import { type IStyle } from '../types/responses/admin/styles.types';
 
 export interface SectionStyleItem {
   style: IStyle;
@@ -43,11 +46,20 @@ interface SectionItem {
 export interface IUseSectionOperationsOptions {
     pageId?: number;
     showNotifications?: boolean;
-    onSuccess?: (result?: any) => void;
-    onError?: (error: any) => void;
+    onSuccess?: (result?: unknown) => void;
+    onError?: (error: unknown) => void;
     onSectionCreated?: (sectionId: number) => void;
     onSectionsImported?: (sectionIds: number[]) => void;
 }
+
+/**
+ * Options for moving/adding an existing section, including where it came from
+ * (used to reconcile the old parent during drag-and-drop moves).
+ */
+export type IMoveSectionOptions = ISectionOperationOptions & {
+    oldParentPageId?: number | null;
+    oldParentSectionId?: number | null;
+};
 
 export interface ISectionOperationsResult {
     // Create operations
@@ -65,13 +77,13 @@ export interface ISectionOperationsResult {
     // Add operations (for existing sections)
     addSectionToPage: (
     sections: SectionItem[],
-    options: ISectionOperationOptions
+    options: IMoveSectionOptions
     ) => Promise<void>;
 
     addSectionToSection: (
     parentSectionId: number,
     sections: SectionItem[],
-    options: ISectionOperationOptions
+    options: IMoveSectionOptions
     ) => Promise<void>;
 
     // Remove operations
@@ -100,7 +112,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     const createSectionInPageMutation = useCreateSectionInPageMutation({
         showNotifications,
         onSuccess: (result) => {
-            const sectionId = result?.id || result?.section?.id;
+            const sectionId = extractCreatedSectionId(result);
             if (sectionId && onSectionCreated) {
                 onSectionCreated(sectionId);
             }
@@ -113,7 +125,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         showNotifications,
         pageId,
         onSuccess: (result) => {
-            const sectionId = result?.id || result?.section?.id;
+            const sectionId = extractCreatedSectionId(result);
             if (sectionId && onSectionCreated) {
                 onSectionCreated(sectionId);
             }
@@ -125,7 +137,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     const addSectionToPageMutation = useAddSectionToPageMutation({
         showNotifications,
         onSuccess: (result) => {
-            const sectionId = result?.id || result?.section?.id;
+            const sectionId = extractCreatedSectionId(result);
             if (sectionId && onSectionCreated) {
                 onSectionCreated(sectionId);
             }
@@ -138,7 +150,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         showNotifications,
         pageId,
         onSuccess: (result) => {
-            const sectionId = result?.id || result?.section?.id;
+            const sectionId = extractCreatedSectionId(result);
             if (sectionId && onSectionCreated) {
                 onSectionCreated(sectionId);
             }
@@ -149,20 +161,20 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
     const removeSectionFromPageMutation = useRemoveSectionFromPageMutation({
         showNotifications,
-        onSuccess: (result, variables) => onSuccess?.(result),
+        onSuccess: (result, _variables) => onSuccess?.(result),
         onError: (error) => onError?.(error)
     });
 
     const removeSectionFromSectionMutation = useRemoveSectionFromSectionMutation({
         showNotifications,
         pageId,
-        onSuccess: (result, variables) => onSuccess?.(result),
+        onSuccess: (result, _variables) => onSuccess?.(result),
         onError: (error) => onError?.(error)
     });
 
     const removeBulkSectionsFromPageMutation = useRemoveBulkSectionsFromPageMutation({
         showNotifications,
-        onSuccess: (result, variables) => onSuccess?.(result),
+        onSuccess: (result, _variables) => onSuccess?.(result),
         onError: (error) => onError?.(error)
     });
 
@@ -171,9 +183,9 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         if (!pageId) return;
 
         await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }),
-            queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }),
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) }),
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) }),
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
         ]);
     }, [queryClient, pageId]);
 
@@ -234,10 +246,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     // Add existing section to page
     const addSectionToPage = useCallback(async (
         sections: SectionItem[],
-        options: ISectionOperationOptions & {
-            oldParentPageId?: number | null;
-            oldParentSectionId?: number | null;
-        } = {}
+        options: IMoveSectionOptions = {}
     ) => {
         if (!pageId) {
             throw new Error('Page ID is required for section operations');
@@ -255,10 +264,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     const addSectionToSection = useCallback(async (
         parentSectionId: number,
         sections: SectionItem[],
-        options: ISectionOperationOptions & {
-            oldParentPageId?: number | null;
-            oldParentSectionId?: number | null;
-        } = {}
+        options: IMoveSectionOptions = {}
     ) => {
         if (!pageId) {
             throw new Error('Page ID is required for section operations');
@@ -327,28 +333,10 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             const result = await importSectionsToPage(pageId, sections, importData.position);
             // Invalidate queries to refresh the section list
             await invalidateQueriesAfterImport();
-            
-            // Extract section IDs from import result for auto-selection
-            // Try multiple possible response structures
-            let importedSectionIds: number[] = [];
-            
-            // Cast to any to handle unknown response structure
-            const responseData = result as any;
-            
-            if (responseData?.data?.sections && Array.isArray(responseData.data.sections)) {
-                importedSectionIds = responseData.data.sections.map((s: any) => s.id).filter(Boolean);
-            } else if (responseData?.data?.importedSections && Array.isArray(responseData.data.importedSections)) {
-                importedSectionIds = responseData.data.importedSections.map((s: any) => s.id).filter(Boolean);
-            } else if (responseData?.data?.sectionIds && Array.isArray(responseData.data.sectionIds)) {
-                importedSectionIds = responseData.data.sectionIds;
-            } else if (responseData?.sections && Array.isArray(responseData.sections)) {
-                importedSectionIds = responseData.sections.map((s: any) => s.id).filter(Boolean);
-            } else if (responseData?.importedSections && Array.isArray(responseData.importedSections)) {
-                importedSectionIds = responseData.importedSections.map((s: any) => s.id).filter(Boolean);
-            } else if (responseData?.sectionIds && Array.isArray(responseData.sectionIds)) {
-                importedSectionIds = responseData.sectionIds;
-            }
-            
+
+            // Extract section IDs from import result for auto-selection.
+            const importedSectionIds = extractImportedSectionIds(result);
+
             if (importedSectionIds.length > 0 && onSectionsImported) {
                 onSectionsImported(importedSectionIds);
             } else if (onSectionsImported && sections.length > 0) {
@@ -394,31 +382,13 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
         try {
             const result = await importSectionsToSection(pageId, parentSectionId, sections, importData.position);
-            
+
             // Invalidate queries to refresh the section list
             await invalidateQueriesAfterImport();
-            
-            // Extract section IDs from import result for auto-selection
-            // Try multiple possible response structures
-            let importedSectionIds: number[] = [];
-            
-            // Cast to any to handle unknown response structure
-            const responseData = result as any;
-            
-            if (responseData?.data?.sections && Array.isArray(responseData.data.sections)) {
-                importedSectionIds = responseData.data.sections.map((s: any) => s.id).filter(Boolean);
-            } else if (responseData?.data?.importedSections && Array.isArray(responseData.data.importedSections)) {
-                importedSectionIds = responseData.data.importedSections.map((s: any) => s.id).filter(Boolean);
-            } else if (responseData?.data?.sectionIds && Array.isArray(responseData.data.sectionIds)) {
-                importedSectionIds = responseData.data.sectionIds;
-            } else if (responseData?.sections && Array.isArray(responseData.sections)) {
-                importedSectionIds = responseData.sections.map((s: any) => s.id).filter(Boolean);
-            } else if (responseData?.importedSections && Array.isArray(responseData.importedSections)) {
-                importedSectionIds = responseData.importedSections.map((s: any) => s.id).filter(Boolean);
-            } else if (responseData?.sectionIds && Array.isArray(responseData.sectionIds)) {
-                importedSectionIds = responseData.sectionIds;
-            }
-            
+
+            // Extract section IDs from import result for auto-selection.
+            const importedSectionIds = extractImportedSectionIds(result);
+
             if (importedSectionIds.length > 0 && onSectionsImported) {
                 onSectionsImported(importedSectionIds);
             } else if (onSectionsImported && sections.length > 0) {

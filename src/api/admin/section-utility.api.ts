@@ -34,16 +34,16 @@ export const AdminSectionUtilityApi = {
     /**
      * Delete a specific unused section
      */
-    async deleteUnusedSection(sectionId: number): Promise<IBaseApiResponse<any>> {
-        const response = await permissionAwareApiClient.delete<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UNUSED_DELETE, sectionId);
+    async deleteUnusedSection(sectionId: number): Promise<IBaseApiResponse<unknown>> {
+        const response = await permissionAwareApiClient.delete<IBaseApiResponse<unknown>>(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UNUSED_DELETE, sectionId);
         return response.data;
     },
 
     /**
      * Delete all unused sections
      */
-    async deleteAllUnusedSections(): Promise<IBaseApiResponse<any>> {
-        const response = await permissionAwareApiClient.delete<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UNUSED_DELETE_ALL);
+    async deleteAllUnusedSections(): Promise<IBaseApiResponse<unknown>> {
+        const response = await permissionAwareApiClient.delete<IBaseApiResponse<unknown>>(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UNUSED_DELETE_ALL);
         return response.data;
     },
 };

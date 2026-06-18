@@ -28,7 +28,6 @@ export function ConditionBuilderField({
     value,
     onChange,
     disabled = false,
-    placeholder,
     addLabel = 'Add Condition',
     editLabel = 'Edit Condition',
     dataVariables
@@ -49,13 +48,13 @@ export function ConditionBuilderField({
             const isValid = isValidJsonLogic(parsed) && Object.keys(parsed).length > 0;
 
             return isValid;
-        } catch (error) {
+        } catch {
 
             return false;
         }
     })();
 
-    const handleSave = async (jsonLogic: any) => {
+    const handleSave = async (jsonLogic: string | null) => {
         const jsonString = jsonLogic && Object.keys(jsonLogic).length > 0 ? JSON.stringify(jsonLogic, null, 2) : '';
 
         
@@ -89,7 +88,7 @@ export function ConditionBuilderField({
         }
     };
 
-    const getConditionSummary = () => {
+    const _getConditionSummary = () => {
         if (!hasCondition) {
 
             return 'Condition configured';
@@ -107,7 +106,7 @@ export function ConditionBuilderField({
             }
 
             return 'Condition configured';
-        } catch (error) {
+        } catch {
 
             return 'Condition present';
         }

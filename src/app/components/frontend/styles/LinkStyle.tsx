@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
 import { Anchor } from '@mantine/core';
-import { ILinkStyle } from '../../../../types/common/styles.types';
+import { type ILinkStyle } from '../../../../types/common/styles.types';
 import { hasFieldValue } from '../../../../utils/style-field-extractor';
 
 /**
@@ -17,7 +17,7 @@ import { hasFieldValue } from '../../../../utils/style-field-extractor';
  */
 interface ILinkStyleProps {
     style: ILinkStyle;
-    styleProps: Record<string, any>;
+    styleProps: Record<string, string>;
     cssClass: string;
 }
 

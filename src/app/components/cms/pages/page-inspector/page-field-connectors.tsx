@@ -5,9 +5,9 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import React, { useCallback } from 'react';
-import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
+import { FieldRenderer, type IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { usePageFormStore } from '../../../../store/pageFormStore';
-import { IPageField } from '../../../../../types/common/pages.type';
+import { type IPageField } from '../../../../../types/common/pages.type';
 
 interface IPageContentFieldProps {
     field: IPageField;

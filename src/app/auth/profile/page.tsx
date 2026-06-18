@@ -6,6 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { Container } from '@mantine/core';
 import ProfileStyle from '../../components/frontend/styles/ProfileStyle';
+import { type IProfileStyle } from '../../../types/common/styles.types';
 
 /**
  * Static fallback profile page used when the CMS `profile` page is missing
@@ -16,7 +17,7 @@ export default function ProfileFallbackPage() {
     return (
         <div className="min-h-screen w-full bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-16">
             <Container size="lg" py="xl">
-                <ProfileStyle style={{} as any} styleProps={{}} cssClass="" />
+                <ProfileStyle style={{} as unknown as IProfileStyle} styleProps={{}} cssClass="" />
             </Container>
         </div>
     );

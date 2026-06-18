@@ -17,12 +17,12 @@ import {
     Tooltip,
 } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
-import { IStyleGroup, IStyle } from '../../../../../../../types/responses/admin/styles.types';
+import { type IStyleGroup, type IStyle } from '../../../../../../../types/responses/admin/styles.types';
 
 interface NewSectionTabProps {
     isLoadingStyles: boolean;
     isLoadingParentDetails: boolean;
-    stylesError: any;
+    stylesError: unknown;
     filteredStyleGroups: IStyleGroup[];
     parentSectionId?: number | null;
     searchQuery: string;
