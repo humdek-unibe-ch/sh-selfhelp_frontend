@@ -40,6 +40,25 @@ No engineering diary, no implementation detail — that belongs in
   invalidate the same centralized query keys the read hooks subscribe to, so the
   editor, the section tree and the public page reflect a change immediately
   instead of occasionally showing stale content until a manual reload.
+- **"Too many re-renders" crash in the condition builder is gone.** The
+  `ConditionBuilderModal` (reached from a section field and from the Actions page
+  "New Action" flow) and the `MenuPositionEditor` synced state from props during
+  render keyed on objects that were rebuilt every render, which looped forever.
+  They now use React's guarded "adjust state while rendering" pattern keyed on
+  stable values only.
+- **`/no-access` is no longer redirected to `/auth/no-access`.** The static
+  fallback keyword map used snake_case keys while the CMS keywords are
+  kebab-case, so the lookup 404'd and bounced to the auth route; the canonical
+  `/no-access` (and `/no-access-guest`) URLs now resolve and render directly.
+- **No more light flash on reload in auto dark mode.** The Mantine color-scheme
+  bootstrap is now inlined into `<head>` (it ran from an external script that
+  executed after first paint), and is emitted once per page instead of once per
+  SSR stream flush, so an `auto` + OS-dark visitor paints dark on the first frame.
+- **Adding a section now selects it and flags the page as publishable.** The
+  create endpoint returns the new section(s) as an array; the extractor now reads
+  that shape (selecting the first when several are added), and every section
+  mutation invalidates the unpublished-changes query so "Publish Changes" lights
+  up immediately instead of after the 30s poll.
 
 ### Removed
 - Dead code: the unreachable 401 branch in the Refine auth `onError`, the unused
