@@ -32,6 +32,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import {
     ACCESS_COOKIE_MAX_AGE,
+    ADMIN_SESSION_ROUTE_PREFIXES,
     AUTH_COOKIE,
     CSRF_COOKIE,
     REFRESH_COOKIE,
@@ -275,14 +276,6 @@ export async function bufferRequest(req: NextRequest): Promise<BufferedRequest> 
  * "current user" is and the UI shows a Frankenstein mix of admin
  * identity / target ACL.
  */
-const ADMIN_SESSION_ROUTE_PREFIXES = [
-    '/auth/login',
-    '/auth/logout',
-    '/auth/refresh-token',
-    '/auth/two-factor',
-    '/auth/set-language',
-];
-
 function isAdminSessionRoute(upstreamPath: string): boolean {
     // `upstreamPath` is the full URL that includes the `/cms-api/v1`
     // prefix (e.g. `http://symfony/cms-api/v1/auth/refresh-token`), so

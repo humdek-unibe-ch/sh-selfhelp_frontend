@@ -64,6 +64,29 @@ export const SYMFONY_INTERNAL_URL =
 export const SYMFONY_API_PREFIX = process.env.SYMFONY_API_PREFIX || '/cms-api/v1';
 
 // ──────────────────────────────────────────────────────────────────────────
+// Admin-session lifecycle routes (single source of truth)
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Symfony routes that operate on the *admin's own session* — login, logout,
+ * refresh, 2FA, set-language. These must always run with the original admin's
+ * JWT, even during an impersonation session, so the admin can authenticate /
+ * refresh / stop impersonating cleanly.
+ *
+ * Consumed by both the BFF proxy (`src/app/api/_lib/proxy.ts`, which matches
+ * against the full upstream URL including {@link SYMFONY_API_PREFIX}) and the
+ * RSC server-fetch helper (`src/app/_lib/server-fetch.ts`, which matches the
+ * relative path). Keeping the list here means the two matchers can never drift.
+ */
+export const ADMIN_SESSION_ROUTE_PREFIXES = [
+    '/auth/login',
+    '/auth/logout',
+    '/auth/refresh-token',
+    '/auth/two-factor',
+    '/auth/set-language',
+] as const;
+
+// ──────────────────────────────────────────────────────────────────────────
 // Token generation (shared by proxy + CSRF route)
 // ──────────────────────────────────────────────────────────────────────────
 

@@ -41,6 +41,7 @@ import { cache } from 'react';
 import { cookies } from 'next/headers';
 import type { MantineColorScheme } from '@mantine/core';
 import {
+    ADMIN_SESSION_ROUTE_PREFIXES,
     AUTH_COOKIE,
     COLOR_SCHEME_COOKIE,
     LANG_COOKIE,
@@ -62,19 +63,14 @@ import type { IPageItem, IGetPageResponse, IPageContent, ILanguage } from '../..
 const LANGUAGES_REVALIDATE_SECONDS = 300;
 
 /**
- * Whether this Symfony route is an "admin session lifecycle" endpoint
- * that must always run with the original admin's JWT, even during an
- * impersonation session. Mirrors the same list in
- * `src/app/api/_lib/proxy.ts` — keep both in lock-step.
+ * Whether this Symfony route is an "admin session lifecycle" endpoint that must
+ * always run with the original admin's JWT, even during an impersonation
+ * session. Matches the relative `path` against the shared
+ * {@link ADMIN_SESSION_ROUTE_PREFIXES} list (the BFF proxy matches the same
+ * list against the full upstream URL), so the two can never drift.
  */
 function isAdminSessionRoute(path: string): boolean {
-    return (
-        path.startsWith('/auth/login') ||
-        path.startsWith('/auth/logout') ||
-        path.startsWith('/auth/refresh-token') ||
-        path.startsWith('/auth/two-factor') ||
-        path.startsWith('/auth/set-language')
-    );
+    return ADMIN_SESSION_ROUTE_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
 async function authHeaders(path: string): Promise<HeadersInit> {
