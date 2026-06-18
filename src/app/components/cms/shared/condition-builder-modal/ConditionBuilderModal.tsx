@@ -40,6 +40,35 @@ const initialQuery: RuleGroupType = {
 
 const FIELD_SELECTOR_WIDTH = '310px';
 
+/**
+ * Pure conversion of the persisted JSON-Logic string into the query-builder
+ * model. Kept side-effect free so it can run during render (see the
+ * "adjust state while rendering" sync in `ConditionBuilderModal`).
+ */
+function parseInitialValueToQuery(initialValue: string | undefined): RuleGroupType {
+    if (!initialValue || initialValue.trim() === '') {
+        return initialQuery;
+    }
+
+    try {
+        const parsedValue = JSON.parse(initialValue);
+
+        if (!isValidJsonLogic(parsedValue)) {
+            console.warn('ConditionBuilder: Invalid JSON Logic');
+            return initialQuery;
+        }
+
+        const convertedRules = jsonLogicToRules(parsedValue);
+        if (convertedRules && convertedRules.rules && convertedRules.rules.length > 0) {
+            return convertedRules;
+        }
+        return initialQuery;
+    } catch (error) {
+        console.error('ConditionBuilder: Error parsing initial value:', error);
+        return initialQuery;
+    }
+}
+
 // Custom field selector using CreatableSelectField
 function CreatableFieldSelector(props: FieldSelectorProps & { onChange?: (value: string) => void }) {
     const { value, options, onChange, handleOnChange, context, ..._otherProps } = props;
@@ -168,50 +197,39 @@ export function ConditionBuilderModal({
     dataVariables
 }: IConditionBuilderModalProps) {
     const { groups, languages, platforms, pages, isLoading, isError } = useConditionBuilderData();
-    const [query, setQuery] = useState<RuleGroupType>(initialQuery);
+    // Lazily seed the query so a modal that mounts already-open (data ready) is
+    // initialized on the first render; the render-phase sync below handles every
+    // later open/value/loaded transition (the common case: mounts closed, opens).
+    const [query, setQuery] = useState<RuleGroupType>(() =>
+        opened && !isLoading && !isError ? parseInitialValueToQuery(initialValue) : initialQuery,
+    );
     const [isSaving, setIsSaving] = useState(false);
 
     // Create fields with dynamic data
     const fields = createConditionFields(groups, languages, platforms, pages);
 
-    // Initialize query from the initial value once data is loaded. Render-phase
-    // update tracking the previous dependencies (matching the previous effect's
-    // [opened, initialValue, isLoading, isError, groups, languages, platforms,
-    // pages] list), replacing the set-state-in-effect.
-    const conditionDeps = [opened, initialValue, isLoading, isError, groups, languages, platforms, pages];
-    const [prevConditionDeps, setPrevConditionDeps] = useState(conditionDeps);
+    // Initialize the query from the initial value once the modal is open and the
+    // builder data has finished loading. This is React's recommended "adjust
+    // state while rendering" pattern, guarded by a previous-deps snapshot
+    // (https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes).
+    //
+    // The guard compares ONLY primitive open/value/loaded flags (all compared by
+    // value): `initialValue` is a string, the rest are booleans. It deliberately
+    // never compares the groups/languages/platforms/pages objects, which
+    // useConditionBuilderData rebuilds every render (its `|| {}` fallbacks) —
+    // comparing those re-fired the sync every render and caused the infinite
+    // setState loop. Using render-phase sync (not useEffect) also satisfies
+    // react-hooks/set-state-in-effect without weakening the rule.
+    const [prevSync, setPrevSync] = useState({ opened, initialValue, isLoading, isError });
     if (
-        prevConditionDeps.length !== conditionDeps.length ||
-        conditionDeps.some((dep, index) => dep !== prevConditionDeps[index])
+        prevSync.opened !== opened ||
+        prevSync.initialValue !== initialValue ||
+        prevSync.isLoading !== isLoading ||
+        prevSync.isError !== isError
     ) {
-        setPrevConditionDeps(conditionDeps);
+        setPrevSync({ opened, initialValue, isLoading, isError });
         if (opened && !isLoading && !isError) {
-            if (initialValue && initialValue.trim() !== '') {
-                try {
-                    const parsedValue = JSON.parse(initialValue);
-
-                    if (isValidJsonLogic(parsedValue)) {
-                        const convertedRules = jsonLogicToRules(parsedValue);
-
-                        if (convertedRules && convertedRules.rules && convertedRules.rules.length > 0) {
-                            setQuery(convertedRules);
-                        } else {
-                            setQuery(initialQuery);
-                        }
-                    } else {
-                        console.warn('ConditionBuilder: Invalid JSON Logic');
-                        setQuery(initialQuery);
-                    }
-                } catch (error) {
-                    console.error('ConditionBuilder: Error parsing initial value:', error);
-                    setQuery(initialQuery);
-                }
-            } else {
-                setQuery(initialQuery);
-            }
-        } else if (opened && !isLoading && !isError && !initialValue) {
-            // Reset to initial query if no initial value and data is loaded
-            setQuery(initialQuery);
+            setQuery(parseInitialValueToQuery(initialValue));
         }
     }
 
