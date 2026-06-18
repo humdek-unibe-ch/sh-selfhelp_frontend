@@ -162,6 +162,8 @@ CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` t
 - Prefer SSR prefetch plus hydration for CMS/admin data where the existing architecture already does this.
 - Avoid duplicate fetching between Server Components and client hooks.
 - Reuse existing query keys and cache tiers from `REACT_QUERY_CONFIG`.
+- All React Query keys — reads AND mutation invalidations — must come from `REACT_QUERY_CONFIG.QUERY_KEYS`, so a writer's invalidation key can never drift from the reader's key. Do not invalidate ad-hoc literals (e.g. a camelCase `['adminPages']` when the read hook uses `['admin-pages']`); if a key is missing from the registry, add it there first and reference it from both sides.
+- After a mutation, prefer a single `invalidateQueries` per affected registry key — it already refetches active observers. Do not stack `invalidateQueries` + `refetchQueries` + `removeQueries` for the same key "to be safe"; that discards freshly fetched data and causes loading flashes.
 - Avoid `useEffect` data fetching when React Query or Server Components already own the data.
 - Use optimistic updates only where existing flows already support them safely.
 - Prefer targeted invalidation over refetch-all patterns.
@@ -440,8 +442,10 @@ When making changes, mention the relevant impact on:
 
 ## API Rules
 - Add endpoints to `src/config/api.config.ts` as `{ route, permissions }`.
+- Every mutating endpoint (`post`/`put`/`patch`/`delete`) must declare the `permissions` it requires. A write endpoint with `permissions: []` silently passes the client-side permission gate, so an empty array is only acceptable for genuinely public/self-service routes and must carry a comment saying so.
 - For shared public endpoints, align with `@selfhelp/shared` first.
 - Use `permissionAwareApiClient` in domain API clients.
+- Avoid runtime argument-shape guessing in API helpers (e.g. probing an `unknown[]` rest param to decide whether the last arg is an `AxiosRequestConfig`). Prefer explicit typed parameters; if a variadic heuristic is genuinely unavoidable, centralize it in one documented helper rather than copy-pasting it per verb.
 - `apiClient` is the raw Axios instance and should only be used for special internal cases.
 - Browser Axios base URL is `/api`.
 - Standard API data is wrapped in the Symfony envelope: `status`, `message`, `error`, `logged_in`, `meta`, `data`.
