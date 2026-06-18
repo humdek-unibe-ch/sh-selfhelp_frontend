@@ -14,6 +14,35 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.21 — 2026-06-18
+
+### Added
+- **Blocking lint & test CI gates.** A type-aware ESLint flat config
+  (typescript-eslint) is now enforced: ESLint (`--max-warnings=0`) and the Vitest
+  suite must pass on every PR/push and again before any tagged Docker
+  publish/GitHub release.
+
+### Changed
+- **React Query keys for the page list, public page content, page
+  sections/fields, page versions, unpublished changes and the admin section
+  utilities now come from one registry** (`REACT_QUERY_CONFIG.QUERY_KEYS`), so a
+  writer's invalidation can no longer drift from a reader's key.
+- Centralized permission-aware API request building, single-sourced the
+  admin-session route prefixes, and renamed the permission CRUD helpers /
+  extracted the permission bit constants — no behavior change.
+
+### Fixed
+- **Editing a page or its sections now refreshes the screen reliably.** Page and
+  section mutations (create / update / move / remove / delete, add-section) now
+  invalidate the same centralized query keys the read hooks subscribe to, so the
+  editor, the section tree and the public page reflect a change immediately
+  instead of occasionally showing stale content until a manual reload.
+
+### Removed
+- Dead code: the unreachable 401 branch in the Refine auth `onError`, the unused
+  `endpointKey` API argument, and the stale `registered.ts` reference in the
+  plugins-sync CI check.
+
 ## v0.1.20 — 2026-06-17
 
 ### Fixed
