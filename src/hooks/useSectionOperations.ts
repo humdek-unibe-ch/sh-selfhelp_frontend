@@ -16,8 +16,11 @@ import {
     prepareSectionImportData, 
     prepareSectionCreateData, 
     type ISectionOperationOptions,
-    flattenSections, 
+    flattenSections,
+    extractImportedSectionIds,
+    extractCreatedSectionId,
 } from '../utils/section-operations.utils';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import {
     useCreateSectionInPageMutation,
     useCreateSectionInSectionMutation,
@@ -30,21 +33,6 @@ import {
 import { importSectionsToPage, importSectionsToSection, type ISectionExportData } from '../api/admin/section.api';
 import { notifications } from '@mantine/notifications';
 import { type IStyle } from '../types/responses/admin/styles.types';
-
-/** Minimal shape of a created/added section result consumed for auto-selection. */
-type TSectionCreateResult = { id?: number; section?: { id?: number } };
-
-/** Possible shapes returned by the import-sections endpoints (probed at runtime). */
-interface IImportSectionsResultProbe {
-    data?: {
-        sections?: Array<{ id: number }>;
-        importedSections?: Array<{ id: number }>;
-        sectionIds?: number[];
-    };
-    sections?: Array<{ id: number }>;
-    importedSections?: Array<{ id: number }>;
-    sectionIds?: number[];
-}
 
 export interface SectionStyleItem {
   style: IStyle;
@@ -124,8 +112,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     const createSectionInPageMutation = useCreateSectionInPageMutation({
         showNotifications,
         onSuccess: (result) => {
-            const created = result as TSectionCreateResult;
-            const sectionId = created?.id || created?.section?.id;
+            const sectionId = extractCreatedSectionId(result);
             if (sectionId && onSectionCreated) {
                 onSectionCreated(sectionId);
             }
@@ -138,8 +125,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         showNotifications,
         pageId,
         onSuccess: (result) => {
-            const created = result as TSectionCreateResult;
-            const sectionId = created?.id || created?.section?.id;
+            const sectionId = extractCreatedSectionId(result);
             if (sectionId && onSectionCreated) {
                 onSectionCreated(sectionId);
             }
@@ -151,8 +137,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     const addSectionToPageMutation = useAddSectionToPageMutation({
         showNotifications,
         onSuccess: (result) => {
-            const created = result as TSectionCreateResult;
-            const sectionId = created?.id || created?.section?.id;
+            const sectionId = extractCreatedSectionId(result);
             if (sectionId && onSectionCreated) {
                 onSectionCreated(sectionId);
             }
@@ -165,8 +150,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         showNotifications,
         pageId,
         onSuccess: (result) => {
-            const created = result as TSectionCreateResult;
-            const sectionId = created?.id || created?.section?.id;
+            const sectionId = extractCreatedSectionId(result);
             if (sectionId && onSectionCreated) {
                 onSectionCreated(sectionId);
             }
@@ -199,9 +183,9 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         if (!pageId) return;
 
         await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }),
-            queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }),
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) }),
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) }),
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
         ]);
     }, [queryClient, pageId]);
 
@@ -349,28 +333,10 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             const result = await importSectionsToPage(pageId, sections, importData.position);
             // Invalidate queries to refresh the section list
             await invalidateQueriesAfterImport();
-            
-            // Extract section IDs from import result for auto-selection
-            // Try multiple possible response structures
-            let importedSectionIds: number[] = [];
-            
-            // Narrow to the known possible import-response shapes
-            const responseData = result as unknown as IImportSectionsResultProbe;
-            
-            if (responseData?.data?.sections && Array.isArray(responseData.data.sections)) {
-                importedSectionIds = responseData.data.sections.map((s) => s.id).filter(Boolean);
-            } else if (responseData?.data?.importedSections && Array.isArray(responseData.data.importedSections)) {
-                importedSectionIds = responseData.data.importedSections.map((s) => s.id).filter(Boolean);
-            } else if (responseData?.data?.sectionIds && Array.isArray(responseData.data.sectionIds)) {
-                importedSectionIds = responseData.data.sectionIds;
-            } else if (responseData?.sections && Array.isArray(responseData.sections)) {
-                importedSectionIds = responseData.sections.map((s) => s.id).filter(Boolean);
-            } else if (responseData?.importedSections && Array.isArray(responseData.importedSections)) {
-                importedSectionIds = responseData.importedSections.map((s) => s.id).filter(Boolean);
-            } else if (responseData?.sectionIds && Array.isArray(responseData.sectionIds)) {
-                importedSectionIds = responseData.sectionIds;
-            }
-            
+
+            // Extract section IDs from import result for auto-selection.
+            const importedSectionIds = extractImportedSectionIds(result);
+
             if (importedSectionIds.length > 0 && onSectionsImported) {
                 onSectionsImported(importedSectionIds);
             } else if (onSectionsImported && sections.length > 0) {
@@ -416,31 +382,13 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
         try {
             const result = await importSectionsToSection(pageId, parentSectionId, sections, importData.position);
-            
+
             // Invalidate queries to refresh the section list
             await invalidateQueriesAfterImport();
-            
-            // Extract section IDs from import result for auto-selection
-            // Try multiple possible response structures
-            let importedSectionIds: number[] = [];
-            
-            // Narrow to the known possible import-response shapes
-            const responseData = result as unknown as IImportSectionsResultProbe;
-            
-            if (responseData?.data?.sections && Array.isArray(responseData.data.sections)) {
-                importedSectionIds = responseData.data.sections.map((s) => s.id).filter(Boolean);
-            } else if (responseData?.data?.importedSections && Array.isArray(responseData.data.importedSections)) {
-                importedSectionIds = responseData.data.importedSections.map((s) => s.id).filter(Boolean);
-            } else if (responseData?.data?.sectionIds && Array.isArray(responseData.data.sectionIds)) {
-                importedSectionIds = responseData.data.sectionIds;
-            } else if (responseData?.sections && Array.isArray(responseData.sections)) {
-                importedSectionIds = responseData.sections.map((s) => s.id).filter(Boolean);
-            } else if (responseData?.importedSections && Array.isArray(responseData.importedSections)) {
-                importedSectionIds = responseData.importedSections.map((s) => s.id).filter(Boolean);
-            } else if (responseData?.sectionIds && Array.isArray(responseData.sectionIds)) {
-                importedSectionIds = responseData.sectionIds;
-            }
-            
+
+            // Extract section IDs from import result for auto-selection.
+            const importedSectionIds = extractImportedSectionIds(result);
+
             if (importedSectionIds.length > 0 && onSectionsImported) {
                 onSectionsImported(importedSectionIds);
             } else if (onSectionsImported && sections.length > 0) {
