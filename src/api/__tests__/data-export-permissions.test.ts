@@ -50,8 +50,8 @@ function makeGuardedClient(): AxiosInstance {
 }
 
 /** Attach permission metadata exactly like permissionAwareApiClient does. */
-function withMetadata(permissions: string[]): { _permissionMetadata: { permissions: string[]; endpointKey: string } } {
-    return { _permissionMetadata: { permissions, endpointKey: '' } };
+function withMetadata(permissions: string[]): { _permissionMetadata: { permissions: string[] } } {
+    return { _permissionMetadata: { permissions } };
 }
 
 async function attempt(client: AxiosInstance, url: string, method: 'get' | 'post', permissions: string[]): Promise<boolean> {

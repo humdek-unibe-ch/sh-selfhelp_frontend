@@ -131,7 +131,7 @@ function checkPermissions(config: InternalAxiosRequestConfig): void {
         // NO FALLBACK - Permission metadata is REQUIRED
         const error = new Error(
             `Permission metadata missing for API call: ${fullUrl}\n` +
-            `You must use permissionAwareApiClient instead of permissionAwareApiClient.\n` +
+            `You must use permissionAwareApiClient instead of the raw apiClient.\n` +
             `Example: permissionAwareApiClient.get({ route: endpoint.route, permissions: endpoint.permissions })`
         );
         logError('Permission metadata missing', 'PermissionWrapper', {
