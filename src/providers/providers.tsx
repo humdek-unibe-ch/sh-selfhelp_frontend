@@ -56,6 +56,7 @@ import type { ILanguage } from '../types/responses/admin/languages.types';
 import { getQueryClient } from './query-client';
 
 import { ImpersonationBanner } from '../app/components/shared/common/ImpersonationBanner';
+import { ColorSchemePersist } from '../app/components/shared/common/ColorSchemePersist';
 
 function RefineWrapper({
     children,
@@ -169,6 +170,12 @@ function ClientProviders({
                         theme={theme}
                     >
                         <Notifications />
+                        {/*
+                          Persists the color-scheme cookie on the first visit so
+                          the choice is initialised (Mantine otherwise only
+                          writes it when the user explicitly changes the scheme).
+                        */}
+                        <ColorSchemePersist />
                         {/*
                           Mounted at the root client boundary on purpose:
                           impersonation is most often used to debug what

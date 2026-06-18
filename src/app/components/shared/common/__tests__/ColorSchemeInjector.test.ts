@@ -65,7 +65,14 @@ describe('color scheme bootstrap (pre-hydration)', () => {
         expect(runBootstrap({ serverAttr: 'dark', cookie: 'sh_color_scheme=dark', prefersDark: false })).toBe('dark');
     });
 
-    it('falls back to light when there is no cookie', () => {
+    it('with no cookie, follows the OS preference (default auto) — dark when OS is dark', () => {
+        // Regression for the "nothing selected → light-then-dark blink": a
+        // first-time OS-dark visitor must paint dark pre-hydration so it matches
+        // MantineProvider's defaultColorScheme="auto" resolution (no flip).
+        expect(runBootstrap({ cookie: '', prefersDark: true })).toBe('dark');
+    });
+
+    it('with no cookie and OS light, resolves to light', () => {
         expect(runBootstrap({ cookie: '', prefersDark: false })).toBe('light');
     });
 });

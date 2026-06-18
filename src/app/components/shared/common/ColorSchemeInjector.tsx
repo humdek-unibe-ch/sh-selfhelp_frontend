@@ -49,8 +49,17 @@ import { useServerInsertedHTML } from 'next/navigation';
  *
  * Resolution order (first match wins): an explicit `data-mantine-color-scheme`
  * already stamped server-side (light/dark cookie) → the `sh_color_scheme`
- * cookie → `light`. `auto` is expanded via `prefers-color-scheme` so
- * Mantine's CSS variables bind correctly on the first painted frame.
+ * cookie → `auto` (the app default). `auto` — whether explicit or the
+ * no-cookie default — is expanded via `prefers-color-scheme` so Mantine's CSS
+ * variables bind correctly on the first painted frame.
+ *
+ * ## Why the no-cookie default is `auto`, not `light`
+ * `MantineProvider` is created with `defaultColorScheme="auto"`, so a visitor
+ * with no `sh_color_scheme` cookie resolves to their OS preference after
+ * hydration. If the bootstrap defaulted to `light` here, an OS-dark first-time
+ * visitor would paint light, then Mantine would flip to dark on hydration — the
+ * exact "nothing selected → light-then-dark blink" users reported. Defaulting
+ * to `auto` makes the pre-paint resolution match Mantine's, so there is no flip.
  *
  * ## Why it is emitted only ONCE
  * `useServerInsertedHTML` fires its callback on every SSR stream flush (so
@@ -62,7 +71,7 @@ import { useServerInsertedHTML } from 'next/navigation';
  * first flush and `null` afterwards (the same dedupe pattern emotion uses for
  * SSR style insertion).
  */
-export const COLOR_SCHEME_BOOTSTRAP = `(function(){try{var h=document.documentElement;var s=h.getAttribute("data-mantine-color-scheme");if(s==="light"||s==="dark")return;var c=null;var m=document.cookie.match(/(?:^|;\\s*)sh_color_scheme=([^;]+)/);if(m){var r=decodeURIComponent(m[1]);if(r==="light"||r==="dark"||r==="auto")c=r;}var cs=c||"light";var v=cs!=="auto"?cs:(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");h.setAttribute("data-mantine-color-scheme",v);}catch(e){}})();`;
+export const COLOR_SCHEME_BOOTSTRAP = `(function(){try{var h=document.documentElement;var s=h.getAttribute("data-mantine-color-scheme");if(s==="light"||s==="dark")return;var c=null;var m=document.cookie.match(/(?:^|;\\s*)sh_color_scheme=([^;]+)/);if(m){var r=decodeURIComponent(m[1]);if(r==="light"||r==="dark"||r==="auto")c=r;}var cs=c||"auto";var v=cs!=="auto"?cs:(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");h.setAttribute("data-mantine-color-scheme",v);}catch(e){}})();`;
 
 export function ColorSchemeInjector(): null {
     const injectedRef = useRef(false);
