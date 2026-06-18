@@ -33,6 +33,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
+import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useDeletePageMutation } from '../../../../../hooks/mutations/useDeletePageMutation';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
@@ -152,12 +153,11 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
 
     const updatePageMutation = useUpdatePageMutation({
         onSuccess: (_updatedPage, pageId) => {
-            void queryClient.invalidateQueries({ queryKey: ['adminPages'] });
-            void queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] });
-            void queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
-            void queryClient.invalidateQueries({ queryKey: ['pages'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) });
             void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
-            void queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
             void queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
             void queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });
             void queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', pageId] });

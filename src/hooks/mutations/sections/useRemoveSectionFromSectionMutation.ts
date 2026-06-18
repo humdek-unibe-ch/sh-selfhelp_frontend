@@ -14,6 +14,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromSectionMutationOptions {
@@ -46,8 +47,8 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
 
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                queryClient.refetchQueries({ queryKey: ['pageSections', cachePageId] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
+                queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(cachePageId) }),
                 queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] }),
                 queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'ref-containers'] }),
             ];
@@ -55,8 +56,8 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
             // If pageId is provided, also invalidate page-specific queries
             if (cachePageId) {
                 invalidationPromises.push(
-                    queryClient.invalidateQueries({ queryKey: ['pageSections', cachePageId] }),
-                    queryClient.invalidateQueries({ queryKey: ['pageFields', cachePageId] })
+                    queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(cachePageId) }),
+                    queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(cachePageId) })
                 );
             }
 
@@ -64,7 +65,7 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
 
             // Also directly refetch the page sections query as a backup
             if (cachePageId) {
-                await queryClient.refetchQueries({ queryKey: ['pageSections', cachePageId] });
+                await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(cachePageId) });
             }
             
             if (showNotifications) {

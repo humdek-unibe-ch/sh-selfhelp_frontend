@@ -34,6 +34,7 @@ import { downloadJsonFile, generateExportFilename } from '../../../../../utils/e
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
+import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
 import { InspectorHeader } from '../../shared/inspector-header/InspectorHeader';
 import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
@@ -112,13 +113,12 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         onSuccess: () => {
             setFormValues({ ...useSectionFormStore.getState() }); // Update store to reflect changes
             if (pageId) {
-                void queryClient.invalidateQueries({ queryKey: ['adminPages'] });
-                void queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] });
-                void queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
+                void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
+                void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) });
+                void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) });
                 void queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', pageId, sectionId] });
-                void queryClient.invalidateQueries({ queryKey: ['pages'] });
                 void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
-                void queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
+                void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
             }
         }
     });

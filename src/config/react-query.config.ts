@@ -103,7 +103,16 @@ export const REACT_QUERY_CONFIG = {
 
     QUERY_KEYS: {
         FRONTEND_PAGES: (languageId: number) => ['frontend-pages', languageId],
+        // Prefix base for invalidating every language-scoped FRONTEND_PAGES
+        // entry at once (React Query matches by key prefix).
+        FRONTEND_PAGES_ALL: ['frontend-pages'],
         ADMIN_PAGES: ['admin-pages'],
+        // Per-page detail caches consumed by `usePageDetails`. `pageId` is the
+        // numeric id in the editor and the keyword in keyword-driven callers;
+        // `null`/`undefined` mirror the disabled-query and optional-cache key
+        // shapes used by the read hooks and mutation invalidations.
+        PAGE_SECTIONS: (pageId?: number | string | null) => ['pageSections', pageId],
+        PAGE_FIELDS: (pageId?: number | string | null) => ['pageFields', pageId],
         LANGUAGES: ['languages'],
         PUBLIC_LANGUAGES: ['public-languages'],
         PAGE_BY_KEYWORD: (keyword: string, languageId: number, preview = false) =>

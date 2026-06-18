@@ -14,6 +14,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../api/admin';
+import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import { type ICreatePageRequest } from '../../types/requests/admin/create-page.types';
 import { type IAdminPage } from '../../types/responses/admin/admin.types';
 import { parseApiError } from '../../utils/mutation-error-handler';
@@ -37,33 +38,17 @@ export function useCreatePageMutation(options: ICreatePageMutationOptions = {}) 
         mutationFn: (pageData: ICreatePageRequest) => AdminApi.createPage(pageData),
         
         onSuccess: async (createdPage: IAdminPage) => {
-            
-            // Enhanced cache invalidation strategy with consistent query keys
+
+            // Invalidate the caches the read hooks actually subscribe to so
+            // active observers refetch fresh data. Keys come from the central
+            // registry (react-query.config.ts) to prevent key drift; a single
+            // `invalidateQueries` already refetches active queries, so the
+            // previous refetch+remove churn is unnecessary.
             await Promise.all([
-                // Main admin pages list
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                // Frontend navigation pages
-                queryClient.invalidateQueries({ queryKey: ['pages'] }),
-                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }),
-                // Force refetch to ensure fresh data
-                queryClient.refetchQueries({ queryKey: ['adminPages'] }),
-                queryClient.refetchQueries({ queryKey: ['pages'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL }),
             ]);
-            
-            // Clear any stale cached data that might cause duplication
-            queryClient.removeQueries({ 
-                queryKey: ['adminPages'], 
-                exact: false 
-            });
-            queryClient.removeQueries({ 
-                queryKey: ['pages'], 
-                exact: false 
-            });
-            queryClient.removeQueries({ 
-                queryKey: ['frontend-pages'], 
-                exact: false 
-            });
-            
+
             if (showNotifications) {
                 notifications.show({
                     title: 'Page Created Successfully',

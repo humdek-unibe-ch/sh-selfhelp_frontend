@@ -33,6 +33,7 @@ import { useHotkeys } from '@mantine/hooks';
 import { useState, useEffect, useMemo } from 'react';
 import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
+import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { type IUpdatePageData, type IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
@@ -90,13 +91,12 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             void refetchPageFields();
             
             //TODO: Create a hook shareable #1
-            // Invalidate relevant queries to refresh data - using consistent query keys
-            void queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
-            void queryClient.invalidateQueries({ queryKey: ['pageFields', page.keyword] }); // Page fields
-            void queryClient.invalidateQueries({ queryKey: ['pageSections', page.keyword] }); // Page sections
-            void queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
+            // Invalidate relevant queries to refresh data - keys from the central registry
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }); // Admin pages list
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(page.keyword) }); // Page fields
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(page.keyword) }); // Page sections
             void queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] }); // Frontend page content
-            void queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL }); // Frontend pages with language
             
             // Also invalidate any admin-specific queries that might exist
             void queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });

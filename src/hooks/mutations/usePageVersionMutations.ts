@@ -10,6 +10,7 @@ SPDX-License-Identifier: MPL-2.0
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PageVersionApi } from '../../api/admin/page-version.api';
 import { AdminPageApi } from '../../api/admin/page.api';
+import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import { notifications } from '@mantine/notifications';
 import { type IPublishVersionRequest } from '../../types/requests/admin/page-version.types';
 import { debug } from '../../utils/debug-logger';
@@ -28,7 +29,7 @@ export function usePublishVersionMutation() {
                 queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
 
             // Force immediate refetch of version data
@@ -64,7 +65,7 @@ export function usePublishSpecificVersionMutation() {
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
             
             // Force immediate refetch of version data
@@ -99,7 +100,7 @@ export function useUnpublishPageMutation() {
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['page-versions', pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['page-details', pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
             
             // Force immediate refetch of version data
@@ -169,13 +170,13 @@ export function useRestoreFromVersionMutation() {
                 queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
 
             // Force immediate refetch of page data
             await queryClient.refetchQueries({ queryKey: ['page-details', variables.pageId] });
-            await queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] });
+            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) });
 
             notifications.show({
                 title: 'Sections Restored',
