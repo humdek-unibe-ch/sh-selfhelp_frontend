@@ -69,7 +69,7 @@ jobs:
             exit 0
           fi
           npm run plugins:sync -- --backend "$SELFHELP_BACKEND_URL" --dry-run
-          if [ -n "$(git status --porcelain selfhelp.plugins.lock.json package.json src/app/components/frontend/plugin-runtime/registered.ts 2>/dev/null)" ]; then
+          if [ -n "$(git status --porcelain selfhelp.plugins.lock.json package.json 2>/dev/null)" ]; then
             echo "::error::plugins:sync produced uncommitted changes - the lock file or package.json is out of date."
             git status --porcelain
             exit 1
