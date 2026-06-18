@@ -49,6 +49,19 @@ No engineering diary, no implementation detail — that belongs in
   and invalidated keys no reader subscribed to (the add-sibling UI uses the
   Add-Section modal, not these hooks).
 
+### Security
+- **Patched five dependency vulnerabilities flagged by Dependabot.** Upgraded
+  `dompurify` to 3.4.11 (fixes the `IN_PLACE` DOM-clobbering XSS bypass plus five
+  other alerts) and forced patched versions of the transitive `qs` (6.15.2),
+  `js-yaml` (4.2.0), `form-data` (4.0.6), and `tsx`'s `esbuild` (0.28.1) through
+  npm `overrides`. Vite's own `esbuild` (0.25.12) is outside the advisory range
+  and left untouched. `npm audit` now reports 0 vulnerabilities.
+- **Removed deprecated/unsupported transitive dependencies.** Consolidated every
+  `glob` (was `7.2.3` + `10.5.0`, both flagged as unsupported) onto the latest
+  `13.0.6` via an npm `override`, which also drops the deprecated, memory-leaking
+  `inflight@1.0.6` (only pulled in by the old `glob@7`). A clean `npm install` no
+  longer prints deprecation warnings.
+
 ## v0.1.20 — 2026-06-17
 
 ### Fixed
