@@ -53,6 +53,13 @@ export interface IPageDetails extends IBasePageInfo {
         id: number;
         name: string;
     };
+    /**
+     * The page access target (`pageAccessTypes` lookup: `web` | `mobile` |
+     * `mobile_and_web`) is the single page-level platform model. It controls
+     * where the page may load and which styles the add-section picker offers.
+     * There is no separate page `platform` field (the experimental duplicate was
+     * removed); render target is a style-level concept only.
+     */
     pageAccessType?: IPageAccessTypeInfo;
     openAccess?: boolean;
 }

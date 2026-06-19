@@ -18,6 +18,7 @@ import {
 } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { type IStyleGroup, type IStyle } from '../../../../../../../types/responses/admin/styles.types';
+import { getStylePlatform, PLATFORM_BADGE } from '../../../../../../../utils/style-platform.utils';
 
 interface NewSectionTabProps {
     isLoadingStyles: boolean;
@@ -91,6 +92,8 @@ export function NewSectionTab({
                                         (s) => s.style.id === style.id
                                     );
                                     const isSelected = !!selectedItem;
+                                    const platform = getStylePlatform(style);
+                                    const platformBadge = PLATFORM_BADGE[platform];
 
                                     return (
                                         <Card
@@ -121,11 +124,20 @@ export function NewSectionTab({
                                                     <Text fw={600} size="sm" truncate>
                                                         {style.name}
                                                     </Text>
-                                                    {isSelected && (
-                                                        <Badge size="xs" variant="filled" color="blue">
-                                                            Selected
+                                                    <Group gap={4} wrap="nowrap">
+                                                        <Badge
+                                                            size="xs"
+                                                            variant="light"
+                                                            color={platformBadge.color}
+                                                        >
+                                                            {platformBadge.label}
                                                         </Badge>
-                                                    )}
+                                                        {isSelected && (
+                                                            <Badge size="xs" variant="filled" color="blue">
+                                                                Selected
+                                                            </Badge>
+                                                        )}
+                                                    </Group>
                                                 </Group>
 
                                                 {style.description && (

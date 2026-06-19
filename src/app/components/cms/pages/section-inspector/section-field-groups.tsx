@@ -5,15 +5,16 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import React from 'react';
-import { Stack, Paper, Group, Text, Box, TextInput } from '@mantine/core';
-import { IconInfoCircle } from '@tabler/icons-react';
+import { Stack, Paper, Group, Text, Box, TextInput, Badge, Alert } from '@mantine/core';
+import { IconInfoCircle, IconAlertTriangle } from '@tabler/icons-react';
+import { type TStylePlatform } from '@selfhelp/shared/registry';
 import { GlobalFieldRenderer, type GlobalFieldType } from '../../shared';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { SectionPropertyField } from './section-field-connectors';
+import { classifySectionField, offPlatformFieldsWithValues } from './section-field-classify';
+import { getStylePlatformByName, PLATFORM_BADGE } from '../../../../../utils/style-platform.utils';
 import { type ISectionField, type ISectionDetails } from '../../../../../types/responses/admin/admin.types';
 import styles from './SectionInspector.module.css';
-
-const GLOBAL_FIELD_NAMES = new Set<GlobalFieldType>(['condition', 'data_config', 'css', 'css_mobile', 'debug']);
 
 interface ISectionGlobalFieldsProps {
     globalFieldTypes: GlobalFieldType[];
@@ -49,76 +50,109 @@ export const SectionGlobalFields = React.memo(function SectionGlobalFields({
     );
 });
 
-interface ISectionPropertiesProps {
+interface IFieldGroupProps {
     fields: ISectionField[];
     dataVariables?: Record<string, string>;
 }
 
+/** Render a flat list of store-connected property fields. */
+function PropertyFieldList({ fields, dataVariables, keySuffix }: IFieldGroupProps & { keySuffix: string }) {
+    return (
+        <Stack gap="md">
+            {fields.map((field) => (
+                <SectionPropertyField
+                    key={`${field.id}-${keySuffix}`}
+                    field={field}
+                    className={styles.fullWidthLabel}
+                    dataVariables={dataVariables}
+                />
+            ))}
+        </Stack>
+    );
+}
+
 /**
- * Group component for section property fields
- * Contains individual SectionPropertyField components that each subscribe
- * to their own specific property value for maximum granularity
+ * Shared Properties — `shared`-scoped semantic fields (`shared_size`,
+ * `shared_spacing`, `shared_radius`, `shared_intent`, …) that the shared mapper
+ * resolves for BOTH web and mobile renderers. Grouping is driven by the
+ * backend-emitted field scope. Always shown when present.
+ */
+export const SectionSharedProperties = React.memo(function SectionSharedProperties({
+    fields,
+    dataVariables
+}: IFieldGroupProps) {
+    const sharedFields = fields.filter((f) => classifySectionField(f) === 'shared');
+    return <PropertyFieldList fields={sharedFields} dataVariables={dataVariables} keySuffix="shared" />;
+});
+
+/**
+ * Properties — `common`-scoped, cross-platform behavior/data config fields
+ * (display=0, unprefixed). Driven solely by the backend field scope, never by
+ * the field name or the `display` flag.
  */
 export const SectionProperties = React.memo(function SectionProperties({
     fields,
     dataVariables
-}: ISectionPropertiesProps) {
-    const propertyFieldsToDisplay = fields.filter(
-        field => !field.display && !field.name.startsWith('mantine_') && !GLOBAL_FIELD_NAMES.has(field.name as GlobalFieldType)
-    );
-
-    return (
-        <Stack gap="md">
-            {propertyFieldsToDisplay.map((field) => (
-                <SectionPropertyField
-                    key={`${field.id}-property`}
-                    field={field}
-                    className={styles.fullWidthLabel}
-                    dataVariables={dataVariables}
-                />
-            ))}
-        </Stack>
-    );
+}: IFieldGroupProps) {
+    const propertyFields = fields.filter((f) => classifySectionField(f) === 'property');
+    return <PropertyFieldList fields={propertyFields} dataVariables={dataVariables} keySuffix="property" />;
 });
 
-interface ISectionMantinePropertiesProps {
+/**
+ * Web Properties — `web_*` fields (Mantine/web-renderer overrides). Shown
+ * whenever the style exposes web fields; the web renderer always uses Mantine
+ * (the legacy `use_web_style` master toggle was retired).
+ */
+export const SectionWebProperties = React.memo(function SectionWebProperties({
+    fields,
+    dataVariables
+}: IFieldGroupProps) {
+    const webFields = fields.filter((f) => classifySectionField(f) === 'web');
+    return <PropertyFieldList fields={webFields} dataVariables={dataVariables} keySuffix="web" />;
+});
+
+/**
+ * Mobile Properties — `mobile_*` fields (HeroUI Native / mobile-renderer
+ * overrides). No master toggle: mobile overrides apply directly when set.
+ */
+export const SectionMobileProperties = React.memo(function SectionMobileProperties({
+    fields,
+    dataVariables
+}: IFieldGroupProps) {
+    const mobileFields = fields.filter((f) => classifySectionField(f) === 'mobile');
+    return <PropertyFieldList fields={mobileFields} dataVariables={dataVariables} keySuffix="mobile" />;
+});
+
+interface ICrossPlatformWarningProps {
     fields: ISectionField[];
-    dataVariables?: Record<string, string>;
+    stylePlatform: TStylePlatform;
 }
 
 /**
- * Group component for Mantine-specific properties
- * Only renders if use_mantine_style is enabled
- * Subscribes to the specific boolean flag to determine visibility
+ * Cross-platform validation: warn when a single-platform style has values set
+ * for the other platform's fields (data drift the renderer will ignore).
  */
-export const SectionMantineProperties = React.memo(function SectionMantineProperties({
+export const CrossPlatformFieldWarning = React.memo(function CrossPlatformFieldWarning({
     fields,
-    dataVariables
-}: ISectionMantinePropertiesProps) {
-    // Subscribe only to the specific flag that controls visibility
-    const useMantineStyle = useSectionFormStore(
-        (state) => state.properties?.use_mantine_style === true
-    );
+    stylePlatform
+}: ICrossPlatformWarningProps) {
+    const properties = useSectionFormStore((state) => state.properties);
+    const drifted = offPlatformFieldsWithValues(fields, properties ?? {}, stylePlatform);
+    if (drifted.length === 0) return null;
 
-    if (!useMantineStyle) {
-        return null;
-    }
-
-    const mantineFieldsToDisplay = fields.filter(
-        field => !field.display && field.name.startsWith('mantine_')
-    );
-
+    const otherPlatform = stylePlatform === 'web' ? 'mobile' : 'web';
     return (
-        <Stack gap="md">
-            {mantineFieldsToDisplay.map((field) => (
-                <SectionPropertyField
-                    key={`${field.id}-mantine`}
-                    field={field}
-                    className={styles.fullWidthLabel}
-                    dataVariables={dataVariables}
-                />
-            ))}
-        </Stack>
+        <Alert
+            color="yellow"
+            icon={<IconAlertTriangle size={16} />}
+            title={`Ignored ${otherPlatform} properties`}
+            variant="light"
+        >
+            <Text size="xs">
+                This {stylePlatform}-only style has {otherPlatform} properties set
+                ({drifted.join(', ')}). They are not rendered and should be cleared.
+            </Text>
+        </Alert>
     );
 });
 
@@ -139,14 +173,22 @@ export const SectionInfoPanel = React.memo(function SectionInfoPanel({
 
     if (!section) return null;
 
+    const platform = getStylePlatformByName(section.style.name);
+    const badge = PLATFORM_BADGE[platform];
+
     return (
         <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
             <Box p="md">
-                <Group gap="xs" mb="sm">
-                    <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
-                    <Text size="sm" fw={500} c="blue">Section Information</Text>
+                <Group gap="xs" mb="sm" justify="space-between">
+                    <Group gap="xs">
+                        <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
+                        <Text size="sm" fw={500} c="blue">Section Information</Text>
+                    </Group>
+                    <Badge color={badge.color} variant="light" aria-label={`Platform: ${badge.label}`}>
+                        {badge.label}
+                    </Badge>
                 </Group>
-                
+
                 <Stack gap="xs">
                     <Box>
                         <Text size="xs" fw={500} c="dimmed" mb="xs">Section Name</Text>
@@ -157,7 +199,7 @@ export const SectionInfoPanel = React.memo(function SectionInfoPanel({
                             size="sm"
                         />
                     </Box>
-                    
+
                     <Group gap="md" wrap="wrap">
                         <Box>
                             <Text size="xs" fw={500} c="dimmed">Style</Text>
@@ -172,7 +214,7 @@ export const SectionInfoPanel = React.memo(function SectionInfoPanel({
                             <Text size="sm">{section.id}</Text>
                         </Box>
                     </Group>
-                    
+
                     {section.style.description && (
                         <Box mt="sm">
                             <Text size="xs" fw={500} c="dimmed">Description</Text>
@@ -184,4 +226,3 @@ export const SectionInfoPanel = React.memo(function SectionInfoPanel({
         </Paper>
     );
 });
-

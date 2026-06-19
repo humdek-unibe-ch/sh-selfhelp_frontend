@@ -22,7 +22,7 @@ export interface ISpacingValues {
     pe?: TSpacingValue; // padding-end
 }
 
-export type TSpacingFieldType = 'mantine_spacing_margin' | 'mantine_spacing_margin_padding';
+export type TSpacingFieldType = 'spacing' | 'spacing-margin';
 
 interface ISpacingFieldProps {
     fieldId: number;
@@ -82,7 +82,7 @@ export function SpacingField({
     }, []);
 
     const spacingValues = parseSpacingValue(value);
-    const isMarginOnly = fieldType === 'mantine_spacing_margin';
+    const isMarginOnly = fieldType === 'spacing-margin';
 
     // Handle spacing value change
     const handleSpacingChange = useCallback((property: keyof ISpacingValues, newValue: TSpacingValue) => {

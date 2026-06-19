@@ -20,7 +20,16 @@ import { useState } from 'react';
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
 import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
 import { SectionContentField } from './section-field-connectors';
-import { SectionGlobalFields, SectionProperties, SectionMantineProperties } from './section-field-groups';
+import {
+    SectionGlobalFields,
+    SectionProperties,
+    SectionSharedProperties,
+    SectionWebProperties,
+    SectionMobileProperties,
+    CrossPlatformFieldWarning,
+} from './section-field-groups';
+import { classifySectionField, isPlatformCardVisible } from './section-field-classify';
+import { getStylePlatformByName } from '../../../../../utils/style-platform.utils';
 import { type ISectionField } from '../../../../../types/responses/admin/admin.types';
 import type { GlobalFieldType } from '../../shared';
 import styles from './SectionInspector.module.css';
@@ -35,6 +44,8 @@ interface ISectionFieldPanelsProps {
     sectionId: number | null;
     /** All fields for the section as returned by the API. */
     fields: ISectionField[];
+    /** Style name — drives the platform-aware Web / Mobile card visibility. */
+    styleName?: string;
 
     languagesData: ILanguage[];
     activeLanguageTab: string;
@@ -46,6 +57,7 @@ interface ISectionFieldPanelsProps {
 export function SectionFieldPanels({
     sectionId: _sectionId,
     fields,
+    styleName,
     languagesData,
     activeLanguageTab,
     onLanguageTabChange,
@@ -54,6 +66,8 @@ export function SectionFieldPanels({
 }: ISectionFieldPanelsProps) {
     const globalFieldTypes: GlobalFieldType[] = ['condition', 'data_config', 'css', 'css_mobile', 'debug'];
     const [fieldSearch, setFieldSearch] = useState('');
+
+    const stylePlatform = getStylePlatformByName(styleName ?? '');
 
     const query = fieldSearch.trim().toLowerCase();
     const matches = (text: string | null | undefined) => (text ?? '').toLowerCase().includes(query);
@@ -65,9 +79,17 @@ export function SectionFieldPanels({
         ? globalFieldTypes.filter(t => matches(t))
         : globalFieldTypes;
 
-    const contentFields = filteredFields.filter(f => f.display);
-    const propertyFields = filteredFields.filter(f => !f.display && !f.name.startsWith('mantine_'));
-    const mantineFields = filteredFields.filter(f => !f.display && f.name.startsWith('mantine_'));
+    const inBucket = (bucket: ReturnType<typeof classifySectionField>) =>
+        filteredFields.filter(f => classifySectionField(f) === bucket);
+
+    const contentFields = inBucket('content');
+    const sharedFields = inBucket('shared');
+    const propertyFields = inBucket('property');
+    const webFields = inBucket('web');
+    const mobileFields = inBucket('mobile');
+
+    const showWebCard = webFields.length > 0 && isPlatformCardVisible('web', stylePlatform);
+    const showMobileCard = mobileFields.length > 0 && isPlatformCardVisible('mobile', stylePlatform);
 
     return (
         <Stack gap="md">
@@ -91,6 +113,9 @@ export function SectionFieldPanels({
                     size="sm"
                 />
             </Box>
+
+            {/* Cross-platform validation: warn on drifted off-platform values. */}
+            <CrossPlatformFieldWarning fields={fields} stylePlatform={stylePlatform} />
 
             {/* Content fields: display=true, translatable per language */}
             {contentFields.length > 0 && (
@@ -161,7 +186,19 @@ export function SectionFieldPanels({
                 </CollapsibleSection>
             )}
 
-            {/* Properties: display=false, non-mantine — section-specific config fields */}
+            {/* Shared Properties: unprefixed shared semantic fields (size/intent/…) */}
+            {sharedFields.length > 0 && (
+                <CollapsibleSection
+                    title="Shared Properties"
+                    inspectorType={INSPECTOR_TYPES.SECTION}
+                    sectionName="shared-properties"
+                    defaultExpanded={true}
+                >
+                    <SectionSharedProperties fields={filteredFields} dataVariables={dataVariables} />
+                </CollapsibleSection>
+            )}
+
+            {/* Properties: display=false, other unprefixed config fields */}
             {propertyFields.length > 0 && (
                 <CollapsibleSection
                     title="Properties"
@@ -169,25 +206,31 @@ export function SectionFieldPanels({
                     sectionName="properties"
                     defaultExpanded={true}
                 >
-                    <SectionProperties
-                        fields={filteredFields}
-                        dataVariables={dataVariables}
-                    />
+                    <SectionProperties fields={filteredFields} dataVariables={dataVariables} />
                 </CollapsibleSection>
             )}
 
-            {/* Mantine Properties: display=false, name prefixed with "mantine_" — UI/style overrides */}
-            {mantineFields.length > 0 && (
+            {/* Web Properties: web_* fields — only on web / both styles */}
+            {showWebCard && (
                 <CollapsibleSection
-                    title="Mantine Properties"
+                    title="Web Properties"
                     inspectorType={INSPECTOR_TYPES.SECTION}
-                    sectionName="mantine-properties"
+                    sectionName="web-properties"
                     defaultExpanded={false}
                 >
-                    <SectionMantineProperties
-                        fields={filteredFields}
-                        dataVariables={dataVariables}
-                    />
+                    <SectionWebProperties fields={filteredFields} dataVariables={dataVariables} />
+                </CollapsibleSection>
+            )}
+
+            {/* Mobile Properties: mobile_* fields — only on mobile / both styles */}
+            {showMobileCard && (
+                <CollapsibleSection
+                    title="Mobile Properties"
+                    inspectorType={INSPECTOR_TYPES.SECTION}
+                    sectionName="mobile-properties"
+                    defaultExpanded={false}
+                >
+                    <SectionMobileProperties fields={filteredFields} dataVariables={dataVariables} />
                 </CollapsibleSection>
             )}
         </Stack>

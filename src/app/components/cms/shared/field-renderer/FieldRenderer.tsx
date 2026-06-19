@@ -702,7 +702,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     }
 
     // Spacing field (margin-only or margin + padding)
-    if (field.type === 'mantine_spacing_margin' || field.type === 'mantine_spacing_margin_padding') {
+    if (field.type === 'spacing' || field.type === 'spacing-margin') {
         return renderFieldWithBadge(
             <SpacingField
                 fieldId={field.id}
