@@ -14,6 +14,30 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.22 — 2026-06-18
+
+### Added
+- **Web renderers for the last five established catalog styles** that were
+  previously falling through to `UnknownStyle`: `entry-list`, `entry-record`,
+  `loop` (backend-hydrated children wrappers), `entry-record-delete` (a
+  destructive button with a confirmation modal wired to the shared
+  `useDeleteFormMutation`), and `version` (a no-op diagnostic surface that
+  mirrors the mobile renderer). Every `web`/`both` style in the shared registry
+  now has a real core renderer.
+- **Exhaustive web renderer parity test** (`BasicStyle.test.tsx`): any
+  `web`/`both` style in `@selfhelp/shared` that lacks a `STYLE_IMPLS` entry now
+  fails CI instead of silently rendering `UnknownStyle`, mirroring the mobile
+  `registry-parity` guard.
+
+### Changed
+- **Compatibility floor raised to core `>=0.1.15`** (`release-manifest.json`):
+  this frontend now depends on the backend mobile-rendering style-schema
+  contract (style `renderTarget`, the required per-field `scope` that drives
+  inspector grouping, and the `shared_`/`web_` field taxonomy with the duplicate
+  `pages.id_platform` removed).
+
+---
+
 ## v0.1.21 — 2026-06-18
 
 ### Added
@@ -102,6 +126,14 @@ No engineering diary, no implementation detail — that belongs in
   filled.
 
 ### Removed
+- **Duplicate HeroUI-named style folder.** Deleted
+  `src/app/components/frontend/styles/mantine/heroui/` (13 renderers + a local
+  `intentColor.ts`). The frontend renders Mantine only; those styles (`dialog`,
+  `popover`, `menu`, `menu-item`, `toast`, `skeleton`, `skeleton-group`,
+  `spinner`, `tag`, `tag-group`, `search-field`, `input-group`, `input-otp`) are
+  plain Mantine renderers under `mantine/`, and intent→color mapping now comes
+  solely from the shared `mapIntentToMantine` (`@selfhelp/shared`) instead of the
+  removed local duplicate.
 - Dead code: the unreachable 401 branch in the Refine auth `onError`, the unused
   `endpointKey` API argument, the stale `registered.ts` reference in the
   plugins-sync CI check, and two unused section-sibling mutation hooks
