@@ -5,8 +5,12 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import '../../../globals.css';
+// Mantine **core** styles come from `globals.css` (the *layered*
+// `@mantine/core/styles.layer.css`). Do NOT also import the unlayered
+// `@mantine/core/styles.css` — unlayered rules beat `@layer utilities`, which
+// breaks the CMS `css` escape hatch (Tailwind utilities can no longer override
+// Mantine on Card/Paper-based styles).
 import '@mantine/dates/styles.css';
-import '@mantine/core/styles.css';
 import '@mantine/carousel/styles.css';
 import '@mantine/tiptap/styles.css';
 import { AppShell } from '@mantine/core';
