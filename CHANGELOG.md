@@ -14,6 +14,39 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.23 — 2026-06-19
+
+### Changed
+- **`alert`, `badge`, `avatar`, `button` and `login` renderers follow the
+  backend style polish wave** (requires core `>= 0.1.15` + `@selfhelp/shared`
+  `1.14.7`):
+  - **button** — reads the cross-platform `shared_variant` instead of the removed
+    `web_variant`, and now falls back to the external `url` field when no internal
+    `page_keyword` is set.
+  - **badge** — reads `shared_variant` (with the optional web-only `web_variant`
+    override taking precedence) and renders a circle when the new `circle` toggle
+    is on.
+  - **avatar** — reads `web_variant` (was the stale `web_avatar_variant`) and
+    derives initials + an auto colour from the new `name` field when no image is
+    set.
+  - **alert** — reads the cross-platform `closable` toggle (was the web-only
+    `web_with_close_button`).
+  - **login** — renders the optional `subtitle` under the title and takes the
+    submit-button colour from `shared_color`; the dead `type` field read was
+    removed. The "Forgot password?" and "Create account" links now also use the
+    authored `shared_color` so the button and its links stay visually consistent.
+- New focused renderer tests cover each of the above (`ButtonStyle`,
+  `BadgeStyle`, `AvatarStyle`, `AlertStyle`, `LoginStyle`).
+
+### Fixed
+- **Section inspector property/override selects are always clearable.** A select
+  for a property or `shared_*`/`web_*`/`mobile_*` override (e.g. badge
+  `web_variant`) could be seeded with `config.clearable: false`, which hid the
+  clear (×) button and stranded an overridden value with no way to revert it.
+  `SectionPropertyField` now forces `clearable: true`, so clearing an override
+  falls back to the inherited/shared value and clearing a shared field reverts to
+  the style default. Covered by a focused `section-field-connectors` test.
+
 ## v0.1.22 — 2026-06-18
 
 ### Added
