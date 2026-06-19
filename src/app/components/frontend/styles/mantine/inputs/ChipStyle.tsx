@@ -9,6 +9,7 @@ import IconComponent from '../../../../shared/common/IconComponent';
 import { FormFieldValueContext } from '../../FormStyle';
 import DOMPurify from 'isomorphic-dompurify';
 import parse from "html-react-parser";
+import { stripHtmlTags } from '../../../../../../utils/html-sanitizer.utils';
 /**
  * Props interface for ChipStyle component
  */
@@ -38,8 +39,8 @@ interface IChipStyleProps {
  */
 const ChipStyle: React.FC<IChipStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const label = style.label?.content || 'Chip';
-    const variant = style.web_chip_variant?.content || 'filled';
+    const label = stripHtmlTags(style.label?.content || '') || 'Chip';
+    const variant = style.shared_chip_variant?.content || 'filled';
     const size = style.shared_size?.content || 'sm';
     const radius = style.shared_radius?.content || 'sm';
     const color = style.shared_color?.content || 'blue';

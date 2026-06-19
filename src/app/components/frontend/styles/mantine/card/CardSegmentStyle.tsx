@@ -28,16 +28,16 @@ interface ICardSegmentStyleProps {
  * @returns {JSX.Element} Rendered Mantine Card.Section with child content
  */
 const CardSegmentStyle: React.FC<ICardSegmentStyleProps> = ({ style, styleProps, cssClass }) => {
-    // Extract field values using the new unified field structure
-
-    // Handle CSS field - use direct property from API response
-    
+    const withBorder = style.shared_border?.content === '1';
+    const inheritPadding = style.web_segment_inherit_padding?.content === '1';
 
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
     return (
         <Card.Section
+            withBorder={withBorder}
+            inheritPadding={inheritPadding}
             {...styleProps} className={cssClass}
         >
             {children.map((childStyle, index) => (

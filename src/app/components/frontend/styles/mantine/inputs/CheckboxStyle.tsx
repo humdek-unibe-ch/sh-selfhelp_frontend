@@ -35,7 +35,7 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style, styleProps, cssCl
     const radius = castMantineRadius(style.shared_radius?.content);
     const color = style.shared_color?.content;
     const iconName = style.web_checkbox_icon?.content;
-    const labelPosition = style.web_checkbox_label_position?.content as 'left' | 'right';
+    const labelPosition = style.shared_label_position?.content as 'left' | 'right';
     const useInputWrapper = style.web_use_input_wrapper?.content === '1';
 
     // Handle CSS field - use direct property from API response

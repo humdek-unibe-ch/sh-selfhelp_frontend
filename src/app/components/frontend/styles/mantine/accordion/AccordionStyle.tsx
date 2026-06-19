@@ -32,7 +32,7 @@ const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style, styleProps, css
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const variant = style.web_accordion_variant?.content || 'default';
+    const variant = style.shared_accordion_variant?.content || 'default';
     const multiple = style.shared_multiple?.content === '1';
     const chevronPosition = style.web_accordion_chevron_position?.content || 'left';
     const chevronSize = parseInt(style.web_accordion_chevron_size?.content || '16');

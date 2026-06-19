@@ -3,9 +3,10 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
-import { Accordion } from '@mantine/core';
+import { Accordion, Stack, Text } from '@mantine/core';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { type IAccordionItemStyle } from '../../../../../../types/common/styles.types';
+import { stripHtmlTags } from '../../../../../../utils/html-sanitizer.utils';
 import BasicStyle from '../../BasicStyle';
 
 /**
@@ -34,7 +35,8 @@ const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style, stylePr
 
     // Extract field values using the new unified field structure
     const itemValue = style.web_accordion_item_value?.content || `section-${style.id}`;
-    const label = style.label?.content || `Item ${style.id}`;
+    const label = stripHtmlTags(style.label?.content || `Item ${style.id}`);
+    const description = stripHtmlTags(style.description?.content || '');
     const iconName = style.web_accordion_item_icon?.content;
     const disabled = style.disabled?.content === '1';
     // Get icon component using IconComponent
@@ -56,7 +58,14 @@ const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style, stylePr
                 style={styleObj}                
             >
                 <Accordion.Control icon={icon} disabled={disabled}>
-                    {label}
+                    {description ? (
+                        <Stack gap={2}>
+                            <Text fw={500}>{label}</Text>
+                            <Text size="sm" c="dimmed">{description}</Text>
+                        </Stack>
+                    ) : (
+                        label
+                    )}
                 </Accordion.Control>
                 <Accordion.Panel>
                     {children.map((child, index: number) => (

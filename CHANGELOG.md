@@ -14,6 +14,68 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.26 — 2026-06-19
+
+### Fixed
+- **CMS `css` escape hatch now actually overrides Mantine on Card/Paper-based
+  styles (and every other core component).** The root layout and the slug shell
+  imported the **unlayered** `@mantine/core/styles.css` on top of the *layered*
+  `@mantine/core/styles.layer.css` already loaded by `globals.css`. Unlayered
+  rules beat every `@layer utilities` rule, so author-picked Tailwind classes in
+  the section `css` field (e.g. `bg-blue-500 rounded-xl shadow-md text-white p-4`
+  on a `card`) were silently ignored — Mantine's own background/radius/padding
+  always won. Removed the redundant unlayered core import in both
+  `src/app/layout.tsx` and `src/app/[[...slug]]/SlugLayout/SlugShell.tsx`;
+  Mantine core stays fully styled via the layered copy, now in `@layer mantine`
+  where the `css` field's `@layer utilities` classes can override it. Verified
+  live on desktop + small-screen web in light and dark.
+
+### Removed
+- **`card` dropped the redundant `web_card_padding` field.** It duplicated the
+  portable `shared_spacing` padding (which renders on web + mobile), so the
+  renderer now keeps a fixed Mantine `padding="md"` inner default (also the
+  `Card.Section` image-bleed reference) and authors tune padding through the
+  shared **Spacing** control. Pairs with `@selfhelp/shared` `1.14.11` and backend
+  migration `Version20260619205908`. (`CardStyle.tsx`)
+
+---
+
+## v0.1.25 — 2026-06-19
+
+### Changed
+- **`card`, `card-segment`, `checkbox`, `chip`, `code`, `title` renderers follow
+  the backend style polish wave** (requires core `>= 0.1.15` + `@selfhelp/shared`
+  `1.14.9`):
+  - **card** — optional auto-styled `title` (heading, HTML-stripped) and
+    `img_src` (top image via the asset picker) render only when filled; border is
+    the cross-platform `shared_border` (was `web_border`) and the card now honours
+    `web_card_padding`.
+  - **card-segment** — reads `shared_border` (Mantine `withBorder`) and
+    `web_segment_inherit_padding` (Mantine `inheritPadding`).
+  - **checkbox** — label side reads `shared_label_position` (was
+    `web_checkbox_label_position`).
+  - **chip** — reads `shared_chip_variant` (was `web_chip_variant`) and sanitizes
+    the `label` plain-text slot with `stripHtmlTags`.
+  - **code** — block toggle reads `code_block` (was `web_code_block`) and applies
+    the new `shared_radius` to the block corners.
+  - **title** — reads `title_order` (was `web_title_order`), `shared_line_clamp`
+    (was `web_title_line_clamp`) and the new `shared_color`.
+
+---
+
+## v0.1.24 — 2026-06-19
+
+### Changed
+- **`accordion` / `accordion-item` renderers follow the backend accordion polish
+  wave** (requires core `>= 0.1.15` + `@selfhelp/shared` `1.14.8`):
+  - `AccordionStyle` reads the promoted cross-platform `shared_accordion_variant`
+    (was the web-only `web_accordion_variant`) for the Mantine `variant`.
+  - `AccordionItemStyle` renders the new optional `description` content field as a
+    dimmed subtitle under the item label (empty = unchanged), and sanitizes the
+    `label` + `description` plain-text slots with `stripHtmlTags`.
+
+---
+
 ## v0.1.23 — 2026-06-19
 
 ### Changed
