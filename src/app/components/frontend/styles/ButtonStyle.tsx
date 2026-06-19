@@ -34,8 +34,9 @@ interface IButtonStyleProps {
 const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass }) => {
     const router = useRouter();
     const label = style.label?.content;
-    const url = style.page_keyword?.content;
-    const variant = style.web_variant?.content;
+    // Internal page link takes precedence over the external URL.
+    const url = style.page_keyword?.content || style.url?.content;
+    const variant = style.shared_variant?.content;
     const color = style.shared_color?.content;
     const size = style.shared_size?.content;
     const radius = style.shared_radius?.content;

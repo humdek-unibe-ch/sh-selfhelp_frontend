@@ -42,7 +42,7 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style, styleProps, cssClass })
     const variant = style.web_variant?.content || 'light';
     const color = style.shared_color?.content || 'blue';
     const radius = castMantineRadius(style.shared_radius?.content);
-    const withCloseButton = style.web_with_close_button?.content === '1';
+    const withCloseButton = style.closable?.content === '1';
     const iconName = style.web_left_icon?.content;
 
     // Handle CSS field - use direct property from API response

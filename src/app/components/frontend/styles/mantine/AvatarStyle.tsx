@@ -34,8 +34,9 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
     const src = style.img_src?.content;
     const alt = style.alt?.content || 'Avatar';
     const iconName = style.web_left_icon?.content;
+    const name = style.name?.content?.trim();
     const customInitials = style.web_avatar_initials?.content || 'U';
-    const variant = style.web_avatar_variant?.content || 'light';
+    const variant = style.web_variant?.content || 'light';
     const size = style.shared_size?.content || 'md';
     const radius = style.shared_radius?.content || '50%';
     const color = style.shared_color?.content || 'blue';
@@ -49,19 +50,20 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
     // Check if src is a text name (not a URL)
     const _isUrl = src && (src.startsWith('http') || src.startsWith('https') || src.includes('.'));
 
-    // Determine avatar content with priority: URL > text initials > icon > custom initials
+    // Determine avatar content with priority: URL > name (auto-initials) > icon > custom initials
     const avatarSrc = src ? getAssetUrl(src) : null;
-    const avatarIcon = !src && iconName ? <IconComponent iconName={iconName} size={16} /> : undefined;
+    const useName = !avatarSrc && !!name;
+    const avatarIcon = !avatarSrc && !useName && iconName ? <IconComponent iconName={iconName} size={16} /> : undefined;
 
     let avatarContent;
-    if (avatarSrc) {
-        // src is a URL - image will be shown, no content needed
+    if (avatarSrc || useName) {
+        // image (src) or Mantine-derived initials (name) — no manual content.
         avatarContent = null;
-    }  else if (avatarIcon) {
-        // no src but icon is set - show icon
+    } else if (avatarIcon) {
+        // no src/name but icon is set - show icon
         avatarContent = avatarIcon;
     } else {
-        // no src, no icon - generate initials from custom initials field
+        // no src, no name, no icon - generate initials from custom initials field
         avatarContent = customInitials ? customInitials.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
     }
 
@@ -69,6 +71,7 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
         <Avatar
             src={avatarSrc}
             alt={alt}
+            name={useName ? name : undefined}
             variant={variant as TMantineAvatarVariant}
             size={size as TMantineSize}
             radius={radius === 'none' ? 0 : radius}

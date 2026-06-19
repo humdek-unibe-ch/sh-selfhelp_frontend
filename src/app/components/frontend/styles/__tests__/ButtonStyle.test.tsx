@@ -61,4 +61,31 @@ describe('ButtonStyle', () => {
         );
         expect(screen.getByRole('link', { name: 'Go home' })).toHaveAttribute('href', '/home');
     });
+
+    it('falls back to the external url when no internal page keyword is set', () => {
+        renderWithProviders(
+            <ButtonStyle
+                style={makeStyle({
+                    is_link: { content: '1' },
+                    label: { content: 'Docs' },
+                    url: { content: 'https://example.com/docs' },
+                })}
+                styleProps={{}}
+                cssClass="section-4"
+            />,
+        );
+        expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', 'https://example.com/docs');
+    });
+
+    it('applies the cross-platform shared_variant', () => {
+        renderWithProviders(
+            <ButtonStyle
+                style={makeStyle({ label: { content: 'Outline' }, shared_variant: { content: 'outline' } })}
+                styleProps={{}}
+                cssClass="section-5"
+            />,
+        );
+        // Mantine encodes the variant on the data-variant attribute.
+        expect(screen.getByRole('button', { name: 'Outline' })).toHaveAttribute('data-variant', 'outline');
+    });
 });
