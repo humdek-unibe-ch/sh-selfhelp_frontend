@@ -269,7 +269,10 @@ export type TStyleName =
     | 'list' | 'list-item'
     | 'datepicker'
     | 'typography'
-    | 'show-user-input';
+    | 'show-user-input'
+    | 'timeline-item'
+    // system / error surfaces
+    | 'no-access' | 'missing' | 'not-found';
 
 // ===== IContentField — re-exported from shared =====
 export type IContentField<T> = ISharedContentField<T>;
@@ -309,8 +312,9 @@ export interface IBaseStyle {
 }
 
 export interface IStyleWithSpacing extends IBaseStyle {
-    mantine_spacing_margin?: IContentField<string>;
-    mantine_spacing_margin_padding?: IContentField<string>;
+    // Box-model spacing (margin + padding) is the portable `shared_spacing`
+    // field. RF-15 merged the legacy margin-only `web_spacing_margin` into it.
+    shared_spacing?: IContentField<string>;
 }
 
 // ===== Per-style interfaces — re-exported from shared =====
@@ -395,6 +399,7 @@ export type {
     ITabsStyle,
     ITabStyle,
     ITimelineStyle,
+    ITimelineItemStyle,
     IListStyle,
     IListItemStyle,
     IEntryListStyle,
@@ -512,6 +517,10 @@ import type {
     IEntryRecordDeleteStyle,
     ILoopStyle,
     IShowUserInputStyle,
+    INoAccessStyle,
+    IMissingStyle,
+    INotFoundStyle,
+    ITimelineItemStyle,
 } from '../../shared';
 
 export type TStyle =
@@ -543,9 +552,11 @@ export type TStyle =
     | IRatingStyle | IProgressStyle | IProgressRootStyle | IProgressSectionStyle
     // composite
     | IAccordionStyle | IAccordionItemStyle | ITabsStyle | ITabStyle
-    | ITimelineStyle | IListStyle | IListItemStyle
+    | ITimelineStyle | ITimelineItemStyle | IListStyle | IListItemStyle
     | IEntryListStyle | IEntryRecordStyle | IEntryRecordDeleteStyle
-    | ILoopStyle | IVersionStyle | IShowUserInputStyle;
+    | ILoopStyle | IVersionStyle | IShowUserInputStyle
+    // system / error surfaces
+    | INoAccessStyle | IMissingStyle | INotFoundStyle;
 
 export interface IUnknownStyle extends IBaseStyle {
     style_name: TStyleName;
