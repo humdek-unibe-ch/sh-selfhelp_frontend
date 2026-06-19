@@ -35,11 +35,11 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
     const required = style.is_required?.content === '1';
     const disabled = style.disabled?.content === '1';
     const translatable = style.translatable?.content === '1';
-    const leftIconName = style.mantine_left_icon?.content;
-    const rightIconName = style.mantine_right_icon?.content;
-    const size = castMantineSize(style.mantine_size?.content);
-    const radius = castMantineRadius(style.mantine_radius?.content);
-    const variant = style.mantine_text_input_variant?.content;
+    const leftIconName = style.web_left_icon?.content;
+    const rightIconName = style.web_right_icon?.content;
+    const size = castMantineSize(style.shared_size?.content);
+    const radius = castMantineRadius(style.shared_radius?.content);
+    const variant = style.web_text_input_variant?.content;
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);

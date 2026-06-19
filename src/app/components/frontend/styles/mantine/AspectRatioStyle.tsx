@@ -38,9 +38,7 @@ const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style, styleProps,
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const ratio = style.mantine_aspect_ratio?.content || '16/9';
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-
+    const ratio = style.web_aspect_ratio?.content || '16/9';
     // Handle CSS field - use direct property from API response
     
 
@@ -64,47 +62,42 @@ const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style, styleProps,
 
     const aspectRatio = parseRatio(ratio);
 
-    if (use_mantine_style) {
-        return (
-            <AspectRatio
-                ratio={aspectRatio}
-                {...styleProps} className={cssClass}
-            >
-                {children.length > 0 ? (
-                    children.map((child, index: number) => (
-                        child ? <BasicStyle key={index} style={child} /> : null
-                    ))
-                ) : (
-                    // Default content if no children
-                    <div style={{
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: '#f0f0f0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#666',
-                        fontSize: '1.2rem',
-                        padding: '1rem',
-                        textAlign: 'center'
-                    }}>
-                        <div>
-                            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📐</div>
-                            <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
-                                Aspect Ratio: {ratio}
-                            </div>
-                            <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
-                                Add child components to display content
-                            </div>
+    return (
+        <AspectRatio
+            ratio={aspectRatio}
+            {...styleProps} className={cssClass}
+        >
+            {children.length > 0 ? (
+                children.map((child, index: number) => (
+                    child ? <BasicStyle key={index} style={child} /> : null
+                ))
+            ) : (
+                // Default content if no children
+                <div style={{
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: '#f0f0f0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#666',
+                    fontSize: '1.2rem',
+                    padding: '1rem',
+                    textAlign: 'center'
+                }}>
+                    <div>
+                        <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📐</div>
+                        <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                            Aspect Ratio: {ratio}
+                        </div>
+                        <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+                            Add child components to display content
                         </div>
                     </div>
-                )}
-            </AspectRatio>
-        );
-    }
-
-    // Return null if Mantine styling is disabled (no fallback needed)
-    return null;
+                </div>
+            )}
+        </AspectRatio>
+    );
 };
 
 export default AspectRatioStyle;

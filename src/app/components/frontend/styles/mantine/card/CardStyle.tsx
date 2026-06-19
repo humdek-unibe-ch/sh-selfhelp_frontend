@@ -30,9 +30,9 @@ interface ICardStyleProps {
  */
 const CardStyle: React.FC<ICardStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const shadow = style.mantine_card_shadow?.content || 'sm';
-    const radius = castMantineRadius(style.mantine_radius?.content);
-    const withBorder = style.mantine_border?.content === '1';    
+    const shadow = style.web_card_shadow?.content || 'sm';
+    const radius = castMantineRadius(style.shared_radius?.content);
+    const withBorder = style.web_border?.content === '1';    
 
     // Handle CSS field - use direct property from API response
     

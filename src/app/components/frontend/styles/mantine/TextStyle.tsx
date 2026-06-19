@@ -30,37 +30,29 @@ interface ITextStyleProps {
  * @returns {JSX.Element | null} Rendered Mantine Text or null when styling is disabled
  */
 const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) => {
-    // Extract field values using the new unified field structure
-    const use_mantine_style = style.use_mantine_style?.content;
-
-    // Skip rendering if Mantine styling is disabled
-    if (use_mantine_style === '0') {
-        return null;
-    }
-
     // Extract text content
     const text = DOMPurify.sanitize(style.text?.content ?? "", {
          ALLOWED_TAGS: [],
        }) || '';
 
     // Extract Mantine-specific props
-    const size = style.mantine_size?.content || 'md';
-    const color = style.mantine_color?.content;
-    const fontWeight = style.mantine_text_font_weight?.content;
-    const fontStyle = style.mantine_text_font_style?.content;
-    const textDecoration = style.mantine_text_text_decoration?.content;
-    const textTransform = style.mantine_text_text_transform?.content;
-    const textAlign = style.mantine_text_align?.content;
-    const variant = style.mantine_text_variant?.content || 'default';
-    const truncate = style.mantine_text_truncate?.content == 'none' ? undefined : style.mantine_text_truncate?.content;
-    const lineClampStr = style.mantine_text_line_clamp?.content;
-    const inherit = style.mantine_text_inherit?.content === '1';
-    const span = style.mantine_text_span?.content === '1';
+    const size = style.shared_size?.content || 'md';
+    const color = style.shared_color?.content;
+    const fontWeight = style.web_text_font_weight?.content;
+    const fontStyle = style.web_text_font_style?.content;
+    const textDecoration = style.web_text_text_decoration?.content;
+    const textTransform = style.web_text_text_transform?.content;
+    const textAlign = style.shared_text_align?.content;
+    const variant = style.web_text_variant?.content || 'default';
+    const truncate = style.web_text_truncate?.content == 'none' ? undefined : style.web_text_truncate?.content;
+    const lineClampStr = style.web_text_line_clamp?.content;
+    const inherit = style.web_text_inherit?.content === '1';
+    const span = style.web_text_span?.content === '1';
 
     // Parse gradient configuration for gradient variant
     let gradient;
     if (variant === 'gradient') {
-        const gradientStr = style.mantine_text_gradient?.content;
+        const gradientStr = style.web_text_gradient?.content;
         if (gradientStr) {
             try {
                 gradient = JSON.parse(gradientStr);

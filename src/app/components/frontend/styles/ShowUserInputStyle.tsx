@@ -48,14 +48,14 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
     const defaultOrderDir = (style.dt_default_order_dir?.content ?? 'asc') as 'asc' | 'desc';
     const csvExport = style.csv_export?.content === '1';
     const deleteEntry = style.delete_entry?.content === '1';
-    const spacing = style.mantine_spacing_margin_padding?.content || 'md';
-    const striped = style.mantine_table_striped?.content === '1';
-    const highlightOnHover = style.mantine_table_highlight_on_hover?.content !== '0';
-    const withTableBorder = style.mantine_table_with_table_border?.content !== '0';
-    const withColumnBorders = style.mantine_table_with_column_borders?.content !== '0';
-    const withRowBorders = style.mantine_table_with_row_borders?.content === '1';
-    const stickyHeader = style.mantine_table_sticky_header?.content === '1';
-    const captionSide = (style.mantine_table_caption_side?.content || undefined) as 'top' | 'bottom' | undefined;
+    const spacing = style.shared_spacing?.content || 'md';
+    const striped = style.web_table_striped?.content === '1';
+    const highlightOnHover = style.web_table_highlight_on_hover?.content !== '0';
+    const withTableBorder = style.web_table_with_table_border?.content !== '0';
+    const withColumnBorders = style.web_table_with_column_borders?.content !== '0';
+    const withRowBorders = style.web_table_with_row_borders?.content === '1';
+    const stickyHeader = style.web_table_sticky_header?.content === '1';
+    const captionSide = (style.web_table_caption_side?.content || undefined) as 'top' | 'bottom' | undefined;
 
     const fieldMappings: IFieldMapping[] = (() => {
         try {

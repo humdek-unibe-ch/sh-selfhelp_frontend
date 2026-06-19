@@ -30,12 +30,12 @@ interface IProgressSectionStyleProps {
 const ProgressSectionStyle: React.FC<IProgressSectionStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const value = parseFloat(style.value?.content || '0');
-    const color = style.mantine_color?.content || 'blue';
-    const striped = style.mantine_progress_striped?.content === '1';
-    const animated = style.mantine_progress_animated?.content === '1';
+    const color = style.shared_color?.content || 'blue';
+    const striped = style.web_progress_striped?.content === '1';
+    const animated = style.web_progress_animated?.content === '1';
     const label = style.label?.content;
-    const tooltipLabel = style.mantine_tooltip_label?.content;
-    const tooltipPosition = style.mantine_tooltip_position?.content || 'top';
+    const tooltipLabel = style.tooltip_label?.content;
+    const tooltipPosition = style.web_tooltip_position?.content || 'top';
 
     // Handle CSS field - use direct property from API response
     

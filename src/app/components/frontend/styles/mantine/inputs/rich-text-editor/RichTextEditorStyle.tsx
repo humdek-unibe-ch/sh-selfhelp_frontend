@@ -23,11 +23,9 @@ import styles from './RichTextEditorStyle.module.css';
 import { type IRichTextEditorStyle } from '../../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../../FormStyle';
 import parse from "html-react-parser";
-import { sanitizeHtmlForInline, sanitizeHtmlForParsing } from '../../../../../../../utils/html-sanitizer.utils';
+import { sanitizeHtmlForInline } from '../../../../../../../utils/html-sanitizer.utils';
 import LanguageTabsWrapper from '../../../shared/LanguageTabsWrapper';
 import { getSpacingProps } from '../../../BasicStyle';
-import DOMPurify from 'isomorphic-dompurify';
-
 /**
  * Props interface for IRichTextEditorStyle component
  */
@@ -43,12 +41,10 @@ interface IRichTextEditorStyleProps {
 interface IRichTextEditorFieldProps {
     currentValue: string;
     onValueChange: (value: string) => void;
-    use_mantine_style: boolean;
     name?: string;
     translatable: boolean;
     label?: string;
     description: string;
-    placeholder: string;
     required: boolean;
     disabled: boolean;
     variant: string;
@@ -71,12 +67,10 @@ interface IRichTextEditorFieldProps {
 const RichTextEditorField: React.FC<IRichTextEditorFieldProps> = ({
     currentValue,
     onValueChange,
-    use_mantine_style,
     name,
     translatable,
     label,
     description,
-    placeholder,
     required,
     disabled,
     variant,
@@ -134,38 +128,6 @@ const RichTextEditorField: React.FC<IRichTextEditorFieldProps> = ({
             languageEditor.commands.setContent(currentValue);
         }
     }, [languageEditor, currentValue]);
-
-    // Fallback: Render basic textarea with only CSS and name when Mantine styling is disabled
-    if (!use_mantine_style) {
-        return (
-            <Input.Wrapper
-                label={label}
-                description={parse(sanitizeHtmlForParsing(description))}
-                required={required}
-                {...(translatable ? undefined : { ...styleProps, ...spacingProps })} className={translatable ? undefined : cssClass}
-            >
-                <textarea
-                    name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
-                    className="basic-textarea"
-                    value={currentValue}
-                    onChange={(e) => onValueChange(e.target.value)}
-                    disabled={disabled}
-                    required={required}
-                    placeholder={placeholder}
-                    rows={10}
-                    style={{
-                        width: '100%',
-                        padding: '8px',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px',
-                        fontFamily: 'inherit',
-                        minHeight: '200px',
-                        resize: 'vertical'
-                    }}
-                />
-            </Input.Wrapper>
-        );
-    }
 
     if (!languageEditor) {
         return <div>Loading editor...</div>;
@@ -282,26 +244,21 @@ const RichTextEditorField: React.FC<IRichTextEditorFieldProps> = ({
 };
 
 const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style, styleProps, cssClass }) => {
-    // Extract field values
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-
     const name = style.name?.content;
     const translatable = style.translatable?.content === '1';
     const label = style.label?.content;
-    const description = style.description?.content || '';
-    const placeholder = DOMPurify.sanitize(style.placeholder?.content || '', { ALLOWED_TAGS: [] });
-    const initialValue = style.value?.content || '';
+    const description = style.description?.content || '';    const initialValue = style.value?.content || '';
     const required = style.is_required?.content === '1';
     const disabled = style.disabled?.content === '1';
 
     // Mantine styling fields
-    const variant = style.mantine_rich_text_editor_variant?.content || 'default';
+    const variant = style.web_rich_text_editor_variant?.content || 'default';
 
     // New advanced fields
-    const editorPlaceholder = style.mantine_rich_text_editor_placeholder?.content || 'Start writing...';
-    const bubbleMenuEnabled = style.mantine_rich_text_editor_bubble_menu?.content === '1';
-    const textColorEnabled = style.mantine_rich_text_editor_text_color?.content === '1';
-    const taskListEnabled = style.mantine_rich_text_editor_task_list?.content === '1';
+    const editorPlaceholder = style.rich_text_editor_placeholder?.content || 'Start writing...';
+    const bubbleMenuEnabled = style.web_rich_text_editor_bubble_menu?.content === '1';
+    const textColorEnabled = style.web_rich_text_editor_text_color?.content === '1';
+    const taskListEnabled = style.web_rich_text_editor_task_list?.content === '1';
 
     // Handle CSS field - use direct property from API response
 
@@ -340,12 +297,10 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style, style
         <RichTextEditorField
             currentValue={currentValue}
             onValueChange={onValueChange}
-            use_mantine_style={use_mantine_style}
             name={name}
             translatable={translatable}
             label={label}
             description={description}
-            placeholder={placeholder}
             required={required}
             disabled={disabled}
             variant={variant}

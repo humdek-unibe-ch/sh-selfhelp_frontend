@@ -23,10 +23,10 @@ const MissingStyle: React.FC<IMissingStyleProps> = ({ style, styleProps, cssClas
     const title = style.title?.content || 'Page not found';
     const message = style.message?.content || 'The page you are looking for does not exist or has been moved. Please check the URL or head back to the home page.';
     const buttonLabel = stripHtmlTags(style.button_label?.content || 'Back to home');
-    const color = style.mantine_color?.content || 'gray';
-    const radius = style.mantine_radius?.content || 'md';
-    const shadow = style.mantine_shadow?.content || undefined;
-    const buttonVariant = style.mantine_button_variant?.content || 'filled';
+    const color = style.shared_color?.content || 'gray';
+    const radius = style.shared_radius?.content || 'md';
+    const shadow = style.web_shadow?.content || undefined;
+    const buttonVariant = style.shared_variant?.content || 'filled';
     const showIcon = style.show_icon?.content !== '0';
 
     return (

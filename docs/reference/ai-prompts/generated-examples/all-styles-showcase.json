@@ -3,7 +3,7 @@
     "section_name": "styles-showcase",
     "style_name": "container",
     "fields": {
-      "mantine_size": {
+      "shared_size": {
         "all": {
           "content": "xl"
         }
@@ -16,7 +16,7 @@
       {
         "style_name": "stack",
         "fields": {
-          "mantine_gap": {
+          "shared_gap": {
             "all": {
               "content": "xl"
             }
@@ -27,12 +27,12 @@
             "section_name": "showcase-header",
             "style_name": "stack",
             "fields": {
-              "mantine_align": {
+              "shared_align": {
                 "all": {
                   "content": "center"
                 }
               },
-              "mantine_gap": {
+              "shared_gap": {
                 "all": {
                   "content": "sm"
                 }
@@ -53,12 +53,12 @@
                       "content": "Stil-Übersicht"
                     }
                   },
-                  "mantine_color": {
+                  "shared_color": {
                     "all": {
                       "content": "violet"
                     }
                   },
-                  "mantine_variant": {
+                  "web_variant": {
                     "all": {
                       "content": "light"
                     }
@@ -76,7 +76,7 @@
                       "content": "Alle SelfHelp Styles – eine Seite"
                     }
                   },
-                  "mantine_title_order": {
+                  "web_title_order": {
                     "all": {
                       "content": "1"
                     }
@@ -97,7 +97,7 @@
                       "content": "Importierbares Demo mit je einem Beispiel für jeden im CMS registrierten Style – Typografie, Layout, Medien, Interaktion, Feedback, Fortschritt, Navigation und Formulare."
                     }
                   },
-                  "mantine_size": {
+                  "shared_size": {
                     "all": {
                       "content": "lg"
                     }
@@ -112,7 +112,7 @@
           {
             "style_name": "divider",
             "fields": {
-              "mantine_divider_label": {
+              "divider_label": {
                 "en-GB": {
                   "content": "1. Typography"
                 },
@@ -120,7 +120,7 @@
                   "content": "1. Typografie"
                 }
               },
-              "mantine_divider_label_position": {
+              "web_divider_label_position": {
                 "all": {
                   "content": "center"
                 }
@@ -131,17 +131,17 @@
             "section_name": "showcase-typography",
             "style_name": "card",
             "fields": {
-              "mantine_border": {
+              "web_border": {
                 "all": {
                   "content": "1"
                 }
               },
-              "mantine_radius": {
+              "shared_radius": {
                 "all": {
                   "content": "lg"
                 }
               },
-              "mantine_card_padding": {
+              "web_card_padding": {
                 "all": {
                   "content": "0"
                 }
@@ -160,7 +160,7 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "md"
                         }
@@ -178,7 +178,7 @@
                               "content": "Überschrift Ebene 2"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "2"
                             }
@@ -199,7 +199,7 @@
                               "content": "Überschrift Ebene 3"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -220,7 +220,7 @@
                               "content": "Fliesstext. SelfHelp rendert Mantine-Typografie innerhalb eines Tailwind-Layouts – Abstände und Farb-Tokens bleiben in beiden Systemen konsistent."
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "md"
                             }
@@ -241,7 +241,7 @@
                               "content": "Highlight-Komponente: eine wichtige Passage innerhalb eines Absatzes hervorheben."
                             }
                           },
-                          "mantine_highlight_highlight": {
+                          "highlight_highlight": {
                             "en-GB": {
                               "content": "key phrase"
                             },
@@ -249,7 +249,7 @@
                               "content": "wichtige Passage"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "yellow"
                             }
@@ -278,7 +278,7 @@
                               "content": "SelfHelp Design-Notizen"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "violet"
                             }
@@ -291,17 +291,17 @@
                       {
                         "style_name": "group",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "sm"
                             }
                           },
-                          "mantine_align": {
+                          "shared_align": {
                             "all": {
                               "content": "center"
                             }
                           },
-                          "mantine_group_wrap": {
+                          "web_group_wrap": {
                             "all": {
                               "content": "1"
                             }
@@ -345,17 +345,17 @@
                       {
                         "style_name": "group",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "xs"
                             }
                           },
-                          "mantine_align": {
+                          "shared_align": {
                             "all": {
                               "content": "center"
                             }
                           },
-                          "mantine_group_wrap": {
+                          "web_group_wrap": {
                             "all": {
                               "content": "1"
                             }
@@ -416,7 +416,7 @@
           {
             "style_name": "divider",
             "fields": {
-              "mantine_divider_label": {
+              "divider_label": {
                 "en-GB": {
                   "content": "2. Layout & surfaces"
                 },
@@ -424,7 +424,7 @@
                   "content": "2. Layout & Flächen"
                 }
               },
-              "mantine_divider_label_position": {
+              "web_divider_label_position": {
                 "all": {
                   "content": "center"
                 }
@@ -435,12 +435,12 @@
             "section_name": "showcase-layout",
             "style_name": "simple-grid",
             "fields": {
-              "mantine_cols": {
+              "web_cols": {
                 "all": {
                   "content": "{\"base\":1,\"sm\":2,\"lg\":3}"
                 }
               },
-              "mantine_vertical_spacing": {
+              "web_vertical_spacing": {
                 "all": {
                   "content": "md"
                 }
@@ -450,17 +450,17 @@
               {
                 "style_name": "paper",
                 "fields": {
-                  "mantine_paper_shadow": {
+                  "web_paper_shadow": {
                     "all": {
                       "content": "sm"
                     }
                   },
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "md"
                     }
@@ -473,7 +473,7 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "xs"
                         }
@@ -488,7 +488,7 @@
                               "content": "paper"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "4"
                             }
@@ -509,7 +509,7 @@
                               "content": "Paper ist eine Flächen-Komponente mit Schatten, Radius und Rahmen."
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -532,7 +532,7 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "xs"
                         }
@@ -547,7 +547,7 @@
                               "content": "box"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "4"
                             }
@@ -568,7 +568,7 @@
                               "content": "Box ist ein polymorpher Container – mit Tailwind für Farbverläufe."
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -591,12 +591,12 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "xs"
                         }
                       },
-                      "mantine_align": {
+                      "shared_align": {
                         "all": {
                           "content": "center"
                         }
@@ -611,7 +611,7 @@
                               "content": "center"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "4"
                             }
@@ -632,7 +632,7 @@
                               "content": "Zentriert Inhalte horizontal und vertikal."
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -657,12 +657,12 @@
                       "content": "fieldset"
                     }
                   },
-                  "mantine_fieldset_variant": {
+                  "web_fieldset_variant": {
                     "all": {
                       "content": "default"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "md"
                     }
@@ -683,7 +683,7 @@
                           "content": "Gruppiert zusammengehörige Inhalte – häufig für Formularabschnitte."
                         }
                       },
-                      "mantine_size": {
+                      "shared_size": {
                         "all": {
                           "content": "sm"
                         }
@@ -698,7 +698,7 @@
               {
                 "style_name": "spoiler",
                 "fields": {
-                  "mantine_spoiler_show_label": {
+                  "spoiler_show_label": {
                     "en-GB": {
                       "content": "Show more"
                     },
@@ -706,7 +706,7 @@
                       "content": "Mehr anzeigen"
                     }
                   },
-                  "mantine_spoiler_hide_label": {
+                  "spoiler_hide_label": {
                     "en-GB": {
                       "content": "Hide"
                     },
@@ -722,7 +722,7 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "xs"
                         }
@@ -737,7 +737,7 @@
                               "content": "spoiler"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "4"
                             }
@@ -758,7 +758,7 @@
                               "content": "Faltet lange Inhalte zusammen. Mantine `Spoiler` akzeptiert maxHeight, Übergangsdauer und Label-Slots für Ein-/Ausblenden."
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -775,7 +775,7 @@
               {
                 "style_name": "aspect-ratio",
                 "fields": {
-                  "mantine_aspect_ratio": {
+                  "web_aspect_ratio": {
                     "all": {
                       "content": "16/9"
                     }
@@ -796,7 +796,7 @@
                           "content": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=60"
                         }
                       },
-                      "mantine_radius": {
+                      "shared_radius": {
                         "all": {
                           "content": "md"
                         }
@@ -809,7 +809,7 @@
                       {
                         "style_name": "stack",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "xs"
                             }
@@ -824,7 +824,7 @@
                                   "content": "aspect-ratio + background-image"
                                 }
                               },
-                              "mantine_title_order": {
+                              "web_title_order": {
                                 "all": {
                                   "content": "4"
                                 }
@@ -845,7 +845,7 @@
                                   "content": "Hält ein 16:9-Verhältnis und kombiniert Gradient und Bild."
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "xs"
                                 }
@@ -866,7 +866,7 @@
           {
             "style_name": "space",
             "fields": {
-              "mantine_size": {
+              "shared_size": {
                 "all": {
                   "content": "xs"
                 }
@@ -876,7 +876,7 @@
           {
             "style_name": "divider",
             "fields": {
-              "mantine_divider_label": {
+              "divider_label": {
                 "en-GB": {
                   "content": "3. Grid systems"
                 },
@@ -884,12 +884,12 @@
                   "content": "3. Grid-Systeme"
                 }
               },
-              "mantine_divider_variant": {
+              "web_divider_variant": {
                 "all": {
                   "content": "dashed"
                 }
               },
-              "mantine_divider_label_position": {
+              "web_divider_label_position": {
                 "all": {
                   "content": "center"
                 }
@@ -900,7 +900,7 @@
             "section_name": "showcase-grids",
             "style_name": "stack",
             "fields": {
-              "mantine_gap": {
+              "shared_gap": {
                 "all": {
                   "content": "md"
                 }
@@ -918,7 +918,7 @@
                       "content": "grid + grid-column"
                     }
                   },
-                  "mantine_title_order": {
+                  "web_title_order": {
                     "all": {
                       "content": "4"
                     }
@@ -931,12 +931,12 @@
               {
                 "style_name": "grid",
                 "fields": {
-                  "mantine_cols": {
+                  "web_cols": {
                     "all": {
                       "content": "12"
                     }
                   },
-                  "mantine_gap": {
+                  "shared_gap": {
                     "all": {
                       "content": "md"
                     }
@@ -946,7 +946,7 @@
                   {
                     "style_name": "grid-column",
                     "fields": {
-                      "mantine_grid_span": {
+                      "web_grid_span": {
                         "all": {
                           "content": "{\"base\":12,\"sm\":8}"
                         }
@@ -974,7 +974,7 @@
                   {
                     "style_name": "grid-column",
                     "fields": {
-                      "mantine_grid_span": {
+                      "web_grid_span": {
                         "all": {
                           "content": "{\"base\":12,\"sm\":4}"
                         }
@@ -1009,7 +1009,7 @@
                       "content": "flex / group / stack"
                     }
                   },
-                  "mantine_title_order": {
+                  "web_title_order": {
                     "all": {
                       "content": "4"
                     }
@@ -1022,12 +1022,12 @@
               {
                 "style_name": "simple-grid",
                 "fields": {
-                  "mantine_cols": {
+                  "web_cols": {
                     "all": {
                       "content": "{\"base\":1,\"md\":3}"
                     }
                   },
-                  "mantine_vertical_spacing": {
+                  "web_vertical_spacing": {
                     "all": {
                       "content": "md"
                     }
@@ -1037,17 +1037,17 @@
                   {
                     "style_name": "flex",
                     "fields": {
-                      "mantine_direction": {
+                      "shared_direction": {
                         "all": {
                           "content": "row"
                         }
                       },
-                      "mantine_wrap": {
+                      "shared_wrap": {
                         "all": {
                           "content": "wrap"
                         }
                       },
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "xs"
                         }
@@ -1065,7 +1065,7 @@
                               "content": "flex"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "blue"
                             }
@@ -1080,7 +1080,7 @@
                               "content": "row"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "cyan"
                             }
@@ -1095,7 +1095,7 @@
                               "content": "wrap"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "teal"
                             }
@@ -1107,17 +1107,17 @@
                   {
                     "style_name": "group",
                     "fields": {
-                      "mantine_justify": {
+                      "shared_justify": {
                         "all": {
                           "content": "space-between"
                         }
                       },
-                      "mantine_align": {
+                      "shared_align": {
                         "all": {
                           "content": "center"
                         }
                       },
-                      "mantine_group_wrap": {
+                      "web_group_wrap": {
                         "all": {
                           "content": "1"
                         }
@@ -1151,7 +1151,7 @@
                               "content": "end"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "violet"
                             }
@@ -1163,12 +1163,12 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "xs"
                         }
                       },
-                      "mantine_align": {
+                      "shared_align": {
                         "all": {
                           "content": "flex-start"
                         }
@@ -1199,7 +1199,7 @@
                               "content": "item A"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -1214,7 +1214,7 @@
                               "content": "item B"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -1233,7 +1233,7 @@
                       "content": "scroll-area"
                     }
                   },
-                  "mantine_title_order": {
+                  "web_title_order": {
                     "all": {
                       "content": "4"
                     }
@@ -1246,12 +1246,12 @@
               {
                 "style_name": "scroll-area",
                 "fields": {
-                  "mantine_scroll_area_type": {
+                  "web_scroll_area_type": {
                     "all": {
                       "content": "hover"
                     }
                   },
-                  "mantine_scroll_area_scrollbar_size": {
+                  "web_scroll_area_scrollbar_size": {
                     "all": {
                       "content": "8"
                     }
@@ -1264,7 +1264,7 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "xs"
                         }
@@ -1285,7 +1285,7 @@
                               "content": "Scrollbare Zeile 1"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -1300,7 +1300,7 @@
                               "content": "Scrollable line 2"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -1315,7 +1315,7 @@
                               "content": "Scrollable line 3"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -1330,7 +1330,7 @@
                               "content": "Scrollable line 4"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -1345,7 +1345,7 @@
                               "content": "Scrollable line 5"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -1360,7 +1360,7 @@
                               "content": "Scrollable line 6"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -1375,7 +1375,7 @@
                               "content": "Scrollable line 7"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -1390,7 +1390,7 @@
                               "content": "Scrollable line 8"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -1406,7 +1406,7 @@
           {
             "style_name": "divider",
             "fields": {
-              "mantine_divider_label": {
+              "divider_label": {
                 "en-GB": {
                   "content": "4. Media"
                 },
@@ -1414,7 +1414,7 @@
                   "content": "4. Medien"
                 }
               },
-              "mantine_divider_label_position": {
+              "web_divider_label_position": {
                 "all": {
                   "content": "center"
                 }
@@ -1425,12 +1425,12 @@
             "section_name": "showcase-media",
             "style_name": "simple-grid",
             "fields": {
-              "mantine_cols": {
+              "web_cols": {
                 "all": {
                   "content": "{\"base\":1,\"sm\":2,\"lg\":3}"
                 }
               },
-              "mantine_vertical_spacing": {
+              "web_vertical_spacing": {
                 "all": {
                   "content": "md"
                 }
@@ -1440,17 +1440,17 @@
               {
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -1469,12 +1469,12 @@
                       {
                         "style_name": "stack",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "xs"
                             }
                           },
-                          "mantine_align": {
+                          "shared_align": {
                             "all": {
                               "content": "center"
                             }
@@ -1497,7 +1497,7 @@
                                   "content": "Berglandschaft"
                                 }
                               },
-                              "mantine_radius": {
+                              "shared_radius": {
                                 "all": {
                                   "content": "md"
                                 }
@@ -1518,7 +1518,7 @@
                                   "content": "image"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "sm"
                                 }
@@ -1537,17 +1537,17 @@
               {
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -1566,12 +1566,12 @@
                       {
                         "style_name": "stack",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "xs"
                             }
                           },
-                          "mantine_align": {
+                          "shared_align": {
                             "all": {
                               "content": "center"
                             }
@@ -1591,12 +1591,12 @@
                                   "content": "User avatar"
                                 }
                               },
-                              "mantine_radius": {
+                              "shared_radius": {
                                 "all": {
                                   "content": "xl"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "xl"
                                 }
@@ -1611,7 +1611,7 @@
                                   "content": "avatar"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "sm"
                                 }
@@ -1667,7 +1667,7 @@
                           "content": "Waldkronen"
                         }
                       },
-                      "mantine_radius": {
+                      "shared_radius": {
                         "all": {
                           "content": "md"
                         }
@@ -1683,22 +1683,22 @@
                 "section_name": "showcase-carousel",
                 "style_name": "carousel",
                 "fields": {
-                  "mantine_carousel_slide_size": {
+                  "web_carousel_slide_size": {
                     "all": {
                       "content": "100%"
                     }
                   },
-                  "mantine_carousel_slide_gap": {
+                  "web_carousel_slide_gap": {
                     "all": {
                       "content": "sm"
                     }
                   },
-                  "mantine_carousel_align": {
+                  "web_carousel_align": {
                     "all": {
                       "content": "center"
                     }
                   },
-                  "mantine_loop": {
+                  "web_loop": {
                     "all": {
                       "content": "1"
                     }
@@ -1767,17 +1767,17 @@
               {
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -1796,7 +1796,7 @@
                       {
                         "style_name": "stack",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "xs"
                             }
@@ -1811,7 +1811,7 @@
                                   "content": "video"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "sm"
                                 }
@@ -1856,17 +1856,17 @@
               {
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -1885,7 +1885,7 @@
                       {
                         "style_name": "stack",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "xs"
                             }
@@ -1900,7 +1900,7 @@
                                   "content": "audio"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "sm"
                                 }
@@ -1945,7 +1945,7 @@
           {
             "style_name": "divider",
             "fields": {
-              "mantine_divider_label": {
+              "divider_label": {
                 "en-GB": {
                   "content": "5. Interactive"
                 },
@@ -1953,7 +1953,7 @@
                   "content": "5. Interaktion"
                 }
               },
-              "mantine_divider_label_position": {
+              "web_divider_label_position": {
                 "all": {
                   "content": "center"
                 }
@@ -1964,17 +1964,17 @@
             "section_name": "showcase-interactive",
             "style_name": "card",
             "fields": {
-              "mantine_border": {
+              "web_border": {
                 "all": {
                   "content": "1"
                 }
               },
-              "mantine_radius": {
+              "shared_radius": {
                 "all": {
                   "content": "lg"
                 }
               },
-              "mantine_card_padding": {
+              "web_card_padding": {
                 "all": {
                   "content": "0"
                 }
@@ -1993,7 +1993,7 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "xs"
                         }
@@ -2011,7 +2011,7 @@
                               "content": "Buttons, Links & Icons"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "4"
                             }
@@ -2024,17 +2024,17 @@
                       {
                         "style_name": "group",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "sm"
                             }
                           },
-                          "mantine_align": {
+                          "shared_align": {
                             "all": {
                               "content": "center"
                             }
                           },
-                          "mantine_group_wrap": {
+                          "web_group_wrap": {
                             "all": {
                               "content": "1"
                             }
@@ -2052,17 +2052,17 @@
                                   "content": "Primär"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "blue"
                                 }
                               },
-                              "mantine_variant": {
+                              "web_variant": {
                                 "all": {
                                   "content": "filled"
                                 }
                               },
-                              "mantine_radius": {
+                              "shared_radius": {
                                 "all": {
                                   "content": "md"
                                 }
@@ -2080,17 +2080,17 @@
                                   "content": "Sekundär"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "gray"
                                 }
                               },
-                              "mantine_variant": {
+                              "web_variant": {
                                 "all": {
                                   "content": "light"
                                 }
                               },
-                              "mantine_radius": {
+                              "shared_radius": {
                                 "all": {
                                   "content": "md"
                                 }
@@ -2108,17 +2108,17 @@
                                   "content": "Gefahr"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "red"
                                 }
                               },
-                              "mantine_variant": {
+                              "web_variant": {
                                 "all": {
                                   "content": "outline"
                                 }
                               },
-                              "mantine_radius": {
+                              "shared_radius": {
                                 "all": {
                                   "content": "md"
                                 }
@@ -2154,27 +2154,27 @@
                           {
                             "style_name": "action-icon",
                             "fields": {
-                              "mantine_left_icon": {
+                              "web_left_icon": {
                                 "all": {
                                   "content": "IconHeart"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "pink"
                                 }
                               },
-                              "mantine_variant": {
+                              "web_variant": {
                                 "all": {
                                   "content": "light"
                                 }
                               },
-                              "mantine_radius": {
+                              "shared_radius": {
                                 "all": {
                                   "content": "md"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "lg"
                                 }
@@ -2184,27 +2184,27 @@
                           {
                             "style_name": "theme-icon",
                             "fields": {
-                              "mantine_left_icon": {
+                              "web_left_icon": {
                                 "all": {
                                   "content": "IconStar"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "yellow"
                                 }
                               },
-                              "mantine_variant": {
+                              "web_variant": {
                                 "all": {
                                   "content": "light"
                                 }
                               },
-                              "mantine_radius": {
+                              "shared_radius": {
                                 "all": {
                                   "content": "md"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "lg"
                                 }
@@ -2226,22 +2226,22 @@
                   {
                     "style_name": "group",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "md"
                         }
                       },
-                      "mantine_justify": {
+                      "shared_justify": {
                         "all": {
                           "content": "space-between"
                         }
                       },
-                      "mantine_align": {
+                      "shared_align": {
                         "all": {
                           "content": "center"
                         }
                       },
-                      "mantine_group_wrap": {
+                      "web_group_wrap": {
                         "all": {
                           "content": "1"
                         }
@@ -2259,7 +2259,7 @@
                               "content": "Showcase bewerten"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -2272,17 +2272,17 @@
                       {
                         "style_name": "rating",
                         "fields": {
-                          "mantine_rating_count": {
+                          "web_rating_count": {
                             "all": {
                               "content": "5"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "yellow"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "md"
                             }
@@ -2303,7 +2303,7 @@
           {
             "style_name": "divider",
             "fields": {
-              "mantine_divider_label": {
+              "divider_label": {
                 "en-GB": {
                   "content": "6. Feedback"
                 },
@@ -2311,7 +2311,7 @@
                   "content": "6. Feedback"
                 }
               },
-              "mantine_divider_label_position": {
+              "web_divider_label_position": {
                 "all": {
                   "content": "center"
                 }
@@ -2322,12 +2322,12 @@
             "section_name": "showcase-feedback",
             "style_name": "simple-grid",
             "fields": {
-              "mantine_cols": {
+              "web_cols": {
                 "all": {
                   "content": "{\"base\":1,\"md\":2}"
                 }
               },
-              "mantine_vertical_spacing": {
+              "web_vertical_spacing": {
                 "all": {
                   "content": "md"
                 }
@@ -2337,7 +2337,7 @@
               {
                 "style_name": "alert",
                 "fields": {
-                  "mantine_alert_title": {
+                  "alert_title": {
                     "en-GB": {
                       "content": "All systems operational"
                     },
@@ -2353,17 +2353,17 @@
                       "content": "Hintergrundjobs und API laufen einwandfrei."
                     }
                   },
-                  "mantine_color": {
+                  "shared_color": {
                     "all": {
                       "content": "teal"
                     }
                   },
-                  "mantine_variant": {
+                  "web_variant": {
                     "all": {
                       "content": "light"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "md"
                     }
@@ -2376,7 +2376,7 @@
               {
                 "style_name": "alert",
                 "fields": {
-                  "mantine_alert_title": {
+                  "alert_title": {
                     "en-GB": {
                       "content": "Scheduled maintenance"
                     },
@@ -2392,17 +2392,17 @@
                       "content": "Datenbankzugangsdaten werden am Samstag um 02:00 UTC rotiert."
                     }
                   },
-                  "mantine_color": {
+                  "shared_color": {
                     "all": {
                       "content": "yellow"
                     }
                   },
-                  "mantine_variant": {
+                  "web_variant": {
                     "all": {
                       "content": "light"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "md"
                     }
@@ -2431,27 +2431,27 @@
                       "content": "Import/Export unterstützt neu HTTP 422 Pre-Validierung."
                     }
                   },
-                  "mantine_color": {
+                  "shared_color": {
                     "all": {
                       "content": "violet"
                     }
                   },
-                  "mantine_notification_loading": {
+                  "web_notification_loading": {
                     "all": {
                       "content": "0"
                     }
                   },
-                  "mantine_notification_with_close_button": {
+                  "web_notification_with_close_button": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "md"
                     }
@@ -2464,17 +2464,17 @@
               {
                 "style_name": "group",
                 "fields": {
-                  "mantine_gap": {
+                  "shared_gap": {
                     "all": {
                       "content": "md"
                     }
                   },
-                  "mantine_align": {
+                  "shared_align": {
                     "all": {
                       "content": "center"
                     }
                   },
-                  "mantine_group_wrap": {
+                  "web_group_wrap": {
                     "all": {
                       "content": "1"
                     }
@@ -2487,22 +2487,22 @@
                   {
                     "style_name": "indicator",
                     "fields": {
-                      "mantine_indicator_processing": {
+                      "web_indicator_processing": {
                         "all": {
                           "content": "1"
                         }
                       },
-                      "mantine_color": {
+                      "shared_color": {
                         "all": {
                           "content": "red"
                         }
                       },
-                      "mantine_indicator_position": {
+                      "web_indicator_position": {
                         "all": {
                           "content": "top-end"
                         }
                       },
-                      "mantine_indicator_size": {
+                      "web_indicator_size": {
                         "all": {
                           "content": "14"
                         }
@@ -2522,12 +2522,12 @@
                               "content": "https://i.pravatar.cc/80?img=3"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "xl"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "md"
                             }
@@ -2539,7 +2539,7 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "xs"
                         }
@@ -2549,12 +2549,12 @@
                       {
                         "style_name": "group",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "xs"
                             }
                           },
-                          "mantine_group_wrap": {
+                          "web_group_wrap": {
                             "all": {
                               "content": "1"
                             }
@@ -2569,7 +2569,7 @@
                                   "content": "badge"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "blue"
                                 }
@@ -2584,12 +2584,12 @@
                                   "content": "filled"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "violet"
                                 }
                               },
-                              "mantine_variant": {
+                              "web_variant": {
                                 "all": {
                                   "content": "filled"
                                 }
@@ -2604,12 +2604,12 @@
                                   "content": "outline"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "teal"
                                 }
                               },
-                              "mantine_variant": {
+                              "web_variant": {
                                 "all": {
                                   "content": "outline"
                                 }
@@ -2621,12 +2621,12 @@
                       {
                         "style_name": "group",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "xs"
                             }
                           },
-                          "mantine_group_wrap": {
+                          "web_group_wrap": {
                             "all": {
                               "content": "1"
                             }
@@ -2654,14 +2654,9 @@
                                   "content": "1"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "blue"
-                                }
-                              },
-                              "mantine_chip_variant": {
-                                "all": {
-                                  "content": "filled"
                                 }
                               }
                             }
@@ -2682,14 +2677,9 @@
                                   "content": "off"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "gray"
-                                }
-                              },
-                              "mantine_chip_variant": {
-                                "all": {
-                                  "content": "outline"
                                 }
                               }
                             }
@@ -2705,7 +2695,7 @@
           {
             "style_name": "divider",
             "fields": {
-              "mantine_divider_label": {
+              "divider_label": {
                 "en-GB": {
                   "content": "7. Progress & timeline"
                 },
@@ -2713,7 +2703,7 @@
                   "content": "7. Fortschritt & Timeline"
                 }
               },
-              "mantine_divider_label_position": {
+              "web_divider_label_position": {
                 "all": {
                   "content": "center"
                 }
@@ -2724,12 +2714,12 @@
             "section_name": "showcase-progress",
             "style_name": "simple-grid",
             "fields": {
-              "mantine_cols": {
+              "web_cols": {
                 "all": {
                   "content": "{\"base\":1,\"md\":2}"
                 }
               },
-              "mantine_vertical_spacing": {
+              "web_vertical_spacing": {
                 "all": {
                   "content": "md"
                 }
@@ -2739,17 +2729,17 @@
               {
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -2768,7 +2758,7 @@
                       {
                         "style_name": "stack",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "sm"
                             }
@@ -2783,7 +2773,7 @@
                                   "content": "progress"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "sm"
                                 }
@@ -2801,22 +2791,22 @@
                                   "content": "65"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "blue"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "md"
                                 }
                               },
-                              "mantine_radius": {
+                              "shared_radius": {
                                 "all": {
                                   "content": "xl"
                                 }
                               },
-                              "mantine_progress_striped": {
+                              "web_progress_striped": {
                                 "all": {
                                   "content": "1"
                                 }
@@ -2831,7 +2821,7 @@
                                   "content": "progress-root + sections"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "sm"
                                 }
@@ -2844,7 +2834,7 @@
                           {
                             "style_name": "progress-root",
                             "fields": {
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "xl"
                                 }
@@ -2859,7 +2849,7 @@
                                       "content": "40"
                                     }
                                   },
-                                  "mantine_color": {
+                                  "shared_color": {
                                     "all": {
                                       "content": "blue"
                                     }
@@ -2874,7 +2864,7 @@
                                       "content": "25"
                                     }
                                   },
-                                  "mantine_color": {
+                                  "shared_color": {
                                     "all": {
                                       "content": "violet"
                                     }
@@ -2889,7 +2879,7 @@
                                       "content": "15"
                                     }
                                   },
-                                  "mantine_color": {
+                                  "shared_color": {
                                     "all": {
                                       "content": "pink"
                                     }
@@ -2908,17 +2898,17 @@
                 "section_name": "showcase-timeline",
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -2937,27 +2927,27 @@
                       {
                         "style_name": "timeline",
                         "fields": {
-                          "mantine_timeline_active": {
+                          "web_timeline_active": {
                             "all": {
                               "content": "1"
                             }
                           },
-                          "mantine_timeline_bullet_size": {
+                          "web_timeline_bullet_size": {
                             "all": {
                               "content": "20"
                             }
                           },
-                          "mantine_timeline_line_width": {
+                          "web_timeline_line_width": {
                             "all": {
                               "content": "2"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "blue"
                             }
                           },
-                          "mantine_timeline_align": {
+                          "web_timeline_align": {
                             "all": {
                               "content": "left"
                             }
@@ -2975,12 +2965,12 @@
                                   "content": "Entwurf"
                                 }
                               },
-                              "mantine_timeline_item_bullet": {
+                              "web_timeline_item_bullet": {
                                 "all": {
                                   "content": "IconPencil"
                                 }
                               },
-                              "mantine_timeline_item_line_variant": {
+                              "web_timeline_item_line_variant": {
                                 "all": {
                                   "content": "solid"
                                 }
@@ -2998,7 +2988,7 @@
                                       "content": "Autor:in erstellt die Seite im CMS."
                                     }
                                   },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -3021,12 +3011,12 @@
                                   "content": "Freigabe"
                                 }
                               },
-                              "mantine_timeline_item_bullet": {
+                              "web_timeline_item_bullet": {
                                 "all": {
                                   "content": "IconEye"
                                 }
                               },
-                              "mantine_timeline_item_line_variant": {
+                              "web_timeline_item_line_variant": {
                                 "all": {
                                   "content": "dashed"
                                 }
@@ -3044,7 +3034,7 @@
                                       "content": "Redaktion prüft und gibt den Inhalt frei."
                                     }
                                   },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -3067,12 +3057,12 @@
                                   "content": "Veröffentlicht"
                                 }
                               },
-                              "mantine_timeline_item_bullet": {
+                              "web_timeline_item_bullet": {
                                 "all": {
                                   "content": "IconCheck"
                                 }
                               },
-                              "mantine_timeline_item_line_variant": {
+                              "web_timeline_item_line_variant": {
                                 "all": {
                                   "content": "solid"
                                 }
@@ -3090,7 +3080,7 @@
                                       "content": "Seite wird für alle Besucher:innen veröffentlicht."
                                     }
                                   },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -3113,7 +3103,7 @@
           {
             "style_name": "divider",
             "fields": {
-              "mantine_divider_label": {
+              "divider_label": {
                 "en-GB": {
                   "content": "8. Lists, accordion & tabs"
                 },
@@ -3121,7 +3111,7 @@
                   "content": "8. Listen, Accordion & Tabs"
                 }
               },
-              "mantine_divider_label_position": {
+              "web_divider_label_position": {
                 "all": {
                   "content": "center"
                 }
@@ -3132,12 +3122,12 @@
             "section_name": "showcase-navigation",
             "style_name": "simple-grid",
             "fields": {
-              "mantine_cols": {
+              "web_cols": {
                 "all": {
                   "content": "{\"base\":1,\"lg\":3}"
                 }
               },
-              "mantine_vertical_spacing": {
+              "web_vertical_spacing": {
                 "all": {
                   "content": "md"
                 }
@@ -3148,17 +3138,17 @@
                 "section_name": "showcase-list",
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -3185,7 +3175,7 @@
                               "content": "Liste"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "4"
                             }
@@ -3198,17 +3188,7 @@
                       {
                         "style_name": "list",
                         "fields": {
-                          "mantine_list_list_style_type": {
-                            "all": {
-                              "content": "disc"
-                            }
-                          },
-                          "mantine_list_spacing": {
-                            "all": {
-                              "content": "sm"
-                            }
-                          },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -3217,75 +3197,19 @@
                         "children": [
                           {
                             "style_name": "list-item",
-                            "fields": {
-                              "mantine_list_item_content": {
-                                "en-GB": {
-                                  "content": "Transactional import with HTTP 422 pre-validation"
-                                },
-                                "de-CH": {
-                                  "content": "Transaktionaler Import mit HTTP 422 Pre-Validierung"
-                                }
-                              },
-                              "mantine_list_item_icon": {
-                                "all": {
-                                  "content": "IconCheck"
-                                }
-                              }
-                            }
+                            "fields": {}
                           },
                           {
                             "style_name": "list-item",
-                            "fields": {
-                              "mantine_list_item_content": {
-                                "en-GB": {
-                                  "content": "Minimised JSON — only non-default fields exported"
-                                },
-                                "de-CH": {
-                                  "content": "Minimiertes JSON – nur Nicht-Defaults exportiert"
-                                }
-                              },
-                              "mantine_list_item_icon": {
-                                "all": {
-                                  "content": "IconCheck"
-                                }
-                              }
-                            }
+                            "fields": {}
                           },
                           {
                             "style_name": "list-item",
-                            "fields": {
-                              "mantine_list_item_content": {
-                                "en-GB": {
-                                  "content": "AI prompt regenerated from live DB schema"
-                                },
-                                "de-CH": {
-                                  "content": "KI-Prompt aus Live-DB-Schema regeneriert"
-                                }
-                              },
-                              "mantine_list_item_icon": {
-                                "all": {
-                                  "content": "IconCheck"
-                                }
-                              }
-                            }
+                            "fields": {}
                           },
                           {
                             "style_name": "list-item",
-                            "fields": {
-                              "mantine_list_item_content": {
-                                "en-GB": {
-                                  "content": "Dark-mode-ready Tailwind palette"
-                                },
-                                "de-CH": {
-                                  "content": "Dark-Mode-taugliche Tailwind-Palette"
-                                }
-                              },
-                              "mantine_list_item_icon": {
-                                "all": {
-                                  "content": "IconCheck"
-                                }
-                              }
-                            }
+                            "fields": {}
                           }
                         ]
                       }
@@ -3297,17 +3221,17 @@
                 "section_name": "showcase-accordion",
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -3326,22 +3250,17 @@
                       {
                         "style_name": "accordion",
                         "fields": {
-                          "mantine_accordion_variant": {
-                            "all": {
-                              "content": "separated"
-                            }
-                          },
-                          "mantine_accordion_chevron_position": {
+                          "web_accordion_chevron_position": {
                             "all": {
                               "content": "right"
                             }
                           },
-                          "mantine_accordion_default_value": {
+                          "web_accordion_default_value": {
                             "all": {
                               "content": "what"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "md"
                             }
@@ -3359,12 +3278,12 @@
                                   "content": "Was ist SelfHelp?"
                                 }
                               },
-                              "mantine_accordion_item_value": {
+                              "web_accordion_item_value": {
                                 "all": {
                                   "content": "what"
                                 }
                               },
-                              "mantine_accordion_item_icon": {
+                              "web_accordion_item_icon": {
                                 "all": {
                                   "content": "IconHelp"
                                 }
@@ -3382,7 +3301,7 @@
                                       "content": "Ein modulares, PHP-basiertes CMS mit React-first Renderer."
                                     }
                                   },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -3405,12 +3324,12 @@
                                   "content": "Unterstützt es Mantine?"
                                 }
                               },
-                              "mantine_accordion_item_value": {
+                              "web_accordion_item_value": {
                                 "all": {
                                   "content": "mantine"
                                 }
                               },
-                              "mantine_accordion_item_icon": {
+                              "web_accordion_item_icon": {
                                 "all": {
                                   "content": "IconBrandMantine"
                                 }
@@ -3428,7 +3347,7 @@
                                       "content": "Ja – zu jedem Mantine-Primitive gibt es einen Style."
                                     }
                                   },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -3451,12 +3370,12 @@
                                   "content": "Muss Tailwind eingesetzt werden?"
                                 }
                               },
-                              "mantine_accordion_item_value": {
+                              "web_accordion_item_value": {
                                 "all": {
                                   "content": "tailwind"
                                 }
                               },
-                              "mantine_accordion_item_icon": {
+                              "web_accordion_item_icon": {
                                 "all": {
                                   "content": "IconPalette"
                                 }
@@ -3474,7 +3393,7 @@
                                       "content": "Tailwind ist für css/css_mobile empfohlen, aber optional."
                                     }
                                   },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -3496,17 +3415,17 @@
                 "section_name": "showcase-tabs",
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -3525,17 +3444,17 @@
                       {
                         "style_name": "tabs",
                         "fields": {
-                          "mantine_tabs_variant": {
+                          "web_tabs_variant": {
                             "all": {
                               "content": "default"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "blue"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "md"
                             }
@@ -3556,7 +3475,7 @@
                                   "content": "Übersicht"
                                 }
                               },
-                              "mantine_left_icon": {
+                              "web_left_icon": {
                                 "all": {
                                   "content": "IconHome"
                                 }
@@ -3574,7 +3493,7 @@
                                       "content": "Stelle die Seite und die wichtigsten Inhalte vor."
                                     }
                                   },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -3597,7 +3516,7 @@
                                   "content": "Details"
                                 }
                               },
-                              "mantine_left_icon": {
+                              "web_left_icon": {
                                 "all": {
                                   "content": "IconList"
                                 }
@@ -3615,7 +3534,7 @@
                                       "content": "Mehr Kontext und strukturierte Informationen liefern."
                                     }
                                   },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -3638,7 +3557,7 @@
                                   "content": "Changelog"
                                 }
                               },
-                              "mantine_left_icon": {
+                              "web_left_icon": {
                                 "all": {
                                   "content": "IconHistory"
                                 }
@@ -3648,17 +3567,7 @@
                               {
                                 "style_name": "list",
                                 "fields": {
-                                  "mantine_list_list_style_type": {
-                                    "all": {
-                                      "content": "disc"
-                                    }
-                                  },
-                                  "mantine_list_spacing": {
-                                    "all": {
-                                      "content": "xs"
-                                    }
-                                  },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -3670,42 +3579,15 @@
                                 "children": [
                                   {
                                     "style_name": "list-item",
-                                    "fields": {
-                                      "mantine_list_item_content": {
-                                        "en-GB": {
-                                          "content": "v1.5 — mobile-first showcase"
-                                        },
-                                        "de-CH": {
-                                          "content": "v1.5 – Mobile-first Showcase"
-                                        }
-                                      }
-                                    }
+                                    "fields": {}
                                   },
                                   {
                                     "style_name": "list-item",
-                                    "fields": {
-                                      "mantine_list_item_content": {
-                                        "en-GB": {
-                                          "content": "v1.4 — full style showcase"
-                                        },
-                                        "de-CH": {
-                                          "content": "v1.4 – vollständiger Style-Showcase"
-                                        }
-                                      }
-                                    }
+                                    "fields": {}
                                   },
                                   {
                                     "style_name": "list-item",
-                                    "fields": {
-                                      "mantine_list_item_content": {
-                                        "en-GB": {
-                                          "content": "v1.3 — import pre-validation"
-                                        },
-                                        "de-CH": {
-                                          "content": "v1.3 – Import-Pre-Validierung"
-                                        }
-                                      }
-                                    }
+                                    "fields": {}
                                   }
                                 ]
                               }
@@ -3722,7 +3604,7 @@
           {
             "style_name": "divider",
             "fields": {
-              "mantine_divider_label": {
+              "divider_label": {
                 "en-GB": {
                   "content": "9. Form inputs (form-record)"
                 },
@@ -3730,7 +3612,7 @@
                   "content": "9. Formular-Eingaben (form-record)"
                 }
               },
-              "mantine_divider_label_position": {
+              "web_divider_label_position": {
                 "all": {
                   "content": "center"
                 }
@@ -3778,27 +3660,27 @@
                   "content": "Abbrechen"
                 }
               },
-              "mantine_btn_save_color": {
+              "shared_btn_save_color": {
                 "all": {
                   "content": "blue"
                 }
               },
-              "mantine_btn_update_color": {
+              "shared_btn_update_color": {
                 "all": {
                   "content": "orange"
                 }
               },
-              "mantine_btn_cancel_color": {
+              "shared_btn_cancel_color": {
                 "all": {
                   "content": "gray"
                 }
               },
-              "mantine_buttons_order": {
+              "shared_buttons_order": {
                 "all": {
                   "content": "save-cancel"
                 }
               },
-              "mantine_buttons_position": {
+              "shared_buttons_position": {
                 "all": {
                   "content": "flex-end"
                 }
@@ -3819,12 +3701,12 @@
                       "content": "Text-Eingaben"
                     }
                   },
-                  "mantine_fieldset_variant": {
+                  "web_fieldset_variant": {
                     "all": {
                       "content": "default"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "md"
                     }
@@ -3834,7 +3716,7 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "sm"
                         }
@@ -3865,17 +3747,17 @@
                               "content": "z. B. Ada"
                             }
                           },
-                          "mantine_left_icon": {
+                          "web_left_icon": {
                             "all": {
                               "content": "IconUser"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "md"
                             }
@@ -3906,22 +3788,12 @@
                               "content": "Erzähle etwas über dich…"
                             }
                           },
-                          "mantine_textarea_autosize": {
-                            "all": {
-                              "content": "1"
-                            }
-                          },
-                          "mantine_textarea_min_rows": {
-                            "all": {
-                              "content": "3"
-                            }
-                          },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "md"
                             }
@@ -3943,14 +3815,6 @@
                             "de-CH": {
                               "content": "Rich-Text Bio"
                             }
-                          },
-                          "mantine_rich_text_editor_placeholder": {
-                            "en-GB": {
-                              "content": "Use bold, italic, lists…"
-                            },
-                            "de-CH": {
-                              "content": "Fett, kursiv, Listen…"
-                            }
                           }
                         }
                       },
@@ -3970,27 +3834,17 @@
                               "content": "Alter"
                             }
                           },
-                          "mantine_numeric_min": {
-                            "all": {
-                              "content": "0"
-                            }
-                          },
-                          "mantine_numeric_max": {
-                            "all": {
-                              "content": "100"
-                            }
-                          },
                           "value": {
                             "all": {
                               "content": "30"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "md"
                             }
@@ -4012,12 +3866,12 @@
                       "content": "Auswahl-Eingaben"
                     }
                   },
-                  "mantine_fieldset_variant": {
+                  "web_fieldset_variant": {
                     "all": {
                       "content": "default"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "md"
                     }
@@ -4027,7 +3881,7 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "sm"
                         }
@@ -4066,12 +3920,12 @@
                               "content": "[{\"value\":\"ch\",\"label\":\"Schweiz\"},{\"value\":\"de\",\"label\":\"Deutschland\"},{\"value\":\"gb\",\"label\":\"Grossbritannien\"}]"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "md"
                             }
@@ -4094,17 +3948,12 @@
                               "content": "Lieblings-Framework"
                             }
                           },
-                          "mantine_combobox_options": {
+                          "combobox_options": {
                             "en-GB": {
                               "content": "[{\"value\":\"next\",\"text\":\"Next.js\"},{\"value\":\"remix\",\"text\":\"Remix\"},{\"value\":\"astro\",\"text\":\"Astro\"}]"
                             },
                             "de-CH": {
                               "content": "[{\"value\":\"next\",\"text\":\"Next.js\"},{\"value\":\"remix\",\"text\":\"Remix\"},{\"value\":\"astro\",\"text\":\"Astro\"}]"
-                            }
-                          },
-                          "mantine_combobox_searchable": {
-                            "all": {
-                              "content": "1"
                             }
                           }
                         }
@@ -4133,25 +3982,17 @@
                               "content": "Wähle einen Tarif"
                             }
                           },
-                          "mantine_radio_options": {
-                            "en-GB": {
-                              "content": "[{\"value\":\"starter\",\"text\":\"Starter\"},{\"value\":\"team\",\"text\":\"Team\"},{\"value\":\"enterprise\",\"text\":\"Enterprise\"}]"
-                            },
-                            "de-CH": {
-                              "content": "[{\"value\":\"starter\",\"text\":\"Starter\"},{\"value\":\"team\",\"text\":\"Team\"},{\"value\":\"enterprise\",\"text\":\"Enterprise\"}]"
-                            }
-                          },
                           "value": {
                             "all": {
                               "content": "team"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "blue"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -4174,30 +4015,22 @@
                               "content": "Abrechnungsperiode"
                             }
                           },
-                          "mantine_segmented_control_data": {
-                            "en-GB": {
-                              "content": "[{\"value\":\"monthly\",\"label\":\"Monthly\"},{\"value\":\"yearly\",\"label\":\"Yearly\"}]"
-                            },
-                            "de-CH": {
-                              "content": "[{\"value\":\"monthly\",\"label\":\"Monatlich\"},{\"value\":\"yearly\",\"label\":\"Jährlich\"}]"
-                            }
-                          },
                           "value": {
                             "all": {
                               "content": "yearly"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "blue"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "md"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -4220,17 +4053,12 @@
                               "content": "Newsletter abonnieren"
                             }
                           },
-                          "mantine_checkbox_checked": {
-                            "all": {
-                              "content": "1"
-                            }
-                          },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "blue"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -4253,22 +4081,12 @@
                               "content": "Dark Mode aktivieren"
                             }
                           },
-                          "mantine_switch_on_label": {
-                            "en-GB": {
-                              "content": "ON"
-                            }
-                          },
-                          "mantine_switch_off_label": {
-                            "en-GB": {
-                              "content": "OFF"
-                            }
-                          },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "blue"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "md"
                             }
@@ -4290,12 +4108,12 @@
                       "content": "Bereich & Zahlen"
                     }
                   },
-                  "mantine_fieldset_variant": {
+                  "web_fieldset_variant": {
                     "all": {
                       "content": "default"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "md"
                     }
@@ -4305,7 +4123,7 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "md"
                         }
@@ -4328,32 +4146,17 @@
                               "content": "Lautstärke"
                             }
                           },
-                          "mantine_numeric_min": {
-                            "all": {
-                              "content": "0"
-                            }
-                          },
-                          "mantine_numeric_max": {
-                            "all": {
-                              "content": "100"
-                            }
-                          },
                           "value": {
                             "all": {
                               "content": "42"
                             }
                           },
-                          "mantine_numeric_step": {
-                            "all": {
-                              "content": "1"
-                            }
-                          },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "blue"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -4376,27 +4179,17 @@
                               "content": "Preisspanne"
                             }
                           },
-                          "mantine_numeric_min": {
-                            "all": {
-                              "content": "0"
-                            }
-                          },
-                          "mantine_numeric_max": {
-                            "all": {
-                              "content": "1000"
-                            }
-                          },
                           "value": {
                             "all": {
                               "content": "[200,700]"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "violet"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -4418,12 +4211,12 @@
                       "content": "Datum, Farbe & Datei"
                     }
                   },
-                  "mantine_fieldset_variant": {
+                  "web_fieldset_variant": {
                     "all": {
                       "content": "default"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "md"
                     }
@@ -4433,12 +4226,12 @@
                   {
                     "style_name": "simple-grid",
                     "fields": {
-                      "mantine_cols": {
+                      "web_cols": {
                         "all": {
                           "content": "{\"base\":1,\"sm\":2}"
                         }
                       },
-                      "mantine_vertical_spacing": {
+                      "web_vertical_spacing": {
                         "all": {
                           "content": "md"
                         }
@@ -4459,19 +4252,6 @@
                             },
                             "de-CH": {
                               "content": "Geburtsdatum"
-                            }
-                          },
-                          "mantine_datepicker_placeholder": {
-                            "en-GB": {
-                              "content": "Pick a date"
-                            },
-                            "de-CH": {
-                              "content": "Datum wählen"
-                            }
-                          },
-                          "mantine_datepicker_date_format": {
-                            "all": {
-                              "content": "DD.MM.YYYY"
                             }
                           }
                         }
@@ -4500,12 +4280,12 @@
                               "content": "Bild auswählen…"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "md"
                             }
@@ -4533,12 +4313,12 @@
                               "content": "#4f46e5"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "md"
                             }
@@ -4566,17 +4346,12 @@
                               "content": "#ec4899"
                             }
                           },
-                          "mantine_color_format": {
-                            "all": {
-                              "content": "hex"
-                            }
-                          },
-                          "mantine_fullwidth": {
+                          "shared_full_width": {
                             "all": {
                               "content": "1"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -4592,7 +4367,7 @@
           {
             "style_name": "space",
             "fields": {
-              "mantine_size": {
+              "shared_size": {
                 "all": {
                   "content": "xl"
                 }
@@ -4610,7 +4385,7 @@
                   "content": "Ende des Showcase – jeder Abschnitt oben zeigt einen registrierten Style. Diese JSON-Datei kann in jede SelfHelp-Seite importiert werden, um den vollständigen Katalog zu rendern."
                 }
               },
-              "mantine_size": {
+              "shared_size": {
                 "all": {
                   "content": "sm"
                 }

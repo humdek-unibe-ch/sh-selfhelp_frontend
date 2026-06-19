@@ -53,9 +53,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const hasInitializedForm = useRef<boolean>(false);
 
     // Extract form configuration from style
-    const _name = style.name?.content || 'default_form';
-    const isLog = style.is_log?.content === '1';
-    const alertSuccess = style.alert_success?.content;
+    const _name = style.name?.content || 'default_form';    const alertSuccess = style.alert_success?.content;
     const alertError = style.alert_error?.content;
 
     // Extract button configuration
@@ -65,14 +63,12 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const cancelUrl = style.btn_cancel_url?.content;
 
     // Extract button styling
-    const buttonSize = style.buttons_size?.content || 'sm';
-    const buttonRadius = style.buttons_radius?.content || 'sm';
-    const buttonVariant = style.buttons_variant?.content || 'filled';
-    const buttonPosition = style.buttons_position?.content || 'space-between';
-    const useMantineStyle = style.use_mantine_style?.content === '1';
-    const saveColor = style.btn_save_color?.content || 'blue';
-    const updateColor = style.btn_save_color?.content || 'green'; // Use same color for update
-    const cancelColor = style.btn_cancel_color?.content || 'gray';
+    const buttonSize = style.shared_buttons_size?.content || 'sm';
+    const buttonRadius = style.shared_buttons_radius?.content || 'sm';
+    const buttonVariant = style.shared_buttons_variant?.content || 'filled';
+    const buttonPosition = style.shared_buttons_position?.content || 'space-between';    const saveColor = style.shared_btn_save_color?.content || 'blue';
+    const updateColor = style.shared_btn_save_color?.content || 'green'; // Use same color for update
+    const cancelColor = style.shared_btn_cancel_color?.content || 'gray';
     
     // Get form ID from style - now directly available as number
 
@@ -83,7 +79,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
 
     // Determine form behavior based on style name
     const isRecord = style.style_name === 'form-record';
-    const isLogType = style.style_name === 'form-log' || isLog;
+    const isLogType = style.style_name === 'form-log';
 
     // React Query hooks
     const submitFormMutation = useSubmitFormMutation();
@@ -403,108 +399,35 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     }, [cancelUrl]);
 
     // Helper function to render buttons in correct order
-    const renderButtons = useCallback((isMantine: boolean) => {
+    const renderButtons = useCallback(() => {
         const cancelButton = (cancelUrl) && (
-            isMantine ? (
-                <Button
-                    key="cancel"
-                    type="button"
-                    onClick={handleCancel}
-                    size={buttonSize}
-                    radius={buttonRadius}
-                    variant={buttonVariant}
-                    color={cancelColor}
-                    disabled={isSubmitting}
-                >
-                    {cancelLabel}
-                </Button>
-            ) : (
-                <button
-                    key="cancel"
-                    type="button"
-                    onClick={handleCancel}
-                    disabled={isSubmitting}
-                    style={{
-                        padding: buttonSize === 'xs' ? '0.25rem 0.5rem' :
-                                buttonSize === 'sm' ? '0.5rem 1rem' :
-                                buttonSize === 'lg' ? '0.75rem 1.5rem' :
-                                buttonSize === 'xl' ? '1rem 2rem' : '0.625rem 1.25rem',
-                        fontSize: buttonSize === 'xs' ? '0.75rem' :
-                                 buttonSize === 'sm' ? '0.875rem' :
-                                 buttonSize === 'lg' ? '1.125rem' :
-                                 buttonSize === 'xl' ? '1.25rem' : '1rem',
-                        borderRadius: buttonRadius === 'xs' ? '0.125rem' :
-                                     buttonRadius === 'sm' ? '0.25rem' :
-                                     buttonRadius === 'lg' ? '0.5rem' :
-                                     buttonRadius === 'xl' ? '0.75rem' : '0.375rem',
-                        backgroundColor: cancelColor === 'gray' ? '#6b7280' :
-                                       cancelColor === 'blue' ? '#3b82f6' :
-                                       cancelColor === 'green' ? '#22c55e' :
-                                       cancelColor === 'red' ? '#ef4444' : '#6b7280',
-                        color: 'white',
-                        border: 'none',
-                        cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                        opacity: isSubmitting ? 0.6 : 1,
-                        fontWeight: '500',
-                        transition: 'all 0.2s ease'
-                    }}
-                >
-                    {cancelLabel}
-                </button>
-            )
+            <Button
+                key="cancel"
+                type="button"
+                onClick={handleCancel}
+                size={buttonSize}
+                radius={buttonRadius}
+                variant={buttonVariant}
+                color={cancelColor}
+                disabled={isSubmitting}
+            >
+                {cancelLabel}
+            </Button>
         );
 
         const saveButton = (
-            isMantine ? (
-                <Button
-                    key="save"
-                    type="submit"
-                    loading={isSubmitting}
-                    disabled={!pageId}
-                    size={buttonSize}
-                    radius={buttonRadius}
-                    variant={buttonVariant}
-                    color={isRecord && existingRecordId ? updateColor : saveColor}
-                >
-                    {parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
-                </Button>
-            ) : (
-                <button
-                    key="save"
-                    type="submit"
-                    disabled={isSubmitting || !pageId}
-                    style={{
-                        padding: buttonSize === 'xs' ? '0.25rem 0.5rem' :
-                                buttonSize === 'sm' ? '0.5rem 1rem' :
-                                buttonSize === 'lg' ? '0.75rem 1.5rem' :
-                                buttonSize === 'xl' ? '1rem 2rem' : '0.625rem 1.25rem',
-                        fontSize: buttonSize === 'xs' ? '0.75rem' :
-                                 buttonSize === 'sm' ? '0.875rem' :
-                                 buttonSize === 'lg' ? '1.125rem' :
-                                 buttonSize === 'xl' ? '1.25rem' : '1rem',
-                        borderRadius: buttonRadius === 'xs' ? '0.125rem' :
-                                     buttonRadius === 'sm' ? '0.25rem' :
-                                     buttonRadius === 'lg' ? '0.5rem' :
-                                     buttonRadius === 'xl' ? '0.75rem' : '0.375rem',
-                        backgroundColor: isRecord && existingRecordId ?
-                            (updateColor === 'green' ? '#22c55e' :
-                             updateColor === 'blue' ? '#3b82f6' :
-                             updateColor === 'orange' ? '#f97316' :
-                             updateColor === 'red' ? '#ef4444' : '#22c55e') :
-                            (saveColor === 'blue' ? '#3b82f6' :
-                             saveColor === 'green' ? '#22c55e' :
-                             saveColor === 'red' ? '#ef4444' : '#3b82f6'),
-                        color: 'white',
-                        border: 'none',
-                        cursor: isSubmitting || !pageId ? 'not-allowed' : 'pointer',
-                        opacity: isSubmitting || !pageId ? 0.6 : 1,
-                        fontWeight: '500',
-                        transition: 'all 0.2s ease'
-                    }}
-                >
-                    {isSubmitting ? 'Submitting...' : parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
-                </button>
-            )
+            <Button
+                key="save"
+                type="submit"
+                loading={isSubmitting}
+                disabled={!pageId}
+                size={buttonSize}
+                radius={buttonRadius}
+                variant={buttonVariant}
+                color={isRecord && existingRecordId ? updateColor : saveColor}
+            >
+                {parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
+            </Button>
         );
 
         // Return buttons in the specified order (always cancel-save)
@@ -621,25 +544,9 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                             ))}
 
                             {/* Form Buttons */}
-                            {useMantineStyle ? (
-                                // Mantine Style Buttons
-                                <Group justify={buttonPosition as React.ComponentProps<typeof Group>['justify']} mt="xl">
-                                    {renderButtons(true)}
-                                </Group>
-                            ) : (
-                                // Fallback HTML Buttons
-                                <div style={{
-                                    display: 'flex',
-                                    gap: '1rem',
-                                    justifyContent: buttonPosition === 'space-between' ? 'space-between' :
-                                                   buttonPosition === 'center' ? 'center' :
-                                                   buttonPosition === 'flex-end' ? 'flex-end' :
-                                                   buttonPosition === 'flex-start' ? 'flex-start' : 'space-between',
-                                    marginTop: '2rem'
-                                }}>
-                                    {renderButtons(false)}
-                                </div>
-                            )}
+                            <Group justify={buttonPosition as React.ComponentProps<typeof Group>['justify']} mt="xl">
+                                {renderButtons()}
+                            </Group>
                         </div>
                     </FormFieldValueContext.Provider>
                 </FileInputRegistrationContext.Provider>

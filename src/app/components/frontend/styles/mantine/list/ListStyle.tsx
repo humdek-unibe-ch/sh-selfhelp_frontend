@@ -31,12 +31,12 @@ interface IListStyleProps {
  */
 const ListStyle: React.FC<IListStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract Mantine-specific props
-    const listStyleType = style.mantine_list_list_style_type?.content;
-    const withPadding = style.mantine_list_with_padding?.content === '1';
-    const center = style.mantine_list_center?.content === '1';
-    const iconName = style.mantine_list_icon?.content;
-    const size = castMantineSize(style.mantine_size?.content);
-    const spacing = style.mantine_spacing?.content || 'md';
+    const listStyleType = style.web_list_list_style_type?.content;
+    const withPadding = style.web_list_with_padding?.content === '1';
+    const center = style.web_list_center?.content === '1';
+    const iconName = style.web_list_icon?.content;
+    const size = castMantineSize(style.shared_size?.content);
+    const spacing = style.web_spacing?.content || 'md';
 
     // Handle CSS field - use direct property from API response
     

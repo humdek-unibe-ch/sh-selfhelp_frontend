@@ -30,8 +30,8 @@ interface IListItemStyleProps {
  */
 const ListItemStyle: React.FC<IListItemStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract Mantine-specific props
-    const content = style.mantine_list_item_content?.content;
-    const iconName = style.mantine_list_item_icon?.content;
+    const content = style.list_item_content?.content;
+    const iconName = style.web_list_item_icon?.content;
 
     // Handle CSS field - use direct property from API response
     

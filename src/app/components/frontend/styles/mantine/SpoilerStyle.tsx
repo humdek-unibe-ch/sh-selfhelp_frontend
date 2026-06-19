@@ -32,9 +32,9 @@ const SpoilerStyle: React.FC<ISpoilerStyleProps> = ({ style, styleProps, cssClas
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const _maxHeight = style.mantine_height?.content || '200px';
-    const showLabel = style.mantine_spoiler_show_label?.content || 'Show more';
-    const hideLabel = style.mantine_spoiler_hide_label?.content || 'Hide';
+    const _maxHeight = style.web_height?.content || '200px';
+    const showLabel = style.spoiler_show_label?.content || 'Show more';
+    const hideLabel = style.spoiler_hide_label?.content || 'Hide';
 
     // Handle CSS field - use direct property from API response
     

@@ -3,7 +3,7 @@
     "section_name": "team-mantine",
     "style_name": "container",
     "fields": {
-      "mantine_size": {
+      "shared_size": {
         "all": {
           "content": "xl"
         }
@@ -16,12 +16,12 @@
       {
         "style_name": "stack",
         "fields": {
-          "mantine_gap": {
+          "shared_gap": {
             "all": {
               "content": "xl"
             }
           },
-          "mantine_align": {
+          "shared_align": {
             "all": {
               "content": "stretch"
             }
@@ -32,12 +32,12 @@
             "section_name": "team-mantine-header",
             "style_name": "stack",
             "fields": {
-              "mantine_align": {
+              "shared_align": {
                 "all": {
                   "content": "center"
                 }
               },
-              "mantine_gap": {
+              "shared_gap": {
                 "all": {
                   "content": "sm"
                 }
@@ -58,7 +58,7 @@
                       "content": "Unser Führungsteam"
                     }
                   },
-                  "mantine_title_order": {
+                  "web_title_order": {
                     "all": {
                       "content": "1"
                     }
@@ -79,7 +79,7 @@
                       "content": "Erfahrene Führungskräfte aus Engineering, Design und Go-to-Market."
                     }
                   },
-                  "mantine_size": {
+                  "shared_size": {
                     "all": {
                       "content": "lg"
                     }
@@ -94,12 +94,12 @@
           {
             "style_name": "simple-grid",
             "fields": {
-              "mantine_cols": {
+              "web_cols": {
                 "all": {
                   "content": "{\"base\":1,\"sm\":2,\"lg\":3}"
                 }
               },
-              "mantine_vertical_spacing": {
+              "web_vertical_spacing": {
                 "all": {
                   "content": "lg"
                 }
@@ -109,22 +109,22 @@
               {
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_shadow": {
+                  "web_card_shadow": {
                     "all": {
                       "content": "sm"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "lg"
                     }
@@ -156,12 +156,12 @@
                               "content": "/assets/image-holder.png"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "xl"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "50%"
                             }
@@ -182,7 +182,7 @@
                               "content": "Dr. Sarah Müller"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -203,7 +203,7 @@
                               "content": "CEO & Gründerin"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -245,12 +245,12 @@
                               "content": "Strategy"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "indigo"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "light"
                             }
@@ -265,12 +265,12 @@
                               "content": "Leadership"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "grape"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "light"
                             }
@@ -284,22 +284,22 @@
               {
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_shadow": {
+                  "web_card_shadow": {
                     "all": {
                       "content": "sm"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "lg"
                     }
@@ -331,12 +331,12 @@
                               "content": "/assets/image-holder.png"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "xl"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "50%"
                             }
@@ -357,7 +357,7 @@
                               "content": "Michael Chen"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -378,7 +378,7 @@
                               "content": "CTO & Technischer Leiter"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -420,12 +420,12 @@
                               "content": "Engineering"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "teal"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "light"
                             }
@@ -440,12 +440,12 @@
                               "content": "Infra"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "cyan"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "light"
                             }
@@ -459,22 +459,22 @@
               {
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_shadow": {
+                  "web_card_shadow": {
                     "all": {
                       "content": "sm"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "lg"
                     }
@@ -506,12 +506,12 @@
                               "content": "/assets/image-holder.png"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "xl"
                             }
                           },
-                          "mantine_radius": {
+                          "shared_radius": {
                             "all": {
                               "content": "50%"
                             }
@@ -532,7 +532,7 @@
                               "content": "Anna Kowalski"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -553,7 +553,7 @@
                               "content": "Design- & UX-Leitung"
                             }
                           },
-                          "mantine_size": {
+                          "shared_size": {
                             "all": {
                               "content": "sm"
                             }
@@ -595,12 +595,12 @@
                               "content": "Design"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "pink"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "light"
                             }
@@ -615,12 +615,12 @@
                               "content": "Research"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "violet"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "light"
                             }

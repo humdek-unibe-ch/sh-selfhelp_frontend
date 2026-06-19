@@ -30,11 +30,11 @@ interface IThemeIconStyleProps {
  */
 const ThemeIconStyle: React.FC<IThemeIconStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const variant = style.mantine_variant?.content || 'filled';
-    const size = castMantineSize(style.mantine_size?.content) || 'md';
-    const radius = castMantineRadius(style.mantine_radius?.content) || 'sm';
-    const color = style.mantine_color?.content || 'blue';
-    const leftIconName = style.mantine_left_icon?.content;
+    const variant = style.web_variant?.content || 'filled';
+    const size = castMantineSize(style.shared_size?.content) || 'md';
+    const radius = castMantineRadius(style.shared_radius?.content) || 'sm';
+    const color = style.shared_color?.content || 'blue';
+    const leftIconName = style.web_left_icon?.content;
 
     // Handle CSS field - use direct property from API response
     

@@ -52,7 +52,7 @@
                       "content": "Lernen Sie unser grossartiges Team kennen"
                     }
                   },
-                  "mantine_title_order": {
+                  "web_title_order": {
                     "all": {
                       "content": "1"
                     }
@@ -73,7 +73,7 @@
                       "content": "Leidenschaftliche Fachleute mit aussergewöhnlichen Ergebnissen und innovativen Lösungen."
                     }
                   },
-                  "mantine_size": {
+                  "shared_size": {
                     "all": {
                       "content": "lg"
                     }
@@ -160,7 +160,7 @@
                               "content": "Dr. Sarah Müller"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -267,7 +267,7 @@
                               "content": "Michael Chen"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -374,7 +374,7 @@
                               "content": "Anna Kowalski"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }

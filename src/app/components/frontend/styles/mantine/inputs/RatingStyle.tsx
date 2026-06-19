@@ -130,19 +130,19 @@ const RatingStyle: React.FC<IRatingStyleProps> = ({ style, styleProps, cssClass 
     const initialValue = parseFloat(style.value?.content || '0');
 
     // Extract rating-specific field values
-    const useSmiles = style.mantine_rating_use_smiles?.content === '1';
-    const emptyIconName = style.mantine_rating_empty_icon?.content;
-    const fullIconName = style.mantine_rating_full_icon?.content;
-    const highlightSelectedOnly = style.mantine_rating_highlight_selected_only?.content === '1' || useSmiles ;
-    const baseCount = parseInt(style.mantine_rating_count?.content || '5') as 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
-    const fractions = parseInt(style.mantine_rating_fractions?.content || '1') as 1 | 2 | 3 | 4 | 5;
+    const useSmiles = style.web_rating_use_smiles?.content === '1';
+    const emptyIconName = style.web_rating_empty_icon?.content;
+    const fullIconName = style.web_rating_full_icon?.content;
+    const highlightSelectedOnly = style.web_rating_highlight_selected_only?.content === '1' || useSmiles ;
+    const baseCount = parseInt(style.web_rating_count?.content || '5') as 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+    const fractions = parseInt(style.web_rating_fractions?.content || '1') as 1 | 2 | 3 | 4 | 5;
 
     // When smiles are enabled, force count to 5
     const count = useSmiles ? 5 : baseCount;
 
     // Extract Mantine styling field values
-    const size = castMantineSize(style.mantine_size?.content);
-    const color = style.mantine_color?.content || 'yellow';
+    const size = castMantineSize(style.shared_size?.content);
+    const color = style.shared_color?.content || 'yellow';
 
     // Calculate icon size from Mantine size for proper scaling
     const iconSize = getIconSizeFromMantineSize(size);

@@ -34,11 +34,11 @@ const StackStyle: React.FC<IStackStyleProps> = ({ style, styleProps, cssClass })
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine Stack props
-    const gap = style.mantine_gap?.content;
-    const justify = style.mantine_justify?.content;
-    const align = style.mantine_align?.content;
-    const width = style.mantine_width?.content;
-    const height = style.mantine_height?.content;
+    const gap = style.shared_gap?.content;
+    const justify = style.shared_justify?.content;
+    const align = style.shared_align?.content;
+    const width = style.web_width?.content;
+    const height = style.web_height?.content;
 
     // Handle CSS field - use direct property from API response
     

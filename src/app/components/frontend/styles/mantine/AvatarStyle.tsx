@@ -33,14 +33,12 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
     // Extract field values using the new unified field structure
     const src = style.img_src?.content;
     const alt = style.alt?.content || 'Avatar';
-    const iconName = style.mantine_left_icon?.content;
-    const customInitials = style.mantine_avatar_initials?.content || 'U';
-    const variant = style.mantine_avatar_variant?.content || 'light';
-    const size = style.mantine_size?.content || 'md';
-    const radius = style.mantine_radius?.content || '50%';
-    const color = style.mantine_color?.content || 'blue';
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-
+    const iconName = style.web_left_icon?.content;
+    const customInitials = style.web_avatar_initials?.content || 'U';
+    const variant = style.web_avatar_variant?.content || 'light';
+    const size = style.shared_size?.content || 'md';
+    const radius = style.shared_radius?.content || '50%';
+    const color = style.shared_color?.content || 'blue';
     // Handle CSS field - use direct property from API response
     
 
@@ -67,25 +65,20 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
         avatarContent = customInitials ? customInitials.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
     }
 
-    if (use_mantine_style) {
-        return (
-            <Avatar
-                src={avatarSrc}
-                alt={alt}
-                variant={variant as TMantineAvatarVariant}
-                size={size as TMantineSize}
-                radius={radius === 'none' ? 0 : radius}
-                color={color}
-                {...styleProps} className={cssClass}
-                style={styleObj}
-            >
-                {avatarContent}
-            </Avatar>
-        );
-    }
-
-    // Return null if Mantine styling is disabled (no fallback needed)
-    return null;
+    return (
+        <Avatar
+            src={avatarSrc}
+            alt={alt}
+            variant={variant as TMantineAvatarVariant}
+            size={size as TMantineSize}
+            radius={radius === 'none' ? 0 : radius}
+            color={color}
+            {...styleProps} className={cssClass}
+            style={styleObj}
+        >
+            {avatarContent}
+        </Avatar>
+    );
 };
 
 export default AvatarStyle;

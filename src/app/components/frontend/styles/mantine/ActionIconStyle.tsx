@@ -33,16 +33,14 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style, styleProps, c
     const router = useRouter();
 
     // Extract field values using the new unified field structure
-    const variant = style.mantine_variant?.content || 'subtle';
-    const loading = style.mantine_action_icon_loading?.content === '1';
-    const size = castMantineSize(style.mantine_size?.content);
-    const radius = castMantineRadius(style.mantine_radius?.content);
-    const color = style.mantine_color?.content || 'blue';
+    const variant = style.web_variant?.content || 'subtle';
+    const loading = style.web_action_icon_loading?.content === '1';
+    const size = castMantineSize(style.shared_size?.content);
+    const radius = castMantineRadius(style.shared_radius?.content);
+    const color = style.shared_color?.content || 'blue';
     const disabled = style.disabled?.content === '1';
-    const _use_mantine_style = style.use_mantine_style?.content === '1';
-
     // New fields for icon and link functionality
-    const iconName = style.mantine_left_icon?.content;
+    const iconName = style.web_left_icon?.content;
     const url = style.page_keyword?.content;
     const is_link = style.is_link?.content;
     const open_in_new_tab = style.open_in_new_tab?.content;

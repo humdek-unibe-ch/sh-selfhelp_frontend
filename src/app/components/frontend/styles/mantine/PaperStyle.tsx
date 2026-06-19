@@ -31,11 +31,11 @@ interface IPaperStyleProps {
 const PaperStyle: React.FC<IPaperStyleProps> = ({ style, styleProps, cssClass }) => {
 
     // Extract Mantine-specific props
-    const shadow = style.mantine_paper_shadow?.content || 'sm';
-    const radius = castMantineRadius(style.mantine_radius?.content);
-    const px = style.mantine_px?.content || 'md';
-    const py = style.mantine_py?.content || 'md';
-    const withBorder = style.mantine_border?.content === '1';
+    const shadow = style.web_paper_shadow?.content || 'sm';
+    const radius = castMantineRadius(style.shared_radius?.content);
+    const px = style.web_px?.content || 'md';
+    const py = style.web_py?.content || 'md';
+    const withBorder = style.web_border?.content === '1';
 
     // Handle CSS field - use direct property from API response
     

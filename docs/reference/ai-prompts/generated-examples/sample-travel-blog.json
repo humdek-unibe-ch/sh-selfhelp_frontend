@@ -3,7 +3,7 @@
     "section_name": "travel-blog",
     "style_name": "container",
     "fields": {
-      "mantine_size": {
+      "shared_size": {
         "all": {
           "content": "xl"
         }
@@ -16,7 +16,7 @@
       {
         "style_name": "stack",
         "fields": {
-          "mantine_gap": {
+          "shared_gap": {
             "all": {
               "content": "xl"
             }
@@ -27,12 +27,12 @@
             "section_name": "travel-header",
             "style_name": "stack",
             "fields": {
-              "mantine_align": {
+              "shared_align": {
                 "all": {
                   "content": "center"
                 }
               },
-              "mantine_gap": {
+              "shared_gap": {
                 "all": {
                   "content": "sm"
                 }
@@ -53,12 +53,12 @@
                       "content": "Reise-Journal"
                     }
                   },
-                  "mantine_color": {
+                  "shared_color": {
                     "all": {
                       "content": "orange"
                     }
                   },
-                  "mantine_variant": {
+                  "web_variant": {
                     "all": {
                       "content": "light"
                     }
@@ -76,7 +76,7 @@
                       "content": "Abenteuer, die in Erinnerung bleiben"
                     }
                   },
-                  "mantine_title_order": {
+                  "web_title_order": {
                     "all": {
                       "content": "1"
                     }
@@ -97,7 +97,7 @@
                       "content": "Drei handverlesene Reisen der Redaktion – Fjorde, antike Ruinen und stille Bergmorgen."
                     }
                   },
-                  "mantine_size": {
+                  "shared_size": {
                     "all": {
                       "content": "lg"
                     }
@@ -113,12 +113,12 @@
             "section_name": "travel-grid",
             "style_name": "simple-grid",
             "fields": {
-              "mantine_cols": {
+              "web_cols": {
                 "all": {
                   "content": "{\"base\":1,\"sm\":2,\"lg\":3}"
                 }
               },
-              "mantine_vertical_spacing": {
+              "web_vertical_spacing": {
                 "all": {
                   "content": "lg"
                 }
@@ -129,22 +129,22 @@
                 "section_name": "travel-post-norway",
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_shadow": {
+                  "web_card_shadow": {
                     "all": {
                       "content": "sm"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -189,12 +189,12 @@
                       {
                         "style_name": "group",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "xs"
                             }
                           },
-                          "mantine_align": {
+                          "shared_align": {
                             "all": {
                               "content": "center"
                             }
@@ -209,12 +209,12 @@
                                   "content": "Nordic"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "blue"
                                 }
                               },
-                              "mantine_variant": {
+                              "web_variant": {
                                 "all": {
                                   "content": "light"
                                 }
@@ -232,7 +232,7 @@
                                   "content": "12 Min. Lesezeit"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "xs"
                                 }
@@ -255,7 +255,7 @@
                               "content": "Die 10 besten Orte in Norwegen diesen Sommer"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -292,12 +292,12 @@
                               "content": "Weiterlesen"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "blue"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "subtle"
                             }
@@ -312,22 +312,22 @@
                 "section_name": "travel-post-rome",
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_shadow": {
+                  "web_card_shadow": {
                     "all": {
                       "content": "sm"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -372,12 +372,12 @@
                       {
                         "style_name": "group",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "xs"
                             }
                           },
-                          "mantine_align": {
+                          "shared_align": {
                             "all": {
                               "content": "center"
                             }
@@ -392,12 +392,12 @@
                                   "content": "History"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "orange"
                                 }
                               },
-                              "mantine_variant": {
+                              "web_variant": {
                                 "all": {
                                   "content": "light"
                                 }
@@ -415,7 +415,7 @@
                                   "content": "8 Min. Lesezeit"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "xs"
                                 }
@@ -438,7 +438,7 @@
                               "content": "Ein Wochenende in Rom – ohne Schlangen"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -475,12 +475,12 @@
                               "content": "Weiterlesen"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "orange"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "subtle"
                             }
@@ -495,22 +495,22 @@
                 "section_name": "travel-post-alps",
                 "style_name": "card",
                 "fields": {
-                  "mantine_border": {
+                  "web_border": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "lg"
                     }
                   },
-                  "mantine_card_shadow": {
+                  "web_card_shadow": {
                     "all": {
                       "content": "sm"
                     }
                   },
-                  "mantine_card_padding": {
+                  "web_card_padding": {
                     "all": {
                       "content": "0"
                     }
@@ -555,12 +555,12 @@
                       {
                         "style_name": "group",
                         "fields": {
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "xs"
                             }
                           },
-                          "mantine_align": {
+                          "shared_align": {
                             "all": {
                               "content": "center"
                             }
@@ -575,12 +575,12 @@
                                   "content": "Nature"
                                 }
                               },
-                              "mantine_color": {
+                              "shared_color": {
                                 "all": {
                                   "content": "teal"
                                 }
                               },
-                              "mantine_variant": {
+                              "web_variant": {
                                 "all": {
                                   "content": "light"
                                 }
@@ -598,7 +598,7 @@
                                   "content": "6 Min. Lesezeit"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "xs"
                                 }
@@ -621,7 +621,7 @@
                               "content": "Stille Alpenmorgen über den Wolken"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -658,12 +658,12 @@
                               "content": "Weiterlesen"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "teal"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "subtle"
                             }

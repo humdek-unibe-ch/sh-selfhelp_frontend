@@ -31,15 +31,13 @@ interface IBadgeStyleProps {
 const BadgeStyle: React.FC<IBadgeStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const label = style.label?.content || 'Badge';
-    const variant = style.mantine_variant?.content || 'filled';
-    const size = castMantineSize(style.mantine_size?.content);
-    const radius = castMantineRadius(style.mantine_radius?.content);
-    const color = style.mantine_color?.content || 'blue';
-    const leftIconName = style.mantine_left_icon?.content;
-    const rightIconName = style.mantine_right_icon?.content;
-    const auto_contrast = style.mantine_auto_contrast?.content;
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-
+    const variant = style.web_variant?.content || 'filled';
+    const size = castMantineSize(style.shared_size?.content);
+    const radius = castMantineRadius(style.shared_radius?.content);
+    const color = style.shared_color?.content || 'blue';
+    const leftIconName = style.web_left_icon?.content;
+    const rightIconName = style.web_right_icon?.content;
+    const auto_contrast = style.web_auto_contrast?.content;
     // Handle CSS field - use direct property from API response
     
 
@@ -50,26 +48,21 @@ const BadgeStyle: React.FC<IBadgeStyleProps> = ({ style, styleProps, cssClass })
     const leftSection = leftIconName ? <IconComponent iconName={leftIconName} size={14} /> : undefined;
     const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={14} /> : undefined;
 
-    if (use_mantine_style) {
-        return (
-            <Badge
-                variant={variant}
-                size={size}
-                radius={radius === 'none' ? 0 : radius}
-                color={color}
-                leftSection={leftSection}
-                rightSection={rightSection}
-                autoContrast={auto_contrast === '1'}
-                {...styleProps} className={cssClass}
-                style={styleObj}
-            >
-                {label}
-            </Badge>
-        );
-    }
-
-    // Return null if Mantine styling is disabled (no fallback needed)
-    return null;
+    return (
+        <Badge
+            variant={variant}
+            size={size}
+            radius={radius === 'none' ? 0 : radius}
+            color={color}
+            leftSection={leftSection}
+            rightSection={rightSection}
+            autoContrast={auto_contrast === '1'}
+            {...styleProps} className={cssClass}
+            style={styleObj}
+        >
+            {label}
+        </Badge>
+    );
 };
 
 export default BadgeStyle;

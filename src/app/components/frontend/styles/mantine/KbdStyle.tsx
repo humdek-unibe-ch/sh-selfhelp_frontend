@@ -29,7 +29,7 @@ interface IKbdStyleProps {
 const KbdStyle: React.FC<IKbdStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const key = style.label?.content || 'A';
-    const size = style.mantine_size?.content || 'sm';
+    const size = style.shared_size?.content || 'sm';
 
     // Handle CSS field - use direct property from API response
     

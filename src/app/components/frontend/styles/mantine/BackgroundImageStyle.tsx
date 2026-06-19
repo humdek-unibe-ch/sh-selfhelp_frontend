@@ -34,7 +34,7 @@ const BackgroundImageStyle: React.FC<IBackgroundImageStyleProps> = ({ style, sty
 
     // Extract field values using the new unified field structure
     const src = style.img_src?.content || '';
-    const radius = style.mantine_radius?.content || 'sm';
+    const radius = style.shared_radius?.content || 'sm';
 
     // Handle CSS field - use direct property from API response
     

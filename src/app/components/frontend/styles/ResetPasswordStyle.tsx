@@ -70,8 +70,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     const { userId, token } = extractResetTarget(params?.slug as string | string[] | undefined);
     const isSetMode = userId > 0 && token !== '';
 
-    const mantineColor = ((style as { mantine_color?: { content?: string } }).mantine_color?.content as string | undefined) || 'blue';
-    const isHtml = style.is_html?.content === '1';
+    const mantineColor = ((style as { shared_color?: { content?: string } }).shared_color?.content as string | undefined) || 'blue';
     const labelPwReset = style.label_pw_reset?.content || 'Send reset link';
     const alertSuccess = style.alert_success?.content
         || 'If an account exists for that email, a reset link is on its way. Check your inbox (and your spam folder).';
@@ -221,10 +220,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
             <Box {...styleProps} className={cssClass}>
                 <Card shadow="sm" padding="lg" radius="md" withBorder>
                     <Alert icon={<IconCheck size={16} />} color="green" title="Email Sent">
-                        {isHtml
-                            ? <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(alertSuccess) }} />
-                            : alertSuccess
-                        }
+                        {alertSuccess}
                     </Alert>
                 </Card>
             </Box>

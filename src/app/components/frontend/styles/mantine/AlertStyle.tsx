@@ -38,13 +38,12 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style, styleProps, cssClass })
         typeof message === 'string' && message.trim() !== ''
             ? parse(sanitizeHtmlForParsing(message))
             : null;
-    const title = style.mantine_alert_title?.content;
-    const variant = style.mantine_variant?.content || 'light';
-    const color = style.mantine_color?.content || 'blue';
-    const radius = castMantineRadius(style.mantine_radius?.content);
-    const withCloseButton = style.mantine_with_close_button?.content === '1';
-    const closeButtonLabel = style.close_button_label?.content || 'Close';
-    const iconName = style.mantine_left_icon?.content;
+    const title = style.alert_title?.content;
+    const variant = style.web_variant?.content || 'light';
+    const color = style.shared_color?.content || 'blue';
+    const radius = castMantineRadius(style.shared_radius?.content);
+    const withCloseButton = style.web_with_close_button?.content === '1';
+    const iconName = style.web_left_icon?.content;
 
     // Handle CSS field - use direct property from API response
     
@@ -74,7 +73,7 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style, styleProps, cssClass })
             title={title}
             icon={icon}
             withCloseButton={withCloseButton}
-            closeButtonLabel={closeButtonLabel}
+            closeButtonLabel="Close"
             {...styleProps} className={cssClass}
             radius={radius === 'none' ? 0 : radius}
             onClose={withCloseButton ? handleClose : undefined}

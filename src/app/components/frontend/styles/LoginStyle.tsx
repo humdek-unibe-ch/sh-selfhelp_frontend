@@ -32,8 +32,8 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const labelRegister = style.label_register?.content ?? (style.fields?.label_register?.content as string | undefined) ?? 'Create account';
     const alertFail = style.alert_fail?.content || 'Invalid email or password.';
     const loginTitle = style.login_title?.content || 'Welcome back!';
-    const mantineColor = ((style as { mantine_color?: { content?: string } }).mantine_color?.content as string | undefined) || 'blue';
-    const formType = style.type?.content || style.fields?.type?.content || 'light';
+    const mantineColor = ((style as { shared_color?: { content?: string } }).shared_color?.content as string | undefined) || 'blue';
+    const formType = style.fields?.type?.content || 'light';
 
     const handleSubmit = async (e: { preventDefault(): void }) => {
         e.preventDefault();

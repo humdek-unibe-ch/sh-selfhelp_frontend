@@ -29,10 +29,8 @@ interface IHighlightStyleProps {
 const HighlightStyle: React.FC<IHighlightStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const content = style.text?.content || 'Highlight some text in this content';
-    const highlightText = style.mantine_highlight_highlight?.content || 'highlight';
-    const color = style.mantine_color?.content || 'yellow';
-    const _use_mantine_style = style.use_mantine_style?.content === '1';
-
+    const highlightText = style.highlight_highlight?.content || 'highlight';
+    const color = style.shared_color?.content || 'yellow';
     // Handle CSS field - use direct property from API response
 
 

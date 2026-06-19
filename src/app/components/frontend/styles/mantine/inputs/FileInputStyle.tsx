@@ -70,20 +70,18 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
        DOMPurify.sanitize(style.placeholder?.content ?? "", {
          ALLOWED_TAGS: [],
        }) || "Select files";
-    const multiple = style.mantine_file_input_multiple?.content === '1';
-    const accept = style.mantine_file_input_accept?.content;
-    const clearable = style.mantine_file_input_clearable?.content === '1';
-    const dragDrop = style.mantine_file_input_drag_drop?.content === '1';
-    const maxSizeStr = style.mantine_file_input_max_size?.content;
-    const maxFilesStr = style.mantine_file_input_max_files?.content;
+    const multiple = style.web_file_input_multiple?.content === '1';
+    const accept = style.web_file_input_accept?.content;
+    const clearable = style.web_file_input_clearable?.content === '1';
+    const dragDrop = style.web_file_input_drag_drop?.content === '1';
+    const maxSizeStr = style.web_file_input_max_size?.content;
+    const maxFilesStr = style.web_file_input_max_files?.content;
     const name = style.name?.content || `section-${style.id}`;
-    const size = castMantineSize(style.mantine_size?.content) || 'sm';
-    const radius = castMantineRadius(style.mantine_radius?.content) || 'sm';
-    const leftIconName = style.mantine_left_icon?.content;
-    const rightIconName = style.mantine_right_icon?.content;
-    const disabled = style.disabled?.content === '1';
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-    const isRequired = style.is_required?.content === '1';
+    const size = castMantineSize(style.shared_size?.content) || 'sm';
+    const radius = castMantineRadius(style.shared_radius?.content) || 'sm';
+    const leftIconName = style.web_left_icon?.content;
+    const rightIconName = style.web_right_icon?.content;
+    const disabled = style.disabled?.content === '1';    const isRequired = style.is_required?.content === '1';
     const label = style.label?.content;
     const description = style.description?.content;
 
@@ -336,11 +334,6 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
     };
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone(dropzoneConfig);
-
-    // Only render if Mantine styling is enabled
-    if (!use_mantine_style) {
-        return null;
-    }
 
     // Render drag and drop zone if enabled
     if (dragDrop) {

@@ -31,11 +31,9 @@ const BlockquoteStyle: React.FC<IBlockquoteStyleProps> = ({ style, styleProps, c
     // Extract field values using the new unified field structure
     const content = style.content?.content || 'This is a blockquote with some quoted text content.';
     const cite = style.cite?.content;
-    const iconName = style.mantine_left_icon?.content || 'icon-quote';
-    const iconSize = parseInt(style.mantine_icon_size?.content || '20');
-    const color = style.mantine_color?.content || 'gray';
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-
+    const iconName = style.web_left_icon?.content || 'icon-quote';
+    const iconSize = parseInt(style.web_icon_size?.content || '20');
+    const color = style.shared_color?.content || 'gray';
     // Handle CSS field - use direct property from API response
     
 
@@ -45,22 +43,17 @@ const BlockquoteStyle: React.FC<IBlockquoteStyleProps> = ({ style, styleProps, c
     // Get icon component
     const icon = <IconComponent iconName={iconName} size={iconSize} />;
 
-    if (use_mantine_style) {
-        return (
-            <Blockquote
-                cite={cite}
-                icon={icon}
-                color={color}
-                {...styleProps} className={cssClass}
-                style={styleObj}
-            >
-                {content}
-            </Blockquote>
-        );
-    }
-
-    // Return null if Mantine styling is disabled (no fallback needed)
-    return null;
+    return (
+        <Blockquote
+            cite={cite}
+            icon={icon}
+            color={color}
+            {...styleProps} className={cssClass}
+            style={styleObj}
+        >
+            {content}
+        </Blockquote>
+    );
 };
 
 export default BlockquoteStyle;

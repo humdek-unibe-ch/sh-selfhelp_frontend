@@ -19,7 +19,7 @@ interface ISimpleGridStyleProps {
 }
 
 /**
- * Parse a `mantine_cols`-like field into a value Mantine v9 accepts:
+ * Parse a `web_cols`-like field into a value Mantine v9 accepts:
  * - `"3"`           → `3` (fixed cols on every viewport)
  * - `{base:1, sm:2, lg:3}` → responsive object passed through
  * - `'{"base":1,"sm":2,"lg":3}'` (stringified) → parsed object
@@ -67,10 +67,10 @@ const parseResponsiveCols = (
  * Provides CSS Grid layout with responsive breakpoints and consistent spacing.
  *
  * Responsive behaviour:
- * - `mantine_cols` accepts a fixed number ("3") OR a JSON object
+ * - `web_cols` accepts a fixed number ("3") OR a JSON object
  *   ({"base":1,"sm":2,"lg":3}) for responsive layouts.
- * - Legacy `mantine_breakpoints` (CSV "xs:1,sm:2,md:3") is honoured as a
- *   fallback when `mantine_cols` is not set.
+ * - Legacy `web_breakpoints` (CSV "xs:1,sm:2,md:3") is honoured as a
+ *   fallback when `web_cols` is not set.
  *
  * @component
  * @param {ISimpleGridStyleProps} props - Component props
@@ -79,12 +79,12 @@ const parseResponsiveCols = (
 const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style, styleProps, cssClass }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
-    const cols = style.mantine_cols?.content;
-    const spacing = style.mantine_spacing?.content;
-    const breakpoints = style.mantine_breakpoints?.content;
-    const verticalSpacing = style.mantine_vertical_spacing?.content;
-    const width = style.mantine_width?.content;
-    const height = style.mantine_height?.content;
+    const cols = style.web_cols?.content;
+    const spacing = style.web_spacing?.content;
+    const breakpoints = style.web_breakpoints?.content;
+    const verticalSpacing = style.web_vertical_spacing?.content;
+    const width = style.web_width?.content;
+    const height = style.web_height?.content;
 
     const styleObj: React.CSSProperties = {};
     if (width) styleObj.width = width;

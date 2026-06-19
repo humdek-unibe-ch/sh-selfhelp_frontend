@@ -9,22 +9,22 @@
       {
         "style_name": "card",
         "fields": {
-          "mantine_border": {
+          "web_border": {
             "all": {
               "content": "1"
             }
           },
-          "mantine_card_padding": {
+          "web_card_padding": {
             "all": {
               "content": "0"
             }
           },
-          "mantine_radius": {
+          "shared_radius": {
             "all": {
               "content": "xl"
             }
           },
-          "mantine_card_shadow": {
+          "web_card_shadow": {
             "all": {
               "content": "xl"
             }
@@ -64,12 +64,12 @@
                       "content": "/assets/image-holder.png"
                     }
                   },
-                  "mantine_size": {
+                  "shared_size": {
                     "all": {
                       "content": "xl"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "50%"
                     }
@@ -99,7 +99,7 @@
                       "content": "Bill Headbanger"
                     }
                   },
-                  "mantine_title_order": {
+                  "web_title_order": {
                     "all": {
                       "content": "2"
                     }
@@ -142,12 +142,12 @@
                       "content": "TypeScript"
                     }
                   },
-                  "mantine_color": {
+                  "shared_color": {
                     "all": {
                       "content": "blue"
                     }
                   },
-                  "mantine_variant": {
+                  "web_variant": {
                     "all": {
                       "content": "light"
                     }
@@ -162,12 +162,12 @@
                       "content": "React"
                     }
                   },
-                  "mantine_color": {
+                  "shared_color": {
                     "all": {
                       "content": "cyan"
                     }
                   },
-                  "mantine_variant": {
+                  "web_variant": {
                     "all": {
                       "content": "light"
                     }
@@ -182,12 +182,12 @@
                       "content": "PHP"
                     }
                   },
-                  "mantine_color": {
+                  "shared_color": {
                     "all": {
                       "content": "violet"
                     }
                   },
-                  "mantine_variant": {
+                  "web_variant": {
                     "all": {
                       "content": "light"
                     }
@@ -202,12 +202,12 @@
                       "content": "Symfony"
                     }
                   },
-                  "mantine_color": {
+                  "shared_color": {
                     "all": {
                       "content": "grape"
                     }
                   },
-                  "mantine_variant": {
+                  "web_variant": {
                     "all": {
                       "content": "light"
                     }
@@ -226,12 +226,12 @@
               {
                 "style_name": "simple-grid",
                 "fields": {
-                  "mantine_cols": {
+                  "web_cols": {
                     "all": {
                       "content": "3"
                     }
                   },
-                  "mantine_vertical_spacing": {
+                  "web_vertical_spacing": {
                     "all": {
                       "content": "xs"
                     }
@@ -241,12 +241,12 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_align": {
+                      "shared_align": {
                         "all": {
                           "content": "center"
                         }
                       },
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "0"
                         }
@@ -261,7 +261,7 @@
                               "content": "34K"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -292,12 +292,12 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_align": {
+                      "shared_align": {
                         "all": {
                           "content": "center"
                         }
                       },
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "0"
                         }
@@ -312,7 +312,7 @@
                               "content": "187"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -343,12 +343,12 @@
                   {
                     "style_name": "stack",
                     "fields": {
-                      "mantine_align": {
+                      "shared_align": {
                         "all": {
                           "content": "center"
                         }
                       },
-                      "mantine_gap": {
+                      "shared_gap": {
                         "all": {
                           "content": "0"
                         }
@@ -363,7 +363,7 @@
                               "content": "1.6K"
                             }
                           },
-                          "mantine_title_order": {
+                          "web_title_order": {
                             "all": {
                               "content": "3"
                             }
@@ -413,22 +413,22 @@
                       "content": "Folgen"
                     }
                   },
-                  "mantine_color": {
+                  "shared_color": {
                     "all": {
                       "content": "blue"
                     }
                   },
-                  "mantine_variant": {
+                  "web_variant": {
                     "all": {
                       "content": "filled"
                     }
                   },
-                  "mantine_fullwidth": {
+                  "shared_full_width": {
                     "all": {
                       "content": "1"
                     }
                   },
-                  "mantine_radius": {
+                  "shared_radius": {
                     "all": {
                       "content": "md"
                     }

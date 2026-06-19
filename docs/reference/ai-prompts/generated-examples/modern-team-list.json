@@ -3,12 +3,12 @@
     "section_name": "team-list",
     "style_name": "container",
     "fields": {
-      "mantine_size": {
+      "shared_size": {
         "all": {
           "content": "lg"
         }
       },
-      "mantine_py": {
+      "web_py": {
         "all": {
           "content": "xl"
         }
@@ -21,7 +21,7 @@
       {
         "style_name": "stack",
         "fields": {
-          "mantine_gap": {
+          "shared_gap": {
             "all": {
               "content": "xl"
             }
@@ -32,12 +32,12 @@
             "section_name": "team-intro",
             "style_name": "stack",
             "fields": {
-              "mantine_align": {
+              "shared_align": {
                 "all": {
                   "content": "center"
                 }
               },
-              "mantine_gap": {
+              "shared_gap": {
                 "all": {
                   "content": "sm"
                 }
@@ -58,12 +58,12 @@
                       "content": "Unser Team"
                     }
                   },
-                  "mantine_color": {
+                  "shared_color": {
                     "all": {
                       "content": "indigo"
                     }
                   },
-                  "mantine_variant": {
+                  "web_variant": {
                     "all": {
                       "content": "light"
                     }
@@ -81,7 +81,7 @@
                       "content": "Lernen Sie das Team kennen"
                     }
                   },
-                  "mantine_title_order": {
+                  "web_title_order": {
                     "all": {
                       "content": "1"
                     }
@@ -102,7 +102,7 @@
                       "content": "Ein kleines, erfahrenes Team, das jede Woche durchdachte Produktarbeit liefert."
                     }
                   },
-                  "mantine_size": {
+                  "shared_size": {
                     "all": {
                       "content": "lg"
                     }
@@ -117,18 +117,7 @@
           {
             "section_name": "team-members",
             "style_name": "list",
-            "fields": {
-              "mantine_list_list_style_type": {
-                "all": {
-                  "content": "none"
-                }
-              },
-              "mantine_list_spacing": {
-                "all": {
-                  "content": "md"
-                }
-              }
-            },
+            "fields": {},
             "global_fields": {
               "css": "max-w-3xl mx-auto w-full"
             },
@@ -142,17 +131,17 @@
                   {
                     "style_name": "group",
                     "fields": {
-                      "mantine_align": {
+                      "shared_align": {
                         "all": {
                           "content": "center"
                         }
                       },
-                      "mantine_justify": {
+                      "shared_justify": {
                         "all": {
                           "content": "space-between"
                         }
                       },
-                      "mantine_group_wrap": {
+                      "web_group_wrap": {
                         "all": {
                           "content": "1"
                         }
@@ -162,12 +151,12 @@
                       {
                         "style_name": "group",
                         "fields": {
-                          "mantine_align": {
+                          "shared_align": {
                             "all": {
                               "content": "center"
                             }
                           },
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "md"
                             }
@@ -190,12 +179,12 @@
                                   "content": "/assets/image-holder.png"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "lg"
                                 }
                               },
-                              "mantine_radius": {
+                              "shared_radius": {
                                 "all": {
                                   "content": "50%"
                                 }
@@ -205,7 +194,7 @@
                           {
                             "style_name": "stack",
                             "fields": {
-                              "mantine_gap": {
+                              "shared_gap": {
                                 "all": {
                                   "content": "0"
                                 }
@@ -223,7 +212,7 @@
                                       "content": "Dr. Sarah Müller"
                                     }
                                   },
-                                  "mantine_title_order": {
+                                  "web_title_order": {
                                     "all": {
                                       "content": "4"
                                     }
@@ -244,7 +233,7 @@
                                       "content": "CEO & Gründerin · sarah@selfhelp.dev"
                                     }
                                   },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -266,12 +255,12 @@
                               "content": "Leadership"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "indigo"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "light"
                             }
@@ -291,17 +280,17 @@
                   {
                     "style_name": "group",
                     "fields": {
-                      "mantine_align": {
+                      "shared_align": {
                         "all": {
                           "content": "center"
                         }
                       },
-                      "mantine_justify": {
+                      "shared_justify": {
                         "all": {
                           "content": "space-between"
                         }
                       },
-                      "mantine_group_wrap": {
+                      "web_group_wrap": {
                         "all": {
                           "content": "1"
                         }
@@ -311,12 +300,12 @@
                       {
                         "style_name": "group",
                         "fields": {
-                          "mantine_align": {
+                          "shared_align": {
                             "all": {
                               "content": "center"
                             }
                           },
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "md"
                             }
@@ -339,12 +328,12 @@
                                   "content": "/assets/image-holder.png"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "lg"
                                 }
                               },
-                              "mantine_radius": {
+                              "shared_radius": {
                                 "all": {
                                   "content": "50%"
                                 }
@@ -354,7 +343,7 @@
                           {
                             "style_name": "stack",
                             "fields": {
-                              "mantine_gap": {
+                              "shared_gap": {
                                 "all": {
                                   "content": "0"
                                 }
@@ -372,7 +361,7 @@
                                       "content": "Michael Chen"
                                     }
                                   },
-                                  "mantine_title_order": {
+                                  "web_title_order": {
                                     "all": {
                                       "content": "4"
                                     }
@@ -393,7 +382,7 @@
                                       "content": "CTO · Cloud-Architektur & Skalierung"
                                     }
                                   },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -415,12 +404,12 @@
                               "content": "Engineering"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "teal"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "light"
                             }
@@ -440,17 +429,17 @@
                   {
                     "style_name": "group",
                     "fields": {
-                      "mantine_align": {
+                      "shared_align": {
                         "all": {
                           "content": "center"
                         }
                       },
-                      "mantine_justify": {
+                      "shared_justify": {
                         "all": {
                           "content": "space-between"
                         }
                       },
-                      "mantine_group_wrap": {
+                      "web_group_wrap": {
                         "all": {
                           "content": "1"
                         }
@@ -460,12 +449,12 @@
                       {
                         "style_name": "group",
                         "fields": {
-                          "mantine_align": {
+                          "shared_align": {
                             "all": {
                               "content": "center"
                             }
                           },
-                          "mantine_gap": {
+                          "shared_gap": {
                             "all": {
                               "content": "md"
                             }
@@ -488,12 +477,12 @@
                                   "content": "/assets/image-holder.png"
                                 }
                               },
-                              "mantine_size": {
+                              "shared_size": {
                                 "all": {
                                   "content": "lg"
                                 }
                               },
-                              "mantine_radius": {
+                              "shared_radius": {
                                 "all": {
                                   "content": "50%"
                                 }
@@ -503,7 +492,7 @@
                           {
                             "style_name": "stack",
                             "fields": {
-                              "mantine_gap": {
+                              "shared_gap": {
                                 "all": {
                                   "content": "0"
                                 }
@@ -521,7 +510,7 @@
                                       "content": "Anna Kowalski"
                                     }
                                   },
-                                  "mantine_title_order": {
+                                  "web_title_order": {
                                     "all": {
                                       "content": "4"
                                     }
@@ -542,7 +531,7 @@
                                       "content": "Design-Leitung · Produkt-UX"
                                     }
                                   },
-                                  "mantine_size": {
+                                  "shared_size": {
                                     "all": {
                                       "content": "sm"
                                     }
@@ -564,12 +553,12 @@
                               "content": "Design"
                             }
                           },
-                          "mantine_color": {
+                          "shared_color": {
                             "all": {
                               "content": "violet"
                             }
                           },
-                          "mantine_variant": {
+                          "web_variant": {
                             "all": {
                               "content": "light"
                             }

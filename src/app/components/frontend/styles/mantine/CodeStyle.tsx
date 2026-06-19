@@ -28,8 +28,8 @@ interface ICodeStyleProps {
  */
 const CodeStyle: React.FC<ICodeStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const codeBlock = style.mantine_code_block?.content === '1';
-    const color = style.mantine_color?.content || 'blue';
+    const codeBlock = style.web_code_block?.content === '1';
+    const color = style.shared_color?.content || 'blue';
 
     // Handle CSS field - use direct property from API response
     

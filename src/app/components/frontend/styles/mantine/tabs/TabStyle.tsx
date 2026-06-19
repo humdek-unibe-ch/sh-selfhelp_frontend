@@ -23,14 +23,14 @@ interface ITabStyleProps {
  * Uses Mantine UI Tabs.Tab component
  */
 const TabStyle: React.FC<ITabStyleProps> = ({ style, styleProps, cssClass }) => {
-    // Extract field values - mantine_tab_value field was removed, use section ID
+    // Extract field values - web_tab_value field was removed, use section ID
     const value = style.id?.toString() || 'tab';
     const label = style.label?.content || 'Tab';
-    const leftIconName = style.mantine_left_icon?.content;
-    const rightIconName = style.mantine_right_icon?.content;
-    const disabled = style.mantine_tab_disabled?.content === '1';
-    const width = style.mantine_width?.content;
-    const height = style.mantine_height?.content;
+    const leftIconName = style.web_left_icon?.content;
+    const rightIconName = style.web_right_icon?.content;
+    const disabled = style.web_tab_disabled?.content === '1';
+    const width = style.web_width?.content;
+    const height = style.web_height?.content;
 
     // Handle CSS field - use direct property from API response
     

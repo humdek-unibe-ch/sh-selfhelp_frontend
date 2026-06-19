@@ -10,9 +10,9 @@ import TextStyle from '../TextStyle';
 
 /**
  * Higher-risk subject (Slice 6): a representative text style component. It
- * renders interpolated CMS content, so the test pins that the text is shown,
- * that DOMPurify strips markup/handlers (defense in depth on top of the
- * dispatcher), and that the Mantine-disabled escape hatch renders nothing.
+ * renders interpolated CMS content, so the test pins that the text is shown
+ * and that DOMPurify strips markup/handlers (defense in depth on top of the
+ * dispatcher).
  */
 type TextStyleProps = ComponentProps<typeof TextStyle>;
 type TextStyleField = TextStyleProps['style'];
@@ -39,16 +39,5 @@ describe('TextStyle', () => {
         );
         expect(screen.getByText('danger')).toBeInTheDocument();
         expect(document.querySelector('img')).toBeNull();
-    });
-
-    it('renders nothing when Mantine styling is disabled', () => {
-        renderWithProviders(
-            <TextStyle
-                style={makeTextStyle({ text: { content: 'should-not-render' }, use_mantine_style: { content: '0' } })}
-                styleProps={{}}
-                cssClass="section-1"
-            />,
-        );
-        expect(screen.queryByText('should-not-render')).not.toBeInTheDocument();
     });
 });

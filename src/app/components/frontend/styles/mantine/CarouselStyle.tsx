@@ -33,27 +33,25 @@ interface ICarouselStyleProps {
  */
 const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the unified field extraction utility
-    const _use_mantine_style = style.use_mantine_style?.content === '1';
-
     // Extract Mantine Carousel props
-    const height = style.mantine_height?.content;
-    const slideSize = style.mantine_carousel_slide_size?.content;
-    const slideGap = style.mantine_carousel_slide_gap?.content;
-    const orientation = style.mantine_orientation?.content as 'horizontal' | 'vertical';
+    const height = style.web_height?.content;
+    const slideSize = style.web_carousel_slide_size?.content;
+    const slideGap = style.web_carousel_slide_gap?.content;
+    const orientation = style.shared_orientation?.content as 'horizontal' | 'vertical';
     const withControls = style.has_controls?.content === '1';
     const withIndicators = style.has_indicators?.content === '1';
-    const controlSize = style.mantine_control_size?.content;
-    const controlsOffset = style.mantine_carousel_controls_offset?.content;
-    const nextControlIcon = style.mantine_carousel_next_control_icon?.content;
-    const previousControlIcon = style.mantine_carousel_previous_control_icon?.content;
-    const loop = style.mantine_loop?.content === '1';
+    const controlSize = style.web_control_size?.content;
+    const controlsOffset = style.web_carousel_controls_offset?.content;
+    const nextControlIcon = style.web_carousel_next_control_icon?.content;
+    const previousControlIcon = style.web_carousel_previous_control_icon?.content;
+    const loop = style.web_loop?.content === '1';
     const dragFree = style.drag_free?.content === '1';
-    const align = style.mantine_carousel_align?.content as 'start' | 'center' | 'end';
-    const containScroll = style.mantine_carousel_contain_scroll?.content as 'auto' | 'trimSnaps' | 'keepSnaps';
+    const align = style.web_carousel_align?.content as 'start' | 'center' | 'end';
+    const containScroll = style.web_carousel_contain_scroll?.content as 'auto' | 'trimSnaps' | 'keepSnaps';
     const skipSnaps = style.skip_snaps?.content === '1';
-    const inViewThreshold = style.mantine_carousel_in_view_threshold?.content;
-    const duration = style.mantine_carousel_duration?.content;
-    const emblaOptionsString = style.mantine_carousel_embla_options?.content;
+    const inViewThreshold = style.web_carousel_in_view_threshold?.content;
+    const duration = style.web_carousel_duration?.content;
+    const emblaOptionsString = style.web_carousel_embla_options?.content;
 
     // Parse Embla options if provided. Built as a loose record because the
     // values come from free-form CMS fields, then narrowed to the prop type

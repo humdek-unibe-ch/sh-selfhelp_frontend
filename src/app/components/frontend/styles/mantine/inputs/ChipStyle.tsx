@@ -39,10 +39,10 @@ interface IChipStyleProps {
 const ChipStyle: React.FC<IChipStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const label = style.label?.content || 'Chip';
-    const variant = style.mantine_chip_variant?.content || 'filled';
-    const size = style.mantine_size?.content || 'sm';
-    const radius = style.mantine_radius?.content || 'sm';
-    const color = style.mantine_color?.content || 'blue';
+    const variant = style.web_chip_variant?.content || 'filled';
+    const size = style.shared_size?.content || 'sm';
+    const radius = style.shared_radius?.content || 'sm';
+    const color = style.shared_color?.content || 'blue';
     const disabled = style.disabled?.content === '1';
 
     // Form configuration fields (similar to checkbox)
@@ -53,15 +53,15 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style, styleProps, cssClass }) =
 
     // Tooltip fields
     const tooltip = style.tooltip?.content;
-    const tooltipPosition = style.mantine_tooltip_position?.content || 'top';
+    const tooltipPosition = style.web_tooltip_position?.content || 'top';
 
     // Validate tooltip position to ensure it's a valid Mantine position
     const validPositions = ['top', 'bottom', 'left', 'right', 'top-start', 'top-end', 'bottom-start', 'bottom-end', 'left-start', 'left-end', 'right-start', 'right-end'];
     const safeTooltipPosition = validPositions.includes(tooltipPosition) ? tooltipPosition : 'top';
 
     // Icon field configuration
-    const iconName = style.mantine_left_icon?.content;
-    const iconSize = parseInt(style.mantine_icon_size?.content || '16');
+    const iconName = style.web_left_icon?.content;
+    const iconSize = parseInt(style.web_icon_size?.content || '16');
 
     const chipIcon = iconName ? <IconComponent iconName={iconName} size={iconSize} /> : null;
 

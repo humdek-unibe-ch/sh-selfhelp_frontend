@@ -25,10 +25,10 @@ const NoAccessStyle: React.FC<INoAccessStyleProps> = ({ style, styleProps, cssCl
     const buttonLabel = stripHtmlTags(style.button_label?.content || 'Back to home');
     const loginLabel = stripHtmlTags(style.login_label?.content || 'Sign in');
     const showLogin = style.show_login?.content === '1';
-    const color = style.mantine_color?.content || 'red';
-    const radius = style.mantine_radius?.content || 'md';
-    const shadow = style.mantine_shadow?.content || undefined;
-    const buttonVariant = style.mantine_button_variant?.content || 'light';
+    const color = style.shared_color?.content || 'red';
+    const radius = style.shared_radius?.content || 'md';
+    const shadow = style.web_shadow?.content || undefined;
+    const buttonVariant = style.shared_variant?.content || 'light';
     const showIcon = style.show_icon?.content !== '0';
 
     return (

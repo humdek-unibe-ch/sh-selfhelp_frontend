@@ -30,12 +30,12 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style, cssClass }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values with defaults
-    const variant = style.mantine_tabs_variant?.content || 'default';
-    const orientation = style.mantine_tabs_orientation?.content || 'horizontal';
-    const radius = style.mantine_tabs_radius?.content || 'sm';
-    const color = style.mantine_color?.content || 'blue';
-    const width = style.mantine_width?.content;
-    const height = style.mantine_height?.content;
+    const variant = style.web_tabs_variant?.content || 'default';
+    const orientation = style.web_tabs_orientation?.content || 'horizontal';
+    const radius = style.web_tabs_radius?.content || 'sm';
+    const color = style.shared_color?.content || 'blue';
+    const width = style.web_width?.content;
+    const height = style.web_height?.content;
 
     // Handle CSS field - use direct property from API response
     
@@ -45,7 +45,7 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style, cssClass }) => {
     if (width) styleObj.width = width;
     if (height) styleObj.height = height;
 
-    // Find the first available tab as default (mantine_tab_value field was removed)
+    // Find the first available tab as default (web_tab_value field was removed)
     const firstTab = children.find(child => child?.style_name === 'tab');
 
     // Calculate default tab value using section ID

@@ -41,16 +41,13 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style, styleProps, cssClass })
 
     const alt = style.alt?.content;
     const title = style.title?.content;
-    const width = style.mantine_width?.content;
-    const height = style.mantine_height?.content;
-    const fit = style.mantine_image_fit?.content || 'contain';
-    const radius = castMantineRadius((style as { mantine_radius?: { content?: string } }).mantine_radius?.content);
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-
+    const width = style.web_width?.content;
+    const height = style.web_height?.content;
+    const fit = style.web_image_fit?.content || 'contain';
+    const radius = castMantineRadius((style as { web_radius?: { content?: string } }).web_radius?.content);
     
 
-    if (use_mantine_style) {
-        return (
+    return (
             <Image
                 src={src}
                 alt={alt}
@@ -62,21 +59,6 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style, styleProps, cssClass })
                 title={title}
             />
         );
-    }
-
-    // Fallback to basic img element when Mantine styling is disabled
-
-    return (
-        // eslint-disable-next-line @next/next/no-img-element -- CMS-driven arbitrary image URLs with string dimensions; next/image's domain allow-list and numeric sizing don't fit this dynamic fallback
-        <img
-            src={src}
-            alt={alt}
-            title={title}
-            width={width}
-            height={height}
-            className={cssClass}
-        />
-    );
 };
 
 export default ImageStyle;

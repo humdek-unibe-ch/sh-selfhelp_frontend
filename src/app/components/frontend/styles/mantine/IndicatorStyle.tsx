@@ -42,18 +42,16 @@ const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style, styleProps, css
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const processing = style.mantine_indicator_processing?.content === '1';
-    const disabled = style.mantine_indicator_disabled?.content === '1';
-    const size = parseInt(style.mantine_indicator_size?.content || '10');
-    const color = style.mantine_color?.content || 'red';
-    const position = style.mantine_indicator_position?.content || 'top-end';
+    const processing = style.web_indicator_processing?.content === '1';
+    const disabled = style.web_indicator_disabled?.content === '1';
+    const size = parseInt(style.web_indicator_size?.content || '10');
+    const color = style.shared_color?.content || 'red';
+    const position = style.web_indicator_position?.content || 'top-end';
     const label = style.label?.content || '';
-    const inline = style.mantine_indicator_inline?.content === '1';
-    const offset = parseInt(style.mantine_indicator_offset?.content || '0');
-    const withBorder = style.mantine_border?.content === '1';
-    const radius = style.mantine_radius?.content || 'xl';
-    const _use_mantine_style = style.use_mantine_style?.content === '1';
-
+    const inline = style.web_indicator_inline?.content === '1';
+    const offset = parseInt(style.web_indicator_offset?.content || '0');
+    const withBorder = style.web_border?.content === '1';
+    const radius = style.shared_radius?.content || 'xl';
     // Handle CSS field - use direct property from API response
 
 

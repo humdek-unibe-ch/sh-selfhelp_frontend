@@ -34,13 +34,13 @@ const CenterStyle: React.FC<ICenterStyleProps> = ({ style, styleProps, cssClass 
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values
-    const inline = style.mantine_center_inline?.content === '1';
-    const width = style.mantine_width?.content;
-    const height = style.mantine_height?.content;
-    const minWidth = style.mantine_miw?.content;
-    const minHeight = style.mantine_mih?.content;
-    const maxWidth = style.mantine_maw?.content;
-    const maxHeight = style.mantine_mah?.content;
+    const inline = style.web_center_inline?.content === '1';
+    const width = style.web_width?.content;
+    const height = style.web_height?.content;
+    const minWidth = style.web_miw?.content;
+    const minHeight = style.web_mih?.content;
+    const maxWidth = style.web_maw?.content;
+    const maxHeight = style.web_mah?.content;
 
     // Handle CSS field - use direct property from API response
     

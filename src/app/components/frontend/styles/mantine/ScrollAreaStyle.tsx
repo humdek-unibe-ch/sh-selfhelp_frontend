@@ -34,12 +34,12 @@ const ScrollAreaStyle: React.FC<IScrollAreaStyleProps> = ({ style, styleProps, c
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine ScrollArea props
-    const scrollbarSize = style.mantine_scroll_area_scrollbar_size?.content;
-    const scrollbarType = style.mantine_scroll_area_type?.content;
-    const offsetScrollbars = style.mantine_scroll_area_offset_scrollbars?.content === '1';
-    const scrollHideDelay = style.mantine_scroll_area_scroll_hide_delay?.content;
-    const width = style.mantine_width?.content;
-    const height = style.mantine_height?.content;
+    const scrollbarSize = style.web_scroll_area_scrollbar_size?.content;
+    const scrollbarType = style.web_scroll_area_type?.content;
+    const offsetScrollbars = style.web_scroll_area_offset_scrollbars?.content === '1';
+    const scrollHideDelay = style.web_scroll_area_scroll_hide_delay?.content;
+    const width = style.web_width?.content;
+    const height = style.web_height?.content;
 
     // Handle CSS field - use direct property from API response
     

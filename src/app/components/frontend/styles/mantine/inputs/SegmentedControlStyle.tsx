@@ -31,10 +31,10 @@ interface ISegmentedControlStyleProps {
  */
 const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const orientation = style.mantine_orientation?.content || 'horizontal';
-    const size = style.mantine_size?.content || 'sm';
-    const radius = style.mantine_radius?.content || 'sm';
-    const color = style.mantine_color?.content || 'blue';
+    const orientation = style.shared_orientation?.content || 'horizontal';
+    const size = style.shared_size?.content || 'sm';
+    const radius = style.shared_radius?.content || 'sm';
+    const color = style.shared_color?.content || 'blue';
     const fullWidth = style.fullwidth?.content === '1';
     const disabled = style.disabled?.content === '1';
     const readonly = style.readonly?.content === '1';
@@ -42,7 +42,7 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style, s
     const label = style.label?.content;
     const description = style.description?.content || '';
     const styleValue = style.value?.content;
-    const itemBorder = style.mantine_segmented_control_item_border?.content === '1';
+    const itemBorder = style.web_segmented_control_item_border?.content === '1';
     const isRequired = style.is_required?.content === '1';
 
     // Get form context for pre-populated values
@@ -78,7 +78,7 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style, s
     // Parse segmented control data from JSON textarea
     let controlData: Array<{ value: string; label: string }> = [];
     try {
-        const dataJson = style.mantine_segmented_control_data?.content;
+        const dataJson = style.segmented_control_data?.content;
         if (dataJson) {
             controlData = JSON.parse(dataJson);
         } else {
@@ -90,7 +90,7 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style, s
             ];
         }
     } catch (error) {
-        console.warn('Invalid JSON in mantine_segmented_control_data:', error);
+        console.warn('Invalid JSON in segmented_control_data:', error);
         controlData = [];
     }
 

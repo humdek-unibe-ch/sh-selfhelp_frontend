@@ -40,9 +40,9 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style, styleProps, c
        DOMPurify.sanitize(style.placeholder?.content ?? "", {
          ALLOWED_TAGS: [],
        }) || "Pick a color";
-    const format = style.mantine_color_format?.content || 'hex';
-    const size = style.mantine_size?.content || 'sm';
-    const radius = style.mantine_radius?.content || 'sm';
+    const format = style.web_color_format?.content || 'hex';
+    const size = style.shared_size?.content || 'sm';
+    const radius = style.shared_radius?.content || 'sm';
 
     // Form configuration fields (similar to ColorPicker)
     const label = style.label?.content;

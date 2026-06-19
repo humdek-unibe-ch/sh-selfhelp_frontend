@@ -33,10 +33,10 @@ const ContainerStyle: React.FC<IContainerStyleProps> = ({ style, styleProps, css
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine Container props
-    const size = style.mantine_size?.content;
-    const fluid = style.mantine_fluid?.content === '1';
-    const px = style.mantine_px?.content;
-    const py = style.mantine_py?.content;
+    const size = style.shared_size?.content;
+    const fluid = style.web_fluid?.content === '1';
+    const px = style.web_px?.content;
+    const py = style.web_py?.content;
 
     // Mantine Container doesn't support direct width/height props
     // Size prop handles max-width responsively, fluid makes it 100%
@@ -47,7 +47,6 @@ const ContainerStyle: React.FC<IContainerStyleProps> = ({ style, styleProps, css
     const containerPx = px || undefined; // Mantine handles undefined gracefully
     const containerPy = py || undefined; // Mantine handles undefined gracefully
 
-    // Conditional rendering based on use_mantine_style
     return (
         <Container
             {...styleProps}
