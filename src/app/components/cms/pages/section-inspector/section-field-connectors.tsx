@@ -94,6 +94,15 @@ export const SectionPropertyField = React.memo(function SectionPropertyField({
         setPropertyField(field.name, newValue);
     }, [field.name, setPropertyField]);
 
+    // Property & override selects (shared_*/web_*/mobile_* and plain properties)
+    // must always be clearable: clearing an override (e.g. badge `web_variant`)
+    // resets it back to the inherited/shared value, and clearing a shared field
+    // reverts it to the style default. Some fields are seeded with
+    // `config.clearable: false`, which would otherwise hide the clear (×) button.
+    const config: IFieldData['config'] = field.config
+        ? { ...field.config, clearable: true }
+        : field.config;
+
     const fieldData: IFieldData = {
         id: field.id,
         name: field.name,
@@ -104,7 +113,7 @@ export const SectionPropertyField = React.memo(function SectionPropertyField({
         disabled: field.disabled,
         hidden: field.hidden,
         display: field.display,
-        config: field.config,
+        config,
         translations: field.translations
     };
 
