@@ -21,16 +21,22 @@ import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 import { type ICreatePageRequest } from '../../../types/requests/admin/create-page.types';
 import { type IUpdatePageRequest } from '../../../types/requests/admin/update-page.types';
 
-const { createPage, updatePage } = vi.hoisted(() => ({
+const { createPage, updatePage, deletePage } = vi.hoisted(() => ({
     createPage: vi.fn(),
     updatePage: vi.fn(),
+    deletePage: vi.fn(),
 }));
 
 vi.mock('../../../api/admin', () => ({
-    AdminApi: { createPage, updatePage },
+    AdminApi: { createPage, updatePage, deletePage },
+}));
+
+vi.mock('../../useAdminPages', () => ({
+    useAdminPages: () => ({ pages: [] }),
 }));
 
 import { useCreatePageMutation } from '../useCreatePageMutation';
+import { useDeletePageMutation } from '../useDeletePageMutation';
 import { useUpdatePageMutation } from '../useUpdatePageMutation';
 
 const QK = REACT_QUERY_CONFIG.QUERY_KEYS;
@@ -53,6 +59,7 @@ describe('page mutation cache keys', () => {
     beforeEach(() => {
         createPage.mockReset();
         updatePage.mockReset();
+        deletePage.mockReset();
     });
 
     it('registry keys match the keys the read hooks subscribe to', () => {
@@ -126,5 +133,42 @@ describe('page mutation cache keys', () => {
         expect(keys).toContain(JSON.stringify(QK.FRONTEND_PAGES_ALL));
         expect(keys).not.toContain(JSON.stringify(['adminPages']));
         expect(keys).not.toContain(JSON.stringify(['pages']));
+    });
+
+    it('delete calls the success callback before shared cache invalidation so the route can leave first', async () => {
+        deletePage.mockResolvedValue({ success: true });
+        const queryClient = createTestQueryClient();
+        const events: string[] = [];
+        vi.spyOn(queryClient, 'invalidateQueries').mockImplementation(async (filters) => {
+            events.push(`invalidate:${JSON.stringify(filters?.queryKey)}`);
+            return undefined;
+        });
+        vi.spyOn(queryClient, 'cancelQueries').mockImplementation(async (filters) => {
+            events.push(`cancel:${JSON.stringify(filters?.queryKey)}`);
+            return undefined;
+        });
+        vi.spyOn(queryClient, 'removeQueries').mockImplementation((filters) => {
+            events.push(`remove:${JSON.stringify(filters?.queryKey)}`);
+        });
+
+        const { result } = renderHook(
+            () => useDeletePageMutation({
+                showNotifications: false,
+                onSuccess: () => {
+                    events.push('callback:onSuccess');
+                },
+            }),
+            { wrapper: makeWrapper(queryClient) },
+        );
+
+        await result.current.mutateAsync(9);
+
+        expect(events[0]).toBe('callback:onSuccess');
+        expect(events).toContain(`cancel:${JSON.stringify(QK.PAGE_FIELDS(9))}`);
+        expect(events).toContain(`cancel:${JSON.stringify(QK.PAGE_SECTIONS(9))}`);
+        expect(events).toContain(`remove:${JSON.stringify(QK.PAGE_FIELDS(9))}`);
+        expect(events).toContain(`remove:${JSON.stringify(QK.PAGE_SECTIONS(9))}`);
+        expect(events).toContain(`invalidate:${JSON.stringify(QK.ADMIN_PAGES)}`);
+        expect(events).toContain(`invalidate:${JSON.stringify(QK.FRONTEND_PAGES_ALL)}`);
     });
 });
