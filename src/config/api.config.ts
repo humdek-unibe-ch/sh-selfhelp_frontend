@@ -594,19 +594,19 @@ export const API_CONFIG = {
             permissions: [PERMISSIONS.ADMIN_CACHE_READ]
         },
         ADMIN_CACHE_CLEAR_ALL: {
-            route: '/admin/cache/clear',
+            route: '/admin/cache/clear/all',
             permissions: [PERMISSIONS.ADMIN_CACHE_CLEAR]
         },
         ADMIN_CACHE_CLEAR_CATEGORY: {
-            route: '/admin/cache/clear',
+            route: '/admin/cache/clear/category',
             permissions: [PERMISSIONS.ADMIN_CACHE_CLEAR]
         },
         ADMIN_CACHE_CLEAR_USER: {
-            route: '/admin/cache/clear',
+            route: '/admin/cache/clear/user',
             permissions: [PERMISSIONS.ADMIN_CACHE_CLEAR]
         },
         ADMIN_CACHE_RESET_STATS: {
-            route: '/admin/cache/reset-stats',
+            route: '/admin/cache/stats/reset',
             permissions: [PERMISSIONS.ADMIN_CACHE_MANAGE]
         },
         ADMIN_CACHE_HEALTH: {
@@ -614,7 +614,7 @@ export const API_CONFIG = {
             permissions: [PERMISSIONS.ADMIN_CACHE_READ]
         },
         ADMIN_CACHE_CLEAR_API_ROUTES: {
-            route: '/admin/cache/clear-api-routes',
+            route: '/admin/cache/api-routes/clear',
             permissions: [PERMISSIONS.ADMIN_CACHE_CLEAR]
         },
 
