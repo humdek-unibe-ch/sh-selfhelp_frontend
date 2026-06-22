@@ -8,9 +8,9 @@ import { renderWithProviders } from '../../../../../test-utils/renderWithProvide
 import VideoStyle from '../VideoStyle';
 
 /**
- * VideoStyle renders a controls-enabled <video> with <source> children parsed
- * from a JSON sources string. Malformed/empty sources must not throw and simply
- * yield a video without sources.
+ * VideoStyle renders a single <video> from `video_src` (+ optional `poster_src`)
+ * and maps the `has_controls` / `media_loop` / `media_autoplay` / `media_muted`
+ * toggles to the native player. Autoplay must force muted (browser policy).
  */
 type VideoStyleField = ComponentProps<typeof VideoStyle>['style'];
 
@@ -18,28 +18,57 @@ const makeStyle = (overrides: Record<string, unknown>): VideoStyleField =>
     ({ id: 1, style_name: 'video', ...overrides }) as unknown as VideoStyleField;
 
 describe('VideoStyle', () => {
-    it('renders a video element with the configured source', () => {
+    it('renders a video element with the resolved source and poster', () => {
         const { container } = renderWithProviders(
             <VideoStyle
                 style={makeStyle({
-                    sources: { content: JSON.stringify([{ source: '/clip.mp4', type: 'video/mp4' }]) },
+                    video_src: { content: '/uploads/clip.mp4' },
+                    poster_src: { content: '/uploads/poster.png' },
                     alt: { content: 'No video support' },
                 })}
                 styleProps={{}}
                 cssClass="section-1"
             />,
         );
-        expect(container.querySelector('video')).toBeInTheDocument();
-        const source = container.querySelector('source');
-        expect(source).toHaveAttribute('src', '/clip.mp4');
-        expect(source).toHaveAttribute('type', 'video/mp4');
+        const video = container.querySelector('video');
+        expect(video).toBeInTheDocument();
+        expect(video?.getAttribute('src')).toBeTruthy();
+        expect(video?.getAttribute('poster')).toBeTruthy();
     });
 
-    it('renders a video without sources when the sources content is empty', () => {
+    it('shows controls by default and honours the playback toggles', () => {
         const { container } = renderWithProviders(
-            <VideoStyle style={makeStyle({ sources: { content: '' } })} styleProps={{}} cssClass="section-1" />,
+            <VideoStyle
+                style={makeStyle({
+                    video_src: { content: '/uploads/clip.mp4' },
+                    media_loop: { content: '1' },
+                })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
         );
-        expect(container.querySelector('video')).toBeInTheDocument();
-        expect(container.querySelector('source')).toBeNull();
+        const video = container.querySelector('video') as HTMLVideoElement;
+        expect(video).toBeInTheDocument();
+        expect(video.controls).toBe(true);
+        expect(video.loop).toBe(true);
+        expect(video.autoplay).toBe(false);
+    });
+
+    it('forces muted when autoplay is enabled and can hide controls', () => {
+        const { container } = renderWithProviders(
+            <VideoStyle
+                style={makeStyle({
+                    video_src: { content: '/uploads/clip.mp4' },
+                    has_controls: { content: '0' },
+                    media_autoplay: { content: '1' },
+                })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+        const video = container.querySelector('video') as HTMLVideoElement;
+        expect(video.controls).toBe(false);
+        expect(video.autoplay).toBe(true);
+        expect(video.muted).toBe(true);
     });
 });

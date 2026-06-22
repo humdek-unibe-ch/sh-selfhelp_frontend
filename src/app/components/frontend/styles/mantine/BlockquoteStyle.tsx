@@ -6,6 +6,7 @@ import React from 'react';
 import { Blockquote } from '@mantine/core';
 import IconComponent from '../../../shared/common/IconComponent';
 import { type IBlockquoteStyle } from '../../../../../types/common/styles.types';
+import { renderRichInline } from '../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for BlockquoteStyle component
@@ -28,8 +29,11 @@ interface IBlockquoteStyleProps {
  * @returns {JSX.Element} Rendered Mantine Blockquote with styled configuration
  */
 const BlockquoteStyle: React.FC<IBlockquoteStyleProps> = ({ style, styleProps, cssClass }) => {
-    // Extract field values using the new unified field structure
-    const content = style.content?.content || 'This is a blockquote with some quoted text content.';
+    // Dedicated markdown-inline field — render the safe inline subset (bold /
+    // italic / underline / links) the author applied instead of stripping it.
+    const content = renderRichInline(
+        style.blockquote_content?.content || 'This is a blockquote with some quoted text content.'
+    );
     const cite = style.cite?.content;
     const iconName = style.web_left_icon?.content || 'icon-quote';
     const iconSize = parseInt(style.web_icon_size?.content || '20');

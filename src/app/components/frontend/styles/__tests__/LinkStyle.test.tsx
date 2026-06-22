@@ -47,4 +47,22 @@ describe('LinkStyle', () => {
         expect(link).toHaveAttribute('target', '_blank');
         expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     });
+
+    it('renders leading and trailing icons around the label when configured', () => {
+        const { container } = renderWithProviders(
+            <LinkStyle
+                style={makeStyle({
+                    label: { content: 'Open' },
+                    url: { content: 'https://x.test' },
+                    web_left_icon: { content: 'IconArrowLeft' },
+                    web_right_icon: { content: 'IconExternalLink' },
+                })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+        const link = screen.getByRole('link', { name: /Open/ });
+        // Both icons render as inline SVGs inside the anchor.
+        expect(link.querySelectorAll('svg').length).toBe(2);
+    });
 });

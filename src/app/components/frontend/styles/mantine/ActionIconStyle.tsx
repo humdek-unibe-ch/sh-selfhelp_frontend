@@ -44,6 +44,7 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style, styleProps, c
     const url = style.page_keyword?.content;
     const is_link = style.is_link?.content;
     const open_in_new_tab = style.open_in_new_tab?.content;
+    const ariaLabel = style.aria_label?.content || undefined;
 
     // Handle CSS field - use direct property from API response
 
@@ -101,6 +102,7 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style, styleProps, c
             radius={radius === 'none' ? 0 : radius}
             color={color}
             disabled={disabled || loading}
+            aria-label={ariaLabel}
             {...styleProps} className={cssClass}
             style={styleObj}
             component={is_link === '1' ? 'a' : 'button'}

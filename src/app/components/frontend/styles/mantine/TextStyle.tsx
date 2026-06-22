@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Text } from '@mantine/core';
 import { type ITextStyle } from '../../../../../types/common/styles.types';
-import DOMPurify from 'isomorphic-dompurify';
+import { renderRichInline } from '../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for TextStyle component
@@ -30,10 +30,12 @@ interface ITextStyleProps {
  * @returns {JSX.Element | null} Rendered Mantine Text or null when styling is disabled
  */
 const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) => {
-    // Extract text content
-    const text = DOMPurify.sanitize(style.text?.content ?? "", {
-         ALLOWED_TAGS: [],
-       }) || '';
+    // Render the safe inline subset (bold / italic / underline / links) the
+    // author applied via the `markdown-inline` editor instead of stripping it to
+    // plain text, so Ctrl+B bold actually shows on the web frontend. The shared
+    // helper flattens any stray block tags (`<p>` from markdown) to inline, strips
+    // XSS, and renders hydration-safe; a plain string passes straight through.
+    const text = renderRichInline(style.text?.content ?? '');
 
     // Extract Mantine-specific props
     const size = style.shared_size?.content || 'md';

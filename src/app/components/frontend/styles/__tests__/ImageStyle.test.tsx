@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { renderWithProviders } from '../../../../../test-utils/renderWithProviders';
 import ImageStyle from '../ImageStyle';
@@ -38,5 +38,27 @@ describe('ImageStyle', () => {
         );
         const img = screen.getByRole('img', { name: 'Empty' });
         expect(img.getAttribute('src')).toMatch(/^data:image\/svg\+xml/);
+    });
+
+    it('swaps to the configured fallback_src when the primary source errors (404)', () => {
+        renderWithProviders(
+            <ImageStyle
+                style={makeStyle({
+                    img_src: { content: '/uploads/__missing__.png' },
+                    alt: { content: 'Broken' },
+                    fallback_src: { content: 'data:image/svg+xml;base64,QQ==' },
+                })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+        const img = screen.getByRole('img', { name: 'Broken' });
+        // Primary source first (resolved through the backend, not the fallback).
+        expect(img.getAttribute('src')).not.toMatch(/^data:/);
+        // Simulating the load error must swap the rendered source to the fallback.
+        fireEvent.error(img);
+        expect(screen.getByRole('img', { name: 'Broken' }).getAttribute('src')).toBe(
+            'data:image/svg+xml;base64,QQ==',
+        );
     });
 });
