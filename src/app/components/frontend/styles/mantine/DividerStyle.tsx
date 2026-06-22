@@ -28,10 +28,10 @@ interface IDividerStyleProps {
  */
 const DividerStyle: React.FC<IDividerStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const variant = style.web_divider_variant?.content || 'solid';
+    const variant = style.shared_divider_variant?.content || 'solid';
     const size = style.shared_size?.content || 'sm';
     const label = style.divider_label?.content;
-    const labelPosition = style.web_divider_label_position?.content || 'center';
+    const labelPosition = style.shared_divider_label_position?.content || 'center';
     const orientation = style.shared_orientation?.content || 'horizontal';
     const color = style.shared_color?.content || 'gray';
 

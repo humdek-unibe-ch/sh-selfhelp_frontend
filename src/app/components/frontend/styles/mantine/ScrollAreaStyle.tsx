@@ -38,15 +38,11 @@ const ScrollAreaStyle: React.FC<IScrollAreaStyleProps> = ({ style, styleProps, c
     const scrollbarType = style.web_scroll_area_type?.content;
     const offsetScrollbars = style.web_scroll_area_offset_scrollbars?.content === '1';
     const scrollHideDelay = style.web_scroll_area_scroll_hide_delay?.content;
-    const width = style.web_width?.content;
-    const height = style.web_height?.content;
+    const height = style.shared_height?.content;
 
-    // Handle CSS field - use direct property from API response
-    
-
-    // Build style object for sizing properties
+    // Build style object for sizing properties. ScrollArea needs a bounded
+    // height to actually scroll; a sensible default keeps tall content usable.
     const styleObj: React.CSSProperties = {};
-    if (width) styleObj.width = width;
     if (height) styleObj.height = height;
 
     // Convert scrollHideDelay to number if provided

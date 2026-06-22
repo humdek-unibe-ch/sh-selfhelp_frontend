@@ -14,6 +14,41 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.27 — 2026-06-22
+
+### Changed
+- **Layout styles are now cross-platform configurable (web + mobile).** The layout
+  renderers read the promoted `shared_*` fields instead of the old `web_*` ones so a
+  single authored value drives both platforms: `flex`, `group`, `stack`, `grid`,
+  `grid-column`, `center`, `simple-grid` read `shared_width`/`shared_height`;
+  `scroll-area` reads `shared_height`; `grid`/`simple-grid` read `shared_cols`;
+  `grid-column` reads `shared_grid_span`/`shared_grid_offset`/`shared_grid_order`/
+  `shared_grid_grow`; `center` reads `shared_miw`/`shared_mih`/`shared_maw`/`shared_mah`;
+  `space` reads `shared_orientation`; `divider` reads `shared_divider_variant`/
+  `shared_divider_label_position`; `paper` reads `shared_border`. Platform-only
+  richness stays web-only (`grid.web_grid_overflow`, `center.web_center_inline`,
+  `scroll-area` scrollbar props, `paper.web_paper_shadow`). Pairs with
+  `@selfhelp/shared` `1.14.12` and backend migration `Version20260622063129`.
+
+### Added
+- **`paper` gained an optional auto-styled `title`.** When empty the surface renders
+  exactly as before (a plain `Paper`); when filled, the renderer draws a styled
+  heading above the content (HTML-stripped to plain text). It never creates a child
+  section — it only changes how this one section is drawn. (`PaperStyle.tsx`)
+- **`simple-grid` gained responsive web column overrides + a horizontal gap.** The
+  base column count is the cross-platform `shared_cols`; the new web-only
+  `web_cols_sm`/`web_cols_md`/`web_cols_lg` (clearable selects = inherit base) build a
+  Mantine responsive `cols` object, and `shared_gap` now drives horizontal spacing
+  while `shared_vertical_spacing` drives row spacing. Replaces the old
+  `web_breakpoints`/`web_spacing` handling. (`SimpleGridStyle.tsx`)
+
+### Removed
+- **`container` and `paper` dropped `web_px`/`web_py`.** Padding now comes from the
+  portable `shared_spacing` control (renders on web + mobile); the renderers keep a
+  fixed inner `padding="md"` default. (`ContainerStyle.tsx`, `PaperStyle.tsx`)
+
+---
+
 ## v0.1.26 — 2026-06-19
 
 ### Fixed

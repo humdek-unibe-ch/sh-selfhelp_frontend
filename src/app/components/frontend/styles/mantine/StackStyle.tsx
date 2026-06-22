@@ -37,8 +37,8 @@ const StackStyle: React.FC<IStackStyleProps> = ({ style, styleProps, cssClass })
     const gap = style.shared_gap?.content;
     const justify = style.shared_justify?.content;
     const align = style.shared_align?.content;
-    const width = style.web_width?.content;
-    const height = style.web_height?.content;
+    const width = style.shared_width?.content;
+    const height = style.shared_height?.content;
 
     // Handle CSS field - use direct property from API response
     

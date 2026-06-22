@@ -39,8 +39,8 @@ const GroupStyle: React.FC<IGroupStyleProps> = ({ style, styleProps, cssClass })
     const align = style.shared_align?.content;
     const wrap = style.web_group_wrap?.content === '1';
     const grow = style.web_group_grow?.content === '1';
-    const width = style.web_width?.content;
-    const height = style.web_height?.content;
+    const width = style.shared_width?.content;
+    const height = style.shared_height?.content;
 
     // Handle CSS field - use direct property from API response
     

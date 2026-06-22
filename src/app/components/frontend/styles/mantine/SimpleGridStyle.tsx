@@ -18,59 +18,21 @@ interface ISimpleGridStyleProps {
     cssClass: string;
 }
 
-/**
- * Parse a `web_cols`-like field into a value Mantine v9 accepts:
- * - `"3"`           → `3` (fixed cols on every viewport)
- * - `{base:1, sm:2, lg:3}` → responsive object passed through
- * - `'{"base":1,"sm":2,"lg":3}'` (stringified) → parsed object
- * - `"xs:1,sm:2,md:3"` (legacy CSV) → parsed to object
- * Any malformed input falls back to `1` so mobile layouts never break.
- */
-const parseResponsiveCols = (
-    raw: string | number | Record<string, number> | undefined | null
-): number | Record<string, number> => {
-    if (raw === undefined || raw === null || raw === '') return 1;
-    if (typeof raw === 'number') return raw || 1;
-    if (typeof raw === 'object') return raw;
-
-    const trimmed = raw.trim();
-
-    if (trimmed.startsWith('{')) {
-        try {
-            const parsed = JSON.parse(trimmed) as Record<string, number>;
-            if (parsed && typeof parsed === 'object') return parsed;
-        } catch {
-            /* fall through */
-        }
-    }
-
-    if (trimmed.includes(':')) {
-        const responsiveCols: Record<string, number> = {};
-        trimmed.split(',').forEach(pair => {
-            const [size, count] = pair.split(':');
-            if (size && count) {
-                const parsedCount = parseInt(count.trim(), 10);
-                if (!Number.isNaN(parsedCount)) {
-                    responsiveCols[size.trim()] = parsedCount;
-                }
-            }
-        });
-        if (Object.keys(responsiveCols).length > 0) return responsiveCols;
-    }
-
-    const parsedInt = parseInt(trimmed, 10);
-    return Number.isNaN(parsedInt) ? 1 : parsedInt;
+/** Parse a column-count field ("3") into a positive integer, or undefined. */
+const toCol = (raw: string | undefined): number | undefined => {
+    if (!raw) return undefined;
+    const n = parseInt(raw, 10);
+    return Number.isNaN(n) || n <= 0 ? undefined : n;
 };
 
 /**
- * SimpleGridStyle component renders a Mantine SimpleGrid component for responsive grid layouts.
- * Provides CSS Grid layout with responsive breakpoints and consistent spacing.
+ * SimpleGridStyle renders a Mantine SimpleGrid (equal-width responsive columns).
  *
- * Responsive behaviour:
- * - `web_cols` accepts a fixed number ("3") OR a JSON object
- *   ({"base":1,"sm":2,"lg":3}) for responsive layouts.
- * - Legacy `web_breakpoints` (CSV "xs:1,sm:2,md:3") is honoured as a
- *   fallback when `web_cols` is not set.
+ * Columns are cross-platform: `shared_cols` is the base column count (read on
+ * web AND mobile). The web-only `web_cols_sm`/`web_cols_md`/`web_cols_lg` add
+ * responsive overrides per Mantine breakpoint; when none are set a plain number
+ * is passed. Horizontal spacing is `shared_gap`, row spacing is
+ * `shared_vertical_spacing`.
  *
  * @component
  * @param {ISimpleGridStyleProps} props - Component props
@@ -79,27 +41,36 @@ const parseResponsiveCols = (
 const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style, styleProps, cssClass }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
-    const cols = style.web_cols?.content;
-    const spacing = style.web_spacing?.content;
-    const breakpoints = style.web_breakpoints?.content;
-    const verticalSpacing = style.web_vertical_spacing?.content;
-    const width = style.web_width?.content;
-    const height = style.web_height?.content;
+    const baseCols = toCol(style.shared_cols?.content) ?? 3;
+    const sm = toCol(style.web_cols_sm?.content);
+    const md = toCol(style.web_cols_md?.content);
+    const lg = toCol(style.web_cols_lg?.content);
+    const gap = style.shared_gap?.content;
+    const verticalSpacing = style.shared_vertical_spacing?.content;
+    const width = style.shared_width?.content;
+    const height = style.shared_height?.content;
 
     const styleObj: React.CSSProperties = {};
     if (width) styleObj.width = width;
     if (height) styleObj.height = height;
 
-    const gridCols: number | Record<string, number> = cols
-        ? parseResponsiveCols(cols)
-        : parseResponsiveCols(breakpoints);
+    // A plain number unless the author set at least one responsive override.
+    const cols: number | Record<string, number> =
+        sm === undefined && md === undefined && lg === undefined
+            ? baseCols
+            : {
+                base: baseCols,
+                ...(sm !== undefined ? { sm } : {}),
+                ...(md !== undefined ? { md } : {}),
+                ...(lg !== undefined ? { lg } : {}),
+            };
 
     return (
         <SimpleGrid
             {...styleProps}
-            cols={gridCols}
-            spacing={spacing || 'sm'}
-            verticalSpacing={verticalSpacing || 'sm'}
+            cols={cols}
+            spacing={gap || 'md'}
+            verticalSpacing={verticalSpacing || 'md'}
             className={cssClass}
             style={styleObj}
         >

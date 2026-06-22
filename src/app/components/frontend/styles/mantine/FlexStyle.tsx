@@ -38,8 +38,8 @@ const FlexStyle: React.FC<IFlexStyleProps> = ({ style, styleProps, cssClass }) =
     const align = style.shared_align?.content;
     const direction = style.shared_direction?.content;
     const wrap = style.shared_wrap?.content;
-    const width = style.web_width?.content;
-    const height = style.web_height?.content;
+    const width = style.shared_width?.content;
+    const height = style.shared_height?.content;
 
     // Build style object for sizing properties
     const styleObj: React.CSSProperties = {};
