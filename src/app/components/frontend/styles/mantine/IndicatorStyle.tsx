@@ -83,7 +83,8 @@ const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style, styleProps, css
                 <div style={{
                     width: '40px',
                     height: '40px',
-                    backgroundColor: '#f0f0f0',
+                    backgroundColor: 'var(--mantine-color-default-hover)',
+                    color: 'var(--mantine-color-dimmed)',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',

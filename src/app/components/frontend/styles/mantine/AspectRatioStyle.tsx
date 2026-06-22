@@ -76,11 +76,11 @@ const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style, styleProps,
                 <div style={{
                     width: '100%',
                     height: '100%',
-                    backgroundColor: '#f0f0f0',
+                    backgroundColor: 'var(--mantine-color-default-hover)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#666',
+                    color: 'var(--mantine-color-dimmed)',
                     fontSize: '1.2rem',
                     padding: '1rem',
                     textAlign: 'center'
