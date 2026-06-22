@@ -1,0 +1,5415 @@
+{
+    "_comment": "DB-free schema snapshot consumed by scripts/validate-ai-examples.mjs and the AI-examples vitest. Generated from the backend live style catalog (GET /cms-api/v1/admin/ai/section-prompt-template?format=json equivalent). Regenerate with: (backend) scripts/build-style-audit.php then copy via the documented step in docs/reference/ai-prompts/index.md.",
+    "generated_at": "2026-06-22T19:23:11+00:00",
+    "shared_version_at_generation": "1.14.22",
+    "languages": {
+        "default": "de-CH",
+        "content": ["de-CH", "en-GB"],
+        "property": "all"
+    },
+    "styles": {
+        "accordion": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "accordion_variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "default"
+                },
+                "multiple": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_accordion_chevron_position": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "right"
+                },
+                "web_accordion_chevron_size": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "16"
+                },
+                "web_accordion_default_value": {
+                    "scope": "web",
+                    "type": "text",
+                    "default": null
+                },
+                "web_accordion_disable_chevron_rotation": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_accordion_loop": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_accordion_transition_duration": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "200"
+                }
+            }
+        },
+        "accordion-item": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_accordion_item_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_accordion_item_value": {
+                    "scope": "web",
+                    "type": "text",
+                    "default": null
+                }
+            }
+        },
+        "action-icon": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "aria_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_link": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "open_in_new_tab": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "page_keyword": {
+                    "scope": "common",
+                    "type": "select-page-keyword",
+                    "default": "#"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_action_icon_loading": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_variant": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "subtle"
+                }
+            }
+        },
+        "alert": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "alert_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "closable": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "content": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_variant": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "light"
+                }
+            }
+        },
+        "aspect-ratio": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_aspect_ratio": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "16/9"
+                }
+            }
+        },
+        "audio": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "alt": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "has_controls": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "media_autoplay": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "media_loop": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "sources": {
+                    "scope": "content",
+                    "type": "json",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "avatar": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "alt": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Avatar"
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "img_src": {
+                    "scope": "content",
+                    "type": "select-image",
+                    "default": null
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "full"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_avatar_initials": {
+                    "scope": "web",
+                    "type": "text",
+                    "default": "U"
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_variant": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "light"
+                }
+            }
+        },
+        "background-image": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "img_src": {
+                    "scope": "content",
+                    "type": "select-image",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "badge": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "circle": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "lg"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "filled"
+                },
+                "web_auto_contrast": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_right_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_variant": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": ""
+                }
+            }
+        },
+        "blockquote": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "blockquote_content": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "cite": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "gray"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_icon_size": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "20"
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                }
+            }
+        },
+        "box": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "content": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "button": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "confirmation_continue": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "OK"
+                },
+                "confirmation_message": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "Do you want to continue?"
+                },
+                "confirmation_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": ""
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "full_width": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_link": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "label_cancel": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": ""
+                },
+                "mobile_button_feedback": {
+                    "scope": "mobile",
+                    "type": "select",
+                    "default": ""
+                },
+                "open_in_new_tab": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "page_keyword": {
+                    "scope": "common",
+                    "type": "select-page-keyword",
+                    "default": "#"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "url": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "filled"
+                },
+                "web_auto_contrast": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_compact": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_right_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                }
+            }
+        },
+        "card": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "border": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "img_src": {
+                    "scope": "content",
+                    "type": "select-image",
+                    "default": ""
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "web_card_shadow": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "sm"
+                }
+            }
+        },
+        "card-segment": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "border": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_segment_inherit_padding": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                }
+            }
+        },
+        "carousel": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "drag_free": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "has_controls": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "has_indicators": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "orientation": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "horizontal"
+                },
+                "skip_snaps": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_carousel_align": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "start"
+                },
+                "web_carousel_contain_scroll": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "trimSnaps"
+                },
+                "web_carousel_controls_offset": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "web_carousel_duration": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "25"
+                },
+                "web_carousel_embla_options": {
+                    "scope": "web",
+                    "type": "json",
+                    "default": null
+                },
+                "web_carousel_in_view_threshold": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "0"
+                },
+                "web_carousel_next_control_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_carousel_previous_control_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_carousel_slide_gap": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "web_carousel_slide_size": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "100"
+                },
+                "web_control_size": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "26"
+                },
+                "web_height": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_loop": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                }
+            }
+        },
+        "center": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "mah": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "maw": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "mih": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "miw": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_height": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_width": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_center_inline": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                }
+            }
+        },
+        "checkbox": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "checkbox_value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": "1"
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": null
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "label_position": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "right"
+                },
+                "locked_after_submit": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "mobile_checkbox_variant": {
+                    "scope": "mobile",
+                    "type": "segment",
+                    "default": "primary"
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "toggle_switch": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_checkbox_checked": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_checkbox_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_checkbox_indeterminate": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_use_input_wrapper": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                }
+            }
+        },
+        "chip": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "chip_checked": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "chip_off_value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": "0"
+                },
+                "chip_on_value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": "1"
+                },
+                "chip_variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "filled"
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_icon_size": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "16"
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_tooltip_position": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "top"
+                }
+            }
+        },
+        "code": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "code_block": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "gray"
+                },
+                "content": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "color-input": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Pick a color"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "web_color_format": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "hex"
+                },
+                "web_color_input_disallow_input": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_color_input_with_eye_dropper": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_color_input_with_preview": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                }
+            }
+        },
+        "color-picker": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color_picker_alpha_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Alpha"
+                },
+                "color_picker_hue_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Hue"
+                },
+                "color_picker_saturation_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Saturation"
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "full_width": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "web_color_format": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "hex"
+                },
+                "web_color_picker_swatches": {
+                    "scope": "web",
+                    "type": "textarea",
+                    "default": "[\"#2e2e2e\", \"#868e96\", \"#fa5252\", \"#e64980\", \"#be4bdb\", \"#7950f2\", \"#4c6ef5\", \"#228be6\"]"
+                },
+                "web_color_picker_swatches_per_row": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "7"
+                }
+            }
+        },
+        "combobox": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "combobox_options": {
+                    "scope": "content",
+                    "type": "json",
+                    "default": "[{\"value\":\"option1\",\"text\":\"Option 1\"},{\"value\":\"option2\",\"text\":\"Option 2\"}]"
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "mobile_select_presentation": {
+                    "scope": "mobile",
+                    "type": "select",
+                    "default": ""
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Select option"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "web_combobox_clearable": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_combobox_creatable": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_combobox_multi_select": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_combobox_searchable": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_combobox_separator": {
+                    "scope": "web",
+                    "type": "text",
+                    "default": " "
+                },
+                "web_multi_select_max_values": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                }
+            }
+        },
+        "container": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_fluid": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                }
+            }
+        },
+        "data-container": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "scope": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                }
+            }
+        },
+        "datepicker": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "datepicker_placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_datepicker_allow_deselect": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_datepicker_clearable": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_datepicker_consistent_weeks": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_datepicker_date_format": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "YYYY-MM-DD"
+                },
+                "web_datepicker_first_day_of_week": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "1"
+                },
+                "web_datepicker_format": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_datepicker_hide_outside_dates": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_datepicker_hide_weekends": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_datepicker_locale": {
+                    "scope": "web",
+                    "type": "text",
+                    "default": "en"
+                },
+                "web_datepicker_max_date": {
+                    "scope": "web",
+                    "type": "text",
+                    "default": null
+                },
+                "web_datepicker_min_date": {
+                    "scope": "web",
+                    "type": "text",
+                    "default": null
+                },
+                "web_datepicker_readonly": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_datepicker_time_format": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "24"
+                },
+                "web_datepicker_time_grid_config": {
+                    "scope": "web",
+                    "type": "textarea",
+                    "default": null
+                },
+                "web_datepicker_time_step": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "15"
+                },
+                "web_datepicker_type": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "date"
+                },
+                "web_datepicker_weekend_days": {
+                    "scope": "web",
+                    "type": "text",
+                    "default": "[0,6]"
+                },
+                "web_datepicker_with_seconds": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_datepicker_with_time_grid": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                }
+            }
+        },
+        "divider": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "gray"
+                },
+                "divider_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "divider_label_position": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "center"
+                },
+                "divider_variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "solid"
+                },
+                "orientation": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "horizontal"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "entry-list": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "data_table": {
+                    "scope": "common",
+                    "type": "select-data_table",
+                    "default": ""
+                },
+                "filter": {
+                    "scope": "common",
+                    "type": "code",
+                    "default": null
+                },
+                "load_as_table": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "own_entries_only": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "scope": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                }
+            }
+        },
+        "entry-record": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "data_table": {
+                    "scope": "common",
+                    "type": "select-data_table",
+                    "default": ""
+                },
+                "filter": {
+                    "scope": "common",
+                    "type": "code",
+                    "default": null
+                },
+                "own_entries_only": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "scope": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "url_param": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": "record_id"
+                }
+            }
+        },
+        "entry-record-delete": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "confirmation_cancel": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "confirmation_continue": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "OK"
+                },
+                "confirmation_message": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "Do you want to continue?"
+                },
+                "confirmation_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": ""
+                },
+                "label_delete": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Delete"
+                },
+                "own_entries_only": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "type": {
+                    "scope": "common",
+                    "type": "style-bootstrap",
+                    "default": "danger"
+                }
+            }
+        },
+        "fieldset": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_fieldset_variant": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "default"
+                }
+            }
+        },
+        "figure": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "alt": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "caption": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "caption_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "img_src": {
+                    "scope": "content",
+                    "type": "select-image",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "file-input": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Select files"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_file_input_accept": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_file_input_clearable": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_file_input_drag_drop": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_file_input_max_files": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_file_input_max_size": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_file_input_multiple": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_right_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                }
+            }
+        },
+        "flex": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "align": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "direction": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "row"
+                },
+                "gap": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "justify": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_height": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_width": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "wrap": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "nowrap"
+                }
+            }
+        },
+        "form-log": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "alert_error": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "An error occurred while submitting the form"
+                },
+                "alert_error_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Error"
+                },
+                "alert_success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": ""
+                },
+                "alert_success_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Success"
+                },
+                "btn_cancel_color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "gray"
+                },
+                "btn_cancel_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Cancel"
+                },
+                "btn_cancel_url": {
+                    "scope": "common",
+                    "type": "select-page-keyword",
+                    "default": null
+                },
+                "btn_save_color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "btn_save_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Save"
+                },
+                "buttons_order": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "save-cancel"
+                },
+                "buttons_position": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "space-between"
+                },
+                "buttons_radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "buttons_size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "buttons_variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "filled"
+                },
+                "confirm_message": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Are you sure you want to submit?"
+                },
+                "confirm_submit": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "redirect_at_end": {
+                    "scope": "common",
+                    "type": "select-page-keyword",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                }
+            }
+        },
+        "form-record": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "alert_error": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "An error occurred while saving the record"
+                },
+                "alert_error_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Error"
+                },
+                "alert_success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": ""
+                },
+                "alert_success_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Success"
+                },
+                "btn_cancel_color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "gray"
+                },
+                "btn_cancel_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Cancel"
+                },
+                "btn_cancel_url": {
+                    "scope": "common",
+                    "type": "select-page-keyword",
+                    "default": null
+                },
+                "btn_save_color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "btn_save_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Save"
+                },
+                "btn_update_color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "orange"
+                },
+                "btn_update_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Update"
+                },
+                "buttons_order": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "save-cancel"
+                },
+                "buttons_position": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "space-between"
+                },
+                "buttons_radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "buttons_size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "buttons_variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "filled"
+                },
+                "confirm_message": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Are you sure you want to submit?"
+                },
+                "confirm_submit": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "redirect_at_end": {
+                    "scope": "common",
+                    "type": "select-page-keyword",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                }
+            }
+        },
+        "grid": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "align": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "cols": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "12"
+                },
+                "gap": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "justify": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_height": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_width": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_grid_overflow": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "visible"
+                }
+            }
+        },
+        "grid-column": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "grid_grow": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "grid_offset": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "0"
+                },
+                "grid_order": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": null
+                },
+                "grid_span": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "1"
+                },
+                "shared_height": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_width": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "group": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "align": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "gap": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "justify": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_height": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_width": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_group_grow": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_group_wrap": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "0"
+                }
+            }
+        },
+        "highlight": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "yellow"
+                },
+                "highlight_highlight": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "highlight"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "text": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": "Highlight some text in this content"
+                }
+            }
+        },
+        "html-tag": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "html_tag": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "div"
+                },
+                "html_tag_content": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                }
+            }
+        },
+        "image": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "alt": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "fallback_src": {
+                    "scope": "content",
+                    "type": "select-image",
+                    "default": null
+                },
+                "img_src": {
+                    "scope": "content",
+                    "type": "select-image",
+                    "default": null
+                },
+                "is_fluid": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "none"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "web_height": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_image_fit": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "contain"
+                },
+                "web_width": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                }
+            }
+        },
+        "indicator": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "red"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "lg"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_border": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_indicator_disabled": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_indicator_inline": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_indicator_offset": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "0"
+                },
+                "web_indicator_position": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "top-end"
+                },
+                "web_indicator_processing": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_indicator_size": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "10"
+                }
+            }
+        },
+        "input": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "locked_after_submit": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "max": {
+                    "scope": "common",
+                    "type": "number",
+                    "default": null
+                },
+                "min": {
+                    "scope": "common",
+                    "type": "number",
+                    "default": null
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "translatable": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "type_input": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "text"
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_right_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_variant": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "default"
+                }
+            }
+        },
+        "kbd": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "link": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": ""
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "open_in_new_tab": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "url": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_link_underline": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "hover"
+                },
+                "web_right_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                }
+            }
+        },
+        "list": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_list_center": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_list_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_list_list_style_type": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "disc"
+                },
+                "web_list_spacing": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "md"
+                },
+                "web_list_type": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "unordered"
+                },
+                "web_list_with_padding": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                }
+            }
+        },
+        "list-item": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "list_item_content": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_list_item_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                }
+            }
+        },
+        "login": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "alert_fail": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "dark"
+                },
+                "label_login": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "label_pw": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "label_pw_reset": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "label_register": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Create account"
+                },
+                "label_user": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "login_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "subtitle": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": ""
+                }
+            }
+        },
+        "loop": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "loop": {
+                    "scope": "common",
+                    "type": "json",
+                    "default": null
+                },
+                "scope": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                }
+            }
+        },
+        "missing": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "button_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": ""
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "gray"
+                },
+                "message": {
+                    "scope": "content",
+                    "type": "markdown",
+                    "default": ""
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "md"
+                },
+                "show_icon": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "filled"
+                },
+                "web_shadow": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": ""
+                }
+            }
+        },
+        "no-access": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "button_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": ""
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "red"
+                },
+                "login_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": ""
+                },
+                "message": {
+                    "scope": "content",
+                    "type": "markdown",
+                    "default": ""
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "md"
+                },
+                "show_icon": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "show_login": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "light"
+                },
+                "web_shadow": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": ""
+                }
+            }
+        },
+        "not-found": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "button_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Back to home"
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "gray"
+                },
+                "login_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Sign in"
+                },
+                "message": {
+                    "scope": "content",
+                    "type": "markdown",
+                    "default": "The page you are looking for does not exist or has been moved."
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "md"
+                },
+                "show_icon": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "light"
+                },
+                "web_shadow": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": ""
+                }
+            }
+        },
+        "notification": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "content": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "shared_icon": {
+                    "scope": "common",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "web_border": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_notification_loading": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "with_close_button": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                }
+            }
+        },
+        "number-input": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Enter number"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "web_number_input_allow_negative": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_number_input_clamp_behavior": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "strict"
+                },
+                "web_number_input_decimal_scale": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "2"
+                },
+                "web_number_input_hide_controls": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_number_input_prefix": {
+                    "scope": "web",
+                    "type": "text",
+                    "default": ""
+                },
+                "web_number_input_suffix": {
+                    "scope": "web",
+                    "type": "text",
+                    "default": ""
+                },
+                "web_number_input_thousand_separator": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_numeric_max": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_numeric_min": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_numeric_step": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "1"
+                }
+            }
+        },
+        "paper": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "border": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "web_paper_shadow": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "sm"
+                }
+            }
+        },
+        "profile": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "profile_accordion_default_opened": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "user_info"
+                },
+                "profile_accordion_multiple": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "profile_account_info_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Account Information"
+                },
+                "profile_columns": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "2"
+                },
+                "profile_communication_preferences_button": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Update Preferences"
+                },
+                "profile_communication_preferences_description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "<p>Choose which messages SelfHelp may send you. Account and security messages are always delivered.</p>"
+                },
+                "profile_communication_preferences_error_general": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Failed to update communication preferences. Please try again."
+                },
+                "profile_communication_preferences_success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Communication preferences updated successfully!"
+                },
+                "profile_communication_preferences_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Communication Preferences"
+                },
+                "profile_delete_alert_text": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "This action cannot be undone. All your data will be permanently deleted."
+                },
+                "profile_delete_button": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Delete Account"
+                },
+                "profile_delete_description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "<p>Permanently delete your account and all associated data. This action cannot be undone.</p>"
+                },
+                "profile_delete_error_email_mismatch": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Email does not match your account email"
+                },
+                "profile_delete_error_email_required": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Email confirmation is required"
+                },
+                "profile_delete_error_general": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Failed to delete account. Please try again."
+                },
+                "profile_delete_label_email": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Confirm Email"
+                },
+                "profile_delete_modal_warning": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "<p>Deleting your account will permanently remove all your data, including profile information, preferences, and any content you have created.</p>"
+                },
+                "profile_delete_placeholder_email": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Enter your email to confirm"
+                },
+                "profile_delete_success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Account deleted successfully."
+                },
+                "profile_delete_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Delete Account"
+                },
+                "profile_gap": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "md"
+                },
+                "profile_label_created": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Account Created"
+                },
+                "profile_label_email": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Email"
+                },
+                "profile_label_last_login": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Last Login"
+                },
+                "profile_label_name": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Full Name"
+                },
+                "profile_label_timezone": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Timezone"
+                },
+                "profile_label_username": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Username"
+                },
+                "profile_name_change_button": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Update Display Name"
+                },
+                "profile_name_change_description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "<p>Update your display name. This will be visible to other users.</p>"
+                },
+                "profile_name_change_error_general": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Failed to update display name. Please try again."
+                },
+                "profile_name_change_error_invalid": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Display name contains invalid characters"
+                },
+                "profile_name_change_error_required": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Display name is required"
+                },
+                "profile_name_change_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "New Display Name"
+                },
+                "profile_name_change_placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Enter new display name"
+                },
+                "profile_name_change_success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Display name updated successfully!"
+                },
+                "profile_name_change_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Change Display Name"
+                },
+                "profile_password_reset_button": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Update Password"
+                },
+                "profile_password_reset_description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "<p>Set a new password for your account. Make sure it is strong and secure.</p>"
+                },
+                "profile_password_reset_error_confirm_required": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Password confirmation is required"
+                },
+                "profile_password_reset_error_current_required": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Current password is required"
+                },
+                "profile_password_reset_error_current_wrong": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Current password is incorrect"
+                },
+                "profile_password_reset_error_general": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Failed to update password. Please try again."
+                },
+                "profile_password_reset_error_mismatch": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "New passwords do not match"
+                },
+                "profile_password_reset_error_new_required": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "New password is required"
+                },
+                "profile_password_reset_error_weak": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Password is too weak. Please choose a stronger password."
+                },
+                "profile_password_reset_label_confirm": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Confirm New Password"
+                },
+                "profile_password_reset_label_current": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Current Password"
+                },
+                "profile_password_reset_label_new": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "New Password"
+                },
+                "profile_password_reset_placeholder_confirm": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Confirm new password"
+                },
+                "profile_password_reset_placeholder_current": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Enter current password"
+                },
+                "profile_password_reset_placeholder_new": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Enter new password"
+                },
+                "profile_password_reset_success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Password updated successfully!"
+                },
+                "profile_password_reset_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Change Password"
+                },
+                "profile_radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "profile_receive_emails_description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "Allow scheduled (non-essential) emails from SelfHelp."
+                },
+                "profile_receive_emails_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Receive emails"
+                },
+                "profile_receive_notifications_description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "Allow scheduled push notifications from SelfHelp."
+                },
+                "profile_receive_notifications_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Receive notifications"
+                },
+                "profile_shadow": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "profile_timezone_change_button": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Update Timezone"
+                },
+                "profile_timezone_change_description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "<p>Select your preferred timezone. This will affect how dates and times are displayed.</p>"
+                },
+                "profile_timezone_change_error_general": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Failed to update timezone. Please try again."
+                },
+                "profile_timezone_change_error_required": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Timezone is required"
+                },
+                "profile_timezone_change_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Timezone"
+                },
+                "profile_timezone_change_placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Select a timezone"
+                },
+                "profile_timezone_change_success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Timezone updated successfully!"
+                },
+                "profile_timezone_change_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Change Timezone"
+                },
+                "profile_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "My Profile"
+                },
+                "profile_use_accordion": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "profile_variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "default"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "progress": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": "0"
+                },
+                "web_progress_animated": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_progress_striped": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_progress_transition_duration": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "200"
+                }
+            }
+        },
+        "progress-root": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_progress_auto_contrast": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                }
+            }
+        },
+        "progress-section": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "tooltip_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": "0"
+                },
+                "web_progress_animated": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_progress_striped": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_tooltip_position": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "top"
+                }
+            }
+        },
+        "radio": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "locked_after_submit": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "orientation": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "vertical"
+                },
+                "radio_options": {
+                    "scope": "content",
+                    "type": "json",
+                    "default": "[{\"value\":\"option1\",\"text\":\"Option 1\",\"description\":\"First choice description\"},{\"value\":\"option2\",\"text\":\"Option 2\",\"description\":\"Second choice description\"},{\"value\":\"option3\",\"text\":\"Option 3\",\"description\":\"Third choice description\"}]"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "tooltip_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_radio_card": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_radio_label_position": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "right"
+                },
+                "web_radio_variant": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "default"
+                },
+                "web_tooltip_position": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "top"
+                },
+                "web_use_input_wrapper": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                }
+            }
+        },
+        "range-slider": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "mobile_range_slider_show_value": {
+                    "scope": "mobile",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "range_slider_marks_values": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "web_numeric_max": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "100"
+                },
+                "web_numeric_min": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "0"
+                },
+                "web_numeric_step": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "1"
+                },
+                "web_range_slider_inverted": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_range_slider_labels_always_on": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_range_slider_show_label": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                }
+            }
+        },
+        "rating": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "yellow"
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "readonly": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_rating_count": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "5"
+                },
+                "web_rating_empty_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_rating_fractions": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "1"
+                },
+                "web_rating_full_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_rating_highlight_selected_only": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_rating_use_smiles": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                }
+            }
+        },
+        "ref-container": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": []
+        },
+        "register": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "alert_fail": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "alert_success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "anonymous_users_registration": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "Please describe the process to the user"
+                },
+                "code_placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Enter your code"
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "success"
+                },
+                "group": {
+                    "scope": "common",
+                    "type": "select-group",
+                    "default": "3"
+                },
+                "label_code": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Validation Code"
+                },
+                "label_go_home": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Go Home"
+                },
+                "label_go_to_login": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Go to Login"
+                },
+                "label_pw": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "label_submit": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "label_user": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "open_registration": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                }
+            }
+        },
+        "reset-password": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "alert_success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": null
+                },
+                "label_pw_reset": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "reset_alert_success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Your password has been reset."
+                },
+                "reset_error_invalid_token": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "This reset link is invalid or has expired. Please request a new one."
+                },
+                "reset_error_pw_mismatch": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "The two passwords do not match."
+                },
+                "reset_error_pw_short": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Your new password must be at least 8 characters long."
+                },
+                "reset_label_pw": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "New password"
+                },
+                "reset_label_pw_confirm": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Confirm new password"
+                },
+                "reset_label_submit": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Set new password"
+                },
+                "reset_pw_confirm_placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Repeat your new password"
+                },
+                "reset_pw_placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Choose a new password"
+                },
+                "reset_redirect_text": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Redirecting to sign in in {seconds}s..."
+                },
+                "reset_success_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Password updated"
+                },
+                "reset_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Set a new password"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "rich-text-editor": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "rich_text_editor_placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Start writing..."
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "translatable": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_rich_text_editor_bubble_menu": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_rich_text_editor_task_list": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_rich_text_editor_text_color": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_rich_text_editor_variant": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "default"
+                }
+            }
+        },
+        "scroll-area": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "shared_height": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_scroll_area_offset_scrollbars": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_scroll_area_scroll_hide_delay": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "1000"
+                },
+                "web_scroll_area_scrollbar_size": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "8"
+                },
+                "web_scroll_area_type": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "hover"
+                }
+            }
+        },
+        "segmented-control": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "orientation": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "horizontal"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "readonly": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "segmented_control_data": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "[{\"value\":\"option1\",\"label\":\"Option 1\"},{\"value\":\"option2\",\"label\":\"Option 2\"},{\"value\":\"option3\",\"label\":\"Option 3\"}]"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_segmented_control_item_border": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                }
+            }
+        },
+        "select": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "clearable": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_multiple": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "locked_after_submit": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "max": {
+                    "scope": "common",
+                    "type": "number",
+                    "default": null
+                },
+                "mobile_select_presentation": {
+                    "scope": "mobile",
+                    "type": "select",
+                    "default": ""
+                },
+                "multi_select_data": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "options": {
+                    "scope": "content",
+                    "type": "json",
+                    "default": "[{\"value\":\"option1\",\"label\":\"Option 1\"}, {\"value\":\"option2\",\"label\":\"Option 2\"}]"
+                },
+                "placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Select an option"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "searchable": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                }
+            }
+        },
+        "show-user-input": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "csv_export": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "data_table": {
+                    "scope": "common",
+                    "type": "select-data_table",
+                    "default": ""
+                },
+                "delete_entry": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "delete_modal_body": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Are you sure you want to delete this entry?"
+                },
+                "delete_modal_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Delete entry"
+                },
+                "dt_default_order_column": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "dt_default_order_dir": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "asc"
+                },
+                "dt_info": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "dt_paginate": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "dt_searching": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "dt_sortable": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "empty_text": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "No entries found."
+                },
+                "fields_map": {
+                    "scope": "content",
+                    "type": "json",
+                    "default": ""
+                },
+                "own_entries_only": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "show_timestamp": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "web_table_caption_side": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": ""
+                },
+                "web_table_highlight_on_hover": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_table_sticky_header": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_table_striped": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_table_with_column_borders": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_table_with_row_borders": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_table_with_table_border": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                }
+            }
+        },
+        "simple-grid": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "cols": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "3"
+                },
+                "gap": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "md"
+                },
+                "shared_height": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_width": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "vertical_spacing": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": null
+                },
+                "web_cols_lg": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_cols_md": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_cols_sm": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                }
+            }
+        },
+        "slider": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "locked_after_submit": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "mobile_slider_show_value": {
+                    "scope": "mobile",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "slider_marks_values": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": ""
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "web_numeric_max": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "100"
+                },
+                "web_numeric_min": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "0"
+                },
+                "web_numeric_step": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "1"
+                },
+                "web_slider_inverted": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_slider_labels_always_on": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_slider_required": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_slider_show_label": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                }
+            }
+        },
+        "space": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "orientation": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "vertical"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "spoiler": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": ""
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "spoiler_hide_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Hide"
+                },
+                "spoiler_show_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Show more"
+                },
+                "web_height": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "200"
+                }
+            }
+        },
+        "stack": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "align": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "gap": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "justify": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_height": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "shared_width": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "switch": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "switch_off_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Off"
+                },
+                "switch_on_label": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "On"
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_label_position": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "left"
+                },
+                "web_switch_on_value": {
+                    "scope": "web",
+                    "type": "text",
+                    "default": "1"
+                },
+                "web_switch_thumb_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": ""
+                },
+                "web_switch_with_thumb_indicator": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_use_input_wrapper": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                }
+            }
+        },
+        "tab": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_height": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_right_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_tab_disabled": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_width": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                }
+            }
+        },
+        "tabs": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "orientation": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "horizontal"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_height": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_tabs_grow": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_tabs_justify": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": ""
+                },
+                "web_tabs_keep_mounted": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_tabs_placement": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "left"
+                },
+                "web_tabs_variant": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "default"
+                },
+                "web_width": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                }
+            }
+        },
+        "text": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": ""
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "text": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "text_align": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "left"
+                },
+                "web_text_font_style": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "normal"
+                },
+                "web_text_font_weight": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_text_gradient": {
+                    "scope": "web",
+                    "type": "json",
+                    "default": null
+                },
+                "web_text_inherit": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_text_line_clamp": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": null
+                },
+                "web_text_span": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_text_text_decoration": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "none"
+                },
+                "web_text_text_transform": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "none"
+                },
+                "web_text_truncate": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": null
+                },
+                "web_text_variant": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "default"
+                }
+            }
+        },
+        "text-input": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "max_length": {
+                    "scope": "common",
+                    "type": "number",
+                    "default": ""
+                },
+                "mobile_auto_capitalize": {
+                    "scope": "mobile",
+                    "type": "select",
+                    "default": ""
+                },
+                "mobile_input_variant": {
+                    "scope": "mobile",
+                    "type": "segment",
+                    "default": "primary"
+                },
+                "mobile_keyboard_type": {
+                    "scope": "mobile",
+                    "type": "select",
+                    "default": ""
+                },
+                "mobile_secure_entry": {
+                    "scope": "mobile",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "translatable": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_right_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_text_input_variant": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "default"
+                }
+            }
+        },
+        "textarea": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "autosize": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "description": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "disabled": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "is_required": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "label": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "locked_after_submit": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "max_length": {
+                    "scope": "common",
+                    "type": "number",
+                    "default": ""
+                },
+                "max_rows": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "8"
+                },
+                "min_rows": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "3"
+                },
+                "mobile_auto_capitalize": {
+                    "scope": "mobile",
+                    "type": "select",
+                    "default": ""
+                },
+                "mobile_textarea_variant": {
+                    "scope": "mobile",
+                    "type": "segment",
+                    "default": "primary"
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "rows": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "4"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "translatable": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "value": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": null
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_right_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_textarea_resize": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "none"
+                },
+                "web_textarea_variant": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "default"
+                },
+                "web_variant": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "default"
+                }
+            }
+        },
+        "theme-icon": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_left_icon": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_variant": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "filled"
+                }
+            }
+        },
+        "timeline": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "web_timeline_active": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "0"
+                },
+                "web_timeline_align": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "left"
+                },
+                "web_timeline_bullet_size": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "24"
+                },
+                "web_timeline_line_width": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "2"
+                }
+            }
+        },
+        "timeline-item": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "gray"
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "web_timeline_item_bullet": {
+                    "scope": "web",
+                    "type": "select-icon",
+                    "default": null
+                },
+                "web_timeline_item_line_variant": {
+                    "scope": "web",
+                    "type": "select",
+                    "default": "solid"
+                }
+            }
+        },
+        "title": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": ""
+                },
+                "content": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": null
+                },
+                "line_clamp": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": null
+                },
+                "size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "lg"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "title_order": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "1"
+                },
+                "web_title_text_wrap": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": "wrap"
+                }
+            }
+        },
+        "two-factor-auth": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "alert_fail": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Invalid verification code. Please try again."
+                },
+                "label_code": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Code"
+                },
+                "label_expiration_2fa": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": "Code expires in"
+                },
+                "label_submit": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Verify"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "text_md": {
+                    "scope": "content",
+                    "type": "markdown",
+                    "default": "Please enter the 6-digit code sent to your email"
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": "Two-Factor Authentication"
+                }
+            }
+        },
+        "typography": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                }
+            }
+        },
+        "validate": {
+            "renderTarget": "both",
+            "canHaveChildren": true,
+            "fields": {
+                "alert_fail": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Validation failed. Please check your information and try again."
+                },
+                "alert_success": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Account validated successfully! Welcome to our platform."
+                },
+                "anonymous_user_name_description": {
+                    "scope": "content",
+                    "type": "markdown",
+                    "default": "This name will be visible to other users"
+                },
+                "btn_cancel_color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "gray"
+                },
+                "btn_cancel_url": {
+                    "scope": "common",
+                    "type": "select-page-keyword",
+                    "default": null
+                },
+                "btn_save_color": {
+                    "scope": "common",
+                    "type": "color-picker",
+                    "default": "blue"
+                },
+                "buttons_order": {
+                    "scope": "common",
+                    "type": "segment",
+                    "default": "save-cancel"
+                },
+                "buttons_position": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "space-between"
+                },
+                "buttons_radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "buttons_size": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "buttons_variant": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "filled"
+                },
+                "error_heading": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Account validation failed"
+                },
+                "error_text": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "This validation link is invalid or has expired. Please request a new validation email."
+                },
+                "error_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Invalid Validation Link"
+                },
+                "label_activate": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Activate Account"
+                },
+                "label_cancel": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Cancel"
+                },
+                "label_name": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Name"
+                },
+                "label_pw": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Password"
+                },
+                "label_pw_confirm": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Confirm Password"
+                },
+                "label_save": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Save"
+                },
+                "label_timezone": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Timezone"
+                },
+                "label_update": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Update"
+                },
+                "loading_text": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Please wait while we validate your account activation link..."
+                },
+                "loading_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Validating Link"
+                },
+                "name": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": "validate_form"
+                },
+                "name_description": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": null
+                },
+                "name_placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Enter your full name"
+                },
+                "pw_placeholder": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Enter your password"
+                },
+                "radius": {
+                    "scope": "common",
+                    "type": "slider",
+                    "default": "sm"
+                },
+                "redirect_at_end": {
+                    "scope": "common",
+                    "type": "select-page-keyword",
+                    "default": "login"
+                },
+                "redirect_text": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Redirecting to login in {seconds}s..."
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "subtitle": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Please complete your account setup to activate your account"
+                },
+                "success_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Success"
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": "Account Validation"
+                },
+                "web_border": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_card_padding": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "lg"
+                },
+                "web_card_shadow": {
+                    "scope": "web",
+                    "type": "slider",
+                    "default": "sm"
+                }
+            }
+        },
+        "version": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": []
+        },
+        "video": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "alt": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": null
+                },
+                "has_controls": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "is_fluid": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "media_autoplay": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "media_loop": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "media_muted": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "poster_src": {
+                    "scope": "content",
+                    "type": "select-image",
+                    "default": null
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "video_src": {
+                    "scope": "common",
+                    "type": "select-video",
+                    "default": null
+                }
+            }
+        }
+    }
+}

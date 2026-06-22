@@ -1,575 +1,63 @@
 [
   {
-    "section_name": "team-list",
+    "section_name": "team",
     "style_name": "container",
-    "fields": {
-      "shared_size": {
-        "all": {
-          "content": "lg"
-        }
-      },
-      "web_py": {
-        "all": {
-          "content": "xl"
-        }
-      }
-    },
     "global_fields": {
-      "css": "px-4 py-12 sm:px-6 sm:py-16 lg:py-20 bg-white dark:bg-gray-950 max-w-5xl mx-auto"
+      "css": "px-4 py-10 max-w-2xl mx-auto"
     },
     "children": [
       {
-        "style_name": "stack",
+        "style_name": "title",
         "fields": {
-          "shared_gap": {
-            "all": {
-              "content": "xl"
-            }
-          }
+          "content": {
+            "en-GB": { "content": "Our team" },
+            "de-CH": { "content": "Unser Team" }
+          },
+          "title_order": { "all": { "content": "2" } }
+        },
+        "global_fields": { "css": "mb-4 text-2xl font-semibold text-gray-900 dark:text-gray-50" }
+      },
+      {
+        "style_name": "list",
+        "fields": {
+          "size": { "all": { "content": "md" } }
         },
         "children": [
           {
-            "section_name": "team-intro",
-            "style_name": "stack",
+            "style_name": "list-item",
             "fields": {
-              "shared_align": {
-                "all": {
-                  "content": "center"
-                }
-              },
-              "shared_gap": {
-                "all": {
-                  "content": "sm"
-                }
+              "list_item_content": {
+                "en-GB": { "content": "**Alex Rivera** — Senior Frontend Engineer" },
+                "de-CH": { "content": "**Alex Rivera** — Senior Frontend-Entwicklerin" }
               }
-            },
-            "global_fields": {
-              "css": "text-center"
-            },
-            "children": [
-              {
-                "style_name": "badge",
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Our People"
-                    },
-                    "de-CH": {
-                      "content": "Unser Team"
-                    }
-                  },
-                  "shared_color": {
-                    "all": {
-                      "content": "indigo"
-                    }
-                  },
-                  "web_variant": {
-                    "all": {
-                      "content": "light"
-                    }
-                  }
-                }
-              },
-              {
-                "style_name": "title",
-                "fields": {
-                  "content": {
-                    "en-GB": {
-                      "content": "Meet the team"
-                    },
-                    "de-CH": {
-                      "content": "Lernen Sie das Team kennen"
-                    }
-                  },
-                  "web_title_order": {
-                    "all": {
-                      "content": "1"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-50 break-words"
-                }
-              },
-              {
-                "style_name": "text",
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "A small, senior group shipping thoughtful product work every week."
-                    },
-                    "de-CH": {
-                      "content": "Ein kleines, erfahrenes Team, das jede Woche durchdachte Produktarbeit liefert."
-                    }
-                  },
-                  "shared_size": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "max-w-2xl mx-auto text-gray-600 dark:text-gray-400"
-                }
-              }
-            ]
+            }
           },
           {
-            "section_name": "team-members",
-            "style_name": "list",
-            "fields": {},
-            "global_fields": {
-              "css": "max-w-3xl mx-auto w-full"
-            },
-            "children": [
-              {
-                "style_name": "list-item",
-                "global_fields": {
-                  "css": "py-4 border-b border-gray-200 dark:border-gray-800 last:border-0"
-                },
-                "children": [
-                  {
-                    "style_name": "group",
-                    "fields": {
-                      "shared_align": {
-                        "all": {
-                          "content": "center"
-                        }
-                      },
-                      "shared_justify": {
-                        "all": {
-                          "content": "space-between"
-                        }
-                      },
-                      "web_group_wrap": {
-                        "all": {
-                          "content": "1"
-                        }
-                      }
-                    },
-                    "children": [
-                      {
-                        "style_name": "group",
-                        "fields": {
-                          "shared_align": {
-                            "all": {
-                              "content": "center"
-                            }
-                          },
-                          "shared_gap": {
-                            "all": {
-                              "content": "md"
-                            }
-                          }
-                        },
-                        "children": [
-                          {
-                            "style_name": "avatar",
-                            "fields": {
-                              "alt": {
-                                "en-GB": {
-                                  "content": "Dr. Sarah Müller"
-                                },
-                                "de-CH": {
-                                  "content": "Dr. Sarah Müller"
-                                }
-                              },
-                              "img_src": {
-                                "en-GB": {
-                                  "content": "/assets/image-holder.png"
-                                }
-                              },
-                              "shared_size": {
-                                "all": {
-                                  "content": "lg"
-                                }
-                              },
-                              "shared_radius": {
-                                "all": {
-                                  "content": "50%"
-                                }
-                              }
-                            }
-                          },
-                          {
-                            "style_name": "stack",
-                            "fields": {
-                              "shared_gap": {
-                                "all": {
-                                  "content": "0"
-                                }
-                              }
-                            },
-                            "children": [
-                              {
-                                "style_name": "title",
-                                "fields": {
-                                  "content": {
-                                    "en-GB": {
-                                      "content": "Dr. Sarah Müller"
-                                    },
-                                    "de-CH": {
-                                      "content": "Dr. Sarah Müller"
-                                    }
-                                  },
-                                  "web_title_order": {
-                                    "all": {
-                                      "content": "4"
-                                    }
-                                  }
-                                },
-                                "global_fields": {
-                                  "css": "text-base font-semibold text-gray-900 dark:text-gray-100"
-                                }
-                              },
-                              {
-                                "style_name": "text",
-                                "fields": {
-                                  "text": {
-                                    "en-GB": {
-                                      "content": "CEO & Founder · sarah@selfhelp.dev"
-                                    },
-                                    "de-CH": {
-                                      "content": "CEO & Gründerin · sarah@selfhelp.dev"
-                                    }
-                                  },
-                                  "shared_size": {
-                                    "all": {
-                                      "content": "sm"
-                                    }
-                                  }
-                                },
-                                "global_fields": {
-                                  "css": "text-gray-500 dark:text-gray-400 break-all"
-                                }
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        "style_name": "badge",
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "Leadership"
-                            }
-                          },
-                          "shared_color": {
-                            "all": {
-                              "content": "indigo"
-                            }
-                          },
-                          "web_variant": {
-                            "all": {
-                              "content": "light"
-                            }
-                          }
-                        }
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "style_name": "list-item",
-                "global_fields": {
-                  "css": "py-4 border-b border-gray-200 dark:border-gray-800 last:border-0"
-                },
-                "children": [
-                  {
-                    "style_name": "group",
-                    "fields": {
-                      "shared_align": {
-                        "all": {
-                          "content": "center"
-                        }
-                      },
-                      "shared_justify": {
-                        "all": {
-                          "content": "space-between"
-                        }
-                      },
-                      "web_group_wrap": {
-                        "all": {
-                          "content": "1"
-                        }
-                      }
-                    },
-                    "children": [
-                      {
-                        "style_name": "group",
-                        "fields": {
-                          "shared_align": {
-                            "all": {
-                              "content": "center"
-                            }
-                          },
-                          "shared_gap": {
-                            "all": {
-                              "content": "md"
-                            }
-                          }
-                        },
-                        "children": [
-                          {
-                            "style_name": "avatar",
-                            "fields": {
-                              "alt": {
-                                "en-GB": {
-                                  "content": "Michael Chen"
-                                },
-                                "de-CH": {
-                                  "content": "Michael Chen"
-                                }
-                              },
-                              "img_src": {
-                                "en-GB": {
-                                  "content": "/assets/image-holder.png"
-                                }
-                              },
-                              "shared_size": {
-                                "all": {
-                                  "content": "lg"
-                                }
-                              },
-                              "shared_radius": {
-                                "all": {
-                                  "content": "50%"
-                                }
-                              }
-                            }
-                          },
-                          {
-                            "style_name": "stack",
-                            "fields": {
-                              "shared_gap": {
-                                "all": {
-                                  "content": "0"
-                                }
-                              }
-                            },
-                            "children": [
-                              {
-                                "style_name": "title",
-                                "fields": {
-                                  "content": {
-                                    "en-GB": {
-                                      "content": "Michael Chen"
-                                    },
-                                    "de-CH": {
-                                      "content": "Michael Chen"
-                                    }
-                                  },
-                                  "web_title_order": {
-                                    "all": {
-                                      "content": "4"
-                                    }
-                                  }
-                                },
-                                "global_fields": {
-                                  "css": "text-base font-semibold text-gray-900 dark:text-gray-100"
-                                }
-                              },
-                              {
-                                "style_name": "text",
-                                "fields": {
-                                  "text": {
-                                    "en-GB": {
-                                      "content": "CTO · cloud architecture & scale"
-                                    },
-                                    "de-CH": {
-                                      "content": "CTO · Cloud-Architektur & Skalierung"
-                                    }
-                                  },
-                                  "shared_size": {
-                                    "all": {
-                                      "content": "sm"
-                                    }
-                                  }
-                                },
-                                "global_fields": {
-                                  "css": "text-gray-500 dark:text-gray-400 break-all"
-                                }
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        "style_name": "badge",
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "Engineering"
-                            }
-                          },
-                          "shared_color": {
-                            "all": {
-                              "content": "teal"
-                            }
-                          },
-                          "web_variant": {
-                            "all": {
-                              "content": "light"
-                            }
-                          }
-                        }
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "style_name": "list-item",
-                "global_fields": {
-                  "css": "py-4 border-b border-gray-200 dark:border-gray-800 last:border-0"
-                },
-                "children": [
-                  {
-                    "style_name": "group",
-                    "fields": {
-                      "shared_align": {
-                        "all": {
-                          "content": "center"
-                        }
-                      },
-                      "shared_justify": {
-                        "all": {
-                          "content": "space-between"
-                        }
-                      },
-                      "web_group_wrap": {
-                        "all": {
-                          "content": "1"
-                        }
-                      }
-                    },
-                    "children": [
-                      {
-                        "style_name": "group",
-                        "fields": {
-                          "shared_align": {
-                            "all": {
-                              "content": "center"
-                            }
-                          },
-                          "shared_gap": {
-                            "all": {
-                              "content": "md"
-                            }
-                          }
-                        },
-                        "children": [
-                          {
-                            "style_name": "avatar",
-                            "fields": {
-                              "alt": {
-                                "en-GB": {
-                                  "content": "Anna Kowalski"
-                                },
-                                "de-CH": {
-                                  "content": "Anna Kowalski"
-                                }
-                              },
-                              "img_src": {
-                                "en-GB": {
-                                  "content": "/assets/image-holder.png"
-                                }
-                              },
-                              "shared_size": {
-                                "all": {
-                                  "content": "lg"
-                                }
-                              },
-                              "shared_radius": {
-                                "all": {
-                                  "content": "50%"
-                                }
-                              }
-                            }
-                          },
-                          {
-                            "style_name": "stack",
-                            "fields": {
-                              "shared_gap": {
-                                "all": {
-                                  "content": "0"
-                                }
-                              }
-                            },
-                            "children": [
-                              {
-                                "style_name": "title",
-                                "fields": {
-                                  "content": {
-                                    "en-GB": {
-                                      "content": "Anna Kowalski"
-                                    },
-                                    "de-CH": {
-                                      "content": "Anna Kowalski"
-                                    }
-                                  },
-                                  "web_title_order": {
-                                    "all": {
-                                      "content": "4"
-                                    }
-                                  }
-                                },
-                                "global_fields": {
-                                  "css": "text-base font-semibold text-gray-900 dark:text-gray-100"
-                                }
-                              },
-                              {
-                                "style_name": "text",
-                                "fields": {
-                                  "text": {
-                                    "en-GB": {
-                                      "content": "Head of Design · product UX"
-                                    },
-                                    "de-CH": {
-                                      "content": "Design-Leitung · Produkt-UX"
-                                    }
-                                  },
-                                  "shared_size": {
-                                    "all": {
-                                      "content": "sm"
-                                    }
-                                  }
-                                },
-                                "global_fields": {
-                                  "css": "text-gray-500 dark:text-gray-400 break-all"
-                                }
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        "style_name": "badge",
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "Design"
-                            }
-                          },
-                          "shared_color": {
-                            "all": {
-                              "content": "violet"
-                            }
-                          },
-                          "web_variant": {
-                            "all": {
-                              "content": "light"
-                            }
-                          }
-                        }
-                      }
-                    ]
-                  }
-                ]
+            "style_name": "list-item",
+            "fields": {
+              "list_item_content": {
+                "en-GB": { "content": "**Sam Chen** — Backend Engineer" },
+                "de-CH": { "content": "**Sam Chen** — Backend-Entwickler" }
               }
-            ]
+            }
+          },
+          {
+            "style_name": "list-item",
+            "fields": {
+              "list_item_content": {
+                "en-GB": { "content": "**Jordan Lee** — Product Designer" },
+                "de-CH": { "content": "**Jordan Lee** — Produktdesigner" }
+              }
+            }
+          },
+          {
+            "style_name": "list-item",
+            "fields": {
+              "list_item_content": {
+                "en-GB": { "content": "**Priya Nair** — QA Engineer" },
+                "de-CH": { "content": "**Priya Nair** — QA-Engineer" }
+              }
+            }
           }
         ]
       }

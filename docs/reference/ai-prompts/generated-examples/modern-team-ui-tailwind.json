@@ -1,420 +1,149 @@
 [
   {
-    "section_name": "team-tailwind",
-    "style_name": "html-tag",
-    "fields": {
-      "html_tag": {
-        "all": {
-          "content": "section"
-        }
-      }
-    },
+    "section_name": "team-grid-web-polished",
+    "style_name": "container",
     "global_fields": {
-      "css": "px-4 py-12 sm:px-6 sm:py-16 lg:py-20 bg-white dark:bg-gray-950 max-w-7xl mx-auto"
+      "css": "px-4 py-12 max-w-6xl mx-auto"
     },
     "children": [
       {
-        "section_name": "team-tailwind-inner",
-        "style_name": "html-tag",
+        "style_name": "title",
         "fields": {
-          "html_tag": {
-            "all": {
-              "content": "div"
-            }
-          }
+          "content": {
+            "en-GB": { "content": "Meet the team" },
+            "de-CH": { "content": "Lernen Sie das Team kennen" }
+          },
+          "title_order": { "all": { "content": "2" } }
         },
         "global_fields": {
-          "css": "max-w-7xl mx-auto space-y-12"
+          "css": "mb-6 text-center text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400 bg-clip-text text-transparent"
+        }
+      },
+      {
+        "style_name": "simple-grid",
+        "fields": {
+          "cols": { "all": { "content": "1" } },
+          "web_cols_sm": { "all": { "content": "2" } },
+          "web_cols_lg": { "all": { "content": "3" } }
         },
         "children": [
           {
-            "section_name": "team-tailwind-header",
-            "style_name": "html-tag",
+            "style_name": "card",
             "fields": {
-              "html_tag": {
-                "all": {
-                  "content": "header"
-                }
-              }
+              "border": { "all": { "content": "1" } },
+              "radius": { "all": { "content": "lg" } }
             },
             "global_fields": {
-              "css": "text-center max-w-3xl mx-auto"
+              "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 transition-shadow hover:shadow-lg"
             },
             "children": [
               {
-                "style_name": "title",
-                "fields": {
-                  "content": {
-                    "en-GB": {
-                      "content": "Meet our amazing team"
-                    },
-                    "de-CH": {
-                      "content": "Lernen Sie unser grossartiges Team kennen"
-                    }
-                  },
-                  "web_title_order": {
-                    "all": {
-                      "content": "1"
-                    }
+                "style_name": "card-segment",
+                "global_fields": { "css": "p-5" },
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": { "align": { "all": { "content": "center" } }, "gap": { "all": { "content": "xs" } } },
+                    "children": [
+                      {
+                        "style_name": "image",
+                        "fields": {
+                          "img_src": {
+                            "en-GB": { "content": "/assets/image-holder.png" },
+                            "de-CH": { "content": "/assets/image-holder.png" }
+                          },
+                          "alt": {
+                            "en-GB": { "content": "Alex Rivera" },
+                            "de-CH": { "content": "Alex Rivera" }
+                          },
+                          "radius": { "all": { "content": "full" } }
+                        },
+                        "global_fields": { "css": "w-20 h-20 rounded-full object-cover ring-2 ring-blue-500/20" }
+                      },
+                      {
+                        "style_name": "title",
+                        "fields": {
+                          "content": {
+                            "en-GB": { "content": "Alex Rivera" },
+                            "de-CH": { "content": "Alex Rivera" }
+                          },
+                          "title_order": { "all": { "content": "3" } },
+                          "size": { "all": { "content": "md" } }
+                        },
+                        "global_fields": { "css": "text-center text-gray-900 dark:text-gray-50" }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": { "content": "Senior Frontend Engineer" },
+                            "de-CH": { "content": "Senior Frontend-Entwicklerin" }
+                          },
+                          "text_align": { "all": { "content": "center" } }
+                        },
+                        "global_fields": { "css": "text-gray-600 dark:text-gray-400" }
+                      }
+                    ]
                   }
-                },
-                "global_fields": {
-                  "css": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-violet-600 to-pink-600 dark:from-blue-400 dark:via-violet-400 dark:to-pink-400 bg-clip-text text-transparent break-words"
-                }
-              },
-              {
-                "style_name": "text",
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Passionate professionals delivering exceptional results with innovative solutions."
-                    },
-                    "de-CH": {
-                      "content": "Leidenschaftliche Fachleute mit aussergewöhnlichen Ergebnissen und innovativen Lösungen."
-                    }
-                  },
-                  "shared_size": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "mt-4 text-gray-600 dark:text-gray-400"
-                }
+                ]
               }
             ]
           },
           {
-            "section_name": "team-tailwind-grid",
-            "style_name": "html-tag",
+            "style_name": "card",
             "fields": {
-              "html_tag": {
-                "all": {
-                  "content": "div"
-                }
-              }
+              "border": { "all": { "content": "1" } },
+              "radius": { "all": { "content": "lg" } }
             },
             "global_fields": {
-              "css": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 transition-shadow hover:shadow-lg"
             },
             "children": [
               {
-                "section_name": "team-tailwind-card-1",
-                "style_name": "html-tag",
-                "fields": {
-                  "html_tag": {
-                    "all": {
-                      "content": "article"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "group flex flex-col rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden min-w-0"
-                },
+                "style_name": "card-segment",
+                "global_fields": { "css": "p-5" },
                 "children": [
                   {
-                    "section_name": "team-tailwind-card-1-media",
-                    "style_name": "image",
-                    "fields": {
-                      "img_src": {
-                        "en-GB": {
-                          "content": "/assets/image-holder.png"
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "Dr. Sarah Müller portrait"
-                        },
-                        "de-CH": {
-                          "content": "Dr. Sarah Müller Porträt"
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "css": "w-full h-48 sm:h-56 object-cover"
-                    }
-                  },
-                  {
-                    "section_name": "team-tailwind-card-1-body",
-                    "style_name": "html-tag",
-                    "fields": {
-                      "html_tag": {
-                        "all": {
-                          "content": "div"
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "css": "p-4 sm:p-6 space-y-3"
-                    },
+                    "style_name": "stack",
+                    "fields": { "align": { "all": { "content": "center" } }, "gap": { "all": { "content": "xs" } } },
                     "children": [
+                      {
+                        "style_name": "image",
+                        "fields": {
+                          "img_src": {
+                            "en-GB": { "content": "/assets/image-holder.png" },
+                            "de-CH": { "content": "/assets/image-holder.png" }
+                          },
+                          "alt": {
+                            "en-GB": { "content": "Sam Chen" },
+                            "de-CH": { "content": "Sam Chen" }
+                          },
+                          "radius": { "all": { "content": "full" } }
+                        },
+                        "global_fields": { "css": "w-20 h-20 rounded-full object-cover ring-2 ring-violet-500/20" }
+                      },
                       {
                         "style_name": "title",
                         "fields": {
                           "content": {
-                            "en-GB": {
-                              "content": "Dr. Sarah Müller"
-                            },
-                            "de-CH": {
-                              "content": "Dr. Sarah Müller"
-                            }
+                            "en-GB": { "content": "Sam Chen" },
+                            "de-CH": { "content": "Sam Chen" }
                           },
-                          "web_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
+                          "title_order": { "all": { "content": "3" } },
+                          "size": { "all": { "content": "md" } }
                         },
-                        "global_fields": {
-                          "css": "text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-50 break-words"
-                        }
+                        "global_fields": { "css": "text-center text-gray-900 dark:text-gray-50" }
                       },
                       {
                         "style_name": "text",
                         "fields": {
                           "text": {
-                            "en-GB": {
-                              "content": "CEO & Founder"
-                            },
-                            "de-CH": {
-                              "content": "CEO & Gründerin"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm font-medium text-blue-600 dark:text-blue-400"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Over 15 years scaling digital products from prototype to enterprise."
-                            },
-                            "de-CH": {
-                              "content": "Über 15 Jahre im Skalieren digitaler Produkte vom Prototyp zum Konzern."
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
-                        }
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "section_name": "team-tailwind-card-2",
-                "style_name": "html-tag",
-                "fields": {
-                  "html_tag": {
-                    "all": {
-                      "content": "article"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "group flex flex-col rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden min-w-0"
-                },
-                "children": [
-                  {
-                    "section_name": "team-tailwind-card-2-media",
-                    "style_name": "image",
-                    "fields": {
-                      "img_src": {
-                        "en-GB": {
-                          "content": "/assets/image-holder.png"
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "Michael Chen portrait"
-                        },
-                        "de-CH": {
-                          "content": "Michael Chen Porträt"
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "css": "w-full h-48 sm:h-56 object-cover"
-                    }
-                  },
-                  {
-                    "section_name": "team-tailwind-card-2-body",
-                    "style_name": "html-tag",
-                    "fields": {
-                      "html_tag": {
-                        "all": {
-                          "content": "div"
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "css": "p-4 sm:p-6 space-y-3"
-                    },
-                    "children": [
-                      {
-                        "style_name": "title",
-                        "fields": {
-                          "content": {
-                            "en-GB": {
-                              "content": "Michael Chen"
-                            },
-                            "de-CH": {
-                              "content": "Michael Chen"
-                            }
+                            "en-GB": { "content": "Backend Engineer" },
+                            "de-CH": { "content": "Backend-Entwickler" }
                           },
-                          "web_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
+                          "text_align": { "all": { "content": "center" } }
                         },
-                        "global_fields": {
-                          "css": "text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-50 break-words"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "CTO & Technical Director"
-                            },
-                            "de-CH": {
-                              "content": "CTO & Technischer Leiter"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm font-medium text-emerald-600 dark:text-emerald-400"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Cloud architecture expert ensuring every system scales with confidence."
-                            },
-                            "de-CH": {
-                              "content": "Cloud-Architektur-Experte für Systeme, die zuverlässig skalieren."
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
-                        }
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "section_name": "team-tailwind-card-3",
-                "style_name": "html-tag",
-                "fields": {
-                  "html_tag": {
-                    "all": {
-                      "content": "article"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "group flex flex-col rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden min-w-0"
-                },
-                "children": [
-                  {
-                    "section_name": "team-tailwind-card-3-media",
-                    "style_name": "image",
-                    "fields": {
-                      "img_src": {
-                        "en-GB": {
-                          "content": "/assets/image-holder.png"
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "Anna Kowalski portrait"
-                        },
-                        "de-CH": {
-                          "content": "Anna Kowalski Porträt"
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "css": "w-full h-48 sm:h-56 object-cover"
-                    }
-                  },
-                  {
-                    "section_name": "team-tailwind-card-3-body",
-                    "style_name": "html-tag",
-                    "fields": {
-                      "html_tag": {
-                        "all": {
-                          "content": "div"
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "css": "p-4 sm:p-6 space-y-3"
-                    },
-                    "children": [
-                      {
-                        "style_name": "title",
-                        "fields": {
-                          "content": {
-                            "en-GB": {
-                              "content": "Anna Kowalski"
-                            },
-                            "de-CH": {
-                              "content": "Anna Kowalski"
-                            }
-                          },
-                          "web_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-50 break-words"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Head of Design & UX"
-                            },
-                            "de-CH": {
-                              "content": "Design- & UX-Leitung"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm font-medium text-violet-600 dark:text-violet-400"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Human-centered designer turning complex problems into beautiful, simple interfaces."
-                            },
-                            "de-CH": {
-                              "content": "Human-Centered-Designerin, die komplexe Probleme in schöne, einfache Interfaces übersetzt."
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
-                        }
+                        "global_fields": { "css": "text-gray-600 dark:text-gray-400" }
                       }
                     ]
                   }

@@ -2,675 +2,231 @@
   {
     "section_name": "travel-blog",
     "style_name": "container",
-    "fields": {
-      "shared_size": {
-        "all": {
-          "content": "xl"
-        }
-      }
-    },
     "global_fields": {
-      "css": "px-4 py-12 sm:px-6 sm:py-16 lg:py-20 bg-white dark:bg-gray-950 max-w-7xl mx-auto"
+      "css": "px-4 py-12 max-w-6xl mx-auto"
     },
     "children": [
       {
-        "style_name": "stack",
+        "style_name": "title",
         "fields": {
-          "shared_gap": {
-            "all": {
-              "content": "xl"
-            }
+          "content": {
+            "en-GB": { "content": "Travel stories" },
+            "de-CH": { "content": "Reisegeschichten" }
           }
+        },
+        "global_fields": { "css": "mb-2 text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-50" }
+      },
+      {
+        "style_name": "text",
+        "fields": {
+          "text": {
+            "en-GB": { "content": "Field notes from the road." },
+            "de-CH": { "content": "Notizen von unterwegs." }
+          }
+        },
+        "global_fields": { "css": "mb-6 text-gray-600 dark:text-gray-400" }
+      },
+      {
+        "style_name": "simple-grid",
+        "fields": {
+          "cols": { "all": { "content": "1" } },
+          "web_cols_sm": { "all": { "content": "2" } },
+          "web_cols_lg": { "all": { "content": "3" } }
         },
         "children": [
           {
-            "section_name": "travel-header",
-            "style_name": "stack",
+            "style_name": "card",
             "fields": {
-              "shared_align": {
-                "all": {
-                  "content": "center"
-                }
-              },
-              "shared_gap": {
-                "all": {
-                  "content": "sm"
-                }
+              "border": { "all": { "content": "1" } },
+              "radius": { "all": { "content": "md" } },
+              "img_src": {
+                "en-GB": { "content": "/assets/image-holder.png" },
+                "de-CH": { "content": "/assets/image-holder.png" }
               }
             },
-            "global_fields": {
-              "css": "text-center max-w-3xl mx-auto"
-            },
+            "global_fields": { "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900" },
             "children": [
               {
-                "style_name": "badge",
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Travel journal"
+                "style_name": "card-segment",
+                "global_fields": { "css": "p-5" },
+                "children": [
+                  {
+                    "style_name": "badge",
+                    "fields": {
+                      "label": {
+                        "en-GB": { "content": "Mountains" },
+                        "de-CH": { "content": "Berge" }
+                      },
+                      "color": { "all": { "content": "teal" } }
                     },
-                    "de-CH": {
-                      "content": "Reise-Journal"
-                    }
+                    "global_fields": { "css": "mb-2" }
                   },
-                  "shared_color": {
-                    "all": {
-                      "content": "orange"
-                    }
-                  },
-                  "web_variant": {
-                    "all": {
-                      "content": "light"
-                    }
-                  }
-                }
-              },
-              {
-                "style_name": "title",
-                "fields": {
-                  "content": {
-                    "en-GB": {
-                      "content": "Adventures worth remembering"
+                  {
+                    "style_name": "title",
+                    "fields": {
+                      "content": {
+                        "en-GB": { "content": "Three days in the Alps" },
+                        "de-CH": { "content": "Drei Tage in den Alpen" }
+                      },
+                      "title_order": { "all": { "content": "3" } },
+                      "size": { "all": { "content": "md" } }
                     },
-                    "de-CH": {
-                      "content": "Abenteuer, die in Erinnerung bleiben"
-                    }
+                    "global_fields": { "css": "text-gray-900 dark:text-gray-50" }
                   },
-                  "web_title_order": {
-                    "all": {
-                      "content": "1"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-50 break-words"
-                }
-              },
-              {
-                "style_name": "text",
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Three curated trips from the editorial team — fjords, ancient ruins, and quiet alpine mornings."
+                  {
+                    "style_name": "text",
+                    "fields": {
+                      "text": {
+                        "en-GB": { "content": "How to plan a hut-to-hut traverse without a guide." },
+                        "de-CH": { "content": "Eine Hütten-zu-Hütten-Tour ohne Bergführer planen." }
+                      }
                     },
-                    "de-CH": {
-                      "content": "Drei handverlesene Reisen der Redaktion – Fjorde, antike Ruinen und stille Bergmorgen."
-                    }
+                    "global_fields": { "css": "mt-1 text-sm text-gray-600 dark:text-gray-400 break-words" }
                   },
-                  "shared_size": {
-                    "all": {
-                      "content": "lg"
-                    }
+                  {
+                    "style_name": "button",
+                    "fields": {
+                      "label": {
+                        "en-GB": { "content": "Read more" },
+                        "de-CH": { "content": "Mehr lesen" }
+                      },
+                      "size": { "all": { "content": "md" } },
+                      "is_link": { "all": { "content": "1" } },
+                      "url": { "all": { "content": "#" } }
+                    },
+                    "global_fields": { "css": "mt-3" }
                   }
-                },
-                "global_fields": {
-                  "css": "text-gray-600 dark:text-gray-400"
-                }
+                ]
               }
             ]
           },
           {
-            "section_name": "travel-grid",
-            "style_name": "simple-grid",
+            "style_name": "card",
             "fields": {
-              "web_cols": {
-                "all": {
-                  "content": "{\"base\":1,\"sm\":2,\"lg\":3}"
-                }
-              },
-              "web_vertical_spacing": {
-                "all": {
-                  "content": "lg"
-                }
+              "border": { "all": { "content": "1" } },
+              "radius": { "all": { "content": "md" } },
+              "img_src": {
+                "en-GB": { "content": "/assets/image-holder.png" },
+                "de-CH": { "content": "/assets/image-holder.png" }
               }
             },
+            "global_fields": { "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900" },
             "children": [
               {
-                "section_name": "travel-post-norway",
-                "style_name": "card",
-                "fields": {
-                  "web_border": {
-                    "all": {
-                      "content": "1"
-                    }
-                  },
-                  "shared_radius": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  },
-                  "web_card_shadow": {
-                    "all": {
-                      "content": "sm"
-                    }
-                  },
-                  "web_card_padding": {
-                    "all": {
-                      "content": "0"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-xl transition-shadow duration-300"
-                },
+                "style_name": "card-segment",
+                "global_fields": { "css": "p-5" },
                 "children": [
                   {
-                    "style_name": "card-segment",
-                    "children": [
-                      {
-                        "style_name": "image",
-                        "fields": {
-                          "img_src": {
-                            "en-GB": {
-                              "content": "/assets/image-holder.png"
-                            }
-                          },
-                          "alt": {
-                            "en-GB": {
-                              "content": "Red fishermen houses at a Norwegian fjord"
-                            },
-                            "de-CH": {
-                              "content": "Rote Fischerhäuser an einem norwegischen Fjord"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "w-full h-52 object-cover"
-                        }
-                      }
-                    ]
+                    "style_name": "badge",
+                    "fields": {
+                      "label": {
+                        "en-GB": { "content": "Cities" },
+                        "de-CH": { "content": "Städte" }
+                      },
+                      "color": { "all": { "content": "grape" } }
+                    },
+                    "global_fields": { "css": "mb-2" }
                   },
                   {
-                    "style_name": "card-segment",
-                    "global_fields": {
-                      "css": "p-4 sm:p-5 space-y-3"
+                    "style_name": "title",
+                    "fields": {
+                      "content": {
+                        "en-GB": { "content": "A weekend in Lisbon" },
+                        "de-CH": { "content": "Ein Wochenende in Lissabon" }
+                      },
+                      "title_order": { "all": { "content": "3" } },
+                      "size": { "all": { "content": "md" } }
                     },
-                    "children": [
-                      {
-                        "style_name": "group",
-                        "fields": {
-                          "shared_gap": {
-                            "all": {
-                              "content": "xs"
-                            }
-                          },
-                          "shared_align": {
-                            "all": {
-                              "content": "center"
-                            }
-                          }
-                        },
-                        "children": [
-                          {
-                            "style_name": "badge",
-                            "fields": {
-                              "label": {
-                                "en-GB": {
-                                  "content": "Nordic"
-                                }
-                              },
-                              "shared_color": {
-                                "all": {
-                                  "content": "blue"
-                                }
-                              },
-                              "web_variant": {
-                                "all": {
-                                  "content": "light"
-                                }
-                              }
-                            }
-                          },
-                          {
-                            "style_name": "text",
-                            "fields": {
-                              "text": {
-                                "en-GB": {
-                                  "content": "12 min read"
-                                },
-                                "de-CH": {
-                                  "content": "12 Min. Lesezeit"
-                                }
-                              },
-                              "shared_size": {
-                                "all": {
-                                  "content": "xs"
-                                }
-                              }
-                            },
-                            "global_fields": {
-                              "css": "text-gray-500 dark:text-gray-400"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "style_name": "title",
-                        "fields": {
-                          "content": {
-                            "en-GB": {
-                              "content": "Top 10 places to visit in Norway this summer"
-                            },
-                            "de-CH": {
-                              "content": "Die 10 besten Orte in Norwegen diesen Sommer"
-                            }
-                          },
-                          "web_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-50 leading-snug break-words"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "From the Lofoten islands to Bergen's wharf, here is our short list of unmissable stops for a first Norwegian road trip."
-                            },
-                            "de-CH": {
-                              "content": "Von den Lofoten bis zum Bryggen in Bergen – unsere Kurzliste unverzichtbarer Stopps für die erste Norwegen-Reise."
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words"
-                        }
-                      },
-                      {
-                        "style_name": "button",
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "Read more"
-                            },
-                            "de-CH": {
-                              "content": "Weiterlesen"
-                            }
-                          },
-                          "shared_color": {
-                            "all": {
-                              "content": "blue"
-                            }
-                          },
-                          "web_variant": {
-                            "all": {
-                              "content": "subtle"
-                            }
-                          }
-                        }
+                    "global_fields": { "css": "text-gray-900 dark:text-gray-50" }
+                  },
+                  {
+                    "style_name": "text",
+                    "fields": {
+                      "text": {
+                        "en-GB": { "content": "Trams, tiles and the best pastéis de nata in town." },
+                        "de-CH": { "content": "Trams, Azulejos und die besten Pastéis de Nata der Stadt." }
                       }
-                    ]
+                    },
+                    "global_fields": { "css": "mt-1 text-sm text-gray-600 dark:text-gray-400 break-words" }
+                  },
+                  {
+                    "style_name": "button",
+                    "fields": {
+                      "label": {
+                        "en-GB": { "content": "Read more" },
+                        "de-CH": { "content": "Mehr lesen" }
+                      },
+                      "size": { "all": { "content": "md" } },
+                      "is_link": { "all": { "content": "1" } },
+                      "url": { "all": { "content": "#" } }
+                    },
+                    "global_fields": { "css": "mt-3" }
                   }
                 ]
-              },
+              }
+            ]
+          },
+          {
+            "style_name": "card",
+            "fields": {
+              "border": { "all": { "content": "1" } },
+              "radius": { "all": { "content": "md" } },
+              "img_src": {
+                "en-GB": { "content": "/assets/image-holder.png" },
+                "de-CH": { "content": "/assets/image-holder.png" }
+              }
+            },
+            "global_fields": { "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900" },
+            "children": [
               {
-                "section_name": "travel-post-rome",
-                "style_name": "card",
-                "fields": {
-                  "web_border": {
-                    "all": {
-                      "content": "1"
-                    }
-                  },
-                  "shared_radius": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  },
-                  "web_card_shadow": {
-                    "all": {
-                      "content": "sm"
-                    }
-                  },
-                  "web_card_padding": {
-                    "all": {
-                      "content": "0"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-xl transition-shadow duration-300"
-                },
+                "style_name": "card-segment",
+                "global_fields": { "css": "p-5" },
                 "children": [
                   {
-                    "style_name": "card-segment",
-                    "children": [
-                      {
-                        "style_name": "image",
-                        "fields": {
-                          "img_src": {
-                            "en-GB": {
-                              "content": "/assets/image-holder.png"
-                            }
-                          },
-                          "alt": {
-                            "en-GB": {
-                              "content": "Ancient Roman ruins at sunset"
-                            },
-                            "de-CH": {
-                              "content": "Antike römische Ruinen im Sonnenuntergang"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "w-full h-52 object-cover"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "style_name": "card-segment",
-                    "global_fields": {
-                      "css": "p-4 sm:p-5 space-y-3"
+                    "style_name": "badge",
+                    "fields": {
+                      "label": {
+                        "en-GB": { "content": "Coast" },
+                        "de-CH": { "content": "Küste" }
+                      },
+                      "color": { "all": { "content": "cyan" } }
                     },
-                    "children": [
-                      {
-                        "style_name": "group",
-                        "fields": {
-                          "shared_gap": {
-                            "all": {
-                              "content": "xs"
-                            }
-                          },
-                          "shared_align": {
-                            "all": {
-                              "content": "center"
-                            }
-                          }
-                        },
-                        "children": [
-                          {
-                            "style_name": "badge",
-                            "fields": {
-                              "label": {
-                                "en-GB": {
-                                  "content": "History"
-                                }
-                              },
-                              "shared_color": {
-                                "all": {
-                                  "content": "orange"
-                                }
-                              },
-                              "web_variant": {
-                                "all": {
-                                  "content": "light"
-                                }
-                              }
-                            }
-                          },
-                          {
-                            "style_name": "text",
-                            "fields": {
-                              "text": {
-                                "en-GB": {
-                                  "content": "8 min read"
-                                },
-                                "de-CH": {
-                                  "content": "8 Min. Lesezeit"
-                                }
-                              },
-                              "shared_size": {
-                                "all": {
-                                  "content": "xs"
-                                }
-                              }
-                            },
-                            "global_fields": {
-                              "css": "text-gray-500 dark:text-gray-400"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "style_name": "title",
-                        "fields": {
-                          "content": {
-                            "en-GB": {
-                              "content": "A weekend in Rome without the tourist queues"
-                            },
-                            "de-CH": {
-                              "content": "Ein Wochenende in Rom – ohne Schlangen"
-                            }
-                          },
-                          "web_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-50 leading-snug break-words"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Three neighbourhoods, one espresso bar, and the walking route we send every friend flying in for the first time."
-                            },
-                            "de-CH": {
-                              "content": "Drei Viertel, eine Espressobar und die Gehroute, die wir jedem Freund empfehlen, der zum ersten Mal kommt."
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words"
-                        }
-                      },
-                      {
-                        "style_name": "button",
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "Read more"
-                            },
-                            "de-CH": {
-                              "content": "Weiterlesen"
-                            }
-                          },
-                          "shared_color": {
-                            "all": {
-                              "content": "orange"
-                            }
-                          },
-                          "web_variant": {
-                            "all": {
-                              "content": "subtle"
-                            }
-                          }
-                        }
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "section_name": "travel-post-alps",
-                "style_name": "card",
-                "fields": {
-                  "web_border": {
-                    "all": {
-                      "content": "1"
-                    }
-                  },
-                  "shared_radius": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  },
-                  "web_card_shadow": {
-                    "all": {
-                      "content": "sm"
-                    }
-                  },
-                  "web_card_padding": {
-                    "all": {
-                      "content": "0"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-xl transition-shadow duration-300"
-                },
-                "children": [
-                  {
-                    "style_name": "card-segment",
-                    "children": [
-                      {
-                        "style_name": "image",
-                        "fields": {
-                          "img_src": {
-                            "en-GB": {
-                              "content": "/assets/image-holder.png"
-                            }
-                          },
-                          "alt": {
-                            "en-GB": {
-                              "content": "Misty alpine valley at dawn"
-                            },
-                            "de-CH": {
-                              "content": "Neblige Alpenlandschaft im Morgengrauen"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "w-full h-52 object-cover"
-                        }
-                      }
-                    ]
+                    "global_fields": { "css": "mb-2" }
                   },
                   {
-                    "style_name": "card-segment",
-                    "global_fields": {
-                      "css": "p-4 sm:p-5 space-y-3"
+                    "style_name": "title",
+                    "fields": {
+                      "content": {
+                        "en-GB": { "content": "Slow mornings on the Atlantic" },
+                        "de-CH": { "content": "Ruhige Morgen am Atlantik" }
+                      },
+                      "title_order": { "all": { "content": "3" } },
+                      "size": { "all": { "content": "md" } }
                     },
-                    "children": [
-                      {
-                        "style_name": "group",
-                        "fields": {
-                          "shared_gap": {
-                            "all": {
-                              "content": "xs"
-                            }
-                          },
-                          "shared_align": {
-                            "all": {
-                              "content": "center"
-                            }
-                          }
-                        },
-                        "children": [
-                          {
-                            "style_name": "badge",
-                            "fields": {
-                              "label": {
-                                "en-GB": {
-                                  "content": "Nature"
-                                }
-                              },
-                              "shared_color": {
-                                "all": {
-                                  "content": "teal"
-                                }
-                              },
-                              "web_variant": {
-                                "all": {
-                                  "content": "light"
-                                }
-                              }
-                            }
-                          },
-                          {
-                            "style_name": "text",
-                            "fields": {
-                              "text": {
-                                "en-GB": {
-                                  "content": "6 min read"
-                                },
-                                "de-CH": {
-                                  "content": "6 Min. Lesezeit"
-                                }
-                              },
-                              "shared_size": {
-                                "all": {
-                                  "content": "xs"
-                                }
-                              }
-                            },
-                            "global_fields": {
-                              "css": "text-gray-500 dark:text-gray-400"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "style_name": "title",
-                        "fields": {
-                          "content": {
-                            "en-GB": {
-                              "content": "Quiet alpine mornings above the clouds"
-                            },
-                            "de-CH": {
-                              "content": "Stille Alpenmorgen über den Wolken"
-                            }
-                          },
-                          "web_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-50 leading-snug break-words"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "A slow itinerary through Graubünden mountain huts for travellers who want to trade Wi-Fi for silence and fresh bread."
-                            },
-                            "de-CH": {
-                              "content": "Eine langsame Reise durch Bündner Bergbeizen – für alle, die WLAN gegen Ruhe und frisches Brot tauschen möchten."
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words"
-                        }
-                      },
-                      {
-                        "style_name": "button",
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "Read more"
-                            },
-                            "de-CH": {
-                              "content": "Weiterlesen"
-                            }
-                          },
-                          "shared_color": {
-                            "all": {
-                              "content": "teal"
-                            }
-                          },
-                          "web_variant": {
-                            "all": {
-                              "content": "subtle"
-                            }
-                          }
-                        }
+                    "global_fields": { "css": "text-gray-900 dark:text-gray-50" }
+                  },
+                  {
+                    "style_name": "text",
+                    "fields": {
+                      "text": {
+                        "en-GB": { "content": "Finding quiet beaches a short drive from the city." },
+                        "de-CH": { "content": "Ruhige Strände nur eine kurze Fahrt von der Stadt entfernt." }
                       }
-                    ]
+                    },
+                    "global_fields": { "css": "mt-1 text-sm text-gray-600 dark:text-gray-400 break-words" }
+                  },
+                  {
+                    "style_name": "button",
+                    "fields": {
+                      "label": {
+                        "en-GB": { "content": "Read more" },
+                        "de-CH": { "content": "Mehr lesen" }
+                      },
+                      "size": { "all": { "content": "md" } },
+                      "is_link": { "all": { "content": "1" } },
+                      "url": { "all": { "content": "#" } }
+                    },
+                    "global_fields": { "css": "mt-3" }
                   }
                 ]
               }
