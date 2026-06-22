@@ -14,6 +14,47 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.28 — 2026-06-22
+
+### Added
+- **Inline rich-text in CMS content now renders on the frontend.** The `text`,
+  `blockquote`, and `list-item` styles preserve the author's inline formatting
+  (bold / italic / underline / link) from `markdown-inline` fields instead of
+  stripping it. They render via the shared `renderRichInline` helper (XSS-stripped,
+  stray markdown block tags flattened to inline, hydration-safe), so **Ctrl+B bold
+  authored in the CMS shows on the page** and a stray `<p>` wrapper no longer
+  prints as literal tags.
+- **CMS authoring affordance + gating.** The section inspector enables the
+  rich-text shortcuts (Ctrl/⌘ + B/I/U) **only** for `markdown-inline` fields and
+  shows a compact `Rich text:` hint (`Kbd`) with the shortcut keys, so authors
+  see exactly where formatting is allowed. Plain `text` fields disable the
+  shortcuts so no `<strong>` is ever saved into a slot meant to stay plain.
+- **New media / interactive style fields render.** `image` honours `fallback_src`
+  (shown when the main source fails to load), `figure` can carry a built-in
+  `img_src`/`alt`, `link` supports `shared_color` + `web_link_underline` +
+  left/right icons, `action-icon` exposes `aria_label`, `spoiler` takes a
+  `shared_color` control colour, and `audio`/`video` honour the `has_controls` /
+  `media_loop` / `media_autoplay` (+ `media_muted` / `poster_src` for video)
+  playback toggles.
+
+### Changed
+- `TextStyle`, `BlockquoteStyle`, and `ListItemStyle` render the safe inline subset
+  via the shared `renderRichInline` helper instead of `DOMPurify`-stripping all tags.
+
+### Fixed
+- **`html-tag` style rendered an empty element.** In content-only mode the text was
+  passed as a React prop (so it landed as a bogus `content="…"` DOM attribute on
+  e.g. `<mark>`) instead of as the element's children — the tag rendered empty. It
+  now renders the sanitized text as children.
+- **Rich-inline content no longer triggers a React hydration mismatch.**
+  `renderRichInline` now renders the sanitized HTML via a hydration-safe
+  `dangerouslySetInnerHTML` span instead of `html-react-parser`, which mismatched
+  server/client markup for content containing links.
+- **`image` fallback now triggers under SSR.** A fast 404 could fire the `<img>`
+  `error` on the server-rendered markup before hydration attached Mantine's
+  `onError`, so the broken image stuck. The renderer now also detects an
+  already-broken image on mount and swaps to `fallback_src` explicitly.
+
 ## v0.1.27 — 2026-06-22
 
 ### Changed
