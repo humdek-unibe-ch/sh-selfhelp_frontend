@@ -65,7 +65,24 @@ const nextConfig = {
     },
 
     turbopack: {
-      root: path.join(__dirname, '..'),
+      /**
+       * Dev: scope the Turbopack root (the module-resolution AND file-watch
+       * boundary) to THIS app. Pointing it at the repo parent made the dev
+       * watcher crawl every sibling repo under `d:/TPF/SelfHelp` — including the
+       * backend's `var/cache/dev` + `var/log` (rewritten on every request, of
+       * which there are thousands) and ~10 repos' `node_modules`. On Windows
+       * that watcher pegged memory (multi-GB dev process) and fired constant
+       * spurious change events, so HMR hung and pages stopped reloading. The app
+       * dir has its own `package-lock.json`, so it is a valid standalone root and
+       * Turbopack ignores everything outside it ("files outside of the project
+       * directory will not be compiled").
+       *
+       * Production build keeps the parent root so it stays equal to
+       * `outputFileTracingRoot` and the Docker standalone still nests under
+       * `build/` (see the Dockerfile). In Docker the parent is just `/` (only the
+       * `build/` app lives there), so it carries none of the local churn.
+       */
+      root: process.env.NODE_ENV === 'production' ? path.join(__dirname, '..') : __dirname,
     },
 
     /**
