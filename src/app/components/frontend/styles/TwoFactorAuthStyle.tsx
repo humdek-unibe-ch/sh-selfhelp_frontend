@@ -17,12 +17,13 @@ interface ITwoFactorAuthStyleProps {
     cssClass: string;
 }
 
-const TwoFactorAuthStyle: React.FC<ITwoFactorAuthStyleProps> = ({ style }) => {
+const TwoFactorAuthStyle: React.FC<ITwoFactorAuthStyleProps> = ({ style, styleProps, cssClass }) => {
     const labelSubmit = style.label_submit?.content || 'Verify';
     const alertFail = style.alert_fail?.content || 'Invalid verification code';
     const title = style.title?.content || 'Two-Factor Authentication';
     const textMd = style.text_md?.content;
     const labelExpiration2fa = style.label_expiration_2fa?.content;
+    const labelCode = style.label_code?.content;
 
     const {
         code, timer, isLoading, errorMessage, inputsRef,
@@ -32,7 +33,7 @@ const TwoFactorAuthStyle: React.FC<ITwoFactorAuthStyleProps> = ({ style }) => {
     const allFilled = code.every(d => d);
 
     return (
-        <Box className={style.css ?? ''}>
+        <Box {...styleProps} className={cssClass}>
             <Card shadow="sm" padding="lg" radius="md" withBorder>
                 <Title order={2} ta="center" mb="md">{title}</Title>
 
@@ -54,6 +55,7 @@ const TwoFactorAuthStyle: React.FC<ITwoFactorAuthStyleProps> = ({ style }) => {
                         onKeyDown={handleKeyDown}
                         onPaste={handlePaste}
                         expirationLabel={labelExpiration2fa}
+                        codeLabel={labelCode}
                     />
 
                     <Button type="submit" fullWidth size="lg" loading={isLoading} disabled={!allFilled || timer === 0}>
