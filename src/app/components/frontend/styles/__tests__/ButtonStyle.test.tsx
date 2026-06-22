@@ -77,10 +77,10 @@ describe('ButtonStyle', () => {
         expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', 'https://example.com/docs');
     });
 
-    it('applies the cross-platform shared_variant', () => {
+    it('applies the cross-platform variant', () => {
         renderWithProviders(
             <ButtonStyle
-                style={makeStyle({ label: { content: 'Outline' }, shared_variant: { content: 'outline' } })}
+                style={makeStyle({ label: { content: 'Outline' }, variant: { content: 'outline' } })}
                 styleProps={{}}
                 cssClass="section-5"
             />,

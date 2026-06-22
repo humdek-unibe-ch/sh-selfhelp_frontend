@@ -28,12 +28,12 @@ interface IDividerStyleProps {
  */
 const DividerStyle: React.FC<IDividerStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const variant = style.shared_divider_variant?.content || 'solid';
-    const size = style.shared_size?.content || 'sm';
+    const variant = style.divider_variant?.content || 'solid';
+    const size = style.size?.content || 'sm';
     const label = style.divider_label?.content;
-    const labelPosition = style.shared_divider_label_position?.content || 'center';
-    const orientation = style.shared_orientation?.content || 'horizontal';
-    const color = style.shared_color?.content || 'gray';
+    const labelPosition = style.divider_label_position?.content || 'center';
+    const orientation = style.orientation?.content || 'horizontal';
+    const color = style.color?.content || 'gray';
 
     // Handle CSS field - use direct property from API response
     

@@ -77,8 +77,8 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
     const maxSizeStr = style.web_file_input_max_size?.content;
     const maxFilesStr = style.web_file_input_max_files?.content;
     const name = style.name?.content || `section-${style.id}`;
-    const size = castMantineSize(style.shared_size?.content) || 'sm';
-    const radius = castMantineRadius(style.shared_radius?.content) || 'sm';
+    const size = castMantineSize(style.size?.content) || 'sm';
+    const radius = castMantineRadius(style.radius?.content) || 'sm';
     const leftIconName = style.web_left_icon?.content;
     const rightIconName = style.web_right_icon?.content;
     const disabled = style.disabled?.content === '1';    const isRequired = style.is_required?.content === '1';

@@ -57,9 +57,9 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
     const min = parseFloat(style.web_numeric_min?.content || '0');
     const max = parseFloat(style.web_numeric_max?.content || '100');
     const step = parseFloat(style.web_numeric_step?.content || '1');
-    const size = style.shared_size?.content || 'sm';
-    const color = style.shared_color?.content || 'blue';
-    const radius = style.shared_radius?.content || 'sm';
+    const size = style.size?.content || 'sm';
+    const color = style.color?.content || 'blue';
+    const radius = style.radius?.content || 'sm';
     const disabled = style.disabled?.content === '1';
     const styleValue = style.value?.content || '[0, 100]';
 

@@ -41,14 +41,14 @@ const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style, styleProps,
     // Extract field values using the new unified field structure
     const format = style.web_color_format?.content || 'hex';
     const swatchesPerRow = parseInt(style.web_color_picker_swatches_per_row?.content || '7');
-    const size = style.shared_size?.content || 'sm';
+    const size = style.size?.content || 'sm';
 
     // New field values
     const swatchesJson = style.web_color_picker_swatches?.content;        
     const saturationLabel = style.color_picker_saturation_label?.content || 'Saturation';
     const hueLabel = style.color_picker_hue_label?.content || 'Hue';
     const alphaLabel = style.color_picker_alpha_label?.content || 'Alpha';
-    const fullWidth = style.shared_full_width?.content === '1';
+    const fullWidth = style.full_width?.content === '1';
 
     // Form configuration fields (similar to ChipStyle)
     const label = style.label?.content;

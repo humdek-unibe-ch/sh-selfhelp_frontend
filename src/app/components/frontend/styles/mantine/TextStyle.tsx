@@ -38,13 +38,13 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) =
     const text = renderRichInline(style.text?.content ?? '');
 
     // Extract Mantine-specific props
-    const size = style.shared_size?.content || 'md';
-    const color = style.shared_color?.content;
+    const size = style.size?.content || 'md';
+    const color = style.color?.content;
     const fontWeight = style.web_text_font_weight?.content;
     const fontStyle = style.web_text_font_style?.content;
     const textDecoration = style.web_text_text_decoration?.content;
     const textTransform = style.web_text_text_transform?.content;
-    const textAlign = style.shared_text_align?.content;
+    const textAlign = style.text_align?.content;
     const variant = style.web_text_variant?.content || 'default';
     const truncate = style.web_text_truncate?.content == 'none' ? undefined : style.web_text_truncate?.content;
     const lineClampStr = style.web_text_line_clamp?.content;

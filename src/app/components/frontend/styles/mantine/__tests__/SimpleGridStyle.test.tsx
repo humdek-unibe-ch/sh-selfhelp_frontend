@@ -9,7 +9,7 @@ import SimpleGridStyle from '../SimpleGridStyle';
 
 /**
  * Regression for the 2026-06-22 layout cross-platform pass: simple-grid reads
- * the cross-platform `shared_cols` base count and applies `shared_width`/
+ * the cross-platform `cols` base count and applies `shared_width`/
  * `shared_height` to the grid container.
  */
 type SimpleGridField = ComponentProps<typeof SimpleGridStyle>['style'];
@@ -22,7 +22,7 @@ describe('SimpleGridStyle', () => {
         const { container } = renderWithProviders(
             <SimpleGridStyle
                 style={makeStyle({
-                    shared_cols: { content: '4' },
+                    cols: { content: '4' },
                     shared_width: { content: '50%' },
                     shared_height: { content: '300px' },
                 })}
@@ -40,7 +40,7 @@ describe('SimpleGridStyle', () => {
         const { container } = renderWithProviders(
             <SimpleGridStyle
                 style={makeStyle({
-                    shared_cols: { content: '2' },
+                    cols: { content: '2' },
                     web_cols_sm: { content: '1' },
                     web_cols_lg: { content: '4' },
                 })}

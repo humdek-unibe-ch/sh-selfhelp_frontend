@@ -34,7 +34,7 @@ const LinkStyle: React.FC<ILinkStyleProps> = ({ style, styleProps, cssClass }) =
     const label = style.label?.content;
     const url = style.url?.content;
     const openInNewTab = hasFieldValue(style, 'open_in_new_tab');
-    const color = style.shared_color?.content || undefined;
+    const color = style.color?.content || undefined;
     const underline = (style.web_link_underline?.content || 'hover') as 'always' | 'hover' | 'never';
     const leftIcon = style.web_left_icon?.content;
     const rightIcon = style.web_right_icon?.content;

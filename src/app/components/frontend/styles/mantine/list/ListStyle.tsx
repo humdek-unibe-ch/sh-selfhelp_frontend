@@ -35,7 +35,7 @@ const ListStyle: React.FC<IListStyleProps> = ({ style, styleProps, cssClass }) =
     const withPadding = style.web_list_with_padding?.content === '1';
     const center = style.web_list_center?.content === '1';
     const iconName = style.web_list_icon?.content;
-    const size = castMantineSize(style.shared_size?.content);
+    const size = castMantineSize(style.size?.content);
     const spacing = style.web_spacing?.content || 'md';
 
     // Handle CSS field - use direct property from API response

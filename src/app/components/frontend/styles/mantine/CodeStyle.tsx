@@ -29,8 +29,8 @@ interface ICodeStyleProps {
 const CodeStyle: React.FC<ICodeStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const codeBlock = style.code_block?.content === '1';
-    const color = style.shared_color?.content || undefined;
-    const radiusToken = style.shared_radius?.content;
+    const color = style.color?.content || undefined;
+    const radiusToken = style.radius?.content;
 
     // Build style object — map the shared radius token onto the block corners.
     const styleObj: React.CSSProperties = {};

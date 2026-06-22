@@ -72,8 +72,8 @@ function PropertyFieldList({ fields, dataVariables, keySuffix }: IFieldGroupProp
 }
 
 /**
- * Shared Properties — `shared`-scoped semantic fields (`shared_size`,
- * `shared_spacing`, `shared_radius`, `shared_intent`, …) that the shared mapper
+ * Shared Properties — `shared`-scoped semantic fields (`size`,
+ * `spacing`, `radius`, `shared_intent`, …) that the shared mapper
  * resolves for BOTH web and mobile renderers. Grouping is driven by the
  * backend-emitted field scope. Always shown when present.
  */

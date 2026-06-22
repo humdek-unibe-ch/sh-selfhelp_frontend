@@ -41,8 +41,8 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style, styleProps, c
          ALLOWED_TAGS: [],
        }) || "Pick a color";
     const format = style.web_color_format?.content || 'hex';
-    const size = style.shared_size?.content || 'sm';
-    const radius = style.shared_radius?.content || 'sm';
+    const size = style.size?.content || 'sm';
+    const radius = style.radius?.content || 'sm';
     const withEyeDropper = style.web_color_input_with_eye_dropper?.content !== '0';
     const disallowInput = style.web_color_input_disallow_input?.content === '1';
     const withPreview = style.web_color_input_with_preview?.content !== '0';

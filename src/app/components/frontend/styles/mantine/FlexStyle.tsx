@@ -33,11 +33,11 @@ const FlexStyle: React.FC<IFlexStyleProps> = ({ style, styleProps, cssClass }) =
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine Flex props
-    const gap = style.shared_gap?.content;
-    const justify = style.shared_justify?.content;
-    const align = style.shared_align?.content;
-    const direction = style.shared_direction?.content;
-    const wrap = style.shared_wrap?.content;
+    const gap = style.gap?.content;
+    const justify = style.justify?.content;
+    const align = style.align?.content;
+    const direction = style.direction?.content;
+    const wrap = style.wrap?.content;
     const width = style.shared_width?.content;
     const height = style.shared_height?.content;
 

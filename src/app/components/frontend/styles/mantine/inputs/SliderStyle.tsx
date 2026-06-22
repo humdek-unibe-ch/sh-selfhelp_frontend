@@ -59,9 +59,9 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style, styleProps, cssClass 
     const min = parseFloat(style.web_numeric_min?.content || '0');
     const max = parseFloat(style.web_numeric_max?.content || '100');
     const step = parseFloat(style.web_numeric_step?.content || '1');
-    const size = style.shared_size?.content || 'sm';
-    const color = style.shared_color?.content || 'blue';
-    const radius = style.shared_radius?.content || 'sm';
+    const size = style.size?.content || 'sm';
+    const color = style.color?.content || 'blue';
+    const radius = style.radius?.content || 'sm';
     const disabled = style.disabled?.content === '1';
     const required = style.web_slider_required?.content === '1';
     const thumbSize = parseFloat(style.web_slider_thumb_size?.content || '16');

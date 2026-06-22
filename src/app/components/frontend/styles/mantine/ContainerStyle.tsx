@@ -33,12 +33,12 @@ const ContainerStyle: React.FC<IContainerStyleProps> = ({ style, styleProps, css
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine Container props
-    const size = style.shared_size?.content;
+    const size = style.size?.content;
     const fluid = style.web_fluid?.content === '1';
 
     // Mantine Container doesn't support direct width/height props.
     // Size prop handles max-width responsively, fluid makes it 100%.
-    // Inner padding comes from the portable `shared_spacing` (pt/pb/ps/pe),
+    // Inner padding comes from the portable `spacing` (pt/pb/ps/pe),
     // which arrives through `styleProps` — there is no web-only px/py field.
     const styleObj: React.CSSProperties = {};
 

@@ -45,13 +45,13 @@ const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style, styleProps, css
     const processing = style.web_indicator_processing?.content === '1';
     const disabled = style.web_indicator_disabled?.content === '1';
     const size = parseInt(style.web_indicator_size?.content || '10');
-    const color = style.shared_color?.content || 'red';
+    const color = style.color?.content || 'red';
     const position = style.web_indicator_position?.content || 'top-end';
     const label = style.label?.content || '';
     const inline = style.web_indicator_inline?.content === '1';
     const offset = parseInt(style.web_indicator_offset?.content || '0');
     const withBorder = style.web_border?.content === '1';
-    const radius = style.shared_radius?.content || 'xl';
+    const radius = style.radius?.content || 'xl';
     // Handle CSS field - use direct property from API response
 
 

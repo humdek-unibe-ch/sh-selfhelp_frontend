@@ -141,8 +141,8 @@ const RatingStyle: React.FC<IRatingStyleProps> = ({ style, styleProps, cssClass 
     const count = useSmiles ? 5 : baseCount;
 
     // Extract Mantine styling field values
-    const size = castMantineSize(style.shared_size?.content);
-    const color = style.shared_color?.content || 'yellow';
+    const size = castMantineSize(style.size?.content);
+    const color = style.color?.content || 'yellow';
 
     // Calculate icon size from Mantine size for proper scaling
     const iconSize = getIconSizeFromMantineSize(size);

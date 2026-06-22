@@ -36,7 +36,7 @@ const HighlightStyle: React.FC<IHighlightStyleProps> = ({ style, styleProps, css
     // renderer, which also shows plain text plus the highlight mark.
     const content = stripHtmlTags(style.text?.content || 'Highlight some text in this content');
     const highlightText = style.highlight_highlight?.content || 'highlight';
-    const color = style.shared_color?.content || 'yellow';
+    const color = style.color?.content || 'yellow';
     // Handle CSS field - use direct property from API response
 
 

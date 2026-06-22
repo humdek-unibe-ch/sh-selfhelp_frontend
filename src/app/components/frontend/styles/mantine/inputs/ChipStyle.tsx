@@ -40,10 +40,10 @@ interface IChipStyleProps {
 const ChipStyle: React.FC<IChipStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const label = stripHtmlTags(style.label?.content || '') || 'Chip';
-    const variant = style.shared_chip_variant?.content || 'filled';
-    const size = style.shared_size?.content || 'sm';
-    const radius = style.shared_radius?.content || 'sm';
-    const color = style.shared_color?.content || 'blue';
+    const variant = style.chip_variant?.content || 'filled';
+    const size = style.size?.content || 'sm';
+    const radius = style.radius?.content || 'sm';
+    const color = style.color?.content || 'blue';
     const disabled = style.disabled?.content === '1';
 
     // Form configuration fields (similar to checkbox)

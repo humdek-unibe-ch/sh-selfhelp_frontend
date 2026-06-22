@@ -312,9 +312,9 @@ export interface IBaseStyle {
 }
 
 export interface IStyleWithSpacing extends IBaseStyle {
-    // Box-model spacing (margin + padding) is the portable `shared_spacing`
+    // Box-model spacing (margin + padding) is the portable `spacing`
     // field. RF-15 merged the legacy margin-only `web_spacing_margin` into it.
-    shared_spacing?: IContentField<string>;
+    spacing?: IContentField<string>;
 }
 
 // ===== Per-style interfaces — re-exported from shared =====

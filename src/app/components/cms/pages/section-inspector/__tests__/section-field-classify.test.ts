@@ -30,7 +30,7 @@ describe('classifySectionField (backend scope only)', () => {
     });
 
     it('classifies shared scope into the Shared card', () => {
-        expect(classifySectionField(f('shared_size', 'shared'))).toBe('shared');
+        expect(classifySectionField(f('size', 'shared'))).toBe('shared');
         expect(classifySectionField(f('shared_intent', 'shared'))).toBe('shared');
     });
 

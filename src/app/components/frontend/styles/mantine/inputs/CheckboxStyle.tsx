@@ -31,11 +31,11 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style, styleProps, cssCl
     const description = style.description?.content || '';
 
     // Mantine-specific fields
-    const size = castMantineSize(style.shared_size?.content);
-    const radius = castMantineRadius(style.shared_radius?.content);
-    const color = style.shared_color?.content;
+    const size = castMantineSize(style.size?.content);
+    const radius = castMantineRadius(style.radius?.content);
+    const color = style.color?.content;
     const iconName = style.web_checkbox_icon?.content;
-    const labelPosition = style.shared_label_position?.content as 'left' | 'right';
+    const labelPosition = style.label_position?.content as 'left' | 'right';
     const useInputWrapper = style.web_use_input_wrapper?.content === '1';
 
     // Handle CSS field - use direct property from API response

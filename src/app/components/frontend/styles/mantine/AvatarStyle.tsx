@@ -37,9 +37,9 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
     const name = style.name?.content?.trim();
     const customInitials = style.web_avatar_initials?.content || 'U';
     const variant = style.web_variant?.content || 'light';
-    const size = style.shared_size?.content || 'md';
-    const radius = style.shared_radius?.content || '50%';
-    const color = style.shared_color?.content || 'blue';
+    const size = style.size?.content || 'md';
+    const radius = style.radius?.content || '50%';
+    const color = style.color?.content || 'blue';
     // Handle CSS field - use direct property from API response
     
 

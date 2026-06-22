@@ -37,14 +37,14 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
     const disabled = style.disabled?.content === '1';
     const leftIconName = style.web_left_icon?.content;
     const rightIconName = style.web_right_icon?.content;
-    const autosize = style.shared_autosize?.content === '1';
-    const minRows = parseInt(style.shared_min_rows?.content || '3');
-    const maxRows = parseInt(style.shared_max_rows?.content || '8');
+    const autosize = style.autosize?.content === '1';
+    const minRows = parseInt(style.min_rows?.content || '3');
+    const maxRows = parseInt(style.max_rows?.content || '8');
     const resize = style.web_textarea_resize?.content as 'none' | 'vertical' | 'both';
-    const size = castMantineSize(style.shared_size?.content);
-    const radius = castMantineRadius(style.shared_radius?.content);
+    const size = castMantineSize(style.size?.content);
+    const radius = castMantineRadius(style.radius?.content);
     const variant = style.web_textarea_variant?.content;
-    const maxLengthRaw = style.shared_max_length?.content;
+    const maxLengthRaw = style.max_length?.content;
     const maxLength = maxLengthRaw ? parseInt(maxLengthRaw, 10) : undefined;
 
     // Get form context for pre-populated values

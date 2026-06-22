@@ -4,13 +4,13 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import BasicStyle from './BasicStyle';
-import { Button, Alert, LoadingOverlay, Group } from '@mantine/core';
+import { Button, Alert, LoadingOverlay, Group, Modal, Stack, Text, Title } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
 import { type IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
 import { type IFormLogStyle, type IFormRecordStyle } from '../../../../types/common/styles.types';
-import { sanitizeHtmlForInline } from '../../../../utils/html-sanitizer.utils';
+import { sanitizeHtmlForInline, stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 import parse from 'html-react-parser';
 
 /** A single translatable value entry for a record-form field. */
@@ -48,27 +48,39 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [confirmOpen, setConfirmOpen] = useState(false);
     const formRef = useRef<HTMLFormElement | null>(null);
     const fileInputRefs = useRef<Map<string, IFileInputStyleRef>>(new Map());
     const hasInitializedForm = useRef<boolean>(false);
+    const confirmedRef = useRef<boolean>(false);
 
     // Extract form configuration from style
-    const _name = style.name?.content || 'default_form';    const alertSuccess = style.alert_success?.content;
+    const _name = style.name?.content || 'default_form';
+    const recordStyle = style as IFormRecordStyle;
+    const formTitle = style.title?.content;
+    const formDescription = style.description?.content;
+    const alertSuccess = style.alert_success?.content;
     const alertError = style.alert_error?.content;
+    const alertSuccessTitle = style.alert_success_title?.content || 'Success';
+    const alertErrorTitle = style.alert_error_title?.content || 'Error';
+    const confirmSubmit = style.confirm_submit?.content === '1';
+    const confirmMessage = style.confirm_message?.content || 'Are you sure you want to submit?';
 
-    // Extract button configuration
+    // Extract button configuration (btn_update_label/btn_update_color are record-only)
     const saveLabel = style.btn_save_label?.content || 'Save';
-    const updateLabel = style.btn_save_label?.content || 'Update'; // Use same label for update
+    const updateLabel = recordStyle.btn_update_label?.content || saveLabel || 'Update';
     const cancelLabel = style.btn_cancel_label?.content;
     const cancelUrl = style.btn_cancel_url?.content;
 
     // Extract button styling
-    const buttonSize = style.shared_buttons_size?.content || 'sm';
-    const buttonRadius = style.shared_buttons_radius?.content || 'sm';
-    const buttonVariant = style.shared_buttons_variant?.content || 'filled';
-    const buttonPosition = style.shared_buttons_position?.content || 'space-between';    const saveColor = style.shared_btn_save_color?.content || 'blue';
-    const updateColor = style.shared_btn_save_color?.content || 'green'; // Use same color for update
-    const cancelColor = style.shared_btn_cancel_color?.content || 'gray';
+    const buttonSize = style.buttons_size?.content || 'sm';
+    const buttonRadius = style.buttons_radius?.content || 'sm';
+    const buttonVariant = style.buttons_variant?.content || 'filled';
+    const buttonPosition = style.buttons_position?.content || 'space-between';
+    const buttonsOrder = style.buttons_order?.content || 'save-cancel';
+    const saveColor = style.btn_save_color?.content || 'blue';
+    const updateColor = recordStyle.btn_update_color?.content || saveColor || 'orange';
+    const cancelColor = style.btn_cancel_color?.content || 'gray';
     
     // Get form ID from style - now directly available as number
 
@@ -215,7 +227,15 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
+        // Optional confirm-before-submit gate. When enabled, the first submit opens
+        // the dialog; confirming sets confirmedRef and re-requests the form submit.
+        if (confirmSubmit && !confirmedRef.current) {
+            setConfirmOpen(true);
+            return;
+        }
+        confirmedRef.current = false;
+
         const formElement = e.target as HTMLFormElement;
         
         // Validate form
@@ -384,6 +404,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
         existingRecordId,
         alertSuccess,
         alertError,
+        confirmSubmit,
         submitFormMutation,
         updateFormMutation,
         collectFilesFromInputs
@@ -400,7 +421,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
 
     // Helper function to render buttons in correct order
     const renderButtons = useCallback(() => {
-        const cancelButton = (cancelUrl) && (
+        const cancelButton = (cancelLabel || cancelUrl) ? (
             <Button
                 key="cancel"
                 type="button"
@@ -411,9 +432,9 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                 color={cancelColor}
                 disabled={isSubmitting}
             >
-                {cancelLabel}
+                {cancelLabel || 'Cancel'}
             </Button>
-        );
+        ) : null;
 
         const saveButton = (
             <Button
@@ -430,12 +451,15 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             </Button>
         );
 
-        // Return buttons in the specified order (always cancel-save)
-        return [cancelButton, saveButton].filter(Boolean);
+        // Honour buttons_order ('save-cancel' = primary first, the default).
+        const ordered = buttonsOrder === 'cancel-save'
+            ? [cancelButton, saveButton]
+            : [saveButton, cancelButton];
+        return ordered.filter(Boolean);
     }, [
         buttonSize, buttonRadius, buttonVariant, cancelColor, saveColor, updateColor,
         isSubmitting, pageId, isRecord, existingRecordId, handleCancel, cancelLabel, cancelUrl,
-        updateLabel, saveLabel
+        updateLabel, saveLabel, buttonsOrder
     ]);
 
     // Function to get field value from existing form data
@@ -462,6 +486,9 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
 
                     const field = form.querySelector(`[name="${fieldName}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
                     if (field && value !== null && value !== undefined) {
+                        // File inputs reject programmatic value assignment (browsers only
+                        // allow setting them to ''), so skip pre-filling them.
+                        if (field instanceof HTMLInputElement && field.type === 'file') return;
                         field.value = String(value);
                         const event = new Event('change', { bubbles: true });
                         field.dispatchEvent(event);
@@ -488,11 +515,18 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     return (
         <div style={{ position: 'relative' }} className={cssClass}>
             <LoadingOverlay visible={isSubmitting} />
-            
+
+            {(formTitle || formDescription) && (
+                <Stack gap={4} mb="md">
+                    {formTitle && <Title order={3}>{parse(sanitizeHtmlForInline(formTitle))}</Title>}
+                    {formDescription && <Text c="dimmed">{parse(sanitizeHtmlForInline(formDescription))}</Text>}
+                </Stack>
+            )}
+
             {submitSuccess && alertSuccess && (
                 <Alert 
                     icon={<IconCheck size={16} />} 
-                    title="Success" 
+                    title={alertSuccessTitle} 
                     color="green" 
                     mb="md"
                     onClose={() => setSubmitSuccess(false)}
@@ -505,7 +539,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             {submitError && (
                 <Alert 
                     icon={<IconAlertCircle size={16} />} 
-                    title="Error" 
+                    title={alertErrorTitle} 
                     color="red" 
                     mb="md"
                     onClose={() => setSubmitError(null)}
@@ -551,6 +585,33 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                     </FormFieldValueContext.Provider>
                 </FileInputRegistrationContext.Provider>
             </form>
+
+            <Modal
+                opened={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                centered
+                size="sm"
+                title={formTitle ? parse(sanitizeHtmlForInline(formTitle)) : undefined}
+            >
+                <Stack gap="md">
+                    <Text>{stripHtmlTags(confirmMessage)}</Text>
+                    <Group justify="flex-end">
+                        <Button variant="default" onClick={() => setConfirmOpen(false)}>
+                            {cancelLabel || 'Cancel'}
+                        </Button>
+                        <Button
+                            color={isRecord && existingRecordId ? updateColor : saveColor}
+                            onClick={() => {
+                                confirmedRef.current = true;
+                                setConfirmOpen(false);
+                                formRef.current?.requestSubmit();
+                            }}
+                        >
+                            {parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
+                        </Button>
+                    </Group>
+                </Stack>
+            </Modal>
         </div>
     );
 };

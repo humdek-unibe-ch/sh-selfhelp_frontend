@@ -34,9 +34,9 @@ const GroupStyle: React.FC<IGroupStyleProps> = ({ style, styleProps, cssClass })
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine Group props
-    const gap = style.shared_gap?.content;
-    const justify = style.shared_justify?.content;
-    const align = style.shared_align?.content;
+    const gap = style.gap?.content;
+    const justify = style.justify?.content;
+    const align = style.align?.content;
     const wrap = style.web_group_wrap?.content === '1';
     const grow = style.web_group_grow?.content === '1';
     const width = style.shared_width?.content;

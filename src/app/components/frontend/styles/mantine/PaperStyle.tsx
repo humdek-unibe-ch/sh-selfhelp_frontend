@@ -33,8 +33,8 @@ const PaperStyle: React.FC<IPaperStyleProps> = ({ style, styleProps, cssClass })
 
     // Extract Mantine-specific props
     const shadow = style.web_paper_shadow?.content || 'sm';
-    const radius = castMantineRadius(style.shared_radius?.content);
-    const withBorder = style.shared_border?.content === '1';
+    const radius = castMantineRadius(style.radius?.content);
+    const withBorder = style.border?.content === '1';
 
     // Optional auto-styled heading: rendered only when filled (empty = a plain
     // surface). Never replaces manual composition and never creates a section.
@@ -49,7 +49,7 @@ const PaperStyle: React.FC<IPaperStyleProps> = ({ style, styleProps, cssClass })
             shadow={shadow === 'none' ? undefined : shadow as 'xs' | 'sm' | 'md' | 'lg' | 'xl'}
             radius={radius === 'none' ? 0 : radius}
             // Fixed inner padding default; authors tune it via the portable
-            // `shared_spacing` field (pt/pb/ps/pe) which arrives in `styleProps`.
+            // `spacing` field (pt/pb/ps/pe) which arrives in `styleProps`.
             // There is no web-only px/py field anymore.
             p="md"
             withBorder={withBorder}

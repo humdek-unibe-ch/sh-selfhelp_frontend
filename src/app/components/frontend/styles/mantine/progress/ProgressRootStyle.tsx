@@ -30,8 +30,8 @@ interface IProgressRootStyleProps {
  */
 const ProgressRootStyle: React.FC<IProgressRootStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const size = castMantineSize(style.shared_size?.content);
-    const radius = castMantineRadius(style.shared_radius?.content);
+    const size = castMantineSize(style.size?.content);
+    const radius = castMantineRadius(style.radius?.content);
     const autoContrast = style.web_progress_auto_contrast?.content === '1';
 
     // Handle CSS field - use direct property from API response

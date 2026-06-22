@@ -34,10 +34,10 @@ const TitleStyle: React.FC<ITitleStyleProps> = ({ style, styleProps, cssClass })
          ALLOWED_TAGS: [],
        }) || 'Title';
     const order = Number(style.title_order?.content) as 1 | 2 | 3 | 4 | 5 | 6 || 1
-    const size = style.shared_size?.content || 'lg';
-    const color = style.shared_color?.content || undefined;
+    const size = style.size?.content || 'lg';
+    const color = style.color?.content || undefined;
     const textWrap = style.web_title_text_wrap?.content as 'wrap' | 'balance' | 'nowrap' | undefined;
-    const lineClamp = style.shared_line_clamp?.content;
+    const lineClamp = style.line_clamp?.content;
 
     // Handle CSS field - use direct property from API response
     

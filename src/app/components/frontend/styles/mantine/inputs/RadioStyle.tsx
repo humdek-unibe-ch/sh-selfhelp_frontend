@@ -61,9 +61,9 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
     const name = style.name?.content;
     const value = style.value?.content;
     const description = style.description?.content || '';
-    const orientation = style.shared_orientation?.content || 'vertical';
-    const size = castMantineSize(style.shared_size?.content);
-    const color = style.shared_color?.content || 'blue';
+    const orientation = style.orientation?.content || 'vertical';
+    const size = castMantineSize(style.size?.content);
+    const color = style.color?.content || 'blue';
     const required = style.is_required?.content === '1';
     const disabled = style.disabled?.content === '1';
     // New fields

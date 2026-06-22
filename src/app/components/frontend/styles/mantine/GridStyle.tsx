@@ -28,10 +28,10 @@ const GridStyle: React.FC<IGridStyleProps> = ({ style, cssClass }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values with defaults
-    const cols = parseInt(style.shared_cols?.content || '12');
-    const gap = style.shared_gap?.content || 'md';
-    const justify = style.shared_justify?.content;
-    const align = style.shared_align?.content;
+    const cols = parseInt(style.cols?.content || '12');
+    const gap = style.gap?.content || 'md';
+    const justify = style.justify?.content;
+    const align = style.align?.content;
     const overflow = style.web_grid_overflow?.content || 'visible';
     const width = style.shared_width?.content;
     const height = style.shared_height?.content;

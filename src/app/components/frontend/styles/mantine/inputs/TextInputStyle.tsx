@@ -37,10 +37,10 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
     const translatable = style.translatable?.content === '1';
     const leftIconName = style.web_left_icon?.content;
     const rightIconName = style.web_right_icon?.content;
-    const size = castMantineSize(style.shared_size?.content);
-    const radius = castMantineRadius(style.shared_radius?.content);
+    const size = castMantineSize(style.size?.content);
+    const radius = castMantineRadius(style.radius?.content);
     const variant = style.web_text_input_variant?.content;
-    const maxLengthRaw = style.shared_max_length?.content;
+    const maxLengthRaw = style.max_length?.content;
     const maxLength = maxLengthRaw ? parseInt(maxLengthRaw, 10) : undefined;
 
     // Get form context for pre-populated values

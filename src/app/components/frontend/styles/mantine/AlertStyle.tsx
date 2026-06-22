@@ -40,8 +40,8 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style, styleProps, cssClass })
             : null;
     const title = style.alert_title?.content;
     const variant = style.web_variant?.content || 'light';
-    const color = style.shared_color?.content || 'blue';
-    const radius = castMantineRadius(style.shared_radius?.content);
+    const color = style.color?.content || 'blue';
+    const radius = castMantineRadius(style.radius?.content);
     const withCloseButton = style.closable?.content === '1';
     const iconName = style.web_left_icon?.content;
 

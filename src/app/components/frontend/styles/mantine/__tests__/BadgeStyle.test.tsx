@@ -10,7 +10,7 @@ import BadgeStyle from '../BadgeStyle';
 
 /**
  * Regression for the 2026-06-19 polish wave: the badge variant is now the
- * cross-platform `shared_variant` (with `web_variant` as an optional web-only
+ * cross-platform `variant` (with `web_variant` as an optional web-only
  * override), plus a `circle` toggle for round count chips.
  */
 type BadgeStyleField = ComponentProps<typeof BadgeStyle>['style'];
@@ -26,10 +26,10 @@ describe('BadgeStyle', () => {
         expect(screen.getByText('New')).toBeInTheDocument();
     });
 
-    it('applies the cross-platform shared_variant', () => {
+    it('applies the cross-platform variant', () => {
         renderWithProviders(
             <BadgeStyle
-                style={makeStyle({ label: { content: 'Outline' }, shared_variant: { content: 'outline' } })}
+                style={makeStyle({ label: { content: 'Outline' }, variant: { content: 'outline' } })}
                 styleProps={{}}
                 cssClass="section-2"
             />,
@@ -37,12 +37,12 @@ describe('BadgeStyle', () => {
         expect(screen.getByText('Outline').closest('.mantine-Badge-root')).toHaveAttribute('data-variant', 'outline');
     });
 
-    it('lets the web_variant override the shared_variant on web', () => {
+    it('lets the web_variant override the variant on web', () => {
         renderWithProviders(
             <BadgeStyle
                 style={makeStyle({
                     label: { content: 'Override' },
-                    shared_variant: { content: 'filled' },
+                    variant: { content: 'filled' },
                     web_variant: { content: 'light' },
                 })}
                 styleProps={{}}

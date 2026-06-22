@@ -37,9 +37,9 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style, styleProps, cssClass 
     const description = style.description?.content || '';
     const onLabel = style.switch_on_label?.content || 'On';
     const offLabel = style.switch_off_label?.content || 'Off';
-    const size = castMantineSize(style.shared_size?.content);
-    const color = style.shared_color?.content || 'blue';
-    const radius = castMantineSize(style.shared_radius?.content);
+    const size = castMantineSize(style.size?.content);
+    const color = style.color?.content || 'blue';
+    const radius = castMantineSize(style.radius?.content);
     const disabled = style.disabled?.content === '1';
     const name = style.name?.content;
     const value = style.value?.content;

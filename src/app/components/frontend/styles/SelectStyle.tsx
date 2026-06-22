@@ -37,8 +37,8 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
     const maxValues = style.max?.content ? parseInt(style.max.content) : undefined;
     // RF-17: author-configurable (was hardcoded). Default preserves prior
     // behaviour — searchable on, clearable only when the field is not required.
-    const searchable = style.shared_searchable?.content !== '0';
-    const clearable = style.shared_clearable?.content ? style.shared_clearable.content === '1' : !required;
+    const searchable = style.searchable?.content !== '0';
+    const clearable = style.clearable?.content ? style.clearable.content === '1' : !required;
 
     // Convert options into Mantine format. Parsing happens inside the memo so the
     // derived `data` only changes when the raw options string changes (the

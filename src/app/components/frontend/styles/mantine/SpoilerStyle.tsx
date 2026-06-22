@@ -35,7 +35,7 @@ const SpoilerStyle: React.FC<ISpoilerStyleProps> = ({ style, styleProps, cssClas
     const maxHeight = parseInt(style.web_height?.content || '100', 10) || 100;
     const showLabel = style.spoiler_show_label?.content || 'Show more';
     const hideLabel = style.spoiler_hide_label?.content || 'Hide';
-    const color = style.shared_color?.content || undefined;
+    const color = style.color?.content || undefined;
 
     // Build style object
     const styleObj: React.CSSProperties = {};

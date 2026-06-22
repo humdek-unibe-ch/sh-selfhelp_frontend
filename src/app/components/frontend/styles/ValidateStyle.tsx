@@ -97,18 +97,18 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     const cancelLabel = style.label_cancel?.content || 'Cancel';
 
     // Button styling
-    const buttonSize = style.shared_buttons_size?.content || 'sm';
-    const buttonRadius = style.shared_buttons_radius?.content || 'sm';
-    const buttonVariant = style.shared_buttons_variant?.content || 'filled';
-    const buttonPosition = style.shared_buttons_position?.content || 'space-between';
-    const buttonOrder = style.shared_buttons_order?.content || 'save-cancel';
-    const activateColor = style.shared_btn_save_color?.content || 'blue';
-    const cancelColor = style.shared_btn_cancel_color?.content || 'gray';
+    const buttonSize = style.buttons_size?.content || 'sm';
+    const buttonRadius = style.buttons_radius?.content || 'sm';
+    const buttonVariant = style.buttons_variant?.content || 'filled';
+    const buttonPosition = style.buttons_position?.content || 'space-between';
+    const buttonOrder = style.buttons_order?.content || 'save-cancel';
+    const activateColor = style.btn_save_color?.content || 'blue';
+    const cancelColor = style.btn_cancel_color?.content || 'gray';
 
     // Card styling
     const cardShadow = style.web_card_shadow?.content || 'sm';
     const cardPadding = style.web_card_padding?.content || 'lg';
-    const cardRadius = style.shared_radius?.content || 'sm';
+    const cardRadius = style.radius?.content || 'sm';
     const withBorder = style.web_border?.content === '1';
 
     // Get form ID from style - now directly available as number

@@ -30,7 +30,7 @@ interface IProgressSectionStyleProps {
 const ProgressSectionStyle: React.FC<IProgressSectionStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const value = parseFloat(style.value?.content || '0');
-    const color = style.shared_color?.content || 'blue';
+    const color = style.color?.content || 'blue';
     const striped = style.web_progress_striped?.content === '1';
     const animated = style.web_progress_animated?.content === '1';
     const label = style.label?.content;

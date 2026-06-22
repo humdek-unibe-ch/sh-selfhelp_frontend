@@ -33,7 +33,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const alertFail = style.alert_fail?.content || 'Invalid email or password.';
     const loginTitle = style.login_title?.content || 'Welcome back!';
     const subtitle = style.subtitle?.content?.trim();
-    const mantineColor = style.shared_color?.content || 'blue';
+    const mantineColor = style.color?.content || 'blue';
 
     const handleSubmit = async (e: { preventDefault(): void }) => {
         e.preventDefault();
@@ -118,7 +118,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                         {labelLogin}
                     </Button>
 
-                    {/* Aux links share the configurable `shared_color` with the
+                    {/* Aux links share the configurable `color` with the
                         submit button so the accent stays consistent (mirrors the
                         mobile login, which colours its links from the same field). */}
                     <Anchor

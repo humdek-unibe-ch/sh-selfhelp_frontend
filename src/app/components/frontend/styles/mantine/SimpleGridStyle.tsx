@@ -28,11 +28,11 @@ const toCol = (raw: string | undefined): number | undefined => {
 /**
  * SimpleGridStyle renders a Mantine SimpleGrid (equal-width responsive columns).
  *
- * Columns are cross-platform: `shared_cols` is the base column count (read on
+ * Columns are cross-platform: `cols` is the base column count (read on
  * web AND mobile). The web-only `web_cols_sm`/`web_cols_md`/`web_cols_lg` add
  * responsive overrides per Mantine breakpoint; when none are set a plain number
- * is passed. Horizontal spacing is `shared_gap`, row spacing is
- * `shared_vertical_spacing`.
+ * is passed. Horizontal spacing is `gap`, row spacing is
+ * `vertical_spacing`.
  *
  * @component
  * @param {ISimpleGridStyleProps} props - Component props
@@ -41,12 +41,12 @@ const toCol = (raw: string | undefined): number | undefined => {
 const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style, styleProps, cssClass }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
-    const baseCols = toCol(style.shared_cols?.content) ?? 3;
+    const baseCols = toCol(style.cols?.content) ?? 3;
     const sm = toCol(style.web_cols_sm?.content);
     const md = toCol(style.web_cols_md?.content);
     const lg = toCol(style.web_cols_lg?.content);
-    const gap = style.shared_gap?.content;
-    const verticalSpacing = style.shared_vertical_spacing?.content;
+    const gap = style.gap?.content;
+    const verticalSpacing = style.vertical_spacing?.content;
     const width = style.shared_width?.content;
     const height = style.shared_height?.content;
 

@@ -36,7 +36,7 @@ const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style, styleProps, cssCl
     const bulletSize = parseInt(style.web_timeline_bullet_size?.content || '24');
     const lineWidth = parseInt(style.web_timeline_line_width?.content || '2');
     const active = parseInt(style.web_timeline_active?.content || '0');
-    const color = style.shared_color?.content || 'blue';
+    const color = style.color?.content || 'blue';
 
     // Use the validated color from CMS
     const align = style.web_timeline_align?.content || 'left';
@@ -66,14 +66,14 @@ const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style, styleProps, cssCl
                     title?: { content?: string };
                     web_timeline_item_bullet?: { content?: string };
                     web_timeline_item_line_variant?: { content?: string };
-                    shared_color?: { content?: string };
+                    color?: { content?: string };
                 };
 
                 // Extract timeline item fields
                 const title = item.title?.content;
                 const bulletIconName = item.web_timeline_item_bullet?.content;
                 const lineVariant = item.web_timeline_item_line_variant?.content || 'solid';
-                const itemColor = item.shared_color?.content;
+                const itemColor = item.color?.content;
 
                 // Determine if this item should inherit parent's color or use its own
                 // If the item index is within the parent's active range, use parent color

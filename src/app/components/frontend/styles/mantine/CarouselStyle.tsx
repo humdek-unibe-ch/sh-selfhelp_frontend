@@ -46,7 +46,7 @@ const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style, styleProps, cssCl
         ? `${rawSlideSize}%`
         : rawSlideSize;
     const slideGap = style.web_carousel_slide_gap?.content;
-    const orientation = style.shared_orientation?.content as 'horizontal' | 'vertical';
+    const orientation = style.orientation?.content as 'horizontal' | 'vertical';
     const withControls = style.has_controls?.content === '1';
     const withIndicators = style.has_indicators?.content === '1';
     const controlSize = style.web_control_size?.content;

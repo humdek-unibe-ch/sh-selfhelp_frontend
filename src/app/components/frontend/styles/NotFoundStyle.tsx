@@ -29,10 +29,10 @@ const NotFoundStyle: React.FC<INotFoundStyleProps> = ({ style, styleProps, cssCl
     const message = style.message?.content || 'The page you are looking for does not exist or has been moved.';
     const buttonLabel = stripHtmlTags(style.button_label?.content || 'Back to home');
     const loginLabel = stripHtmlTags(style.login_label?.content || 'Sign in');
-    const color = style.shared_color?.content || 'gray';
-    const radius = style.shared_radius?.content || 'md';
+    const color = style.color?.content || 'gray';
+    const radius = style.radius?.content || 'md';
     const shadow = style.web_shadow?.content || undefined;
-    const buttonVariant = style.shared_variant?.content || (isAuthenticated ? 'filled' : 'light');
+    const buttonVariant = style.variant?.content || (isAuthenticated ? 'filled' : 'light');
     const showIcon = style.show_icon?.content !== '0';
 
     return (

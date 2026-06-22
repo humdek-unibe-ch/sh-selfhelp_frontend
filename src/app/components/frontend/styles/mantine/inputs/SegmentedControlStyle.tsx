@@ -31,10 +31,10 @@ interface ISegmentedControlStyleProps {
  */
 const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const orientation = style.shared_orientation?.content || 'horizontal';
-    const size = style.shared_size?.content || 'sm';
-    const radius = style.shared_radius?.content || 'sm';
-    const color = style.shared_color?.content || 'blue';
+    const orientation = style.orientation?.content || 'horizontal';
+    const size = style.size?.content || 'sm';
+    const radius = style.radius?.content || 'sm';
+    const color = style.color?.content || 'blue';
     const fullWidth = style.fullwidth?.content === '1';
     const disabled = style.disabled?.content === '1';
     const readonly = style.readonly?.content === '1';

@@ -34,12 +34,12 @@ const NotificationStyle: React.FC<INotificationStyleProps> = ({ style, styleProp
     // Extract field values using the new unified field structure
     const title = style.title?.content;
     const message = style.content?.content || 'Notification message';
-    const color = style.shared_color?.content || 'blue';
+    const color = style.color?.content || 'blue';
     const loading = style.web_notification_loading?.content === '1';
-    const withCloseButton = style.web_notification_with_close_button?.content === '1';
+    const withCloseButton = style.with_close_button?.content === '1';
     const withBorder = style.web_border?.content === '1';
-    const radius = style.shared_radius?.content || 'sm';
-    const selectedIcon = style.web_left_icon?.content;
+    const radius = style.radius?.content || 'sm';
+    const selectedIcon = style.shared_icon?.content;
 
     // Handler for closing the notification
     const handleClose = () => {

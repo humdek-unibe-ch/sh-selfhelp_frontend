@@ -30,9 +30,9 @@ interface IProgressStyleProps {
 const ProgressStyle: React.FC<IProgressStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const value = parseFloat(style.value?.content || '0');
-    const color = style.shared_color?.content || 'blue';
-    const radius = castMantineRadius(style.shared_radius?.content);
-    const size = castMantineSize(style.shared_size?.content);
+    const color = style.color?.content || 'blue';
+    const radius = castMantineRadius(style.radius?.content);
+    const size = castMantineSize(style.size?.content);
     const striped = style.web_progress_striped?.content === '1';
     const animated = style.web_progress_animated?.content === '1';
     const transitionDuration = parseInt(style.web_progress_transition_duration?.content || '200');

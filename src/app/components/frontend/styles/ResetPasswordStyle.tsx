@@ -70,7 +70,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     const { userId, token } = extractResetTarget(params?.slug as string | string[] | undefined);
     const isSetMode = userId > 0 && token !== '';
 
-    const mantineColor = ((style as { shared_color?: { content?: string } }).shared_color?.content as string | undefined) || 'blue';
+    const mantineColor = ((style as { color?: { content?: string } }).color?.content as string | undefined) || 'blue';
     const labelPwReset = style.label_pw_reset?.content || 'Send reset link';
     const alertSuccess = style.alert_success?.content
         || 'If an account exists for that email, a reset link is on its way. Check your inbox (and your spam folder).';

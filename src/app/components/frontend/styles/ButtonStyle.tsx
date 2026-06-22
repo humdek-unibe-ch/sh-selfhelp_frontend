@@ -36,11 +36,11 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass 
     const label = style.label?.content;
     // Internal page link takes precedence over the external URL.
     const url = style.page_keyword?.content || style.url?.content;
-    const variant = style.shared_variant?.content;
-    const color = style.shared_color?.content;
-    const size = style.shared_size?.content;
-    const radius = style.shared_radius?.content;
-    const fullWidth = style.shared_full_width?.content;
+    const variant = style.variant?.content;
+    const color = style.color?.content;
+    const size = style.size?.content;
+    const radius = style.radius?.content;
+    const fullWidth = style.full_width?.content;
     const leftIconName = style.web_left_icon?.content;
     const rightIconName = style.web_right_icon?.content;
     const compact = style.web_compact?.content;

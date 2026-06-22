@@ -11,7 +11,7 @@ import PaperStyle from '../PaperStyle';
 /**
  * Regression for the 2026-06-22 layout cross-platform pass: paper gained an
  * optional auto-styled `title` (HTML-stripped, rendered only when filled) and
- * uses the cross-platform `shared_border` toggle.
+ * uses the cross-platform `border` toggle.
  */
 type PaperStyleField = ComponentProps<typeof PaperStyle>['style'];
 
@@ -43,10 +43,10 @@ describe('PaperStyle', () => {
         expect(heading.textContent).toBe('Surface heading');
     });
 
-    it('applies the cross-platform shared_border', () => {
+    it('applies the cross-platform border', () => {
         const { container } = renderWithProviders(
             <PaperStyle
-                style={makeStyle({ shared_border: { content: '1' } })}
+                style={makeStyle({ border: { content: '1' } })}
                 styleProps={{}}
                 cssClass="section-3"
             />,

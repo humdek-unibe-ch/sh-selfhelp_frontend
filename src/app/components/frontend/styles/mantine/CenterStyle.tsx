@@ -37,10 +37,10 @@ const CenterStyle: React.FC<ICenterStyleProps> = ({ style, styleProps, cssClass 
     const inline = style.web_center_inline?.content === '1';
     const width = style.shared_width?.content;
     const height = style.shared_height?.content;
-    const minWidth = style.shared_miw?.content;
-    const minHeight = style.shared_mih?.content;
-    const maxWidth = style.shared_maw?.content;
-    const maxHeight = style.shared_mah?.content;
+    const minWidth = style.miw?.content;
+    const minHeight = style.mih?.content;
+    const maxWidth = style.maw?.content;
+    const maxHeight = style.mah?.content;
 
     // Handle CSS field - use direct property from API response
     

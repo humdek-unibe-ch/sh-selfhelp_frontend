@@ -35,9 +35,9 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style, styleProps, c
     // Extract field values using the new unified field structure
     const variant = style.web_variant?.content || 'subtle';
     const loading = style.web_action_icon_loading?.content === '1';
-    const size = castMantineSize(style.shared_size?.content);
-    const radius = castMantineRadius(style.shared_radius?.content);
-    const color = style.shared_color?.content || 'blue';
+    const size = castMantineSize(style.size?.content);
+    const radius = castMantineRadius(style.radius?.content);
+    const color = style.color?.content || 'blue';
     const disabled = style.disabled?.content === '1';
     // New fields for icon and link functionality
     const iconName = style.web_left_icon?.content;

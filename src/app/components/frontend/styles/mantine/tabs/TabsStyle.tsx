@@ -33,7 +33,7 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style, cssClass }) => {
     const variant = style.web_tabs_variant?.content || 'default';
     const orientation = style.web_tabs_orientation?.content || 'horizontal';
     const radius = style.web_tabs_radius?.content || 'sm';
-    const color = style.shared_color?.content || 'blue';
+    const color = style.color?.content || 'blue';
     const grow = style.web_tabs_grow?.content === '1';
     const justify = style.web_tabs_justify?.content || undefined;
     const keepMounted = style.web_tabs_keep_mounted?.content !== '0';

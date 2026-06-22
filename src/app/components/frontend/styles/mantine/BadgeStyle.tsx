@@ -34,11 +34,11 @@ const BadgeStyle: React.FC<IBadgeStyleProps> = ({ style, styleProps, cssClass })
     // plain-text leaf slot, so strip any HTML the label may carry (e.g. markdown
     // processed to `<p class="…">…</p>`) instead of rendering literal tags.
     const label = stripHtmlTags(style.label?.content || 'Badge');
-    // Web-only `web_variant` overrides the cross-platform `shared_variant`.
-    const variant = style.web_variant?.content || style.shared_variant?.content || 'filled';
-    const size = castMantineSize(style.shared_size?.content);
-    const radius = castMantineRadius(style.shared_radius?.content);
-    const color = style.shared_color?.content || 'blue';
+    // Web-only `web_variant` overrides the cross-platform `variant`.
+    const variant = style.web_variant?.content || style.variant?.content || 'filled';
+    const size = castMantineSize(style.size?.content);
+    const radius = castMantineRadius(style.radius?.content);
+    const color = style.color?.content || 'blue';
     const circle = style.circle?.content === '1';
     const leftIconName = style.web_left_icon?.content;
     const rightIconName = style.web_right_icon?.content;

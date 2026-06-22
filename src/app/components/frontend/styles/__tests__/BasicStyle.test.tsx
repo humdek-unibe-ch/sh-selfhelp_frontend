@@ -108,7 +108,7 @@ describe('BasicStyle getCssClass', () => {
 
 describe('BasicStyle getSpacingProps', () => {
     const withSpacing = (content: string): SpacingArg =>
-        ({ id: 3, style_name: 'box', shared_spacing: { content } }) as unknown as SpacingArg;
+        ({ id: 3, style_name: 'box', spacing: { content } }) as unknown as SpacingArg;
 
     it('parses a JSON spacing object into Mantine spacing props', () => {
         expect(getSpacingProps(withSpacing('{"mt":"md","pb":"lg"}'))).toEqual({ mt: 'md', pb: 'lg' });

@@ -49,7 +49,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
     const labelSubmit = style.label_submit?.content || 'Register';
     const alertFail = style.alert_fail?.content || 'Invalid email or validation code.';
     const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for activation link.';
-    const mantineColor = ((style as { shared_color?: { content?: string } }).shared_color?.content as string | undefined) || 'blue';
+    const mantineColor = ((style as { color?: { content?: string } }).color?.content as string | undefined) || 'blue';
     const formType = style.fields?.type?.content || 'success';
 
     // CMS-managed labels for the previously hardcoded registration UI text.

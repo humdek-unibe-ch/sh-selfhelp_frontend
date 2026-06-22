@@ -28,7 +28,7 @@ interface ICardSegmentStyleProps {
  * @returns {JSX.Element} Rendered Mantine Card.Section with child content
  */
 const CardSegmentStyle: React.FC<ICardSegmentStyleProps> = ({ style, styleProps, cssClass }) => {
-    const withBorder = style.shared_border?.content === '1';
+    const withBorder = style.border?.content === '1';
     const inheritPadding = style.web_segment_inherit_padding?.content === '1';
 
     // Ensure children is an array before mapping

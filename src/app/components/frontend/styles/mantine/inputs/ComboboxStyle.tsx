@@ -121,6 +121,19 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
         return predefinedValues.has(optionValue);
     };
 
+    // Theme-aware pill colours. The previous `bg-blue-100 text-blue-800` /
+    // `bg-green-100 text-green-800` Tailwind classes were light-only, so pills
+    // (and the option text below) were unreadable on the dark dropdown. Mantine's
+    // "light" variant CSS vars resolve correctly in both colour schemes.
+    const pillThemeStyle = (val: string): React.CSSProperties => ({
+        backgroundColor: isPredefinedValue(val)
+            ? 'var(--mantine-color-blue-light)'
+            : 'var(--mantine-color-green-light)',
+        color: isPredefinedValue(val)
+            ? 'var(--mantine-color-blue-light-color)'
+            : 'var(--mantine-color-green-light-color)',
+    });
+
     // State management
     const [showCreateInput, setShowCreateInput] = useState(false);
     const [showMultiInput, setShowMultiInput] = useState(false);
@@ -428,7 +441,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                                     size="sm"
                                     withRemoveButton={clearable}
                                     onRemove={() => clearable && setSelectedValues([])}
-                                    className={`${isPredefinedValue(selectedValue) ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}
+                                    style={pillThemeStyle(selectedValue)}
                                 >
                                     {selectedValue}
                                 </Pill>
@@ -459,7 +472,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                                         >
                                             <Group justify="space-between">
                                                 <Text
-                                                    className={isPredefinedValue(option.value) ? 'text-gray-900' : 'text-green-700'}
+                                                    c={isPredefinedValue(option.value) ? undefined : 'green'}
                                                 >
                                                     {option.label}
                                                 </Text>
@@ -548,7 +561,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                                         withRemoveButton
                                         onRemove={() => handleRemovePill(val)}
                                         size="sm"
-                                        className={`${isPredefinedValue(val) ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}
+                                        style={pillThemeStyle(val)}
                                     >
                                         {val}
                                     </Pill>
@@ -581,7 +594,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                                     >
                                         <Group justify="space-between">
                                             <Text
-                                                className={isPredefinedValue(option.value) ? 'text-gray-900' : 'text-green-700'}
+                                                c={isPredefinedValue(option.value) ? undefined : 'green'}
                                             >
                                                 {option.label}
                                             </Text>

@@ -29,8 +29,8 @@ interface ICardStyleProps {
  */
 const CardStyle: React.FC<ICardStyleProps> = ({ style, styleProps, cssClass }) => {
     const shadow = style.web_card_shadow?.content || 'sm';
-    const radius = castMantineRadius(style.shared_radius?.content);
-    const withBorder = style.shared_border?.content === '1';
+    const radius = castMantineRadius(style.radius?.content);
+    const withBorder = style.border?.content === '1';
 
     const rawTitle = style.title?.content;
     const cardTitle = rawTitle ? stripHtmlTags(rawTitle).trim() : '';
@@ -46,7 +46,7 @@ const CardStyle: React.FC<ICardStyleProps> = ({ style, styleProps, cssClass }) =
             radius={radius === 'none' ? 0 : radius}
             withBorder={withBorder}
             // Fixed inner padding (also the Card.Section image-bleed reference).
-            // Authors tune spacing via the portable `shared_spacing` field, which
+            // Authors tune spacing via the portable `spacing` field, which
             // arrives as pt/pb/ps/pe through `styleProps` — there is no separate
             // web-only card-padding field.
             padding="md"

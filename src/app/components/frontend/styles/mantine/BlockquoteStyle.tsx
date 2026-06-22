@@ -37,7 +37,7 @@ const BlockquoteStyle: React.FC<IBlockquoteStyleProps> = ({ style, styleProps, c
     const cite = style.cite?.content;
     const iconName = style.web_left_icon?.content || 'icon-quote';
     const iconSize = parseInt(style.web_icon_size?.content || '20');
-    const color = style.shared_color?.content || 'gray';
+    const color = style.color?.content || 'gray';
     // Handle CSS field - use direct property from API response
     
 

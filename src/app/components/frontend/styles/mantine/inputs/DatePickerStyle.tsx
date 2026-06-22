@@ -93,8 +93,8 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
     }
 
     // Mantine-specific fields
-    const size = castMantineSize(style.shared_size?.content);
-    const radius = castMantineRadius(style.shared_radius?.content);
+    const size = castMantineSize(style.size?.content);
+    const radius = castMantineRadius(style.radius?.content);
 
     // Handle CSS field - use direct property from API response
     

@@ -50,8 +50,8 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps,
     const thousandSeparator = style.web_number_input_thousand_separator?.content === '1';
     const allowNegative = style.web_number_input_allow_negative?.content !== '0';
     const hideControls = style.web_number_input_hide_controls?.content === '1';
-    const size = style.shared_size?.content || 'sm';
-    const radius = style.shared_radius?.content || 'sm';
+    const size = style.size?.content || 'sm';
+    const radius = style.radius?.content || 'sm';
 
     // Form configuration fields
     const name = style.name?.content || `section-${style.id}`;
