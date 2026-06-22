@@ -51,6 +51,7 @@ import { cookieColorSchemeManager } from '../utils/cookie-color-scheme-manager';
 import { useMemo, useState } from 'react';
 import { useAclVersionWatcher } from '../hooks/useAclVersionWatcher';
 import { useAclEventStream } from '../hooks/useAclEventStream';
+import { useAuthBroadcastSync } from '../hooks/useAuthBroadcastSync';
 import { useAdminPluginsRealtime } from '../app/components/cms/plugins/hooks/useAdminPluginsRealtime';
 import type { ILanguage } from '../types/responses/admin/languages.types';
 import { getQueryClient } from './query-client';
@@ -80,6 +81,12 @@ function RefineWrapper({
     // grants the user a new page surfaces in the menu within ~1 RTT,
     // without requiring a click.
     useAclEventStream();
+
+    // Cross-tab auth sync: a login/logout in one tab of this browser is
+    // reflected in the others immediately (shared httpOnly cookies, so the
+    // siblings are already logged in/out — this just makes them NOTICE without
+    // waiting for the next 401). Scoped to one browser; never crosses devices.
+    useAuthBroadcastSync();
 
     // Real-time push from Symfony for the admin plugin manager
     // (`/plugins/events` SSE proxied through the BFF). On plugin

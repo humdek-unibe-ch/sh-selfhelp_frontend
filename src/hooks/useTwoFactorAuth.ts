@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { notifications } from '@mantine/notifications';
 import { AuthApi } from '../api/auth.api';
 import { ROUTES } from '../config/routes.config';
+import { broadcastAuthChange } from '../utils/auth-broadcast';
 import { type ITwoFactorVerifyRequest } from '../types/requests/auth/auth.types';
 
 export const TWO_FACTOR_CONSTANTS = {
@@ -142,6 +143,8 @@ export function useTwoFactorAuth(options: UseTwoFactorAuthOptions = {}) {
                 message: 'Successfully authenticated',
                 color: 'green',
             });
+            // Tell sibling tabs of this browser to adopt the new session.
+            broadcastAuthChange({ type: 'logged-in' });
             router.push(redirectTo);
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : fallbackErrorMessage;
