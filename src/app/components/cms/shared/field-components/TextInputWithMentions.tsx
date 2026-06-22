@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import React from 'react';
+import { Group, Text, Kbd } from '@mantine/core';
 import { MentionEditor } from '../../../shared/mentions';
 
 interface ITextInputWithMentionsProps {
@@ -63,25 +64,35 @@ export function TextInputWithMentions({
 
     // Note: MentionEditor internally handles dataVariables changes through its memoized extensions
     // No need to force re-mount with key changes - that would be more expensive and lose state
-    
+
     return (
-        <MentionEditor
-            value={value}
-            onChange={handleChange}
-            placeholder={placeholder}
-            disabled={disabled}
-            label={label}
-            description={description}
-            required={required}
-            error={errorMessage}
-            dataVariables={dataVariables}
-            maxVisibleRows={maxVisibleRows}
-            maxItems={maxItems}
-            singleLineMode={true}
-            showToolbar={false}
-            autoFocus={autoFocus}
-            onKeyDown={onKeyDown}
-            enableRichTextShortcuts={enableRichTextShortcuts}
-        />
+        <>
+            {enableRichTextShortcuts && !disabled && (
+                <Group gap={6} mb={4} wrap="nowrap" align="center" aria-hidden>
+                    <Text size="xs" c="dimmed">Rich text:</Text>
+                    <Kbd size="xs">Ctrl/⌘ B</Kbd>
+                    <Kbd size="xs">I</Kbd>
+                    <Kbd size="xs">U</Kbd>
+                </Group>
+            )}
+            <MentionEditor
+                value={value}
+                onChange={handleChange}
+                placeholder={placeholder}
+                disabled={disabled}
+                label={label}
+                description={description}
+                required={required}
+                error={errorMessage}
+                dataVariables={dataVariables}
+                maxVisibleRows={maxVisibleRows}
+                maxItems={maxItems}
+                singleLineMode={true}
+                showToolbar={false}
+                autoFocus={autoFocus}
+                onKeyDown={onKeyDown}
+                enableRichTextShortcuts={enableRichTextShortcuts}
+            />
+        </>
     );
 }
