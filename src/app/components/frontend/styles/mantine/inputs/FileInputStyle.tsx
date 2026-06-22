@@ -344,17 +344,20 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
                     <Box
                         {...getRootProps()}
                         style={{
-                            border: `2px dashed ${isDragOver ? '#228be6' : '#ced4da'}`,
+                            // Theme-aware colours (Mantine CSS vars) so the dropzone
+                            // is legible in dark mode; literal light hexes here used
+                            // to wash out / vanish on a dark background.
+                            border: `2px dashed ${isDragOver ? 'var(--mantine-color-blue-6)' : 'var(--mantine-color-default-border)'}`,
                             borderRadius: radius === 'none' ? 0 : rem(4),
                             padding: rem(20),
                             textAlign: 'center',
-                            backgroundColor: isDragOver ? '#f8f9fa' : 'transparent',
+                            backgroundColor: isDragOver ? 'var(--mantine-color-default-hover)' : 'transparent',
                             cursor: disabled ? 'not-allowed' : 'pointer',
                             transition: 'all 0.2s ease',
                         }}
                     >
                         <input {...getInputProps()} />
-                        <IconUpload size={32} style={{ color: isDragOver ? '#228be6' : '#868e96', marginBottom: rem(8) }} />
+                        <IconUpload size={32} style={{ color: isDragOver ? 'var(--mantine-color-blue-6)' : 'var(--mantine-color-dimmed)', marginBottom: rem(8) }} />
                         <Text size="sm" c={isDragOver ? 'blue' : 'dimmed'}>
                             {isDragActive
                                 ? 'Drop files here...'

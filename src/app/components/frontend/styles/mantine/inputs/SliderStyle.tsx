@@ -132,6 +132,12 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style, styleProps, cssClass 
         setValue(newValue);
     };
 
+    // When there is no label/description wrapper, the Slider itself is the root
+    // element, so it must carry the section css class + spacing (otherwise the
+    // `css`/`css_mobile` escape hatch and spacing silently do nothing on a
+    // label-less slider). With a wrapper, those live on the Input.Wrapper below.
+    const hasWrapper = Boolean(label || description);
+
     // Slider component
     const sliderComponent = (
         <Slider
@@ -150,11 +156,12 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style, styleProps, cssClass 
             inverted={inverted}
             showLabelOnHover={showLabelOnHover}
             labelAlwaysOn={labelsAlwaysOn}
+            {...(hasWrapper ? {} : { ...styleProps, className: cssClass })}
         />
     );
 
     // Wrap component with label or description if present
-    const wrappedComponent = label || description ? (
+    const wrappedComponent = hasWrapper ? (
         <Input.Wrapper
             label={ DOMPurify.sanitize(label || '', { ALLOWED_TAGS: [] })}
             description={parse(sanitizeHtmlForParsing(description))}

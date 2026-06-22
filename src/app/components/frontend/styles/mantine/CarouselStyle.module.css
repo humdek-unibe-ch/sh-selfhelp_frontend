@@ -1,0 +1,18 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/*
+ * When a carousel has a fixed height, a slide image rendered at its natural
+ * aspect ratio can be far taller than the carousel and overflow it (the
+ * viewport clips it, so the image looks cropped to its top edge). Constrain a
+ * slide's direct image to fill the slide height; the image's own object-fit
+ * (the `web_image_fit` field) then governs how it sits inside. This class is
+ * only applied when the carousel has an explicit height, so height-less
+ * carousels keep their natural slide sizing.
+ */
+.fixedHeightSlide > :global(.mantine-Image-root) {
+    height: 100%;
+    width: 100%;
+}

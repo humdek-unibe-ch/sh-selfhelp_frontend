@@ -7,6 +7,7 @@ import { Carousel } from '@mantine/carousel';
 import BasicStyle from '../BasicStyle';
 import { type ICarouselStyle } from '../../../../../types/common/styles.types';
 import IconComponent from '../../../shared/common/IconComponent';
+import classes from './CarouselStyle.module.css';
 
 /**
  * Props interface for CarouselStyle component
@@ -35,7 +36,15 @@ const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style, styleProps, cssCl
     // Extract field values using the unified field extraction utility
     // Extract Mantine Carousel props
     const height = style.web_height?.content;
-    const slideSize = style.web_carousel_slide_size?.content;
+    // `web_carousel_slide_size` is a percentage slider saved as a bare number
+    // (e.g. "100" meaning 100%). Mantine reads a unit-less slideSize as pixels,
+    // which collapses every slide to ~100px and leaves nothing to scroll, so a
+    // bare number must be expressed as a percentage. Values that already carry a
+    // unit (e.g. "300px", "50%") are passed through unchanged.
+    const rawSlideSize = style.web_carousel_slide_size?.content?.trim();
+    const slideSize = rawSlideSize && /^\d+(\.\d+)?$/.test(rawSlideSize)
+        ? `${rawSlideSize}%`
+        : rawSlideSize;
     const slideGap = style.web_carousel_slide_gap?.content;
     const orientation = style.shared_orientation?.content as 'horizontal' | 'vertical';
     const withControls = style.has_controls?.content === '1';
@@ -108,6 +117,7 @@ const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style, styleProps, cssCl
             nextControlIcon={nextIcon}
             previousControlIcon={previousIcon}
             emblaOptions={emblaOptions as React.ComponentProps<typeof Carousel>['emblaOptions']}
+            classNames={height ? { slide: classes.fixedHeightSlide } : undefined}
             {...styleProps} className={cssClass}
         >
             {style.children?.map((child, index) => (

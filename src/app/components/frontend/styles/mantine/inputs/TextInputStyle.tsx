@@ -40,6 +40,8 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
     const size = castMantineSize(style.shared_size?.content);
     const radius = castMantineRadius(style.shared_radius?.content);
     const variant = style.web_text_input_variant?.content;
+    const maxLengthRaw = style.shared_max_length?.content;
+    const maxLength = maxLengthRaw ? parseInt(maxLengthRaw, 10) : undefined;
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -94,6 +96,7 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
                 size={size}
                 radius={radius === 'none' ? 0 : radius}
                 variant={variant as 'default' | 'filled' | 'unstyled'}
+                maxLength={maxLength}
                 // Mantine forwards unknown props onto the underlying `<input>`.
                 // Autofill extensions (SharkID / 1Password / Bitwarden / …)
                 // decorate inputs with custom attributes before hydration,

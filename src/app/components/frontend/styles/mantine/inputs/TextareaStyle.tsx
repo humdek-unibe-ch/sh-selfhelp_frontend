@@ -44,6 +44,8 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
     const size = castMantineSize(style.shared_size?.content);
     const radius = castMantineRadius(style.shared_radius?.content);
     const variant = style.web_textarea_variant?.content;
+    const maxLengthRaw = style.shared_max_length?.content;
+    const maxLength = maxLengthRaw ? parseInt(maxLengthRaw, 10) : undefined;
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -106,6 +108,7 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
                     size={size}
                     variant={variant as 'default' | 'filled' | 'unstyled'}
                     radius={radius === 'none' ? 0 : radius}
+                    maxLength={maxLength}
                     // See note in TextInputStyle — autofill extensions decorate
                     // form fields before hydration.
                     suppressHydrationWarning

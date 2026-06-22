@@ -45,6 +45,11 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps,
     const step = style.web_numeric_step?.content || '1';
     const decimalScale = parseInt(style.web_number_input_decimal_scale?.content || '2');
     const clampBehavior = style.web_number_input_clamp_behavior?.content || 'strict';
+    const prefix = style.web_number_input_prefix?.content || undefined;
+    const suffix = style.web_number_input_suffix?.content || undefined;
+    const thousandSeparator = style.web_number_input_thousand_separator?.content === '1';
+    const allowNegative = style.web_number_input_allow_negative?.content !== '0';
+    const hideControls = style.web_number_input_hide_controls?.content === '1';
     const size = style.shared_size?.content || 'sm';
     const radius = style.shared_radius?.content || 'sm';
 
@@ -90,6 +95,11 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps,
             step={parseFloat(step)}
             decimalScale={decimalScale}
             clampBehavior={clampBehavior as 'strict' | 'blur'}
+            prefix={prefix}
+            suffix={suffix}
+            thousandSeparator={thousandSeparator ? ',' : undefined}
+            allowNegative={allowNegative}
+            hideControls={hideControls}
             size={size as 'xs' | 'sm' | 'md' | 'lg' | 'xl'}
             radius={radius === 'none' ? 0 : radius}
             disabled={disabled}

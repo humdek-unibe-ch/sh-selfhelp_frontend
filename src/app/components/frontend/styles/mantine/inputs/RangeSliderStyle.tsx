@@ -139,6 +139,12 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
         setValue(newValue);
     };
 
+    // When there is no label/description wrapper, the RangeSlider itself is the
+    // root element, so it must carry the section css class + spacing (otherwise
+    // the `css`/`css_mobile` escape hatch and spacing silently do nothing on a
+    // label-less slider). With a wrapper, those live on the Input.Wrapper below.
+    const hasWrapper = Boolean(label || description);
+
     // RangeSlider component
     const rangeSliderComponent = (
         <RangeSlider
@@ -156,11 +162,12 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
             inverted={inverted}
             showLabelOnHover={showLabelOnHover}
             labelAlwaysOn={labelsAlwaysOn}
+            {...(hasWrapper ? {} : { ...styleProps, className: cssClass })}
         />
     );
 
     // Wrap component with label or description if present
-    const wrappedComponent = label || description ? (
+    const wrappedComponent = hasWrapper ? (
         <Input.Wrapper
             label={label}
             description={parse(sanitizeHtmlForParsing(description))}

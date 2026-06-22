@@ -9,6 +9,7 @@ import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 import { castMantineSize } from '../../../../../../utils/style-field-extractor';
+import IconComponent from '../../../../shared/common/IconComponent';
 
 /**
  * Props interface for SwitchStyle component
@@ -47,6 +48,9 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style, styleProps, cssClass 
     const onValue = style.web_switch_on_value?.content || '1';
     const offValue = style.web_switch_off_value?.content || '0';
     const useInputWrapper = style.web_use_input_wrapper?.content === '1';
+    const withThumbIndicator = style.web_switch_with_thumb_indicator?.content !== '0';
+    const thumbIconName = style.web_switch_thumb_icon?.content;
+    const thumbIcon = thumbIconName ? <IconComponent iconName={thumbIconName} size={12} /> : undefined;
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -99,6 +103,8 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style, styleProps, cssClass 
             color={color}
             radius={radius}
             disabled={disabled}
+            withThumbIndicator={withThumbIndicator}
+            thumbIcon={thumbIcon}
             {...styleProps} className={cssClass}
             style={styleObj}
             labelPosition={labelPosition as 'left' | 'right'}

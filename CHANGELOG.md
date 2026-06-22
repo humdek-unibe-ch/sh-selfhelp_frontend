@@ -17,6 +17,14 @@ No engineering diary, no implementation detail — that belongs in
 ## v0.1.28 — 2026-06-22
 
 ### Added
+- **Form / interactive style fields render (capability pass).** `number-input`
+  honours `prefix` / `suffix` / `thousand_separator` / `allow_negative` /
+  `hide_controls`; `color-input` honours `with_eye_dropper` / `disallow_input` /
+  `with_preview`; `tabs` honours `grow` / `justify` (on the tab list) +
+  `keep_mounted` / `placement`; `switch` honours `with_thumb_indicator` +
+  `thumb_icon` (icon picker); `text-input` + `textarea` honour `shared_max_length`
+  (HTML `maxLength`); `progress-root` honours `shared_radius`. Requires
+  `@selfhelp/shared` ≥ 1.14.17.
 - **Inline rich-text in CMS content now renders on the frontend.** The `text`,
   `blockquote`, and `list-item` styles preserve the author's inline formatting
   (bold / italic / underline / link) from `markdown-inline` fields instead of
@@ -42,6 +50,25 @@ No engineering diary, no implementation detail — that belongs in
   via the shared `renderRichInline` helper instead of `DOMPurify`-stripping all tags.
 
 ### Fixed
+- **`carousel` arrows did nothing and slides showed as tiny thumbnails.** The
+  `web_carousel_slide_size` percentage slider is saved as a bare number (e.g.
+  `100` meaning 100%), but Mantine reads a unit-less `slideSize` as pixels, so
+  every slide collapsed to ~100px, all slides fit the viewport, and the controls
+  had nothing to scroll. The renderer now expresses a bare number as a percentage
+  (values that already carry a unit are untouched) and constrains slide media to
+  the carousel height when one is set, so the arrows page through full-size,
+  non-clipped slides.
+- **`slider` / `range-slider` ignored `css` / `css_mobile` and spacing when they
+  had no label.** The section class + spacing were only applied to the
+  `Input.Wrapper`, which is skipped when there is no label/description, so a
+  label-less slider silently dropped the custom-styling escape hatch. The control
+  itself now carries the section class + spacing in that case (matching
+  `rating` / `progress` / `segmented-control`).
+- **`file-input` drag-and-drop zone was unreadable in dark mode.** The dropzone
+  border, hover background, and upload icon were hard-coded light hexes
+  (`#ced4da` / `#f8f9fa` / `#868e96`) that washed out on a dark background. They
+  now resolve through theme-aware Mantine CSS variables so the dropzone is legible
+  in both colour schemes.
 - **`html-tag` style rendered an empty element.** In content-only mode the text was
   passed as a React prop (so it landed as a bogus `content="…"` DOM attribute on
   e.g. `<mark>`) instead of as the element's children — the tag rendered empty. It

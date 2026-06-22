@@ -34,6 +34,10 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style, cssClass }) => {
     const orientation = style.web_tabs_orientation?.content || 'horizontal';
     const radius = style.web_tabs_radius?.content || 'sm';
     const color = style.shared_color?.content || 'blue';
+    const grow = style.web_tabs_grow?.content === '1';
+    const justify = style.web_tabs_justify?.content || undefined;
+    const keepMounted = style.web_tabs_keep_mounted?.content !== '0';
+    const placement = style.web_tabs_placement?.content || undefined;
     const width = style.web_width?.content;
     const height = style.web_height?.content;
 
@@ -57,13 +61,15 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style, cssClass }) => {
         orientation: orientation as 'horizontal' | 'vertical',
         radius,
         color,
+        keepMounted,
+        placement: placement as 'left' | 'right' | undefined,
         style: styleObj,
         className: cssClass
     };
 
     return (
         <Tabs {...(tabsProps as React.ComponentProps<typeof Tabs>)}>
-            <Tabs.List>
+            <Tabs.List grow={grow} justify={justify}>
                 {children.map((child, index: number) => {
                     if (!child || child.style_name !== 'tab' || !child.id) return null;
 
