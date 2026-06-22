@@ -26,7 +26,9 @@ vi.mock('@mantine/carousel', () => {
         capturedProps = props;
         return null;
     };
-    Carousel.Slide = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
+    Carousel.Slide = function CarouselSlide({ children }: { children?: React.ReactNode }) {
+        return <>{children}</>;
+    };
     return { Carousel };
 });
 

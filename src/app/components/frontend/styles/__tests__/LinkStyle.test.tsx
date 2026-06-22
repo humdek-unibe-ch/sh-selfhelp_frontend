@@ -49,7 +49,7 @@ describe('LinkStyle', () => {
     });
 
     it('renders leading and trailing icons around the label when configured', () => {
-        const { container } = renderWithProviders(
+        renderWithProviders(
             <LinkStyle
                 style={makeStyle({
                     label: { content: 'Open' },
