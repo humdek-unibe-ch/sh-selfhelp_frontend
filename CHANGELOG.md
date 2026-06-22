@@ -14,6 +14,17 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.29 — 2026-06-22
+
+### Fixed
+- **`select` now shows its label.** The `select` style has always had a `label`
+  field in the CMS, but `SelectStyle` never passed it to Mantine, so the field
+  rendered with no caption (unlike `combobox`). The label now renders for both
+  single and multi-select. Requires `@selfhelp/shared` ≥ 1.14.19 (which adds
+  `ISelectStyle.label`).
+
+---
+
 ## v0.1.28 — 2026-06-22
 
 ### Added

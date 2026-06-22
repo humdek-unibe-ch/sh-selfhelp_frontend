@@ -29,6 +29,7 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
         }) || 'Select an option';
 
     const name = style.name?.content;
+    const label = style.label?.content || undefined;
     const value = style.value?.content;
     const required = style.is_required?.content === '1';
     const isMultiple = style.is_multiple?.content === '1';
@@ -89,6 +90,7 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
     return isMultiple ? (
         <MultiSelect
             className={cssClass}
+            label={label}
             data={data}
             value={selectedValue as string[]}
             onChange={handleChange}
@@ -102,6 +104,7 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
     ) : (
         <Select
             className={cssClass}
+            label={label}
             data={data}
             value={selectedValue as string}
             onChange={handleChange}
