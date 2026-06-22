@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { PHASE_DEVELOPMENT_SERVER } from 'next/constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -21,8 +22,20 @@ const SYMFONY_BACKEND_URL = (
 // the backend — typical for source/dev setups).
 const FRONTEND_VERSION = require('./package.json').version;
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+/**
+ * @param {string} phase
+ * @returns {import('next').NextConfig}
+ */
+const createNextConfig = (phase) => {
+  // Next 16 requires output-file tracing and Turbopack to use the same root.
+  // Keep local development scoped to this repository, while preserving the
+  // parent-root standalone layout expected by the production Dockerfile.
+  const projectRoot =
+    phase === PHASE_DEVELOPMENT_SERVER
+      ? __dirname
+      : path.join(__dirname, '..');
+
+  const nextConfig = {
     reactStrictMode: true,
     allowedDevOrigins: ['127.0.0.1'],
 
@@ -54,13 +67,30 @@ const nextConfig = {
     // SYMFONY_INTERNAL_URL (read at runtime).
     output: 'standalone',
 
-    outputFileTracingRoot: path.join(__dirname, '..'),
+    outputFileTracingRoot: projectRoot,
 
     experimental: {
+      /**
+       * Barrel-import optimisation. Next already defaults this on for
+       * `@tabler/icons-react`, `date-fns`, etc., but NOT for `@mantine/*`.
+       * The admin CMS pulls in many Mantine sub-packages (dates, form,
+       * dropzone, carousel, tiptap, schedule, code-highlight) plus the core
+       * trio; without this every `import { X } from '@mantine/dates'` makes
+       * Turbopack load the whole barrel, which inflates the dev server's
+       * module graph (a measured multi-GB dev process on Windows) and slows
+       * HMR. Listing each sub-package keeps only the used members in the graph.
+       */
       optimizePackageImports: [
         '@mantine/core',
         '@mantine/hooks',
         '@mantine/notifications',
+        '@mantine/dates',
+        '@mantine/form',
+        '@mantine/dropzone',
+        '@mantine/carousel',
+        '@mantine/code-highlight',
+        '@mantine/tiptap',
+        '@mantine/schedule',
       ],
     },
 
@@ -82,7 +112,7 @@ const nextConfig = {
        * `build/` (see the Dockerfile). In Docker the parent is just `/` (only the
        * `build/` app lives there), so it carries none of the local churn.
        */
-      root: process.env.NODE_ENV === 'production' ? path.join(__dirname, '..') : __dirname,
+      root: projectRoot,
     },
 
     /**
@@ -117,5 +147,7 @@ const nextConfig = {
     },
   };
 
-  export default nextConfig;
-  
+  return nextConfig;
+};
+
+export default createNextConfig;
