@@ -56,31 +56,31 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
     const description = style.description?.content || '';
 
     // DatePicker-specific fields
-    const pickerType = style.mantine_datepicker_type?.content || 'date';
+    const pickerType = style.web_datepicker_type?.content || 'date';
     // format: Used for UI display formatting (valueFormat prop in components)
-    const format = style.mantine_datepicker_format?.content;
-    const locale = style.mantine_datepicker_locale?.content || 'en';
-    const placeholder = style.mantine_datepicker_placeholder?.content;
-    const minDateStr = style.mantine_datepicker_min_date?.content;
-    const maxDateStr = style.mantine_datepicker_max_date?.content;
-    const firstDayOfWeek = parseInt(style.mantine_datepicker_first_day_of_week?.content || '1') as 0 | 1 | 2 | 3 | 4 | 5 | 6;
-    const weekendDaysStr = style.mantine_datepicker_weekend_days?.content || '[0,6]';
-    const clearable = style.mantine_datepicker_clearable?.content === '1';
-    const allowDeselect = style.mantine_datepicker_allow_deselect?.content === '1';
-    const readonly = style.mantine_datepicker_readonly?.content === '1';
-    const withTimeGrid = style.mantine_datepicker_with_time_grid?.content === '1';
-    const consistentWeeks = style.mantine_datepicker_consistent_weeks?.content === '1';
+    const format = style.web_datepicker_format?.content;
+    const locale = style.web_datepicker_locale?.content || 'en';
+    const placeholder = style.datepicker_placeholder?.content;
+    const minDateStr = style.web_datepicker_min_date?.content;
+    const maxDateStr = style.web_datepicker_max_date?.content;
+    const firstDayOfWeek = parseInt(style.web_datepicker_first_day_of_week?.content || '1') as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    const weekendDaysStr = style.web_datepicker_weekend_days?.content || '[0,6]';
+    const clearable = style.web_datepicker_clearable?.content === '1';
+    const allowDeselect = style.web_datepicker_allow_deselect?.content === '1';
+    const readonly = style.web_datepicker_readonly?.content === '1';
+    const withTimeGrid = style.web_datepicker_with_time_grid?.content === '1';
+    const consistentWeeks = style.web_datepicker_consistent_weeks?.content === '1';
     // hideOutsideDates: Hides dates from previous/next months that appear in the current month's calendar view
-    const hideOutsideDates = style.mantine_datepicker_hide_outside_dates?.content === '1';
+    const hideOutsideDates = style.web_datepicker_hide_outside_dates?.content === '1';
     // hideWeekends: Hides Saturday and Sunday from the calendar, useful for business applications
-    const hideWeekends = style.mantine_datepicker_hide_weekends?.content === '1';
-    const timeStep = parseInt(style.mantine_datepicker_time_step?.content || '15');
-    const timeFormat = style.mantine_datepicker_time_format?.content || '24';
+    const hideWeekends = style.web_datepicker_hide_weekends?.content === '1';
+    const timeStep = parseInt(style.web_datepicker_time_step?.content || '15');
+    const timeFormat = style.web_datepicker_time_format?.content || '24';
     // timeStep is used with TimeGrid interval generation when withTimeGrid is enabled
     // dateFormat: Used for form submission and storage (separate from display format)
-    const dateFormat = style.mantine_datepicker_date_format?.content || 'YYYY-MM-DD';
-    const timeGridConfigStr = style.mantine_datepicker_time_grid_config?.content;
-    const withSeconds = style.mantine_datepicker_with_seconds?.content === '1';
+    const dateFormat = style.web_datepicker_date_format?.content || 'YYYY-MM-DD';
+    const timeGridConfigStr = style.web_datepicker_time_grid_config?.content;
+    const withSeconds = style.web_datepicker_with_seconds?.content === '1';
 
     // Parse TimeGrid configuration
     let timeGridConfig: Record<string, unknown> = {};
@@ -93,8 +93,8 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
     }
 
     // Mantine-specific fields
-    const size = castMantineSize(style.mantine_size?.content);
-    const radius = castMantineRadius(style.mantine_radius?.content);
+    const size = castMantineSize(style.size?.content);
+    const radius = castMantineRadius(style.radius?.content);
 
     // Handle CSS field - use direct property from API response
     

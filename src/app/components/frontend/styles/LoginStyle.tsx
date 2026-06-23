@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useState } from 'react';
-import { TextInput, PasswordInput, Button, Paper, Title, Anchor, Stack } from '@mantine/core';
+import { TextInput, PasswordInput, Button, Paper, Title, Text, Anchor, Stack } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type ILoginStyle } from '../../../../types/common/styles.types';
@@ -32,8 +32,8 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const labelRegister = style.label_register?.content ?? (style.fields?.label_register?.content as string | undefined) ?? 'Create account';
     const alertFail = style.alert_fail?.content || 'Invalid email or password.';
     const loginTitle = style.login_title?.content || 'Welcome back!';
-    const mantineColor = ((style as { mantine_color?: { content?: string } }).mantine_color?.content as string | undefined) || 'blue';
-    const formType = style.type?.content || style.fields?.type?.content || 'light';
+    const subtitle = style.subtitle?.content?.trim();
+    const mantineColor = style.color?.content || 'blue';
 
     const handleSubmit = async (e: { preventDefault(): void }) => {
         e.preventDefault();
@@ -70,9 +70,15 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
             {...styleProps} className={cssClass}
             style={{ maxWidth: 400, margin: '0 auto' }}
         >
-            <Title order={2} ta="center" mb="lg">
+            <Title order={2} ta="center" mb={subtitle ? 'xs' : 'lg'}>
                 {loginTitle}
             </Title>
+
+            {subtitle ? (
+                <Text c="dimmed" ta="center" size="sm" mb="lg">
+                    {subtitle}
+                </Text>
+            ) : null}
 
             <form onSubmit={handleSubmit} suppressHydrationWarning>
                 <Stack gap="md">
@@ -107,14 +113,18 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                         size="md"
                         loading={isLoading}
                         color={mantineColor}
-                        variant={formType === 'dark' ? 'filled' : 'light'}
+                        variant="filled"
                     >
                         {labelLogin}
                     </Button>
 
+                    {/* Aux links share the configurable `color` with the
+                        submit button so the accent stays consistent (mirrors the
+                        mobile login, which colours its links from the same field). */}
                     <Anchor
                         ta="center"
                         size="sm"
+                        c={mantineColor}
                         href={ROUTES.RESET_PASSWORD}
                     >
                         {labelPasswordReset}
@@ -123,6 +133,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                     <Anchor
                         ta="center"
                         size="sm"
+                        c={mantineColor}
                         href={ROUTES.REGISTER}
                     >
                         {labelRegister}

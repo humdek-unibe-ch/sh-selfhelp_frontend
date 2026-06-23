@@ -23,6 +23,12 @@ interface ITwoFactorCodeInputsProps {
      * sentence without the timer being appended to it.
      */
     expirationLabel?: string;
+    /**
+     * CMS-authored accessible name for the 6-digit code input group
+     * (`two-factor-auth.label_code`). Translatable; falls back to the English
+     * "Verification code" when the style does not author it.
+     */
+    codeLabel?: string;
 }
 
 const inputBaseStyle: React.CSSProperties = {
@@ -51,6 +57,7 @@ export const TwoFactorCodeInputs: React.FC<ITwoFactorCodeInputsProps> = ({
     onKeyDown,
     onPaste,
     expirationLabel,
+    codeLabel,
 }) => {
     const disabled = timer === 0 || isLoading;
 
@@ -58,7 +65,7 @@ export const TwoFactorCodeInputs: React.FC<ITwoFactorCodeInputsProps> = ({
         <>
             <div
                 role="group"
-                aria-label="Verification code"
+                aria-label={codeLabel || 'Verification code'}
                 style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 16 }}
             >
                 {code.map((digit, i) => (

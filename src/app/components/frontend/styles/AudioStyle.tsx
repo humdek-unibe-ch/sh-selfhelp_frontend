@@ -15,7 +15,7 @@ interface IAudioStyleProps {
     cssClass: string;
 }
 
-const AudioStyle: React.FC<IAudioStyleProps> = ({ style }) => {
+const AudioStyle: React.FC<IAudioStyleProps> = ({ style, cssClass }) => {
     // Get audio sources - handle both array and JSON string formats
     let sources: Array<{ source?: string; src?: string; type?: string }> = [];
     try {
@@ -33,10 +33,17 @@ const AudioStyle: React.FC<IAudioStyleProps> = ({ style }) => {
         sources = [];
     }
 
+    // Playback toggles ('0' | '1'); controls default ON.
+    const controls = style.has_controls?.content !== '0';
+    const loop = style.media_loop?.content === '1';
+    const autoPlay = style.media_autoplay?.content === '1';
+
     return (
-        <Box className={style.css ?? ""}>
-            <audio 
-                controls
+        <Box className={cssClass || style.css || ''}>
+            <audio
+                controls={controls}
+                loop={loop}
+                autoPlay={autoPlay}
                 className="w-full"
             >
                 {sources.map((source, index: number) => (

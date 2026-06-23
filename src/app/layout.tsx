@@ -2,7 +2,12 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import '@mantine/core/styles.css';
+// NOTE: Mantine **core** styles are loaded by `globals.css` via the *layered*
+// `@mantine/core/styles.layer.css` (`@layer mantine`). Importing the unlayered
+// `@mantine/core/styles.css` here too would inject the same rules *outside* any
+// cascade layer, where they beat every `@layer utilities` rule — which silently
+// breaks the CMS `css` escape hatch (e.g. `bg-blue-500` on a Card). Keep core
+// layered-only; the other packages below have no layered conflict.
 import '@mantine/dates/styles.css';
 import '@mantine/dropzone/styles.css';
 import '@mantine/notifications/styles.css';

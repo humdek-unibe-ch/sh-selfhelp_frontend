@@ -3,9 +3,10 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
-import { Paper } from '@mantine/core';
+import { Paper, Text } from '@mantine/core';
 import { type IPaperStyle } from '../../../../../types/common/styles.types';
 import { castMantineRadius } from '../../../../../utils/style-field-extractor';
+import { stripHtmlTags } from '../../../../../utils/html-sanitizer.utils';
 import BasicStyle from '../BasicStyle';
 
 /**
@@ -31,14 +32,14 @@ interface IPaperStyleProps {
 const PaperStyle: React.FC<IPaperStyleProps> = ({ style, styleProps, cssClass }) => {
 
     // Extract Mantine-specific props
-    const shadow = style.mantine_paper_shadow?.content || 'sm';
-    const radius = castMantineRadius(style.mantine_radius?.content);
-    const px = style.mantine_px?.content || 'md';
-    const py = style.mantine_py?.content || 'md';
-    const withBorder = style.mantine_border?.content === '1';
+    const shadow = style.web_paper_shadow?.content || 'sm';
+    const radius = castMantineRadius(style.radius?.content);
+    const withBorder = style.border?.content === '1';
 
-    // Handle CSS field - use direct property from API response
-    
+    // Optional auto-styled heading: rendered only when filled (empty = a plain
+    // surface). Never replaces manual composition and never creates a section.
+    const rawTitle = style.title?.content;
+    const paperTitle = rawTitle ? stripHtmlTags(rawTitle).trim() : '';
 
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
@@ -47,12 +48,18 @@ const PaperStyle: React.FC<IPaperStyleProps> = ({ style, styleProps, cssClass })
         <Paper
             shadow={shadow === 'none' ? undefined : shadow as 'xs' | 'sm' | 'md' | 'lg' | 'xl'}
             radius={radius === 'none' ? 0 : radius}
-            p={px === 'none' ? 0 : px}
-            px={px === 'none' ? 0 : px}
-            py={py === 'none' ? 0 : py}
+            // Fixed inner padding default; authors tune it via the portable
+            // `spacing` field (pt/pb/ps/pe) which arrives in `styleProps`.
+            // There is no web-only px/py field anymore.
+            p="md"
             withBorder={withBorder}
             {...styleProps} className={cssClass}
         >
+            {paperTitle ? (
+                <Text fw={600} size="lg" mb="xs">
+                    {paperTitle}
+                </Text>
+            ) : null}
             {children.map((childStyle, index) => (
                 childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
             ))}

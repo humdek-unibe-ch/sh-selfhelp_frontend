@@ -16,7 +16,9 @@ import {
     TextInput,
     ActionIcon,
     NumberInput,
+    SegmentedControl,
 } from '@mantine/core';
+import { type TStylePlatform } from '@selfhelp/shared/registry';
 import { notifications } from '@mantine/notifications';
 import {
     IconPlus,
@@ -34,6 +36,7 @@ import { readJsonFile, parseImportValidationErrors } from '../../../../../../uti
 import { fetchAiSectionPromptTemplate, type IImportValidationError } from '../../../../../../api/admin/section.api';
 import { type ISectionOperationOptions } from '../../../../../../utils/section-operations.utils';
 import { isStyleRelationshipValid, findStyleById } from '../../../../../../utils/style-relationship.utils';
+import { type TPlatformFilter } from '../../../../../../utils/style-platform.utils';
 import { NewSectionTab } from './tabs/NewSectionTab';
 import { ImportSectionTab } from './tabs/ImportSectionTab';
 import { ReferenceSectionTab } from './tabs/ReferenceSectionTab';
@@ -41,7 +44,7 @@ import { UnusedSectionTab } from './tabs/UnusedSectionTab';
 import { useQueryClient } from '@tanstack/react-query';
 import { REACT_QUERY_CONFIG } from '../../../../../../config/react-query.config';
 import { type AddSectionTab, ADD_SECTION_TAB, MAX_SECTIONS, MAX_UNUSED_SECTIONS } from './addSectionModal.constants';
-import { getNewSectionLimitState, getUnusedSectionLimitState, getStatusText, isSingleMode, getStatusColor } from './addSectionModal.utils';
+import { getNewSectionLimitState, getUnusedSectionLimitState, getStatusText, isSingleMode, getStatusColor, filterStyleGroupsForAdd } from './addSectionModal.utils';
 
 interface IAddSectionModalProps {
     opened: boolean;
@@ -50,6 +53,11 @@ interface IAddSectionModalProps {
     parentSectionId?: number | null;
     title?: string;
     specificPosition?: number;
+    /**
+     * Platform the target page renders on. A `web`/`mobile` page hides
+     * styles that do not support it; `both` (the default) shows everything.
+     */
+    pagePlatform?: TStylePlatform;
     onSectionCreated?: (sectionId: number) => void;
     onSectionsImported?: (sectionIds: number[]) => void;
 }
@@ -61,6 +69,7 @@ export function AddSectionModal({
     parentSectionId = null,
     title = 'Add Section',
     specificPosition,
+    pagePlatform = 'both',
     onSectionCreated,
     onSectionsImported
 }: IAddSectionModalProps) {
@@ -72,6 +81,7 @@ export function AddSectionModal({
     { style: IStyle; quantity: number }[]
     >([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [platformFilter, setPlatformFilter] = useState<TPlatformFilter>('all');
     const [sectionName, setSectionName] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isImporting, setIsImporting] = useState(false);
@@ -154,28 +164,19 @@ export function AddSectionModal({
             return [];
         }
 
-        let filteredGroups = styleGroups.map(group => {
-            const filteredStyles = group.styles.filter(style => {
-                // First apply relationship filtering
-                const isAllowed = isStyleAllowedAsChild(style);
+        // Root vs container: adding directly to a page (no parent) is root.
+        const isRoot = parentSectionId === null || parentSectionId === undefined;
 
-                // Then apply search filtering (search is an additional layer)
-                const matchesSearch = !searchQuery ||
-                    style.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    style.description?.toLowerCase().includes(searchQuery.toLowerCase());
-
-                return isAllowed && matchesSearch;
-            });
-
-            return {
-                ...group,
-                styles: filteredStyles
-            };
+        // Combined filter: relationship ∩ placement ∩ page platform ∩ manual ∩ search.
+        return filterStyleGroupsForAdd({
+            styleGroups,
+            isRoot,
+            pagePlatform,
+            platformFilter,
+            searchQuery,
+            isStyleAllowedAsChild,
         });
-
-        // Remove groups that have no styles after filtering
-        return filteredGroups.filter(group => group.styles.length > 0);
-    }, [styleGroups, searchQuery, isStyleAllowedAsChild, parentSectionId, parentSectionDetails, parentStyleWithRelationships]);
+    }, [styleGroups, searchQuery, platformFilter, pagePlatform, isStyleAllowedAsChild, parentSectionId, parentSectionDetails, parentStyleWithRelationships]);
 
     // Filtered Unused Sections
     const filteredUnusedSections = useMemo(() => {
@@ -216,6 +217,7 @@ export function AddSectionModal({
         setSelectedStyles([]);
         setSectionName('');
         setSearchQuery('');
+        setPlatformFilter('all');
         setActiveTab(ADD_SECTION_TAB.NEW_SECTION);
         setSelectedFile(null);
         setIsImporting(false);
@@ -605,6 +607,28 @@ export function AddSectionModal({
               mb="sm"
               size="sm"
             />
+          )}
+
+          {/* Platform filter - only for new-section tab */}
+          {activeTab === ADD_SECTION_TAB.NEW_SECTION && (
+            <Group justify="space-between" align="center" mb="sm" wrap="nowrap">
+              <Text size="xs" c="dimmed">
+                {pagePlatform === 'both'
+                  ? 'Showing styles for web and mobile'
+                  : `Showing styles available on ${pagePlatform} pages`}
+              </Text>
+              <SegmentedControl
+                size="xs"
+                value={platformFilter}
+                onChange={(value) => setPlatformFilter(value as TPlatformFilter)}
+                data={[
+                  { label: 'All', value: 'all' },
+                  { label: 'Web', value: 'web' },
+                  { label: 'Mobile', value: 'mobile' },
+                ]}
+                aria-label="Filter styles by platform"
+              />
+            </Group>
           )}
 
           {/* Section Name Input - only for new-section tab */}

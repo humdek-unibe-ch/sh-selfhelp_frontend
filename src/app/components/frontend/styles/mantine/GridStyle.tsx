@@ -28,13 +28,13 @@ const GridStyle: React.FC<IGridStyleProps> = ({ style, cssClass }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values with defaults
-    const cols = parseInt(style.mantine_cols?.content || '12');
-    const gap = style.mantine_gap?.content || 'md';
-    const justify = style.mantine_justify?.content;
-    const align = style.mantine_align?.content;
-    const overflow = style.mantine_grid_overflow?.content || 'visible';
-    const width = style.mantine_width?.content;
-    const height = style.mantine_height?.content;
+    const cols = parseInt(style.cols?.content || '12');
+    const gap = style.gap?.content || 'md';
+    const justify = style.justify?.content;
+    const align = style.align?.content;
+    const overflow = style.web_grid_overflow?.content || 'visible';
+    const width = style.shared_width?.content;
+    const height = style.shared_height?.content;
 
     // Handle CSS field - use direct property from API response
     

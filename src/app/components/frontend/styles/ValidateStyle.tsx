@@ -91,25 +91,25 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     // Form configuration fields
     const _formName = style.name?.content || 'validate_form';
     const alertSuccessConfig = style.alert_success?.content || alertSuccess;
-    const cancelUrl = style.cancel_url?.content;
+    const cancelUrl = style.btn_cancel_url?.content;
     const saveLabel = style.label_save?.content || 'Save';
     const updateLabel = style.label_update?.content || 'Update';
     const cancelLabel = style.label_cancel?.content || 'Cancel';
 
     // Button styling
-    const buttonSize = style.mantine_buttons_size?.content || 'sm';
-    const buttonRadius = style.mantine_buttons_radius?.content || 'sm';
-    const buttonVariant = style.mantine_buttons_variant?.content || 'filled';
-    const buttonPosition = style.mantine_buttons_position?.content || 'space-between';
-    const buttonOrder = style.mantine_buttons_order?.content || 'save-cancel';
-    const activateColor = style.mantine_btn_save_color?.content || 'blue';
-    const cancelColor = style.mantine_btn_cancel_color?.content || 'gray';
+    const buttonSize = style.buttons_size?.content || 'sm';
+    const buttonRadius = style.buttons_radius?.content || 'sm';
+    const buttonVariant = style.buttons_variant?.content || 'filled';
+    const buttonPosition = style.buttons_position?.content || 'space-between';
+    const buttonOrder = style.buttons_order?.content || 'save-cancel';
+    const activateColor = style.btn_save_color?.content || 'blue';
+    const cancelColor = style.btn_cancel_color?.content || 'gray';
 
     // Card styling
-    const cardShadow = style.mantine_card_shadow?.content || 'sm';
-    const cardPadding = style.mantine_card_padding?.content || 'lg';
-    const cardRadius = style.mantine_radius?.content || 'sm';
-    const withBorder = style.mantine_border?.content === '1';
+    const cardShadow = style.web_card_shadow?.content || 'sm';
+    const cardPadding = style.web_card_padding?.content || 'lg';
+    const cardRadius = style.radius?.content || 'sm';
+    const withBorder = style.web_border?.content === '1';
 
     // Get form ID from style - now directly available as number
     const sectionId = style.id;

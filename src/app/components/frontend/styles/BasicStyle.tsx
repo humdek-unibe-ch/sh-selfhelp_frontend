@@ -31,6 +31,13 @@ import {
 import NoAccessStyle from './NoAccessStyle';
 import MissingStyle from './MissingStyle';
 import NotFoundStyle from './NotFoundStyle';
+import DataContainerStyle from './DataContainerStyle';
+import TimelineItemStyle from './TimelineItemStyle';
+import EntryListStyle from './EntryListStyle';
+import EntryRecordStyle from './EntryRecordStyle';
+import EntryRecordDeleteStyle from './EntryRecordDeleteStyle';
+import LoopStyle from './LoopStyle';
+import VersionStyle from './VersionStyle';
 import DebugWrapper from './shared/debug-wrapper/DebugWrapper';
 import {
     type ILoginStyle, type IProfileStyle, type IValidateStyle, type IRegisterStyle, type IResetPasswordStyle, type ITwoFactorAuthStyle, type IShowUserInputStyle,
@@ -47,11 +54,14 @@ import {
     type ITitleStyle, type ITextStyle, type ICodeStyle, type IHighlightStyle, type IBlockquoteStyle,
     type IAspectRatioStyle, type ICardStyle, type ICardSegmentStyle, type IListStyle, type IListItemStyle,
     type IBackgroundImageStyle, type IFieldsetStyle, type ISpoilerStyle, type ITypographyStyle,
+    type IDataContainerStyle, type ITimelineItemStyle,
+    type IEntryListStyle, type IEntryRecordStyle, type IEntryRecordDeleteStyle, type ILoopStyle, type IVersionStyle,
     type TStyle,
     type IStyleWithSpacing
 } from '../../../../types/common/styles.types';
 import { type INoAccessStyle, type IMissingStyle, type INotFoundStyle } from '../../../../shared';
 import { usePluginRuntime, usePluginStyleComponent } from '../plugin-runtime';
+import { isStyleSupportedOnPlatform, type TStylePlatform } from '@selfhelp/shared/registry';
 
 /**
  * Convert spacing field value to Mantine spacing prop value
@@ -132,7 +142,8 @@ export const getSpacingProps = (style: IStyleWithSpacing) => {
         }
     };
 
-    const spacingField = style.mantine_spacing_margin_padding ?? style.mantine_spacing_margin;
+    // Box-model spacing is the single portable `spacing` field used by every style.
+    const spacingField = style.spacing;
 
     if (!spacingField) {
         return spacingProps;
@@ -233,6 +244,8 @@ const styleImpls: Record<string, TStyleRenderer> = {
     // ===== layout =====
     'ref-container': ({ style }) =>
         <RefContainerStyle style={style as IRefContainerStyle} />,
+    'data-container': ({ style, cssClass }) =>
+        <DataContainerStyle style={style as IDataContainerStyle} cssClass={cssClass} />,
     container: ({ style, styleProps, cssClass }) =>
         <ContainerStyle style={style as IContainerStyle} styleProps={styleProps} cssClass={cssClass} />,
     card: ({ style, styleProps, cssClass }) =>
@@ -351,10 +364,20 @@ const styleImpls: Record<string, TStyleRenderer> = {
         <ChipStyle style={style as IChipStyle} styleProps={styleProps} cssClass={cssClass} />,
     timeline: ({ style, styleProps, cssClass }) =>
         <TimelineStyle style={style as ITimelineStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'timeline-item': ({ style, cssClass }) =>
+        <TimelineItemStyle style={style as ITimelineItemStyle} cssClass={cssClass} />,
     list: ({ style, styleProps, cssClass }) =>
         <ListStyle style={style as IListStyle} styleProps={styleProps} cssClass={cssClass} />,
     'list-item': ({ style, styleProps, cssClass }) =>
         <ListItemStyle style={style as IListItemStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'entry-list': ({ style, cssClass }) =>
+        <EntryListStyle style={style as IEntryListStyle} cssClass={cssClass} />,
+    'entry-record': ({ style, cssClass }) =>
+        <EntryRecordStyle style={style as IEntryRecordStyle} cssClass={cssClass} />,
+    'entry-record-delete': ({ style, cssClass }) =>
+        <EntryRecordDeleteStyle style={style as IEntryRecordDeleteStyle} cssClass={cssClass} />,
+    loop: ({ style, cssClass }) =>
+        <LoopStyle style={style as ILoopStyle} cssClass={cssClass} />,
     indicator: ({ style, styleProps, cssClass }) =>
         <IndicatorStyle style={style as IIndicatorStyle} styleProps={styleProps} cssClass={cssClass} />,
     kbd: ({ style, styleProps, cssClass }) =>
@@ -391,6 +414,10 @@ const styleImpls: Record<string, TStyleRenderer> = {
     // ===== data display =====
     'show-user-input': ({ style, styleProps, cssClass }) =>
         <ShowUserInputStyle style={style as IShowUserInputStyle} styleProps={styleProps} cssClass={cssClass} />,
+
+    // ===== system / diagnostic =====
+    version: ({ style, cssClass }) =>
+        <VersionStyle style={style as IVersionStyle} cssClass={cssClass} />,
 };
 
 /**
@@ -425,6 +452,19 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
     const { isLoading: isPluginRuntimeLoading } = usePluginRuntime();
 
     if (!style || !style.style_name) {
+        return null;
+    }
+
+    // Platform targeting: silently skip styles that do not target web
+    // (e.g. a mobile-only style placed on a "both" page).
+    // This is distinct from `UnknownStyle`/`MissingStyle`, which surface
+    // styles that target web but have no impl. Prefer an explicit
+    // per-section `platform` from the payload; else the shared registry.
+    const explicitPlatform = (style as { platform?: TStylePlatform }).platform;
+    const targetsWeb = explicitPlatform
+        ? explicitPlatform !== 'mobile'
+        : isStyleSupportedOnPlatform(style.style_name, 'web');
+    if (!targetsWeb) {
         return null;
     }
 

@@ -11,8 +11,9 @@ import TextStyle from '../TextStyle';
 /**
  * Higher-risk subject (Slice 6): a representative text style component. It
  * renders interpolated CMS content, so the test pins that the text is shown,
- * that DOMPurify strips markup/handlers (defense in depth on top of the
- * dispatcher), and that the Mantine-disabled escape hatch renders nothing.
+ * that the shared sanitizer strips XSS markup/handlers (defense in depth on top
+ * of the dispatcher), and that the safe inline subset (Ctrl+B bold etc.) the
+ * author applied in the `markdown-inline` editor survives to the frontend.
  */
 type TextStyleProps = ComponentProps<typeof TextStyle>;
 type TextStyleField = TextStyleProps['style'];
@@ -41,14 +42,28 @@ describe('TextStyle', () => {
         expect(document.querySelector('img')).toBeNull();
     });
 
-    it('renders nothing when Mantine styling is disabled', () => {
+    it('preserves inline bold the author applied (Ctrl+B → <strong>)', () => {
         renderWithProviders(
             <TextStyle
-                style={makeTextStyle({ text: { content: 'should-not-render' }, use_mantine_style: { content: '0' } })}
+                style={makeTextStyle({ text: { content: 'plain <strong>bold</strong> end' } })}
                 styleProps={{}}
                 cssClass="section-1"
             />,
         );
-        expect(screen.queryByText('should-not-render')).not.toBeInTheDocument();
+        const strong = document.querySelector('strong');
+        expect(strong).not.toBeNull();
+        expect(strong?.textContent).toBe('bold');
+    });
+
+    it('flattens a stray markdown <p> wrapper instead of printing literal tags', () => {
+        renderWithProviders(
+            <TextStyle
+                style={makeTextStyle({ text: { content: '<p class="single-line-paragraph">9 STEF</p>' } })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+        expect(screen.getByText('9 STEF')).toBeInTheDocument();
+        expect(document.querySelector('p p')).toBeNull();
     });
 });

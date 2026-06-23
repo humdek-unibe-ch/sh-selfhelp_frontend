@@ -61,12 +61,11 @@ const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style, styleProps, cssClas
 
     const htmlTag = requestedTag;
 
-    // If there's HTML content but no children
+    // If there's text content but no children, render it as the element's
+    // text child. (Passing `content` in the props object would set a bogus
+    // `content="…"` DOM attribute and render an empty element instead.)
     if (content) {
-        return React.createElement(htmlTag, {
-            ...elementProps,
-            content
-        });
+        return React.createElement(htmlTag, elementProps, content);
     }
 
     // If neither children nor content, return empty tag

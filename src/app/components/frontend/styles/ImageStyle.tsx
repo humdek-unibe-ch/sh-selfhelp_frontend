@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { Image } from '@mantine/core';
 import { type IImageStyle } from '../../../../types/common/styles.types';
 import { getAssetUrl } from '../../../../utils/asset-url.utils';
@@ -41,19 +41,34 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style, styleProps, cssClass })
 
     const alt = style.alt?.content;
     const title = style.title?.content;
-    const width = style.mantine_width?.content;
-    const height = style.mantine_height?.content;
-    const fit = style.mantine_image_fit?.content || 'contain';
-    const radius = castMantineRadius((style as { mantine_radius?: { content?: string } }).mantine_radius?.content);
-    const use_mantine_style = style.use_mantine_style?.content === '1';
+    const width = style.web_width?.content;
+    const height = style.web_height?.content;
+    const fit = style.web_image_fit?.content || 'contain';
+    const radius = castMantineRadius(style.radius?.content);
+    const rawFallback = style.fallback_src?.content;
+    const fallbackSrc = rawFallback ? getAssetUrl(rawFallback) : undefined;
 
-    
+    // Mantine's `fallbackSrc` only swaps on the React `onError` event. Under
+    // Next.js SSR a fast 404 can fire `error` on the server-rendered <img>
+    // BEFORE hydration attaches that handler, so the swap never happens and the
+    // broken image sticks. Detect an already-broken image when the node mounts
+    // (post-hydration) and swap to the fallback explicitly; `onError` still
+    // covers failures that happen after hydration.
+    const [failed, setFailed] = useState(false);
+    const detectBroken = useCallback((node: HTMLImageElement | null) => {
+        if (node && node.complete && node.naturalWidth === 0) {
+            setFailed(true);
+        }
+    }, []);
+    const shownSrc = failed && fallbackSrc ? fallbackSrc : src;
 
-    if (use_mantine_style) {
-        return (
+    return (
             <Image
-                src={src}
+                ref={detectBroken}
+                src={shownSrc}
                 alt={alt}
+                fallbackSrc={fallbackSrc}
+                onError={() => { if (fallbackSrc) setFailed(true); }}
                 width={width}
                 height={height}
                 fit={fit as 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'}
@@ -62,21 +77,6 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style, styleProps, cssClass })
                 title={title}
             />
         );
-    }
-
-    // Fallback to basic img element when Mantine styling is disabled
-
-    return (
-        // eslint-disable-next-line @next/next/no-img-element -- CMS-driven arbitrary image URLs with string dimensions; next/image's domain allow-list and numeric sizing don't fit this dynamic fallback
-        <img
-            src={src}
-            alt={alt}
-            title={title}
-            width={width}
-            height={height}
-            className={cssClass}
-        />
-    );
 };
 
 export default ImageStyle;

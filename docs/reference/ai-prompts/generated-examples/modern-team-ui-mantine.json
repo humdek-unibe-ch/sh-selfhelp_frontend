@@ -1,630 +1,232 @@
 [
   {
-    "section_name": "team-mantine",
+    "section_name": "team-grid",
     "style_name": "container",
-    "fields": {
-      "mantine_size": {
-        "all": {
-          "content": "xl"
-        }
-      }
-    },
     "global_fields": {
-      "css": "px-4 py-12 sm:px-6 sm:py-16 lg:py-20 bg-gray-50 dark:bg-gray-950 max-w-7xl mx-auto"
+      "css": "px-4 py-12 max-w-6xl mx-auto"
     },
     "children": [
       {
-        "style_name": "stack",
+        "style_name": "title",
         "fields": {
-          "mantine_gap": {
-            "all": {
-              "content": "xl"
-            }
+          "content": {
+            "en-GB": { "content": "Meet the team" },
+            "de-CH": { "content": "Lernen Sie das Team kennen" }
           },
-          "mantine_align": {
-            "all": {
-              "content": "stretch"
-            }
-          }
+          "title_order": { "all": { "content": "2" } }
+        },
+        "global_fields": { "css": "mb-6 text-center text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-50" }
+      },
+      {
+        "style_name": "simple-grid",
+        "fields": {
+          "cols": { "all": { "content": "1" } },
+          "web_cols_sm": { "all": { "content": "2" } },
+          "web_cols_lg": { "all": { "content": "3" } }
         },
         "children": [
           {
-            "section_name": "team-mantine-header",
-            "style_name": "stack",
+            "style_name": "card",
             "fields": {
-              "mantine_align": {
-                "all": {
-                  "content": "center"
-                }
-              },
-              "mantine_gap": {
-                "all": {
-                  "content": "sm"
-                }
-              }
+              "border": { "all": { "content": "1" } },
+              "radius": { "all": { "content": "md" } }
             },
-            "global_fields": {
-              "css": "text-center max-w-3xl mx-auto"
-            },
+            "global_fields": { "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900" },
             "children": [
               {
-                "style_name": "title",
-                "fields": {
-                  "content": {
-                    "en-GB": {
-                      "content": "Meet our executive team"
-                    },
-                    "de-CH": {
-                      "content": "Unser Führungsteam"
-                    }
-                  },
-                  "mantine_title_order": {
-                    "all": {
-                      "content": "1"
-                    }
+                "style_name": "card-segment",
+                "global_fields": { "css": "p-5" },
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": { "align": { "all": { "content": "center" } }, "gap": { "all": { "content": "xs" } } },
+                    "children": [
+                      {
+                        "style_name": "image",
+                        "fields": {
+                          "img_src": {
+                            "en-GB": { "content": "/assets/image-holder.png" },
+                            "de-CH": { "content": "/assets/image-holder.png" }
+                          },
+                          "alt": {
+                            "en-GB": { "content": "Alex Rivera" },
+                            "de-CH": { "content": "Alex Rivera" }
+                          },
+                          "radius": { "all": { "content": "full" } }
+                        },
+                        "global_fields": { "css": "w-20 h-20 rounded-full object-cover" }
+                      },
+                      {
+                        "style_name": "title",
+                        "fields": {
+                          "content": {
+                            "en-GB": { "content": "Alex Rivera" },
+                            "de-CH": { "content": "Alex Rivera" }
+                          },
+                          "title_order": { "all": { "content": "3" } },
+                          "size": { "all": { "content": "md" } }
+                        },
+                        "global_fields": { "css": "text-center text-gray-900 dark:text-gray-50" }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": { "content": "Senior Frontend Engineer" },
+                            "de-CH": { "content": "Senior Frontend-Entwicklerin" }
+                          },
+                          "text_align": { "all": { "content": "center" } }
+                        },
+                        "global_fields": { "css": "text-gray-600 dark:text-gray-400" }
+                      },
+                      {
+                        "style_name": "button",
+                        "fields": {
+                          "label": {
+                            "en-GB": { "content": "View profile" },
+                            "de-CH": { "content": "Profil ansehen" }
+                          },
+                          "size": { "all": { "content": "md" } }
+                        }
+                      }
+                    ]
                   }
-                },
-                "global_fields": {
-                  "css": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-50 break-words"
-                }
-              },
-              {
-                "style_name": "text",
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Seasoned operators across engineering, design, and go-to-market."
-                    },
-                    "de-CH": {
-                      "content": "Erfahrene Führungskräfte aus Engineering, Design und Go-to-Market."
-                    }
-                  },
-                  "mantine_size": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "text-gray-600 dark:text-gray-400"
-                }
+                ]
               }
             ]
           },
           {
-            "style_name": "simple-grid",
+            "style_name": "card",
             "fields": {
-              "mantine_cols": {
-                "all": {
-                  "content": "{\"base\":1,\"sm\":2,\"lg\":3}"
-                }
-              },
-              "mantine_vertical_spacing": {
-                "all": {
-                  "content": "lg"
-                }
-              }
+              "border": { "all": { "content": "1" } },
+              "radius": { "all": { "content": "md" } }
             },
+            "global_fields": { "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900" },
             "children": [
               {
-                "style_name": "card",
-                "fields": {
-                  "mantine_border": {
-                    "all": {
-                      "content": "1"
-                    }
-                  },
-                  "mantine_radius": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  },
-                  "mantine_card_shadow": {
-                    "all": {
-                      "content": "sm"
-                    }
-                  },
-                  "mantine_card_padding": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
-                },
+                "style_name": "card-segment",
+                "global_fields": { "css": "p-5" },
                 "children": [
                   {
-                    "style_name": "card-segment",
-                    "global_fields": {
-                      "css": "flex flex-col items-center text-center"
-                    },
+                    "style_name": "stack",
+                    "fields": { "align": { "all": { "content": "center" } }, "gap": { "all": { "content": "xs" } } },
                     "children": [
                       {
-                        "style_name": "avatar",
+                        "style_name": "image",
                         "fields": {
-                          "alt": {
-                            "en-GB": {
-                              "content": "Dr. Sarah Müller"
-                            },
-                            "de-CH": {
-                              "content": "Dr. Sarah Müller"
-                            }
-                          },
                           "img_src": {
-                            "en-GB": {
-                              "content": "/assets/image-holder.png"
-                            }
+                            "en-GB": { "content": "/assets/image-holder.png" },
+                            "de-CH": { "content": "/assets/image-holder.png" }
                           },
-                          "mantine_size": {
-                            "all": {
-                              "content": "xl"
-                            }
+                          "alt": {
+                            "en-GB": { "content": "Sam Chen" },
+                            "de-CH": { "content": "Sam Chen" }
                           },
-                          "mantine_radius": {
-                            "all": {
-                              "content": "50%"
-                            }
-                          }
+                          "radius": { "all": { "content": "full" } }
                         },
-                        "global_fields": {
-                          "css": "mb-4 ring-2 ring-indigo-100 dark:ring-indigo-900"
-                        }
+                        "global_fields": { "css": "w-20 h-20 rounded-full object-cover" }
                       },
                       {
                         "style_name": "title",
                         "fields": {
                           "content": {
-                            "en-GB": {
-                              "content": "Dr. Sarah Müller"
-                            },
-                            "de-CH": {
-                              "content": "Dr. Sarah Müller"
-                            }
+                            "en-GB": { "content": "Sam Chen" },
+                            "de-CH": { "content": "Sam Chen" }
                           },
-                          "mantine_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
+                          "title_order": { "all": { "content": "3" } },
+                          "size": { "all": { "content": "md" } }
                         },
-                        "global_fields": {
-                          "css": "text-lg font-semibold text-gray-900 dark:text-gray-100"
-                        }
+                        "global_fields": { "css": "text-center text-gray-900 dark:text-gray-50" }
                       },
                       {
                         "style_name": "text",
                         "fields": {
                           "text": {
-                            "en-GB": {
-                              "content": "CEO & Founder"
-                            },
-                            "de-CH": {
-                              "content": "CEO & Gründerin"
-                            }
+                            "en-GB": { "content": "Backend Engineer" },
+                            "de-CH": { "content": "Backend-Entwickler" }
                           },
-                          "mantine_size": {
-                            "all": {
-                              "content": "sm"
-                            }
-                          }
+                          "text_align": { "all": { "content": "center" } }
                         },
-                        "global_fields": {
-                          "css": "text-indigo-600 dark:text-indigo-400 font-medium mb-2"
-                        }
+                        "global_fields": { "css": "text-gray-600 dark:text-gray-400" }
                       },
                       {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "15+ years scaling digital products from prototype to enterprise."
-                            },
-                            "de-CH": {
-                              "content": "Über 15 Jahre Erfahrung im Skalieren digitaler Produkte."
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "style_name": "card-segment",
-                    "global_fields": {
-                      "css": "flex justify-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-800"
-                    },
-                    "children": [
-                      {
-                        "style_name": "badge",
+                        "style_name": "button",
                         "fields": {
                           "label": {
-                            "en-GB": {
-                              "content": "Strategy"
-                            }
+                            "en-GB": { "content": "View profile" },
+                            "de-CH": { "content": "Profil ansehen" }
                           },
-                          "mantine_color": {
-                            "all": {
-                              "content": "indigo"
-                            }
-                          },
-                          "mantine_variant": {
-                            "all": {
-                              "content": "light"
-                            }
-                          }
-                        }
-                      },
-                      {
-                        "style_name": "badge",
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "Leadership"
-                            }
-                          },
-                          "mantine_color": {
-                            "all": {
-                              "content": "grape"
-                            }
-                          },
-                          "mantine_variant": {
-                            "all": {
-                              "content": "light"
-                            }
-                          }
+                          "size": { "all": { "content": "md" } }
                         }
                       }
                     ]
                   }
                 ]
-              },
+              }
+            ]
+          },
+          {
+            "style_name": "card",
+            "fields": {
+              "border": { "all": { "content": "1" } },
+              "radius": { "all": { "content": "md" } }
+            },
+            "global_fields": { "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900" },
+            "children": [
               {
-                "style_name": "card",
-                "fields": {
-                  "mantine_border": {
-                    "all": {
-                      "content": "1"
-                    }
-                  },
-                  "mantine_radius": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  },
-                  "mantine_card_shadow": {
-                    "all": {
-                      "content": "sm"
-                    }
-                  },
-                  "mantine_card_padding": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
-                },
+                "style_name": "card-segment",
+                "global_fields": { "css": "p-5" },
                 "children": [
                   {
-                    "style_name": "card-segment",
-                    "global_fields": {
-                      "css": "flex flex-col items-center text-center"
-                    },
+                    "style_name": "stack",
+                    "fields": { "align": { "all": { "content": "center" } }, "gap": { "all": { "content": "xs" } } },
                     "children": [
                       {
-                        "style_name": "avatar",
+                        "style_name": "image",
                         "fields": {
-                          "alt": {
-                            "en-GB": {
-                              "content": "Michael Chen"
-                            },
-                            "de-CH": {
-                              "content": "Michael Chen"
-                            }
-                          },
                           "img_src": {
-                            "en-GB": {
-                              "content": "/assets/image-holder.png"
-                            }
+                            "en-GB": { "content": "/assets/image-holder.png" },
+                            "de-CH": { "content": "/assets/image-holder.png" }
                           },
-                          "mantine_size": {
-                            "all": {
-                              "content": "xl"
-                            }
+                          "alt": {
+                            "en-GB": { "content": "Jordan Lee" },
+                            "de-CH": { "content": "Jordan Lee" }
                           },
-                          "mantine_radius": {
-                            "all": {
-                              "content": "50%"
-                            }
-                          }
+                          "radius": { "all": { "content": "full" } }
                         },
-                        "global_fields": {
-                          "css": "mb-4 ring-2 ring-teal-100 dark:ring-teal-900"
-                        }
+                        "global_fields": { "css": "w-20 h-20 rounded-full object-cover" }
                       },
                       {
                         "style_name": "title",
                         "fields": {
                           "content": {
-                            "en-GB": {
-                              "content": "Michael Chen"
-                            },
-                            "de-CH": {
-                              "content": "Michael Chen"
-                            }
+                            "en-GB": { "content": "Jordan Lee" },
+                            "de-CH": { "content": "Jordan Lee" }
                           },
-                          "mantine_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
+                          "title_order": { "all": { "content": "3" } },
+                          "size": { "all": { "content": "md" } }
                         },
-                        "global_fields": {
-                          "css": "text-lg font-semibold text-gray-900 dark:text-gray-100"
-                        }
+                        "global_fields": { "css": "text-center text-gray-900 dark:text-gray-50" }
                       },
                       {
                         "style_name": "text",
                         "fields": {
                           "text": {
-                            "en-GB": {
-                              "content": "CTO & Technical Director"
-                            },
-                            "de-CH": {
-                              "content": "CTO & Technischer Leiter"
-                            }
+                            "en-GB": { "content": "Product Designer" },
+                            "de-CH": { "content": "Produktdesigner" }
                           },
-                          "mantine_size": {
-                            "all": {
-                              "content": "sm"
-                            }
-                          }
+                          "text_align": { "all": { "content": "center" } }
                         },
-                        "global_fields": {
-                          "css": "text-teal-600 dark:text-teal-400 font-medium mb-2"
-                        }
+                        "global_fields": { "css": "text-gray-600 dark:text-gray-400" }
                       },
                       {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Cloud architecture expert building resilient systems that scale."
-                            },
-                            "de-CH": {
-                              "content": "Cloud-Architektur-Experte für resiliente, skalierbare Systeme."
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "style_name": "card-segment",
-                    "global_fields": {
-                      "css": "flex justify-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-800"
-                    },
-                    "children": [
-                      {
-                        "style_name": "badge",
+                        "style_name": "button",
                         "fields": {
                           "label": {
-                            "en-GB": {
-                              "content": "Engineering"
-                            }
+                            "en-GB": { "content": "View profile" },
+                            "de-CH": { "content": "Profil ansehen" }
                           },
-                          "mantine_color": {
-                            "all": {
-                              "content": "teal"
-                            }
-                          },
-                          "mantine_variant": {
-                            "all": {
-                              "content": "light"
-                            }
-                          }
-                        }
-                      },
-                      {
-                        "style_name": "badge",
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "Infra"
-                            }
-                          },
-                          "mantine_color": {
-                            "all": {
-                              "content": "cyan"
-                            }
-                          },
-                          "mantine_variant": {
-                            "all": {
-                              "content": "light"
-                            }
-                          }
-                        }
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "style_name": "card",
-                "fields": {
-                  "mantine_border": {
-                    "all": {
-                      "content": "1"
-                    }
-                  },
-                  "mantine_radius": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  },
-                  "mantine_card_shadow": {
-                    "all": {
-                      "content": "sm"
-                    }
-                  },
-                  "mantine_card_padding": {
-                    "all": {
-                      "content": "lg"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
-                },
-                "children": [
-                  {
-                    "style_name": "card-segment",
-                    "global_fields": {
-                      "css": "flex flex-col items-center text-center"
-                    },
-                    "children": [
-                      {
-                        "style_name": "avatar",
-                        "fields": {
-                          "alt": {
-                            "en-GB": {
-                              "content": "Anna Kowalski"
-                            },
-                            "de-CH": {
-                              "content": "Anna Kowalski"
-                            }
-                          },
-                          "img_src": {
-                            "en-GB": {
-                              "content": "/assets/image-holder.png"
-                            }
-                          },
-                          "mantine_size": {
-                            "all": {
-                              "content": "xl"
-                            }
-                          },
-                          "mantine_radius": {
-                            "all": {
-                              "content": "50%"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "mb-4 ring-2 ring-pink-100 dark:ring-pink-900"
-                        }
-                      },
-                      {
-                        "style_name": "title",
-                        "fields": {
-                          "content": {
-                            "en-GB": {
-                              "content": "Anna Kowalski"
-                            },
-                            "de-CH": {
-                              "content": "Anna Kowalski"
-                            }
-                          },
-                          "mantine_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-lg font-semibold text-gray-900 dark:text-gray-100"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Head of Design & UX"
-                            },
-                            "de-CH": {
-                              "content": "Design- & UX-Leitung"
-                            }
-                          },
-                          "mantine_size": {
-                            "all": {
-                              "content": "sm"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-pink-600 dark:text-pink-400 font-medium mb-2"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Human-centered designer turning complex problems into clear interfaces."
-                            },
-                            "de-CH": {
-                              "content": "Human-Centered-Designerin, die komplexe Probleme klar visualisiert."
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "style_name": "card-segment",
-                    "global_fields": {
-                      "css": "flex justify-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-800"
-                    },
-                    "children": [
-                      {
-                        "style_name": "badge",
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "Design"
-                            }
-                          },
-                          "mantine_color": {
-                            "all": {
-                              "content": "pink"
-                            }
-                          },
-                          "mantine_variant": {
-                            "all": {
-                              "content": "light"
-                            }
-                          }
-                        }
-                      },
-                      {
-                        "style_name": "badge",
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "Research"
-                            }
-                          },
-                          "mantine_color": {
-                            "all": {
-                              "content": "violet"
-                            }
-                          },
-                          "mantine_variant": {
-                            "all": {
-                              "content": "light"
-                            }
-                          }
+                          "size": { "all": { "content": "md" } }
                         }
                       }
                     ]

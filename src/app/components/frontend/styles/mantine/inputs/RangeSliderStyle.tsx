@@ -54,19 +54,19 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
     const description = style.description?.content || '';
     const name = style.name?.content;
     // Get form context for field registration
-    const min = parseFloat(style.mantine_numeric_min?.content || '0');
-    const max = parseFloat(style.mantine_numeric_max?.content || '100');
-    const step = parseFloat(style.mantine_numeric_step?.content || '1');
-    const size = style.mantine_size?.content || 'sm';
-    const color = style.mantine_color?.content || 'blue';
-    const radius = style.mantine_radius?.content || 'sm';
+    const min = parseFloat(style.web_numeric_min?.content || '0');
+    const max = parseFloat(style.web_numeric_max?.content || '100');
+    const step = parseFloat(style.web_numeric_step?.content || '1');
+    const size = style.size?.content || 'sm';
+    const color = style.color?.content || 'blue';
+    const radius = style.radius?.content || 'sm';
     const disabled = style.disabled?.content === '1';
     const styleValue = style.value?.content || '[0, 100]';
 
     // New fields
-    const showLabelOnHover = style.mantine_range_slider_show_label?.content === '1';
-    const labelsAlwaysOn = style.mantine_range_slider_labels_always_on?.content === '1';
-    const inverted = style.mantine_range_slider_inverted?.content === '1';
+    const showLabelOnHover = style.web_range_slider_show_label?.content === '1';
+    const labelsAlwaysOn = style.web_range_slider_labels_always_on?.content === '1';
+    const inverted = style.web_range_slider_inverted?.content === '1';
 
     // Handle CSS field - use direct property from API response
     
@@ -116,7 +116,7 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
     // Parse translatable marks values from JSON
     let customMarks: Array<{ value: number; label: string }> = [];
     try {
-        const marksJson = style.mantine_range_slider_marks_values?.content;
+        const marksJson = style.range_slider_marks_values?.content;
         if (marksJson && marksJson.trim()) {
             const parsed = JSON.parse(marksJson) as unknown;
             if (Array.isArray(parsed)) {
@@ -127,7 +127,7 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
             }
         }
     } catch (error) {
-        console.warn('Invalid JSON in mantine_range_slider_marks_values:', error);
+        console.warn('Invalid JSON in range_slider_marks_values:', error);
         customMarks = [];
     }
 
@@ -138,6 +138,12 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
     const handleChange = (newValue: [number, number]) => {
         setValue(newValue);
     };
+
+    // When there is no label/description wrapper, the RangeSlider itself is the
+    // root element, so it must carry the section css class + spacing (otherwise
+    // the `css`/`css_mobile` escape hatch and spacing silently do nothing on a
+    // label-less slider). With a wrapper, those live on the Input.Wrapper below.
+    const hasWrapper = Boolean(label || description);
 
     // RangeSlider component
     const rangeSliderComponent = (
@@ -156,11 +162,12 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
             inverted={inverted}
             showLabelOnHover={showLabelOnHover}
             labelAlwaysOn={labelsAlwaysOn}
+            {...(hasWrapper ? {} : { ...styleProps, className: cssClass })}
         />
     );
 
     // Wrap component with label or description if present
-    const wrappedComponent = label || description ? (
+    const wrappedComponent = hasWrapper ? (
         <Input.Wrapper
             label={label}
             description={parse(sanitizeHtmlForParsing(description))}

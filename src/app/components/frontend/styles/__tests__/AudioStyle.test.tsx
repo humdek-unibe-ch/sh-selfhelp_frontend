@@ -40,4 +40,23 @@ describe('AudioStyle', () => {
         expect(container.querySelector('audio')).toBeInTheDocument();
         expect(container.querySelector('source')).toBeNull();
     });
+
+    it('maps the playback toggles and can hide the controls', () => {
+        const { container } = renderWithProviders(
+            <AudioStyle
+                style={makeStyle({
+                    sources: { content: JSON.stringify([{ source: '/track.mp3', type: 'audio/mpeg' }]) },
+                    has_controls: { content: '0' },
+                    media_loop: { content: '1' },
+                    media_autoplay: { content: '1' },
+                })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+        const audio = container.querySelector('audio') as HTMLAudioElement;
+        expect(audio.controls).toBe(false);
+        expect(audio.loop).toBe(true);
+        expect(audio.autoplay).toBe(true);
+    });
 });

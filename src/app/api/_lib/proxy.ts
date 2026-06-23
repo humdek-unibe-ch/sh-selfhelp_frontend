@@ -47,6 +47,7 @@ import {
     IMPERSONATE_TARGET_EMAIL_COOKIE,
     LEGACY_AUTH_COOKIE,
     LEGACY_REFRESH_COOKIE,
+    PREVIEW_COOKIE,
 } from '../../../config/cookie-names';
 
 export {
@@ -212,6 +213,12 @@ export function clearAuthCookies(res: NextResponse): void {
     if (LEGACY_REFRESH_COOKIE !== REFRESH_COOKIE) {
         res.cookies.set(LEGACY_REFRESH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
     }
+    // Preview mode is meaningless without a session: the backend (core >= 0.1.18)
+    // rejects an anonymous `preview=true` with 401. Both logout and a genuine
+    // session expiry funnel through this helper, so clearing the long-lived,
+    // admin-set `sh_preview` cookie here stops a stale flag from leaving an
+    // anonymous visitor stuck requesting drafts. It is a non-httpOnly UI cookie.
+    res.cookies.set(PREVIEW_COOKIE, '', { ...COOKIE_COMMON, httpOnly: false, maxAge: 0 });
     clearImpersonationCookies(res);
 }
 

@@ -53,7 +53,6 @@ interface IComboboxStyleProps {
  */
 const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const use_mantine_style = style.use_mantine_style?.content === '1';
     const placeholder =
        DOMPurify.sanitize(style.placeholder?.content ?? "", {
          ALLOWED_TAGS: [],
@@ -68,13 +67,13 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
     const isRequired = style.is_required?.content === '1';
 
     // Combobox configuration fields
-    const multiSelect = style.mantine_combobox_multi_select?.content === '1';
-    const searchable = style.mantine_combobox_searchable?.content !== '0'; // Default to true
-    const creatable = style.mantine_combobox_creatable?.content === '1';
-    const clearable = style.mantine_combobox_clearable?.content === '1';
-    const separator = style.mantine_combobox_separator?.content || ' ';
-    const maxValues = style.mantine_multi_select_max_values?.content
-        ? parseInt(style.mantine_multi_select_max_values.content)
+    const multiSelect = style.web_combobox_multi_select?.content === '1';
+    const searchable = style.web_combobox_searchable?.content !== '0'; // Default to true
+    const creatable = style.web_combobox_creatable?.content === '1';
+    const clearable = style.web_combobox_clearable?.content === '1';
+    const separator = style.web_combobox_separator?.content || ' ';
+    const maxValues = style.web_multi_select_max_values?.content
+        ? parseInt(style.web_multi_select_max_values.content)
         : undefined;
 
     // Handle CSS field - use direct property from API response
@@ -89,7 +88,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
 
     let predefinedOptions: Array<{ value: string; label: string }> = [];
     try {
-        const dataJson = style.mantine_combobox_options?.content;
+        const dataJson = style.combobox_options?.content;
 
         if (dataJson && dataJson.trim()) {
             const parsed = JSON.parse(dataJson) as IComboboxOption[];
@@ -106,7 +105,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
             ];
         }
     } catch (error) {
-        console.warn('Invalid JSON in mantine_combobox_options:', error);
+        console.warn('Invalid JSON in combobox_options:', error);
         // Fallback to default options
         predefinedOptions = [
             { value: 'option1', label: 'Option 1' },
@@ -121,6 +120,19 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
     const isPredefinedValue = (optionValue: string): boolean => {
         return predefinedValues.has(optionValue);
     };
+
+    // Theme-aware pill colours. The previous `bg-blue-100 text-blue-800` /
+    // `bg-green-100 text-green-800` Tailwind classes were light-only, so pills
+    // (and the option text below) were unreadable on the dark dropdown. Mantine's
+    // "light" variant CSS vars resolve correctly in both colour schemes.
+    const pillThemeStyle = (val: string): React.CSSProperties => ({
+        backgroundColor: isPredefinedValue(val)
+            ? 'var(--mantine-color-blue-light)'
+            : 'var(--mantine-color-green-light)',
+        color: isPredefinedValue(val)
+            ? 'var(--mantine-color-blue-light-color)'
+            : 'var(--mantine-color-green-light-color)',
+    });
 
     // State management
     const [showCreateInput, setShowCreateInput] = useState(false);
@@ -268,11 +280,6 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
         const newValues = currentValues.filter(v => v !== valueToRemove);
         setSelectedValues(newValues);
     }, [currentValues]);
-
-    // Rendering is gated after all hooks so hook order stays stable (rules-of-hooks).
-    if (!use_mantine_style) {
-        return null;
-    }
 
     // Create combined options including custom values
     const allOptions = [
@@ -434,7 +441,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                                     size="sm"
                                     withRemoveButton={clearable}
                                     onRemove={() => clearable && setSelectedValues([])}
-                                    className={`${isPredefinedValue(selectedValue) ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}
+                                    style={pillThemeStyle(selectedValue)}
                                 >
                                     {selectedValue}
                                 </Pill>
@@ -465,7 +472,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                                         >
                                             <Group justify="space-between">
                                                 <Text
-                                                    className={isPredefinedValue(option.value) ? 'text-gray-900' : 'text-green-700'}
+                                                    c={isPredefinedValue(option.value) ? undefined : 'green'}
                                                 >
                                                     {option.label}
                                                 </Text>
@@ -554,7 +561,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                                         withRemoveButton
                                         onRemove={() => handleRemovePill(val)}
                                         size="sm"
-                                        className={`${isPredefinedValue(val) ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}
+                                        style={pillThemeStyle(val)}
                                     >
                                         {val}
                                     </Pill>
@@ -587,7 +594,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                                     >
                                         <Group justify="space-between">
                                             <Text
-                                                className={isPredefinedValue(option.value) ? 'text-gray-900' : 'text-green-700'}
+                                                c={isPredefinedValue(option.value) ? undefined : 'green'}
                                             >
                                                 {option.label}
                                             </Text>

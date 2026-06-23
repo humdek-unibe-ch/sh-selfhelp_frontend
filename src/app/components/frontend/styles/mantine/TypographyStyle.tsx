@@ -30,28 +30,19 @@ interface ITypographyStyleProps {
 const TypographyStyle: React.FC<ITypographyStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
-
-    // Extract field values using the new unified field structure
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-
     // Handle CSS field - use direct property from API response
     
 
     // Build style object
     const styleObj: React.CSSProperties = {};
 
-    if (use_mantine_style) {
-        return (
-            <Typography {...styleProps} className={cssClass} style={styleObj}>
-                {children.map((child, index: number) => (
-                    child ? <BasicStyle key={index} style={child} /> : null
-                ))}
-            </Typography>
-        );
-    }
-
-    // Return null when Mantine styling is disabled (no fallback needed)
-    return null;
+    return (
+        <Typography {...styleProps} className={cssClass} style={styleObj}>
+            {children.map((child, index: number) => (
+                child ? <BasicStyle key={index} style={child} /> : null
+            ))}
+        </Typography>
+    );
 };
 
 export default TypographyStyle;

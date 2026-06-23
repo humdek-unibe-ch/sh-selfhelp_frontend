@@ -696,7 +696,6 @@ export class PluginRuntime {
             styleEntries[def.name] = {
                 description: def.description,
                 category: def.category,
-                frontendOnly: true,
                 canHaveChildren: def.canHaveChildren,
             };
             styleComponents[def.name] = def.component as unknown as TPluginStyleComponent;

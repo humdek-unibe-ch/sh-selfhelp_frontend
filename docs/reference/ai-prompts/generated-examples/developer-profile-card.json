@@ -1,439 +1,132 @@
 [
   {
     "section_name": "developer-profile",
-    "style_name": "center",
+    "style_name": "container",
     "global_fields": {
-      "css": "px-4 py-12 sm:px-6 sm:py-16 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-950 dark:to-gray-900 min-h-screen"
+      "css": "px-4 py-8 max-w-md mx-auto"
     },
     "children": [
       {
         "style_name": "card",
         "fields": {
-          "mantine_border": {
-            "all": {
-              "content": "1"
-            }
-          },
-          "mantine_card_padding": {
-            "all": {
-              "content": "0"
-            }
-          },
-          "mantine_radius": {
-            "all": {
-              "content": "xl"
-            }
-          },
-          "mantine_card_shadow": {
-            "all": {
-              "content": "xl"
-            }
-          }
+          "border": { "all": { "content": "1" } },
+          "radius": { "all": { "content": "lg" } }
         },
         "global_fields": {
-          "css": "w-full max-w-sm overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+          "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900"
         },
         "children": [
           {
-            "section_name": "profile-header",
             "style_name": "card-segment",
-            "global_fields": {
-              "css": "h-28 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-700 dark:via-purple-700 dark:to-pink-700"
-            }
-          },
-          {
-            "section_name": "profile-avatar-segment",
-            "style_name": "card-segment",
-            "global_fields": {
-              "css": "-mt-12 flex justify-center"
-            },
+            "global_fields": { "css": "p-6" },
             "children": [
               {
-                "style_name": "avatar",
+                "style_name": "stack",
                 "fields": {
-                  "alt": {
-                    "en-GB": {
-                      "content": "Bill Headbanger profile photo"
-                    },
-                    "de-CH": {
-                      "content": "Profilfoto von Bill Headbanger"
-                    }
-                  },
-                  "img_src": {
-                    "en-GB": {
-                      "content": "/assets/image-holder.png"
-                    }
-                  },
-                  "mantine_size": {
-                    "all": {
-                      "content": "xl"
-                    }
-                  },
-                  "mantine_radius": {
-                    "all": {
-                      "content": "50%"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "ring-4 ring-white dark:ring-gray-900 shadow-lg"
-                }
-              }
-            ]
-          },
-          {
-            "section_name": "profile-identity",
-            "style_name": "card-segment",
-            "global_fields": {
-              "css": "px-6 pt-4 pb-2 text-center"
-            },
-            "children": [
-              {
-                "style_name": "title",
-                "fields": {
-                  "content": {
-                    "en-GB": {
-                      "content": "Bill Headbanger"
-                    },
-                    "de-CH": {
-                      "content": "Bill Headbanger"
-                    }
-                  },
-                  "mantine_title_order": {
-                    "all": {
-                      "content": "2"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "text-2xl font-bold text-gray-900 dark:text-gray-50"
-                }
-              },
-              {
-                "style_name": "text",
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Fullstack engineer · Zürich"
-                    },
-                    "de-CH": {
-                      "content": "Fullstack-Entwickler · Zürich"
-                    }
-                  }
-                },
-                "global_fields": {
-                  "css": "text-sm text-gray-500 dark:text-gray-400 mt-1"
-                }
-              }
-            ]
-          },
-          {
-            "section_name": "profile-skills",
-            "style_name": "card-segment",
-            "global_fields": {
-              "css": "px-6 py-3 flex flex-wrap justify-center gap-2"
-            },
-            "children": [
-              {
-                "style_name": "badge",
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "TypeScript"
-                    }
-                  },
-                  "mantine_color": {
-                    "all": {
-                      "content": "blue"
-                    }
-                  },
-                  "mantine_variant": {
-                    "all": {
-                      "content": "light"
-                    }
-                  }
-                }
-              },
-              {
-                "style_name": "badge",
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "React"
-                    }
-                  },
-                  "mantine_color": {
-                    "all": {
-                      "content": "cyan"
-                    }
-                  },
-                  "mantine_variant": {
-                    "all": {
-                      "content": "light"
-                    }
-                  }
-                }
-              },
-              {
-                "style_name": "badge",
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "PHP"
-                    }
-                  },
-                  "mantine_color": {
-                    "all": {
-                      "content": "violet"
-                    }
-                  },
-                  "mantine_variant": {
-                    "all": {
-                      "content": "light"
-                    }
-                  }
-                }
-              },
-              {
-                "style_name": "badge",
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Symfony"
-                    }
-                  },
-                  "mantine_color": {
-                    "all": {
-                      "content": "grape"
-                    }
-                  },
-                  "mantine_variant": {
-                    "all": {
-                      "content": "light"
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          {
-            "section_name": "profile-stats",
-            "style_name": "card-segment",
-            "global_fields": {
-              "css": "px-4 sm:px-6 py-4 border-t border-gray-200 dark:border-gray-800"
-            },
-            "children": [
-              {
-                "style_name": "simple-grid",
-                "fields": {
-                  "mantine_cols": {
-                    "all": {
-                      "content": "3"
-                    }
-                  },
-                  "mantine_vertical_spacing": {
-                    "all": {
-                      "content": "xs"
-                    }
-                  }
+                  "align": { "all": { "content": "center" } },
+                  "gap": { "all": { "content": "xs" } }
                 },
                 "children": [
                   {
-                    "style_name": "stack",
+                    "style_name": "image",
                     "fields": {
-                      "mantine_align": {
-                        "all": {
-                          "content": "center"
-                        }
+                      "img_src": {
+                        "en-GB": { "content": "/assets/image-holder.png" },
+                        "de-CH": { "content": "/assets/image-holder.png" }
                       },
-                      "mantine_gap": {
-                        "all": {
-                          "content": "0"
-                        }
-                      }
+                      "alt": {
+                        "en-GB": { "content": "Portrait of Alex Rivera" },
+                        "de-CH": { "content": "Porträt von Alex Rivera" }
+                      },
+                      "radius": { "all": { "content": "full" } }
                     },
+                    "global_fields": { "css": "w-24 h-24 rounded-full object-cover" }
+                  },
+                  {
+                    "style_name": "title",
+                    "fields": {
+                      "content": {
+                        "en-GB": { "content": "Alex Rivera" },
+                        "de-CH": { "content": "Alex Rivera" }
+                      },
+                      "title_order": { "all": { "content": "3" } }
+                    },
+                    "global_fields": { "css": "text-center text-gray-900 dark:text-gray-50" }
+                  },
+                  {
+                    "style_name": "text",
+                    "fields": {
+                      "text": {
+                        "en-GB": { "content": "Senior Frontend Engineer" },
+                        "de-CH": { "content": "Senior Frontend-Entwicklerin" }
+                      },
+                      "text_align": { "all": { "content": "center" } }
+                    },
+                    "global_fields": { "css": "text-gray-600 dark:text-gray-400" }
+                  },
+                  {
+                    "style_name": "group",
+                    "fields": {
+                      "justify": { "all": { "content": "center" } },
+                      "gap": { "all": { "content": "xs" } }
+                    },
+                    "global_fields": { "css_mobile": "flex-wrap" },
                     "children": [
                       {
-                        "style_name": "title",
+                        "style_name": "badge",
                         "fields": {
-                          "content": {
-                            "en-GB": {
-                              "content": "34K"
-                            }
+                          "label": {
+                            "en-GB": { "content": "React" },
+                            "de-CH": { "content": "React" }
                           },
-                          "mantine_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-xl font-bold text-gray-900 dark:text-gray-50"
+                          "color": { "all": { "content": "violet" } }
                         }
                       },
                       {
-                        "style_name": "text",
+                        "style_name": "badge",
                         "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Followers"
-                            },
-                            "de-CH": {
-                              "content": "Follower"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-xs text-gray-500 dark:text-gray-400"
+                          "label": {
+                            "en-GB": { "content": "TypeScript" },
+                            "de-CH": { "content": "TypeScript" }
+                          },
+                          "color": { "all": { "content": "cyan" } }
+                        }
+                      },
+                      {
+                        "style_name": "badge",
+                        "fields": {
+                          "label": {
+                            "en-GB": { "content": "Node" },
+                            "de-CH": { "content": "Node" }
+                          },
+                          "color": { "all": { "content": "green" } }
                         }
                       }
                     ]
                   },
                   {
-                    "style_name": "stack",
+                    "style_name": "text",
                     "fields": {
-                      "mantine_align": {
-                        "all": {
-                          "content": "center"
-                        }
+                      "text": {
+                        "en-GB": { "content": "Building accessible, cross-platform interfaces for the SelfHelp CMS." },
+                        "de-CH": { "content": "Entwickelt barrierefreie, plattformübergreifende Oberflächen für das SelfHelp-CMS." }
                       },
-                      "mantine_gap": {
-                        "all": {
-                          "content": "0"
-                        }
-                      }
+                      "text_align": { "all": { "content": "center" } }
                     },
-                    "children": [
-                      {
-                        "style_name": "title",
-                        "fields": {
-                          "content": {
-                            "en-GB": {
-                              "content": "187"
-                            }
-                          },
-                          "mantine_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-xl font-bold text-gray-900 dark:text-gray-50"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Following"
-                            },
-                            "de-CH": {
-                              "content": "Folgt"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-xs text-gray-500 dark:text-gray-400"
-                        }
-                      }
-                    ]
+                    "global_fields": { "css": "text-sm text-gray-600 dark:text-gray-400 break-words" }
                   },
                   {
-                    "style_name": "stack",
+                    "style_name": "button",
                     "fields": {
-                      "mantine_align": {
-                        "all": {
-                          "content": "center"
-                        }
+                      "label": {
+                        "en-GB": { "content": "Get in touch" },
+                        "de-CH": { "content": "Kontakt aufnehmen" }
                       },
-                      "mantine_gap": {
-                        "all": {
-                          "content": "0"
-                        }
-                      }
-                    },
-                    "children": [
-                      {
-                        "style_name": "title",
-                        "fields": {
-                          "content": {
-                            "en-GB": {
-                              "content": "1.6K"
-                            }
-                          },
-                          "mantine_title_order": {
-                            "all": {
-                              "content": "3"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-xl font-bold text-gray-900 dark:text-gray-50"
-                        }
-                      },
-                      {
-                        "style_name": "text",
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Posts"
-                            },
-                            "de-CH": {
-                              "content": "Beiträge"
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "css": "text-xs text-gray-500 dark:text-gray-400"
-                        }
-                      }
-                    ]
+                      "size": { "all": { "content": "md" } },
+                      "full_width": { "all": { "content": "1" } }
+                    }
                   }
                 ]
-              }
-            ]
-          },
-          {
-            "section_name": "profile-cta",
-            "style_name": "card-segment",
-            "global_fields": {
-              "css": "px-6 pb-6"
-            },
-            "children": [
-              {
-                "style_name": "button",
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Follow"
-                    },
-                    "de-CH": {
-                      "content": "Folgen"
-                    }
-                  },
-                  "mantine_color": {
-                    "all": {
-                      "content": "blue"
-                    }
-                  },
-                  "mantine_variant": {
-                    "all": {
-                      "content": "filled"
-                    }
-                  },
-                  "mantine_fullwidth": {
-                    "all": {
-                      "content": "1"
-                    }
-                  },
-                  "mantine_radius": {
-                    "all": {
-                      "content": "md"
-                    }
-                  }
-                }
               }
             ]
           }

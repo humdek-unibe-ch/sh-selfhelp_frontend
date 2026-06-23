@@ -155,7 +155,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                         {style.condition_debug.error && style.condition_debug.error.length > 0 && (
                                             <Box>
                                                 <Text size="xs" c="dimmed" mb="xs">Errors:</Text>
-                                                {style.condition_debug.error.map((error, index) => (
+                                                {style.condition_debug.error.map((error: unknown, index: number) => (
                                                     <Text key={index} size="xs" c="orange" className={styles.codeBlock}>
                                                         {String(error)}
                                                     </Text>

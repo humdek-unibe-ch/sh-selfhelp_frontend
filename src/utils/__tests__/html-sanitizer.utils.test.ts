@@ -3,10 +3,12 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect } from 'vitest';
+import type { ReactElement } from 'react';
 import {
     sanitizeHtmlForParsing,
     sanitizeHtmlForInline,
     stripHtmlTags,
+    renderRichInline,
 } from '../html-sanitizer.utils';
 
 /**
@@ -63,5 +65,26 @@ describe('html-sanitizer: sanitizeHtmlForInline', () => {
 describe('html-sanitizer: stripHtmlTags', () => {
     it('returns plain text with every tag removed', () => {
         expect(stripHtmlTags('<b>hi</b> <em>there</em>')).toBe('hi there');
+    });
+});
+
+describe('html-sanitizer: renderRichInline (hydration-safe rich inline)', () => {
+    it('passes a plain string through unchanged (no wrapper element)', () => {
+        expect(renderRichInline('Just plain text')).toBe('Just plain text');
+    });
+
+    it('renders formatted HTML via a dangerouslySetInnerHTML <span> (no html-react-parser tree)', () => {
+        const node = renderRichInline('a <strong>bold</strong> <a href="https://x.test">link</a>') as ReactElement<{
+            dangerouslySetInnerHTML: { __html: string };
+        }>;
+        expect(node.type).toBe('span');
+        const html = node.props.dangerouslySetInnerHTML.__html;
+        expect(html).toContain('<strong>bold</strong>');
+        expect(html).toContain('href="https://x.test"');
+    });
+
+    it('returns falsy input as-is', () => {
+        expect(renderRichInline(undefined)).toBeNull();
+        expect(renderRichInline('')).toBe('');
     });
 });

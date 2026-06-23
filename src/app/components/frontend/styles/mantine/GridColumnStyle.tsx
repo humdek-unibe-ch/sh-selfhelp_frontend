@@ -20,7 +20,7 @@ interface IGridColumnStyleProps {
 }
 
 /**
- * Parse a `mantine_grid_span`-like value into the form Mantine v9 accepts:
+ * Parse a `grid_span`-like value into the form Mantine v9 accepts:
  * - `"auto"` / `"content"` → passed through verbatim
  * - `"6"` → coerced to `6` (fixed span)
  * - `{base:12,sm:6}` / stringified `'{"base":12,"sm":6}'` → object
@@ -55,18 +55,18 @@ const parseResponsiveSpan = (
  * GridColumnStyle component renders a grid column within a Grid
  * Uses Mantine UI Grid.Col component.
  *
- * `mantine_grid_span` accepts a number ("6"), the keywords "auto"/"content",
+ * `grid_span` accepts a number ("6"), the keywords "auto"/"content",
  * or a JSON object ({"base":12,"sm":6,"md":4}) for responsive layouts.
  */
 const GridColumnStyle: React.FC<IGridColumnStyleProps> = ({ style, cssClass }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
-    const span = parseResponsiveSpan(style.mantine_grid_span?.content);
-    const offset = parseInt(style.mantine_grid_offset?.content || '0');
-    const order = style.mantine_grid_order?.content ? parseInt(style.mantine_grid_order.content) : undefined;
-    const grow = style.mantine_grid_grow?.content === '1';
-    const width = style.mantine_width?.content;
-    const height = style.mantine_height?.content;
+    const span = parseResponsiveSpan(style.grid_span?.content);
+    const offset = parseInt(style.grid_offset?.content || '0');
+    const order = style.grid_order?.content ? parseInt(style.grid_order.content) : undefined;
+    const grow = style.grid_grow?.content === '1';
+    const width = style.shared_width?.content;
+    const height = style.shared_height?.content;
 
     // Handle CSS field - use direct property from API response
     

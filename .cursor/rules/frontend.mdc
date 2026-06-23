@@ -3,121 +3,17 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 ---
-description: 
-globs: 
+description: Frontend working rules
+globs:
 alwaysApply: true
 ---
----
-trigger: always_on
----
 
-Start every answer with: ❤️After the heart tell me who you are and what version.
-staleTime: for react query should be allways form the global react query config
-On design never use transform on hover. Never. 
-Proceed using the sequential thinking method
-USE MCP server when appropirate
-Use Mantine components if any styles are needed use tailwindcss and then if not possible use custom css in module file
-NEVER commit unless i ask you
-DO NOT RUN npm run dev or npm build. THE DEV server is already running. 
-NEVER USE ANY, ALLWASY PROPERLY DEFINE TYPES AND INTERFACES.
-Never git commit and push unless i ask you. Never. NEVER GIT COMMIT UNLESS I SPECIFICLY ASK FOR IT
-Always check the import paths to be correct
-Allwasys check if interfaces or types names exist before you create one. Then either use the same or use another name. Try not ot create a loto different very close interfaces. Be clever.
-Apply the changes without asking for confirmation
-First check if files already exists before creating new ones. Do not duplicate logic in different files. lLways check my structure. Whenever changes are made to the structure add the changes to  your memory
-Never execute `npm run dev`
-ALwasy use modular aproach and create components in different files. Also use Mantine v8 for ui, tailwind and if you use custom css, create module css for the component.
-Name every interface with I prefix and every type with T prefix
-Always use React Query's `select` option for data transformations to prevent recalculation on every render.
-Minimize custom Tailwind CSS and maximize Mantine UI v8 components for better theming and customization.
-Always add important and complex features to the debug system provides comprehensive development and testing tools that can be enabled/disabled through environment variables and configuration flags.
+Follow `AGENTS.md` and the current codebase. Do not duplicate stack versions,
+directory layouts, testing tools, or architectural rules here.
 
-
-- You are an expert in TypeScript, Node.js, Next.js, Refine, React 18, Mantine UI v8, and Tailwind and @tanstack/react-query v5.
-
-- Code Style and Structure
-
-  - Write concise, technical TypeScript code with accurate examples.
-  - Use functional and declarative programming patterns; avoid classes.
-  - Prefer iteration and modularization over code duplication.
-  - Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
-  - Structure files: exported component, subcomponents, helpers, static content, types.
-
-- Naming Conventions
-
-  - All components should go in app/components and be named like new-component.tsx
-  - Use lowercase with dashes for directories (e.g., components/auth-wizard).
-  - Favor named exports for components.
-
-- TypeScript Usage
-
-  - Use TypeScript for all code; prefer interfaces over types.
-  - Avoid enums; use maps instead.
-  - Use functional components with TypeScript interfaces.
-  - generic type annotation
-
-- Syntax and Formatting
-
-  - Use the "function" keyword for pure functions.
-  - Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements.
-  - Use declarative JSX.
-
-- UI and Styling
-
-  - Use Mantine UI v8, and Tailwind for components and styling.
-  - Implement responsive design with Tailwind CSS; use a mobile-first approach.
-
-- Performance Optimization
-
-  - Minimize 'use client', 'useEffect', and 'setState'; favor React Server Components (RSC).
-  - Wrap client components in Suspense with fallback.
-  - Use dynamic loading for non-critical components.
-  - Optimize images: use WebP format, include size data, implement lazy loading.
-
-- Key Conventions
-
-  - Use 'nuqs' for URL search parameter state management.
-  - Optimize Web Vitals (LCP, CLS, FID).
-  - Limit 'use client':
-    - Favor server components and Next.js SSR.
-    - Use only for Web API access in small components.
-    - Avoid for data fetching or state management.
-  - Follow Next.js docs for Data Fetching, Rendering, and Routing.
-  - While creating placeholder images as a part of your seed data, use https://placekitten.com/
-  - Place both the /app and /components folders under a /src directory. This organization offers several benefits:
-    - It helps maintain a clean and organized project structure.
-    - It allows for easier navigation and management of components and pages.
-    - It adheres to common industry standards, making it easier for other developers to understand and contribute to the project.
-    - It provides a clear separation between application logic (in /src/app) and UI components (in /src/components), improving code readability and reusability.
-    - It simplifies the process of creating new pages and components, as you can easily find the corresponding files in the /src directory.
-    - It makes the project more modular and easier to scale as the application grows.
-    - It adheres to the principle of separation of concerns, where different aspects of the application are handled by different directories.
-
-## Components Organization
-
-Within the /app/components folder, consider organizing components by type or feature:
-
-By Type: Group components like forms, buttons, layout elements, etc.
-
-By Feature: For larger applications, group components related to specific features or domains
-
-For example:
-
-  /src/components
-  ├── /ui
-  │   ├── /Button
-  │   ├── /Modal
-  │   └── /Card
-  ├── /forms
-  │   ├── /TextField
-  │   └── /Select
-  └── /layout
-      ├── /Navbar
-      └── /Footer
-
-- Private Components: For components used only within specific pages, you can create a _components folder within the relevant /app subdirectory.
-
-- Shared Components: The /app/components folder should contain reusable components used across multiple pages or features.
-
-
-- Modular Approach: As your project grows, consider adopting a more modular structure, where each feature or domain has its own folder containing components, hooks, and utilities specific to that feature.
+- Never commit or push unless the user explicitly asks.
+- Do not start another dev server when one is already running.
+- Do not use transform-based hover motion in UI design.
+- Builds, focused tests, lint, and type checks are allowed when required by
+  `AGENTS.md`; use only scripts present in `package.json`.
+- Preserve strict typing and existing repository patterns.

@@ -28,14 +28,16 @@ interface ICodeStyleProps {
  */
 const CodeStyle: React.FC<ICodeStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const codeBlock = style.mantine_code_block?.content === '1';
-    const color = style.mantine_color?.content || 'blue';
+    const codeBlock = style.code_block?.content === '1';
+    const color = style.color?.content || undefined;
+    const radiusToken = style.radius?.content;
 
-    // Handle CSS field - use direct property from API response
-    
-
-    // Build style object
+    // Build style object — map the shared radius token onto the block corners.
     const styleObj: React.CSSProperties = {};
+    if (radiusToken) {
+        styleObj.borderRadius =
+            radiusToken === 'none' ? 0 : radiusToken === 'full' ? '9999px' : `var(--mantine-radius-${radiusToken})`;
+    }
 
     // Get code content from any available field
     const codeContent = style.content?.content || '';

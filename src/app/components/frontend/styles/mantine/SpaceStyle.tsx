@@ -30,16 +30,13 @@ interface ISpaceStyleProps {
  */
 const SpaceStyle: React.FC<ISpaceStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values for Mantine Space props
-    const size = style.mantine_size?.content;
-    const direction = style.mantine_space_direction?.content;
-
-    // Handle CSS field - use direct property from API response
-    
+    const size = style.size?.content;
+    const orientation = style.orientation?.content;
 
     return (
         <Space
-            w={direction === 'horizontal' ? size : undefined}
-            h={direction === 'vertical' ? size : undefined}
+            w={orientation === 'horizontal' ? size : undefined}
+            h={orientation !== 'horizontal' ? size : undefined}
             {...styleProps} className={cssClass}
         />
     );

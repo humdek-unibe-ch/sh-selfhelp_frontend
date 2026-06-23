@@ -51,4 +51,24 @@ describe('AlertStyle', () => {
         expect(screen.getByText('safe note')).toBeInTheDocument();
         expect(document.querySelector('img')).toBeNull();
     });
+
+    it('renders a dismiss control when closable is on, and none when off', () => {
+        const { rerender } = renderWithProviders(
+            <AlertStyle
+                style={makeAlertStyle({ content: { content: 'Dismiss me' }, closable: { content: '1' } })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+        expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+
+        rerender(
+            <AlertStyle
+                style={makeAlertStyle({ content: { content: 'Dismiss me' }, closable: { content: '0' } })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+        expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
+    });
 });

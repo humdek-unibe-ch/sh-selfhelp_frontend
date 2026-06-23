@@ -33,10 +33,11 @@ const TitleStyle: React.FC<ITitleStyleProps> = ({ style, styleProps, cssClass })
     const title = DOMPurify.sanitize(style.content?.content ?? "", {
          ALLOWED_TAGS: [],
        }) || 'Title';
-    const order = Number(style.mantine_title_order?.content) as 1 | 2 | 3 | 4 | 5 | 6 || 1
-    const size = style.mantine_size?.content || 'lg';
-    const textWrap = style.mantine_title_text_wrap?.content as 'wrap' | 'balance' | 'nowrap' | undefined;
-    const lineClamp = style.mantine_title_line_clamp?.content;
+    const order = Number(style.title_order?.content) as 1 | 2 | 3 | 4 | 5 | 6 || 1
+    const size = style.size?.content || 'lg';
+    const color = style.color?.content || undefined;
+    const textWrap = style.web_title_text_wrap?.content as 'wrap' | 'balance' | 'nowrap' | undefined;
+    const lineClamp = style.line_clamp?.content;
 
     // Handle CSS field - use direct property from API response
     
@@ -44,6 +45,7 @@ const TitleStyle: React.FC<ITitleStyleProps> = ({ style, styleProps, cssClass })
         <Title
             order={order}
             size={size}
+            c={color}
             textWrap={textWrap}
             lineClamp={lineClamp ? parseInt(lineClamp) : undefined}
             // inherit={inherit}

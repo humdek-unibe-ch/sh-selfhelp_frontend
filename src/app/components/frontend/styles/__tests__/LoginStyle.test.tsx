@@ -59,4 +59,20 @@ describe('LoginStyle', () => {
         expect(registerLink).toHaveAttribute('href', '/register');
         expect(screen.queryByRole('link', { name: 'Create account' })).not.toBeInTheDocument();
     });
+
+    it('renders the optional subtitle when set, and hides it when empty', () => {
+        const { rerender } = renderWithProviders(
+            <LoginStyle
+                style={{ subtitle: { content: 'Sign in to continue' } } as unknown as LoginStyleField}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+        expect(screen.getByText('Sign in to continue')).toBeInTheDocument();
+
+        rerender(
+            <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+        );
+        expect(screen.queryByText('Sign in to continue')).not.toBeInTheDocument();
+    });
 });

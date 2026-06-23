@@ -33,13 +33,13 @@ const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style, styleProps, cssCl
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const bulletSize = parseInt(style.mantine_timeline_bullet_size?.content || '24');
-    const lineWidth = parseInt(style.mantine_timeline_line_width?.content || '2');
-    const active = parseInt(style.mantine_timeline_active?.content || '0');
-    const color = style.mantine_color?.content || 'blue';
+    const bulletSize = parseInt(style.web_timeline_bullet_size?.content || '24');
+    const lineWidth = parseInt(style.web_timeline_line_width?.content || '2');
+    const active = parseInt(style.web_timeline_active?.content || '0');
+    const color = style.color?.content || 'blue';
 
     // Use the validated color from CMS
-    const align = style.mantine_timeline_align?.content || 'left';
+    const align = style.web_timeline_align?.content || 'left';
 
     // Handle CSS field - use direct property from API response
     
@@ -64,16 +64,16 @@ const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style, styleProps, cssCl
                 // present on every style in the union; read them through a narrow view.
                 const item = child as {
                     title?: { content?: string };
-                    mantine_timeline_item_bullet?: { content?: string };
-                    mantine_timeline_item_line_variant?: { content?: string };
-                    mantine_color?: { content?: string };
+                    web_timeline_item_bullet?: { content?: string };
+                    web_timeline_item_line_variant?: { content?: string };
+                    color?: { content?: string };
                 };
 
                 // Extract timeline item fields
                 const title = item.title?.content;
-                const bulletIconName = item.mantine_timeline_item_bullet?.content;
-                const lineVariant = item.mantine_timeline_item_line_variant?.content || 'solid';
-                const itemColor = item.mantine_color?.content;
+                const bulletIconName = item.web_timeline_item_bullet?.content;
+                const lineVariant = item.web_timeline_item_line_variant?.content || 'solid';
+                const itemColor = item.color?.content;
 
                 // Determine if this item should inherit parent's color or use its own
                 // If the item index is within the parent's active range, use parent color

@@ -39,16 +39,16 @@ interface IColorPickerStyleProps {
 const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style, styleProps, cssClass }) => {
 
     // Extract field values using the new unified field structure
-    const format = style.mantine_color_format?.content || 'hex';
-    const swatchesPerRow = parseInt(style.mantine_color_picker_swatches_per_row?.content || '7');
-    const size = style.mantine_size?.content || 'sm';
+    const format = style.web_color_format?.content || 'hex';
+    const swatchesPerRow = parseInt(style.web_color_picker_swatches_per_row?.content || '7');
+    const size = style.size?.content || 'sm';
 
     // New field values
-    const swatchesJson = style.mantine_color_picker_swatches?.content;        
-    const saturationLabel = style.mantine_color_picker_saturation_label?.content || 'Saturation';
-    const hueLabel = style.mantine_color_picker_hue_label?.content || 'Hue';
-    const alphaLabel = style.mantine_color_picker_alpha_label?.content || 'Alpha';
-    const fullWidth = style.mantine_fullwidth?.content === '1';
+    const swatchesJson = style.web_color_picker_swatches?.content;        
+    const saturationLabel = style.color_picker_saturation_label?.content || 'Saturation';
+    const hueLabel = style.color_picker_hue_label?.content || 'Hue';
+    const alphaLabel = style.color_picker_alpha_label?.content || 'Alpha';
+    const fullWidth = style.full_width?.content === '1';
 
     // Form configuration fields (similar to ChipStyle)
     const label = style.label?.content;

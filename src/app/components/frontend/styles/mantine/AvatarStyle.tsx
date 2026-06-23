@@ -33,14 +33,13 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
     // Extract field values using the new unified field structure
     const src = style.img_src?.content;
     const alt = style.alt?.content || 'Avatar';
-    const iconName = style.mantine_left_icon?.content;
-    const customInitials = style.mantine_avatar_initials?.content || 'U';
-    const variant = style.mantine_avatar_variant?.content || 'light';
-    const size = style.mantine_size?.content || 'md';
-    const radius = style.mantine_radius?.content || '50%';
-    const color = style.mantine_color?.content || 'blue';
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-
+    const iconName = style.web_left_icon?.content;
+    const name = style.name?.content?.trim();
+    const customInitials = style.web_avatar_initials?.content || 'U';
+    const variant = style.web_variant?.content || 'light';
+    const size = style.size?.content || 'md';
+    const radius = style.radius?.content || '50%';
+    const color = style.color?.content || 'blue';
     // Handle CSS field - use direct property from API response
     
 
@@ -51,41 +50,38 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
     // Check if src is a text name (not a URL)
     const _isUrl = src && (src.startsWith('http') || src.startsWith('https') || src.includes('.'));
 
-    // Determine avatar content with priority: URL > text initials > icon > custom initials
+    // Determine avatar content with priority: URL > name (auto-initials) > icon > custom initials
     const avatarSrc = src ? getAssetUrl(src) : null;
-    const avatarIcon = !src && iconName ? <IconComponent iconName={iconName} size={16} /> : undefined;
+    const useName = !avatarSrc && !!name;
+    const avatarIcon = !avatarSrc && !useName && iconName ? <IconComponent iconName={iconName} size={16} /> : undefined;
 
     let avatarContent;
-    if (avatarSrc) {
-        // src is a URL - image will be shown, no content needed
+    if (avatarSrc || useName) {
+        // image (src) or Mantine-derived initials (name) — no manual content.
         avatarContent = null;
-    }  else if (avatarIcon) {
-        // no src but icon is set - show icon
+    } else if (avatarIcon) {
+        // no src/name but icon is set - show icon
         avatarContent = avatarIcon;
     } else {
-        // no src, no icon - generate initials from custom initials field
+        // no src, no name, no icon - generate initials from custom initials field
         avatarContent = customInitials ? customInitials.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
     }
 
-    if (use_mantine_style) {
-        return (
-            <Avatar
-                src={avatarSrc}
-                alt={alt}
-                variant={variant as TMantineAvatarVariant}
-                size={size as TMantineSize}
-                radius={radius === 'none' ? 0 : radius}
-                color={color}
-                {...styleProps} className={cssClass}
-                style={styleObj}
-            >
-                {avatarContent}
-            </Avatar>
-        );
-    }
-
-    // Return null if Mantine styling is disabled (no fallback needed)
-    return null;
+    return (
+        <Avatar
+            src={avatarSrc}
+            alt={alt}
+            name={useName ? name : undefined}
+            variant={variant as TMantineAvatarVariant}
+            size={size as TMantineSize}
+            radius={radius === 'none' ? 0 : radius}
+            color={color}
+            {...styleProps} className={cssClass}
+            style={styleObj}
+        >
+            {avatarContent}
+        </Avatar>
+    );
 };
 
 export default AvatarStyle;

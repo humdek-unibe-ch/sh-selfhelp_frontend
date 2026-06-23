@@ -14,6 +14,261 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.30 — 2026-06-23
+
+### Fixed
+- **Anonymous preview no longer 401-loops the public site.** The backend
+  (core ≥ 0.1.18) now rejects an anonymous `preview=true` with `401`. The
+  long-lived, admin-set `sh_preview` cookie can outlive a session (an admin
+  enables preview, then logs out or the session expires), which left every
+  anonymous SSR render requesting the unpublished draft and failing. Preview is
+  now gated on a live session: `resolvePreviewSSR` only reports preview when an
+  auth/refresh cookie is present, and `clearAuthCookies` (logout + session
+  expiry) clears `sh_preview`. Anonymous visitors always get the published view.
+  Mirrors the mobile client's preview-policy gate. Requires core ≥ 0.1.18.
+
+### Removed
+- **Dead form-submit success toast.** `useFormSubmission` read
+  `response.data.success`/`message`, which the backend submit/update responses
+  never send, so the toast never fired. Removed the dead branch; success
+  feedback (redirect / inline confirmation) remains owned by the FormUserInput
+  renderer, and the affected caches are still invalidated on success.
+
+---
+
+## v0.1.29 — 2026-06-22
+
+### Fixed
+- **`select` now shows its label.** The `select` style has always had a `label`
+  field in the CMS, but `SelectStyle` never passed it to Mantine, so the field
+  rendered with no caption (unlike `combobox`). The label now renders for both
+  single and multi-select. Requires `@selfhelp/shared` ≥ 1.14.19 (which adds
+  `ISelectStyle.label`).
+
+---
+
+## v0.1.28 — 2026-06-22
+
+### Added
+- **Form / interactive style fields render (capability pass).** `number-input`
+  honours `prefix` / `suffix` / `thousand_separator` / `allow_negative` /
+  `hide_controls`; `color-input` honours `with_eye_dropper` / `disallow_input` /
+  `with_preview`; `tabs` honours `grow` / `justify` (on the tab list) +
+  `keep_mounted` / `placement`; `switch` honours `with_thumb_indicator` +
+  `thumb_icon` (icon picker); `text-input` + `textarea` honour `shared_max_length`
+  (HTML `maxLength`); `progress-root` honours `shared_radius`. Requires
+  `@selfhelp/shared` ≥ 1.14.17.
+- **Inline rich-text in CMS content now renders on the frontend.** The `text`,
+  `blockquote`, and `list-item` styles preserve the author's inline formatting
+  (bold / italic / underline / link) from `markdown-inline` fields instead of
+  stripping it. They render via the shared `renderRichInline` helper (XSS-stripped,
+  stray markdown block tags flattened to inline, hydration-safe), so **Ctrl+B bold
+  authored in the CMS shows on the page** and a stray `<p>` wrapper no longer
+  prints as literal tags.
+- **CMS authoring affordance + gating.** The section inspector enables the
+  rich-text shortcuts (Ctrl/⌘ + B/I/U) **only** for `markdown-inline` fields and
+  shows a compact `Rich text:` hint (`Kbd`) with the shortcut keys, so authors
+  see exactly where formatting is allowed. Plain `text` fields disable the
+  shortcuts so no `<strong>` is ever saved into a slot meant to stay plain.
+- **New media / interactive style fields render.** `image` honours `fallback_src`
+  (shown when the main source fails to load), `figure` can carry a built-in
+  `img_src`/`alt`, `link` supports `shared_color` + `web_link_underline` +
+  left/right icons, `action-icon` exposes `aria_label`, `spoiler` takes a
+  `shared_color` control colour, and `audio`/`video` honour the `has_controls` /
+  `media_loop` / `media_autoplay` (+ `media_muted` / `poster_src` for video)
+  playback toggles.
+
+### Changed
+- `TextStyle`, `BlockquoteStyle`, and `ListItemStyle` render the safe inline subset
+  via the shared `renderRichInline` helper instead of `DOMPurify`-stripping all tags.
+
+### Fixed
+- **`carousel` arrows did nothing and slides showed as tiny thumbnails.** The
+  `web_carousel_slide_size` percentage slider is saved as a bare number (e.g.
+  `100` meaning 100%), but Mantine reads a unit-less `slideSize` as pixels, so
+  every slide collapsed to ~100px, all slides fit the viewport, and the controls
+  had nothing to scroll. The renderer now expresses a bare number as a percentage
+  (values that already carry a unit are untouched) and constrains slide media to
+  the carousel height when one is set, so the arrows page through full-size,
+  non-clipped slides.
+- **`slider` / `range-slider` ignored `css` / `css_mobile` and spacing when they
+  had no label.** The section class + spacing were only applied to the
+  `Input.Wrapper`, which is skipped when there is no label/description, so a
+  label-less slider silently dropped the custom-styling escape hatch. The control
+  itself now carries the section class + spacing in that case (matching
+  `rating` / `progress` / `segmented-control`).
+- **`file-input` drag-and-drop zone was unreadable in dark mode.** The dropzone
+  border, hover background, and upload icon were hard-coded light hexes
+  (`#ced4da` / `#f8f9fa` / `#868e96`) that washed out on a dark background. They
+  now resolve through theme-aware Mantine CSS variables so the dropzone is legible
+  in both colour schemes.
+- **`html-tag` style rendered an empty element.** In content-only mode the text was
+  passed as a React prop (so it landed as a bogus `content="…"` DOM attribute on
+  e.g. `<mark>`) instead of as the element's children — the tag rendered empty. It
+  now renders the sanitized text as children.
+- **Rich-inline content no longer triggers a React hydration mismatch.**
+  `renderRichInline` now renders the sanitized HTML via a hydration-safe
+  `dangerouslySetInnerHTML` span instead of `html-react-parser`, which mismatched
+  server/client markup for content containing links.
+- **`image` fallback now triggers under SSR.** A fast 404 could fire the `<img>`
+  `error` on the server-rendered markup before hydration attached Mantine's
+  `onError`, so the broken image stuck. The renderer now also detects an
+  already-broken image on mount and swaps to `fallback_src` explicitly.
+
+## v0.1.27 — 2026-06-22
+
+### Changed
+- **Layout styles are now cross-platform configurable (web + mobile).** The layout
+  renderers read the promoted `shared_*` fields instead of the old `web_*` ones so a
+  single authored value drives both platforms: `flex`, `group`, `stack`, `grid`,
+  `grid-column`, `center`, `simple-grid` read `shared_width`/`shared_height`;
+  `scroll-area` reads `shared_height`; `grid`/`simple-grid` read `shared_cols`;
+  `grid-column` reads `shared_grid_span`/`shared_grid_offset`/`shared_grid_order`/
+  `shared_grid_grow`; `center` reads `shared_miw`/`shared_mih`/`shared_maw`/`shared_mah`;
+  `space` reads `shared_orientation`; `divider` reads `shared_divider_variant`/
+  `shared_divider_label_position`; `paper` reads `shared_border`. Platform-only
+  richness stays web-only (`grid.web_grid_overflow`, `center.web_center_inline`,
+  `scroll-area` scrollbar props, `paper.web_paper_shadow`). Pairs with
+  `@selfhelp/shared` `1.14.12` and backend migration `Version20260622063129`.
+
+### Added
+- **`paper` gained an optional auto-styled `title`.** When empty the surface renders
+  exactly as before (a plain `Paper`); when filled, the renderer draws a styled
+  heading above the content (HTML-stripped to plain text). It never creates a child
+  section — it only changes how this one section is drawn. (`PaperStyle.tsx`)
+- **`simple-grid` gained responsive web column overrides + a horizontal gap.** The
+  base column count is the cross-platform `shared_cols`; the new web-only
+  `web_cols_sm`/`web_cols_md`/`web_cols_lg` (clearable selects = inherit base) build a
+  Mantine responsive `cols` object, and `shared_gap` now drives horizontal spacing
+  while `shared_vertical_spacing` drives row spacing. Replaces the old
+  `web_breakpoints`/`web_spacing` handling. (`SimpleGridStyle.tsx`)
+
+### Removed
+- **`container` and `paper` dropped `web_px`/`web_py`.** Padding now comes from the
+  portable `shared_spacing` control (renders on web + mobile); the renderers keep a
+  fixed inner `padding="md"` default. (`ContainerStyle.tsx`, `PaperStyle.tsx`)
+
+---
+
+## v0.1.26 — 2026-06-19
+
+### Fixed
+- **CMS `css` escape hatch now actually overrides Mantine on Card/Paper-based
+  styles (and every other core component).** The root layout and the slug shell
+  imported the **unlayered** `@mantine/core/styles.css` on top of the *layered*
+  `@mantine/core/styles.layer.css` already loaded by `globals.css`. Unlayered
+  rules beat every `@layer utilities` rule, so author-picked Tailwind classes in
+  the section `css` field (e.g. `bg-blue-500 rounded-xl shadow-md text-white p-4`
+  on a `card`) were silently ignored — Mantine's own background/radius/padding
+  always won. Removed the redundant unlayered core import in both
+  `src/app/layout.tsx` and `src/app/[[...slug]]/SlugLayout/SlugShell.tsx`;
+  Mantine core stays fully styled via the layered copy, now in `@layer mantine`
+  where the `css` field's `@layer utilities` classes can override it. Verified
+  live on desktop + small-screen web in light and dark.
+
+### Removed
+- **`card` dropped the redundant `web_card_padding` field.** It duplicated the
+  portable `shared_spacing` padding (which renders on web + mobile), so the
+  renderer now keeps a fixed Mantine `padding="md"` inner default (also the
+  `Card.Section` image-bleed reference) and authors tune padding through the
+  shared **Spacing** control. Pairs with `@selfhelp/shared` `1.14.11` and backend
+  migration `Version20260619205908`. (`CardStyle.tsx`)
+
+---
+
+## v0.1.25 — 2026-06-19
+
+### Changed
+- **`card`, `card-segment`, `checkbox`, `chip`, `code`, `title` renderers follow
+  the backend style polish wave** (requires core `>= 0.1.15` + `@selfhelp/shared`
+  `1.14.9`):
+  - **card** — optional auto-styled `title` (heading, HTML-stripped) and
+    `img_src` (top image via the asset picker) render only when filled; border is
+    the cross-platform `shared_border` (was `web_border`) and the card now honours
+    `web_card_padding`.
+  - **card-segment** — reads `shared_border` (Mantine `withBorder`) and
+    `web_segment_inherit_padding` (Mantine `inheritPadding`).
+  - **checkbox** — label side reads `shared_label_position` (was
+    `web_checkbox_label_position`).
+  - **chip** — reads `shared_chip_variant` (was `web_chip_variant`) and sanitizes
+    the `label` plain-text slot with `stripHtmlTags`.
+  - **code** — block toggle reads `code_block` (was `web_code_block`) and applies
+    the new `shared_radius` to the block corners.
+  - **title** — reads `title_order` (was `web_title_order`), `shared_line_clamp`
+    (was `web_title_line_clamp`) and the new `shared_color`.
+
+---
+
+## v0.1.24 — 2026-06-19
+
+### Changed
+- **`accordion` / `accordion-item` renderers follow the backend accordion polish
+  wave** (requires core `>= 0.1.15` + `@selfhelp/shared` `1.14.8`):
+  - `AccordionStyle` reads the promoted cross-platform `shared_accordion_variant`
+    (was the web-only `web_accordion_variant`) for the Mantine `variant`.
+  - `AccordionItemStyle` renders the new optional `description` content field as a
+    dimmed subtitle under the item label (empty = unchanged), and sanitizes the
+    `label` + `description` plain-text slots with `stripHtmlTags`.
+
+---
+
+## v0.1.23 — 2026-06-19
+
+### Changed
+- **`alert`, `badge`, `avatar`, `button` and `login` renderers follow the
+  backend style polish wave** (requires core `>= 0.1.15` + `@selfhelp/shared`
+  `1.14.7`):
+  - **button** — reads the cross-platform `shared_variant` instead of the removed
+    `web_variant`, and now falls back to the external `url` field when no internal
+    `page_keyword` is set.
+  - **badge** — reads `shared_variant` (with the optional web-only `web_variant`
+    override taking precedence) and renders a circle when the new `circle` toggle
+    is on.
+  - **avatar** — reads `web_variant` (was the stale `web_avatar_variant`) and
+    derives initials + an auto colour from the new `name` field when no image is
+    set.
+  - **alert** — reads the cross-platform `closable` toggle (was the web-only
+    `web_with_close_button`).
+  - **login** — renders the optional `subtitle` under the title and takes the
+    submit-button colour from `shared_color`; the dead `type` field read was
+    removed. The "Forgot password?" and "Create account" links now also use the
+    authored `shared_color` so the button and its links stay visually consistent.
+- New focused renderer tests cover each of the above (`ButtonStyle`,
+  `BadgeStyle`, `AvatarStyle`, `AlertStyle`, `LoginStyle`).
+
+### Fixed
+- **Section inspector property/override selects are always clearable.** A select
+  for a property or `shared_*`/`web_*`/`mobile_*` override (e.g. badge
+  `web_variant`) could be seeded with `config.clearable: false`, which hid the
+  clear (×) button and stranded an overridden value with no way to revert it.
+  `SectionPropertyField` now forces `clearable: true`, so clearing an override
+  falls back to the inherited/shared value and clearing a shared field reverts to
+  the style default. Covered by a focused `section-field-connectors` test.
+
+## v0.1.22 — 2026-06-18
+
+### Added
+- **Web renderers for the last five established catalog styles** that were
+  previously falling through to `UnknownStyle`: `entry-list`, `entry-record`,
+  `loop` (backend-hydrated children wrappers), `entry-record-delete` (a
+  destructive button with a confirmation modal wired to the shared
+  `useDeleteFormMutation`), and `version` (a no-op diagnostic surface that
+  mirrors the mobile renderer). Every `web`/`both` style in the shared registry
+  now has a real core renderer.
+- **Exhaustive web renderer parity test** (`BasicStyle.test.tsx`): any
+  `web`/`both` style in `@selfhelp/shared` that lacks a `STYLE_IMPLS` entry now
+  fails CI instead of silently rendering `UnknownStyle`, mirroring the mobile
+  `registry-parity` guard.
+
+### Changed
+- **Compatibility floor raised to core `>=0.1.15`** (`release-manifest.json`):
+  this frontend now depends on the backend mobile-rendering style-schema
+  contract (style `renderTarget`, the required per-field `scope` that drives
+  inspector grouping, and the `shared_`/`web_` field taxonomy with the duplicate
+  `pages.id_platform` removed).
+
+---
+
 ## v0.1.21 — 2026-06-18
 
 ### Added
@@ -102,6 +357,14 @@ No engineering diary, no implementation detail — that belongs in
   filled.
 
 ### Removed
+- **Duplicate HeroUI-named style folder.** Deleted
+  `src/app/components/frontend/styles/mantine/heroui/` (13 renderers + a local
+  `intentColor.ts`). The frontend renders Mantine only; those styles (`dialog`,
+  `popover`, `menu`, `menu-item`, `toast`, `skeleton`, `skeleton-group`,
+  `spinner`, `tag`, `tag-group`, `search-field`, `input-group`, `input-otp`) are
+  plain Mantine renderers under `mantine/`, and intent→color mapping now comes
+  solely from the shared `mapIntentToMantine` (`@selfhelp/shared`) instead of the
+  removed local duplicate.
 - Dead code: the unreachable 401 branch in the Refine auth `onError`, the unused
   `endpointKey` API argument, the stale `registered.ts` reference in the
   plugins-sync CI check, and two unused section-sibling mutation hooks

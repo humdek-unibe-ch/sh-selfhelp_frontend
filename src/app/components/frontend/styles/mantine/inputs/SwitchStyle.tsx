@@ -9,6 +9,7 @@ import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 import { castMantineSize } from '../../../../../../utils/style-field-extractor';
+import IconComponent from '../../../../shared/common/IconComponent';
 
 /**
  * Props interface for SwitchStyle component
@@ -34,19 +35,22 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style, styleProps, cssClass 
     // Extract field values using the new unified field structure
     const label = style.label?.content || 'Switch';
     const description = style.description?.content || '';
-    const onLabel = style.mantine_switch_on_label?.content || 'On';
-    const offLabel = style.mantine_switch_off_label?.content || 'Off';
-    const size = castMantineSize(style.mantine_size?.content);
-    const color = style.mantine_color?.content || 'blue';
-    const radius = castMantineSize(style.mantine_radius?.content);
+    const onLabel = style.switch_on_label?.content || 'On';
+    const offLabel = style.switch_off_label?.content || 'Off';
+    const size = castMantineSize(style.size?.content);
+    const color = style.color?.content || 'blue';
+    const radius = castMantineSize(style.radius?.content);
     const disabled = style.disabled?.content === '1';
     const name = style.name?.content;
     const value = style.value?.content;
     const isRequired = style.is_required?.content === '1';
-    const labelPosition = style.mantine_label_position?.content || 'top';
-    const onValue = style.mantine_switch_on_value?.content || '1';
-    const offValue = style.mantine_switch_off_value?.content || '0';
-    const useInputWrapper = style.mantine_use_input_wrapper?.content === '1';
+    const labelPosition = style.web_label_position?.content || 'top';
+    const onValue = style.web_switch_on_value?.content || '1';
+    const offValue = style.web_switch_off_value?.content || '0';
+    const useInputWrapper = style.web_use_input_wrapper?.content === '1';
+    const withThumbIndicator = style.web_switch_with_thumb_indicator?.content !== '0';
+    const thumbIconName = style.web_switch_thumb_icon?.content;
+    const thumbIcon = thumbIconName ? <IconComponent iconName={thumbIconName} size={12} /> : undefined;
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -99,6 +103,8 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style, styleProps, cssClass 
             color={color}
             radius={radius}
             disabled={disabled}
+            withThumbIndicator={withThumbIndicator}
+            thumbIcon={thumbIcon}
             {...styleProps} className={cssClass}
             style={styleObj}
             labelPosition={labelPosition as 'left' | 'right'}
@@ -107,7 +113,7 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style, styleProps, cssClass 
         />
     );
 
-    // Conditionally use Input.Wrapper based on mantine_use_input_wrapper field
+    // Conditionally use Input.Wrapper based on web_use_input_wrapper field
     if (useInputWrapper) {
         return (
             <Input.Wrapper

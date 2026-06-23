@@ -353,7 +353,12 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             );
         }
 
-        // Prepare props conditionally to avoid inline object creation
+        // Prepare props conditionally to avoid inline object creation.
+        // Only `markdown-inline` fields may carry inline formatting (bold / italic
+        // / underline / link) — those tags survive to the web + mobile renderers.
+        // Plain `text` fields disable the shortcuts so no `<strong>` etc. is ever
+        // saved into a slot that is meant to stay plain text.
+        const allowInlineFormatting = field.type === 'markdown-inline';
         const textInputProps: React.ComponentProps<typeof TextInputWithMentions> = {
             fieldId: field.id,
             value: fieldValue,
@@ -361,7 +366,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             placeholder: field.default_value || '',
             disabled: disabled,
             dataVariables: dataVariables,
-            enableRichTextShortcuts: true
+            enableRichTextShortcuts: allowInlineFormatting
         };
         
         if (field.name === 'name') {
@@ -702,7 +707,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     }
 
     // Spacing field (margin-only or margin + padding)
-    if (field.type === 'mantine_spacing_margin' || field.type === 'mantine_spacing_margin_padding') {
+    if (field.type === 'spacing' || field.type === 'spacing-margin') {
         return renderFieldWithBadge(
             <SpacingField
                 fieldId={field.id}

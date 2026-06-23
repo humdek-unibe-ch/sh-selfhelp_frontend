@@ -31,7 +31,10 @@ describe('HtmlTagStyle', () => {
         );
         const section = container.querySelector('section');
         expect(section).toBeInTheDocument();
-        expect(section?.getAttribute('content')).toBe('Bold and safe');
+        // The sanitized text must render as the element's text child, not as a
+        // bogus `content="…"` DOM attribute (regression: empty <tag content=…/>).
+        expect(section?.textContent).toBe('Bold and safe');
+        expect(section?.getAttribute('content')).toBeNull();
         expect(container.querySelector('b')).toBeNull();
         expect(container.querySelector('script')).toBeNull();
     });

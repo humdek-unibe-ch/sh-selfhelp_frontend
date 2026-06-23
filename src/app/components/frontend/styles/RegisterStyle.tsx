@@ -49,12 +49,12 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
     const labelSubmit = style.label_submit?.content || 'Register';
     const alertFail = style.alert_fail?.content || 'Invalid email or validation code.';
     const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for activation link.';
-    const mantineColor = ((style as { mantine_color?: { content?: string } }).mantine_color?.content as string | undefined) || 'blue';
+    const mantineColor = ((style as { color?: { content?: string } }).color?.content as string | undefined) || 'blue';
     const formType = style.fields?.type?.content || 'success';
 
     // CMS-managed labels for the previously hardcoded registration UI text.
     // The `fields` bag is dynamically typed (IContentField<unknown>), so the
-    // fallback is narrowed to a string like the existing mantine_color read.
+    // fallback is narrowed to a string like the other content reads.
     const labelCode = style.label_code?.content ?? (style.fields?.label_code?.content as string | undefined) ?? 'Validation Code';
     const codePlaceholder = style.code_placeholder?.content ?? (style.fields?.code_placeholder?.content as string | undefined) ?? 'Enter your code';
     const labelGoHome = style.label_go_home?.content ?? (style.fields?.label_go_home?.content as string | undefined) ?? 'Go Home';

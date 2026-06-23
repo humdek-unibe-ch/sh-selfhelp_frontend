@@ -32,7 +32,8 @@ import {
     IconTrash,
     IconRefresh
 } from '@tabler/icons-react';
-import { usePageSections } from '../../../../../hooks/usePageDetails';
+import { usePageSections, usePageFields } from '../../../../../hooks/usePageDetails';
+import { toPagePlatform } from '../../../../../utils/style-platform.utils';
 import { useSectionOperations } from '../../../../../hooks/useSectionOperations';
 import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
 import { type IPageSectionWithFields } from '../../../../../types/common/pages.type';
@@ -233,6 +234,11 @@ export interface IMoveData {
 
 function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSectionsProps) {
     const { data, isLoading, isFetching, error, refetch } = usePageSections(pageId);
+    // The page access target (web | mobile | mobile_and_web) is the single
+    // page-level platform model; it drives which styles the add-section picker
+    // offers. Sourced from the page-fields API; defaults to `both`.
+    const { data: pageFieldsData } = usePageFields(pageId ?? null);
+    const pagePlatform = toPagePlatform(pageFieldsData?.page?.pageAccessType?.lookupCode);
     const { data: styleGroups } = useStyleGroups();
     const sections = data?.sections;
 
@@ -902,10 +908,11 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
          {/* Add Section Modal */}
          <AddSectionModal
-           opened={addSectionModalOpened}
-           onClose={handleCloseAddSectionModal}
-           pageId={pageId || undefined}
-           parentSectionId={selectedParentSectionId}
+          opened={addSectionModalOpened}
+          onClose={handleCloseAddSectionModal}
+          pageId={pageId || undefined}
+          pagePlatform={pagePlatform}
+          parentSectionId={selectedParentSectionId}
            title={
              selectedParentSectionId
                ? "Add Child Section"

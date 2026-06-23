@@ -21,9 +21,6 @@ interface ITextareaStyleProps {
 }
 
 const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssClass }) => {
-    // Extract field values
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-
     const name = style.name?.content;
     const translatable = style.translatable?.content === '1';
 
@@ -38,15 +35,17 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
     const initialValue = style.value?.content;
     const required = style.is_required?.content === '1';
     const disabled = style.disabled?.content === '1';
-    const leftIconName = style.mantine_left_icon?.content;
-    const rightIconName = style.mantine_right_icon?.content;
-    const autosize = style.mantine_textarea_autosize?.content === '1';
-    const minRows = parseInt(style.mantine_textarea_min_rows?.content || '3');
-    const maxRows = parseInt(style.mantine_textarea_max_rows?.content || '8');
-    const resize = style.mantine_textarea_resize?.content as 'none' | 'vertical' | 'both';
-    const size = castMantineSize(style.mantine_size?.content);
-    const radius = castMantineRadius(style.mantine_radius?.content);
-    const variant = style.mantine_textarea_variant?.content;
+    const leftIconName = style.web_left_icon?.content;
+    const rightIconName = style.web_right_icon?.content;
+    const autosize = style.autosize?.content === '1';
+    const minRows = parseInt(style.min_rows?.content || '3');
+    const maxRows = parseInt(style.max_rows?.content || '8');
+    const resize = style.web_textarea_resize?.content as 'none' | 'vertical' | 'both';
+    const size = castMantineSize(style.size?.content);
+    const radius = castMantineRadius(style.radius?.content);
+    const variant = style.web_textarea_variant?.content;
+    const maxLengthRaw = style.max_length?.content;
+    const maxLength = maxLengthRaw ? parseInt(maxLengthRaw, 10) : undefined;
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -85,26 +84,6 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
             onValueChange(event.target.value);
         };
 
-        // Fallback: Render basic textarea with only CSS and name when Mantine styling is disabled
-        if (!use_mantine_style) {
-            return (
-                <textarea
-                    name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
-                    className={translatable ? undefined : cssClass}
-                    value={currentValue}
-                    onChange={handleChange}
-                    disabled={disabled}
-                    rows={minRows}
-                    required={required}
-                    placeholder={placeholder}
-                    style={translatable ? undefined : spacingProps}
-                    // See note in TextInputStyle — autofill extensions decorate
-                    // form fields before hydration.
-                    suppressHydrationWarning
-                />
-            );
-        }
-
         return (
             <Input.Wrapper
                 label={DOMPurify.sanitize(label || '', { ALLOWED_TAGS: [] })}
@@ -129,6 +108,7 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
                     size={size}
                     variant={variant as 'default' | 'filled' | 'unstyled'}
                     radius={radius === 'none' ? 0 : radius}
+                    maxLength={maxLength}
                     // See note in TextInputStyle — autofill extensions decorate
                     // form fields before hydration.
                     suppressHydrationWarning

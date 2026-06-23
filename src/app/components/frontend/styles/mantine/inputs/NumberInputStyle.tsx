@@ -40,13 +40,18 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps,
     const placeholder = DOMPurify.sanitize(style.placeholder?.content ?? '');
     const label = style.label?.content;
     const description = style.description?.content;
-    const min = style.mantine_numeric_min?.content;
-    const max = style.mantine_numeric_max?.content;
-    const step = style.mantine_numeric_step?.content || '1';
-    const decimalScale = parseInt(style.mantine_number_input_decimal_scale?.content || '2');
-    const clampBehavior = style.mantine_number_input_clamp_behavior?.content || 'strict';
-    const size = style.mantine_size?.content || 'sm';
-    const radius = style.mantine_radius?.content || 'sm';
+    const min = style.web_numeric_min?.content;
+    const max = style.web_numeric_max?.content;
+    const step = style.web_numeric_step?.content || '1';
+    const decimalScale = parseInt(style.web_number_input_decimal_scale?.content || '2');
+    const clampBehavior = style.web_number_input_clamp_behavior?.content || 'strict';
+    const prefix = style.web_number_input_prefix?.content || undefined;
+    const suffix = style.web_number_input_suffix?.content || undefined;
+    const thousandSeparator = style.web_number_input_thousand_separator?.content === '1';
+    const allowNegative = style.web_number_input_allow_negative?.content !== '0';
+    const hideControls = style.web_number_input_hide_controls?.content === '1';
+    const size = style.size?.content || 'sm';
+    const radius = style.radius?.content || 'sm';
 
     // Form configuration fields
     const name = style.name?.content || `section-${style.id}`;
@@ -90,6 +95,11 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps,
             step={parseFloat(step)}
             decimalScale={decimalScale}
             clampBehavior={clampBehavior as 'strict' | 'blur'}
+            prefix={prefix}
+            suffix={suffix}
+            thousandSeparator={thousandSeparator ? ',' : undefined}
+            allowNegative={allowNegative}
+            hideControls={hideControls}
             size={size as 'xs' | 'sm' | 'md' | 'lg' | 'xl'}
             radius={radius === 'none' ? 0 : radius}
             disabled={disabled}

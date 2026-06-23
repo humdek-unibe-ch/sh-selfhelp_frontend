@@ -34,21 +34,20 @@ interface IButtonStyleProps {
 const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass }) => {
     const router = useRouter();
     const label = style.label?.content;
-    const url = style.page_keyword?.content;
-    const variant = style.mantine_variant?.content;
-    const color = style.mantine_color?.content;
-    const size = style.mantine_size?.content;
-    const radius = style.mantine_radius?.content;
-    const fullWidth = style.mantine_fullwidth?.content;
-    const leftIconName = style.mantine_left_icon?.content;
-    const rightIconName = style.mantine_right_icon?.content;
-    const compact = style.mantine_compact?.content;
+    // Internal page link takes precedence over the external URL.
+    const url = style.page_keyword?.content || style.url?.content;
+    const variant = style.variant?.content;
+    const color = style.color?.content;
+    const size = style.size?.content;
+    const radius = style.radius?.content;
+    const fullWidth = style.full_width?.content;
+    const leftIconName = style.web_left_icon?.content;
+    const rightIconName = style.web_right_icon?.content;
+    const compact = style.web_compact?.content;
     const disabled = style.disabled?.content;
     const is_link = style.is_link?.content;
-    const auto_contrast = style.mantine_auto_contrast?.content;
-    const open_in_new_tab = style.open_in_new_tab?.content;
-    const use_mantine_style = style.use_mantine_style?.content;
-    const label_cancel = style.label_cancel?.content;
+    const auto_contrast = style.web_auto_contrast?.content;
+    const open_in_new_tab = style.open_in_new_tab?.content;    const label_cancel = style.label_cancel?.content;
     const confirmation_title = style.confirmation_title?.content;
     const confirmation_continue = style.confirmation_continue?.content;
     const confirmation_message = parse(DOMPurify.sanitize((style as { confirmation_message?: { content?: string } }).confirmation_message?.content as string));
@@ -96,64 +95,28 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass 
         executeAction();
     };
 
-    // Handle anchor click for internal links
-    const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-        if (url && url !== '#') {
-            const isInternal = url.startsWith('/') ||
-                (typeof window !== 'undefined' && url.startsWith(window.location.origin));
-
-            if (isInternal && open_in_new_tab !== '1') {
-                e.preventDefault();
-                handleClick();
-            }
-            // For external URLs or new tab, let the anchor handle it normally
-        }
-    };
-
     // Confirmation Modal
     return (
         <>
-            {use_mantine_style === '1' ? (
-                <Button
-                    {...styleProps}
-                    variant={variant}
-                    color={color}
-                    size={compact === '1' ? 'compact-' + size : size}
-                    radius={radius === 'none' ? 0 : radius}
-                    className={cssClass}
-                    fullWidth={fullWidth === '1'}
-                    leftSection={leftSection}
-                    rightSection={rightSection}
-                    disabled={disabled === '1'}
-                    autoContrast={auto_contrast === '1'}
-                    component={is_link === '1' ? 'a' : 'button'}
-                    href={is_link === '1' ? url : undefined}
-                    onClick={handleClick}
-                    target={open_in_new_tab === '1' ? '_blank' : '_self'}
-                >
-                    {label}
-                </Button>
-            ) : (
-                // Regular React button/link when Mantine is disabled
-                is_link === '1' ? (
-                    <a
-                        href={url && url !== '#' ? url : '#'}
-                        className={cssClass}
-                        target={open_in_new_tab === '1' ? '_blank' : '_self'}
-                        onClick={handleAnchorClick}
-                    >
-                        {label}
-                    </a>
-                ) : (
-                    <button
-                        onClick={handleClick}
-                        className={cssClass}
-                        disabled={disabled === '1'}
-                    >
-                        {label}
-                    </button>
-                )
-            )}
+            <Button
+                {...styleProps}
+                variant={variant}
+                color={color}
+                size={compact === '1' ? 'compact-' + size : size}
+                radius={radius === 'none' ? 0 : radius}
+                className={cssClass}
+                fullWidth={fullWidth === '1'}
+                leftSection={leftSection}
+                rightSection={rightSection}
+                disabled={disabled === '1'}
+                autoContrast={auto_contrast === '1'}
+                component={is_link === '1' ? 'a' : 'button'}
+                href={is_link === '1' ? url : undefined}
+                onClick={handleClick}
+                target={open_in_new_tab === '1' ? '_blank' : '_self'}
+            >
+                {label}
+            </Button>
 
             <Modal
                 opened={confirmationOpened}

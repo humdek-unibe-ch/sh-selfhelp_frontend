@@ -24,19 +24,14 @@ export function useSubmitFormMutation() {
 
     return useMutation({
         mutationFn: (data: IFormSubmitRequest | FormData) => FormSubmissionApi.submitForm(data),
-        onSuccess: async (response, _variables) => {
-
+        // Success feedback (redirect / inline confirmation) is owned by the
+        // FormUserInput renderer. The backend submit response carries no
+        // `success`/`message` fields, so there is no toast to show here — we
+        // only refresh the caches the submission may have changed.
+        onSuccess: async () => {
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
             void queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
-
-            if (response.data?.success && response.data?.message) {
-                notifications.show({
-                    title: 'Form Submitted',
-                    message: response.data.message,
-                    color: 'green',
-                });
-            }
         },
         onError: (_error, _variables) => {
 
@@ -57,19 +52,13 @@ export function useUpdateFormMutation() {
 
     return useMutation({
         mutationFn: (data: IFormUpdateRequest | FormData) => FormSubmissionApi.updateForm(data),
-        onSuccess: async (response, _variables) => {
-
+        // As with submit: the backend update response carries no
+        // `success`/`message` fields, so there is no toast to show here — only
+        // refresh the caches the update may have changed.
+        onSuccess: async () => {
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
             void queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
-
-            if (response.data?.success && response.data?.message) {
-                notifications.show({
-                    title: 'Form Updated',
-                    message: response.data.message,
-                    color: 'blue',
-                });
-            }
         },
         onError: (_error, _variables) => {
 

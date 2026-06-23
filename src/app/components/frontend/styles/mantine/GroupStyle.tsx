@@ -34,13 +34,13 @@ const GroupStyle: React.FC<IGroupStyleProps> = ({ style, styleProps, cssClass })
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine Group props
-    const gap = style.mantine_gap?.content;
-    const justify = style.mantine_justify?.content;
-    const align = style.mantine_align?.content;
-    const wrap = style.mantine_group_wrap?.content === '1';
-    const grow = style.mantine_group_grow?.content === '1';
-    const width = style.mantine_width?.content;
-    const height = style.mantine_height?.content;
+    const gap = style.gap?.content;
+    const justify = style.justify?.content;
+    const align = style.align?.content;
+    const wrap = style.web_group_wrap?.content === '1';
+    const grow = style.web_group_grow?.content === '1';
+    const width = style.shared_width?.content;
+    const height = style.shared_height?.content;
 
     // Handle CSS field - use direct property from API response
     

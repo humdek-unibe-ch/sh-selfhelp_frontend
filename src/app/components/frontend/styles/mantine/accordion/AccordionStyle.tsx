@@ -32,17 +32,15 @@ const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style, styleProps, css
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const variant = style.mantine_accordion_variant?.content || 'default';
-    const multiple = style.mantine_accordion_multiple?.content === '1';
-    const chevronPosition = style.mantine_accordion_chevron_position?.content || 'left';
-    const chevronSize = parseInt(style.mantine_accordion_chevron_size?.content || '16');
-    const disableChevronRotation = style.mantine_accordion_disable_chevron_rotation?.content === '1';
-    const loop = style.mantine_accordion_loop?.content !== '0'; // Default to true
-    const transitionDuration = parseInt(style.mantine_accordion_transition_duration?.content || '200');
-    const defaultValue = style.mantine_accordion_default_value?.content;
-    const radius = style.mantine_radius?.content || 'sm';
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-
+    const variant = style.accordion_variant?.content || 'default';
+    const multiple = style.multiple?.content === '1';
+    const chevronPosition = style.web_accordion_chevron_position?.content || 'left';
+    const chevronSize = parseInt(style.web_accordion_chevron_size?.content || '16');
+    const disableChevronRotation = style.web_accordion_disable_chevron_rotation?.content === '1';
+    const loop = style.web_accordion_loop?.content !== '0'; // Default to true
+    const transitionDuration = parseInt(style.web_accordion_transition_duration?.content || '200');
+    const defaultValue = style.web_accordion_default_value?.content;
+    const radius = style.radius?.content || 'sm';
     // Parse defaultValue for multiple items
     const parsedDefaultValue = defaultValue
         ? multiple
@@ -57,8 +55,7 @@ const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style, styleProps, css
     const styleObj: React.CSSProperties = {};
 
 
-    if (use_mantine_style) {
-        return (
+    return (
             <Accordion
                 variant={variant as 'default' | 'contained' | 'filled' | 'separated'}
                 multiple={multiple}                
@@ -77,10 +74,6 @@ const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style, styleProps, css
                 ))}
             </Accordion>
         );
-    }
-
-    // Return null if Mantine styling is disabled (no fallback needed)
-    return null;
 };
 
 export default AccordionStyle;

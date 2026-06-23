@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Highlight } from '@mantine/core';
 import { type IHighlightStyle } from '../../../../../types/common/styles.types';
+import { stripHtmlTags } from '../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for HighlightStyle component
@@ -27,12 +28,15 @@ interface IHighlightStyleProps {
  * @returns {JSX.Element} Rendered Mantine Highlight with styled configuration
  */
 const HighlightStyle: React.FC<IHighlightStyleProps> = ({ style, styleProps, cssClass }) => {
-    // Extract field values using the new unified field structure
-    const content = style.text?.content || 'Highlight some text in this content';
-    const highlightText = style.mantine_highlight_highlight?.content || 'highlight';
-    const color = style.mantine_color?.content || 'yellow';
-    const _use_mantine_style = style.use_mantine_style?.content === '1';
-
+    // Extract field values using the new unified field structure.
+    // `text` is a `markdown-inline` field, so the editor may store a `<p>` wrapper
+    // or inline tags (Ctrl+B). Mantine `<Highlight>` renders its child as a plain
+    // string (it matches a substring to wrap in `<mark>`), so any HTML would show
+    // as literal tags. Strip it to readable text first — this mirrors the mobile
+    // renderer, which also shows plain text plus the highlight mark.
+    const content = stripHtmlTags(style.text?.content || 'Highlight some text in this content');
+    const highlightText = style.highlight_highlight?.content || 'highlight';
+    const color = style.color?.content || 'yellow';
     // Handle CSS field - use direct property from API response
 
 

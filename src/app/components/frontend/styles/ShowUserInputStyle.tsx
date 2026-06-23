@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import React, { useState } from 'react';
 import {
-    Table, Text, TextInput, Pagination, Group, ActionIcon, Modal, Stack, Button, Alert, ScrollArea
+    Table, Text, TextInput, Pagination, Group, ActionIcon, Modal, Stack, Button, Alert, ScrollArea, Title
 } from '@mantine/core';
 import { IconTrash, IconSearch, IconAlertCircle, IconChevronUp, IconChevronDown, IconSelector, IconDownload } from '@tabler/icons-react';
 import { useDeleteFormMutation } from '../../../../hooks/useFormSubmission';
@@ -38,6 +38,8 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
     const pageContent = usePageContentValue();
     const deleteMutation = useDeleteFormMutation();
 
+    const heading = style.title?.content;
+    const emptyText = style.empty_text?.content || 'No entries found.';
     const showTimestamp = style.show_timestamp?.content === '1';
 
     const sortable = style.dt_sortable?.content === '1';
@@ -48,14 +50,14 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
     const defaultOrderDir = (style.dt_default_order_dir?.content ?? 'asc') as 'asc' | 'desc';
     const csvExport = style.csv_export?.content === '1';
     const deleteEntry = style.delete_entry?.content === '1';
-    const spacing = style.mantine_spacing_margin_padding?.content || 'md';
-    const striped = style.mantine_table_striped?.content === '1';
-    const highlightOnHover = style.mantine_table_highlight_on_hover?.content !== '0';
-    const withTableBorder = style.mantine_table_with_table_border?.content !== '0';
-    const withColumnBorders = style.mantine_table_with_column_borders?.content !== '0';
-    const withRowBorders = style.mantine_table_with_row_borders?.content === '1';
-    const stickyHeader = style.mantine_table_sticky_header?.content === '1';
-    const captionSide = (style.mantine_table_caption_side?.content || undefined) as 'top' | 'bottom' | undefined;
+    const spacing = style.spacing?.content || 'md';
+    const striped = style.web_table_striped?.content === '1';
+    const highlightOnHover = style.web_table_highlight_on_hover?.content !== '0';
+    const withTableBorder = style.web_table_with_table_border?.content !== '0';
+    const withColumnBorders = style.web_table_with_column_borders?.content !== '0';
+    const withRowBorders = style.web_table_with_row_borders?.content === '1';
+    const stickyHeader = style.web_table_sticky_header?.content === '1';
+    const captionSide = (style.web_table_caption_side?.content || undefined) as 'top' | 'bottom' | undefined;
 
     const fieldMappings: IFieldMapping[] = (() => {
         try {
@@ -177,7 +179,7 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
                 {pageRows.length === 0 ? (
                     <Table.Tr>
                         <Table.Td colSpan={allColumns.length + (deleteEntry ? 1 : 0)}>
-                            <Text ta="center" c="dimmed" size="sm">No entries found.</Text>
+                            <Text ta="center" c="dimmed" size="sm">{emptyText}</Text>
                         </Table.Td>
                     </Table.Tr>
                 ) : pageRows.map((row, idx) => (
@@ -210,6 +212,7 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
 
     return (
         <div className={cssClass} {...styleProps}>
+            {heading && <Title order={3} mb="sm">{heading}</Title>}
             {csvExport && (
                 <Group justify="flex-end" mb="xs">
                     <Button

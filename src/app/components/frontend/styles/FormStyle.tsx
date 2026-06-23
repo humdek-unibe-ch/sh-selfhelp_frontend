@@ -4,13 +4,13 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import BasicStyle from './BasicStyle';
-import { Button, Alert, LoadingOverlay, Group } from '@mantine/core';
+import { Button, Alert, LoadingOverlay, Group, Modal, Stack, Text, Title } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
 import { type IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
 import { type IFormLogStyle, type IFormRecordStyle } from '../../../../types/common/styles.types';
-import { sanitizeHtmlForInline } from '../../../../utils/html-sanitizer.utils';
+import { sanitizeHtmlForInline, stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 import parse from 'html-react-parser';
 
 /** A single translatable value entry for a record-form field. */
@@ -48,19 +48,27 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [confirmOpen, setConfirmOpen] = useState(false);
     const formRef = useRef<HTMLFormElement | null>(null);
     const fileInputRefs = useRef<Map<string, IFileInputStyleRef>>(new Map());
     const hasInitializedForm = useRef<boolean>(false);
+    const confirmedRef = useRef<boolean>(false);
 
     // Extract form configuration from style
     const _name = style.name?.content || 'default_form';
-    const isLog = style.is_log?.content === '1';
+    const recordStyle = style as IFormRecordStyle;
+    const formTitle = style.title?.content;
+    const formDescription = style.description?.content;
     const alertSuccess = style.alert_success?.content;
     const alertError = style.alert_error?.content;
+    const alertSuccessTitle = style.alert_success_title?.content || 'Success';
+    const alertErrorTitle = style.alert_error_title?.content || 'Error';
+    const confirmSubmit = style.confirm_submit?.content === '1';
+    const confirmMessage = style.confirm_message?.content || 'Are you sure you want to submit?';
 
-    // Extract button configuration
+    // Extract button configuration (btn_update_label/btn_update_color are record-only)
     const saveLabel = style.btn_save_label?.content || 'Save';
-    const updateLabel = style.btn_save_label?.content || 'Update'; // Use same label for update
+    const updateLabel = recordStyle.btn_update_label?.content || saveLabel || 'Update';
     const cancelLabel = style.btn_cancel_label?.content;
     const cancelUrl = style.btn_cancel_url?.content;
 
@@ -69,9 +77,9 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const buttonRadius = style.buttons_radius?.content || 'sm';
     const buttonVariant = style.buttons_variant?.content || 'filled';
     const buttonPosition = style.buttons_position?.content || 'space-between';
-    const useMantineStyle = style.use_mantine_style?.content === '1';
+    const buttonsOrder = style.buttons_order?.content || 'save-cancel';
     const saveColor = style.btn_save_color?.content || 'blue';
-    const updateColor = style.btn_save_color?.content || 'green'; // Use same color for update
+    const updateColor = recordStyle.btn_update_color?.content || saveColor || 'orange';
     const cancelColor = style.btn_cancel_color?.content || 'gray';
     
     // Get form ID from style - now directly available as number
@@ -83,7 +91,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
 
     // Determine form behavior based on style name
     const isRecord = style.style_name === 'form-record';
-    const isLogType = style.style_name === 'form-log' || isLog;
+    const isLogType = style.style_name === 'form-log';
 
     // React Query hooks
     const submitFormMutation = useSubmitFormMutation();
@@ -219,7 +227,15 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
+        // Optional confirm-before-submit gate. When enabled, the first submit opens
+        // the dialog; confirming sets confirmedRef and re-requests the form submit.
+        if (confirmSubmit && !confirmedRef.current) {
+            setConfirmOpen(true);
+            return;
+        }
+        confirmedRef.current = false;
+
         const formElement = e.target as HTMLFormElement;
         
         // Validate form
@@ -388,6 +404,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
         existingRecordId,
         alertSuccess,
         alertError,
+        confirmSubmit,
         submitFormMutation,
         updateFormMutation,
         collectFilesFromInputs
@@ -403,116 +420,46 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     }, [cancelUrl]);
 
     // Helper function to render buttons in correct order
-    const renderButtons = useCallback((isMantine: boolean) => {
-        const cancelButton = (cancelUrl) && (
-            isMantine ? (
-                <Button
-                    key="cancel"
-                    type="button"
-                    onClick={handleCancel}
-                    size={buttonSize}
-                    radius={buttonRadius}
-                    variant={buttonVariant}
-                    color={cancelColor}
-                    disabled={isSubmitting}
-                >
-                    {cancelLabel}
-                </Button>
-            ) : (
-                <button
-                    key="cancel"
-                    type="button"
-                    onClick={handleCancel}
-                    disabled={isSubmitting}
-                    style={{
-                        padding: buttonSize === 'xs' ? '0.25rem 0.5rem' :
-                                buttonSize === 'sm' ? '0.5rem 1rem' :
-                                buttonSize === 'lg' ? '0.75rem 1.5rem' :
-                                buttonSize === 'xl' ? '1rem 2rem' : '0.625rem 1.25rem',
-                        fontSize: buttonSize === 'xs' ? '0.75rem' :
-                                 buttonSize === 'sm' ? '0.875rem' :
-                                 buttonSize === 'lg' ? '1.125rem' :
-                                 buttonSize === 'xl' ? '1.25rem' : '1rem',
-                        borderRadius: buttonRadius === 'xs' ? '0.125rem' :
-                                     buttonRadius === 'sm' ? '0.25rem' :
-                                     buttonRadius === 'lg' ? '0.5rem' :
-                                     buttonRadius === 'xl' ? '0.75rem' : '0.375rem',
-                        backgroundColor: cancelColor === 'gray' ? '#6b7280' :
-                                       cancelColor === 'blue' ? '#3b82f6' :
-                                       cancelColor === 'green' ? '#22c55e' :
-                                       cancelColor === 'red' ? '#ef4444' : '#6b7280',
-                        color: 'white',
-                        border: 'none',
-                        cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                        opacity: isSubmitting ? 0.6 : 1,
-                        fontWeight: '500',
-                        transition: 'all 0.2s ease'
-                    }}
-                >
-                    {cancelLabel}
-                </button>
-            )
-        );
+    const renderButtons = useCallback(() => {
+        const cancelButton = (cancelLabel || cancelUrl) ? (
+            <Button
+                key="cancel"
+                type="button"
+                onClick={handleCancel}
+                size={buttonSize}
+                radius={buttonRadius}
+                variant={buttonVariant}
+                color={cancelColor}
+                disabled={isSubmitting}
+            >
+                {cancelLabel || 'Cancel'}
+            </Button>
+        ) : null;
 
         const saveButton = (
-            isMantine ? (
-                <Button
-                    key="save"
-                    type="submit"
-                    loading={isSubmitting}
-                    disabled={!pageId}
-                    size={buttonSize}
-                    radius={buttonRadius}
-                    variant={buttonVariant}
-                    color={isRecord && existingRecordId ? updateColor : saveColor}
-                >
-                    {parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
-                </Button>
-            ) : (
-                <button
-                    key="save"
-                    type="submit"
-                    disabled={isSubmitting || !pageId}
-                    style={{
-                        padding: buttonSize === 'xs' ? '0.25rem 0.5rem' :
-                                buttonSize === 'sm' ? '0.5rem 1rem' :
-                                buttonSize === 'lg' ? '0.75rem 1.5rem' :
-                                buttonSize === 'xl' ? '1rem 2rem' : '0.625rem 1.25rem',
-                        fontSize: buttonSize === 'xs' ? '0.75rem' :
-                                 buttonSize === 'sm' ? '0.875rem' :
-                                 buttonSize === 'lg' ? '1.125rem' :
-                                 buttonSize === 'xl' ? '1.25rem' : '1rem',
-                        borderRadius: buttonRadius === 'xs' ? '0.125rem' :
-                                     buttonRadius === 'sm' ? '0.25rem' :
-                                     buttonRadius === 'lg' ? '0.5rem' :
-                                     buttonRadius === 'xl' ? '0.75rem' : '0.375rem',
-                        backgroundColor: isRecord && existingRecordId ?
-                            (updateColor === 'green' ? '#22c55e' :
-                             updateColor === 'blue' ? '#3b82f6' :
-                             updateColor === 'orange' ? '#f97316' :
-                             updateColor === 'red' ? '#ef4444' : '#22c55e') :
-                            (saveColor === 'blue' ? '#3b82f6' :
-                             saveColor === 'green' ? '#22c55e' :
-                             saveColor === 'red' ? '#ef4444' : '#3b82f6'),
-                        color: 'white',
-                        border: 'none',
-                        cursor: isSubmitting || !pageId ? 'not-allowed' : 'pointer',
-                        opacity: isSubmitting || !pageId ? 0.6 : 1,
-                        fontWeight: '500',
-                        transition: 'all 0.2s ease'
-                    }}
-                >
-                    {isSubmitting ? 'Submitting...' : parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
-                </button>
-            )
+            <Button
+                key="save"
+                type="submit"
+                loading={isSubmitting}
+                disabled={!pageId}
+                size={buttonSize}
+                radius={buttonRadius}
+                variant={buttonVariant}
+                color={isRecord && existingRecordId ? updateColor : saveColor}
+            >
+                {parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
+            </Button>
         );
 
-        // Return buttons in the specified order (always cancel-save)
-        return [cancelButton, saveButton].filter(Boolean);
+        // Honour buttons_order ('save-cancel' = primary first, the default).
+        const ordered = buttonsOrder === 'cancel-save'
+            ? [cancelButton, saveButton]
+            : [saveButton, cancelButton];
+        return ordered.filter(Boolean);
     }, [
         buttonSize, buttonRadius, buttonVariant, cancelColor, saveColor, updateColor,
         isSubmitting, pageId, isRecord, existingRecordId, handleCancel, cancelLabel, cancelUrl,
-        updateLabel, saveLabel
+        updateLabel, saveLabel, buttonsOrder
     ]);
 
     // Function to get field value from existing form data
@@ -539,6 +486,9 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
 
                     const field = form.querySelector(`[name="${fieldName}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
                     if (field && value !== null && value !== undefined) {
+                        // File inputs reject programmatic value assignment (browsers only
+                        // allow setting them to ''), so skip pre-filling them.
+                        if (field instanceof HTMLInputElement && field.type === 'file') return;
                         field.value = String(value);
                         const event = new Event('change', { bubbles: true });
                         field.dispatchEvent(event);
@@ -565,11 +515,18 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     return (
         <div style={{ position: 'relative' }} className={cssClass}>
             <LoadingOverlay visible={isSubmitting} />
-            
+
+            {(formTitle || formDescription) && (
+                <Stack gap={4} mb="md">
+                    {formTitle && <Title order={3}>{parse(sanitizeHtmlForInline(formTitle))}</Title>}
+                    {formDescription && <Text c="dimmed">{parse(sanitizeHtmlForInline(formDescription))}</Text>}
+                </Stack>
+            )}
+
             {submitSuccess && alertSuccess && (
                 <Alert 
                     icon={<IconCheck size={16} />} 
-                    title="Success" 
+                    title={alertSuccessTitle} 
                     color="green" 
                     mb="md"
                     onClose={() => setSubmitSuccess(false)}
@@ -582,7 +539,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             {submitError && (
                 <Alert 
                     icon={<IconAlertCircle size={16} />} 
-                    title="Error" 
+                    title={alertErrorTitle} 
                     color="red" 
                     mb="md"
                     onClose={() => setSubmitError(null)}
@@ -621,29 +578,40 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                             ))}
 
                             {/* Form Buttons */}
-                            {useMantineStyle ? (
-                                // Mantine Style Buttons
-                                <Group justify={buttonPosition as React.ComponentProps<typeof Group>['justify']} mt="xl">
-                                    {renderButtons(true)}
-                                </Group>
-                            ) : (
-                                // Fallback HTML Buttons
-                                <div style={{
-                                    display: 'flex',
-                                    gap: '1rem',
-                                    justifyContent: buttonPosition === 'space-between' ? 'space-between' :
-                                                   buttonPosition === 'center' ? 'center' :
-                                                   buttonPosition === 'flex-end' ? 'flex-end' :
-                                                   buttonPosition === 'flex-start' ? 'flex-start' : 'space-between',
-                                    marginTop: '2rem'
-                                }}>
-                                    {renderButtons(false)}
-                                </div>
-                            )}
+                            <Group justify={buttonPosition as React.ComponentProps<typeof Group>['justify']} mt="xl">
+                                {renderButtons()}
+                            </Group>
                         </div>
                     </FormFieldValueContext.Provider>
                 </FileInputRegistrationContext.Provider>
             </form>
+
+            <Modal
+                opened={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                centered
+                size="sm"
+                title={formTitle ? parse(sanitizeHtmlForInline(formTitle)) : undefined}
+            >
+                <Stack gap="md">
+                    <Text>{stripHtmlTags(confirmMessage)}</Text>
+                    <Group justify="flex-end">
+                        <Button variant="default" onClick={() => setConfirmOpen(false)}>
+                            {cancelLabel || 'Cancel'}
+                        </Button>
+                        <Button
+                            color={isRecord && existingRecordId ? updateColor : saveColor}
+                            onClick={() => {
+                                confirmedRef.current = true;
+                                setConfirmOpen(false);
+                                formRef.current?.requestSubmit();
+                            }}
+                        >
+                            {parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
+                        </Button>
+                    </Group>
+                </Stack>
+            </Modal>
         </div>
     );
 };

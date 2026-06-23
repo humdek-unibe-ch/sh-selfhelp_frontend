@@ -2,8 +2,69 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+import { isStylePlacementAllowed, type TStylePlatform } from '@selfhelp/shared/registry';
 import { type IStyle } from '../../../../../../types/responses/admin/styles.types';
+import { isStyleOnPagePlatform, isStyleOnPlatform, type TPlatformFilter } from '../../../../../../utils/style-platform.utils';
 import { MAX_SECTIONS, MAX_UNUSED_SECTIONS, type AddSectionTab, ADD_SECTION_TAB } from './addSectionModal.constants';
+
+// ==================== New Section catalog filtering ====================
+
+/** Minimal style-group shape the add-section catalog filter operates on. */
+export interface IFilterableStyleGroup {
+    styles: IStyle[];
+}
+
+export interface IFilterStyleGroupsParams<TGroup extends IFilterableStyleGroup> {
+    styleGroups: TGroup[];
+    /** True when adding directly to a page (no parent section). */
+    isRoot: boolean;
+    /** Platform the target page renders on. */
+    pagePlatform: TStylePlatform;
+    /** Manual All / Web / Mobile toggle layered on top of the page gate. */
+    platformFilter: TPlatformFilter;
+    searchQuery: string;
+    /** Parent/child relationship predicate (compound rules). */
+    isStyleAllowedAsChild: (style: IStyle) => boolean;
+}
+
+/**
+ * Apply the full add-section catalog filter to a list of style groups:
+ *
+ *   parent/child relationship ∩ placement ∩ page platform ∩ manual filter ∩ search
+ *
+ * Returns only non-empty groups. Pure so it can be unit-tested without
+ * mounting the modal. A mobile-only style is hidden on web-only pages
+ * (platform), and a root-only style is hidden inside containers (placement).
+ */
+export function filterStyleGroupsForAdd<TGroup extends IFilterableStyleGroup>({
+    styleGroups,
+    isRoot,
+    pagePlatform,
+    platformFilter,
+    searchQuery,
+    isStyleAllowedAsChild,
+}: IFilterStyleGroupsParams<TGroup>): TGroup[] {
+    const query = searchQuery.trim().toLowerCase();
+
+    return styleGroups
+        .map((group) => ({
+            ...group,
+            styles: group.styles.filter((style) => {
+                const isAllowed = isStyleAllowedAsChild(style);
+                const allowedPlacement = isStylePlacementAllowed(style.name, isRoot);
+                const allowedOnPage = isStyleOnPagePlatform(style, pagePlatform);
+                const matchesPlatformFilter =
+                    platformFilter === 'all' || isStyleOnPlatform(style, platformFilter);
+                const matchesSearch =
+                    !query ||
+                    style.name.toLowerCase().includes(query) ||
+                    style.description?.toLowerCase().includes(query);
+
+                return isAllowed && allowedPlacement && allowedOnPage && matchesPlatformFilter && matchesSearch;
+            }),
+        }))
+        .filter((group) => group.styles.length > 0);
+}
 
 // ==================== New Section helpers ====================
 

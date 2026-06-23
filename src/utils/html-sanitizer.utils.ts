@@ -3,6 +3,7 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import DOMPurify from 'isomorphic-dompurify';
+import { createElement, type ReactNode } from 'react';
 
 /**
  * Utility functions for sanitizing HTML content to prevent hydration errors and XSS attacks.
@@ -142,6 +143,35 @@ export function stripHtmlTags(htmlContent: string): string {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent;
     return tempDiv.textContent || tempDiv.innerText || '';
+}
+
+/**
+ * Renders a `markdown-inline` content value as React nodes, preserving the safe
+ * inline subset (bold / italic / underline / links) the author applied via the
+ * CMS rich-text editor. A plain string (no `<`) passes straight through. Use
+ * this for rich inline text slots (`text`, `blockquote`, `list-item`); use
+ * {@link stripHtmlTags} for plain-text-only slots (`highlight`, badges, titles)
+ * where literal tags must never leak and no formatting is wanted.
+ *
+ * Rendering uses `dangerouslySetInnerHTML` on an inline `<span>` rather than
+ * `html-react-parser`. The string is already DOMPurify-sanitized (XSS-safe), and
+ * `dangerouslySetInnerHTML` is hydration-safe: React does not diff the element's
+ * inner markup during hydration, so it cannot trip the "server/client tree
+ * mismatch" error that `parse()` produced for content containing links.
+ *
+ * @param raw - The raw field content (string or anything falsy)
+ * @returns A `<span>` with the formatted inline HTML, or the original plain string
+ */
+export function renderRichInline(raw: unknown): ReactNode {
+    if (typeof raw !== 'string') {
+        return (raw ?? null) as ReactNode;
+    }
+    if (!raw.includes('<')) {
+        return raw;
+    }
+    return createElement('span', {
+        dangerouslySetInnerHTML: { __html: sanitizeHtmlForParsing(raw) },
+    });
 }
 
 /**

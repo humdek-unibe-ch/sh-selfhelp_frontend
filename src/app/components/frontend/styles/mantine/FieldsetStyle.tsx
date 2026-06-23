@@ -34,8 +34,8 @@ const FieldsetStyle: React.FC<IFieldsetStyleProps> = ({ style, styleProps, cssCl
 
     // Extract field values using the new unified field structure
     const label = style.label?.content;
-    const variant = style.mantine_fieldset_variant?.content || 'default';
-    const radius = style.mantine_radius?.content || 'sm';
+    const variant = style.web_fieldset_variant?.content || 'default';
+    const radius = style.radius?.content || 'sm';
     const disabled = style.disabled?.content === '1';
 
     // Handle CSS field - use direct property from API response

@@ -3,9 +3,10 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import React from 'react';
-import { Accordion } from '@mantine/core';
+import { Accordion, Stack, Text } from '@mantine/core';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { type IAccordionItemStyle } from '../../../../../../types/common/styles.types';
+import { stripHtmlTags } from '../../../../../../utils/html-sanitizer.utils';
 import BasicStyle from '../../BasicStyle';
 
 /**
@@ -33,12 +34,11 @@ const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style, stylePr
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const itemValue = style.mantine_accordion_item_value?.content || `section-${style.id}`;
-    const label = style.label?.content || `Item ${style.id}`;
-    const iconName = style.mantine_accordion_item_icon?.content;
+    const itemValue = style.web_accordion_item_value?.content || `section-${style.id}`;
+    const label = stripHtmlTags(style.label?.content || `Item ${style.id}`);
+    const description = stripHtmlTags(style.description?.content || '');
+    const iconName = style.web_accordion_item_icon?.content;
     const disabled = style.disabled?.content === '1';
-    const use_mantine_style = style.use_mantine_style?.content === '1';
-
     // Get icon component using IconComponent
     const icon = iconName ? <IconComponent iconName={iconName} size={16} /> : undefined;
 
@@ -51,15 +51,21 @@ const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style, stylePr
     // Use custom value if provided, otherwise use style ID
     const value = itemValue;
 
-    if (use_mantine_style) {
-        return (
+    return (
             <Accordion.Item
                 value={value}
                 {...styleProps} className={cssClass}
                 style={styleObj}                
             >
                 <Accordion.Control icon={icon} disabled={disabled}>
-                    {label}
+                    {description ? (
+                        <Stack gap={2}>
+                            <Text fw={500}>{label}</Text>
+                            <Text size="sm" c="dimmed">{description}</Text>
+                        </Stack>
+                    ) : (
+                        label
+                    )}
                 </Accordion.Control>
                 <Accordion.Panel>
                     {children.map((child, index: number) => (
@@ -68,10 +74,6 @@ const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style, stylePr
                 </Accordion.Panel>
             </Accordion.Item>
         );
-    }
-
-    // Return null if Mantine styling is disabled (no fallback needed)
-    return null;
 };
 
 export default AccordionItemStyle;

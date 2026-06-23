@@ -7,6 +7,7 @@ import { List } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
 import { type IListItemStyle } from '../../../../../../types/common/styles.types';
 import IconComponent from '../../../../shared/common/IconComponent';
+import { renderRichInline } from '../../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for ListItemStyle component
@@ -29,9 +30,9 @@ interface IListItemStyleProps {
  * @returns {JSX.Element} Rendered Mantine List.Item with content and children
  */
 const ListItemStyle: React.FC<IListItemStyleProps> = ({ style, styleProps, cssClass }) => {
-    // Extract Mantine-specific props
-    const content = style.mantine_list_item_content?.content;
-    const iconName = style.mantine_list_item_icon?.content;
+    // markdown-inline field — preserve inline bold/italic/underline/links.
+    const content = renderRichInline(style.list_item_content?.content);
+    const iconName = style.web_list_item_icon?.content;
 
     // Handle CSS field - use direct property from API response
     

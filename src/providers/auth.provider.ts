@@ -26,6 +26,7 @@ import { info, warn, error } from '../utils/debug-logger';
 import { permissionManager } from '../api/permission-wrapper.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { isTransientApiError } from '../utils/transient-error.utils';
+import { broadcastAuthChange } from '../utils/auth-broadcast';
 import { getQueryClient } from './query-client';
 
 const PENDING_2FA_KEY = 'pending_2fa_user_id';
@@ -87,6 +88,8 @@ export const authProvider: AuthProvider = {
                 warn('Post-login user-data prefetch failed', 'AuthProvider', fetchErr);
             }
             info('Login successful', 'AuthProvider');
+            // Tell sibling tabs of this browser to refetch and adopt the new session.
+            broadcastAuthChange({ type: 'logged-in' });
             return { success: true, redirectTo: ROUTES.HOME };
         } catch (apiError) {
             error('Login error', 'AuthProvider', apiError);
@@ -113,6 +116,9 @@ export const authProvider: AuthProvider = {
         // "not authenticated" immediately, without waiting for observers
         // to invalidate (avoids stale admin navbar after logout).
         getQueryClient().removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+        // Tell sibling tabs of this browser to drop the session NOW (shared
+        // cookies are already cleared) instead of discovering it on a later 401.
+        broadcastAuthChange({ type: 'logged-out' });
         return { success: true, redirectTo: ROUTES.LOGIN };
     },
 

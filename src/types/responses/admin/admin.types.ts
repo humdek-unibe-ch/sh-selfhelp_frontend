@@ -31,6 +31,16 @@ export type TAdminPageSectionsResponse = IBaseApiResponse<IAdminPageSectionsData
 export interface ISectionField {
     id: number;
     name: string;
+    /**
+     * Backend-derived field scope (mobile rendering plan, section 6.4): `content`
+     * (translatable copy, display=1), `common` (unprefixed behavior/data +
+     * portable presentation property, display=0), `web`/`mobile` (prefixed
+     * platform-only presentation properties). The CMS section inspector groups
+     * fields by this value and must not re-derive it from the field name or
+     * display flag. Optional only to tolerate cached responses; treated as a
+     * contract error when absent in dev/tests.
+     */
+    scope?: 'content' | 'common' | 'web' | 'mobile';
     type: string | null;
     default_value: string | null;
     title: string | null;

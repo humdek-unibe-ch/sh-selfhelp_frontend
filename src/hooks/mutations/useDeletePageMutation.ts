@@ -45,14 +45,24 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
         },
         
         onSuccess: async (result, pageId: number) => {
-            // Invalidate the list/nav caches the read hooks subscribe to (keys
-            // from the central registry to prevent drift), and drop the deleted
-            // page's now-orphaned detail caches.
+            // Let the caller navigate away from `/admin/pages/{keyword}` before
+            // touching shared caches so the deleted page editor does not wake
+            // its detail readers one more time during the redirect.
+            onSuccess?.(pageId);
+
+            // Drop the deleted page's now-orphaned detail caches and then
+            // refresh the shared list/nav readers that the route depends on.
+            await Promise.all([
+                queryClient.cancelQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) }),
+                queryClient.cancelQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) }),
+            ]);
+
+            queryClient.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) });
+            queryClient.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) });
+
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL }),
-                queryClient.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) }),
-                queryClient.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) }),
             ]);
             
             if (showNotifications) {
@@ -66,8 +76,6 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
                 });
             }
             
-            // Call custom success handler if provided
-            onSuccess?.(pageId);
         },
         
         onError: (error: unknown, _pageId: number) => {

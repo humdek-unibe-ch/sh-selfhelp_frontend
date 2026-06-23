@@ -40,9 +40,12 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style, styleProps, c
        DOMPurify.sanitize(style.placeholder?.content ?? "", {
          ALLOWED_TAGS: [],
        }) || "Pick a color";
-    const format = style.mantine_color_format?.content || 'hex';
-    const size = style.mantine_size?.content || 'sm';
-    const radius = style.mantine_radius?.content || 'sm';
+    const format = style.web_color_format?.content || 'hex';
+    const size = style.size?.content || 'sm';
+    const radius = style.radius?.content || 'sm';
+    const withEyeDropper = style.web_color_input_with_eye_dropper?.content !== '0';
+    const disallowInput = style.web_color_input_disallow_input?.content === '1';
+    const withPreview = style.web_color_input_with_preview?.content !== '0';
 
     // Form configuration fields (similar to ColorPicker)
     const label = style.label?.content;
@@ -99,6 +102,9 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style, styleProps, c
             onChange={handleColorChange}
             disabled={disabled}
             required={isRequired}
+            withEyeDropper={withEyeDropper}
+            disallowInput={disallowInput}
+            withPreview={withPreview}
             {...styleProps} className={cssClass}
             style={styleObj}
             name={name}
