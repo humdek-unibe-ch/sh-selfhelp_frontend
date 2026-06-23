@@ -14,6 +14,28 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.30 — 2026-06-23
+
+### Fixed
+- **Anonymous preview no longer 401-loops the public site.** The backend
+  (core ≥ 0.1.18) now rejects an anonymous `preview=true` with `401`. The
+  long-lived, admin-set `sh_preview` cookie can outlive a session (an admin
+  enables preview, then logs out or the session expires), which left every
+  anonymous SSR render requesting the unpublished draft and failing. Preview is
+  now gated on a live session: `resolvePreviewSSR` only reports preview when an
+  auth/refresh cookie is present, and `clearAuthCookies` (logout + session
+  expiry) clears `sh_preview`. Anonymous visitors always get the published view.
+  Mirrors the mobile client's preview-policy gate. Requires core ≥ 0.1.18.
+
+### Removed
+- **Dead form-submit success toast.** `useFormSubmission` read
+  `response.data.success`/`message`, which the backend submit/update responses
+  never send, so the toast never fired. Removed the dead branch; success
+  feedback (redirect / inline confirmation) remains owned by the FormUserInput
+  renderer, and the affected caches are still invalidated on success.
+
+---
+
 ## v0.1.29 — 2026-06-22
 
 ### Fixed

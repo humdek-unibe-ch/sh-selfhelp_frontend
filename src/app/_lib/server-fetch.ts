@@ -47,6 +47,7 @@ import {
     LANG_COOKIE,
     LOCALE_HINT_COOKIE,
     PREVIEW_COOKIE,
+    REFRESH_COOKIE,
     SYMFONY_API_PREFIX,
     SYMFONY_INTERNAL_URL,
 } from '../../config/server.config';
@@ -499,17 +500,35 @@ export const getPageByKeywordSSRStatus = cache(
  * eliminates the published → preview double round-trip admins previously
  * saw on every page load.
  *
+ * ## Preview requires a session (core >= 0.1.18)
+ *
+ * Preview serves the unpublished draft, which the backend now returns ONLY to
+ * an authenticated caller — an anonymous `preview=true` is rejected with 401.
+ * The `sh_preview` cookie is long-lived and admin-set, so it can outlive the
+ * session (admin enables preview, then logs out or the session expires). Left
+ * ungated, that stale cookie would make every anonymous SSR render request the
+ * draft and 401, never reaching the published view. We therefore gate preview
+ * on a live session cookie here: with no auth/refresh cookie we fall back to
+ * the published view and never emit `preview=true` for an anonymous request.
+ * Mirrors the mobile client's preview-policy gate (`services/previewPolicy.ts`).
+ *
  * Wrapped in `cache()` so the slug layout prefetch, `generateMetadata`,
  * and the slug page body share a single cookie read per request.
  */
 export const resolvePreviewSSR = cache(async (): Promise<boolean> => {
     const jar = await cookies();
     const raw = jar.get(PREVIEW_COOKIE)?.value;
-    if (!raw) return false;
     // Accept only truthy literals; anything else (including '0' and '') is
     // treated as published. This matches the cookie writer, which either
     // sets '1' or clears the cookie outright.
-    return raw === '1' || raw.toLowerCase() === 'true';
+    const wantsPreview = raw === '1' || raw?.toLowerCase() === 'true';
+    if (!wantsPreview) return false;
+
+    // Only honour preview for an authenticated session — an anonymous draft
+    // request is a guaranteed 401 (see the doc block above).
+    const hasSession =
+        Boolean(jar.get(AUTH_COOKIE)?.value) || Boolean(jar.get(REFRESH_COOKIE)?.value);
+    return hasSession;
 });
 
 /**
