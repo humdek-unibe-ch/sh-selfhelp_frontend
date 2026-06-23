@@ -14,6 +14,43 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.32 — 2026-06-23
+
+### Added
+- **Mobile preview in System Maintenance — see, install/enable, and update.** The
+  *Current instance* table now shows the installed **Mobile preview** image
+  version (from the core's `mobile_preview_version`), or a **"Not installed"**
+  badge for instances without it. A new **"Update / enable mobile preview"**
+  section mirrors the frontend-only update lane: a registry-fed target picker,
+  **Check mobile preview compatibility** (preflight), and a request that
+  **installs/enables** the optional `selfhelp-mobile-preview` image on instances
+  that predate default provisioning, or **updates** it to a newer compatible
+  version. A `mobile_preview_compatibility` preflight error blocks a preview the
+  running core cannot satisfy; the request reuses `admin.system.update`, never
+  sends an `instance_id`, and is locked while any other update is in flight. Adds
+  the `useMobilePreviewUpdateReleases` / `useMobilePreviewUpdatePreflight` /
+  `useRequestMobilePreviewUpdateMutation` hooks (core `>=0.1.20`).
+
+### Changed
+- **Mobile preview panel auto-resolves its origin (zero-config live-reload).** The
+  page-editor Mobile Preview panel no longer needs `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN`
+  to be set: it probes, in order, an explicit env override → the installed image
+  at `/mobile-preview` → (in `next dev` only) the Expo dev server at
+  `http://localhost:8081`, and shows the first available one (with a "live-reload
+  dev" badge for the dev server). Set the env var only to **override** the
+  auto-resolution. When neither an image nor a dev server answers, the panel shows
+  the graceful "unavailable" card pointing at System Maintenance to enable the
+  service — it never blocks the editor.
+
+### Fixed
+- **Page-editor mobile preview now actually loads.** The preview iframe stayed
+  blank with a *"Permission metadata missing for API call:
+  /api/mobile-preview/session"* error because the session mint called the raw
+  `apiClient`, which the permission-aware request guard rejects. The mint now goes
+  through `permissionAwareApiClient` using the new `ADMIN_MOBILE_PREVIEW_SESSION`
+  endpoint (gated by `admin.mobile_preview.create`), so it carries the required
+  permission metadata and the one-time code is minted on load and on every reload.
+
 ## v0.1.31 — 2026-06-23
 
 ### Added
@@ -30,10 +67,10 @@ No engineering diary, no implementation detail — that belongs in
   development). When no preview is deployed (the `<origin>/version.json` probe
   404s) the panel shows a graceful "unavailable" state instead of an error.
   Requires core ≥ 0.1.19 (the mobile-preview session endpoints) and
-  `@selfhelp/shared` ≥ 1.15.0 (the preview-session contract types).
+  `@selfhelp/shared` ≥ 1.14.25 (the preview-session contract types).
 
 ### Changed
-- Bumped `@selfhelp/shared` to `^1.15.0` for the mobile preview-session types
+- Bumped `@selfhelp/shared` to `^1.14.25` for the mobile preview-session types
   (`IMobilePreviewSessionRequest` / `IMobilePreviewSessionData`).
 - Raised the `release-manifest.json` `supports.core` floor `>=0.1.17` → `>=0.1.19`
   (the page-editor preview depends on the core mobile-preview mint endpoint).

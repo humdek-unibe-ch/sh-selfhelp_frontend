@@ -207,6 +207,9 @@ export const PERMISSIONS = {
     ADMIN_SYSTEM_UPDATE: 'admin.system.update',
     ADMIN_SYSTEM_MAINTENANCE: 'admin.system.maintenance',
 
+    // Mobile preview (page-editor live preview session mint)
+    ADMIN_MOBILE_PREVIEW_CREATE: 'admin.mobile_preview.create',
+
     // User management
     ADMIN_USER_BLOCK: 'admin.user.block',
     ADMIN_USER_CREATE: 'admin.user.create',

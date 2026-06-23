@@ -33,6 +33,7 @@ import {
     useSystemVersion, useSystemHealth, useSystemAdvisories, useUpdatePreflight, useUpdateStatus,
     useRequestUpdateMutation, useSystemMaintenance, useSetMaintenanceMutation, useUpdateReleases,
     useFrontendUpdateReleases, useFrontendUpdatePreflight, useRequestFrontendUpdateMutation,
+    useMobilePreviewUpdateReleases, useMobilePreviewUpdatePreflight, useRequestMobilePreviewUpdateMutation,
 } from '../../../../../hooks/useSystem';
 import { useAuthSseConnected } from '../../../../../hooks/auth-sse-status';
 import { summarizeUpdateAvailability, isComparableVersion } from '../../../../../utils/version.utils';
@@ -211,6 +212,13 @@ const FRONTEND_UPDATE_PLAN: { id: string; label: string }[] = [
     { id: 'health', label: 'Health check' },
 ];
 
+const MOBILE_PREVIEW_UPDATE_PLAN: { id: string; label: string }[] = [
+    { id: 'plan', label: 'Resolve & plan mobile-preview update' },
+    { id: 'pull', label: 'Pull verified mobile-preview image' },
+    { id: 'recreate', label: 'Recreate mobile-preview container' },
+    { id: 'health', label: 'Health check' },
+];
+
 const PLAN_ERROR_STATUSES = new Set<TUpdateOperationStatus>([
     'failed', 'preflight_failed', 'rejected', 'rolled_back', 'rollback_failed',
 ]);
@@ -263,7 +271,12 @@ function planStepState(index: number, activeIndex: number, status: TUpdateOperat
  * lifecycle status) — instead of only seeing the steps appear once it's over.
  */
 function PlannedUpdateTimeline({ kind, status }: { kind: TUpdateKind; status: TUpdateOperationStatus }) {
-    const plan = kind === 'frontend' ? FRONTEND_UPDATE_PLAN : CORE_UPDATE_PLAN;
+    const plan =
+        kind === 'frontend'
+            ? FRONTEND_UPDATE_PLAN
+            : kind === 'mobile-preview'
+              ? MOBILE_PREVIEW_UPDATE_PLAN
+              : CORE_UPDATE_PLAN;
     const phaseId = statusPlanStepId(status);
     const activeIndex =
         phaseId === '__done__'
@@ -311,6 +324,8 @@ export function SystemMaintenancePage() {
     const [maintMessage, setMaintMessage] = useState('');
     const [frontendTargetInput, setFrontendTargetInput] = useState('');
     const [frontendCheckedTarget, setFrontendCheckedTarget] = useState<string | null>(null);
+    const [mobilePreviewTargetInput, setMobilePreviewTargetInput] = useState('');
+    const [mobilePreviewCheckedTarget, setMobilePreviewCheckedTarget] = useState<string | null>(null);
 
     // SSE drives freshness: the `system-update` event invalidates health too
     // (terminal states flip component status), so no background health poll.
@@ -326,6 +341,9 @@ export function SystemMaintenancePage() {
     const frontendReleases = useFrontendUpdateReleases();
     const frontendPreflight = useFrontendUpdatePreflight(frontendCheckedTarget);
     const requestFrontendUpdate = useRequestFrontendUpdateMutation();
+    const mobilePreviewReleases = useMobilePreviewUpdateReleases();
+    const mobilePreviewPreflight = useMobilePreviewUpdatePreflight(mobilePreviewCheckedTarget);
+    const requestMobilePreviewUpdate = useRequestMobilePreviewUpdateMutation();
 
     const versionData = version.data;
     const healthData = health.data;
@@ -335,6 +353,8 @@ export function SystemMaintenancePage() {
     const releasesData = releases.data;
     const frontendReleasesData = frontendReleases.data;
     const frontendPreflightData = frontendPreflight.data;
+    const mobilePreviewReleasesData = mobilePreviewReleases.data;
+    const mobilePreviewPreflightData = mobilePreviewPreflight.data;
 
     // Registry-published core versions for the picker (newest first), excluding
     // the version this instance already runs. Blocked releases stay listed —
@@ -349,6 +369,12 @@ export function SystemMaintenancePage() {
         .filter((r) => r.version !== frontendReleasesData?.current_version)
         .map((r) => r.version);
 
+    // Registry-published mobile-preview versions for the mobile-preview picker
+    // (newest first), excluding the preview version this instance already runs.
+    const mobilePreviewReleaseOptions = (mobilePreviewReleasesData?.releases ?? [])
+        .filter((r) => r.version !== mobilePreviewReleasesData?.current_version)
+        .map((r) => r.version);
+
     // "Is an update available, and what is the newest version we could move to?"
     // Derived from the SAME registry release lists that feed the pickers, so the
     // banner and the picker can never disagree. The backend's reported
@@ -360,8 +386,21 @@ export function SystemMaintenancePage() {
         ? (frontendReleasesData?.current_version ?? '')
         : SELF_REPORTED_FRONTEND_VERSION;
     const frontendUpdate = summarizeUpdateAvailability(frontendCurrentVersion, frontendReleasesData?.releases ?? []);
-    const anyUpdateAvailable = coreUpdate.updateAvailable || frontendUpdate.updateAvailable;
-    const registryChecked = (releasesData?.available ?? false) || (frontendReleasesData?.available ?? false);
+    // The optional mobile preview may not be provisioned yet (`unknown` /
+    // `not_installed`): then it is an INSTALL (the newest published preview),
+    // not an update. `summarizeUpdateAvailability` returns the newest published
+    // `latestVersion` regardless, and `updateAvailable` only when a real current
+    // version is strictly older — so we derive the install case separately.
+    const mobilePreviewRawCurrent = mobilePreviewReleasesData?.current_version ?? versionData?.mobile_preview_version ?? '';
+    const mobilePreviewInstalled = isComparableVersion(mobilePreviewRawCurrent);
+    const mobilePreviewCurrentVersion = mobilePreviewInstalled ? mobilePreviewRawCurrent : '';
+    const mobilePreviewUpdate = summarizeUpdateAvailability(mobilePreviewCurrentVersion, mobilePreviewReleasesData?.releases ?? []);
+    // "Can install/enable" = not provisioned yet but a compatible release exists.
+    const mobilePreviewInstallAvailable = !mobilePreviewInstalled && mobilePreviewUpdate.latestVersion !== null;
+    const anyUpdateAvailable =
+        coreUpdate.updateAvailable || frontendUpdate.updateAvailable || mobilePreviewUpdate.updateAvailable || mobilePreviewInstallAvailable;
+    const registryChecked =
+        (releasesData?.available ?? false) || (frontendReleasesData?.available ?? false) || (mobilePreviewReleasesData?.available ?? false);
     // SSE-driven status: the `system-update` event (emitted on every CMS
     // request + manager write-back) invalidates this query, so there is no
     // time-based poll. A short fallback poll runs ONLY while the SSE stream is
@@ -381,6 +420,13 @@ export function SystemMaintenancePage() {
         !!frontendPreflightData &&
         frontendPreflightData.status !== 'blocked' &&
         !requestFrontendUpdate.isPending &&
+        !isActive;
+
+    const canRequestMobilePreview =
+        canUpdate &&
+        !!mobilePreviewPreflightData &&
+        mobilePreviewPreflightData.status !== 'blocked' &&
+        !requestMobilePreviewUpdate.isPending &&
         !isActive;
 
     const destructive = preflightData?.database.destructive ?? false;
@@ -418,6 +464,12 @@ export function SystemMaintenancePage() {
         setFrontendCheckedTarget(frontendUpdate.latestVersion);
     }
 
+    function handleUseLatestMobilePreview() {
+        if (!mobilePreviewUpdate.latestVersion) return;
+        setMobilePreviewTargetInput(mobilePreviewUpdate.latestVersion);
+        setMobilePreviewCheckedTarget(mobilePreviewUpdate.latestVersion);
+    }
+
     function handleToggleMaintenance() {
         if (!maintenanceData) return;
         const next = !maintenanceData.enabled;
@@ -448,6 +500,20 @@ export function SystemMaintenancePage() {
         requestFrontendUpdate.mutate({
             target_version: frontendCheckedTarget,
             preflight_id: frontendPreflightData.preflight_id,
+        });
+    }
+
+    function handleCheckMobilePreview() {
+        const next = mobilePreviewTargetInput.trim();
+        if (next === '') return;
+        setMobilePreviewCheckedTarget(next);
+    }
+
+    function handleRequestMobilePreview() {
+        if (!mobilePreviewPreflightData || !mobilePreviewCheckedTarget) return;
+        requestMobilePreviewUpdate.mutate({
+            target_version: mobilePreviewCheckedTarget,
+            preflight_id: mobilePreviewPreflightData.preflight_id,
         });
     }
 
@@ -500,6 +566,21 @@ export function SystemMaintenancePage() {
                                                     </Group>
                                                 ) : (
                                                     <Code>{versionData.frontend_version}</Code>
+                                                )}
+                                            </Table.Td>
+                                        </Table.Tr>
+                                        <Table.Tr>
+                                            <Table.Td><Text size="sm" c="dimmed">Mobile preview</Text></Table.Td>
+                                            <Table.Td>
+                                                {isComparableVersion(versionData.mobile_preview_version) ? (
+                                                    <Code>{versionData.mobile_preview_version}</Code>
+                                                ) : (
+                                                    <Group gap="xs">
+                                                        <Badge color="gray" variant="light">Not installed</Badge>
+                                                        <Text size="xs" c="dimmed">
+                                                            optional — enable it in &quot;Update / enable mobile preview&quot; below
+                                                        </Text>
+                                                    </Group>
                                                 )}
                                             </Table.Td>
                                         </Table.Tr>
@@ -575,7 +656,7 @@ export function SystemMaintenancePage() {
                     that feed the pickers below; the actual request still runs
                     through the preflight-gated forms. */}
                 <Paper p="md" radius="md" withBorder pos="relative" data-testid="update-availability">
-                    <LoadingOverlay visible={releases.isLoading || frontendReleases.isLoading} />
+                    <LoadingOverlay visible={releases.isLoading || frontendReleases.isLoading || mobilePreviewReleases.isLoading} />
                     <Group justify="space-between" mb="sm">
                         <Title order={4}>Updates</Title>
                         {anyUpdateAvailable ? (
@@ -659,6 +740,58 @@ export function SystemMaintenancePage() {
                             ) : frontendReleasesData?.available ? (
                                 <Badge color="green" variant="light" leftSection={<IconCircleCheck size={12} />}>
                                     Up to date
+                                </Badge>
+                            ) : (
+                                <Badge color="gray" variant="light">Unknown</Badge>
+                            )}
+                        </Group>
+
+                        <Divider />
+
+                        {/* Mobile preview (optional web image; may not be provisioned) */}
+                        <Group justify="space-between" wrap="wrap" gap="xs">
+                            <div>
+                                <Text size="sm" fw={600}>Mobile preview</Text>
+                                <Text size="xs" c="dimmed">
+                                    current{' '}
+                                    {mobilePreviewInstalled ? <Code>{mobilePreviewCurrentVersion}</Code> : 'not installed'}
+                                    {' · '}latest{' '}
+                                    {mobilePreviewUpdate.latestVersion ? <Code>{mobilePreviewUpdate.latestVersion}</Code> : 'unknown'}
+                                </Text>
+                            </div>
+                            {mobilePreviewInstallAvailable ? (
+                                <Group gap="xs">
+                                    <Badge color="grape" variant="light">Install: {mobilePreviewUpdate.latestVersion}</Badge>
+                                    {canUpdate && (
+                                        <Button
+                                            size="xs"
+                                            variant="light"
+                                            leftSection={<IconRefresh size={14} />}
+                                            onClick={handleUseLatestMobilePreview}
+                                            disabled={isActive}
+                                        >
+                                            Install
+                                        </Button>
+                                    )}
+                                </Group>
+                            ) : mobilePreviewUpdate.updateAvailable ? (
+                                <Group gap="xs">
+                                    <Badge color="blue" variant="light">New: {mobilePreviewUpdate.latestVersion}</Badge>
+                                    {canUpdate && (
+                                        <Button
+                                            size="xs"
+                                            variant="light"
+                                            leftSection={<IconRefresh size={14} />}
+                                            onClick={handleUseLatestMobilePreview}
+                                            disabled={isActive}
+                                        >
+                                            Use latest
+                                        </Button>
+                                    )}
+                                </Group>
+                            ) : mobilePreviewReleasesData?.available ? (
+                                <Badge color="green" variant="light" leftSection={<IconCircleCheck size={12} />}>
+                                    {mobilePreviewInstalled ? 'Up to date' : 'None published'}
                                 </Badge>
                             ) : (
                                 <Badge color="gray" variant="light">Unknown</Badge>
@@ -1237,6 +1370,135 @@ export function SystemMaintenancePage() {
                                             onClick={handleRequestFrontend}
                                         >
                                             Request frontend update for this instance
+                                        </Button>
+                                    </Group>
+                                )}
+                            </Stack>
+                        )}
+                    </Stack>
+                </Paper>
+
+                <Divider label="Update / enable mobile preview" labelPosition="center" />
+
+                {/* Mobile-preview update / enable request. The selfhelp-mobile-preview
+                    web image is OPTIONAL and ships independently of the core. If it
+                    is not provisioned yet, requesting a version here ENABLES it (the
+                    SelfHelp Manager adds the container from the rewritten compose);
+                    if it is already running, this is a stateless image swap — no
+                    database migration, no backup, no typed confirmation. The
+                    preflight reports the preview ⇄ core compatibility verdict
+                    (computed by the CMS against the signed registry, so it matches
+                    the manager); the SelfHelp Manager re-resolves the signed release,
+                    re-verifies signatures + image digests, and remains the final
+                    authority at execution time. */}
+                <Paper p="md" radius="md" withBorder pos="relative" data-testid="mobile-preview-update-section">
+                    <LoadingOverlay visible={mobilePreviewPreflight.isFetching || requestMobilePreviewUpdate.isPending} />
+                    <Stack gap="sm">
+                        <Text size="sm" c="dimmed">
+                            The mobile preview is the optional <Code>selfhelp-mobile-preview</Code> web image embedded in the
+                            page editor&apos;s <strong>Mobile preview</strong> panel. It ships independently of the SelfHelp
+                            core. {mobilePreviewInstalled
+                                ? 'You can move it to a newer compatible version here.'
+                                : 'It is not provisioned on this instance yet — request a version to enable it.'}{' '}
+                            A preview swap is stateless — there is no database migration or backup — and the SelfHelp Manager
+                            rolls it back automatically if the new container fails its health check.
+                        </Text>
+
+                        {!mobilePreviewInstalled && (
+                            <Alert icon={<IconInfoCircle size={16} />} color="grape" variant="light">
+                                The mobile preview is not installed on this instance. New installs provision it by default;
+                                instances created before that can enable it here. In local development the panel falls back to
+                                a running Expo dev server (<Code>http://localhost:8081</Code>) for live-reload, so you do not
+                                need to install the image to develop.
+                            </Alert>
+                        )}
+
+                        <Group align="flex-end" gap="sm">
+                            <Autocomplete
+                                label={mobilePreviewInstalled ? 'Target mobile-preview version' : 'Mobile-preview version to install'}
+                                data-testid="mobile-preview-target-version-input"
+                                placeholder={mobilePreviewReleaseOptions.length > 0 ? `e.g. ${mobilePreviewReleaseOptions[0]}` : 'e.g. 0.1.0'}
+                                description={
+                                    mobilePreviewReleasesData?.available
+                                        ? 'Mobile-preview releases from the official registry (newest first). You can also type a version manually.'
+                                        : 'The registry could not be reached — type the target mobile-preview version manually.'
+                                }
+                                data={mobilePreviewReleaseOptions}
+                                value={mobilePreviewTargetInput}
+                                onChange={setMobilePreviewTargetInput}
+                                style={{ flex: 1 }}
+                            />
+                            <Button
+                                leftSection={<IconRefresh size={16} />}
+                                onClick={handleCheckMobilePreview}
+                                disabled={mobilePreviewTargetInput.trim() === ''}
+                                variant="default"
+                            >
+                                Check mobile preview compatibility
+                            </Button>
+                        </Group>
+
+                        {mobilePreviewPreflight.isError && (
+                            <Alert icon={<IconInfoCircle size={16} />} color="red" variant="light">
+                                Mobile-preview preflight failed. Check the target version and try again.
+                            </Alert>
+                        )}
+
+                        {mobilePreviewPreflightData && (
+                            <Stack gap="sm">
+                                <Group gap="xs">
+                                    <Text fw={600}>Preflight</Text>
+                                    <Badge color={PREFLIGHT_COLOR[mobilePreviewPreflightData.status]} variant="filled">
+                                        {mobilePreviewPreflightData.status.toUpperCase()}
+                                    </Badge>
+                                    <Text size="sm" c="dimmed">
+                                        <Code>{mobilePreviewPreflightData.current_version}</Code> → <Code>{mobilePreviewPreflightData.target_version}</Code>
+                                    </Text>
+                                </Group>
+
+                                {mobilePreviewPreflightData.checks.length > 0 && (
+                                    <Stack gap={6}>
+                                        {mobilePreviewPreflightData.checks.map((check, idx) => (
+                                            <Group key={`${check.code}-${idx}`} gap="xs" align="flex-start" wrap="nowrap">
+                                                <Badge size="xs" color={SEVERITY_COLOR[check.severity]} variant="light">
+                                                    {check.severity}
+                                                </Badge>
+                                                <Text size="sm">{check.message}</Text>
+                                            </Group>
+                                        ))}
+                                    </Stack>
+                                )}
+
+                                {mobilePreviewPreflightData.status === 'blocked' && (
+                                    <Alert icon={<IconAlertTriangle size={16} />} color="red" variant="light">
+                                        This mobile-preview update is blocked. Resolve the errors above before requesting it.
+                                    </Alert>
+                                )}
+
+                                {!canUpdate && (
+                                    <Alert icon={<IconShieldCheck size={16} />} color="gray" variant="light">
+                                        You can view compatibility but need the <Code>admin.system.update</Code> permission to request a mobile-preview update.
+                                    </Alert>
+                                )}
+
+                                {canUpdate && isActive && (
+                                    <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
+                                        An update is already in progress. Wait for it to finish before requesting a
+                                        mobile-preview update — updates cannot run at the same time.
+                                    </Alert>
+                                )}
+
+                                {canUpdate && (
+                                    <Group justify="flex-end">
+                                        <Button
+                                            color="grape"
+                                            disabled={!canRequestMobilePreview}
+                                            loading={requestMobilePreviewUpdate.isPending || isActive}
+                                            onClick={handleRequestMobilePreview}
+                                        >
+                                            {mobilePreviewInstalled
+                                                ? 'Request mobile-preview update for this instance'
+                                                : 'Enable mobile preview for this instance'}
                                         </Button>
                                     </Group>
                                 )}

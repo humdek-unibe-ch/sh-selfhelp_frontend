@@ -6,8 +6,10 @@ import { describe, it, expect } from 'vitest';
 import {
     buildMobilePreviewUrl,
     DEFAULT_MOBILE_PREVIEW_ORIGIN,
+    DEV_EXPO_PREVIEW_ORIGIN,
     isAbsolutePreviewOrigin,
     normalizePreviewOrigin,
+    previewOriginCandidates,
 } from '../mobilePreviewUrl';
 
 /** Parse the query string of a built preview URL into a plain map for asserting. */
@@ -33,6 +35,31 @@ describe('isAbsolutePreviewOrigin', () => {
         expect(isAbsolutePreviewOrigin('http://localhost:8081')).toBe(true);
         expect(isAbsolutePreviewOrigin('https://preview.example.test')).toBe(true);
         expect(isAbsolutePreviewOrigin('/mobile-preview')).toBe(false);
+    });
+});
+
+describe('previewOriginCandidates (auto-resolution precedence)', () => {
+    it('an explicit same-origin path wins outright and must serve version.json (not optimistic)', () => {
+        const candidates = previewOriginCandidates({ explicitOrigin: '/mp/', isDev: true });
+        expect(candidates).toEqual([{ origin: '/mp', mode: 'explicit', optimistic: false }]);
+    });
+
+    it('an explicit absolute origin wins outright and is treated as an optimistic dev server', () => {
+        const candidates = previewOriginCandidates({ explicitOrigin: 'http://localhost:9000', isDev: false });
+        expect(candidates).toEqual([{ origin: 'http://localhost:9000', mode: 'dev', optimistic: true }]);
+    });
+
+    it('without an explicit origin in dev: installed image first, then the Expo dev server', () => {
+        const candidates = previewOriginCandidates({ explicitOrigin: null, isDev: true });
+        expect(candidates).toEqual([
+            { origin: DEFAULT_MOBILE_PREVIEW_ORIGIN, mode: 'installed', optimistic: false },
+            { origin: DEV_EXPO_PREVIEW_ORIGIN, mode: 'dev', optimistic: true },
+        ]);
+    });
+
+    it('without an explicit origin in production: only the installed image (no dev fallback)', () => {
+        const candidates = previewOriginCandidates({ explicitOrigin: '   ', isDev: false });
+        expect(candidates).toEqual([{ origin: DEFAULT_MOBILE_PREVIEW_ORIGIN, mode: 'installed', optimistic: false }]);
     });
 });
 

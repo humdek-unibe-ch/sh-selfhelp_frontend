@@ -17,27 +17,30 @@ SPDX-License-Identifier: MPL-2.0
  * @module api/admin/mobile-preview.api
  */
 
-import { apiClient } from '../base.api';
+import { permissionAwareApiClient } from '../base.api';
+import { API_CONFIG } from '../../config/api.config';
 import type {
     IMobilePreviewSessionData,
     IMobilePreviewSessionRequest,
     IMobilePreviewSessionResponse,
 } from '../../shared';
 
-/** BFF-relative mint path (resolved against `apiClient`'s `/api` baseURL). */
-const MOBILE_PREVIEW_SESSION_PATH = '/mobile-preview/session';
-
 export const AdminMobilePreviewApi = {
     /**
      * Mint a one-time preview code for the current admin, optionally scoped to a
      * page / language / draft. Each iframe (re)load consumes one code on
      * exchange, so the panel mints afresh on every reload.
+     *
+     * Routed through `permissionAwareApiClient` (the required default) so the
+     * request carries the `admin.mobile_preview.create` permission metadata the
+     * client-side guard enforces; the dedicated BFF route still keeps the admin
+     * JWT server-side and the backend re-checks the same permission.
      */
     async createSession(
         scope: IMobilePreviewSessionRequest = {},
     ): Promise<IMobilePreviewSessionData> {
-        const response = await apiClient.post<IMobilePreviewSessionResponse>(
-            MOBILE_PREVIEW_SESSION_PATH,
+        const response = await permissionAwareApiClient.post<IMobilePreviewSessionResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_MOBILE_PREVIEW_SESSION,
             scope,
         );
         const data = response.data?.data;

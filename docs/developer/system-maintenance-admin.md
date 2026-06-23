@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Frontend developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-16.
+Last verified: 2026-06-23.
 Source of truth: `src/app/admin/system/page.tsx`, `src/app/components/cms/system/system-maintenance-page/SystemMaintenancePage.tsx`, `src/hooks/useSystem.ts`, `src/hooks/useAclEventStream.ts`, `src/hooks/auth-sse-status.ts`, `src/app/api/auth/events/route.ts`, `src/types/responses/admin/system.types.ts`, `src/app/components/cms/system/system-maintenance-page/__tests__/SystemMaintenancePage.test.tsx`.
 
 The **System Maintenance** screen (`/admin/system`) is the admin UI over the
@@ -26,19 +26,25 @@ instance.
 - Data: the `useSystem` hooks wrap the BFF/React Query calls —
   `useSystemVersion`, `useSystemHealth`, `useUpdatePreflight`, `useUpdateStatus`,
   `useRequestUpdateMutation`, `useSystemMaintenance`, `useSetMaintenanceMutation`,
-  `useUpdateReleases`.
+  `useUpdateReleases`, and the independent-component equivalents
+  `useFrontendUpdateReleases` / `useFrontendUpdatePreflight` /
+  `useRequestFrontendUpdateMutation` and `useMobilePreviewUpdateReleases` /
+  `useMobilePreviewUpdatePreflight` / `useRequestMobilePreviewUpdateMutation`.
 - Types: `src/types/responses/admin/system.types.ts`.
 
 ## What the screen shows
 
-- **Current instance** — SelfHelp / backend / frontend / plugin-API / DB-migration
-  versions and the server-derived `instance_id`, plus Maintenance / Safe-mode
-  badges, and a **Deployment** row showing whether the backend runs as a managed
-  **Docker image** or a **source checkout** (dev). When the backend reports
-  `frontend_version: unknown` (no `SELFHELP_FRONTEND_VERSION` set — typical for
-  dev), the screen shows the frontend's own build-time package version labelled
-  "self-reported" (`NEXT_PUBLIC_FRONTEND_VERSION`, inlined from `package.json`
-  by `next.config.mjs`).
+- **Current instance** — SelfHelp / backend / frontend / **mobile-preview** /
+  plugin-API / DB-migration versions and the server-derived `instance_id`, plus
+  Maintenance / Safe-mode badges, and a **Deployment** row showing whether the
+  backend runs as a managed **Docker image** or a **source checkout** (dev). When
+  the backend reports `frontend_version: unknown` (no `SELFHELP_FRONTEND_VERSION`
+  set — typical for dev), the screen shows the frontend's own build-time package
+  version labelled "self-reported" (`NEXT_PUBLIC_FRONTEND_VERSION`, inlined from
+  `package.json` by `next.config.mjs`). The **mobile-preview** row shows the
+  installed preview image version (from `SELFHELP_MOBILE_PREVIEW_VERSION`, set by
+  the manager) or a **"Not installed"** badge — the preview is an optional image
+  that ships independently of the core (see [Mobile preview](#mobile-preview)).
 - **Installed plugins** — each plugin's version and whether it is compatible with
   the running core.
 - **System health** — aggregated component status (`healthy` / `degraded` /
@@ -64,6 +70,49 @@ instance.
   newest first, current version excluded; manual entry still works and is the
   fallback when the registry is unreachable), run **Check compatibility**
   (preflight), then request the update.
+
+## Independent components: frontend & mobile preview
+
+The **frontend** and the **mobile preview** are Docker images that ship
+**independently** of the SelfHelp core, so each has its own update lane below the
+core "Request an update" flow. Both are **stateless swaps** — there is no DB
+migration and no backup, and the manager rolls the container back automatically
+if the new one fails its health check. Each lane mirrors the core flow: a
+registry-fed target picker (`…/update/{frontend,mobile-preview}/releases`,
+current excluded, manual entry as fallback), **Check compatibility** (preflight),
+then request. The request reuses the `admin.system.update` permission and never
+sends an `instance_id`.
+
+### Mobile preview
+
+The **mobile preview** is the optional `selfhelp-mobile-preview` web image
+embedded in the page editor's [Mobile preview panel](./mobile-preview-panel.md).
+The System Maintenance screen is where you **see**, **install/enable**, and
+**update** it:
+
+- **See the version** — the *Current instance* table's *Mobile preview* row shows
+  the installed image version, or **"Not installed"** when the instance has none
+  (it falls back to the Expo dev server for local live-reload, so you do not need
+  the image installed to develop).
+- **Install / enable** — new installs provision the preview by default; an
+  instance created before that shows an **"Install"** action and an **"Enable
+  mobile preview for this instance"** request. Internally the current version is
+  `unknown`, which the preflight treats as the **bootstrap** path (it stays `ok`
+  rather than blocking as a downgrade) so the manager can provision the
+  container.
+- **Update** — when installed, an **"Update mobile preview"** lane offers the
+  newest compatible version with the same preflight gating.
+
+The mobile-preview preflight adds one component-specific check on top of the
+stateless verdict: **`mobile_preview_compatibility`** blocks the request when the
+target preview image declares a `requiredCoreRange` the running core does not
+satisfy — keeping the CMS verdict consistent with what the manager would enforce
+at execution time. When the signed preview release document cannot be read
+(offline / unpublished), the CMS does **not** fabricate a block; the manager
+re-resolves and enforces compatibility at execution.
+
+While any operation (core, frontend, or mobile-preview) is in flight, **all
+three** request buttons are locked — only one update runs at a time.
 
 ## Hard rules enforced in the UI
 
@@ -125,8 +174,11 @@ release channel:
 The same journey is automated as the manager Docker e2e
 (`SHM_E2E=1 npm run e2e`). The UI behaviour above (advisory card, preflight gating,
 the no-`instance_id` request payload, the permission gate) is regression-tested in
-`SystemMaintenancePage.test.tsx`. The full scenario → test map lives in the
-manager's `docs/distribution-architecture-audit-and-coverage.md`.
+`SystemMaintenancePage.test.tsx` — including the **frontend-only** and
+**mobile-preview** lanes (target picker, preflight gating, the install/enable
+bootstrap affordance, the stateless plan timeline, and the locked-while-active
+buttons). The full scenario → test map lives in the manager's
+`docs/distribution-architecture-audit-and-coverage.md`.
 
 ## Extending it
 

@@ -9,14 +9,16 @@ SPDX-License-Identifier: MPL-2.0
  * `selfhelp-mobile-preview` web image inside the page editor.
  *
  * How it works:
- *   1. Resolves the preview origin from `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN`
- *      (default `/mobile-preview`; set it to a running Expo dev server such as
- *      `http://localhost:8081` for live-reload during development).
- *   2. Probes `<origin>/version.json` (a React Query) to decide availability. A
- *      same-origin path that 404s means the service is not deployed -> graceful
- *      unavailable state. An absolute (cross-origin) dev origin is assumed
- *      available even without `version.json` (the Expo dev server does not serve
- *      it).
+ *   1. AUTO-RESOLVES the preview origin (a React Query, see
+ *      {@link previewOriginCandidates}): an explicit
+ *      `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN` always wins; otherwise it probes the
+ *      installed image at `/mobile-preview` (`version.json` 200) and, in
+ *      development only, falls back to a running Expo dev server at
+ *      `http://localhost:8081` for live-reload. If none resolve, it renders a
+ *      graceful "unavailable" state.
+ *   2. A same-origin installed path that 404s means the service is not deployed;
+ *      an absolute (cross-origin) dev origin is assumed available even without
+ *      `version.json` (the Expo dev server does not serve it).
  *   3. Mints a SHORT-LIVED, single-use code (a React Query mutation against the
  *      protected BFF route) and puts it in the iframe URL (built by
  *      {@link buildMobilePreviewUrl}). Each iframe (re)load consumes one code on
@@ -52,10 +54,10 @@ import type { ILanguage } from '../../../../../shared';
 import {
     buildMobilePreviewUrl,
     DEFAULT_MOBILE_PREVIEW_ORIGIN,
-    isAbsolutePreviewOrigin,
-    normalizePreviewOrigin,
+    previewOriginCandidates,
     type TPreviewDevice,
     type TPreviewOrientation,
+    type TPreviewOriginMode,
 } from './mobilePreviewUrl';
 
 interface IMobilePreviewBundledPlugin {
@@ -74,7 +76,38 @@ interface IMobilePreviewVersionInfo {
 
 interface IMobilePreviewAvailability {
     available: boolean;
+    /** Resolved origin to embed (when available) or to show in the unavailable copy. */
+    origin: string;
+    /** How the origin was chosen — drives the "live-reload dev" badge. */
+    mode: TPreviewOriginMode | null;
     info: IMobilePreviewVersionInfo | null;
+}
+
+/**
+ * Probe a single candidate's `<origin>/version.json`. A 200 yields availability
+ * + (best-effort) the parsed info. For an `optimistic` candidate (a cross-origin
+ * dev server) a non-200 / CORS / connection failure is still treated as
+ * available — we cannot reliably probe it, so we embed it and let the iframe
+ * surface any real error. A non-optimistic candidate (the same-origin installed
+ * image) requires the 200.
+ */
+async function probePreviewCandidate(
+    origin: string,
+    optimistic: boolean,
+): Promise<{ available: boolean; info: IMobilePreviewVersionInfo | null }> {
+    try {
+        const res = await fetch(`${origin}/version.json`, { cache: 'no-store' });
+        if (res.ok) {
+            try {
+                return { available: true, info: (await res.json()) as IMobilePreviewVersionInfo };
+            } catch {
+                return { available: true, info: null };
+            }
+        }
+        return { available: optimistic, info: null };
+    } catch {
+        return { available: optimistic, info: null };
+    }
 }
 
 export interface IMobilePreviewPanelProps {
@@ -116,14 +149,14 @@ export function MobilePreviewPanel({
     languages,
     defaultLanguageId,
 }: IMobilePreviewPanelProps) {
-    const previewOrigin = useMemo(
-        () =>
-            normalizePreviewOrigin(
-                process.env.NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN || DEFAULT_MOBILE_PREVIEW_ORIGIN,
-            ),
-        [],
+    // Auto-resolution inputs: an explicit env origin always wins; otherwise we
+    // probe the installed image and (in dev) the Expo dev server in order.
+    const explicitOrigin = process.env.NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN ?? null;
+    const isDev = process.env.NODE_ENV !== 'production';
+    const candidates = useMemo(
+        () => previewOriginCandidates({ explicitOrigin, isDev }),
+        [explicitOrigin, isDev],
     );
-    const devOrigin = useMemo(() => isAbsolutePreviewOrigin(previewOrigin), [previewOrigin]);
 
     const [device, setDevice] = useState<TPreviewDevice>('phone');
     const [orientation, setOrientation] = useState<TPreviewOrientation>('portrait');
@@ -141,20 +174,22 @@ export function MobilePreviewPanel({
     );
 
     // --- availability probe (no manual setState; React Query owns the state) --
+    // Walks the ordered candidates and resolves to the first available one,
+    // so a same-origin installed image is preferred over the dev server, and an
+    // explicit env origin short-circuits the chain.
     const availabilityQuery = useQuery<IMobilePreviewAvailability>({
-        queryKey: ['mobile-preview-version', previewOrigin],
+        queryKey: ['mobile-preview-version', candidates.map((c) => `${c.mode}:${c.origin}`).join('|')],
         queryFn: async () => {
-            try {
-                const res = await fetch(`${previewOrigin}/version.json`, { cache: 'no-store' });
-                if (res.ok) {
-                    return { available: true, info: (await res.json()) as IMobilePreviewVersionInfo };
+            for (const candidate of candidates) {
+                const result = await probePreviewCandidate(candidate.origin, candidate.optimistic);
+                if (result.available) {
+                    return { available: true, origin: candidate.origin, mode: candidate.mode, info: result.info };
                 }
-                // A reachable-but-missing version.json on an absolute dev origin is
-                // expected (Expo dev server) — treat as available for live-reload.
-                return { available: devOrigin, info: null };
-            } catch {
-                return { available: devOrigin, info: null };
             }
+            // Nothing resolved — show the unavailable state against the first
+            // (installed/explicit) candidate so the copy points at the expected path.
+            const fallback = candidates[0]?.origin ?? DEFAULT_MOBILE_PREVIEW_ORIGIN;
+            return { available: false, origin: fallback, mode: null, info: null };
         },
         staleTime: 30_000,
         retry: false,
@@ -166,6 +201,8 @@ export function MobilePreviewPanel({
         : availabilityQuery.data?.available
           ? 'available'
           : 'unavailable';
+    const previewOrigin = availabilityQuery.data?.origin ?? candidates[0]?.origin ?? DEFAULT_MOBILE_PREVIEW_ORIGIN;
+    const devOrigin = availabilityQuery.data?.mode === 'dev';
     const versionInfo = availabilityQuery.data?.info ?? null;
 
     // --- mint (a mutation; triggering `mutate` in an effect is not a setState) -
@@ -254,10 +291,17 @@ export function MobilePreviewPanel({
             >
                 <Stack gap="xs">
                     <Text size="sm">
-                        No mobile preview is running at <code>{previewOrigin}</code>. Deploy the{' '}
-                        <code>selfhelp-mobile-preview</code> service for this instance, or set{' '}
-                        <code>NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN</code> to a running Expo dev server
-                        (e.g. <code>http://localhost:8081</code>) for live-reload development.
+                        No mobile preview is running at <code>{previewOrigin}</code>. Enable the{' '}
+                        <code>selfhelp-mobile-preview</code> service for this instance from{' '}
+                        <strong>System Maintenance → Update / enable mobile preview</strong>
+                        {isDev ? (
+                            <>
+                                , or start the Expo dev server (<code>npx expo start --web</code> on{' '}
+                                <code>http://localhost:8081</code>) for live-reload development
+                            </>
+                        ) : null}
+                        . You can also pin a specific origin with{' '}
+                        <code>NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN</code>.
                     </Text>
                     <Group>
                         <ActionIcon

@@ -25,6 +25,7 @@ import type {
     ISystemAdvisories, ISystemHealth, ISystemMaintenance, ISystemVersion,
     IUpdatePreflight, IUpdateStatus, IUpdateReleases,
     IFrontendUpdatePreflight, IFrontendUpdateReleases,
+    IMobilePreviewUpdatePreflight, IMobilePreviewUpdateReleases,
 } from '../../../../../../shared';
 
 const state = vi.hoisted(() => ({
@@ -39,8 +40,11 @@ const state = vi.hoisted(() => ({
     releases: null as IUpdateReleases | null,
     frontendReleases: null as IFrontendUpdateReleases | null,
     frontendPreflight: null as IFrontendUpdatePreflight | null,
+    mobilePreviewReleases: null as IMobilePreviewUpdateReleases | null,
+    mobilePreviewPreflight: null as IMobilePreviewUpdatePreflight | null,
     requestMutate: vi.fn(),
     frontendRequestMutate: vi.fn(),
+    mobilePreviewRequestMutate: vi.fn(),
 }));
 
 vi.mock('../../../../../../hooks/useAuth', () => ({
@@ -76,6 +80,14 @@ vi.mock('../../../../../../hooks/useSystem', () => ({
         isFetching: false,
     }),
     useRequestFrontendUpdateMutation: () => ({ mutate: state.frontendRequestMutate, isPending: false }),
+    useMobilePreviewUpdateReleases: () => ({ data: state.mobilePreviewReleases, isLoading: false, isError: false }),
+    // Mirror the real hook: the mobile-preview preflight is gated on a non-null target.
+    useMobilePreviewUpdatePreflight: (target: string | null) => ({
+        data: target ? state.mobilePreviewPreflight : undefined,
+        isError: false,
+        isFetching: false,
+    }),
+    useRequestMobilePreviewUpdateMutation: () => ({ mutate: state.mobilePreviewRequestMutate, isPending: false }),
 }));
 
 vi.mock('../../../../shared/common/PageHeader', () => ({
@@ -95,6 +107,7 @@ function version(): ISystemVersion {
         selfhelp_version: '0.1.0',
         backend_version: '0.1.0',
         frontend_version: '0.1.0',
+        mobile_preview_version: '0.1.0',
         plugin_api_version: '0.1.0',
         database_migration_version: 'Version20260608174905',
         deployment: 'docker',
@@ -131,6 +144,7 @@ function idleStatus(): IUpdateStatus {
         kind: 'core',
         target_version: '0.1.0',
         target_frontend_version: null,
+        target_mobile_preview_version: null,
         progress_percent: 0,
         steps: [],
         requested_at: '2026-06-08T00:00:00Z',
@@ -170,6 +184,22 @@ function frontendPreflight(overrides: Partial<IFrontendUpdatePreflight> = {}): I
     };
 }
 
+/** A mobile-preview preflight: stateless, so never destructive / backup-required. */
+function mobilePreviewPreflight(overrides: Partial<IMobilePreviewUpdatePreflight> = {}): IMobilePreviewUpdatePreflight {
+    return {
+        preflight_id: 'mp-pf-qa-001',
+        status: 'ok',
+        instance_id: 'qa-instance',
+        current_version: '0.1.0',
+        target_version: '0.2.3',
+        checks: [{ code: 'resource', severity: 'info', message: 'The SelfHelp Manager performs the authoritative checks at execution time.' }],
+        options: [{ type: 'mobile-preview', version: '0.2.3', label: 'SelfHelp mobile preview 0.2.3' }],
+        database: { destructive: false, requires_backup: false, manual_confirmation_required: false },
+        rollback: { automatic_before_migrations: true, automatic_after_destructive_migrations: true },
+        ...overrides,
+    };
+}
+
 describe('SystemMaintenancePage', () => {
     beforeEach(() => {
         state.canUpdate = true;
@@ -197,8 +227,18 @@ describe('SystemMaintenancePage', () => {
             ],
         };
         state.frontendPreflight = frontendPreflight();
+        // Default: the mobile preview is installed and already on the newest
+        // published version, so it shows "Up to date" and adds no New:/Install:
+        // badge (keeping the at-a-glance assertions unambiguous).
+        state.mobilePreviewReleases = {
+            available: true,
+            current_version: '0.1.0',
+            releases: [{ version: '0.1.0', channel: 'stable', blocked: false }],
+        };
+        state.mobilePreviewPreflight = mobilePreviewPreflight();
         state.requestMutate = vi.fn();
         state.frontendRequestMutate = vi.fn();
+        state.mobilePreviewRequestMutate = vi.fn();
     });
 
     it('shows the deployment kind and distinguishes a source checkout from a Docker install', () => {
@@ -325,6 +365,7 @@ describe('SystemMaintenancePage', () => {
     it('reports it could not check for updates when the registry is unreachable', () => {
         state.releases = { available: false, current_version: '0.1.0', releases: [] };
         state.frontendReleases = { available: false, current_version: '0.1.5', releases: [] };
+        state.mobilePreviewReleases = { available: false, current_version: '0.1.0', releases: [] };
 
         renderWithProviders(<SystemMaintenancePage />);
 
@@ -685,5 +726,120 @@ describe('SystemMaintenancePage', () => {
 
         // The operator is told why the buttons are locked (shown in both sections).
         expect(screen.getAllByText(/An update is already in progress/i).length).toBeGreaterThan(0);
+    });
+
+    it('shows the mobile-preview version in the summary and "Not installed" when the instance has none', () => {
+        renderWithProviders(<SystemMaintenancePage />);
+        // The summary + Updates card both label the row "Mobile preview".
+        expect(screen.getAllByText('Mobile preview').length).toBeGreaterThan(0);
+        // Installed by default (0.1.0): no "Not installed" badge in the summary.
+        expect(screen.queryByText('Not installed')).not.toBeInTheDocument();
+
+        state.version = { ...version(), mobile_preview_version: 'unknown' };
+        state.mobilePreviewReleases = { available: true, current_version: 'unknown', releases: [{ version: '0.1.0', channel: 'stable', blocked: false }] };
+        renderWithProviders(<SystemMaintenancePage />);
+        expect(screen.getByText('Not installed')).toBeInTheDocument();
+    });
+
+    it('offers an Install action and an "Enable mobile preview" request when the preview is not installed', () => {
+        state.version = { ...version(), mobile_preview_version: 'unknown' };
+        state.mobilePreviewReleases = {
+            available: true,
+            current_version: 'unknown',
+            releases: [{ version: '0.1.0', channel: 'stable', blocked: false }],
+        };
+        state.mobilePreviewPreflight = mobilePreviewPreflight({ current_version: 'unknown', target_version: '0.1.0' });
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        // The availability panel surfaces an Install (not "Use latest") affordance.
+        const panel = within(screen.getByTestId('update-availability'));
+        expect(panel.getByText('Install: 0.1.0')).toBeInTheDocument();
+
+        // The dedicated section requests an ENABLE (bootstrap), not an update.
+        fireEvent.change(screen.getByTestId('mobile-preview-target-version-input'), { target: { value: '0.1.0' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check mobile preview compatibility/i }));
+        expect(screen.getByRole('button', { name: /Enable mobile preview for this instance/i })).toBeInTheDocument();
+    });
+
+    it('runs a mobile-preview preflight then requests a preview-only update with NO instance_id and NO migration risk', () => {
+        state.mobilePreviewReleases = {
+            available: true,
+            current_version: '0.1.0',
+            releases: [
+                { version: '0.2.3', channel: 'stable', blocked: false },
+                { version: '0.1.0', channel: 'stable', blocked: false },
+            ],
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(
+            screen.queryByRole('button', { name: /Request mobile-preview update for this instance/i }),
+        ).not.toBeInTheDocument();
+
+        fireEvent.change(screen.getByTestId('mobile-preview-target-version-input'), { target: { value: '0.2.3' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check mobile preview compatibility/i }));
+
+        const requestButton = screen.getByRole('button', { name: /Request mobile-preview update for this instance/i });
+        expect(requestButton).toBeEnabled();
+
+        fireEvent.click(requestButton);
+
+        expect(state.mobilePreviewRequestMutate).toHaveBeenCalledTimes(1);
+        const body = state.mobilePreviewRequestMutate.mock.calls[0][0];
+        // Hard rules for a preview swap: no instance_id, no migration-risk fields.
+        expect(body).not.toHaveProperty('instance_id');
+        expect(body).not.toHaveProperty('accepted_migration_risk');
+        expect(body.target_version).toBe('0.2.3');
+        expect(body.preflight_id).toBe('mp-pf-qa-001');
+    });
+
+    it('disables the mobile-preview request button when the preflight is blocked', () => {
+        state.mobilePreviewPreflight = mobilePreviewPreflight({
+            status: 'blocked',
+            checks: [{ code: 'mobile_preview_compatibility', severity: 'error', message: 'The target preview requires a newer core.' }],
+        });
+
+        renderWithProviders(<SystemMaintenancePage />);
+        fireEvent.change(screen.getByTestId('mobile-preview-target-version-input'), { target: { value: '0.2.3' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check mobile preview compatibility/i }));
+
+        expect(screen.getByRole('button', { name: /Request mobile-preview update for this instance/i })).toBeDisabled();
+        expect(screen.getByText(/This mobile-preview update is blocked/i)).toBeInTheDocument();
+    });
+
+    it('hides the mobile-preview request button for an admin without admin.system.update', () => {
+        state.canUpdate = false;
+
+        renderWithProviders(<SystemMaintenancePage />);
+        fireEvent.change(screen.getByTestId('mobile-preview-target-version-input'), { target: { value: '0.2.3' } });
+        fireEvent.click(screen.getByRole('button', { name: /Check mobile preview compatibility/i }));
+
+        expect(
+            screen.queryByRole('button', { name: /Request mobile-preview update for this instance/i }),
+        ).not.toBeInTheDocument();
+        expect(screen.getByText(/permission to request a mobile-preview update/i)).toBeInTheDocument();
+    });
+
+    it('shows the mobile-preview-only plan (no backup/migration rows) for a mobile-preview update', () => {
+        state.status = {
+            ...idleStatus(),
+            operation_id: 'op_qa_mp_live',
+            status: 'update_running',
+            kind: 'mobile-preview',
+            target_version: '0.2.3',
+            target_mobile_preview_version: '0.2.3',
+            progress_percent: 60,
+            steps: [],
+        };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(screen.getByText('Pull verified mobile-preview image')).toBeInTheDocument();
+        expect(screen.getByText('Recreate mobile-preview container')).toBeInTheDocument();
+        // A preview swap is stateless — no backup or DB migration rows.
+        expect(screen.queryByText('Pre-update backup')).not.toBeInTheDocument();
+        expect(screen.queryByText('Run database migrations')).not.toBeInTheDocument();
     });
 });

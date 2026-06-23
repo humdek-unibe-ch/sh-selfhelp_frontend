@@ -536,6 +536,28 @@ export const API_CONFIG = {
             route: '/admin/system/update/frontend/request',
             permissions: [PERMISSIONS.ADMIN_SYSTEM_UPDATE]
         },
+        // Mobile-preview update flow: the optional selfhelp-mobile-preview web
+        // image ships independently of the core, so it can be enabled/updated
+        // on its own. Reads guarded by read, the request by update (reused).
+        ADMIN_SYSTEM_UPDATE_MOBILE_PREVIEW_RELEASES: {
+            route: '/admin/system/update/mobile-preview/releases',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_UPDATE_MOBILE_PREVIEW_PREFLIGHT: {
+            route: '/admin/system/update/mobile-preview/preflight',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_READ]
+        },
+        ADMIN_SYSTEM_UPDATE_MOBILE_PREVIEW_REQUEST: {
+            route: '/admin/system/update/mobile-preview/request',
+            permissions: [PERMISSIONS.ADMIN_SYSTEM_UPDATE]
+        },
+        // Mobile-preview page-editor session mint. NOT the `/cms-api` catch-all:
+        // a dedicated BFF route (`POST /api/mobile-preview/session`) keeps the
+        // admin JWT server-side; only the opaque one-time code reaches the iframe.
+        ADMIN_MOBILE_PREVIEW_SESSION: {
+            route: '/mobile-preview/session',
+            permissions: [PERMISSIONS.ADMIN_MOBILE_PREVIEW_CREATE]
+        },
 
         // Admin page keywords endpoints
         ADMIN_PAGE_KEYWORDS_GET_ALL: {

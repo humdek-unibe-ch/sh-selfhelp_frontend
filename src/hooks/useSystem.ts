@@ -7,7 +7,12 @@ import { notifications } from '@mantine/notifications';
 import { AdminSystemApi } from '../api/admin/system.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { makeTransientRetry, transientRetryDelay } from '../utils/transient-error.utils';
-import type { IMaintenanceSetRequest, IUpdateRequest, IFrontendUpdateRequest } from '../shared';
+import type {
+    IMaintenanceSetRequest,
+    IUpdateRequest,
+    IFrontendUpdateRequest,
+    IMobilePreviewUpdateRequest,
+} from '../shared';
 
 /**
  * Transient-only retry for the system read queries. While the SelfHelp Manager
@@ -28,6 +33,7 @@ const SYSTEM_MAINTENANCE_KEY = ['systemMaintenance'] as const;
 const SYSTEM_UPDATE_STATUS_KEY = ['systemUpdateStatus'] as const;
 const SYSTEM_UPDATE_RELEASES_KEY = ['systemUpdateReleases'] as const;
 const SYSTEM_FRONTEND_RELEASES_KEY = ['systemFrontendReleases'] as const;
+const SYSTEM_MOBILE_PREVIEW_RELEASES_KEY = ['systemMobilePreviewReleases'] as const;
 
 /**
  * Current instance version summary (backend/frontend/plugin-api/db-migration +
@@ -274,6 +280,76 @@ export function useRequestFrontendUpdateMutation() {
             notifications.show({
                 title: 'Frontend Update Request Failed',
                 message: 'The frontend update request was rejected. Cross-instance requests are not allowed.',
+                color: 'red',
+            });
+        },
+    });
+}
+
+/**
+ * Mobile-preview image versions published in the official registry (newest
+ * first) for the mobile-preview update/enable picker. Like
+ * {@link useUpdateReleases}, `available: false` means the registry could not be
+ * reached — the UI falls back to manual version entry instead of blocking.
+ */
+export function useMobilePreviewUpdateReleases(enabled: boolean = true) {
+    return useQuery({
+        queryKey: SYSTEM_MOBILE_PREVIEW_RELEASES_KEY,
+        queryFn: () => AdminSystemApi.getMobilePreviewUpdateReleases(),
+        select: (response) => response.data,
+        enabled,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        ...TRANSIENT_READ_RETRY,
+    });
+}
+
+/**
+ * Lightweight compatibility preflight for a mobile-preview target. Disabled
+ * until a non-empty `target` is supplied so we never call the endpoint with a
+ * missing param. The preview is stateless, so the verdict never carries a
+ * destructive-migration warning; the preview ⇄ core compatibility verdict is
+ * computed server-side against the signed registry metadata.
+ */
+export function useMobilePreviewUpdatePreflight(target: string | null) {
+    return useQuery({
+        queryKey: ['systemMobilePreviewUpdatePreflight', target],
+        queryFn: () => AdminSystemApi.getMobilePreviewUpdatePreflight(target as string),
+        select: (response) => response.data,
+        enabled: !!target,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        ...TRANSIENT_READ_RETRY,
+    });
+}
+
+/**
+ * Request a MOBILE-PREVIEW-only update (or enable/bootstrap) for THIS instance
+ * (no `instance_id` — the backend derives and verifies it; no migration-risk — a
+ * preview swap is stateless). On success the manager picks the operation up; we
+ * refresh the status so the UI starts tracking progress.
+ */
+export function useRequestMobilePreviewUpdateMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (body: IMobilePreviewUpdateRequest) => AdminSystemApi.requestMobilePreviewUpdate(body),
+        onSuccess: (response) => {
+            const data = response.data;
+            notifications.show({
+                title: 'Mobile Preview Update Requested',
+                message: data
+                    ? `Operation ${data.operation_id} is now ${data.status}. The SelfHelp Manager will provision/swap the mobile preview to ${data.target_mobile_preview_version}.`
+                    : 'Mobile preview update request recorded',
+                color: 'green',
+            });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_UPDATE_STATUS_KEY });
+            void queryClient.invalidateQueries({ queryKey: SYSTEM_VERSION_KEY });
+        },
+        onError: () => {
+            notifications.show({
+                title: 'Mobile Preview Update Request Failed',
+                message: 'The mobile preview update request was rejected. Cross-instance requests are not allowed.',
                 color: 'red',
             });
         },

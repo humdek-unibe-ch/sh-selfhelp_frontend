@@ -23,8 +23,19 @@ SPDX-License-Identifier: MPL-2.0
 export type TPreviewDevice = 'phone' | 'tablet';
 export type TPreviewOrientation = 'portrait' | 'landscape';
 
-/** Default preview origin when `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN` is unset. */
+/**
+ * Same-origin path the SelfHelp Manager routes to the installed
+ * `selfhelp-mobile-preview` image. Probed (`<path>/version.json` → 200) to
+ * detect a provisioned preview during auto-resolution.
+ */
 export const DEFAULT_MOBILE_PREVIEW_ORIGIN = '/mobile-preview';
+
+/**
+ * Expo `expo start --web` dev-server origin used as the live-reload fallback in
+ * local development when no preview image is installed. Matches the mobile
+ * repo's default web port.
+ */
+export const DEV_EXPO_PREVIEW_ORIGIN = 'http://localhost:8081';
 
 export interface IBuildMobilePreviewUrlOptions {
     /**
@@ -65,6 +76,64 @@ export function normalizePreviewOrigin(origin: string): string {
 /** True for an absolute (cross-origin) preview origin — i.e. a live-reload dev server. */
 export function isAbsolutePreviewOrigin(origin: string): boolean {
     return /^https?:\/\//i.test(origin.trim());
+}
+
+/** How a resolved preview origin was chosen (drives the panel's badges/copy). */
+export type TPreviewOriginMode = 'explicit' | 'installed' | 'dev';
+
+/** One ordered candidate the panel probes during auto-resolution. */
+export interface IPreviewOriginCandidate {
+    /** Origin to probe + (if available) embed. */
+    origin: string;
+    /** Why this candidate exists (explicit env / installed image / dev server). */
+    mode: TPreviewOriginMode;
+    /**
+     * When true, a probe that does not yield a 200 `version.json` (a 404, or a
+     * CORS/connection failure) is still treated as AVAILABLE. This is the
+     * cross-origin dev-server case (the Expo `--web` server does not serve
+     * `version.json` and may block the cross-origin read): we cannot reliably
+     * probe it, so we optimistically embed it and let the iframe surface a real
+     * connection error. A same-origin installed image is NOT optimistic — its
+     * `version.json` 404 deterministically means "not provisioned".
+     */
+    optimistic: boolean;
+}
+
+/**
+ * Ordered preview-origin candidates for the panel's auto-resolution, per the
+ * agreed precedence:
+ *
+ *   1. explicit `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN` ALWAYS wins (no fallback) —
+ *      same-origin paths must serve `version.json`; an absolute origin is
+ *      treated as a (optimistic) dev server;
+ *   2. else the installed image at `/mobile-preview` (probed: `version.json` 200);
+ *   3. else, in development only, the Expo dev server at `http://localhost:8081`
+ *      (optimistic — live-reload);
+ *   4. else nothing → the panel renders the "unavailable" state.
+ *
+ * Pure (no `fetch`) so the precedence is unit-testable; the panel performs the
+ * probes in order and picks the first available candidate.
+ */
+export function previewOriginCandidates(opts: {
+    explicitOrigin?: string | null;
+    isDev: boolean;
+}): IPreviewOriginCandidate[] {
+    const explicit = (opts.explicitOrigin ?? '').trim();
+    if (explicit !== '') {
+        const origin = normalizePreviewOrigin(explicit);
+        // An explicit absolute origin is a dev server (optimistic); an explicit
+        // same-origin path must serve version.json to count as available.
+        const absolute = isAbsolutePreviewOrigin(origin);
+        return [{ origin, mode: absolute ? 'dev' : 'explicit', optimistic: absolute }];
+    }
+
+    const candidates: IPreviewOriginCandidate[] = [
+        { origin: DEFAULT_MOBILE_PREVIEW_ORIGIN, mode: 'installed', optimistic: false },
+    ];
+    if (opts.isDev) {
+        candidates.push({ origin: DEV_EXPO_PREVIEW_ORIGIN, mode: 'dev', optimistic: true });
+    }
+    return candidates;
 }
 
 /**

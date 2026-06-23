@@ -9,8 +9,8 @@ Source of truth: `src/app/components/cms/pages/mobile-preview/MobilePreviewPanel
 The **Mobile preview** panel lets a CMS admin see the current page rendered by
 the real mobile renderer (the `selfhelp-mobile-preview` web image) directly in
 the page editor. It is the frontend half of the cross-repo **Mobile Preview
-Service** (core `>=0.1.19`, `@selfhelp/shared >=1.15.0`, manager `>=1.7.0`,
-mobile image `>=0.2.0`).
+Service** (core `>=0.1.19`, `@selfhelp/shared >=1.14.25`, manager `>=1.6.5`,
+mobile image `>=0.1.11`).
 
 > Embed contract + image internals:
 > [`sh-selfhelp_mobile` → developer/mobile-preview.md](../../../sh-selfhelp_mobile/docs/developer/mobile-preview.md).
@@ -25,16 +25,27 @@ only when the page has a `keyword` (a real, routable page). It receives the
 
 ## How it works
 
-1. **Resolve the preview origin** from `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN`
-   (default `/mobile-preview` — the same-origin path Traefik routes to the image
-   in a manager deployment).
-2. **Probe availability** by fetching `<origin>/version.json` (a React Query):
-   - a **same-origin** path that `404`s ⇒ the service is not deployed ⇒ graceful
-     "unavailable" state (with setup hint);
-   - an **absolute** (cross-origin) dev origin is assumed available even without
-     `version.json` (the Expo dev server does not serve it).
+1. **Auto-resolve the preview origin** (`previewOriginCandidates()` in
+   `mobilePreviewUrl.ts`). The panel builds an **ordered candidate list** and
+   probes each until one is available, so it works with zero configuration in
+   both a deployment and local development:
+   1. an explicit `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN` always **wins outright**
+      (single candidate — pin it and nothing else is tried);
+   2. otherwise the **installed image** at the same-origin `/mobile-preview`
+      (what Traefik routes to in a manager deployment);
+   3. otherwise, **in `next dev` only**, the **Expo dev server** at
+      `http://localhost:8081` (live-reload);
+   4. otherwise → graceful **"unavailable"** state.
+2. **Probe availability** by fetching `<candidate>/version.json` (a React Query
+   that walks the candidates in order):
+   - a **same-origin / installed** candidate that `404`s ⇒ not deployed ⇒ try
+     the next candidate;
+   - an **absolute** (cross-origin) dev candidate is **optimistic** — assumed
+     available even without `version.json` (the Expo dev server does not serve
+     it), so live-reload works out of the box.
    When present, `version.json` surfaces the image version, `mobileRendererVersion`,
-   and bundled-plugin count as badges.
+   and bundled-plugin count as badges; an optimistic dev candidate shows a
+   **"live-reload dev"** badge instead.
 3. **Mint a one-time code** via a React Query **mutation** against the protected
    BFF route (below), then build the iframe URL with `buildMobilePreviewUrl()`.
 4. **Re-mint on every (re)load** and whenever a control changes (device /
@@ -42,6 +53,12 @@ only when the page has a `keyword` (a real, routable page). It receives the
    code on exchange.
 
 The admin JWT **never** reaches the iframe — only the opaque one-time code does.
+
+> **Always visible, by design.** The panel is shown for every routable page.
+> When neither an installed image nor a dev server answers, it renders the
+> "unavailable" card (never an error) pointing at **System Maintenance → Update /
+> enable mobile preview** to provision the image, or at the Expo dev server for
+> live-reload — it never blocks the editor.
 
 ## Security: the protected mint route
 
@@ -76,27 +93,40 @@ deployment and live-reload.
 
 ## Local development & live-reload
 
-Point the panel at a running Expo web dev server for fast refresh:
+Live-reload works **with no frontend config** thanks to auto-resolution
+(candidate 3 above): if no image is installed at `/mobile-preview`, `next dev`
+falls back to the Expo dev server automatically.
 
 1. In the mobile repo: `APP_WEB_PREVIEW=1 npx expo start --web` (defaults to
    `http://localhost:8081`).
-2. In the frontend env: set
-   `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN=http://localhost:8081` and restart
-   `next dev`.
+2. Run `next dev`. The panel auto-detects the dev server and loads it in the
+   iframe, so editing a mobile renderer/component hot-reloads in place (shown
+   with the **"live-reload dev"** badge).
 
-The panel then loads the dev server in the iframe, so editing a mobile
-renderer/component hot-reloads in place. With the default `/mobile-preview`
-(no dev server running) the panel shows the graceful "unavailable" state with a
-hint to set the env var — it never blocks the editor.
+You only need to set `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN` to **override** the
+auto-resolution — e.g. pin a non-default dev port, or force a specific installed
+origin. With no dev server **and** no installed image, the panel shows the
+graceful "unavailable" state — it never blocks the editor.
 
 | Env var | Default | Meaning |
 |---------|---------|---------|
-| `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN` | `/mobile-preview` | Origin the preview iframe loads. Same-origin path in a manager deployment; an absolute Expo dev-server origin (e.g. `http://localhost:8081`) for live-reload. |
+| `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN` | _(unset → auto-resolve)_ | **Override** for the preview origin. When set it wins outright. When unset, the panel auto-resolves: installed image `/mobile-preview` → (dev only) Expo dev server `http://localhost:8081` → unavailable. |
+
+## Seeing & managing the installed version
+
+The **installed** preview image (not the dev server) is an optional service that
+ships independently of the core. Its version is shown in **System Maintenance**,
+which is also where an admin **installs / enables** it on an instance that
+predates default provisioning and **updates** it to a newer compatible version —
+all preflight-gated, exactly like the frontend-only update. See
+[system-maintenance-admin.md](./system-maintenance-admin.md#mobile-preview).
 
 ## Tests
 
 - `mobile-preview/__tests__/mobilePreviewUrl.test.ts` — the pure URL builder
-  (origin normalization, flags, optional params).
+  (origin normalization, flags, optional params) **and `previewOriginCandidates`
+  auto-resolution precedence** (explicit wins; installed-then-dev in `next dev`;
+  installed-only in production).
 - `mobile-preview/__tests__/MobilePreviewPanel.test.tsx` — RTL component tests
   (mint → iframe `src`/badges, re-mint on control change, graceful unavailable
   fallback, inline mint-error, absolute dev-origin behavior), mocking
