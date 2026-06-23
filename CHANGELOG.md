@@ -14,6 +14,32 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.31 — 2026-06-23
+
+### Added
+- **Mobile preview in the page editor.** A new **Mobile preview** section in the
+  page inspector (`MobilePreviewPanel`) embeds the `selfhelp-mobile-preview` web
+  image in an iframe so editors see the current page rendered as the mobile app,
+  with device (phone/tablet), orientation, language, and draft toggles. It mints
+  a short-lived, single-use preview code through a new protected BFF route
+  (`POST /api/mobile-preview/session`) that forwards to the core admin mint
+  endpoint with the admin's server-side JWT — the admin token never reaches the
+  iframe; only the opaque one-time code does. The preview origin is configurable
+  via `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN` (default `/mobile-preview`; point it at
+  a running Expo dev server such as `http://localhost:8081` for live-reload
+  development). When no preview is deployed (the `<origin>/version.json` probe
+  404s) the panel shows a graceful "unavailable" state instead of an error.
+  Requires core ≥ 0.1.19 (the mobile-preview session endpoints) and
+  `@selfhelp/shared` ≥ 1.15.0 (the preview-session contract types).
+
+### Changed
+- Bumped `@selfhelp/shared` to `^1.15.0` for the mobile preview-session types
+  (`IMobilePreviewSessionRequest` / `IMobilePreviewSessionData`).
+- Raised the `release-manifest.json` `supports.core` floor `>=0.1.17` → `>=0.1.19`
+  (the page-editor preview depends on the core mobile-preview mint endpoint).
+
+---
+
 ## v0.1.30 — 2026-06-23
 
 ### Fixed

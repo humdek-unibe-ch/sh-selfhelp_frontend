@@ -22,6 +22,7 @@ Technical documentation for the Next.js frontend. See [../README.md](../README.m
 - [token-refresh-solution.md](token-refresh-solution.md) - Token refresh handling.
 - [drag-drop-implementation.md](drag-drop-implementation.md) - Drag-and-drop implementation.
 - [plugins.md](plugins.md) - Frontend plugin runtime integration.
+- [mobile-preview-panel.md](mobile-preview-panel.md) - The page-editor Mobile preview panel, its protected mint route, the iframe URL builder, and live-reload dev.
 - [system-maintenance-admin.md](system-maintenance-admin.md) - The `/admin/system` maintenance, health, and connected-update screen.
 
 ## Operations and debugging

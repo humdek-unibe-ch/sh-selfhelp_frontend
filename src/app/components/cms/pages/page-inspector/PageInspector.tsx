@@ -75,6 +75,7 @@ import {
     PageSettings,
     PageAdditionalProperties
 } from './page-field-groups';
+import { MobilePreviewPanel } from '../mobile-preview/MobilePreviewPanel';
 
 export enum MenuType {
     HEADER = 'header',
@@ -472,6 +473,23 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                   isPublishing={publishVersionMutation.isPending}
                   isDeleting={unpublishPageMutation.isPending}
                   isRestoring={restoreVersionMutation.isPending}
+                />
+              </CollapsibleSection>
+            )}
+
+            {/* Mobile Preview Section */}
+            {!isConfigurationPage && page?.keyword && (
+              <CollapsibleSection
+                title="Mobile preview"
+                inspectorType={INSPECTOR_TYPES.PAGE}
+                sectionName="mobile-preview"
+                defaultExpanded={false}
+              >
+                <MobilePreviewPanel
+                  keyword={page.keyword}
+                  pageId={page.id_pages}
+                  languages={languagesData}
+                  defaultLanguageId={defaultLanguageId}
                 />
               </CollapsibleSection>
             )}
