@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 /**
  * Unit coverage for the section-inspector field classifier — the contract that
- * drives the Shared / Web / Mobile / Properties cards and cross-platform
+ * drives the Web / Mobile / Properties cards and cross-platform
  * validation. Grouping is driven ONLY by the backend-emitted field `scope`
  * (mobile rendering plan, section 6.4); this suite pins that contract, including
  * the failure when a field arrives without a valid scope.
@@ -29,9 +29,10 @@ describe('classifySectionField (backend scope only)', () => {
         expect(classifySectionField(f('disabled', 'common'))).toBe('property');
     });
 
-    it('classifies shared scope into the Shared card', () => {
-        expect(classifySectionField(f('size', 'shared'))).toBe('shared');
-        expect(classifySectionField(f('shared_intent', 'shared'))).toBe('shared');
+    it('classifies portable presentation (common scope) into the Properties card', () => {
+        expect(classifySectionField(f('size', 'common'))).toBe('property');
+        expect(classifySectionField(f('color', 'common'))).toBe('property');
+        expect(classifySectionField(f('spacing', 'common'))).toBe('property');
     });
 
     it('classifies web and mobile scope into their platform cards', () => {
@@ -44,7 +45,7 @@ describe('classifySectionField (backend scope only)', () => {
     it('relies on scope, not the field name or display flag', () => {
         // A field literally named with a web_ prefix but classified content by the
         // backend must group as content — proving no name-based inference remains.
-        expect(classifySectionField({ name: 'web_color', scope: 'content' })).toBe('content');
+        expect(classifySectionField({ name: 'web_card_shadow', scope: 'content' })).toBe('content');
         // display is never consulted: a common-scoped field stays a Property even
         // if a (legacy) display flag is attached to the object.
         expect(classifySectionField({ name: 'value', display: true, scope: 'common' })).toBe('property');
@@ -59,9 +60,9 @@ describe('classifySectionField (backend scope only)', () => {
 });
 
 describe('isFieldScope / resolveFieldScope', () => {
-    it('accepts only the five backend scopes', () => {
-        for (const s of ['content', 'common', 'shared', 'web', 'mobile']) expect(isFieldScope(s)).toBe(true);
-        for (const s of ['', 'property', 'global', 'pro', null, undefined, 3]) expect(isFieldScope(s)).toBe(false);
+    it('accepts only the four backend scopes', () => {
+        for (const s of ['content', 'common', 'web', 'mobile']) expect(isFieldScope(s)).toBe(true);
+        for (const s of ['', 'shared', 'property', 'global', 'pro', null, undefined, 3]) expect(isFieldScope(s)).toBe(false);
     });
 
     it('returns the valid scope and throws on an invalid one in test mode', () => {
@@ -74,15 +75,14 @@ describe('fieldsInBucket (save shape)', () => {
     it('partitions fields into the expected buckets by scope', () => {
         const fields = [
             f('label', 'content'),
-            f('shared_intent', 'shared'),
+            f('size', 'common'),
             f('value', 'common'),
-            f('web_color', 'web'),
+            f('web_card_shadow', 'web'),
             f('mobile_variant', 'mobile'),
         ];
         expect(fieldsInBucket(fields, 'content').map((x) => x.name)).toEqual(['label']);
-        expect(fieldsInBucket(fields, 'shared').map((x) => x.name)).toEqual(['shared_intent']);
-        expect(fieldsInBucket(fields, 'property').map((x) => x.name)).toEqual(['value']);
-        expect(fieldsInBucket(fields, 'web').map((x) => x.name)).toEqual(['web_color']);
+        expect(fieldsInBucket(fields, 'property').map((x) => x.name)).toEqual(['size', 'value']);
+        expect(fieldsInBucket(fields, 'web').map((x) => x.name)).toEqual(['web_card_shadow']);
         expect(fieldsInBucket(fields, 'mobile').map((x) => x.name)).toEqual(['mobile_variant']);
     });
 });
@@ -102,14 +102,14 @@ describe('isPlatformCardVisible', () => {
 });
 
 describe('offPlatformFieldsWithValues (cross-platform validation)', () => {
-    const fields = [f('web_color', 'web'), f('mobile_variant', 'mobile'), f('shared_intent', 'shared')];
+    const fields = [f('web_card_shadow', 'web'), f('mobile_variant', 'mobile'), f('size', 'common')];
 
     it('flags mobile-scoped values set on a web-only style', () => {
         expect(offPlatformFieldsWithValues(fields, { mobile_variant: 'ghost' }, 'web')).toEqual(['mobile_variant']);
     });
 
     it('flags web-scoped values set on a mobile-only style', () => {
-        expect(offPlatformFieldsWithValues(fields, { web_color: 'blue' }, 'mobile')).toEqual(['web_color']);
+        expect(offPlatformFieldsWithValues(fields, { web_card_shadow: 'sm' }, 'mobile')).toEqual(['web_card_shadow']);
     });
 
     it('ignores empty / false / missing off-platform values', () => {
@@ -119,6 +119,6 @@ describe('offPlatformFieldsWithValues (cross-platform validation)', () => {
     });
 
     it('never flags drift for both-platform styles', () => {
-        expect(offPlatformFieldsWithValues(fields, { web_color: 'blue', mobile_variant: 'ghost' }, 'both')).toEqual([]);
+        expect(offPlatformFieldsWithValues(fields, { web_card_shadow: 'sm', mobile_variant: 'ghost' }, 'both')).toEqual([]);
     });
 });

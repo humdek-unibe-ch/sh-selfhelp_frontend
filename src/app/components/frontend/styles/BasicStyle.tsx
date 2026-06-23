@@ -142,8 +142,7 @@ export const getSpacingProps = (style: IStyleWithSpacing) => {
         }
     };
 
-    // Box-model spacing is the portable `spacing` field. RF-15 merged the
-    // legacy margin-only `web_spacing_margin` into it, so every style uses it.
+    // Box-model spacing is the single portable `spacing` field used by every style.
     const spacingField = style.spacing;
 
     if (!spacingField) {

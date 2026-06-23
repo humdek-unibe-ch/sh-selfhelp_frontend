@@ -23,7 +23,6 @@ import { SectionContentField } from './section-field-connectors';
 import {
     SectionGlobalFields,
     SectionProperties,
-    SectionSharedProperties,
     SectionWebProperties,
     SectionMobileProperties,
     CrossPlatformFieldWarning,
@@ -83,7 +82,6 @@ export function SectionFieldPanels({
         filteredFields.filter(f => classifySectionField(f) === bucket);
 
     const contentFields = inBucket('content');
-    const sharedFields = inBucket('shared');
     const propertyFields = inBucket('property');
     const webFields = inBucket('web');
     const mobileFields = inBucket('mobile');
@@ -186,19 +184,7 @@ export function SectionFieldPanels({
                 </CollapsibleSection>
             )}
 
-            {/* Shared Properties: unprefixed shared semantic fields (size/intent/…) */}
-            {sharedFields.length > 0 && (
-                <CollapsibleSection
-                    title="Shared Properties"
-                    inspectorType={INSPECTOR_TYPES.SECTION}
-                    sectionName="shared-properties"
-                    defaultExpanded={true}
-                >
-                    <SectionSharedProperties fields={filteredFields} dataVariables={dataVariables} />
-                </CollapsibleSection>
-            )}
-
-            {/* Properties: display=false, other unprefixed config fields */}
+            {/* Properties: display=false, unprefixed config + portable semantic fields */}
             {propertyFields.length > 0 && (
                 <CollapsibleSection
                     title="Properties"

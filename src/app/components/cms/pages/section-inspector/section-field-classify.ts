@@ -8,8 +8,8 @@ SPDX-License-Identifier: MPL-2.0
  * The inspector groups a style's fields into platform-aware cards driven ONLY by
  * the backend-emitted field `scope` (mobile rendering plan, section 6.4):
  *   - Content    (scope `content` — translatable copy, display=1)
- *   - Properties (scope `common`  — cross-platform behavior/data, display=0)
- *   - Shared     (scope `shared`  — portable semantics the shared mapper consumes)
+ *   - Properties (scope `common`  — cross-platform behavior/data + portable
+ *                  presentation the shared mapper consumes, display=0)
  *   - Web        (scope `web`     — Mantine/web-only)   — only on web / both styles
  *   - Mobile     (scope `mobile`  — HeroUI/native-only) — only on mobile / both styles
  *
@@ -26,15 +26,15 @@ SPDX-License-Identifier: MPL-2.0
 import type { TStylePlatform } from '@selfhelp/shared/registry';
 
 /** Backend field scope contract (mobile rendering plan, section 6.4). */
-export const FIELD_SCOPES = ['content', 'common', 'shared', 'web', 'mobile'] as const;
+export const FIELD_SCOPES = ['content', 'common', 'web', 'mobile'] as const;
 export type TFieldScope = (typeof FIELD_SCOPES)[number];
 
 /**
  * Inspector card a field renders in. `property` is the "Properties" card, fed by
  * the backend `common` scope. The card label set is intentionally 1:1 with the
- * five scopes (content/common/shared/web/mobile).
+ * four scopes (content/common/web/mobile).
  */
-export type TFieldBucket = 'content' | 'shared' | 'web' | 'mobile' | 'property';
+export type TFieldBucket = 'content' | 'web' | 'mobile' | 'property';
 
 interface IClassifiableField {
     name: string;
@@ -76,8 +76,6 @@ export function resolveFieldScope(field: IClassifiableField): TFieldScope {
 export function classifySectionField(field: IClassifiableField): TFieldBucket {
     const scope = resolveFieldScope(field);
     switch (scope) {
-        case 'shared':
-            return 'shared';
         case 'web':
             return 'web';
         case 'mobile':

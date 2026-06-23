@@ -44,7 +44,7 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style, styleProps, cssClass })
     const width = style.web_width?.content;
     const height = style.web_height?.content;
     const fit = style.web_image_fit?.content || 'contain';
-    const radius = castMantineRadius((style as { web_radius?: { content?: string } }).web_radius?.content);
+    const radius = castMantineRadius(style.radius?.content);
     const rawFallback = style.fallback_src?.content;
     const fallbackSrc = rawFallback ? getAssetUrl(rawFallback) : undefined;
 

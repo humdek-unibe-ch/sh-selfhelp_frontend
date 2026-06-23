@@ -103,7 +103,6 @@ describe('filterStyleGroupsForAdd', () => {
         const rootOnly: IStyleRegistryEntry = {
             description: 'QA root-only style',
             category: 'plugin',
-            frontendOnly: true,
             canHaveChildren: false,
             placement: 'rootOnly',
         };

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * RTL coverage for the platform-aware section inspector (#2):
  *   - SectionInfoPanel shows a Web / Mobile / Both platform badge.
- *   - SectionFieldPanels renders Shared / Web / Mobile / Properties cards, and
+ *   - SectionFieldPanels renders Web / Mobile / Properties cards, and
  *     gates the Web/Mobile cards by the style's platform (a mobile-only style
  *     hides the Web card; the Mobile card stays).
  *
@@ -62,9 +62,9 @@ function makeField(
 // property, so the backend classifies it `common` -> Properties card.
 const baseFields: ISectionField[] = [
     makeField('label', true, 'content'),
-    makeField('shared_intent', false, 'shared'),
+    makeField('size', false, 'common'),
     makeField('value', false, 'common'),
-    makeField('web_color', false, 'web'),
+    makeField('web_card_shadow', false, 'web'),
     makeField('mobile_variant', false, 'mobile'),
 ];
 
@@ -88,7 +88,6 @@ function sectionDetails(styleName: string): ISectionDetails {
 const MOBILE_ONLY: IStyleRegistryEntry = {
     description: 'QA mobile-only plugin style',
     category: 'plugin',
-    frontendOnly: true,
     canHaveChildren: false,
     platforms: ['mobile'],
 };
@@ -117,9 +116,8 @@ describe('SectionFieldPanels — platform-aware cards', () => {
         useSectionFormStore.setState({ properties: {} });
     });
 
-    it('renders Shared / Web / Mobile / Properties cards for a both-platform style', () => {
+    it('renders Web / Mobile / Properties cards for a both-platform style', () => {
         renderWithProviders(<SectionFieldPanels {...panelProps} fields={baseFields} styleName="button" />);
-        expect(screen.getByText('Shared Properties')).toBeInTheDocument();
         expect(screen.getByText('Properties')).toBeInTheDocument();
         expect(screen.getByText('Web Properties')).toBeInTheDocument();
         expect(screen.getByText('Mobile Properties')).toBeInTheDocument();
@@ -135,6 +133,6 @@ describe('SectionFieldPanels — platform-aware cards', () => {
         renderWithProviders(<SectionFieldPanels {...panelProps} fields={baseFields} styleName="button" />);
         // The mobile_variant field stub renders once (inside the Mobile card).
         expect(screen.getByText('field:mobile_variant')).toBeInTheDocument();
-        expect(screen.getByText('field:web_color')).toBeInTheDocument();
+        expect(screen.getByText('field:web_card_shadow')).toBeInTheDocument();
     });
 });

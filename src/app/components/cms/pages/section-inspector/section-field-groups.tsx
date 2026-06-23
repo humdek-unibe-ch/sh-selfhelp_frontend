@@ -72,23 +72,10 @@ function PropertyFieldList({ fields, dataVariables, keySuffix }: IFieldGroupProp
 }
 
 /**
- * Shared Properties — `shared`-scoped semantic fields (`size`,
- * `spacing`, `radius`, `shared_intent`, …) that the shared mapper
- * resolves for BOTH web and mobile renderers. Grouping is driven by the
- * backend-emitted field scope. Always shown when present.
- */
-export const SectionSharedProperties = React.memo(function SectionSharedProperties({
-    fields,
-    dataVariables
-}: IFieldGroupProps) {
-    const sharedFields = fields.filter((f) => classifySectionField(f) === 'shared');
-    return <PropertyFieldList fields={sharedFields} dataVariables={dataVariables} keySuffix="shared" />;
-});
-
-/**
- * Properties — `common`-scoped, cross-platform behavior/data config fields
- * (display=0, unprefixed). Driven solely by the backend field scope, never by
- * the field name or the `display` flag.
+ * Properties — `common`-scoped, cross-platform behavior/data config + portable
+ * presentation fields (display=0, unprefixed) the shared mapper consumes for
+ * both renderers. Driven solely by the backend field scope, never by the field
+ * name or the `display` flag.
  */
 export const SectionProperties = React.memo(function SectionProperties({
     fields,

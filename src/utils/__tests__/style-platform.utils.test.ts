@@ -33,7 +33,6 @@ import type { IStyle } from '../../types/responses/admin/styles.types';
 const MOBILE_ONLY: IStyleRegistryEntry = {
     description: 'QA mobile-only plugin style',
     category: 'plugin',
-    frontendOnly: true,
     canHaveChildren: false,
     platforms: ['mobile'],
 };
