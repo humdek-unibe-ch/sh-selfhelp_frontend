@@ -3,8 +3,11 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 ---
-description: 
-globs: 
+description: Current frontend architecture source
+globs:
 alwaysApply: true
 ---
-Always use @architecture.md file at the root so you understand the structure.
+
+Follow `AGENTS.md`. Read `docs/developer/ssr-bff-architecture.md` for the
+current SSR/BFF architecture. Treat `docs/archive/architecture-legacy.md` as
+historical only; there is no authoritative root `architecture.md`.

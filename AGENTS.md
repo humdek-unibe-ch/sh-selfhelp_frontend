@@ -41,10 +41,10 @@ These rules apply to every documentation change in active SelfHelp2 repositories
 
 ## Style Documentation Rules
 
-CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` types + the frontend/mobile renderers in `src/app/components/frontend/styles/`). The canonical per-style reference lives in the **backend** repo at `docs/reference/styles/` (`index.md` catalog, `_template.md`, and `<category>/<style>.md` pages).
+CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` types + the frontend/mobile renderers in `src/app/components/frontend/styles/`). The canonical reference lives in the **backend** repo at `docs/reference/styles/`: auth-flow styles have dedicated pages under `auth/`; atomic styles are documented as `## <style>` sections in their category page.
 
-- When you **add a new style renderer**, the change is incomplete until the matching backend `docs/reference/styles/<category>/<style>.md` page exists and is linked from the catalog `index.md`.
-- When you **change an existing style renderer** in a way that affects its fields, behaviour, modes, defaults, or the field-content contract, update that style's backend reference page in the same change (creating the full page if it was "catalog only").
+- When you **add a new style renderer**, add the matching auth page or category section and link the catalog row in backend `docs/reference/styles/index.md`.
+- When you **change an existing style renderer** in a way that affects its fields, behaviour, modes, defaults, or field-content contract, update the matching backend auth page or category section in the same change.
 - Keep the documented field list and behaviour aligned with the shared `I<Name>Style` type and the actual component; treat a style renderer change with no matching `docs/reference/styles/` update as an incomplete change during review.
 
 ## Engineering Principles
@@ -191,8 +191,8 @@ CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` t
 - Keep frontend style registration aligned with backend style definitions and `@selfhelp/shared` where applicable.
 - **CMS naming conventions (cross-repo contract — keep all four repos in lockstep).** These three identifier kinds each have ONE casing. They are shared by the backend `styles` / `fields` / `fieldType` seeds + DB, `@selfhelp/shared` (`STYLE_REGISTRY`, the `I<Name>Style` field interfaces), the frontend `BasicStyle` dispatcher + `FieldRenderer`, and the mobile renderers, so a rename in one place must land in every repo at once.
   - **Style names → `kebab-case`.** The `style_name` (the `BasicStyle`/registry dispatcher key) must be lowercase kebab-case (e.g. `reset-password`, `two-factor-auth`, `no-access`, `not-found`, `ref-container`, `show-user-input`, `entry-list`, `entry-record`, `entry-record-delete`), never camelCase (`resetPassword`) or snake_case. Sections reference styles by `id_styles` (FK), not by the name string, so renaming a style name is a metadata change, not a content migration — but the dispatcher key must keep matching the backend `style_name`. New styles must be registered kebab-case from the start. (This is *only* the style-name string; TypeScript identifiers built from it — the `ResetPasswordStyle` component, the `AuthApi.resetPassword()` method — stay valid camelCase JS.)
-  - **Field names → `snake_case`.** A `fields.name` / style field key (e.g. `own_entries_only`, `data_table`, `mantine_color`, `ln_padding`) must be lowercase snake_case, matching the JSON content keys the renderer reads. Do not introduce camelCase field names (`mantine_checkbox_labelPosition` is a legacy outlier to fix, not a pattern to copy). Content fields stay translatable; property fields are not.
-  - **Field types → `kebab-case`** (`fieldType.name`, e.g. `markdown-inline`, `select-group`, `color-picker`, `html-tag`). The catalog is already kebab-case; the two legacy outliers (`ln_padding`, `select-data_table`) are to be renamed to match. Keep new field types kebab-case.
+  - **Field names → `snake_case`.** A `fields.name` / style field key (e.g. `own_entries_only`, `data_table`, `color`, `web_variant`, `mobile_keyboard_type`) must be lowercase snake_case, matching the JSON content keys the renderer reads. Unprefixed property fields apply to both platforms; only `web_` / `mobile_` mark platform-specific fields. The reserved collision exceptions are `shared_height`, `shared_width`, and `shared_icon`. Do not introduce camelCase or library-prefixed names such as `mantine_*`.
+  - **Field types → `kebab-case`** (`fieldType.name`, e.g. `markdown-inline`, `select-group`, `color-picker`, `html-tag`). Keep new field types renderer-neutral and kebab-case.
 - Be careful with dynamic Tailwind class generation, mobile class prefixing, and HTML sanitization.
 - Unknown or unsupported CMS styles should continue to render through the existing `UnknownStyle` path.
 
@@ -363,7 +363,7 @@ If it is not available, continue with the rules in this `AGENTS.md` and clearly 
 
 ## Plugin Ecosystem Rules (frontend side)
 
-This repo hosts the runtime + admin UI for the SelfHelp plugin ecosystem. Plugins ship their own npm package (`@<vendor>/<plugin-id>`); the frontend loads them through `PluginRuntime` at boot.
+This repo hosts the runtime + admin UI for the SelfHelp plugin ecosystem. Plugins ship signed ESM runtime bundles plus optional stylesheets; `PluginRuntime` loads their manifest-provided URLs at boot. The host does not install plugin npm packages or rebuild when a plugin is published.
 
 ### Extension points only
 
@@ -385,17 +385,17 @@ The `plugin-runtime-check.yml` GitHub Actions workflow flags new polling code pa
 
 ### Plugin runtime files
 
-- `src/app/components/frontend/plugin-runtime/PluginRuntime.ts` — runtime that imports each installed plugin's npm package and calls its `register(api)`. Records `versionWarnings` on the snapshot for every plugin it could not mount (api-version mismatch, npm-package version mismatch, import / register failure).
+- `src/app/components/frontend/plugin-runtime/PluginRuntime.ts` — runtime that imports each enabled plugin's `frontendRuntimeUrl` and calls its exported `register(api)`. Records `versionWarnings` for API incompatibility, missing URLs/register exports, import failures, registration mismatch, and registration errors.
 - `src/app/components/frontend/plugin-runtime/PluginsProvider.tsx` — context provider that exposes `IPluginApi` to plugin components and tracks feature flags + manifest. Also exposes `usePluginVersionWarnings()` for the banner.
 - `src/app/components/cms/plugins/plugin-version-mismatch-banner/PluginVersionMismatchBanner.tsx` — admin-visible alert that surfaces the runtime warnings on `/admin/plugins`. The mobile counterpart lives at `components/plugin-runtime/PluginVersionMismatchBanner.tsx` in the mobile repo.
 - `src/app/admin/plugins/page.tsx` and `src/app/admin/plugins/[pluginId]/page.tsx` — host Plugins admin (overview + detail tabs).
 - `src/app/admin/plugins-host/[pluginId]/[slug]/page.tsx` — dynamic shell that mounts plugin-supplied admin React subtrees.
 - `src/app/api/plugins/events/route.ts` — BFF SSE proxy that multiplexes the user's plugin Mercure topics over one same-origin connection.
-- `scripts/plugins-sync.mjs` — reads `selfhelp.plugins.lock.json`, updates `package.json` dependencies, and runs `pnpm install --filter` per plugin. It does NOT emit a static `registered.ts`; the runtime uses `import(/* webpackIgnore: true */ packageName)` and discovers plugins purely from the live manifest (`GET /cms-api/v1/plugins/manifest`).
+- `scripts/plugins-sync.mjs` — fetches `GET /cms-api/v1/plugins/manifest` and writes a deterministic `selfhelp.plugins.lock.json`. It intentionally does not modify `package.json`; runtime URLs remain decoupled from host dependencies.
 
 ### Host singleton peerDependencies
 
-Plugin npm packages must declare these as `peerDependencies`, never as `dependencies`:
+Plugin frontend source packages must keep host singletons external/peer dependencies when building their ESM runtime bundle:
 
 - `react`
 - `react-dom`
