@@ -26,7 +26,8 @@ import {
     IconDeviceFloppy,
     IconPlus,
     IconTrash,
-    IconFileExport
+    IconFileExport,
+    IconDeviceMobile
 } from '@tabler/icons-react';
 import { useHotkeys } from '@mantine/hooks';
 import { useRouter } from 'next/navigation';
@@ -76,6 +77,8 @@ import {
     PageAdditionalProperties
 } from './page-field-groups';
 import { MobilePreviewPanel } from '../mobile-preview/MobilePreviewPanel';
+import { useCanViewMobilePreview } from '../../../../../hooks/usePermissionChecks';
+import { ROUTES } from '../../../../../config/routes.config';
 
 export enum MenuType {
     HEADER = 'header',
@@ -89,6 +92,7 @@ interface PageInspectorProps {
 
 export const PageInspector = React.memo(function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
     const router = useRouter();
+    const canViewLivePreview = useCanViewMobilePreview();
 
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -295,15 +299,31 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                 ID: {pageDetails?.id}
               </Badge>
             </Group>
-            <Button
-              leftSection={<IconDeviceFloppy size="1rem" />}
-              onClick={handleSave}
-              variant="filled"
-              loading={updatePageMutation.isPending}
-              disabled={!page?.keyword}
-            >
-              Save
-            </Button>
+            <Group gap="xs">
+              {canViewLivePreview && !isConfigurationPage && page?.keyword && (
+                <Tooltip label="Open the full-screen live preview in a new tab">
+                  <Button
+                    component="a"
+                    href={`${ROUTES.LIVE_PREVIEW}/${encodeURIComponent(page.keyword)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    leftSection={<IconDeviceMobile size="1rem" />}
+                    variant="default"
+                  >
+                    Live preview
+                  </Button>
+                </Tooltip>
+              )}
+              <Button
+                leftSection={<IconDeviceFloppy size="1rem" />}
+                onClick={handleSave}
+                variant="filled"
+                loading={updatePageMutation.isPending}
+                disabled={!page?.keyword}
+              >
+                Save
+              </Button>
+            </Group>
           </Group>
         </Box>
 

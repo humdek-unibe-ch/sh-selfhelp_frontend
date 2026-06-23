@@ -14,6 +14,35 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.33 — 2026-06-23
+
+### Added
+- **Full-screen CMS Live Preview (test the real flow in a device frame).** A new
+  **"Live preview"** button in the page editor header opens a dedicated,
+  chrome-free preview surface (`/admin/preview/<keyword>`) in a **new tab**.
+  Unlike the inspector's quick-snippet panel, this is for walking the **real
+  flow**: the one-time preview code is minted **without a page scope**, so the
+  mobile pane allows **free navigation** through the app (still GET-only, still
+  the read-only render allowlist), starting on the page you launched from. Pick
+  the device (**phone / tablet**) and **orientation** (portrait / landscape) —
+  the mobile column **grows/shrinks** to the device frame **without reloading**
+  (so in-app navigation state is preserved), defaulting to **phone portrait**. A
+  **Draft** toggle re-mints to render published vs unpublished-draft content, and
+  an optional side-by-side **Web (desktop)** pane embeds the same page in the web
+  frontend for comparison. Gated by the new **`admin.mobile_preview.view`**
+  permission (server-checked on the route, client-checked on the editor entry),
+  so the surface only exists for CMS preview — never on normal public pages
+  (core `>=0.1.21`).
+
+### Changed
+- **Page-editor Mobile Preview panel — tidier toolbar, unchanged behaviour.** The
+  inspector's Mobile Preview panel (still collapsed by default) groups its
+  device / orientation / language / draft controls into a clean bordered toolbar.
+  Its quick-snippet behaviour is unchanged; the new full-screen Live Preview is
+  the place to test the real flow.
+
+---
+
 ## v0.1.32 — 2026-06-23
 
 ### Added

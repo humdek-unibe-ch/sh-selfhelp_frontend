@@ -12,6 +12,13 @@ the page editor. It is the frontend half of the cross-repo **Mobile Preview
 Service** (core `>=0.1.19`, `@selfhelp/shared >=1.14.25`, manager `>=1.6.5`,
 mobile image `>=0.1.11`).
 
+> **Quick snippet vs. real flow.** This panel is the *quick-snippet* view of the
+> single page being edited (collapsed by default). To **test the real flow** —
+> a full-screen device frame, free navigation, draft toggle, opened in a new tab —
+> use the [full-screen **Live Preview**](./live-preview.md) (the **"Live preview"**
+> button in the editor header, gated by `admin.mobile_preview.view`). Its controls
+> sit in a clean bordered toolbar; behaviour is otherwise as described below.
+
 > Embed contract + image internals:
 > [`sh-selfhelp_mobile` → developer/mobile-preview.md](../../../sh-selfhelp_mobile/docs/developer/mobile-preview.md).
 > Routing/update: [`sh-manager` → operator/update.md](../../../sh-manager/docs/operator/update.md).

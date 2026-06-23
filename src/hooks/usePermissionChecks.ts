@@ -168,6 +168,14 @@ export function useCanViewAuditLogs(): boolean {
 }
 
 /**
+ * Mobile/web Live Preview Permission (full-screen, new-tab preview surface)
+ */
+export function useCanViewMobilePreview(): boolean {
+  const { permissionChecker } = useAuth();
+  return permissionChecker?.canViewMobilePreview() ?? false;
+}
+
+/**
  * Data Browser Permission
  */
 export function useCanAccessDataBrowser(): boolean {

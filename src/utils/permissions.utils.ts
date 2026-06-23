@@ -365,6 +365,16 @@ export class PermissionChecker {
   }
 
   /**
+   * Check if user can open the full-screen mobile/web Live Preview surface
+   * (the new-tab, free-navigation "test the real flow" preview). Distinct from
+   * `admin.mobile_preview.create` (the one-time-code mint) so the two can be
+   * granted independently.
+   */
+  canViewMobilePreview(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_MOBILE_PREVIEW_VIEW);
+  }
+
+  /**
    * Check if user can view audit logs
    */
   canViewAuditLogs(): boolean {

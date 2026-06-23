@@ -319,6 +319,14 @@ export function MobilePreviewPanel({
 
     return (
         <Stack gap="sm">
+            <Box
+                style={{
+                    border: '1px solid var(--mantine-color-default-border)',
+                    borderRadius: 'var(--mantine-radius-md)',
+                    padding: 'var(--mantine-spacing-xs)',
+                    background: 'var(--mantine-color-default-hover)',
+                }}
+            >
             <Group justify="space-between" align="flex-end" wrap="wrap">
                 <Group gap="sm" align="flex-end" wrap="wrap">
                     <SegmentedControl
@@ -382,6 +390,7 @@ export function MobilePreviewPanel({
                     </Tooltip>
                 </Group>
             </Group>
+            </Box>
 
             <Group gap="xs">
                 {versionInfo?.version && (

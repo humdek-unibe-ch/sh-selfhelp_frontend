@@ -111,6 +111,13 @@ describe('buildMobilePreviewUrl', () => {
         expect(q.language).toBeUndefined();
         expect(q.previewSession).toBeUndefined();
         expect(q.backendUrl).toBeUndefined();
+        expect(q.modal).toBeUndefined();
+    });
+
+    it('emits an explicit modal override but omits the default auto', () => {
+        expect(queryOf(buildMobilePreviewUrl({ origin: '/mp', modal: 'on' })).modal).toBe('on');
+        expect(queryOf(buildMobilePreviewUrl({ origin: '/mp', modal: 'off' })).modal).toBe('off');
+        expect(queryOf(buildMobilePreviewUrl({ origin: '/mp', modal: 'auto' })).modal).toBeUndefined();
     });
 
     it('supports an absolute live-reload dev origin and a dev backendUrl override', () => {

@@ -209,6 +209,8 @@ export const PERMISSIONS = {
 
     // Mobile preview (page-editor live preview session mint)
     ADMIN_MOBILE_PREVIEW_CREATE: 'admin.mobile_preview.create',
+    // Mobile/web Live Preview (full-screen, new-tab "test the real flow" surface)
+    ADMIN_MOBILE_PREVIEW_VIEW: 'admin.mobile_preview.view',
 
     // User management
     ADMIN_USER_BLOCK: 'admin.user.block',

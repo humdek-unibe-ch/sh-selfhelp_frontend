@@ -24,6 +24,14 @@ export type TPreviewDevice = 'phone' | 'tablet';
 export type TPreviewOrientation = 'portrait' | 'landscape';
 
 /**
+ * How the previewed keyword is presented in the mobile app on boot (mirrors the
+ * mobile `TPreviewModalMode`): `auto` (default — off-menu pages open as a modal
+ * over home), `on` (always modal), `off` (always full-screen). `auto` is the
+ * default and is omitted from the URL.
+ */
+export type TPreviewModalMode = 'auto' | 'on' | 'off';
+
+/**
  * Same-origin path the SelfHelp Manager routes to the installed
  * `selfhelp-mobile-preview` image. Probed (`<path>/version.json` → 200) to
  * detect a provisioned preview during auto-resolution.
@@ -62,6 +70,11 @@ export interface IBuildMobilePreviewUrlOptions {
     banner?: boolean;
     /** Suppress the floating debug FAB. Suppressed by default inside the panel. */
     hideDebugPanel?: boolean;
+    /**
+     * How to present the keyword on boot. Omitted for `auto`/undefined (the
+     * mobile default: off-menu pages open as a modal). Set `on`/`off` to force.
+     */
+    modal?: TPreviewModalMode;
     /** Dev-only backend origin override (ignored by the production image). */
     backendUrl?: string | null;
 }
@@ -159,6 +172,11 @@ export function buildMobilePreviewUrl(options: IBuildMobilePreviewUrlOptions): s
 
     const language = options.language?.trim();
     if (language) params.set('language', language);
+
+    // Only emit a non-default modal mode; `auto` is the mobile default.
+    if (options.modal === 'on' || options.modal === 'off') {
+        params.set('modal', options.modal);
+    }
 
     const code = options.code?.trim();
     if (code) params.set('previewSession', code);
