@@ -26,5 +26,8 @@ export const ROUTES = {
   AGB: '/agb',
   IMPRESSUM: '/impressum',
   DISCLAIMER: '/disclaimer',
+  // Full-screen CMS Live Preview (admin-only; opens in a new tab). Append the
+  // page keyword: `${ROUTES.LIVE_PREVIEW}/${keyword}`.
+  LIVE_PREVIEW: '/admin/preview',
   // Add more as needed
 };

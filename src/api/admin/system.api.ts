@@ -19,6 +19,10 @@ import type {
     IFrontendUpdatePreflightResponse,
     IFrontendUpdateRequestResponse,
     IFrontendUpdateRequest,
+    IMobilePreviewUpdateReleasesResponse,
+    IMobilePreviewUpdatePreflightResponse,
+    IMobilePreviewUpdateRequestResponse,
+    IMobilePreviewUpdateRequest,
 } from '../../shared';
 
 /**
@@ -143,6 +147,48 @@ export class AdminSystemApi {
     static async requestFrontendUpdate(body: IFrontendUpdateRequest): Promise<IFrontendUpdateRequestResponse> {
         const response = await permissionAwareApiClient.post<IFrontendUpdateRequestResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_FRONTEND_REQUEST,
+            body
+        );
+        return response.data;
+    }
+
+    /**
+     * GET /admin/system/update/mobile-preview/releases — mobile-preview image
+     * versions published in the official registry (newest first) for the
+     * mobile-preview update picker. Fails soft to `available: false` when the
+     * registry is unreachable.
+     */
+    static async getMobilePreviewUpdateReleases(): Promise<IMobilePreviewUpdateReleasesResponse> {
+        const response = await permissionAwareApiClient.get<IMobilePreviewUpdateReleasesResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_MOBILE_PREVIEW_RELEASES
+        );
+        return response.data;
+    }
+
+    /**
+     * GET /admin/system/update/mobile-preview/preflight?target=… — lightweight
+     * compatibility verdict for a mobile-preview target. The preview is
+     * stateless, so the preflight never reports a destructive migration; the
+     * SelfHelp Manager performs the authoritative preview ⇄ core + per-plugin
+     * RN/Expo + signature checks at execution time.
+     */
+    static async getMobilePreviewUpdatePreflight(target: string): Promise<IMobilePreviewUpdatePreflightResponse> {
+        const response = await permissionAwareApiClient.get<IMobilePreviewUpdatePreflightResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_MOBILE_PREVIEW_PREFLIGHT,
+            { params: { target } }
+        );
+        return response.data;
+    }
+
+    /**
+     * POST /admin/system/update/mobile-preview/request — request a
+     * mobile-preview-only update (or enable/bootstrap) for THIS instance. The
+     * payload intentionally has no `instance_id` and no `accepted_migration_risk`
+     * (a preview swap is stateless).
+     */
+    static async requestMobilePreviewUpdate(body: IMobilePreviewUpdateRequest): Promise<IMobilePreviewUpdateRequestResponse> {
+        const response = await permissionAwareApiClient.post<IMobilePreviewUpdateRequestResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_UPDATE_MOBILE_PREVIEW_REQUEST,
             body
         );
         return response.data;

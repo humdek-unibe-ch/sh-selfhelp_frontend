@@ -294,15 +294,19 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                 ID: {pageDetails?.id}
               </Badge>
             </Group>
-            <Button
-              leftSection={<IconDeviceFloppy size="1rem" />}
-              onClick={handleSave}
-              variant="filled"
-              loading={updatePageMutation.isPending}
-              disabled={!page?.keyword}
-            >
-              Save
-            </Button>
+            <Group gap="xs">
+              {/* "Live preview" + "Open web page" now live in the page sections
+                  toolbar; the inspector header keeps only Save. */}
+              <Button
+                leftSection={<IconDeviceFloppy size="1rem" />}
+                onClick={handleSave}
+                variant="filled"
+                loading={updatePageMutation.isPending}
+                disabled={!page?.keyword}
+              >
+                Save
+              </Button>
+            </Group>
           </Group>
         </Box>
 
@@ -475,6 +479,10 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                 />
               </CollapsibleSection>
             )}
+
+            {/* The page-editor mobile preview now lives only in the full-screen
+                "Live preview" surface (opened from the sections toolbar); the
+                inspector no longer embeds a per-page mobile preview panel. */}
 
             {/* Action Buttons */}
             {!isConfigurationPage && (

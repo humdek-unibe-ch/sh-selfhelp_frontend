@@ -14,6 +14,367 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.43 — 2026-06-24
+
+### Fixed
+- **The mobile preview's bottom menu is no longer cut off.** The device frame is
+  now sized to the body height **minus its own bezel chrome**, so the full phone —
+  including the bottom navigation tab bar — fits without the bottom being clipped.
+  The framed device is also centred vertically in its column.
+- **The mobile preview frame now sits in the same inset as the web pane.** The
+  frame area subtracts the stage's own 16px padding on both axes (the
+  `useElementSize` body size is padding-inclusive), so the device bezel no longer
+  overflowed its column top and bottom — it now shares the exact 16px margin and
+  gap as the web preview on every side.
+
+### Changed
+- **The mobile preview device bezel is back.** The v0.1.42 flat web-style card is
+  replaced again by the dark, rounded phone/tablet bezel (drop shadow + matching
+  corner radii) so the preview reads as a real device, like the standalone mobile
+  web image. The header device/orientation controls and instant (no-reload)
+  device switching are unchanged.
+
+## v0.1.42 — 2026-06-24
+
+### Changed
+- **The Live Preview controls are reorganised into the top header.** The device
+  (phone / tablet), orientation (portrait / landscape), and the mobile-only
+  reload now sit on the **right** of the header; the **Mobile** and **Draft**
+  toggles, **Refresh both**, and **open in new tab** moved to the **left**, next
+  to the page keyword and dev/version badges. The device controls show only while
+  the mobile pane is on and available.
+- **The mobile preview now uses the same clean frame as the web pane.** The
+  v0.1.41 dark device bezel is replaced with a card that matches the inline web
+  pane exactly — same 1px border, rounded corners, body background and clipped
+  overflow — and the framed iframe fills the full body height beside it, so the
+  two panes read as a consistent pair.
+
+## v0.1.41 — 2026-06-24
+
+### Added
+- **The Live Preview remembers your device-frame controls.** The chosen device
+  (phone / tablet), orientation (portrait / landscape), and whether the mobile
+  pane is shown now persist across a reload of the preview tab instead of
+  resetting to phone / portrait / shown every time.
+
+### Fixed
+- **"Refresh both previews" now actually refreshes the web pane.** The web pane
+  renders cached page content, so remounting it on its own just replayed the
+  cache and recent edits never appeared. Refresh now invalidates the
+  page-content cache (the same key the editor's own save mutations use) before
+  remounting, so the web pane refetches the live page. The mobile frame still
+  clean-remounts at the current page. No contract change.
+- **The mobile device frame is no longer cut off.** It is now sized to fit the
+  space below its (now compact) controls, so the controls no longer push the
+  bottom of the frame past where the surrounding body clipped it.
+- **Draft is no longer re-forced on every open.** The preview still defaults to
+  draft the first time it is ever opened, but afterwards your saved choice is
+  kept — a deliberate "Published" preview is no longer flipped back to draft on
+  reload.
+
+### Changed
+- **The mobile preview now sits in a device bezel.** The right-hand pane is
+  wrapped in a dark, rounded phone/tablet frame (matching the standalone mobile
+  web image's device frame) instead of a thin 1px border, so the preview reads
+  as a real device. Phone and tablet use a slightly different corner radius.
+  Visual only — no behaviour change.
+
+## v0.1.40 — 2026-06-24
+
+### Fixed
+- **The Live Preview no longer freezes (or empties the mobile menu) when the
+  language changes.** Pushing the language to the embedded mobile frame over the
+  bridge made the frame rotate its token and refetch everything; under the two-way
+  echo this looped into a request storm that hung the preview on "Starting up…",
+  flooded the console (the browser logged a navigation-throttle warning) and left
+  the mobile drawer/tab menu empty. The preview now drives the mobile **language**
+  one way — by reloading the mobile frame at the chosen language — instead of
+  syncing it live, so there is nothing to loop on. **Theme (light / dark / auto)
+  still syncs live both ways with no reload.** No contract change.
+
+### Changed
+- **Switching the preview language now reloads the mobile pane** (a brief
+  "Starting up…") instead of updating it in place. The web pane still updates
+  instantly; the mobile frame remounts at the new language. Switching the colour
+  scheme still updates both panes live with no reload.
+
+## v0.1.39 — 2026-06-24
+
+### Added
+- **Theme and language are now shared between the two preview panes.** Switching
+  the colour scheme (light / dark / auto) or the language in the web pane updates
+  the mobile frame, and switching them in the mobile profile updates the web pane —
+  both ways, with no reload, so the previews always match. Requires
+  `@selfhelp/shared >= 1.15.3` and mobile `>= 0.1.17`.
+
+## v0.1.38 — 2026-06-24
+
+### Changed
+- **The mobile device controls now sit on a floating pill over the mobile pane.**
+  The phone/tablet and portrait/landscape switches plus a mobile-only reload moved
+  off the top toolbar onto a small rounded bar directly above the phone frame, so
+  it is clear they belong to the mobile preview. The top toolbar keeps only the
+  shared controls (Mobile toggle, Draft, Refresh both, open-in-new-tab).
+- **The avatar / profile menu now navigates inside the preview.** Choosing
+  "Profile" (or any profile-link page) from the header avatar drives the preview —
+  the profile page appears in **both** the web pane and the mobile frame — instead
+  of navigating the whole admin app away and dropping the mobile frame.
+- **Clearer first-load message for the mobile preview in development.** While the
+  Expo dev bundle compiles on the first open, the mobile frame now says so under
+  the spinner instead of showing an unexplained, seemingly stuck loader.
+
+### Fixed
+- **Reloading only the mobile preview no longer sticks on a perpetual spinner.**
+  The mobile frame now remounts only once a fresh preview code has been minted
+  (after a mobile reload, a "Refresh both", or returning to a hidden tab), instead
+  of briefly remounting onto the already-consumed code and wedging the cross-origin
+  Expo dev frame until the tab was hidden and shown again.
+
+## v0.1.37 — 2026-06-24
+
+### Changed
+- **The Live Preview web pane is now built directly into the page — it is no
+  longer an iframe.** The desktop preview renders the real website (header menu,
+  page content and footer) inline next to the mobile frame, so it loads faster (no
+  second app instance), always works even when the mobile preview is offline, and
+  feels like browsing the live site.
+- **Navigation stays in sync both ways, with no reload.** Clicking a link or button
+  in the web pane navigates the preview and moves the mobile frame to the same
+  page; a navigation on mobile moves the web pane too. The master
+  `/admin/preview/<keyword>` URL updates in **both** directions, so the current
+  page stays shareable and survives a reload.
+- **Cleaner toolbar.** Removed the web size selector and the toolbar language
+  picker — the web pane fills the space and language is changed from each pane's
+  own controls (web header selector / mobile profile). The toolbar now has the
+  Mobile toggle, the Draft switch, Refresh, and open-in-new-tab. The mobile pane
+  keeps its phone/tablet × portrait/landscape device frame (its device controls
+  moved onto a floating pill over the mobile pane in v0.1.38).
+
+### Removed
+- The separate web-preview iframe and its responsive-width control, plus the
+  manual Stop control (the web pane is always live; the mobile frame auto-pauses
+  only while the tab is hidden).
+
+These are floor-neutral Live Preview changes (no new backend dependency — the web
+pane reuses the existing public content API and the mobile pane the existing mint
+endpoint + bridge), so `supports.core` stays `>= 0.1.21`. Pairs with the
+`selfhelp-mobile-preview` image `>= 0.1.15`.
+
+---
+
+## v0.1.36 — 2026-06-24
+
+### Fixed
+- **Opening DevTools (or losing window focus) no longer pauses the preview.** The
+  preview frames now unload **only when the browser tab is actually hidden** (or
+  you press **Stop**) — not when the window merely loses focus — so opening
+  developer tools, or clicking another window, keeps both frames live.
+- **"Refresh mobile" no longer sticks on an endless loading spinner.** Refreshing
+  the mobile frame on its own now does a clean **unmount → remount** with a fresh
+  preview session (the same recovery the tab-visibility resume does), instead of
+  an in-place reload that could wedge the cross-origin Expo dev frame.
+- **Minting the mobile preview session no longer hangs silently.** A failed or
+  timed-out mint (e.g. a cold dev route-compile or a backend mid-restart) now
+  **auto-retries** and, if it still fails, shows an inline **error + Retry** in the
+  device frame instead of a spinner that never resolves — what previously read as
+  "`/api/mobile-preview/session` never returns" on refresh / toggling mobile.
+- **"Back to editor" is fast again.** Returning now lands on the page you are
+  **currently** viewing (not the launch page). In production the editor route's
+  RSC payload is **prefetched** while you preview, so the return is near-instant;
+  in development the editor's **Turbopack compile is warmed in the background**, so
+  you no longer pay the ~10 s cold-compile stall on the first return.
+
+### Changed
+- **The synced page is mirrored into the address bar.** As you navigate inside the
+  preview, the master URL updates to `/admin/preview/<keyword>`, so the current
+  page is **shareable** and **survives a reload** (both frames reopen on it).
+- **A frame that (re)loads re-syncs to the canonical page.** When either frame
+  finishes (re)loading it announces itself and the shell pushes the current
+  keyword to it, so "navigate in the web frame → see it on mobile too" now holds
+  even across a mobile re-mint / HMR reload (no more drifting apart).
+- **Mobile in-frame debug FAB shown in the preview.** The floating "D" debug
+  button is available inside the embedded mobile frame again (logs / queries /
+  auth / server / info); the shell top bar still owns the device chrome.
+
+These are floor-neutral Live Preview fixes (no new backend dependency), so
+`supports.core` stays `>= 0.1.21`. Pairs with the `selfhelp-mobile-preview` image
+`>= 0.1.15` (in-frame debug FAB + app-wide off-menu modals + status-aware page
+errors).
+
+---
+
+## v0.1.35 — 2026-06-24
+
+### Changed
+- **CMS Live Preview — synchronized web ↔ mobile navigation.** The shell now owns
+  the **canonical preview page**: clicking a link in either frame reports the new
+  page up to the shell, which drives the **other** frame to the same CMS keyword,
+  so web and mobile never drift apart — a clean QA flow. Sync uses a small
+  `postMessage` **preview bridge** (the new `@selfhelp/shared` `1.15.2` contract):
+  a `PreviewShellBridge` mounted in the public website shell reports navigations
+  and accepts soft "navigate to keyword" commands (no reload), with a per-frame
+  loop guard so the two frames never ping-pong. A keyword that doesn't exist on
+  the other platform shows that platform's normal "page not found" state.
+- **Live Preview toolbar redesign — one control bar, frames-only canvas.** All
+  controls live in the top bar: shared **Show Web** / **Show Mobile**,
+  **Draft/Published**, **Reload both**, and **Stop / Live reload**; a **Web** group
+  (responsive width Full / Desktop / Tablet / Mobile, **open in new tab**, and
+  **refresh web only**) and a **Mobile** group (device, orientation, **language**,
+  and **refresh mobile only**). Below the bar there is nothing but the preview
+  frames; when only one frame is shown it takes the full width.
+- **Independent refresh + non-reloading resize.** Separate **web** and **mobile**
+  reload keys mean *Refresh web* / *Refresh mobile* / *Reload both* act
+  independently, while changing a device size or orientation only **resizes** the
+  frame (no reload). The **Draft** toggle updates both frames.
+- **Per-frame language handling.** The **mobile** frame gets a language selector in
+  the toolbar (it has no in-frame picker); the **web** frame keeps its own in-page
+  language control and reports its active locale back to the toolbar as a
+  **read-only badge**, so it's always clear which language each frame is showing.
+- **Iframe sandboxing.** Both preview iframes run sandboxed
+  (`allow-scripts allow-same-origin allow-forms allow-popups`, no top-navigation).
+
+This release adopts `@selfhelp/shared` `^1.15.2` and pairs with the
+`selfhelp-mobile-preview` image `>= 0.1.14` (which renders the matching mobile
+bridge + draft banner). It adds **no** new backend dependency, so `supports.core`
+stays `>= 0.1.21`.
+
+---
+
+## v0.1.34 — 2026-06-24
+
+### Changed
+- **CMS Live Preview — one shared control bar, frames-only canvas.** The top bar
+  (with the back button) now hosts every control: shared **Show Web** / **Show
+  Mobile** toggles, the **Draft** (vs published) switch, **Reload**, and a
+  **Stop / Load** button, with the per-platform groups (Web: responsive width +
+  open-in-new-tab; Mobile: device / orientation / language) directly beneath. The
+  area below the bar holds nothing but the preview frames. The **Draft** toggle
+  is now shared: it re-mints the mobile pane **and** writes the `sh_preview`
+  cookie so the same-origin web pane (which resolves preview at SSR) matches.
+- **Live Preview no longer freezes dev — iframes are unloaded when idle.**
+  Embedding two live apps in iframes makes each one its own live-reload client,
+  which in development could starve the Next/Expo dev server and block recompiles
+  while the preview tab was open. The frames are now **automatically unloaded
+  when the tab is hidden** and, in development, while the browser is unfocused
+  during IDE work (then remounted on return). They can also be unloaded on
+  demand with **Stop** — both free the dev servers immediately. Combined with the
+  mobile image's reload-resilient session cache, reloads and HMR no longer brick
+  the preview or make the UI unresponsive, in dev **and** production.
+- **"Live preview" moved to the page-sections toolbar; "Preview Page" → "Open web
+  page".** The **Live preview** button now sits in the sections toolbar next to
+  **Add Section** / **Edit Page**, and the old **Preview Page** button is renamed
+  **Open web page** (with an external-link icon) to make the split clear: *Open
+  web page* is a plain link to the live public page (web only), while *Live
+  preview* is the full web + mobile studio.
+
+### Fixed
+- **Login submit button & links are readable in dark mode.** The seeded neutral
+  **`dark`** accent (which renders near-black) made the submit button and the
+  reset/register links blend into a dark-mode background. The renderer now treats
+  a `dark`/`black` accent **adaptively**, so the button keeps body/contrast
+  colours and the links fall back to the theme link colour — light mode is
+  unchanged. (No backend change: the seeded `color` default stays `dark`.)
+
+### Removed
+- **Mobile Preview panel removed from the page inspector.** The right-side
+  inspector no longer embeds the quick-snippet Mobile Preview panel; the
+  full-screen **Live preview** (now in the sections toolbar) is the single place
+  to preview web + mobile.
+
+---
+
+## v0.1.33 — 2026-06-23
+
+### Added
+- **Full-screen CMS Live Preview (test the real flow in a device frame).** A new
+  **"Live preview"** button in the page editor header opens a dedicated,
+  chrome-free preview surface (`/admin/preview/<keyword>`) in a **new tab**.
+  Unlike the inspector's quick-snippet panel, this is for walking the **real
+  flow**: the one-time preview code is minted **without a page scope**, so the
+  mobile pane allows **free navigation** through the app (still GET-only, still
+  the read-only render allowlist), starting on the page you launched from. Pick
+  the device (**phone / tablet**) and **orientation** (portrait / landscape) —
+  the mobile column **grows/shrinks** to the device frame **without reloading**
+  (so in-app navigation state is preserved), defaulting to **phone portrait**. A
+  **Draft** toggle re-mints to render published vs unpublished-draft content, and
+  an optional side-by-side **Web (desktop)** pane embeds the same page in the web
+  frontend for comparison. Gated by the new **`admin.mobile_preview.view`**
+  permission (server-checked on the route, client-checked on the editor entry),
+  so the surface only exists for CMS preview — never on normal public pages
+  (core `>=0.1.21`).
+
+### Changed
+- **Page-editor Mobile Preview panel — tidier toolbar, unchanged behaviour.** The
+  inspector's Mobile Preview panel (still collapsed by default) groups its
+  device / orientation / language / draft controls into a clean bordered toolbar.
+  Its quick-snippet behaviour is unchanged; the new full-screen Live Preview is
+  the place to test the real flow.
+
+---
+
+## v0.1.32 — 2026-06-23
+
+### Added
+- **Mobile preview in System Maintenance — see, install/enable, and update.** The
+  *Current instance* table now shows the installed **Mobile preview** image
+  version (from the core's `mobile_preview_version`), or a **"Not installed"**
+  badge for instances without it. A new **"Update / enable mobile preview"**
+  section mirrors the frontend-only update lane: a registry-fed target picker,
+  **Check mobile preview compatibility** (preflight), and a request that
+  **installs/enables** the optional `selfhelp-mobile-preview` image on instances
+  that predate default provisioning, or **updates** it to a newer compatible
+  version. A `mobile_preview_compatibility` preflight error blocks a preview the
+  running core cannot satisfy; the request reuses `admin.system.update`, never
+  sends an `instance_id`, and is locked while any other update is in flight. Adds
+  the `useMobilePreviewUpdateReleases` / `useMobilePreviewUpdatePreflight` /
+  `useRequestMobilePreviewUpdateMutation` hooks (core `>=0.1.20`).
+
+### Changed
+- **Mobile preview panel auto-resolves its origin (zero-config live-reload).** The
+  page-editor Mobile Preview panel no longer needs `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN`
+  to be set: it probes, in order, an explicit env override → the installed image
+  at `/mobile-preview` → (in `next dev` only) the Expo dev server at
+  `http://localhost:8081`, and shows the first available one (with a "live-reload
+  dev" badge for the dev server). Set the env var only to **override** the
+  auto-resolution. When neither an image nor a dev server answers, the panel shows
+  the graceful "unavailable" card pointing at System Maintenance to enable the
+  service — it never blocks the editor.
+
+### Fixed
+- **Page-editor mobile preview now actually loads.** The preview iframe stayed
+  blank with a *"Permission metadata missing for API call:
+  /api/mobile-preview/session"* error because the session mint called the raw
+  `apiClient`, which the permission-aware request guard rejects. The mint now goes
+  through `permissionAwareApiClient` using the new `ADMIN_MOBILE_PREVIEW_SESSION`
+  endpoint (gated by `admin.mobile_preview.create`), so it carries the required
+  permission metadata and the one-time code is minted on load and on every reload.
+
+## v0.1.31 — 2026-06-23
+
+### Added
+- **Mobile preview in the page editor.** A new **Mobile preview** section in the
+  page inspector (`MobilePreviewPanel`) embeds the `selfhelp-mobile-preview` web
+  image in an iframe so editors see the current page rendered as the mobile app,
+  with device (phone/tablet), orientation, language, and draft toggles. It mints
+  a short-lived, single-use preview code through a new protected BFF route
+  (`POST /api/mobile-preview/session`) that forwards to the core admin mint
+  endpoint with the admin's server-side JWT — the admin token never reaches the
+  iframe; only the opaque one-time code does. The preview origin is configurable
+  via `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN` (default `/mobile-preview`; point it at
+  a running Expo dev server such as `http://localhost:8081` for live-reload
+  development). When no preview is deployed (the `<origin>/version.json` probe
+  404s) the panel shows a graceful "unavailable" state instead of an error.
+  Requires core ≥ 0.1.19 (the mobile-preview session endpoints) and
+  `@selfhelp/shared` ≥ 1.14.25 (the preview-session contract types).
+
+### Changed
+- Bumped `@selfhelp/shared` to `^1.14.25` for the mobile preview-session types
+  (`IMobilePreviewSessionRequest` / `IMobilePreviewSessionData`).
+- Raised the `release-manifest.json` `supports.core` floor `>=0.1.17` → `>=0.1.19`
+  (the page-editor preview depends on the core mobile-preview mint endpoint).
+
+---
+
 ## v0.1.30 — 2026-06-23
 
 ### Fixed

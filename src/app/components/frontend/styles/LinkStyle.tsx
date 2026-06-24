@@ -7,6 +7,11 @@ import { Anchor } from '@mantine/core';
 import { type ILinkStyle } from '../../../../types/common/styles.types';
 import { hasFieldValue } from '../../../../utils/style-field-extractor';
 import IconComponent from '../../shared/common/IconComponent';
+import {
+    isPreviewInternalPath,
+    previewPathFromHref,
+    usePreviewNavigation,
+} from '../../cms/live-preview/PreviewNavigationContext';
 
 /**
  * Props interface for LinkStyle component
@@ -40,6 +45,12 @@ const LinkStyle: React.FC<ILinkStyleProps> = ({ style, styleProps, cssClass }) =
     const rightIcon = style.web_right_icon?.content;
     const hasIcon = Boolean(leftIcon || rightIcon);
 
+    // Non-null only inside the CMS Live Preview web pane: intercept internal
+    // links so they drive the preview instead of navigating the admin app.
+    const previewNav = usePreviewNavigation();
+    const previewPath = previewPathFromHref(url);
+    const interceptPreview = Boolean(previewNav && !openInNewTab && isPreviewInternalPath(previewPath));
+
     return (
         <Anchor
             href={url}
@@ -49,6 +60,15 @@ const LinkStyle: React.FC<ILinkStyleProps> = ({ style, styleProps, cssClass }) =
             underline={underline}
             {...styleProps} className={cssClass}
             style={hasIcon ? { display: 'inline-flex', alignItems: 'center', gap: 4 } : undefined}
+            onClick={
+                interceptPreview
+                    ? (e) => {
+                          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1) return;
+                          e.preventDefault();
+                          previewNav!.navigate(previewPath!);
+                      }
+                    : undefined
+            }
         >
             {leftIcon ? <IconComponent iconName={leftIcon} size={16} /> : null}
             {label}

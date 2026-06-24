@@ -7,6 +7,10 @@ import { Button, Modal, Group } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import { type IButtonStyle } from '../../../../types/common/styles.types';
 import IconComponent from '../../shared/common/IconComponent';
+import {
+    isPreviewInternalPath,
+    usePreviewNavigation,
+} from '../../cms/live-preview/PreviewNavigationContext';
 import parse from "html-react-parser";
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -33,6 +37,8 @@ interface IButtonStyleProps {
  */
 const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass }) => {
     const router = useRouter();
+    // Non-null only inside the CMS Live Preview web pane.
+    const previewNav = usePreviewNavigation();
     const label = style.label?.content;
     // Internal page link takes precedence over the external URL.
     const url = style.page_keyword?.content || style.url?.content;
@@ -72,6 +78,11 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass 
             if (isInternal) {
                 // Use Next.js router for internal navigation
                 const path = url.startsWith('/') ? url : url.replace(window.location.origin, '');
+                // Inside the Live Preview pane: drive the preview, not the admin app.
+                if (previewNav && isPreviewInternalPath(path)) {
+                    previewNav.navigate(path);
+                    return;
+                }
                 router.push(path);
             } else {
                 // Use window.location for external URLs
