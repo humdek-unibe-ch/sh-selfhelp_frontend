@@ -16,6 +16,7 @@ import '@mantine/tiptap/styles.css';
 import { AppShell } from '@mantine/core';
 import { DebugMenu } from '../../components/shared/common/debug';
 import { PreviewModeIndicator } from '../../components/shared/common/PreviewModeIndicator';
+import { PreviewShellBridge } from '../../components/cms/live-preview/PreviewShellBridge';
 import { usePreviewMode } from '../../components/contexts/PreviewModeContext';
 import styles from './SlugLayout.module.css';
 
@@ -57,6 +58,9 @@ export default function SlugShell({ isHeadless, header, footer, children }: ISlu
 
     return (
         <AppShell header={!isHeadless ? { height: 60 } : undefined}>
+            {/* Dormant during normal browsing; activates only when embedded in
+                the Live Preview shell (previewShell=1) to sync navigation. */}
+            <PreviewShellBridge />
             {!isHeadless && header && (
                 <AppShell.Header>
                     {header}

@@ -48,7 +48,7 @@ import { theme } from '../../theme';
 
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { cookieColorSchemeManager } from '../utils/cookie-color-scheme-manager';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
 import { useAclVersionWatcher } from '../hooks/useAclVersionWatcher';
 import { useAclEventStream } from '../hooks/useAclEventStream';
 import { useAuthBroadcastSync } from '../hooks/useAuthBroadcastSync';
@@ -58,6 +58,20 @@ import { getQueryClient } from './query-client';
 
 import { ImpersonationBanner } from '../app/components/shared/common/ImpersonationBanner';
 import { ColorSchemePersist } from '../app/components/shared/common/ColorSchemePersist';
+
+const subscribeToEmbeddingState = () => () => {};
+
+function getEmbeddingSnapshot(): boolean {
+    try {
+        return window.self !== window.top;
+    } catch {
+        return true;
+    }
+}
+
+function getServerEmbeddingSnapshot(): boolean {
+    return false;
+}
 
 function RefineWrapper({
     children,
@@ -167,6 +181,17 @@ function ClientProviders({
     // Stateless; memoise to keep MantineProvider's reference stable.
     const colorSchemeManager = useMemo(() => cookieColorSchemeManager(), []);
 
+    // Suppress dev-only tooling (React Query devtools) when this app is rendered
+    // inside an iframe — e.g. the CMS Live Preview web pane. Without this the host
+    // page AND the embedded page each render a devtools button, so the user sees
+    // the panel twice. The server snapshot stays false for hydration; React then
+    // reads the real browser embedding state without an effect-driven cascade.
+    const isEmbedded = useSyncExternalStore(
+        subscribeToEmbeddingState,
+        getEmbeddingSnapshot,
+        getServerEmbeddingSnapshot,
+    );
+
     return (
         <NuqsAdapter>
             <QueryClientProvider client={queryClient}>
@@ -204,7 +229,9 @@ function ClientProviders({
                             </PreviewModeProvider>
                         </LanguageProvider>
                     </MantineProvider>
-                    <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
+                    {!isEmbedded && (
+                        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
+                    )}
                 </HydrationBoundary>
             </QueryClientProvider>
         </NuqsAdapter>

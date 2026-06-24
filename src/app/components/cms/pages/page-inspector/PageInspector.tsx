@@ -26,8 +26,7 @@ import {
     IconDeviceFloppy,
     IconPlus,
     IconTrash,
-    IconFileExport,
-    IconDeviceMobile
+    IconFileExport
 } from '@tabler/icons-react';
 import { useHotkeys } from '@mantine/hooks';
 import { useRouter } from 'next/navigation';
@@ -76,9 +75,6 @@ import {
     PageSettings,
     PageAdditionalProperties
 } from './page-field-groups';
-import { MobilePreviewPanel } from '../mobile-preview/MobilePreviewPanel';
-import { useCanViewMobilePreview } from '../../../../../hooks/usePermissionChecks';
-import { ROUTES } from '../../../../../config/routes.config';
 
 export enum MenuType {
     HEADER = 'header',
@@ -92,7 +88,6 @@ interface PageInspectorProps {
 
 export const PageInspector = React.memo(function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
     const router = useRouter();
-    const canViewLivePreview = useCanViewMobilePreview();
 
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -300,20 +295,8 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
               </Badge>
             </Group>
             <Group gap="xs">
-              {canViewLivePreview && !isConfigurationPage && page?.keyword && (
-                <Tooltip label="Open the full-screen live preview in a new tab">
-                  <Button
-                    component="a"
-                    href={`${ROUTES.LIVE_PREVIEW}/${encodeURIComponent(page.keyword)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    leftSection={<IconDeviceMobile size="1rem" />}
-                    variant="default"
-                  >
-                    Live preview
-                  </Button>
-                </Tooltip>
-              )}
+              {/* "Live preview" + "Open web page" now live in the page sections
+                  toolbar; the inspector header keeps only Save. */}
               <Button
                 leftSection={<IconDeviceFloppy size="1rem" />}
                 onClick={handleSave}
@@ -497,22 +480,9 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
               </CollapsibleSection>
             )}
 
-            {/* Mobile Preview Section */}
-            {!isConfigurationPage && page?.keyword && (
-              <CollapsibleSection
-                title="Mobile preview"
-                inspectorType={INSPECTOR_TYPES.PAGE}
-                sectionName="mobile-preview"
-                defaultExpanded={false}
-              >
-                <MobilePreviewPanel
-                  keyword={page.keyword}
-                  pageId={page.id_pages}
-                  languages={languagesData}
-                  defaultLanguageId={defaultLanguageId}
-                />
-              </CollapsibleSection>
-            )}
+            {/* The page-editor mobile preview now lives only in the full-screen
+                "Live preview" surface (opened from the sections toolbar); the
+                inspector no longer embeds a per-page mobile preview panel. */}
 
             {/* Action Buttons */}
             {!isConfigurationPage && (

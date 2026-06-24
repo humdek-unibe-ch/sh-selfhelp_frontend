@@ -130,4 +130,23 @@ describe('buildMobilePreviewUrl', () => {
         expect(url.startsWith('http://localhost:8081/?')).toBe(true);
         expect(queryOf(url).backendUrl).toBe('http://localhost/symfony');
     });
+
+    it('appends the bridge params when previewShell is set (so the mobile frame syncs)', () => {
+        const q = queryOf(
+            buildMobilePreviewUrl({
+                origin: '/mobile-preview',
+                keyword: 'impressum',
+                previewShell: true,
+                parentOrigin: 'https://cms.example',
+            }),
+        );
+        expect(q.previewShell).toBe('1');
+        expect(q.parentOrigin).toBe('https://cms.example');
+    });
+
+    it('omits bridge params when previewShell is not requested', () => {
+        const q = queryOf(buildMobilePreviewUrl({ origin: '/mobile-preview', parentOrigin: 'https://cms.example' }));
+        expect(q.previewShell).toBeUndefined();
+        expect(q.parentOrigin).toBeUndefined();
+    });
 });

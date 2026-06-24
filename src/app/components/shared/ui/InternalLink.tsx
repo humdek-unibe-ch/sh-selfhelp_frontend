@@ -8,6 +8,10 @@ import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useIsClient } from '../../../../hooks/useIsClient';
+import {
+    isPreviewInternalPath,
+    usePreviewNavigation,
+} from '../../cms/live-preview/PreviewNavigationContext';
 
 /**
  * Props interface for InternalLink component
@@ -39,6 +43,9 @@ interface IInternalLinkProps {
 const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className, onMouseEnter, ...props }) => {
     const { isLoading: isAuthLoading } = useAuth();
     const isClient = useIsClient();
+    // Non-null only inside the CMS Live Preview web pane; elsewhere this is a
+    // no-op and the link keeps its normal Next.js navigation.
+    const previewNav = usePreviewNavigation();
 
     // Don't process URLs on server side to avoid hydration issues
     if (!isClient) {
@@ -59,7 +66,26 @@ const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className,
     if (isInternal) {
         // Clean up the href to get just the path
         let path = href.replace(window.location.origin, '');
-        
+
+        // Inside the Live Preview pane: drive the preview instead of navigating
+        // the admin app. Modifier-clicks / middle-clicks still open normally.
+        if (previewNav && isPreviewInternalPath(path)) {
+            return (
+                <a
+                    href={path}
+                    className={className}
+                    onMouseEnter={onMouseEnter}
+                    onClick={(e) => {
+                        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1) return;
+                        e.preventDefault();
+                        previewNav.navigate(path);
+                    }}
+                >
+                    {children}
+                </a>
+            );
+        }
+
         return (
             <Link 
                 href={path}

@@ -30,9 +30,13 @@ import {
     IconArrowLeft,
     IconArrowRight,
     IconTrash,
-    IconRefresh
+    IconRefresh,
+    IconDeviceMobile,
+    IconExternalLink
 } from '@tabler/icons-react';
 import { usePageSections, usePageFields } from '../../../../../hooks/usePageDetails';
+import { useCanViewMobilePreview } from '../../../../../hooks/usePermissionChecks';
+import { ROUTES } from '../../../../../config/routes.config';
 import { toPagePlatform } from '../../../../../utils/style-platform.utils';
 import { useSectionOperations } from '../../../../../hooks/useSectionOperations';
 import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
@@ -243,6 +247,9 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     const sections = data?.sections;
 
     const router = useRouter();
+    // Gates the "Live preview" toolbar entry (same entitlement as the
+    // full-screen surface and its server-side route guard).
+    const canViewLivePreview = useCanViewMobilePreview();
 
     const [expandedSectionsOverride, setExpandedSectionsOverride] = useState<Set<number> | null>(null);
     const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
@@ -743,16 +750,38 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                  Edit Page
                </Button>
 
-               <Button
-                 size="sm"
-                 variant="light"
-                 component={Link}
-                 href={`/${pageName}`}
-                 target="_blank"
-                 rel="noopener noreferrer"
-               >
-                 Preview Page
-               </Button>
+               {/* "Open web page" = the real public web page in a new tab
+                   (lightweight, no iframe). Distinct from "Live preview", which
+                   opens the device/web preview studio. */}
+               <Tooltip label="Open the real public web page in a new tab">
+                 <Button
+                   size="sm"
+                   variant="light"
+                   leftSection={<IconExternalLink size={16} />}
+                   component={Link}
+                   href={`/${pageName}`}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                 >
+                   Open web page
+                 </Button>
+               </Tooltip>
+
+               {canViewLivePreview && pageName && (
+                 <Tooltip label="Open the full-screen web + mobile live preview in a new tab">
+                   <Button
+                     size="sm"
+                     variant="light"
+                     leftSection={<IconDeviceMobile size={16} />}
+                     component={Link}
+                     href={`${ROUTES.LIVE_PREVIEW}/${encodeURIComponent(pageName)}`}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                   >
+                     Live preview
+                   </Button>
+                 </Tooltip>
+               )}
              </Group>
 
              {/* Bottom row (selection actions) */}

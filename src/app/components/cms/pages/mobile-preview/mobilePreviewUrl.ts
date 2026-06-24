@@ -15,10 +15,15 @@ SPDX-License-Identifier: MPL-2.0
  *     &orientation=portrait|landscape&frame=0|1&preview=true|false
  *     &previewSession=<one-time-code>&hideDebugPanel=true&banner=0
  *     &language=<locale>&backendUrl=<dev-only>
+ *     &previewShell=1&parentOrigin=<shell-origin>
  *
  * Kept free of React / Next imports so it is unit-testable under vitest in
- * isolation (mirrors the mobile contract's own pure-parser split).
+ * isolation (mirrors the mobile contract's own pure-parser split). The bridge
+ * activation param NAMES come from `@selfhelp/shared` (the single source of
+ * truth for the Live Preview bridge contract).
  */
+
+import { PREVIEW_PARENT_ORIGIN_PARAM, PREVIEW_SHELL_PARAM } from '@selfhelp/shared';
 
 export type TPreviewDevice = 'phone' | 'tablet';
 export type TPreviewOrientation = 'portrait' | 'landscape';
@@ -77,6 +82,17 @@ export interface IBuildMobilePreviewUrlOptions {
     modal?: TPreviewModalMode;
     /** Dev-only backend origin override (ignored by the production image). */
     backendUrl?: string | null;
+    /**
+     * Append `previewShell=1` so the mobile preview activates its
+     * `PreviewSyncBridge` (reports navigations to the Live Preview shell and
+     * accepts "navigate to keyword" commands).
+     */
+    previewShell?: boolean;
+    /**
+     * The shell's `window.location.origin`, forwarded so the (cross-origin in
+     * dev) bridge can target its `postMessage` precisely instead of `'*'`.
+     */
+    parentOrigin?: string | null;
 }
 
 /** Strip trailing slashes so we can always append `"/?<query>"` deterministically. */
@@ -183,6 +199,14 @@ export function buildMobilePreviewUrl(options: IBuildMobilePreviewUrlOptions): s
 
     const backendUrl = options.backendUrl?.trim();
     if (backendUrl) params.set('backendUrl', backendUrl);
+
+    // `parentOrigin` is only meaningful while the bridge is active, so it is
+    // gated on `previewShell` (both omitted for a non-synced embed).
+    if (options.previewShell) {
+        params.set(PREVIEW_SHELL_PARAM, '1');
+        const parentOrigin = options.parentOrigin?.trim();
+        if (parentOrigin) params.set(PREVIEW_PARENT_ORIGIN_PARAM, parentOrigin);
+    }
 
     return `${base}/?${params.toString()}`;
 }

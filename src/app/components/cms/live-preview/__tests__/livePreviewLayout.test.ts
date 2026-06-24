@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import {
     buildWebPreviewUrl,
     computeFrameLayout,
+    isPreviewPageActive,
     LIVE_PREVIEW_FRAME_SIZES,
     nativeFrameSize,
 } from '../livePreviewLayout';
@@ -80,6 +81,16 @@ describe('computeFrameLayout', () => {
     });
 });
 
+describe('isPreviewPageActive', () => {
+    it('unloads a hidden tab', () => {
+        expect(isPreviewPageActive({ visibilityState: 'hidden' })).toBe(false);
+    });
+
+    it('keeps a visible tab mounted regardless of window focus (DevTools must not pause it)', () => {
+        expect(isPreviewPageActive({ visibilityState: 'visible' })).toBe(true);
+    });
+});
+
 describe('buildWebPreviewUrl', () => {
     it('maps a keyword to a same-origin path', () => {
         expect(buildWebPreviewUrl('team')).toBe('/team');
@@ -94,5 +105,18 @@ describe('buildWebPreviewUrl', () => {
 
     it('encodes unsafe segments but keeps the path separators', () => {
         expect(buildWebPreviewUrl('a b/c')).toBe('/a%20b/c');
+    });
+
+    it('appends the bridge params when previewShell is set (so the iframe syncs)', () => {
+        expect(buildWebPreviewUrl('team', { previewShell: true, parentOrigin: 'https://cms.example' })).toBe(
+            '/team?previewShell=1&parentOrigin=https%3A%2F%2Fcms.example',
+        );
+        // home + previewShell, no parentOrigin
+        expect(buildWebPreviewUrl(null, { previewShell: true })).toBe('/?previewShell=1');
+    });
+
+    it('omits bridge params for a plain (open-in-new-tab) link', () => {
+        expect(buildWebPreviewUrl('team', { parentOrigin: 'https://cms.example' })).toBe('/team');
+        expect(buildWebPreviewUrl('team', {})).toBe('/team');
     });
 });

@@ -14,6 +14,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module components/cms/live-preview/livePreviewLayout
  */
 
+import { PREVIEW_PARENT_ORIGIN_PARAM, PREVIEW_SHELL_PARAM } from '@selfhelp/shared';
 import type {
     TPreviewDevice,
     TPreviewOrientation,
@@ -47,6 +48,21 @@ export interface ILivePreviewFrameLayout {
     displayWidth: number;
     /** On-screen height after scaling. */
     displayHeight: number;
+}
+
+/**
+ * Whether the expensive preview iframes should stay mounted.
+ *
+ * Tied to real tab visibility ONLY: a hidden tab unloads the frames so a
+ * backgrounded preview never starves the dev servers, but a merely unfocused
+ * window does NOT (opening DevTools, alt-tabbing to the IDE, or clicking another
+ * window must not tear the preview down — that was the old "DevTools pauses the
+ * preview" bug). Manual control stays available via the Stop button.
+ */
+export function isPreviewPageActive(options: {
+    visibilityState: DocumentVisibilityState;
+}): boolean {
+    return options.visibilityState === 'visible';
 }
 
 /**
@@ -85,15 +101,46 @@ export function computeFrameLayout(opts: {
     };
 }
 
+export interface IBuildWebPreviewUrlOptions {
+    /**
+     * Append `previewShell=1` so the embedded page activates its
+     * `PreviewShellBridge` (reports navigations to the Live Preview shell and
+     * accepts "navigate to keyword" commands). Omit for a plain "open in new
+     * tab" link.
+     */
+    previewShell?: boolean;
+    /**
+     * The shell's `window.location.origin`, forwarded so the bridge targets its
+     * `postMessage` precisely. The web pane is same-origin, but this keeps the
+     * web + mobile bridges symmetric.
+     */
+    parentOrigin?: string | null;
+}
+
 /**
  * Build the same-origin web-frontend URL for the desktop comparison pane. The
  * public renderer resolves a page by its keyword, so this is just `/<keyword>`
  * (empty keyword → home `/`). Language + published/draft are owned by the web
  * app's own session state (`LanguageContext` / `PreviewModeContext`), so they
- * are intentionally NOT encoded here.
+ * are intentionally NOT encoded here. When `previewShell` is set, the bridge
+ * activation params (shared with the mobile builder) are appended.
  */
-export function buildWebPreviewUrl(keyword: string | null | undefined): string {
+export function buildWebPreviewUrl(
+    keyword: string | null | undefined,
+    options?: IBuildWebPreviewUrlOptions,
+): string {
     const kw = (keyword ?? '').trim().replace(/^\/+/, '');
-    if (kw === '') return '/';
-    return `/${kw.split('/').map((seg) => encodeURIComponent(seg)).join('/')}`;
+    const path = kw === '' ? '/' : `/${kw.split('/').map((seg) => encodeURIComponent(seg)).join('/')}`;
+
+    // `parentOrigin` is only meaningful while the bridge is active, so both
+    // params are gated on `previewShell` — a plain "open in new tab" link
+    // (no `previewShell`) never carries bridge query params.
+    if (!options?.previewShell) return path;
+
+    const params = new URLSearchParams();
+    params.set(PREVIEW_SHELL_PARAM, '1');
+    const parentOrigin = options.parentOrigin?.trim();
+    if (parentOrigin) params.set(PREVIEW_PARENT_ORIGIN_PARAM, parentOrigin);
+
+    return `${path}?${params.toString()}`;
 }

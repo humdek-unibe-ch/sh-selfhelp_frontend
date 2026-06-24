@@ -15,6 +15,10 @@ import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { type IPageItem } from '../../../../shared';
 import { getPageTitle } from '../../../../utils/navigation.utils';
 import { ThemeToggle } from '../common/ThemeToggle';
+import {
+    isPreviewInternalPath,
+    usePreviewNavigation,
+} from '../../cms/live-preview/PreviewNavigationContext';
 
 interface IAuthButtonProps {
     /**
@@ -53,6 +57,18 @@ export function AuthButton({ initialProfilePages = [], variant }: IAuthButtonPro
     const profilePages = liveProfilePages.length > 0 ? liveProfilePages : initialProfilePages;
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const router = useRouter();
+    // Inside the CMS Live Preview pane this is non-null: profile-page navigation is
+    // then driven through the preview (updating both panes) instead of navigating
+    // the whole admin app away from `/admin/preview/...`. Null everywhere else.
+    const previewNav = usePreviewNavigation();
+
+    const goToPage = (path: string) => {
+        if (previewNav && isPreviewInternalPath(path)) {
+            previewNav.navigate(path);
+            return;
+        }
+        router.push(path);
+    };
 
     const handleLogin = () => router.push(ROUTES.LOGIN);
 
@@ -65,7 +81,7 @@ export function AuthButton({ initialProfilePages = [], variant }: IAuthButtonPro
         if (keyword === 'logout') {
             handleLogout();
         } else {
-            router.push(`/${keyword}`);
+            goToPage(`/${keyword}`);
         }
     };
 
@@ -169,7 +185,7 @@ export function AuthButton({ initialProfilePages = [], variant }: IAuthButtonPro
                 <>
                     <Menu.Item
                         leftSection={<IconSettings size={14} />}
-                        onClick={() => router.push(ROUTES.PROFILE)}
+                        onClick={() => goToPage(ROUTES.PROFILE)}
                     >
                         Profile
                     </Menu.Item>
