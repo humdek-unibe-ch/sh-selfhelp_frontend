@@ -2,9 +2,9 @@
 
 Audience: Frontend developers and technical operators.
 Status: active.
-Applies to: SelfHelp2 Next.js frontend `>=0.1.40` (core `>=0.1.21`, `@selfhelp/shared >=1.15.3`, mobile image `>=0.1.19`).
+Applies to: SelfHelp2 Next.js frontend `>=0.1.41` (core `>=0.1.21`, `@selfhelp/shared >=1.15.3`, mobile image `>=0.1.20`).
 Last verified: 2026-06-24.
-Source of truth: `src/app/admin/preview/[[...slug]]/page.tsx`, `src/app/components/cms/live-preview/LivePreview.tsx`, `src/app/components/cms/live-preview/LivePreviewWebPane.tsx`, `src/app/components/cms/live-preview/PreviewNavigationContext.tsx`, `src/app/components/cms/live-preview/livePreviewLayout.ts`, `src/app/[[...slug]]/DynamicPageClient.tsx`, `src/app/components/cms/pages/mobile-preview/mobilePreviewUrl.ts`, `src/app/components/cms/pages/page-inspector/PageInspector.tsx`, and the shared bridge contract `@selfhelp/shared` `types/preview-bridge.ts`.
+Source of truth: `src/app/admin/preview/[[...slug]]/page.tsx`, `src/app/components/cms/live-preview/LivePreview.tsx`, `src/app/components/cms/live-preview/LivePreviewWebPane.tsx`, `src/app/components/cms/live-preview/PreviewNavigationContext.tsx`, `src/app/components/cms/live-preview/livePreviewLayout.ts`, `src/app/store/livePreview.store.ts`, `src/app/[[...slug]]/DynamicPageClient.tsx`, `src/app/components/cms/pages/mobile-preview/mobilePreviewUrl.ts`, `src/app/components/cms/pages/page-inspector/PageInspector.tsx`, and the shared bridge contract `@selfhelp/shared` `types/preview-bridge.ts`.
 
 The **Live Preview** is a dedicated, full-screen surface for **testing the real
 flow** of a CMS page on **web and mobile side-by-side** — as opposed to the page
@@ -26,9 +26,9 @@ state — no `postMessage` needed.
 The **top control bar** holds only the shared controls (panes below): a
 **Mobile** toggle, a **Draft/Published** switch, **Refresh** (both), and **open
 in new tab**. The mobile-specific controls (device phone/tablet,
-portrait/landscape, and a **mobile-only reload**) sit on a **floating pill over
-the mobile pane**, directly above the phone frame, so it is visually clear they
-belong to the mobile preview. There is no web-size selector and no toolbar
+portrait/landscape, and a **mobile-only reload**) sit on a **compact floating
+pill over the mobile pane**, directly above the phone frame, so it is visually
+clear they belong to the mobile preview. There is no web-size selector and no toolbar
 language picker. The web pane's header `LanguageSelector` is the canonical
 preview-language control: it keeps the web pane live and cleanly remounts the
 mobile frame with a fresh language-scoped session. Theme changes remain live in
@@ -51,7 +51,9 @@ both directions.
    `PreviewDraftBanner`).
 4. **Resize by device, no reload.** Choosing phone/tablet and portrait/landscape
    grows or shrinks the mobile column live (default **phone portrait**) without
-   reloading the frame.
+   reloading the frame. The chosen device, orientation, and **Mobile** pane
+   visibility are **remembered across a reload** of the preview tab
+   (`livePreview.store`, the same `persist` pattern as `ui.store`).
 5. **CMS-only, never public.** The surface only exists for admins holding the
    dedicated `admin.mobile_preview.view` permission; it can never appear on a
    normal public page.
@@ -102,8 +104,10 @@ both directions.
    **not** on device/orientation change.
 5. **Draft.** Owned by the shared `PreviewModeContext`. The toolbar **Draft**
    switch toggles it (which also writes the `sh_preview` cookie), the inline web
-   reads it live, and the mobile pane re-mints with it. It is defaulted **on** when
-   the surface opens.
+   reads it live, and the mobile pane re-mints with it. It is defaulted **on** the
+   **first** time the surface is ever opened in a browser (a one-time
+   localStorage flag); after that the saved `sh_preview` choice wins, so a
+   deliberate "Published" preview is **not reset to draft on every reload**.
 6. **Mobile idle unloading.** The mobile iframe is its own dev client; to keep the
    Expo dev server responsive it is **unloaded while the tab is hidden** and
    remounted (with a fresh code) on return. Losing window focus (DevTools, the
@@ -194,6 +198,30 @@ available body area (from a `ResizeObserver`), caps the column by `maxWidthRatio
 (the inline web pane always shares the row, so the cap is ~0.5), and falls back to
 the native size before the first measure. Native sizes: phone `390×844`, tablet
 `834×1112` (swapped in landscape).
+
+`LivePreview` passes an `availableHeight` that already **subtracts the
+device-controls pill** (measured live with `useElementSize`) **+ the column gap
++ the device bezel padding**, so the framed iframe is sized to **fit** the column
+and is never clipped by the body's `overflow: hidden` — the controls pill above
+the frame no longer cuts off its bottom.
+
+The mobile column is wrapped in a **device bezel** — a dark, rounded
+phone/tablet shell around the scaled iframe (a slightly larger corner radius for
+phone than tablet) — so the pane reads as a real device rather than a bare
+rectangle. The bezel mirrors the standalone mobile web image's frame
+(`PhoneFrame`); it is purely presentational and does not change the
+`displayWidth`/`displayHeight` math above.
+
+## Refreshing the preview
+
+The toolbar's **Refresh both previews** rebuilds both panes for the current
+page. The mobile frame clean-remounts with a fresh mint. The **web pane renders
+cached page content**, so remounting it alone just replays the cache —
+`handleRefresh` therefore first calls
+`queryClient.invalidateQueries({ queryKey: PAGE_BY_KEYWORD_ALL })` (the same
+cache key the editor's save mutations invalidate) and then bumps the web reload
+key, so the remounted pane refetches the live page. **Reload mobile preview**
+(in the device toolbar) only remounts the mobile frame.
 
 ## Off-menu pages → modal (mobile-side)
 

@@ -14,6 +14,36 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.41 — 2026-06-24
+
+### Added
+- **The Live Preview remembers your device-frame controls.** The chosen device
+  (phone / tablet), orientation (portrait / landscape), and whether the mobile
+  pane is shown now persist across a reload of the preview tab instead of
+  resetting to phone / portrait / shown every time.
+
+### Fixed
+- **"Refresh both previews" now actually refreshes the web pane.** The web pane
+  renders cached page content, so remounting it on its own just replayed the
+  cache and recent edits never appeared. Refresh now invalidates the
+  page-content cache (the same key the editor's own save mutations use) before
+  remounting, so the web pane refetches the live page. The mobile frame still
+  clean-remounts at the current page. No contract change.
+- **The mobile device frame is no longer cut off.** It is now sized to fit the
+  space below its (now compact) controls, so the controls no longer push the
+  bottom of the frame past where the surrounding body clipped it.
+- **Draft is no longer re-forced on every open.** The preview still defaults to
+  draft the first time it is ever opened, but afterwards your saved choice is
+  kept — a deliberate "Published" preview is no longer flipped back to draft on
+  reload.
+
+### Changed
+- **The mobile preview now sits in a device bezel.** The right-hand pane is
+  wrapped in a dark, rounded phone/tablet frame (matching the standalone mobile
+  web image's device frame) instead of a thin 1px border, so the preview reads
+  as a real device. Phone and tablet use a slightly different corner radius.
+  Visual only — no behaviour change.
+
 ## v0.1.40 — 2026-06-24
 
 ### Fixed

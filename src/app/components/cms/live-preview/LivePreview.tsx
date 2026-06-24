@@ -53,7 +53,8 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import {
     ActionIcon,
     Alert,
@@ -107,6 +108,26 @@ import {
     livePreviewThemePreferences,
 } from './livePreviewLayout';
 import { LivePreviewWebPane } from './LivePreviewWebPane';
+import { useLivePreviewToolbarStore } from '../../../store/livePreview.store';
+
+/**
+ * localStorage flag: the live preview defaults to DRAFT only the FIRST time it
+ * is ever opened in a browser. After that the user's saved choice (the
+ * `sh_preview` cookie) wins, so a deliberate "published" preview is no longer
+ * reset to draft on every reload.
+ */
+const LIVE_PREVIEW_DRAFT_DEFAULTED_KEY = 'sh:live-preview:draft-defaulted';
+
+/** Vertical gap (px) between the device-controls pill and the framed iframe. */
+const FRAME_COLUMN_GAP = 8;
+
+/**
+ * The controls pill's own padding + border. `useElementSize` (a ResizeObserver
+ * content-box) measures the pill's CONTENT height, excluding these, so they are
+ * reserved on top of the measured height — the frame then fits with a hair to
+ * spare and is never clipped. Also the estimate used before the first measure.
+ */
+const CONTROLS_PILL_CHROME = 12;
 
 interface IMobilePreviewVersionInfo {
     version?: string | null;
@@ -191,6 +212,7 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     // WRITING them re-renders it; the shell relays both to the mobile iframe.
     const { colorScheme, setColorScheme } = useMantineColorScheme();
     const { currentLanguageId, languages: ctxLanguages } = useLanguageContext();
+    const queryClient = useQueryClient();
 
     // The CMS knows every page's nav position, so it can decide on/off-menu
     // RELIABLY and tell the mobile app how to present the page (`modal=on|off`).
@@ -206,9 +228,15 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         return isOnMenu ? 'off' : 'on';
     }, [modal, navLoading, navRoutes.length, isOnMenu]);
 
-    const [device, setDevice] = useState<TPreviewDevice>('phone');
-    const [orientation, setOrientation] = useState<TPreviewOrientation>('portrait');
-    const [showMobile, setShowMobile] = useState(true);
+    // Device / orientation / mobile-pane visibility persist across a reload of
+    // the preview tab (see `livePreview.store`), so the chosen layout survives a
+    // refresh instead of resetting to phone / portrait / shown.
+    const device = useLivePreviewToolbarStore((s) => s.device);
+    const setDevice = useLivePreviewToolbarStore((s) => s.setDevice);
+    const orientation = useLivePreviewToolbarStore((s) => s.orientation);
+    const setOrientation = useLivePreviewToolbarStore((s) => s.setOrientation);
+    const showMobile = useLivePreviewToolbarStore((s) => s.showMobile);
+    const setShowMobile = useLivePreviewToolbarStore((s) => s.setShowMobile);
     // Bumping a reload key is the ONLY thing that remounts a frame. The inline
     // web pane remounts on `webReloadKey`; the mobile iframe on `mobileReloadKey`.
     const [webReloadKey, setWebReloadKey] = useState(0);
@@ -258,16 +286,26 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         currentPrefsRef.current = livePreviewThemePreferences(colorScheme);
     }, [colorScheme]);
 
-    // Default the preview to DRAFT on open (parity with the old default), without
-    // permanently forcing it — once on, the user can switch it off.
+    // Default the preview to DRAFT the FIRST time it is ever opened (parity with
+    // the old default), then RESPECT the user's saved choice. The `sh_preview`
+    // cookie already persists draft across reloads, so forcing it on every open
+    // would reset a deliberate "published" preview on refresh — the localStorage
+    // flag makes the default a one-time thing.
     const draftDefaultedRef = useRef(false);
     useEffect(() => {
         if (draftDefaultedRef.current) return;
         draftDefaultedRef.current = true;
+        if (typeof window === 'undefined') return;
+        if (window.localStorage.getItem(LIVE_PREVIEW_DRAFT_DEFAULTED_KEY)) return;
+        window.localStorage.setItem(LIVE_PREVIEW_DRAFT_DEFAULTED_KEY, '1');
         if (!isPreviewMode) togglePreviewMode();
     }, [isPreviewMode, togglePreviewMode]);
 
     const { ref: bodyRef, width: bodyWidth, height: bodyHeight } = useElementSize();
+    // Measure the device-controls pill so the frame below it can be sized to the
+    // body MINUS that pill — otherwise the pill pushes the frame down and its
+    // bottom is clipped by the body's `overflow: hidden`.
+    const { ref: controlsRef, height: controlsHeight } = useElementSize();
 
     // The mobile iframe is minted in — and bound to — the WEB pane's current
     // language. When the web header language selector changes it, the mint key
@@ -481,18 +519,28 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         return kw === '' ? '/' : `/${kw}`;
     }, [currentKeyword]);
 
+    // Vertical chrome the device frame must leave room for inside the mobile
+    // column: the controls pill (measured + its own padding/border, or an
+    // estimate until the first measure so it never clips on first paint) + the
+    // column gap above the frame + the device bezel padding (top + bottom).
+    // Subtracting it makes the frame shrink to FIT rather than overflow — so it
+    // is never cut.
+    const bezelPadding = device === 'phone' ? 10 : 12;
+    const pillHeight =
+        controlsHeight > 0 ? controlsHeight + CONTROLS_PILL_CHROME : 36 + CONTROLS_PILL_CHROME;
+    const frameChromeHeight = pillHeight + FRAME_COLUMN_GAP + bezelPadding * 2;
     const frame = useMemo(
         () =>
             computeFrameLayout({
                 device,
                 orientation,
                 availableWidth: bodyWidth,
-                availableHeight: bodyHeight - 32,
+                availableHeight: bodyHeight - frameChromeHeight,
                 // The inline web pane always shares the row, so cap the mobile
                 // device frame to roughly half the body width.
                 maxWidthRatio: 0.5,
             }),
-        [device, orientation, bodyWidth, bodyHeight],
+        [device, orientation, bodyWidth, bodyHeight, frameChromeHeight],
     );
 
     // Reload the mobile frame the SAFE way: unmount it, mint a FRESH code, and let
@@ -507,17 +555,22 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     }, []);
     const handleReloadMobile = reloadMobileFresh;
     const handleRefresh = useCallback(() => {
-        // Remount the inline web pane (refetch the current page) + clean-remount
-        // the mobile frame at the current page with a fresh mint.
+        // The web pane renders cached page content, so a remount alone replays the
+        // cache. Invalidate the page-content cache first (same key the editor's own
+        // mutations use) so the remounted pane refetches, then clean-remount the
+        // mobile frame at the current page with a fresh mint.
+        void queryClient.invalidateQueries({
+            queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL,
+        });
         setWebReloadKey((k) => k + 1);
         reloadMobileFresh();
-    }, [reloadMobileFresh]);
+    }, [queryClient, reloadMobileFresh]);
     const handleToggleMobile = useCallback(
         (checked: boolean) => {
             if (checked) reloadMobileFresh();
             setShowMobile(checked);
         },
-        [reloadMobileFresh],
+        [reloadMobileFresh, setShowMobile],
     );
 
     // Push a soft "navigate to keyword" to the mobile frame (no reload) and record
@@ -779,21 +832,24 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: 10,
+                            gap: FRAME_COLUMN_GAP,
                         }}
                     >
-                        {/* Floating controls that clearly belong to the phone:
-                            device, orientation, and a mobile-only reload. */}
+                        {/* Compact floating controls that clearly belong to the
+                            phone: device, orientation, and a mobile-only reload.
+                            Kept tight so it eats as little vertical space as
+                            possible (the frame is sized to the body minus this). */}
                         {availability === 'available' && (
                             <Paper
+                                ref={controlsRef}
                                 withBorder
                                 shadow="sm"
                                 radius="xl"
-                                px="xs"
-                                py={5}
+                                px={4}
+                                py={3}
                                 style={{ background: 'var(--mantine-color-body)' }}
                             >
-                                <Group gap="xs" align="center" wrap="nowrap">
+                                <Group gap={4} align="center" wrap="nowrap">
                                     <SegmentedControl
                                         size="xs"
                                         value={device}
@@ -816,14 +872,14 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
                                     />
                                     <Tooltip label="Reload the mobile preview only">
                                         <ActionIcon
-                                            size="md"
+                                            size="sm"
                                             variant="subtle"
                                             radius="xl"
                                             onClick={handleReloadMobile}
                                             loading={mintMutation.isPending}
                                             aria-label="Reload mobile preview"
                                         >
-                                            <IconRefresh size="1rem" />
+                                            <IconRefresh size="0.9rem" />
                                         </ActionIcon>
                                     </Tooltip>
                                 </Group>
@@ -871,62 +927,70 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
                         ) : (
                             <Box
                                 style={{
-                                    width: frame.displayWidth,
-                                    height: frame.displayHeight,
-                                    overflow: 'hidden',
-                                    borderRadius: 24,
-                                    border: '1px solid var(--mantine-color-default-border)',
-                                    boxShadow: 'var(--mantine-shadow-md)',
-                                    background: 'var(--mantine-color-body)',
+                                    padding: bezelPadding,
+                                    borderRadius: device === 'phone' ? 44 : 34,
+                                    background:
+                                        'linear-gradient(160deg, #2b3742 0%, #161b21 100%)',
+                                    boxShadow: '0 18px 48px rgba(0, 0, 0, 0.45)',
                                 }}
                             >
-                                {mobileUrl && mobileMounted && previewActive ? (
-                                    <iframe
-                                        key={mobileUrl}
-                                        ref={mobileIframeRef}
-                                        title="Mobile live preview"
-                                        src={mobileUrl}
-                                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                                        style={{
-                                            width: frame.width,
-                                            height: frame.height,
-                                            border: 0,
-                                            transform: `scale(${frame.scale})`,
-                                            transformOrigin: 'top left',
-                                        }}
-                                    />
-                                ) : mintError ? (
-                                    <Stack align="center" justify="center" h="100%" gap="xs" p="md">
-                                        <IconAlertTriangle
-                                            size="1.4rem"
-                                            color="var(--mantine-color-red-6)"
+                                <Box
+                                    style={{
+                                        width: frame.displayWidth,
+                                        height: frame.displayHeight,
+                                        overflow: 'hidden',
+                                        borderRadius: device === 'phone' ? 34 : 24,
+                                        background: 'var(--mantine-color-body)',
+                                    }}
+                                >
+                                    {mobileUrl && mobileMounted && previewActive ? (
+                                        <iframe
+                                            key={mobileUrl}
+                                            ref={mobileIframeRef}
+                                            title="Mobile live preview"
+                                            src={mobileUrl}
+                                            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                                            style={{
+                                                width: frame.width,
+                                                height: frame.height,
+                                                border: 0,
+                                                transform: `scale(${frame.scale})`,
+                                                transformOrigin: 'top left',
+                                            }}
                                         />
-                                        <Text size="sm" fw={600} ta="center">
-                                            Could not start the mobile preview
-                                        </Text>
-                                        <Text size="xs" c="dimmed" ta="center">
-                                            {mintError}
-                                        </Text>
-                                        <Button
-                                            size="xs"
-                                            variant="light"
-                                            leftSection={<IconRefresh size="0.9rem" />}
-                                            onClick={handleReloadMobile}
-                                            loading={mintMutation.isPending}
-                                        >
-                                            Retry
-                                        </Button>
-                                    </Stack>
-                                ) : (
-                                    <Stack align="center" justify="center" h="100%" gap="xs" p="md">
-                                        <Loader size="sm" />
-                                        <Text size="xs" c="dimmed" ta="center">
-                                            {isDev
-                                                ? 'Starting the mobile preview… the first load compiles the Expo dev bundle and can take a moment.'
-                                                : 'Starting the mobile preview…'}
-                                        </Text>
-                                    </Stack>
-                                )}
+                                    ) : mintError ? (
+                                        <Stack align="center" justify="center" h="100%" gap="xs" p="md">
+                                            <IconAlertTriangle
+                                                size="1.4rem"
+                                                color="var(--mantine-color-red-6)"
+                                            />
+                                            <Text size="sm" fw={600} ta="center">
+                                                Could not start the mobile preview
+                                            </Text>
+                                            <Text size="xs" c="dimmed" ta="center">
+                                                {mintError}
+                                            </Text>
+                                            <Button
+                                                size="xs"
+                                                variant="light"
+                                                leftSection={<IconRefresh size="0.9rem" />}
+                                                onClick={handleReloadMobile}
+                                                loading={mintMutation.isPending}
+                                            >
+                                                Retry
+                                            </Button>
+                                        </Stack>
+                                    ) : (
+                                        <Stack align="center" justify="center" h="100%" gap="xs" p="md">
+                                            <Loader size="sm" />
+                                            <Text size="xs" c="dimmed" ta="center">
+                                                {isDev
+                                                    ? 'Starting the mobile preview… the first load compiles the Expo dev bundle and can take a moment.'
+                                                    : 'Starting the mobile preview…'}
+                                            </Text>
+                                        </Stack>
+                                    )}
+                                </Box>
                             </Box>
                         )}
                     </Box>
