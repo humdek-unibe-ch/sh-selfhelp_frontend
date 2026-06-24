@@ -2,7 +2,7 @@
 
 Audience: Frontend developers and technical operators.
 Status: active.
-Applies to: SelfHelp2 Next.js frontend `>=0.1.38` (core `>=0.1.21`, `@selfhelp/shared >=1.15.2`, mobile image `>=0.1.15`).
+Applies to: SelfHelp2 Next.js frontend `>=0.1.40` (core `>=0.1.21`, `@selfhelp/shared >=1.15.3`, mobile image `>=0.1.19`).
 Last verified: 2026-06-24.
 Source of truth: `src/app/admin/preview/[[...slug]]/page.tsx`, `src/app/components/cms/live-preview/LivePreview.tsx`, `src/app/components/cms/live-preview/LivePreviewWebPane.tsx`, `src/app/components/cms/live-preview/PreviewNavigationContext.tsx`, `src/app/components/cms/live-preview/livePreviewLayout.ts`, `src/app/[[...slug]]/DynamicPageClient.tsx`, `src/app/components/cms/pages/mobile-preview/mobilePreviewUrl.ts`, `src/app/components/cms/pages/page-inspector/PageInspector.tsx`, and the shared bridge contract `@selfhelp/shared` `types/preview-bridge.ts`.
 
@@ -29,8 +29,10 @@ in new tab**. The mobile-specific controls (device phone/tablet,
 portrait/landscape, and a **mobile-only reload**) sit on a **floating pill over
 the mobile pane**, directly above the phone frame, so it is visually clear they
 belong to the mobile preview. There is no web-size selector and no toolbar
-language picker — the web pane fills the space and **language is changed in-app**
-from each pane's own controls (web header `LanguageSelector` / mobile profile).
+language picker. The web pane's header `LanguageSelector` is the canonical
+preview-language control: it keeps the web pane live and cleanly remounts the
+mobile frame with a fresh language-scoped session. Theme changes remain live in
+both directions.
 
 > Embed contract + the off-menu modal: [`sh-selfhelp_mobile` → developer/mobile-preview.md](../../../sh-selfhelp_mobile/docs/developer/mobile-preview.md).
 > Mint/exchange + the `admin.mobile_preview.view` permission: [`sh-selfhelp_backend` → reference/api/20-admin-system-maintenance.md](../../../sh-selfhelp_backend/docs/reference/api/20-admin-system-maintenance.md) and the migration `Version20260623193630`.
@@ -155,6 +157,27 @@ re-renders the web pane, drives the mobile frame, and mirrors the master URL.
   origin (never `'*'`). The mobile iframe is sandboxed
   (`allow-scripts allow-same-origin allow-forms allow-popups`, no top-navigation).
 
+## Theme and language synchronization
+
+Theme and language deliberately use different synchronization paths:
+
+- **Theme is live and two-way.** The shell and mobile frame exchange
+  `selfhelp-preview:set-preferences` /
+  `selfhelp-preview:preferences-changed`, but the live payload is normalized to
+  `{ colorScheme, locale: null }`. Switching light/dark/auto in either pane
+  updates the other without a reload.
+- **Language is URL-bound and web-driven.** The web pane's
+  `LanguageSelector` updates `LanguageContext`. `LivePreview` then re-mints and
+  remounts the mobile frame with the matching `language=<locale>` URL and scoped
+  preview session. The mobile app boots directly into that locale before its
+  page queries run.
+- **Why it is split.** Applying language through the live bridge called the
+  mobile `setLanguage()` flow, which rotates the scoped token and invalidates all
+  queries. Under two-way preference echo this became a request/invalidation
+  loop, leaving the frame on "Starting up..." and the drawer/tabs empty. The
+  theme-only helper in `livePreviewLayout.ts` prevents locale from entering the
+  live bridge again.
+
 The mobile half (bridge + the in-frame draft banner) lives in the mobile repo —
 see [§3b/§3c](../../../sh-selfhelp_mobile/docs/developer/mobile-preview.md).
 `PreviewShellBridge.tsx` (mounted dormant in `SlugShell`) is the legacy web half
@@ -200,7 +223,8 @@ this (`release-manifest.json#supports.core >=0.1.21`).
   leaving external / new-tab links — and all navigation outside the provider —
   untouched.
 - `live-preview/__tests__/livePreviewLayout.test.ts` — the pure device-frame
-  layout helpers (native sizing, scale-to-fit, `maxWidthRatio` cap).
+  layout helpers (native sizing, scale-to-fit, `maxWidthRatio` cap) and the
+  theme-only preference boundary (`locale` can never be sent live).
 - `mobile-preview/__tests__/mobilePreviewUrl.test.ts` — the builder, the `modal`
   override (emitted for `on`/`off`, omitted for `auto`), and the
   `previewShell`/`parentOrigin` bridge params (gated on `previewShell`).

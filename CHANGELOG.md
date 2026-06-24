@@ -14,6 +14,25 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.40 — 2026-06-24
+
+### Fixed
+- **The Live Preview no longer freezes (or empties the mobile menu) when the
+  language changes.** Pushing the language to the embedded mobile frame over the
+  bridge made the frame rotate its token and refetch everything; under the two-way
+  echo this looped into a request storm that hung the preview on "Starting up…",
+  flooded the console (the browser logged a navigation-throttle warning) and left
+  the mobile drawer/tab menu empty. The preview now drives the mobile **language**
+  one way — by reloading the mobile frame at the chosen language — instead of
+  syncing it live, so there is nothing to loop on. **Theme (light / dark / auto)
+  still syncs live both ways with no reload.** No contract change.
+
+### Changed
+- **Switching the preview language now reloads the mobile pane** (a brief
+  "Starting up…") instead of updating it in place. The web pane still updates
+  instantly; the mobile frame remounts at the new language. Switching the colour
+  scheme still updates both panes live with no reload.
+
 ## v0.1.39 — 2026-06-24
 
 ### Added
