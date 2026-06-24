@@ -34,6 +34,11 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const loginTitle = style.login_title?.content || 'Welcome back!';
     const subtitle = style.subtitle?.content?.trim();
     const mantineColor = style.color?.content || 'blue';
+    // `dark`/`black` is the neutral accent (and the seeded login default). A
+    // Mantine `filled` button / `c=` link in that colour collapses to
+    // black-on-black in dark mode, so the neutral accent is rendered adaptively
+    // from the theme text/body vars below. Real palette colours are untouched.
+    const isNeutralAccent = mantineColor === 'dark' || mantineColor === 'black';
 
     const handleSubmit = async (e: { preventDefault(): void }) => {
         e.preventDefault();
@@ -112,19 +117,32 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                         fullWidth
                         size="md"
                         loading={isLoading}
-                        color={mantineColor}
+                        color={isNeutralAccent ? undefined : mantineColor}
                         variant="filled"
+                        // Neutral accent: invert via theme vars so the button is
+                        // near-black with a light label in light mode and a light
+                        // button with a dark label in dark mode (readable in both).
+                        style={
+                            isNeutralAccent
+                                ? {
+                                      backgroundColor: 'var(--mantine-color-text)',
+                                      color: 'var(--mantine-color-body)',
+                                  }
+                                : undefined
+                        }
                     >
                         {labelLogin}
                     </Button>
 
-                    {/* Aux links share the configurable `color` with the
-                        submit button so the accent stays consistent (mirrors the
-                        mobile login, which colours its links from the same field). */}
+                    {/* Aux links share the configurable `color` with the submit
+                        button so the accent stays consistent (mirrors the mobile
+                        login). For the neutral accent we drop the explicit colour
+                        so the theme's readable link colour is used instead of an
+                        invisible black-on-black in dark mode. */}
                     <Anchor
                         ta="center"
                         size="sm"
-                        c={mantineColor}
+                        c={isNeutralAccent ? undefined : mantineColor}
                         href={ROUTES.RESET_PASSWORD}
                     >
                         {labelPasswordReset}
@@ -133,7 +151,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                     <Anchor
                         ta="center"
                         size="sm"
-                        c={mantineColor}
+                        c={isNeutralAccent ? undefined : mantineColor}
                         href={ROUTES.REGISTER}
                     >
                         {labelRegister}

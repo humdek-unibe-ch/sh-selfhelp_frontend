@@ -60,6 +60,21 @@ describe('LoginStyle', () => {
         expect(screen.queryByRole('link', { name: 'Create account' })).not.toBeInTheDocument();
     });
 
+    it('renders the seeded neutral "dark" accent adaptively so it stays readable in dark mode', () => {
+        renderWithProviders(
+            <LoginStyle
+                style={{ color: { content: 'dark' } } as unknown as LoginStyleField}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+
+        // The neutral accent must invert via theme vars (not a fixed black) so it
+        // does not collapse to black-on-black in dark mode.
+        const submit = screen.getByRole('button', { name: 'Sign in' });
+        expect(submit.getAttribute('style')).toContain('var(--mantine-color-text)');
+    });
+
     it('renders the optional subtitle when set, and hides it when empty', () => {
         const { rerender } = renderWithProviders(
             <LoginStyle
