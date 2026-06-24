@@ -21,6 +21,11 @@ No engineering diary, no implementation detail — that belongs in
   now sized to the body height **minus its own bezel chrome**, so the full phone —
   including the bottom navigation tab bar — fits without the bottom being clipped.
   The framed device is also centred vertically in its column.
+- **The mobile preview frame now sits in the same inset as the web pane.** The
+  frame area subtracts the stage's own 16px padding on both axes (the
+  `useElementSize` body size is padding-inclusive), so the device bezel no longer
+  overflowed its column top and bottom — it now shares the exact 16px margin and
+  gap as the web preview on every side.
 
 ### Changed
 - **The mobile preview device bezel is back.** The v0.1.42 flat web-style card is

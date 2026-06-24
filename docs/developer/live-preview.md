@@ -200,12 +200,22 @@ the native size before the first measure. Native sizes: phone `390×844`, tablet
 `834×1112` (swapped in landscape).
 
 Because the device controls live in the **top header** (not above the frame),
-`LivePreview` passes `bodyHeight - frameChromeHeight` as `availableHeight`, where
-`frameChromeHeight` is the device **bezel padding** (top + bottom). Subtracting it
-means the bezel + screen shrink to **fit** the body area rather than overflow, so
-the bottom of the device — including the mobile app's **bottom navigation tab
-bar** — is never clipped by the body's `overflow: hidden`. The framed device is
-centred vertically in its column.
+`LivePreview` sizes the frame to the stage's **real inner slot**. The stage body
+has `padding: LIVE_PREVIEW_STAGE_PADDING` (16px) and `useElementSize` reports its
+**padding-inclusive** size, so the calc subtracts that padding on both axes plus
+the bezel's own chrome:
+
+- `availableWidth = bodyWidth - LIVE_PREVIEW_STAGE_PADDING * 2`
+- `availableHeight = bodyHeight - LIVE_PREVIEW_STAGE_PADDING * 2 - frameChromeHeight`
+
+where `frameChromeHeight` is the device **bezel padding** (top + bottom).
+Subtracting all of it means the bezel + screen shrink to **fit** the body's
+content area rather than overflow, so (a) the bottom of the device — including the
+mobile app's **bottom navigation tab bar** — is never clipped by the body's
+`overflow: hidden`, and (b) the framed device sits in the **same 16px inset** as
+the inline web pane on every side (matching margin + gap) instead of poking out of
+its column. `LIVE_PREVIEW_STAGE_PADDING` is the single source of truth shared
+between the stage CSS and this math so they cannot drift.
 
 The scaled iframe is wrapped in a **device bezel** — a dark rounded phone/tablet
 frame (`linear-gradient` body, drop shadow, larger outer + smaller inner corner

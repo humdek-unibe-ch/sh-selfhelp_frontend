@@ -32,6 +32,16 @@ export const LIVE_PREVIEW_FRAME_SIZES: Record<TPreviewDevice, { width: number; h
 };
 
 /**
+ * Padding (px) the Live Preview **stage** body insets its panes by. Shared
+ * between the stage's CSS and the device-frame math: `useElementSize` reports the
+ * body's padding-INCLUSIVE size, so the frame layout must subtract this on both
+ * axes or the mobile bezel renders the full body height and escapes its column
+ * (the web pane, being `flex: 1`, already respects the inset). Keeping it a single
+ * constant stops the two from drifting.
+ */
+export const LIVE_PREVIEW_STAGE_PADDING = 16;
+
+/**
  * Live-preview preference messages are deliberately theme-only.
  *
  * Language is bound to the mobile iframe URL and applied by remounting with a

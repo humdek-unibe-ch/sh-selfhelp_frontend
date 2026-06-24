@@ -15,6 +15,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { type RefCallback } from 'react';
 import { Box } from '@mantine/core';
+import { LIVE_PREVIEW_STAGE_PADDING } from './livePreviewLayout';
 import { LivePreviewWebFrame, type ILivePreviewWebFrameProps } from './LivePreviewWebFrame';
 import {
     LivePreviewMobileFrame,
@@ -36,8 +37,8 @@ export function LivePreviewStage({ bodyRef, web, showMobile, mobile }: ILivePrev
             style={{
                 flex: 1,
                 display: 'flex',
-                gap: 16,
-                padding: 16,
+                gap: LIVE_PREVIEW_STAGE_PADDING,
+                padding: LIVE_PREVIEW_STAGE_PADDING,
                 overflow: 'hidden',
                 background: 'var(--mantine-color-default-hover)',
             }}

@@ -69,7 +69,7 @@ import {
     isAbsolutePreviewOrigin,
     type TPreviewModalMode,
 } from '../pages/mobile-preview/mobilePreviewUrl';
-import { computeFrameLayout } from './livePreviewLayout';
+import { computeFrameLayout, LIVE_PREVIEW_STAGE_PADDING } from './livePreviewLayout';
 import { useLivePreviewToolbarStore } from '../../../store/livePreview.store';
 import { LivePreviewToolbar } from './LivePreviewToolbar';
 import { LivePreviewStage } from './LivePreviewStage';
@@ -283,24 +283,29 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         return kw === '' ? '/' : `/${kw}`;
     }, [currentKeyword]);
 
-    // The device controls live in the top header, so the device frame gets the
-    // body height MINUS its own bezel chrome (the dark frame padding, top +
-    // bottom). Subtracting it makes the bezel + screen shrink to FIT rather than
-    // overflow, so the bottom of the device is never clipped.
+    // Size the device frame to the stage's REAL inner slot so the bezel sits
+    // inside the same 16px inset as the web pane (and never escapes its column):
+    //   - `useElementSize` reports the body's padding-INCLUSIVE size, so subtract
+    //     the stage padding on both axes (`bodyPadding`), and
+    //   - subtract the bezel's own chrome (`frameChromeHeight`, the dark frame
+    //     padding top + bottom) so the bezel + screen shrink to FIT rather than
+    //     overflow — i.e. the device bottom (incl. the mobile tab bar) is never
+    //     clipped and the top/bottom margins match the web pane.
     const bezelPadding = device === 'phone' ? 10 : 12;
     const frameChromeHeight = bezelPadding * 2;
+    const bodyPadding = LIVE_PREVIEW_STAGE_PADDING * 2;
     const frame = useMemo(
         () =>
             computeFrameLayout({
                 device,
                 orientation,
-                availableWidth: bodyWidth,
-                availableHeight: bodyHeight - frameChromeHeight,
+                availableWidth: bodyWidth - bodyPadding,
+                availableHeight: bodyHeight - bodyPadding - frameChromeHeight,
                 // The inline web pane always shares the row, so cap the mobile
                 // device frame to roughly half the body width.
                 maxWidthRatio: 0.5,
             }),
-        [device, orientation, bodyWidth, bodyHeight, frameChromeHeight],
+        [device, orientation, bodyWidth, bodyHeight, bodyPadding, frameChromeHeight],
     );
 
     const handleReloadMobile = reloadMobileFresh;
