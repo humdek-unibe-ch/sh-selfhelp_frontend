@@ -69,6 +69,7 @@ import {
     Switch,
     Text,
     Tooltip,
+    useMantineColorScheme,
 } from '@mantine/core';
 import { useElementSize } from '@mantine/hooks';
 import {
@@ -80,13 +81,16 @@ import {
 } from '@tabler/icons-react';
 import {
     PREVIEW_BRIDGE_MESSAGE,
+    arePreviewPreferencesEqual,
     isPreviewBridgeMessage,
+    type IPreviewPreferences,
     type TPreviewBridgeMessage,
 } from '@selfhelp/shared';
 import { AdminMobilePreviewApi } from '../../../../api/admin/mobile-preview.api';
 import { API_CONFIG } from '../../../../config/api.config';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { usePublicLanguages } from '../../../../hooks/useLanguages';
+import { useLanguageContext } from '../../contexts/LanguageContext';
 import { usePreviewMode } from '../../contexts/PreviewModeContext';
 import {
     buildMobilePreviewUrl,
@@ -177,6 +181,14 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     const { isPreviewMode, togglePreviewMode } = usePreviewMode();
     const draft = isPreviewMode;
 
+    // Shared theme + language for cross-pane sync. These are the SAME Mantine +
+    // LanguageContext the inline web pane uses (its header ThemeToggle /
+    // LanguageSelector drive them), so READING them mirrors the web pane and
+    // WRITING them re-renders it; the shell relays both to the mobile iframe.
+    const { colorScheme, setColorScheme } = useMantineColorScheme();
+    const { currentLanguageId, setCurrentLanguageId, languages: ctxLanguages } = useLanguageContext();
+    const currentLocale = ctxLanguages.find((l) => l.id === currentLanguageId)?.locale ?? null;
+
     // The CMS knows every page's nav position, so it can decide on/off-menu
     // RELIABLY and tell the mobile app how to present the page (`modal=on|off`).
     const { routes: navRoutes, isLoading: navLoading } = useAppNavigation();
@@ -229,10 +241,20 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     // the keyword here; that frame's echoed NAVIGATED is then swallowed instead
     // of bounced back (no ping-pong).
     const expectedRef = useRef<{ mobile: string | null | undefined }>({ mobile: undefined });
+    // Loop guard for prefs sync (the theme/language analogue of expectedRef): the
+    // last prefs the shell pushed to OR received from the mobile frame. Plus a
+    // live snapshot of the web pane's prefs so the mobile READY handler can push
+    // them without the listener depending on (and re-subscribing to) them.
+    const lastSyncedPrefsRef = useRef<IPreviewPreferences | null>(null);
+    const currentPrefsRef = useRef<IPreviewPreferences>({ colorScheme: 'auto', locale: null });
 
     useEffect(() => {
         currentKeywordRef.current = currentKeyword;
     }, [currentKeyword]);
+
+    useEffect(() => {
+        currentPrefsRef.current = { colorScheme, locale: currentLocale };
+    }, [colorScheme, currentLocale]);
 
     // Default the preview to DRAFT on open (parity with the old default), without
     // permanently forcing it — once on, the user can switch it off.
@@ -502,6 +524,33 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         [mobileMessageOrigin],
     );
 
+    // Push the shared theme + language down to the mobile frame (no reload) and
+    // record it as the last synced value so the frame's echoed PREFERENCES_CHANGED
+    // isn't bounced back (loop guard, mirror of sendNavigateMobile).
+    const sendPreferencesMobile = useCallback(
+        (prefs: IPreviewPreferences) => {
+            const win = mobileIframeRef.current?.contentWindow;
+            if (!win || !mobileMessageOrigin) return;
+            lastSyncedPrefsRef.current = prefs;
+            const message: TPreviewBridgeMessage = {
+                type: PREVIEW_BRIDGE_MESSAGE.SET_PREFERENCES,
+                preferences: prefs,
+            };
+            win.postMessage(message, mobileMessageOrigin);
+        },
+        [mobileMessageOrigin],
+    );
+
+    // Web pane → mobile: when the web pane's theme/language changes (its header
+    // ThemeToggle / LanguageSelector), relay it to the mobile frame. The guard
+    // skips the echo of a value the mobile just reported up.
+    useEffect(() => {
+        if (!previewActive) return;
+        const prefs: IPreviewPreferences = { colorScheme, locale: currentLocale };
+        if (arePreviewPreferencesEqual(lastSyncedPrefsRef.current, prefs)) return;
+        sendPreferencesMobile(prefs);
+    }, [colorScheme, currentLocale, previewActive, sendPreferencesMobile]);
+
     // In-pane web navigation (intercepted links/buttons) → make it the canonical
     // page and drive the mobile frame to match.
     const handleWebNavigate = useCallback(
@@ -526,9 +575,11 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
             if (!isPreviewBridgeMessage(event.data)) return;
             const data = event.data;
             // The mobile frame announces READY after a (re)load → push the
-            // canonical page so it syncs to wherever the web pane already is.
+            // canonical page AND the current theme/language so it syncs to
+            // wherever the web pane already is (web pane wins the initial sync).
             if (data.type === PREVIEW_BRIDGE_MESSAGE.READY) {
                 sendNavigateMobile(currentKeywordRef.current);
+                sendPreferencesMobile(currentPrefsRef.current);
                 return;
             }
             if (data.type !== PREVIEW_BRIDGE_MESSAGE.NAVIGATED) return;
@@ -549,7 +600,40 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         return () => {
             window.removeEventListener('message', onMessage);
         };
-    }, [previewActive, mobileMessageOrigin, sendNavigateMobile]);
+    }, [previewActive, mobileMessageOrigin, sendNavigateMobile, sendPreferencesMobile]);
+
+    // Mobile → web pane: a theme/language change reported BY the mobile frame is
+    // applied to the SAME Mantine + LanguageContext the web pane uses, so the web
+    // pane follows. Separate listener so it can depend on the live prefs/setters
+    // without re-subscribing the navigation listener. The guard skips the echo of
+    // a value the shell just pushed down.
+    useEffect(() => {
+        if (!previewActive) return undefined;
+        const onPrefsMessage = (event: MessageEvent) => {
+            if (event.origin !== mobileMessageOrigin) return;
+            if (!isPreviewBridgeMessage(event.data)) return;
+            if (event.data.type !== PREVIEW_BRIDGE_MESSAGE.PREFERENCES_CHANGED) return;
+            if (event.data.source !== 'mobile') return;
+            const prefs = event.data.preferences;
+            if (arePreviewPreferencesEqual(lastSyncedPrefsRef.current, prefs)) return;
+            lastSyncedPrefsRef.current = prefs;
+            if (prefs.colorScheme !== colorScheme) setColorScheme(prefs.colorScheme);
+            if (prefs.locale) {
+                const match = ctxLanguages.find((l) => l.locale === prefs.locale);
+                if (match && match.id !== currentLanguageId) setCurrentLanguageId(match.id);
+            }
+        };
+        window.addEventListener('message', onPrefsMessage);
+        return () => window.removeEventListener('message', onPrefsMessage);
+    }, [
+        previewActive,
+        mobileMessageOrigin,
+        colorScheme,
+        currentLanguageId,
+        ctxLanguages,
+        setColorScheme,
+        setCurrentLanguageId,
+    ]);
 
     // Back-to-editor targets the page you are CURRENTLY viewing — synced
     // navigation can move the preview off the launch keyword.

@@ -14,6 +14,15 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.39 — 2026-06-24
+
+### Added
+- **Theme and language are now shared between the two preview panes.** Switching
+  the colour scheme (light / dark / auto) or the language in the web pane updates
+  the mobile frame, and switching them in the mobile profile updates the web pane —
+  both ways, with no reload, so the previews always match. Requires
+  `@selfhelp/shared >= 1.15.3` and mobile `>= 0.1.17`.
+
 ## v0.1.38 — 2026-06-24
 
 ### Changed
