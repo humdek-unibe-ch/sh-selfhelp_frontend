@@ -23,12 +23,12 @@ React Query cache, so it is cheap in dev (no second app instance), always
 available (independent of the mobile preview), and its navigation is plain React
 state — no `postMessage` needed.
 
-The **top control bar** holds only the shared controls (panes below): a
-**Mobile** toggle, a **Draft/Published** switch, **Refresh** (both), and **open
-in new tab**. The mobile-specific controls (device phone/tablet,
-portrait/landscape, and a **mobile-only reload**) sit on a **compact floating
-pill over the mobile pane**, directly above the phone frame, so it is visually
-clear they belong to the mobile preview. There is no web-size selector and no toolbar
+The **top control bar** is split. On the **left**, next to the identity (page
+keyword + dev/version badges), sit the shared controls: a **Mobile** toggle, a
+**Draft/Published** switch, **Refresh** (both), and **open in new tab**. On the
+**right** sit the mobile-specific controls — device (phone/tablet), orientation
+(portrait/landscape), and a **mobile-only reload** — shown only while the mobile
+pane is on and available. There is no web-size selector and no toolbar
 language picker. The web pane's header `LanguageSelector` is the canonical
 preview-language control: it keeps the web pane live and cleanly remounts the
 mobile frame with a fresh language-scoped session. Theme changes remain live in
@@ -113,8 +113,8 @@ both directions.
    remounted (with a fresh code) on return. Losing window focus (DevTools, the
    IDE) does **not** unload it. The inline web pane is always rendered (no separate
    dev client, nothing to unload).
-7. **Mobile reload is remount-on-fresh-code.** A mobile reload (the pill reload,
-   "Refresh both", or returning to a hidden tab) **unmounts** the frame, re-mints a
+7. **Mobile reload is remount-on-fresh-code.** A mobile reload (the header's
+   mobile-only reload, "Refresh both", or returning to a hidden tab) **unmounts** the frame, re-mints a
    new one-time code, and remounts **only once that fresh code is ready**. Bringing
    the frame back on the old (already-consumed) code — or swapping `src` in place —
    wedges the cross-origin Expo dev frame on a perpetual spinner that only cleared
@@ -199,17 +199,15 @@ available body area (from a `ResizeObserver`), caps the column by `maxWidthRatio
 the native size before the first measure. Native sizes: phone `390×844`, tablet
 `834×1112` (swapped in landscape).
 
-`LivePreview` passes an `availableHeight` that already **subtracts the
-device-controls pill** (measured live with `useElementSize`) **+ the column gap
-+ the device bezel padding**, so the framed iframe is sized to **fit** the column
-and is never clipped by the body's `overflow: hidden` — the controls pill above
-the frame no longer cuts off its bottom.
+Because the device controls now live in the **top header** (not above the
+frame), `LivePreview` passes the **full body height** as `availableHeight`, so
+the framed iframe fills the column exactly like the inline web pane card beside
+it — never clipped by the body's `overflow: hidden`.
 
-The mobile column is wrapped in a **device bezel** — a dark, rounded
-phone/tablet shell around the scaled iframe (a slightly larger corner radius for
-phone than tablet) — so the pane reads as a real device rather than a bare
-rectangle. The bezel mirrors the standalone mobile web image's frame
-(`PhoneFrame`); it is purely presentational and does not change the
+The scaled iframe is wrapped in a **clean framed card that matches the inline
+web pane** — the same 1px `--mantine-color-default-border`, `--mantine-radius-md`
+corners, body background, and clipped overflow — so the two panes read as a
+consistent pair. It is purely presentational and does not change the
 `displayWidth`/`displayHeight` math above.
 
 ## Refreshing the preview
@@ -221,7 +219,7 @@ cached page content**, so remounting it alone just replays the cache —
 `queryClient.invalidateQueries({ queryKey: PAGE_BY_KEYWORD_ALL })` (the same
 cache key the editor's save mutations invalidate) and then bumps the web reload
 key, so the remounted pane refetches the live page. **Reload mobile preview**
-(in the device toolbar) only remounts the mobile frame.
+(in the header's mobile controls) only remounts the mobile frame.
 
 ## Off-menu pages → modal (mobile-side)
 

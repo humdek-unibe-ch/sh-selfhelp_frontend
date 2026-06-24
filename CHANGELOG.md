@@ -14,6 +14,21 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.42 — 2026-06-24
+
+### Changed
+- **The Live Preview controls are reorganised into the top header.** The device
+  (phone / tablet), orientation (portrait / landscape), and the mobile-only
+  reload now sit on the **right** of the header; the **Mobile** and **Draft**
+  toggles, **Refresh both**, and **open in new tab** moved to the **left**, next
+  to the page keyword and dev/version badges. The device controls show only while
+  the mobile pane is on and available.
+- **The mobile preview now uses the same clean frame as the web pane.** The
+  v0.1.41 dark device bezel is replaced with a card that matches the inline web
+  pane exactly — same 1px border, rounded corners, body background and clipped
+  overflow — and the framed iframe fills the full body height beside it, so the
+  two panes read as a consistent pair.
+
 ## v0.1.41 — 2026-06-24
 
 ### Added
