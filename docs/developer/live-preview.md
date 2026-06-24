@@ -183,11 +183,11 @@ Theme and language deliberately use different synchronization paths:
   live bridge again.
 
 The mobile half (bridge + the in-frame draft banner) lives in the mobile repo —
-see [§3b/§3c](../../../sh-selfhelp_mobile/docs/developer/mobile-preview.md).
-`PreviewShellBridge.tsx` (mounted dormant in `SlugShell`) is the legacy web half
-of the bridge; the inline web pane no longer uses it (navigation is now in-process
-via `PreviewNavigationContext`), but it stays in place for standalone
-`previewShell=1` use of the public site.
+see [§3b/§3c](../../../sh-selfhelp_mobile/docs/developer/mobile-preview.md). The
+web pane has **no** postMessage bridge: it renders inline and its navigation is
+intercepted in-process via `PreviewNavigationContext`. (The legacy web
+`PreviewShellBridge` + `buildWebPreviewUrl` were removed once the web pane went
+inline — only the cross-origin mobile iframe still needs the bridge.)
 
 ## Device-frame math (`livePreviewLayout.ts`)
 

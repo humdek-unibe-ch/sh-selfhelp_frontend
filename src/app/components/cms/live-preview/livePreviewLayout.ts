@@ -5,21 +5,14 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * Pure helpers for the full-screen CMS **Live Preview** surface.
  *
- * Kept free of React / Next imports so the device-frame math and the web-pane
- * URL building are unit-testable in isolation (mirrors the
- * `mobile-preview/mobilePreviewUrl.ts` pure-builder split). The mobile-pane
- * iframe URL itself is built by the shared `buildMobilePreviewUrl` from
- * `../pages/mobile-preview/mobilePreviewUrl`.
+ * Kept free of React / Next imports so the device-frame math is unit-testable in
+ * isolation. The mobile-pane iframe URL itself is built by the shared
+ * `buildMobilePreviewUrl` from `../pages/mobile-preview/mobilePreviewUrl`.
  *
  * @module components/cms/live-preview/livePreviewLayout
  */
 
-import {
-    PREVIEW_PARENT_ORIGIN_PARAM,
-    PREVIEW_SHELL_PARAM,
-    type IPreviewPreferences,
-    type TPreviewColorScheme,
-} from '@selfhelp/shared';
+import type { IPreviewPreferences, TPreviewColorScheme } from '@selfhelp/shared';
 import type {
     TPreviewDevice,
     TPreviewOrientation,
@@ -128,48 +121,4 @@ export function computeFrameLayout(opts: {
         displayWidth: Math.round(width * safeScale),
         displayHeight: Math.round(height * safeScale),
     };
-}
-
-export interface IBuildWebPreviewUrlOptions {
-    /**
-     * Append `previewShell=1` so the embedded page activates its
-     * `PreviewShellBridge` (reports navigations to the Live Preview shell and
-     * accepts "navigate to keyword" commands). Omit for a plain "open in new
-     * tab" link.
-     */
-    previewShell?: boolean;
-    /**
-     * The shell's `window.location.origin`, forwarded so the bridge targets its
-     * `postMessage` precisely. The web pane is same-origin, but this keeps the
-     * web + mobile bridges symmetric.
-     */
-    parentOrigin?: string | null;
-}
-
-/**
- * Build the same-origin web-frontend URL for the desktop comparison pane. The
- * public renderer resolves a page by its keyword, so this is just `/<keyword>`
- * (empty keyword → home `/`). Language + published/draft are owned by the web
- * app's own session state (`LanguageContext` / `PreviewModeContext`), so they
- * are intentionally NOT encoded here. When `previewShell` is set, the bridge
- * activation params (shared with the mobile builder) are appended.
- */
-export function buildWebPreviewUrl(
-    keyword: string | null | undefined,
-    options?: IBuildWebPreviewUrlOptions,
-): string {
-    const kw = (keyword ?? '').trim().replace(/^\/+/, '');
-    const path = kw === '' ? '/' : `/${kw.split('/').map((seg) => encodeURIComponent(seg)).join('/')}`;
-
-    // `parentOrigin` is only meaningful while the bridge is active, so both
-    // params are gated on `previewShell` — a plain "open in new tab" link
-    // (no `previewShell`) never carries bridge query params.
-    if (!options?.previewShell) return path;
-
-    const params = new URLSearchParams();
-    params.set(PREVIEW_SHELL_PARAM, '1');
-    const parentOrigin = options.parentOrigin?.trim();
-    if (parentOrigin) params.set(PREVIEW_PARENT_ORIGIN_PARAM, parentOrigin);
-
-    return `${path}?${params.toString()}`;
 }
