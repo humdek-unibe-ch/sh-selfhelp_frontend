@@ -14,6 +14,21 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.43 — 2026-06-24
+
+### Fixed
+- **The mobile preview's bottom menu is no longer cut off.** The device frame is
+  now sized to the body height **minus its own bezel chrome**, so the full phone —
+  including the bottom navigation tab bar — fits without the bottom being clipped.
+  The framed device is also centred vertically in its column.
+
+### Changed
+- **The mobile preview device bezel is back.** The v0.1.42 flat web-style card is
+  replaced again by the dark, rounded phone/tablet bezel (drop shadow + matching
+  corner radii) so the preview reads as a real device, like the standalone mobile
+  web image. The header device/orientation controls and instant (no-reload)
+  device switching are unchanged.
+
 ## v0.1.42 — 2026-06-24
 
 ### Changed

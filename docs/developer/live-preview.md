@@ -199,16 +199,20 @@ available body area (from a `ResizeObserver`), caps the column by `maxWidthRatio
 the native size before the first measure. Native sizes: phone `390×844`, tablet
 `834×1112` (swapped in landscape).
 
-Because the device controls now live in the **top header** (not above the
-frame), `LivePreview` passes the **full body height** as `availableHeight`, so
-the framed iframe fills the column exactly like the inline web pane card beside
-it — never clipped by the body's `overflow: hidden`.
+Because the device controls live in the **top header** (not above the frame),
+`LivePreview` passes `bodyHeight - frameChromeHeight` as `availableHeight`, where
+`frameChromeHeight` is the device **bezel padding** (top + bottom). Subtracting it
+means the bezel + screen shrink to **fit** the body area rather than overflow, so
+the bottom of the device — including the mobile app's **bottom navigation tab
+bar** — is never clipped by the body's `overflow: hidden`. The framed device is
+centred vertically in its column.
 
-The scaled iframe is wrapped in a **clean framed card that matches the inline
-web pane** — the same 1px `--mantine-color-default-border`, `--mantine-radius-md`
-corners, body background, and clipped overflow — so the two panes read as a
-consistent pair. It is purely presentational and does not change the
-`displayWidth`/`displayHeight` math above.
+The scaled iframe is wrapped in a **device bezel** — a dark rounded phone/tablet
+frame (`linear-gradient` body, drop shadow, larger outer + smaller inner corner
+radius) that mirrors the standalone mobile web image's own `PhoneFrame`, so the
+preview reads as a real device rather than a flat web card. It is purely
+presentational and does not change the `displayWidth`/`displayHeight` math above;
+changing device/orientation still only resizes via CSS (no iframe reload).
 
 ## Refreshing the preview
 
