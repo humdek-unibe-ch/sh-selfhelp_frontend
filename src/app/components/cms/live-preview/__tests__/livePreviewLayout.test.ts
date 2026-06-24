@@ -8,8 +8,18 @@ import {
     computeFrameLayout,
     isPreviewPageActive,
     LIVE_PREVIEW_FRAME_SIZES,
+    livePreviewThemePreferences,
     nativeFrameSize,
 } from '../livePreviewLayout';
+
+describe('livePreviewThemePreferences', () => {
+    it('keeps live bridge messages theme-only so language cannot restart mobile queries', () => {
+        expect(livePreviewThemePreferences('dark')).toEqual({
+            colorScheme: 'dark',
+            locale: null,
+        });
+    });
+});
 
 describe('nativeFrameSize', () => {
     it('returns the portrait size as-is', () => {

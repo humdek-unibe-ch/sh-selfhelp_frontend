@@ -14,7 +14,12 @@ SPDX-License-Identifier: MPL-2.0
  * @module components/cms/live-preview/livePreviewLayout
  */
 
-import { PREVIEW_PARENT_ORIGIN_PARAM, PREVIEW_SHELL_PARAM } from '@selfhelp/shared';
+import {
+    PREVIEW_PARENT_ORIGIN_PARAM,
+    PREVIEW_SHELL_PARAM,
+    type IPreviewPreferences,
+    type TPreviewColorScheme,
+} from '@selfhelp/shared';
 import type {
     TPreviewDevice,
     TPreviewOrientation,
@@ -25,6 +30,20 @@ export const LIVE_PREVIEW_FRAME_SIZES: Record<TPreviewDevice, { width: number; h
     phone: { width: 390, height: 844 },
     tablet: { width: 834, height: 1112 },
 };
+
+/**
+ * Live-preview preference messages are deliberately theme-only.
+ *
+ * Language is bound to the mobile iframe URL and applied by remounting with a
+ * freshly minted language-scoped session. Keeping `locale` null here prevents a
+ * future caller from reintroducing the token-rotation/query-invalidation loop
+ * caused by applying language over the live postMessage bridge.
+ */
+export function livePreviewThemePreferences(
+    colorScheme: TPreviewColorScheme,
+): IPreviewPreferences {
+    return { colorScheme, locale: null };
+}
 
 /** Native (un-scaled) frame size for a device + orientation. */
 export function nativeFrameSize(

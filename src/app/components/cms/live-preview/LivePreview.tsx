@@ -101,7 +101,11 @@ import {
     type TPreviewModalMode,
     type TPreviewOrientation,
 } from '../pages/mobile-preview/mobilePreviewUrl';
-import { computeFrameLayout, isPreviewPageActive } from './livePreviewLayout';
+import {
+    computeFrameLayout,
+    isPreviewPageActive,
+    livePreviewThemePreferences,
+} from './livePreviewLayout';
 import { LivePreviewWebPane } from './LivePreviewWebPane';
 
 interface IMobilePreviewVersionInfo {
@@ -186,8 +190,7 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     // LanguageSelector drive them), so READING them mirrors the web pane and
     // WRITING them re-renders it; the shell relays both to the mobile iframe.
     const { colorScheme, setColorScheme } = useMantineColorScheme();
-    const { currentLanguageId, setCurrentLanguageId, languages: ctxLanguages } = useLanguageContext();
-    const currentLocale = ctxLanguages.find((l) => l.id === currentLanguageId)?.locale ?? null;
+    const { currentLanguageId, languages: ctxLanguages } = useLanguageContext();
 
     // The CMS knows every page's nav position, so it can decide on/off-menu
     // RELIABLY and tell the mobile app how to present the page (`modal=on|off`).
@@ -206,9 +209,6 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     const [device, setDevice] = useState<TPreviewDevice>('phone');
     const [orientation, setOrientation] = useState<TPreviewOrientation>('portrait');
     const [showMobile, setShowMobile] = useState(true);
-    // `languageId` is the MOBILE pane's mint language; the user switches each
-    // pane's language in-app afterwards (web header selector / mobile profile).
-    const [languageId] = useState<number | null>(null);
     // Bumping a reload key is the ONLY thing that remounts a frame. The inline
     // web pane remounts on `webReloadKey`; the mobile iframe on `mobileReloadKey`.
     const [webReloadKey, setWebReloadKey] = useState(0);
@@ -246,15 +246,17 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     // live snapshot of the web pane's prefs so the mobile READY handler can push
     // them without the listener depending on (and re-subscribing to) them.
     const lastSyncedPrefsRef = useRef<IPreviewPreferences | null>(null);
-    const currentPrefsRef = useRef<IPreviewPreferences>({ colorScheme: 'auto', locale: null });
+    const currentPrefsRef = useRef<IPreviewPreferences>(livePreviewThemePreferences('auto'));
 
     useEffect(() => {
         currentKeywordRef.current = currentKeyword;
     }, [currentKeyword]);
 
     useEffect(() => {
-        currentPrefsRef.current = { colorScheme, locale: currentLocale };
-    }, [colorScheme, currentLocale]);
+        // Theme-only live sync. Language is bound to the iframe URL and changes via
+        // a remount (see `selectedLanguageId`), so it is never pushed over the bridge.
+        currentPrefsRef.current = livePreviewThemePreferences(colorScheme);
+    }, [colorScheme]);
 
     // Default the preview to DRAFT on open (parity with the old default), without
     // permanently forcing it — once on, the user can switch it off.
@@ -267,7 +269,14 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
 
     const { ref: bodyRef, width: bodyWidth, height: bodyHeight } = useElementSize();
 
-    const selectedLanguageId = languageId ?? languages[0]?.id ?? null;
+    // The mobile iframe is minted in — and bound to — the WEB pane's current
+    // language. When the web header language selector changes it, the mint key
+    // changes and the iframe cleanly REMOUNTS at the new language. Language is thus
+    // driven one-way (web → mobile) by a remount, NOT a live postMessage sync: the
+    // latter had to call the mobile's token-rotating, query-invalidating
+    // `setLanguage`, which under the cross-frame echo looped into an invalidation
+    // storm (the symptom: flooded console + an empty drawer/tab menu).
+    const selectedLanguageId = currentLanguageId ?? languages[0]?.id ?? null;
 
     // Unload the mobile iframe only while the TAB IS HIDDEN. A merely unfocused
     // window (DevTools, the IDE) keeps it mounted, so DevTools no longer tears
@@ -319,8 +328,11 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     }, [currentKeyword]);
 
     const locale = useMemo(
-        () => languages.find((lang) => lang.id === selectedLanguageId)?.locale ?? null,
-        [languages, selectedLanguageId],
+        () =>
+            ctxLanguages.find((lang) => lang.id === selectedLanguageId)?.locale ??
+            languages.find((lang) => lang.id === selectedLanguageId)?.locale ??
+            null,
+        [ctxLanguages, languages, selectedLanguageId],
     );
 
     // --- availability probe (React Query owns the state) -----------------------
@@ -524,32 +536,34 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         [mobileMessageOrigin],
     );
 
-    // Push the shared theme + language down to the mobile frame (no reload) and
-    // record it as the last synced value so the frame's echoed PREFERENCES_CHANGED
-    // isn't bounced back (loop guard, mirror of sendNavigateMobile).
+    // Push the shared THEME down to the mobile frame (no reload) and record it as
+    // the last synced value so the frame's echoed PREFERENCES_CHANGED isn't bounced
+    // back (loop guard, mirror of sendNavigateMobile). Language is NOT pushed here —
+    // it is bound to the iframe URL and changes via a remount (see selectedLanguageId).
     const sendPreferencesMobile = useCallback(
         (prefs: IPreviewPreferences) => {
             const win = mobileIframeRef.current?.contentWindow;
             if (!win || !mobileMessageOrigin) return;
-            lastSyncedPrefsRef.current = prefs;
+            const themePrefs = livePreviewThemePreferences(prefs.colorScheme);
+            lastSyncedPrefsRef.current = themePrefs;
             const message: TPreviewBridgeMessage = {
                 type: PREVIEW_BRIDGE_MESSAGE.SET_PREFERENCES,
-                preferences: prefs,
+                preferences: themePrefs,
             };
             win.postMessage(message, mobileMessageOrigin);
         },
         [mobileMessageOrigin],
     );
 
-    // Web pane → mobile: when the web pane's theme/language changes (its header
-    // ThemeToggle / LanguageSelector), relay it to the mobile frame. The guard
-    // skips the echo of a value the mobile just reported up.
+    // Web pane → mobile: when the web pane's THEME changes (its header ThemeToggle),
+    // relay it to the mobile frame. The guard skips the echo of a value the mobile
+    // just reported up. (Language is handled by the iframe remount, not here.)
     useEffect(() => {
         if (!previewActive) return;
-        const prefs: IPreviewPreferences = { colorScheme, locale: currentLocale };
+        const prefs = livePreviewThemePreferences(colorScheme);
         if (arePreviewPreferencesEqual(lastSyncedPrefsRef.current, prefs)) return;
         sendPreferencesMobile(prefs);
-    }, [colorScheme, currentLocale, previewActive, sendPreferencesMobile]);
+    }, [colorScheme, previewActive, sendPreferencesMobile]);
 
     // In-pane web navigation (intercepted links/buttons) → make it the canonical
     // page and drive the mobile frame to match.
@@ -575,8 +589,9 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
             if (!isPreviewBridgeMessage(event.data)) return;
             const data = event.data;
             // The mobile frame announces READY after a (re)load → push the
-            // canonical page AND the current theme/language so it syncs to
-            // wherever the web pane already is (web pane wins the initial sync).
+            // canonical page AND the current theme so it syncs to wherever the web
+            // pane already is (web pane wins the initial sync). Language is already
+            // baked into the frame's URL at mint, so it isn't pushed here.
             if (data.type === PREVIEW_BRIDGE_MESSAGE.READY) {
                 sendNavigateMobile(currentKeywordRef.current);
                 sendPreferencesMobile(currentPrefsRef.current);
@@ -602,11 +617,13 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         };
     }, [previewActive, mobileMessageOrigin, sendNavigateMobile, sendPreferencesMobile]);
 
-    // Mobile → web pane: a theme/language change reported BY the mobile frame is
-    // applied to the SAME Mantine + LanguageContext the web pane uses, so the web
-    // pane follows. Separate listener so it can depend on the live prefs/setters
-    // without re-subscribing the navigation listener. The guard skips the echo of
-    // a value the shell just pushed down.
+    // Mobile → web pane: a THEME change reported BY the mobile frame is applied to
+    // the SAME Mantine scheme the web pane uses, so the web pane follows. Separate
+    // listener so it can depend on the live scheme/setter without re-subscribing
+    // the navigation listener. The guard skips the echo of a value the shell just
+    // pushed down. Language is NOT adopted from the mobile frame — it is driven
+    // one-way (web → mobile) via the iframe mint/remount, so there is no language
+    // echo for the two panes to ping-pong on.
     useEffect(() => {
         if (!previewActive) return undefined;
         const onPrefsMessage = (event: MessageEvent) => {
@@ -616,24 +633,12 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
             if (event.data.source !== 'mobile') return;
             const prefs = event.data.preferences;
             if (arePreviewPreferencesEqual(lastSyncedPrefsRef.current, prefs)) return;
-            lastSyncedPrefsRef.current = prefs;
+            lastSyncedPrefsRef.current = livePreviewThemePreferences(prefs.colorScheme);
             if (prefs.colorScheme !== colorScheme) setColorScheme(prefs.colorScheme);
-            if (prefs.locale) {
-                const match = ctxLanguages.find((l) => l.locale === prefs.locale);
-                if (match && match.id !== currentLanguageId) setCurrentLanguageId(match.id);
-            }
         };
         window.addEventListener('message', onPrefsMessage);
         return () => window.removeEventListener('message', onPrefsMessage);
-    }, [
-        previewActive,
-        mobileMessageOrigin,
-        colorScheme,
-        currentLanguageId,
-        ctxLanguages,
-        setColorScheme,
-        setCurrentLanguageId,
-    ]);
+    }, [previewActive, mobileMessageOrigin, colorScheme, setColorScheme]);
 
     // Back-to-editor targets the page you are CURRENTLY viewing — synced
     // navigation can move the preview off the launch keyword.
