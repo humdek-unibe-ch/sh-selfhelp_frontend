@@ -14,6 +14,15 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.45 — 2026-06-25
+
+### Fixed
+- **Switching browser tabs no longer restarts the mobile Live Preview.** The
+  mobile iframe remains mounted while its preview tab is in the background, so
+  returning preserves navigation, scroll position, and transient app state.
+  The Mobile toggle and reload controls still provide explicit teardown and
+  restart behavior.
+
 ## v0.1.44 — 2026-06-25
 
 ### Fixed
