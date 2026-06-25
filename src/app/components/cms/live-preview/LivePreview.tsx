@@ -40,11 +40,11 @@ SPDX-License-Identifier: MPL-2.0
  * This component is the ORCHESTRATION shell: it owns the canonical preview state
  * (current page, draft, device/orientation, reload keys) and composes the
  * presentational `LivePreviewToolbar` + `LivePreviewStage` with the behaviour
- * hooks (`useMobilePreviewAvailability`, `usePageVisibilityUnmount`,
- * `useMobilePreviewSession`, `usePreviewPreferenceSync`,
- * `usePreviewNavigationSync`, `usePreviewUrlMirror`). The mobile-iframe lifecycle
- * (unload while the TAB IS HIDDEN, fresh-code remount on resume/reload) lives in
- * those hooks.
+ * hooks (`useMobilePreviewAvailability`, `useMobilePreviewSession`,
+ * `usePreviewPreferenceSync`, `usePreviewNavigationSync`,
+ * `usePreviewUrlMirror`). The mobile iframe stays mounted across browser-tab
+ * visibility changes; intentional fresh-code remounts are owned by
+ * `useMobilePreviewSession`.
  *
  * Gated by the `admin.mobile_preview.view` permission (server-checked in the
  * route, client-checked for the editor entry point). The admin JWT never
@@ -74,7 +74,6 @@ import { useLivePreviewToolbarStore } from '../../../store/livePreview.store';
 import { LivePreviewToolbar } from './LivePreviewToolbar';
 import { LivePreviewStage } from './LivePreviewStage';
 import { useMobilePreviewAvailability } from './hooks/useMobilePreviewAvailability';
-import { usePageVisibilityUnmount } from './hooks/usePageVisibilityUnmount';
 import { useMobilePreviewSession } from './hooks/useMobilePreviewSession';
 import { usePreviewPreferenceSync } from './hooks/usePreviewPreferenceSync';
 import { usePreviewNavigationSync } from './hooks/usePreviewNavigationSync';
@@ -199,13 +198,11 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     const { availability, previewOrigin, devOrigin, versionInfo, refetch } =
         useMobilePreviewAvailability({ explicitOrigin, isDev });
 
-    // `pageActive` follows ONLY page visibility (the tab being hidden); a hidden
-    // tab unmounts the mobile iframe so it stops starving the Expo dev server.
-    const { pageActive } = usePageVisibilityUnmount();
-
-    // The mobile iframe mounts (and the code is minted) only while the preview is
-    // available and the page is active. The WEB pane is inline → always rendered.
-    const previewActive = availability === 'available' && pageActive;
+    // Keep the mobile app mounted while this Live Preview surface remains open.
+    // Browsers already throttle background tabs, and destroying the iframe on
+    // every tab switch loses navigation, scroll, and transient form/plugin state.
+    // Editors can still release it explicitly with the Mobile toolbar toggle.
+    const previewActive = availability === 'available';
 
     // Origins for the mobile bridge: the shell's own origin (handed to the mobile
     // frame so it can post back), and the origin we trust mobile messages from.
@@ -224,7 +221,6 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     const { code, mintError, mintPending, mobileMounted, reloadMobileFresh } =
         useMobilePreviewSession({
             previewActive,
-            pageActive,
             languagesLoading,
             languagesCount: languages.length,
             selectedLanguageId,

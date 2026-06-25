@@ -13,9 +13,6 @@ SPDX-License-Identifier: MPL-2.0
  * remounting onto an already-consumed code (or swapping `src` in place) wedges
  * the cross-origin Expo dev frame on a perpetual loading spinner.
  *
- * The same fresh-code remount is used on tab RESUME: when `pageActive` goes
- * false → true, the frame reloads fresh (mirrors the manual reload).
- *
  * @module components/cms/live-preview/hooks/useMobilePreviewSession
  */
 
@@ -31,8 +28,6 @@ function toErrorMessage(error: unknown): string {
 export interface IUseMobilePreviewSessionOptions {
     /** The mobile iframe mounts + the code is minted only while this is true. */
     previewActive: boolean;
-    /** Real tab visibility — a false → true transition reloads the frame fresh. */
-    pageActive: boolean;
     languagesLoading: boolean;
     languagesCount: number;
     selectedLanguageId: number | null;
@@ -62,7 +57,6 @@ export function useMobilePreviewSession(
 ): IUseMobilePreviewSessionResult {
     const {
         previewActive,
-        pageActive,
         languagesLoading,
         languagesCount,
         selectedLanguageId,
@@ -125,17 +119,6 @@ export function useMobilePreviewSession(
         setMobileReloadPending(true);
         setMobileReloadKey((k) => k + 1);
     }, [setMobileLoadKeyword, currentKeywordRef]);
-
-    // On tab RESUME (pageActive false → true) remount fresh — the same safe path
-    // as a manual reload. The initial mount does not trigger it (no transition).
-    const prevPageActiveRef = useRef(pageActive);
-    useEffect(() => {
-        const previous = prevPageActiveRef.current;
-        prevPageActiveRef.current = pageActive;
-        if (!previous && pageActive) {
-            reloadMobileFresh();
-        }
-    }, [pageActive, reloadMobileFresh]);
 
     // Mint exactly ONCE per distinct intent. Re-mints only when something that
     // affects the token changes: language, draft, origin, or a reload.

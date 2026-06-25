@@ -5,7 +5,6 @@ SPDX-License-Identifier: MPL-2.0
 import { describe, it, expect } from 'vitest';
 import {
     computeFrameLayout,
-    isPreviewPageActive,
     LIVE_PREVIEW_FRAME_SIZES,
     livePreviewThemePreferences,
     nativeFrameSize,
@@ -87,15 +86,5 @@ describe('computeFrameLayout', () => {
         // Width budget is 1000 * 0.5 = 500 → scale 500/1112.
         expect(layout.displayWidth).toBeLessThanOrEqual(500);
         expect(layout.scale).toBeCloseTo(500 / 1112, 5);
-    });
-});
-
-describe('isPreviewPageActive', () => {
-    it('unloads a hidden tab', () => {
-        expect(isPreviewPageActive({ visibilityState: 'hidden' })).toBe(false);
-    });
-
-    it('keeps a visible tab mounted regardless of window focus (DevTools must not pause it)', () => {
-        expect(isPreviewPageActive({ visibilityState: 'visible' })).toBe(true);
     });
 });

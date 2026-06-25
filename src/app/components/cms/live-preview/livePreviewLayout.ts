@@ -73,21 +73,6 @@ export interface ILivePreviewFrameLayout {
 }
 
 /**
- * Whether the expensive preview iframes should stay mounted.
- *
- * Tied to real tab visibility ONLY: a hidden tab unloads the frames so a
- * backgrounded preview never starves the dev servers, but a merely unfocused
- * window does NOT (opening DevTools, alt-tabbing to the IDE, or clicking another
- * window must not tear the preview down — that was the old "DevTools pauses the
- * preview" bug). Manual control stays available via the Stop button.
- */
-export function isPreviewPageActive(options: {
-    visibilityState: DocumentVisibilityState;
-}): boolean {
-    return options.visibilityState === 'visible';
-}
-
-/**
  * Compute the scaled on-screen layout of the mobile device frame so it fits the
  * available area while the device's native aspect ratio is preserved. The
  * resulting `displayWidth` is what makes the mobile column grow/shrink as the
