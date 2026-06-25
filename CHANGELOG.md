@@ -14,6 +14,18 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.47 — 2026-06-25
+
+### Fixed
+- **Mobile Live Preview iframe no longer trips the browser "can escape its
+  sandboxing" warning.** The mobile preview frame is trusted first-party content
+  (the same-origin `/mobile-preview` image, or the local Expo dev server) that
+  needs both `allow-scripts` and `allow-same-origin` — the latter so the app can
+  read its own `sessionStorage` preview-session cache. Because those two flags
+  together already negate the sandbox, the `sandbox` attribute provided no
+  isolation while emitting the console warning, so it has been removed. No change
+  to behavior; adds no new core dependency, so `supports.core` stays `>=0.1.21`.
+
 ## v0.1.46 — 2026-06-25
  - fix mobiel preview reload in produciton
 

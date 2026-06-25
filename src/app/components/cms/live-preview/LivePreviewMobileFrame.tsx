@@ -146,12 +146,19 @@ export function LivePreviewMobileFrame({
                         }}
                     >
                         {mobileUrl && mobileMounted && previewActive ? (
+                            // No `sandbox`: this is trusted first-party content (the
+                            // same-origin `/mobile-preview` image, or the local Expo dev
+                            // server) that needs BOTH `allow-scripts` and
+                            // `allow-same-origin` — to run the app and to read its own
+                            // `sessionStorage` preview-session cache. Those two together
+                            // negate the sandbox anyway, so declaring it only triggered
+                            // the browser "can escape its sandboxing" warning with no
+                            // isolation benefit.
                             <iframe
                                 key={mobileUrl}
                                 ref={mobileIframeRef}
                                 title="Mobile live preview"
                                 src={mobileUrl}
-                                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                                 style={{
                                     width: frame.width,
                                     height: frame.height,
