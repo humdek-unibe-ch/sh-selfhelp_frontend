@@ -48,6 +48,25 @@ const createNextConfig = (phase) => {
     reactStrictMode: true,
     allowedDevOrigins: ['127.0.0.1'],
 
+    /**
+     * Serve the embedded mobile-preview on its trailing-slash canonical URL.
+     *
+     * The live-preview iframe loads `/mobile-preview/?<params>`. The mobile app
+     * is an Expo web export built with `experiments.baseUrl = '/mobile-preview'`,
+     * whose router canonicalises the index route to the TRAILING-SLASH form
+     * (`/mobile-preview/`). Production Traefik proxies that path straight to the
+     * preview container, which serves the slash form verbatim. In manager-local
+     * mode the path instead flows through THIS Next server, which by default
+     * 308-redirects `/mobile-preview/` -> `/mobile-preview` (slash stripped).
+     * Expo then boots at the non-canonical no-slash URL and its web router keeps
+     * calling `history.replaceState` to restore the slash until Chromium throttles
+     * navigation ("Throttling navigation to prevent the browser from hanging") and
+     * the pane stalls on "Starting up…". Skipping the redirect lets the rewrite
+     * proxy the slash form untouched, so manager-local matches production. Safe
+     * globally: app links carry no trailing slash, and both forms still resolve.
+     */
+    skipTrailingSlashRedirect: true,
+
     env: {
       NEXT_PUBLIC_FRONTEND_VERSION: FRONTEND_VERSION,
     },
