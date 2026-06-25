@@ -14,6 +14,9 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.46 — 2026-06-25
+ - fix mobiel preview reload in produciton
+
 ## v0.1.45 — 2026-06-25
 
 ### Fixed
