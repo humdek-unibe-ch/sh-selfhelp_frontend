@@ -14,6 +14,15 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.44 — 2026-06-25
+
+### Fixed
+- **Managed local instances can reach the installed mobile preview on the
+  frontend port.** The Next.js server now proxies same-origin
+  `/mobile-preview/*` requests to the private `mobile-preview:8080` Docker
+  service, matching the production Traefik path and avoiding a broken 404 on
+  `/mobile-preview/version.json`.
+
 ## v0.1.43 — 2026-06-24
 
 ### Fixed

@@ -3,8 +3,8 @@
 Audience: Frontend developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend `>=0.1.31`.
-Last verified: 2026-06-23.
-Source of truth: `src/app/components/cms/pages/mobile-preview/MobilePreviewPanel.tsx`, `src/app/components/cms/pages/mobile-preview/mobilePreviewUrl.ts`, `src/app/api/mobile-preview/session/route.ts`, `src/api/admin/mobile-preview.api.ts`.
+Last verified: 2026-06-25.
+Source of truth: `src/app/components/cms/pages/mobile-preview/MobilePreviewPanel.tsx`, `src/app/components/cms/pages/mobile-preview/mobilePreviewUrl.ts`, `src/app/api/mobile-preview/session/route.ts`, `src/api/admin/mobile-preview.api.ts`, `next.config.mjs`.
 
 The **Mobile preview** panel lets a CMS admin see the current page rendered by
 the real mobile renderer (the `selfhelp-mobile-preview` web image) directly in
@@ -39,7 +39,8 @@ only when the page has a `keyword` (a real, routable page). It receives the
    1. an explicit `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN` always **wins outright**
       (single candidate — pin it and nothing else is tried);
    2. otherwise the **installed image** at the same-origin `/mobile-preview`
-      (what Traefik routes to in a manager deployment);
+      (Traefik routes it in manager production mode; the Next.js server proxies
+      it to `http://mobile-preview:8080` in manager local mode);
    3. otherwise, **in `next dev` only**, the **Expo dev server** at
       `http://localhost:8081` (live-reload);
    4. otherwise → graceful **"unavailable"** state.
@@ -115,6 +116,11 @@ auto-resolution — e.g. pin a non-default dev port, or force a specific install
 origin. With no dev server **and** no installed image, the panel shows the
 graceful "unavailable" state — it never blocks the editor.
 
+The server-only `MOBILE_PREVIEW_INTERNAL_URL` controls the upstream used by the
+Next.js `/mobile-preview/*` rewrite and defaults to
+`http://mobile-preview:8080`. Managed instances use that fixed Docker service
+name; source development may override it to test against another preview server.
+
 | Env var | Default | Meaning |
 |---------|---------|---------|
 | `NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN` | _(unset → auto-resolve)_ | **Override** for the preview origin. When set it wins outright. When unset, the panel auto-resolves: installed image `/mobile-preview` → (dev only) Expo dev server `http://localhost:8081` → unavailable. |
@@ -138,3 +144,5 @@ all preflight-gated, exactly like the frontend-only update. See
   (mint → iframe `src`/badges, re-mint on control change, graceful unavailable
   fallback, inline mint-error, absolute dev-origin behavior), mocking
   `AdminMobilePreviewApi.createSession` and stubbing `fetch` for `version.json`.
+- `src/config/__tests__/next-config.test.ts` — same-origin `/mobile-preview/*`
+  rewrite to the private preview service used by manager local mode.

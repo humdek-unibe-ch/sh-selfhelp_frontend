@@ -16,6 +16,15 @@ const SYMFONY_BACKEND_URL = (
   'http://localhost/symfony'
 ).replace(/\/+$/, '');
 
+// Server-only upstream for the installed mobile-preview image. Production
+// Traefik normally intercepts /mobile-preview before it reaches Next.js, while
+// manager local mode publishes only the frontend port. The rewrite below is
+// therefore the local same-origin path into the preview container.
+const MOBILE_PREVIEW_INTERNAL_URL = (
+  process.env.MOBILE_PREVIEW_INTERNAL_URL ||
+  'http://mobile-preview:8080'
+).replace(/\/+$/, '');
+
 // The frontend's own package version, inlined at build time. The admin
 // system page uses it as a self-reported fallback when the backend reports
 // `frontend_version: unknown` (i.e. SELFHELP_FRONTEND_VERSION is not set on
@@ -127,6 +136,10 @@ const createNextConfig = (phase) => {
      */
     async rewrites() {
       return [
+        {
+          source: '/mobile-preview/:path*',
+          destination: `${MOBILE_PREVIEW_INTERNAL_URL}/mobile-preview/:path*`,
+        },
         {
           source: '/plugin-artifacts/:path*',
           destination: `${SYMFONY_BACKEND_URL}/plugin-artifacts/:path*`,
