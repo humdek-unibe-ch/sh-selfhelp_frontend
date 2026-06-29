@@ -15,13 +15,13 @@ import {
     Card,
     Text,
     Divider,
-    Alert
+    Alert,
+    Tooltip
 } from '@mantine/core';
-import { IconPlus, IconTrash, IconFilter, IconAlertCircle } from '@tabler/icons-react';
+import { IconPlus, IconTrash, IconFilter, IconAlertCircle, IconLock, IconEdit } from '@tabler/icons-react';
 import { FilterBuilderInline } from './FilterBuilderInline';
 import { type IDataSource } from './DataConfigModal';
 import { useDataTables, useTableColumns } from '../../../../../hooks/useData';
-import { LockedField } from '../../ui/locked-field/LockedField';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
 import classes from './DataConfigModal.module.css';
 
@@ -44,6 +44,9 @@ const RETRIEVE_OPTIONS = [
 
 export function DataSourceForm({ dataSource, onChange, index, dataVariables }: IDataSourceFormProps) {
     const [filterOpened, setFilterOpened] = useState(false);
+    // Raw SQL filter is lock-protected to avoid accidental edits; unlocking
+    // enables the `{{` interpolation picker (issue #56 v2 coverage).
+    const [filterLocked, setFilterLocked] = useState(true);
 
     // Load tables and columns
     const { data: tablesResp, isLoading: isTablesLoading } = useDataTables();
@@ -245,13 +248,26 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
                         )}
 
                         <div style={{ marginTop: 12 }}>
-                            <LockedField
-                                label="Filter (SQL only)"
+                            <Group justify="space-between" align="center" mb={4}>
+                                <Text size="sm" fw={500}>Filter (SQL only)</Text>
+                                <Tooltip label={filterLocked ? 'Enable manual editing' : 'Lock manual editing'} position="left">
+                                    <ActionIcon
+                                        variant={filterLocked ? 'subtle' : 'filled'}
+                                        color={filterLocked ? 'gray' : 'blue'}
+                                        onClick={() => setFilterLocked((v) => !v)}
+                                        className="cursor-pointer"
+                                    >
+                                        {filterLocked ? <IconLock size="1rem" /> : <IconEdit size="1rem" />}
+                                    </ActionIcon>
+                                </Tooltip>
+                            </Group>
+                            <TextInputWithMentions
+                                fieldId={index}
+                                value={dataSource.filter || ''}
+                                onChange={(val) => handleFieldChange('filter', val)}
+                                disabled={filterLocked}
                                 placeholder="Combined WHERE/ORDER/LIMIT. If WHERE is present it must start with AND ..."
-                                value={dataSource.filter}
-                                onChange={(e) => handleFieldChange('filter', e.currentTarget.value)}
-                                lockedTooltip="Enable manual editing"
-                                unlockedTooltip="Lock manual editing"
+                                dataVariables={dataVariables}
                             />
                         </div>
                     </Card>
