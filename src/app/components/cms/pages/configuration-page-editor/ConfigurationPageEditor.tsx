@@ -19,6 +19,7 @@ import {
     Tabs,
     Container,
     Card,
+    SimpleGrid,
 } from '@mantine/core';
 import {
     IconInfoCircle,
@@ -26,7 +27,8 @@ import {
     IconChevronDown,
     IconChevronUp,
     IconLanguage,
-    IconSettings
+    IconSettings,
+    IconMail
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useHotkeys } from '@mantine/hooks';
@@ -55,6 +57,28 @@ interface ConfigurationPageEditorProps {
 
 interface IConfigFormValues {
     fields: Record<string, Record<number, string>>; // fields[fieldName][languageId] = content
+}
+
+/**
+ * Mail-config content fields are grouped per e-mail so each "Subject + Body"
+ * pair sits together in a titled card instead of a cramped auto-fill grid where
+ * the subjects overflow (issue #56). Fields are matched by name prefix; anything
+ * unmatched falls back to the normal grid.
+ */
+const MAIL_CONFIG_KEYWORD = 'sh-mail-config';
+const MAIL_FIELD_GROUPS: Array<{ title: string; prefix: string }> = [
+    { title: 'Welcome e-mail', prefix: 'mail_welcome_' },
+    { title: 'Account confirmation', prefix: 'mail_confirm_' },
+    { title: 'Password recovery', prefix: 'mail_recovery_' },
+    { title: 'Password changed', prefix: 'mail_password_changed_' },
+    { title: 'Two-factor authentication', prefix: 'mail_2fa_' },
+];
+
+// Subject before Body within a group.
+function mailFieldOrder(name: string): number {
+    if (name.endsWith('_subject')) return 0;
+    if (name.endsWith('_body')) return 1;
+    return 2;
 }
 
 export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) {
@@ -256,6 +280,58 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         );
     };
 
+    // Render the content fields for one language: grouped Subject/Body cards for
+    // the mail-config page, otherwise the standard responsive grid.
+    const renderContentLayout = (languageId: number) => {
+        const isMailConfig = page.keyword === MAIL_CONFIG_KEYWORD;
+
+        if (isMailConfig) {
+            const remaining = [...contentFields];
+            const groups = MAIL_FIELD_GROUPS.map(group => {
+                const groupFields = remaining
+                    .filter(f => f.name.startsWith(group.prefix))
+                    .sort((a, b) => mailFieldOrder(a.name) - mailFieldOrder(b.name));
+                groupFields.forEach(f => remaining.splice(remaining.indexOf(f), 1));
+                return { ...group, fields: groupFields };
+            }).filter(group => group.fields.length > 0);
+
+            return (
+                <Stack gap="md">
+                    <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md" verticalSpacing="md">
+                        {groups.map(group => (
+                            <Paper key={group.prefix} withBorder radius="md" p="md">
+                                <Group gap="xs" mb="sm">
+                                    <IconMail size={18} color="var(--mantine-color-blue-6)" />
+                                    <Text fw={600} size="sm">{group.title}</Text>
+                                </Group>
+                                <Stack gap="md">
+                                    {group.fields.map(field => (
+                                        <div key={field.id}>{renderContentField(field, languageId)}</div>
+                                    ))}
+                                </Stack>
+                            </Paper>
+                        ))}
+                    </SimpleGrid>
+                    {remaining.length > 0 && (
+                        <div className={styles.fieldGrid}>
+                            {remaining.map(field => (
+                                <div key={field.id}>{renderContentField(field, languageId)}</div>
+                            ))}
+                        </div>
+                    )}
+                </Stack>
+            );
+        }
+
+        return (
+            <div className={styles.fieldGrid}>
+                {contentFields.map(field => (
+                    <div key={field.id}>{renderContentField(field, languageId)}</div>
+                ))}
+            </div>
+        );
+    };
+
     // Render property field
     const renderPropertyField = (field: IPageField) => {
         // Property fields use language_id = 1 (property language)
@@ -390,25 +466,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                                 const langId = lang.id.toString();
                                                 return (
                                                     <Tabs.Panel key={langId} value={langId}>
-                                                        <div className={styles.fieldGrid}>
-                                                            {contentFields.map(field => (
-                                                                <div key={field.id}>
-                                                                    {renderContentField(field, lang.id)}
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                                        {renderContentLayout(lang.id)}
                                                     </Tabs.Panel>
                                                 );
                                             })}
                                         </Tabs>
                                     ) : (
-                                        <div className={styles.fieldGrid}>
-                                            {contentFields.map(field => (
-                                                <div key={field.id}>
-                                                    {renderContentField(field, languagesData[0]?.id || 1)}
-                                                </div>
-                                            ))}
-                                        </div>
+                                        renderContentLayout(languagesData[0]?.id || 1)
                                     )}
                                 </Card.Section>
                             </Collapse>
