@@ -16,7 +16,7 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
     loading: () => <LoadingOverlay visible />
 });
 
-export type TMonacoLanguage = 'css' | 'json' | 'markdown';
+export type TMonacoLanguage = 'css' | 'json' | 'markdown' | 'sql';
 
 /** The Monaco editor instance handed to `onMount`. */
 type TMonacoEditorInstance = Parameters<OnMount>[0];
@@ -133,6 +133,17 @@ const languageConfig: Record<TMonacoLanguage, {
         editorOptions: {
             wordWrap: 'on',
             wrappingIndent: 'indent',
+        }
+    },
+    sql: {
+        language: 'sql',
+        defaultValue: '',
+        editorOptions: {
+            // Raw SQL filter fragments are short and line-numbers/minimap add
+            // noise in the compact data-config field; wrap long WHERE clauses.
+            wordWrap: 'on',
+            lineNumbers: 'off',
+            folding: false,
         }
     }
 };

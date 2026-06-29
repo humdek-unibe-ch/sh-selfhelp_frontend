@@ -15,14 +15,14 @@ import {
     Card,
     Text,
     Divider,
-    Alert,
-    Tooltip
+    Alert
 } from '@mantine/core';
-import { IconPlus, IconTrash, IconFilter, IconAlertCircle, IconLock, IconEdit } from '@tabler/icons-react';
+import { IconPlus, IconTrash, IconFilter, IconAlertCircle } from '@tabler/icons-react';
 import { FilterBuilderInline } from './FilterBuilderInline';
 import { type IDataSource } from './DataConfigModal';
 import { useDataTables, useTableColumns } from '../../../../../hooks/useData';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
+import { MonacoEditorField } from '../field-components';
 import classes from './DataConfigModal.module.css';
 
 interface IDataSourceFormProps {
@@ -44,9 +44,6 @@ const RETRIEVE_OPTIONS = [
 
 export function DataSourceForm({ dataSource, onChange, index, dataVariables }: IDataSourceFormProps) {
     const [filterOpened, setFilterOpened] = useState(false);
-    // Raw SQL filter is lock-protected to avoid accidental edits; unlocking
-    // enables the `{{` interpolation picker (issue #56 v2 coverage).
-    const [filterLocked, setFilterLocked] = useState(true);
 
     // Load tables and columns
     const { data: tablesResp, isLoading: isTablesLoading } = useDataTables();
@@ -250,23 +247,20 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
                         <div style={{ marginTop: 12 }}>
                             <Group justify="space-between" align="center" mb={4}>
                                 <Text size="sm" fw={500}>Filter (SQL only)</Text>
-                                <Tooltip label={filterLocked ? 'Enable manual editing' : 'Lock manual editing'} position="left">
-                                    <ActionIcon
-                                        variant={filterLocked ? 'subtle' : 'filled'}
-                                        color={filterLocked ? 'gray' : 'blue'}
-                                        onClick={() => setFilterLocked((v) => !v)}
-                                        className="cursor-pointer"
-                                    >
-                                        {filterLocked ? <IconLock size="1rem" /> : <IconEdit size="1rem" />}
-                                    </ActionIcon>
-                                </Tooltip>
+                                <Text size="xs" c="dimmed">Type <Text span ff="monospace">{'{{'}</Text> to insert a variable</Text>
                             </Group>
-                            <TextInputWithMentions
+                            <Text size="xs" c="dimmed" mb={6}>
+                                Combined WHERE/ORDER/LIMIT. If a WHERE clause is present it must start with AND ...
+                            </Text>
+                            {/* Raw SQL is a code field: Monaco gives full free-text
+                                editing plus the `{{` interpolation completion, matching
+                                the CSS/JSON code-field pattern (issue #56 v2). */}
+                            <MonacoEditorField
                                 fieldId={index}
                                 value={dataSource.filter || ''}
                                 onChange={(val) => handleFieldChange('filter', val)}
-                                disabled={filterLocked}
-                                placeholder="Combined WHERE/ORDER/LIMIT. If WHERE is present it must start with AND ..."
+                                language="sql"
+                                height={120}
                                 dataVariables={dataVariables}
                             />
                         </div>

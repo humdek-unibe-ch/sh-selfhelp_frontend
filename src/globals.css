@@ -93,10 +93,11 @@ SPDX-License-Identifier: MPL-2.0
    "card" look the rest of the admin UI uses, in BOTH color schemes. Everything
    is namespaced under `.selfhelp-condition-builder` so no other UI is affected. */
 .selfhelp-condition-builder .rule {
-    /* Center every control on the row (field / operator / value / remove). The
-       previous `baseline` alignment left the datetime/select inputs visibly
-       offset from the buttons. */
-    align-items: center !important;
+    /* Top-align every control on the row (field / operator / value / remove).
+       The field selector renders a chip-style multi-select that grows taller
+       than the operator/value inputs; centering pushed those controls to the
+       vertical middle and looked misaligned, so anchor them all to the top. */
+    align-items: flex-start !important;
     gap: var(--mantine-spacing-xs);
     flex-wrap: wrap;
     padding: 6px var(--mantine-spacing-xs);

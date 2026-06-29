@@ -47,6 +47,7 @@ import {
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
 import { type IPageField } from '../../../../../types/common/pages.type';
+import { useInterpolationVariables } from '../../../../../hooks/useInterpolationVariables';
 
 interface ConfigurationPageEditorProps {
     page: IAdminPage;
@@ -72,6 +73,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
     // Fetch available languages
     const { languages: languagesData, isLoading: languagesLoading } = usePublicLanguages();
+
+    // Interpolation `{{ }}` picker for this config page's CONTENT fields (issue
+    // #56 v2). The backend returns the mail catalog (system.* + system.special.*
+    // links) for the mail-config page — whose content fields are email templates
+    // rendered by the mail subsystem — and an empty catalog for every other
+    // config page, so the picker only appears where tokens actually resolve.
+    const { data: pageDataVariables } = useInterpolationVariables('page', page.id_pages, true);
 
     // Set default active language tab once languages load. Render-phase update:
     // the `!activeLanguageTab` guard makes it run once, replacing the effect.
@@ -239,6 +247,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                     form.setFieldValue(fieldKey, value);
                 }}
                 locale={locale}
+                dataVariables={pageDataVariables}
             />
         );
     };

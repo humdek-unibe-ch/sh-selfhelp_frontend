@@ -47,6 +47,12 @@ export function useUpdateSectionMutation({
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(sectionsPageId) });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(sectionsPageId) });
 
+            // A section save can change `data_config` (the data columns/variables
+            // the `{{ }}` picker offers). Prefix-invalidate the whole
+            // interpolation catalog (every context/id) so the picker reflects the
+            // new variables immediately — no full page reload (issue #56 v2).
+            void queryClient.invalidateQueries({ queryKey: ['admin', 'interpolation', 'variables'] });
+
             if (showNotifications) {
                 notifications.show({
                     title: 'Section Updated',
