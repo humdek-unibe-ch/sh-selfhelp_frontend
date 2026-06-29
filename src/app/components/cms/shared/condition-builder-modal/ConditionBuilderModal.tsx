@@ -165,12 +165,19 @@ function SearchableValueEditor(props: ValueEditorProps & { onChange?: (value: st
         fieldData?.inputType === 'time';
 
     if (isDateTimeField) {
-        // MantineValueEditor forwards unknown props (e.g. `style`) to the
-        // underlying input at runtime, but its public prop type omits `style`.
-        const dateTimeEditorProps = {
+        // @react-querybuilder/mantine hardcodes `popoverProps.withinPortal = false`
+        // on its date pickers, so the calendar renders INSIDE the modal and gets
+        // clipped/hidden (issue #56 condition-builder datetime z-index). It spreads
+        // `extraProps` LAST onto the picker, so we override the popover to portal it
+        // above the modal with a high z-index. Width also rides on `extraProps` so
+        // it actually reaches the picker (top-level `style` would not).
+        const dateTimeEditorProps: ComponentProps<typeof MantineValueEditor> = {
             ...props,
-            style: { width: FIELD_SELECTOR_WIDTH },
-        } as ComponentProps<typeof MantineValueEditor>;
+            extraProps: {
+                popoverProps: { withinPortal: true, zIndex: 10001 },
+                style: { width: FIELD_SELECTOR_WIDTH },
+            },
+        };
         return <MantineValueEditor {...dateTimeEditorProps} />;
     }
 
