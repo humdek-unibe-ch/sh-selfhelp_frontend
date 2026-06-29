@@ -14,6 +14,31 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.49 — 2026-06-29
+
+### Added
+- **Data-table & column display-name locking (host issue #56).** The data
+  browser column editor (`DataTableEditorModal`) now shows an `Auto` / `Manual`
+  badge per column and a "Reset to auto" action that clears a manual label so it
+  follows the form input name again. A new **table label** editor at the top of
+  the same modal renames the whole data table and locks it (a manual rename
+  stops the form's display name from overwriting it on save), with its own
+  reset-to-auto control. Locked tables show a `Locked` badge in the data browser.
+- **CMS section inspector surfaces the data table.** For form sections the
+  inspector now shows the effective data-table label, a `Locked` badge when the
+  label is admin-locked, and an "Open in Data browser" deep link
+  (`/admin/data?tableIds=<id>`), so an editor renaming the form display name can
+  see when the data-table label is locked and jump straight to it.
+
+### Changed
+- The column display-name PATCH and the new
+  `PATCH /cms-api/v1/admin/data/tables/{tableName}/display-name`
+  (permission `admin.data.update_tables`) are wired through
+  `useUpdateColumnDisplayName` / `useUpdateTableDisplayName`. The admin
+  data-table list and column responses now carry a `locked` flag, and
+  `getSection` exposes an optional `data_table` block; those contracts first
+  ship in core 0.1.24, so `supports.core` is raised `0.1.23` -> `0.1.24`.
+
 ## v0.1.48 — 2026-06-26
 
 ### Changed
