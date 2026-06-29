@@ -6,6 +6,12 @@ export interface IDataTableSummary {
   id: number;
   name: string;
   displayName: string;
+  /**
+   * True when an admin manually renamed the table's label in the Data browser
+   * (provenance `manual`); the owning form section's `displayName` field no
+   * longer overwrites it on save (issue #56).
+   */
+  locked: boolean;
   created: string;
 }
 
@@ -28,6 +34,12 @@ export interface IDataTableColumn {
   id: number;
   fieldKey: string | null;
   displayName: string | null;
+  /**
+   * True when the label was manually curated (provenance `manual`); automatic
+   * label pushes from form-input renames / submissions no longer overwrite it.
+   * Use "Reset to auto" to clear the lock (issue #56).
+   */
+  locked: boolean;
 }
 
 export interface IDataTableColumnsResponse {
@@ -53,6 +65,20 @@ export interface IUpdateColumnDisplayNameRequest {
 }
 
 export interface IUpdateColumnDisplayNameResponse {
+  updated: boolean;
+}
+
+/**
+ * Curate a whole data table's human label and lock it so the owning form
+ * section stops overwriting it; null/empty resets to the auto label derived
+ * from the form section (issue #56).
+ */
+export interface IUpdateTableDisplayNameRequest {
+  /** New label; null/empty resets the table to the auto (form-section) label. */
+  displayName: string | null;
+}
+
+export interface IUpdateTableDisplayNameResponse {
   updated: boolean;
 }
 

@@ -691,6 +691,10 @@ export const API_CONFIG = {
             route: (tableName: string) => `/admin/data/tables/${tableName}/columns/display-name`,
             permissions: [PERMISSIONS.ADMIN_DATA_UPDATE_COLUMNS]
         },
+        ADMIN_DATA_TABLE_DISPLAY_NAME_PATCH: {
+            route: (tableName: string) => `/admin/data/tables/${tableName}/display-name`,
+            permissions: [PERMISSIONS.ADMIN_DATA_UPDATE_TABLES]
+        },
         ADMIN_DATA_RECORD_DELETE: {
             route: (recordId: number) => `/admin/data/records/${recordId}`,
             permissions: [PERMISSIONS.ADMIN_DATA_DELETE]

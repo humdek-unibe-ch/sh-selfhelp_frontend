@@ -432,7 +432,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 }
             >
                 {/* Section Information */}
-                <SectionInfoPanel section={section} />
+                <SectionInfoPanel section={section} dataTable={sectionDetailsData.data_table} />
 
                 {/* Searchable field panels */}
                 <SectionFieldPanels

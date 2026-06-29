@@ -93,9 +93,23 @@ export interface ISectionDetails {
     global_fields: ISectionGlobalFields;
 }
 
+/**
+ * Underlying data table of a form section (issue #56). Present only for form
+ * sections so the inspector can show where submissions are stored, flag an
+ * admin-locked label, and deep link to the Data browser. `name` is the immutable
+ * storage name (== form section id) used as the deep-link target.
+ */
+export interface ISectionDataTableInfo {
+    id: number;
+    name: string;
+    display_name: string | null;
+    locked: boolean;
+}
+
 export interface ISectionDetailsData {
     section: ISectionDetails;
     fields: ISectionField[];
+    data_table?: ISectionDataTableInfo;
 }
 
 export type TSectionDetailsResponse = IBaseApiResponse<ISectionDetailsData>;

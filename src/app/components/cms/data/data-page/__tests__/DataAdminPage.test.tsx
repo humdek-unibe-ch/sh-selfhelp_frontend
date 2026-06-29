@@ -16,7 +16,7 @@ import { renderWithProviders } from '../../../../../../test-utils/renderWithProv
  */
 const state = vi.hoisted(() => ({
     canAccess: true,
-    tables: [] as { id: number; name: string; displayName: string }[],
+    tables: [] as { id: number; name: string; displayName: string; locked: boolean }[],
     userId: null as string | null,
     useUsersCalls: [] as Array<{ enabled: boolean | undefined }>,
 }));
@@ -77,7 +77,7 @@ describe('DataAdminPage — data-access alert', () => {
 
     it('keeps the alert hidden for a permitted user who has tables', () => {
         state.canAccess = true;
-        state.tables = [{ id: 1, name: '218', displayName: 'Survey A' }];
+        state.tables = [{ id: 1, name: '218', displayName: 'Survey A', locked: false }];
         renderWithProviders(<DataAdminPage />);
         expect(screen.queryByText(ALERT)).not.toBeInTheDocument();
     });

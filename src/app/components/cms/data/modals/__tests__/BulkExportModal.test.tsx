@@ -24,8 +24,8 @@ vi.mock('../../../../../../hooks/useData', () => ({
 import { BulkExportModal } from '../BulkExportModal';
 
 const tables: IDataTableSummary[] = [
-    { id: 1, name: '218', displayName: 'Survey A', created: '2026-01-01' },
-    { id: 2, name: '219', displayName: 'Survey B', created: '2026-01-01' },
+    { id: 1, name: '218', displayName: 'Survey A', locked: false, created: '2026-01-01' },
+    { id: 2, name: '219', displayName: 'Survey B', locked: false, created: '2026-01-01' },
 ];
 
 function setup(props: Partial<React.ComponentProps<typeof BulkExportModal>> = {}) {

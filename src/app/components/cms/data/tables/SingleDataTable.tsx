@@ -16,6 +16,7 @@ import {
 } from '@tanstack/react-table';
 import {
   ActionIcon,
+  Badge,
   Box,
   Card,
   Group,
@@ -44,12 +45,13 @@ interface ISingleDataTableProps {
   formId: number;
   tableName: string;
   displayName: string;
+  locked?: boolean; // table label admin-locked (provenance `manual`, issue #56)
   selectedUserId: number; // -1 means all users
   showDeleted: boolean;
   selectedLanguageId: number;
 }
 
-export default function SingleDataTable({ formId, tableName, displayName, selectedUserId, showDeleted, selectedLanguageId }: ISingleDataTableProps) {
+export default function SingleDataTable({ formId, tableName, displayName, locked = false, selectedUserId, showDeleted, selectedLanguageId }: ISingleDataTableProps) {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isDeleteRowOpen, setIsDeleteRowOpen] = useState<null | { id: number; label: string }>(null);
   const [isDeleteTableOpen, setIsDeleteTableOpen] = useState(false);
@@ -165,6 +167,11 @@ export default function SingleDataTable({ formId, tableName, displayName, select
       <Group justify="space-between" mb="sm">
         <Group>
           <Title order={4}>{displayName}</Title>
+          {locked && (
+            <Tooltip label="Label manually locked — the form display name no longer overwrites it">
+              <Badge color="orange" variant="light" size="sm">Locked</Badge>
+            </Tooltip>
+          )}
           <Text c="dimmed">({tableName}) • {rows.length} records</Text>
         </Group>
         <Group gap="xs">
@@ -238,7 +245,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
         </Table>
       </Box>
 
-      <DataTableEditorModal open={isEditorOpen} onClose={() => setIsEditorOpen(false)} formId={formId} tableName={tableName} displayName={displayName} />
+      <DataTableEditorModal open={isEditorOpen} onClose={() => setIsEditorOpen(false)} formId={formId} tableName={tableName} displayName={displayName} locked={locked} />
 
       {/* Confirm delete row modal */}
       <ModalWrapper

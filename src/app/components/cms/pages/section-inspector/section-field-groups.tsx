@@ -5,15 +5,15 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import React from 'react';
-import { Stack, Paper, Group, Text, Box, TextInput, Badge, Alert } from '@mantine/core';
-import { IconInfoCircle, IconAlertTriangle } from '@tabler/icons-react';
+import { Stack, Paper, Group, Text, Box, TextInput, Badge, Alert, Anchor, Tooltip } from '@mantine/core';
+import { IconInfoCircle, IconAlertTriangle, IconExternalLink, IconLock } from '@tabler/icons-react';
 import { type TStylePlatform } from '@selfhelp/shared/registry';
 import { GlobalFieldRenderer, type GlobalFieldType } from '../../shared';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { SectionPropertyField } from './section-field-connectors';
 import { classifySectionField, offPlatformFieldsWithValues } from './section-field-classify';
 import { getStylePlatformByName, PLATFORM_BADGE } from '../../../../../utils/style-platform.utils';
-import { type ISectionField, type ISectionDetails } from '../../../../../types/responses/admin/admin.types';
+import { type ISectionField, type ISectionDetails, type ISectionDataTableInfo } from '../../../../../types/responses/admin/admin.types';
 import styles from './SectionInspector.module.css';
 
 interface ISectionGlobalFieldsProps {
@@ -145,6 +145,8 @@ export const CrossPlatformFieldWarning = React.memo(function CrossPlatformFieldW
 
 interface ISectionInfoPanelProps {
     section?: ISectionDetails;
+    /** Underlying data table for form sections (issue #56). */
+    dataTable?: ISectionDataTableInfo;
 }
 
 /**
@@ -152,7 +154,8 @@ interface ISectionInfoPanelProps {
  * Subscribes only to sectionName to isolate name changes from field updates
  */
 export const SectionInfoPanel = React.memo(function SectionInfoPanel({
-    section
+    section,
+    dataTable
 }: ISectionInfoPanelProps) {
     // Subscribe only to sectionName
     const sectionName = useSectionFormStore((state) => state.sectionName);
@@ -206,6 +209,35 @@ export const SectionInfoPanel = React.memo(function SectionInfoPanel({
                         <Box mt="sm">
                             <Text size="xs" fw={500} c="dimmed">Description</Text>
                             <Text size="sm">{section.style.description}</Text>
+                        </Box>
+                    )}
+
+                    {dataTable && (
+                        <Box mt="sm">
+                            <Group gap="xs" mb={2}>
+                                <Text size="xs" fw={500} c="dimmed">Data table</Text>
+                                {dataTable.locked && (
+                                    <Tooltip label="Label manually locked in the Data browser — renaming the form display name no longer changes it">
+                                        <Badge color="orange" variant="light" size="xs" leftSection={<IconLock size={10} />}>
+                                            Locked
+                                        </Badge>
+                                    </Tooltip>
+                                )}
+                            </Group>
+                            <Group gap="xs" wrap="nowrap">
+                                <Text size="sm" truncate>
+                                    {dataTable.display_name || dataTable.name}
+                                </Text>
+                                <Anchor
+                                    size="xs"
+                                    href={`/admin/data?tableIds=${dataTable.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                >
+                                    Open in Data browser <IconExternalLink size={12} />
+                                </Anchor>
+                            </Group>
                         </Box>
                     )}
                 </Stack>

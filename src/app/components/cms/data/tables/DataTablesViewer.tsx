@@ -47,11 +47,11 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
   }
 
   const selectedTables = useMemo(() => {
-    if (!tables.length) return [] as { id: number; name: string; displayName: string }[];
+    if (!tables.length) return [] as { id: number; name: string; displayName: string; locked: boolean }[];
     if (!activeTableIds || activeTableIds.length === 0) return [];
-    if (activeTableIds.includes(-1)) return tables.map((t) => ({ id: t.id, name: t.name, displayName: t.displayName || t.name }));
+    if (activeTableIds.includes(-1)) return tables.map((t) => ({ id: t.id, name: t.name, displayName: t.displayName || t.name, locked: !!t.locked }));
     const set = new Set(activeTableIds);
-    return tables.filter((t) => set.has(t.id)).map((t) => ({ id: t.id, name: t.name, displayName: t.displayName || t.name }));
+    return tables.filter((t) => set.has(t.id)).map((t) => ({ id: t.id, name: t.name, displayName: t.displayName || t.name, locked: !!t.locked }));
   }, [tables, activeTableIds]);
 
   if (isLoading) {
@@ -86,6 +86,7 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
                 formId={t.id}
                 tableName={t.name}
                 displayName={t.displayName}
+                locked={t.locked}
                 selectedUserId={selectedUserId}
                 showDeleted={showDeleted}
                 selectedLanguageId={selectedLanguageId}
