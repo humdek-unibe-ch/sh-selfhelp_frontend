@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { useState, useCallback, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Alert,
@@ -18,7 +19,7 @@ import {
   Paper,
 } from '@mantine/core';
 import { IconAlertCircle, IconPackageExport } from '@tabler/icons-react';
-import { useDataTables } from '../../../../../hooks/useData';
+import { useDataTables, DATA_QUERY_KEYS } from '../../../../../hooks/useData';
 import { useCanAccessDataBrowser } from '../../../../../hooks/usePermissionChecks';
 import { useUsers } from '../../../../../hooks/useUsers';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
@@ -52,6 +53,7 @@ export function DataAdminPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const canAccessDataBrowser = useCanAccessDataBrowser();
+  const queryClient = useQueryClient();
 
   // Filter form state (what user is currently selecting)
   const [selectedUserId, setSelectedUserId] = useState<number | null>(() => {
@@ -95,7 +97,7 @@ export function DataAdminPage() {
     { page: 1, pageSize: 100, sort: 'email', sortDirection: 'asc' },
     { enabled: shouldLoadUsers }
   );
-  const { data: tablesResp, refetch: refetchTables, isFetching: isTablesFetching } = useDataTables();
+  const { data: tablesResp, isFetching: isTablesFetching } = useDataTables();
   const { languages, refetch: refetchLanguages } = usePublicLanguages();
 
   const userOptions = useMemo(() => {
@@ -169,13 +171,18 @@ export function DataAdminPage() {
     router.replace(currentPath, { scroll: false });
   }, [router]);
 
-    // Refresh
-    const handleRefresh = useCallback(() => {
+  // Refresh. The actual rows + column labels live in <SingleDataTable> under
+  // DATA_QUERY_KEYS.all (one query per expanded table), so refetching only the
+  // table list here used to miss new submissions. Invalidating the whole
+  // `admin/data` cache refreshes the table list and every expanded table at
+  // once; keepPreviousData + the per-table overlay keep it smooth (no full
+  // component reload).
+  const handleRefresh = useCallback(() => {
     setShouldLoadUsers(true);
     void refetchUsers();
-    void refetchTables();
     void refetchLanguages();
-  }, [refetchUsers, refetchTables, refetchLanguages]);
+    void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.all });
+  }, [refetchUsers, refetchLanguages, queryClient]);
 
   return (
     <Paper p="md" radius="md">

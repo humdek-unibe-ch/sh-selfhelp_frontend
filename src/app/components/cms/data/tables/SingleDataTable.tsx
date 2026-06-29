@@ -163,7 +163,11 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
 
   return (
     <Card withBorder style={{ position: 'relative' }}>
-      <LoadingOverlay visible={isLoading || isFetching} />
+      {/* Only block the card on the first load. Background refetches keep the
+          previous rows (React Query `keepPreviousData`) and surface progress
+          through the spinning refresh icon, so a refresh no longer looks like a
+          full component reload. */}
+      <LoadingOverlay visible={isLoading} />
       <Group justify="space-between" mb="sm">
         <Group>
           <Title order={4}>{displayName}</Title>
