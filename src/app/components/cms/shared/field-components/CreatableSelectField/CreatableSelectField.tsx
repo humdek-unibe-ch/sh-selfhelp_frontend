@@ -22,6 +22,7 @@ import classes from './CreatableSelectField.module.css';
 import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react';
 import React, { useState, useCallback, useMemo } from 'react';
 import { type IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
+import { resolveTokenLabel } from '../../../../../../config/mentions.config';
 
 // Shared configuration types for different CreatableSelectField variants
 export interface ICreatableSelectConfig {
@@ -220,6 +221,15 @@ export function CreatableSelectField({
         return predefinedValues.has(optionValue);
     };
 
+    // Resolve a stored interpolation value to its human label so a reopened
+    // condition / CSS chip shows the display_name, not the raw `{{token}}`
+    // (issue #56 v2). Delegates to the central, unit-tested resolver so every
+    // chip surface stays consistent; display names with spaces are display-only.
+    const resolveVariableLabel = useCallback(
+        (raw: string): string => resolveTokenLabel(raw, dataVariables),
+        [dataVariables]
+    );
+
 
     // Handle creating multiple values
     const handleCreateMultipleValues = useCallback(() => {
@@ -272,10 +282,12 @@ export function CreatableSelectField({
     // Create combined options including custom values
     const allOptions = [
         ...predefinedOptions,
-        // Add any custom values that aren't in predefined options
+        // Add any custom values that aren't in predefined options. Custom values
+        // are interpolation tokens, so show the resolved display label while the
+        // option value stays the immutable `{{token}}` (issue #56 v2).
         ...currentValues
             .filter(val => !isPredefinedValue(val))
-            .map(val => ({ value: val, label: val }))
+            .map(val => ({ value: val, label: resolveVariableLabel(val) }))
     ];
 
     // Filter options based on search
@@ -469,7 +481,7 @@ export function CreatableSelectField({
                                         size="sm"
                                         className={`${classes.pill} ${isPredefinedValue(val) ? classes.predefinedPill : classes.customPill}`}
                                     >
-                                        {val}
+                                        {isPredefinedValue(val) ? val : resolveVariableLabel(val)}
                                     </Pill>
                                 ))}
                             </div>

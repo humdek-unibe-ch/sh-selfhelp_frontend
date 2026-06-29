@@ -65,6 +65,30 @@ export function buildVariableSuggestions(dataVariables?: Record<string, string>)
 }
 
 /**
+ * Resolve a single stored interpolation value to its human label.
+ *
+ * Issue #56 v2: a stored value is the immutable `{{token}}` (or a bare token);
+ * the human `display_name` lives in `dataVariables` keyed by the bare token. This
+ * is the single-value counterpart of {@link tokensToMentionHtml} (which handles
+ * rich text): use it for one-chip widgets like the condition-builder field
+ * selector and the custom-CSS pills so a reopened editor shows the readable
+ * label, never the raw token. Display names may contain spaces — only the
+ * visible label changes here, the stored token is returned untouched when no
+ * label is known (unknown token, not-yet-loaded map, predefined value).
+ *
+ * @param raw stored value: `{{token}}`, a bare `token`, or a literal string
+ * @param dataVariables `token => label` map for the current context
+ */
+export function resolveTokenLabel(raw: string, dataVariables?: Record<string, string>): string {
+    if (!raw || !dataVariables) {
+        return raw;
+    }
+    const token = raw.replace(/^\{\{/, '').replace(/\}\}$/, '').trim();
+    const label = dataVariables[token];
+    return label !== undefined && label.length > 0 ? label : raw;
+}
+
+/**
  * Variable bracket format for consistent mention rendering
  */
 export const VARIABLE_BRACKET_FORMAT = '{{}}';
@@ -169,9 +193,14 @@ export function tokensToMentionHtml(content: string, dataVariables?: Record<stri
 /**
  * Creates the base Tiptap Mention extension configuration
  * Following official Tiptap patterns for mention implementation
+ *
+ * `getVariables` is a live getter (not a snapshot array): the section variable
+ * map loads asynchronously after the editor mounts (issue #56 v2), so reading it
+ * lazily on every `{{` keystroke means the dropdown shows freshly-loaded
+ * variables without recreating the editor (which would drop the caret / chips).
  */
 export function createMentionConfig(
-    variables: IVariableSuggestion[],
+    getVariables: () => IVariableSuggestion[],
     SuggestionComponent: TMentionSuggestionComponent,
     maxVisibleRows: number = 5,
     maxItems: number = 50
@@ -209,6 +238,7 @@ export function createMentionConfig(
             char: '{{',
             pluginKey: new PluginKey('mention'),
             items: ({ query }: { query: string }) => {
+                const variables = getVariables();
                 const filtered = query.length > 0
                     ? variables.filter(v => v.label.toLowerCase().includes(query.toLowerCase()))
                     : variables;

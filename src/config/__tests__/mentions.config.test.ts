@@ -7,6 +7,7 @@ import {
     buildVariableSuggestions,
     sanitizeForDatabase,
     tokensToMentionHtml,
+    resolveTokenLabel,
 } from '../mentions.config';
 
 /**
@@ -112,5 +113,41 @@ describe('mentions chip round-trip (issue #56 v2)', () => {
         // The attribute escapes quotes too; text content leaves quotes literal.
         expect(html).toContain('data-label="A &amp; B &lt;c&gt; &quot;d&quot;"');
         expect(html).toContain('>A &amp; B &lt;c&gt; "d"<');
+    });
+});
+
+/**
+ * Issue #56 v2 — single-token label resolution used by one-chip widgets
+ * (condition-builder field selector, custom-CSS pills). The stored value is the
+ * immutable token; these widgets must show the readable display_name on reopen.
+ * This is the spaces "golden rule" for the non-rich-text surfaces.
+ */
+describe('resolveTokenLabel (single-chip surfaces, issue #56 v2)', () => {
+    const dataVariables: Record<string, string> = {
+        'd.section_230': 'First and last name',
+        'system.user_name': 'system.user_name',
+    };
+
+    it('resolves a braced token to its display label', () => {
+        expect(resolveTokenLabel('{{d.section_230}}', dataVariables)).toBe('First and last name');
+    });
+
+    it('resolves a bare token to its display label', () => {
+        expect(resolveTokenLabel('d.section_230', dataVariables)).toBe('First and last name');
+    });
+
+    it('keeps spaces in the resolved label intact (golden rule)', () => {
+        // The label has spaces; the function returns it verbatim for display.
+        expect(resolveTokenLabel('{{d.section_230}}', dataVariables)).toContain(' ');
+        expect(resolveTokenLabel('{{d.section_230}}', dataVariables)).toBe('First and last name');
+    });
+
+    it('returns the raw value untouched for an unknown token', () => {
+        expect(resolveTokenLabel('{{d.unknown}}', dataVariables)).toBe('{{d.unknown}}');
+        expect(resolveTokenLabel('btn-primary', dataVariables)).toBe('btn-primary');
+    });
+
+    it('returns the raw value when no variable map is available', () => {
+        expect(resolveTokenLabel('{{d.section_230}}', undefined)).toBe('{{d.section_230}}');
     });
 });

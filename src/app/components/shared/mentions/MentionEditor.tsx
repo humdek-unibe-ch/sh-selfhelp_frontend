@@ -82,6 +82,15 @@ export function MentionEditor({
         [dataVariables],
     );
 
+    // Live mirror of the picker items. The Mention extension reads this ref
+    // lazily on each `{{` keystroke, so variables that load AFTER the editor
+    // mounts appear in the dropdown without rebuilding the editor (issue #56 v2:
+    // the section variable map is fetched async, so on first paint it is empty).
+    const variablesRef = React.useRef<IVariableSuggestion[]>(variables);
+    React.useEffect(() => {
+        variablesRef.current = variables;
+    }, [variables]);
+
     // Build extensions array based on mode
     const extensions = React.useMemo(() => {
         const exts: Extensions = [
@@ -114,14 +123,15 @@ export function MentionEditor({
             );
         }
 
-        // Add mention extension if variables are available
-        if (variables.length > 0) {
-            exts.push(
-                Mention.configure(
-                    createMentionConfig(variables, MentionSuggestionList, maxVisibleRows, maxItems)
-                )
-            );
-        }
+        // Always register the Mention node so the schema can render label chips
+        // even before the variable map has loaded (issue #56 v2). Suggestions are
+        // read live from `variablesRef`, so a still-loading or later-updated map
+        // never requires recreating the editor.
+        exts.push(
+            Mention.configure(
+                createMentionConfig(() => variablesRef.current, MentionSuggestionList, maxVisibleRows, maxItems)
+            )
+        );
 
         // In single line mode, prevent Enter key from creating new lines
         if (singleLineMode) {
@@ -178,7 +188,9 @@ export function MentionEditor({
         }
 
         return exts;
-    }, [variables, maxVisibleRows, maxItems, singleLineMode, placeholder, enableRichTextShortcuts]);
+        // `variables` is intentionally excluded: suggestions read `variablesRef`
+        // live, so the editor must NOT be rebuilt when the map loads/changes.
+    }, [maxVisibleRows, maxItems, singleLineMode, placeholder, enableRichTextShortcuts]);
 
     const editor = useEditor({
         extensions,
@@ -204,6 +216,12 @@ export function MentionEditor({
         autofocus: autoFocus,
     });
 
+    // Tracks the variable map last used to hydrate, so we can detect the
+    // empty -> loaded transition (the section map is fetched async). Initialised
+    // to the mount-time map so an already-cached map doesn't trigger a redundant
+    // re-hydrate on the first effect run.
+    const lastHydratedVarsRef = React.useRef<Record<string, string> | undefined>(dataVariables);
+
     // Update editor content when value prop changes externally.
     // The editor can be torn down (Tiptap nulls its schema on destroy) while a
     // stale instance is still referenced here — e.g. when the section inspector
@@ -223,7 +241,21 @@ export function MentionEditor({
         const serialized = (singleLineMode && !enableRichTextShortcuts)
             ? editor.getText()
             : sanitizeForDatabase(editor.getHTML());
+        const varsChanged = lastHydratedVarsRef.current !== dataVariables;
+        lastHydratedVarsRef.current = dataVariables;
+
         if (serialized === value) {
+            // Value is already in sync. But when the variable map first arrives
+            // (empty -> loaded), any stored `{{token}}` is still raw text in the
+            // editor — re-hydrate it into chips. Never do this while the admin is
+            // typing, so the caret is never yanked (issue #56 v2 first-paint fix).
+            if (varsChanged && !editor.isFocused) {
+                isUpdatingRef.current = true;
+                editor.commands.setContent(tokensToMentionHtml(value, dataVariables));
+                setTimeout(() => {
+                    isUpdatingRef.current = false;
+                }, 0);
+            }
             return;
         }
         isUpdatingRef.current = true;
