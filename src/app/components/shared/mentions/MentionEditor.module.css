@@ -111,49 +111,6 @@ SPDX-License-Identifier: MPL-2.0
     outline: none;
 }
 
-/* Auto-grow mode - single logical line that wraps and grows in height instead
-   of clipping to one line (issue #56 multiline). */
-.autoGrowEditor {
-    min-height: 36px;
-    background-color: var(--mantine-color-body);
-    border-radius: var(--mantine-radius-md);
-}
-
-.autoGrowEditor :global(.ProseMirror) {
-    padding: 8px 12px;
-    min-height: 36px;
-    max-height: 220px;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-size: 14px;
-    line-height: 1.55;
-}
-
-.autoGrowEditor :global(.ProseMirror .is-editor-empty:first-child::before) {
-    color: var(--mantine-color-placeholder);
-    content: attr(data-placeholder);
-    float: left;
-    height: 0;
-    pointer-events: none;
-    font-size: 14px;
-}
-
-.autoGrowEditor :global(.ProseMirror p),
-.autoGrowEditor :global(.single-line-paragraph) {
-    margin: 0;
-    display: block;
-    white-space: pre-wrap;
-}
-
-.autoGrowEditor :global(.mention-variable) {
-    white-space: normal;
-}
-
-.autoGrowEditor :global(.ProseMirror:focus) {
-    outline: none;
-}
-
 /* Email style preset previews (issue #56 mail editor). These mirror the
    email-safe inline CSS the backend MailHtmlRenderer applies at send time, so
    the WYSIWYG preview looks like the delivered email. Scoped to the rich-text

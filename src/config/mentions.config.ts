@@ -159,6 +159,26 @@ function escapeHtmlAttribute(text: string): string {
     return escapeHtmlText(text).replace(/"/g, '&quot;');
 }
 
+/** Build a mention chip span for a known token (display label + stable id). */
+function buildMentionSpan(token: string, label: string): string {
+    return `<span data-type="mention" class="mention-variable" data-id="${escapeHtmlAttribute(token)}" data-label="${escapeHtmlAttribute(label)}">${escapeHtmlText(label)}</span>`;
+}
+
+/**
+ * Replace `{{token}}` runs in a PLAIN string (no HTML structure) with chip spans.
+ * Unknown tokens stay literal. Used for the SSR fallback and plain single-line
+ * content where there are no attributes to worry about.
+ */
+function replaceTokensInPlainText(text: string, dataVariables: Record<string, string>): string {
+    return text.replace(/\{\{([^{}]+)\}\}/g, (whole: string, rawToken: string): string => {
+        const token = rawToken.trim();
+        if (!Object.prototype.hasOwnProperty.call(dataVariables, token)) {
+            return whole;
+        }
+        return buildMentionSpan(token, dataVariables[token] || token);
+    });
+}
+
 /**
  * Hydrate stored `{{token}}` occurrences back into Tiptap mention spans so the
  * editor shows label chips on load. This is the inverse of
@@ -169,9 +189,14 @@ function escapeHtmlAttribute(text: string): string {
  * `d.section_230`); the chip shows the human `display_name` from `dataVariables`.
  * Only tokens present in `dataVariables` become chips — unknown tokens (typos, a
  * not-yet-loaded variable, or system tokens absent from this section's map) stay
- * as literal `{{token}}` text so nothing is lost. The token is matched as an
- * opaque literal between `{{` and `}}`, so this stays forward-compatible with any
- * token shape the backend emits.
+ * as literal `{{token}}` text so nothing is lost.
+ *
+ * Issue #56 mail-link fix: tokens are converted ONLY inside visible TEXT nodes.
+ * A token inside an HTML attribute — e.g. `<a href="{{system.special.reset_link}}">`
+ * in a mail body — is left untouched: turning it into a chip span produced
+ * invalid markup (`<a href="<span…>chip</span>" …>`) that browsers/Tiptap
+ * mangled, leaking the rest of the tag as raw text. URLs keep the literal token
+ * and resolve at render time; chips only ever live in visible text.
  *
  * @param content stored field content (HTML for rich text, plain for single-line)
  * @param dataVariables `token => label` map for the current section
@@ -180,14 +205,58 @@ export function tokensToMentionHtml(content: string, dataVariables?: Record<stri
     if (!content || !dataVariables) {
         return content;
     }
-    return content.replace(/\{\{([^{}]+)\}\}/g, (whole: string, rawToken: string): string => {
-        const token = rawToken.trim();
-        if (!Object.prototype.hasOwnProperty.call(dataVariables, token)) {
-            return whole;
+
+    // SSR / no DOM available: fall back to a plain string replace. The client
+    // re-hydrates on mount, so any attribute-token edge case is corrected then.
+    if (typeof document === 'undefined') {
+        return replaceTokensInPlainText(content, dataVariables);
+    }
+
+    const container = document.createElement('div');
+    container.innerHTML = content;
+
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    const textNodes: Text[] = [];
+    let currentNode = walker.nextNode();
+    while (currentNode) {
+        textNodes.push(currentNode as Text);
+        currentNode = walker.nextNode();
+    }
+
+    for (const node of textNodes) {
+        const text = node.nodeValue ?? '';
+        if (text.indexOf('{{') === -1) {
+            continue;
         }
-        const label = dataVariables[token] || token;
-        return `<span data-type="mention" class="mention-variable" data-id="${escapeHtmlAttribute(token)}" data-label="${escapeHtmlAttribute(label)}">${escapeHtmlText(label)}</span>`;
-    });
+        const re = /\{\{([^{}]+)\}\}/g;
+        let match: RegExpExecArray | null;
+        let lastIndex = 0;
+        let html = '';
+        let changed = false;
+        while ((match = re.exec(text)) !== null) {
+            const token = match[1].trim();
+            if (!Object.prototype.hasOwnProperty.call(dataVariables, token)) {
+                continue;
+            }
+            changed = true;
+            html += escapeHtmlText(text.slice(lastIndex, match.index));
+            html += buildMentionSpan(token, dataVariables[token] || token);
+            lastIndex = match.index + match[0].length;
+        }
+        if (!changed) {
+            continue;
+        }
+        html += escapeHtmlText(text.slice(lastIndex));
+        const fragmentHost = document.createElement('span');
+        fragmentHost.innerHTML = html;
+        const fragment = document.createDocumentFragment();
+        while (fragmentHost.firstChild) {
+            fragment.appendChild(fragmentHost.firstChild);
+        }
+        node.parentNode?.replaceChild(fragment, node);
+    }
+
+    return container.innerHTML;
 }
 
 /**

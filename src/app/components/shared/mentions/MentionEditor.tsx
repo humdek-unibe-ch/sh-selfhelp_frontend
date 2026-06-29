@@ -20,7 +20,7 @@ import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { buildVariableSuggestions, createMentionConfig, sanitizeForDatabase, tokensToMentionHtml, type IVariableSuggestion } from '../../../../config/mentions.config';
 import { MentionSuggestionList } from './MentionSuggestionList';
 import { PreserveSpaces } from './PreserveSpacesExtension';
-import { EmailStyleMark, EMAIL_STYLE_PRESETS } from './EmailStyleExtension';
+import { EmailStyleExtension, EMAIL_STYLE_PRESETS } from './EmailStyleExtension';
 import styles from './MentionEditor.module.css';
 
 interface IMentionEditorProps {
@@ -37,13 +37,6 @@ interface IMentionEditorProps {
     maxItems?: number;
     /** If true, editor acts like a single-line text input without rich text features */
     singleLineMode?: boolean;
-    /**
-     * Compact (single-line-style) editor that WRAPS long content and grows in
-     * height instead of clipping to one line. Only meaningful with
-     * `singleLineMode`; the content stays a single logical line (Enter is still
-     * blocked) so plain-text storage round-trips unchanged (issue #56 multiline).
-     */
-    autoGrow?: boolean;
     /** If true, shows rich text toolbar (only applies when singleLineMode is false) */
     showToolbar?: boolean;
     /**
@@ -82,7 +75,6 @@ export function MentionEditor({
     maxVisibleRows = 5,
     maxItems = 50,
     singleLineMode = false,
-    autoGrow = false,
     showToolbar = true,
     emailStyles = false,
     autoFocus = false,
@@ -144,7 +136,7 @@ export function MentionEditor({
         // hydrate back into the editor and the Style dropdown can apply them
         // (issue #56 mail editor). Only the mail-config bodies opt in.
         if (emailStyles && !singleLineMode) {
-            exts.push(EmailStyleMark);
+            exts.push(EmailStyleExtension);
         }
 
         // Always register the Mention node so the schema can render label chips
@@ -366,7 +358,7 @@ export function MentionEditor({
                 )}
 
                 <RichTextEditor.Content
-                    className={singleLineMode ? (autoGrow ? styles.autoGrowEditor : styles.singleLineEditor) : styles.richTextEditor}
+                    className={singleLineMode ? styles.singleLineEditor : styles.richTextEditor}
                     onKeyDown={onKeyDown}
                 />
             </RichTextEditor>

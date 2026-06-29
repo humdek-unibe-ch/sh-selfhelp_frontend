@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { Mark, mergeAttributes } from '@tiptap/core';
+import { Extension } from '@tiptap/core';
 
 /**
  * Email "style preset" contract (issue #56 mail editor).
@@ -76,62 +76,83 @@ export function isEmailPresetClass(value: string): boolean {
 declare module '@tiptap/core' {
     interface Commands<ReturnType> {
         emailStyle: {
-            /** Apply (or switch to) an email preset class on the selection. */
+            /** Apply (or switch to) an email preset on the selection's link/block. */
             setEmailStyle: (className: string) => ReturnType;
-            /** Remove any email preset class from the selection. */
+            /** Remove any email preset from the selection's link + current block. */
             unsetEmailStyle: () => ReturnType;
         };
     }
 }
 
 /**
- * Tiptap mark that stores a single email preset class on a span. It only claims
- * spans whose class is a known `email-*` preset, so it never collides with the
- * mention chip span (`data-type="mention"`) or arbitrary authored markup. The
- * mark excludes itself (ProseMirror default), so switching presets replaces the
- * previous one instead of stacking.
+ * Preset classes that apply to a LINK (`<a>`): solid / outlined buttons + strong
+ * link. Every other preset is a BLOCK preset applied to the current paragraph or
+ * heading (callout box, muted footnote, large verification code).
  */
-export const EmailStyleMark = Mark.create({
+const LINK_PRESET_CLASSES: readonly string[] = ['email-button', 'email-button-secondary', 'email-link-strong'];
+
+/**
+ * Tiptap extension that round-trips the email "style preset" classes through the
+ * editor. The presets are plain CSS classes the backend `MailHtmlRenderer` inlines
+ * at send time, but they live on real elements: `email-button` / `email-button-secondary`
+ * / `email-link-strong` on an `<a>`, and `email-callout` / `email-muted` / `email-code`
+ * on a `<p>` / `<h*>`.
+ *
+ * A previous span-only mark never matched those elements, so the classes were
+ * silently dropped on load and reseeded mails lost their styling (issue #56 mail
+ * editor). This adds an `emailStyleClass` GLOBAL ATTRIBUTE to the paragraph,
+ * heading and link types: it parses the known `email-*` class off the element and
+ * re-renders it, so the styling survives load -> edit -> save. Only mail-config
+ * bodies register this extension.
+ */
+export const EmailStyleExtension = Extension.create({
     name: 'emailStyle',
 
-    addAttributes() {
-        return {
-            className: {
-                default: null,
-                parseHTML: (element) => element.getAttribute('class'),
-                renderHTML: (attributes) =>
-                    attributes.className ? { class: attributes.className as string } : {},
-            },
-        };
-    },
-
-    parseHTML() {
+    addGlobalAttributes() {
         return [
             {
-                tag: 'span[class]',
-                getAttrs: (node) => {
-                    const className = (node as HTMLElement).getAttribute('class') ?? '';
-                    return isEmailPresetClass(className) ? { className } : false;
+                types: ['paragraph', 'heading', 'link'],
+                attributes: {
+                    emailStyleClass: {
+                        default: null,
+                        parseHTML: (element) => {
+                            const classes = (element.getAttribute('class') ?? '').split(/\s+/);
+                            return classes.find((c) => isEmailPresetClass(c)) ?? null;
+                        },
+                        renderHTML: (attributes) => {
+                            const className = attributes.emailStyleClass;
+                            return typeof className === 'string' && className.length > 0
+                                ? { class: className }
+                                : {};
+                        },
+                    },
                 },
             },
         ];
     },
 
-    renderHTML({ HTMLAttributes }) {
-        return ['span', mergeAttributes(HTMLAttributes), 0];
-    },
-
     addCommands() {
-        const markName = this.name;
         return {
             setEmailStyle:
                 (className: string) =>
-                ({ commands }) =>
-                    commands.setMark(markName, { className }),
+                ({ editor, commands }) => {
+                    if (LINK_PRESET_CLASSES.includes(className)) {
+                        // Button / strong-link presets attach to the link mark, so
+                        // the selection must already be a link (set its URL first).
+                        return commands.updateAttributes('link', { emailStyleClass: className });
+                    }
+                    const blockType = editor.isActive('heading') ? 'heading' : 'paragraph';
+                    return commands.updateAttributes(blockType, { emailStyleClass: className });
+                },
             unsetEmailStyle:
                 () =>
-                ({ commands }) =>
-                    commands.unsetMark(markName),
+                ({ editor, chain }) => {
+                    const blockType = editor.isActive('heading') ? 'heading' : 'paragraph';
+                    return chain()
+                        .updateAttributes('link', { emailStyleClass: null })
+                        .updateAttributes(blockType, { emailStyleClass: null })
+                        .run();
+                },
         };
     },
 });

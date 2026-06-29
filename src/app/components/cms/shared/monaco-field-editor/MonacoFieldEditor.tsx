@@ -16,7 +16,7 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
     loading: () => <LoadingOverlay visible />
 });
 
-export type TMonacoLanguage = 'css' | 'json' | 'markdown' | 'sql';
+export type TMonacoLanguage = 'css' | 'json' | 'markdown' | 'sql' | 'html';
 
 /** The Monaco editor instance handed to `onMount`. */
 type TMonacoEditorInstance = Parameters<OnMount>[0];
@@ -144,6 +144,14 @@ const languageConfig: Record<TMonacoLanguage, {
             wordWrap: 'on',
             lineNumbers: 'off',
             folding: false,
+        }
+    },
+    html: {
+        language: 'html',
+        defaultValue: '',
+        editorOptions: {
+            wordWrap: 'on',
+            formatOnPaste: true,
         }
     }
 };

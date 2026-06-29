@@ -80,35 +80,14 @@ interface IFieldRendererProps {
 }
 
 /**
- * Strictly single-line `text` / `markdown-inline` fields rendered as a plain
- * Mantine input (no mentions): short identifiers with their own validation.
+ * `text` / `markdown-inline` fields whose value is a structural identifier or a
+ * predefined option value, NOT user-facing copy: rendered as a plain input with
+ * its own validation and no interpolation picker. Everything else of these types
+ * is a single-line mention editor. The richer/longer content uses the dedicated
+ * `textarea` (rich text) and `markdown` / `json` / `css` / `code` types instead,
+ * so the editor is driven purely by field TYPE (issue #56).
  */
-const PLAIN_TEXT_FIELD_NAMES = new Set(['name', 'value', 'title']);
-
-/**
- * Single-line `text` / `markdown-inline` fields that keep the mention picker but
- * must stay on ONE line (labels/short captions). Everything else auto-grows
- * (issue #56 multiline).
- */
-const SINGLE_LINE_TEXT_FIELD_NAMES = new Set(['label', 'subtitle', 'placeholder', 'alt', 'caption']);
-
-export type TTextFieldMode = 'plain' | 'single-line' | 'multiline';
-
-/**
- * Decide how a `text` / `markdown-inline` field is rendered:
- * - `plain`: short identifier, plain input, own validation (name/value/title);
- * - `single-line`: one-line mention editor (labels/captions);
- * - `multiline`: auto-grow mention editor for longer inline copy (default).
- */
-export function resolveTextFieldMode(fieldName: string): TTextFieldMode {
-    if (PLAIN_TEXT_FIELD_NAMES.has(fieldName)) {
-        return 'plain';
-    }
-    if (SINGLE_LINE_TEXT_FIELD_NAMES.has(fieldName)) {
-        return 'single-line';
-    }
-    return 'multiline';
-}
+const PLAIN_IDENTIFIER_FIELD_NAMES = new Set(['name', 'value', 'title']);
 
 // Props shared by the select-language / select-timezone branch components.
 // These are extracted into dedicated components so their data hooks are called
@@ -359,6 +338,23 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
     
+    // Code field - raw markup (e.g. html_tag_content) in a Monaco HTML editor with
+    // `{{` variable completion. Hand-written HTML must NOT go through the WYSIWYG,
+    // which would normalise/strip it (issue #56 field-type cleanup).
+    if (field.type === 'code') {
+        return renderFieldWithBadge(
+            <MonacoEditorField
+                fieldId={field.id}
+                value={fieldValue}
+                onChange={onChange}
+                language="html"
+                height={300}
+                disabled={disabled}
+                dataVariables={dataVariables}
+            />
+        );
+    }
+
     // Textarea field - now uses rich text editor
     if (field.type === 'textarea') {
         // Prepare props conditionally to avoid inline object creation
@@ -380,14 +376,13 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         return renderFieldWithBadge(<RichTextField {...richTextProps} />);
     }
 
-    // Text and markdown-inline fields - mention-aware editors. Short identifiers
-    // stay plain inputs; labels/captions stay single-line; everything else
-    // auto-grows so longer inline copy (alerts, descriptions) is readable
-    // (issue #56 multiline).
+    // Text and markdown-inline fields - single-line mention editors. Structural
+    // identifiers / predefined values stay plain inputs (no interpolation); every
+    // other text field gets the `{{ }}` picker. Longer / multiline / rich copy is
+    // authored through the `textarea` (rich text) type, so this is type-driven and
+    // never grows into a fake multiline box (issue #56).
     if (field.type === 'text' || field.type === 'markdown-inline') {
-        const textMode = resolveTextFieldMode(field.name);
-
-        if (textMode === 'plain') {
+        if (PLAIN_IDENTIFIER_FIELD_NAMES.has(field.name)) {
             return renderFieldWithBadge(
                 <TextInputField
                     fieldId={field.id}
@@ -410,7 +405,6 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             disabled: disabled,
             dataVariables: dataVariables,
             enableRichTextShortcuts: allowInlineFormatting,
-            autoGrow: textMode === 'multiline'
         };
 
         return renderFieldWithBadge(<TextInputWithMentions {...textInputProps} />);
