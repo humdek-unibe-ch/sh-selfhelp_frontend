@@ -769,14 +769,6 @@ export const API_CONFIG = {
             route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
             permissions: []
         },
-        // Interpolation variable picker for a section (token => label map). Served
-        // fresh by the backend (not from the cached section payload) so a data
-        // column added by a later form submission appears immediately. Mirrors
-        // ADMIN_SECTIONS_GET_ONE gating; the backend enforces admin.page.read.
-        ADMIN_SECTIONS_DATA_VARIABLES: {
-            route: (sectionId: number) => `/admin/sections/${sectionId}/data-variables`,
-            permissions: []
-        },
         // Unified context-aware interpolation variable picker (issue #56 v2). One
         // endpoint for every editor surface; `context` (section|page|action|global)
         // and optional `id` are passed as query params. The backend enforces

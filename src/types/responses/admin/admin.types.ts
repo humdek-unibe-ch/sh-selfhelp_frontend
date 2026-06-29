@@ -114,17 +114,6 @@ export interface ISectionDetailsData {
 
 export type TSectionDetailsResponse = IBaseApiResponse<ISectionDetailsData>;
 
-/**
- * Interpolation variable picker for a section: a `token => label` map served by
- * its own endpoint (GET /admin/sections/{id}/data-variables) so a data column
- * added by a later form submission shows up immediately (issue #56).
- */
-export interface ISectionDataVariablesData {
-    data_variables: Record<string, string>;
-}
-
-export type TSectionDataVariablesResponse = IBaseApiResponse<ISectionDataVariablesData>;
-
 export interface IPageHierarchy {
     id: number;
     keyword: string;

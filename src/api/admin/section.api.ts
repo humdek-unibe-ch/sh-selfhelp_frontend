@@ -12,7 +12,7 @@ SPDX-License-Identifier: MPL-2.0
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import { type IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
-import { type TSectionDetailsResponse, type ISectionDetailsData, type TSectionDataVariablesResponse } from '../../types/responses/admin/admin.types';
+import { type TSectionDetailsResponse, type ISectionDetailsData } from '../../types/responses/admin/admin.types';
 import type { AxiosRequestConfig } from 'axios';
 import {
     type IAddSectionInSectionData,
@@ -210,21 +210,6 @@ export const AdminSectionApi = {
             sectionId
         );
         return response.data.data;
-    },
-
-    /**
-     * Fetches the interpolation variable picker for a section as a token => label
-     * map. Served fresh by the backend (not the cached section payload) so a data
-     * column added by a later form submission appears immediately (issue #56).
-     * @param {number} sectionId - The section ID to resolve variables for
-     * @returns {Promise<Record<string, string>>} token => human label
-     */
-    async getSectionDataVariables(sectionId: number): Promise<Record<string, string>> {
-        const response = await permissionAwareApiClient.get<TSectionDataVariablesResponse>(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_DATA_VARIABLES,
-            sectionId
-        );
-        return response.data.data?.data_variables ?? {};
     },
 
     /**
