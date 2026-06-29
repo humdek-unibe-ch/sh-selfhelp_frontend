@@ -14,6 +14,38 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.48 — 2026-06-26
+
+### Changed
+- **Data columns now use an immutable key + human label (host issue #56).** The
+  admin data-table column endpoints return `{ id, fieldKey, displayName }`
+  instead of `{ id, name }`. The data browser shows the curated `displayName`
+  in column headers while reading row values by the stable `fieldKey` (via an
+  `accessorFn`, so dotted survey keys are treated as opaque literals, never as
+  nested paths). The data-config field pickers and the filter builder now label
+  options by `displayName` while storing the `fieldKey`.
+- **The CMS variable picker shows display names, inserts stable tokens.** The
+  variable picker is a `token => label` map; the mention picker lists the human
+  label but inserts the immutable `{{token}}`, so renaming a field's label never
+  changes stored interpolation tokens.
+- **The variable picker is fetched on demand, not from the section payload.**
+  The section inspector now loads the picker from the dedicated
+  `GET /cms-api/v1/admin/sections/{sectionId}/data-variables` endpoint
+  (`useSectionDataVariables`, REAL_TIME tier, refetched on inspector open /
+  window focus) instead of reading `data_variables` off `getSection`. Because
+  the backend serves it fresh from the live data-table columns, a column added
+  by a later form submission shows up in the picker without re-saving the
+  section. `getSection` responses are now `{ section, fields, languages }`.
+
+### Added
+- **Edit column display labels.** The "Manage table" modal can rename a
+  column's human label without touching its storage key, via the new
+  `PATCH /cms-api/v1/admin/data/tables/{tableName}/columns/display-name`
+  (gated by `admin.data.update_columns`).
+
+> Requires core `>=0.1.23` (the `field_key`/`display_name` data-column split);
+> `supports.core` raised `0.1.21 -> 0.1.23`.
+
 ## v0.1.47 — 2026-06-25
 
 ### Fixed
