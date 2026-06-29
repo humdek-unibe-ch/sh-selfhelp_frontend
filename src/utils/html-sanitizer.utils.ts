@@ -195,3 +195,58 @@ export function sanitizeHtmlForParsing(htmlContent: string): string {
     // Then apply inline sanitization to prevent hydration errors
     return sanitizeHtmlForInline(purified);
 }
+
+/** True when the value is a string that contains at least one HTML tag. */
+export function hasHtmlMarkup(raw: unknown): boolean {
+    return typeof raw === 'string' && raw.includes('<');
+}
+
+/**
+ * Sanitizes HTML for a BLOCK context — unlike {@link sanitizeHtmlForParsing} this
+ * KEEPS block-level structure (headings, lists, paragraphs, blockquotes, rules,
+ * alignment) instead of flattening it to inline. Use it for `textarea` (rich
+ * text) display slots whose container is itself a block element, so authored
+ * headings/lists actually render (issue #56 rich content fields).
+ *
+ * Still XSS-safe: DOMPurify drops scripts/handlers and sanitizes `style`.
+ *
+ * @param htmlContent - The HTML content to sanitize
+ * @returns Secure block-level HTML string
+ */
+export function sanitizeHtmlForBlock(htmlContent: string): string {
+    if (!htmlContent || typeof htmlContent !== 'string') {
+        return htmlContent || '';
+    }
+
+    return DOMPurify.sanitize(htmlContent, {
+        ALLOWED_TAGS: ['p', 'div', 'span', 'strong', 'em', 'b', 'i', 'u', 's', 'br', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr', 'mark'],
+        ALLOWED_ATTR: ['href', 'target', 'rel', 'style']
+    });
+}
+
+/**
+ * Renders a `textarea` (rich text) content value as React nodes, preserving the
+ * full block structure (headings, lists, paragraphs, alignment, links) the author
+ * applied in the CMS rich-text editor. The block markup is emitted inside a
+ * `<div>`, so the HOST element must be block-level (e.g. Mantine `<Text
+ * component="div">`, `<Blockquote>`) to keep the DOM valid — never nest this
+ * inside a `<p>`/`<span>`. A plain string (no `<`) passes straight through.
+ *
+ * This is the block counterpart of {@link renderRichInline} (which flattens block
+ * tags for inline slots). Both are XSS-safe and hydration-safe (they use
+ * `dangerouslySetInnerHTML`, which React does not diff on hydration).
+ *
+ * @param raw - The raw field content (string or anything falsy)
+ * @returns A `<div>` with the formatted block HTML, or the original plain string
+ */
+export function renderRichBlock(raw: unknown): ReactNode {
+    if (typeof raw !== 'string') {
+        return (raw ?? null) as ReactNode;
+    }
+    if (!raw.includes('<')) {
+        return raw;
+    }
+    return createElement('div', {
+        dangerouslySetInnerHTML: { __html: sanitizeHtmlForBlock(raw) },
+    });
+}

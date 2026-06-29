@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import React from 'react';
 import { Text } from '@mantine/core';
 import { type ITextStyle } from '../../../../../types/common/styles.types';
-import { renderRichInline } from '../../../../../utils/html-sanitizer.utils';
+import { renderRichBlock, hasHtmlMarkup } from '../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for TextStyle component
@@ -30,12 +30,14 @@ interface ITextStyleProps {
  * @returns {JSX.Element | null} Rendered Mantine Text or null when styling is disabled
  */
 const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) => {
-    // Render the safe inline subset (bold / italic / underline / links) the
-    // author applied via the `markdown-inline` editor instead of stripping it to
-    // plain text, so Ctrl+B bold actually shows on the web frontend. The shared
-    // helper flattens any stray block tags (`<p>` from markdown) to inline, strips
-    // XSS, and renders hydration-safe; a plain string passes straight through.
-    const text = renderRichInline(style.text?.content ?? '');
+    // The `text` field is a rich-text (`textarea`) slot, so the author can apply
+    // full block formatting (headings, lists, paragraphs, alignment) plus inline
+    // marks. Render the real block structure instead of flattening it, so a styled
+    // text block shows as authored (issue #56 rich content fields). XSS- and
+    // hydration-safe; a plain string passes straight through.
+    const rawText = style.text?.content ?? '';
+    const isBlock = hasHtmlMarkup(rawText);
+    const text = renderRichBlock(rawText);
 
     // Extract Mantine-specific props
     const size = style.size?.content || 'md';
@@ -75,6 +77,10 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) =
 
     // Handle CSS field - use direct property from API response
 
+    // Block content must live in a block host (`<div>`), not the default `<p>`,
+    // or the nested `<p>`/`<h*>`/`<ul>` would be invalid HTML and break hydration.
+    const componentProps = isBlock ? { component: 'div' as const } : { span };
+
     return (
         <Text
             size={size}
@@ -89,7 +95,7 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) =
             truncate={truncate as 'end' | 'start' | undefined}
             lineClamp={lineClamp}
             inherit={inherit}
-            span={span}
+            {...componentProps}
             {...styleProps} className={cssClass}
         >
             {text}

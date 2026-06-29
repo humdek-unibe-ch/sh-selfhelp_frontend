@@ -7,8 +7,11 @@ import type { ReactElement } from 'react';
 import {
     sanitizeHtmlForParsing,
     sanitizeHtmlForInline,
+    sanitizeHtmlForBlock,
     stripHtmlTags,
     renderRichInline,
+    renderRichBlock,
+    hasHtmlMarkup,
 } from '../html-sanitizer.utils';
 
 /**
@@ -86,5 +89,51 @@ describe('html-sanitizer: renderRichInline (hydration-safe rich inline)', () => 
     it('returns falsy input as-is', () => {
         expect(renderRichInline(undefined)).toBeNull();
         expect(renderRichInline('')).toBe('');
+    });
+});
+
+describe('html-sanitizer: sanitizeHtmlForBlock (keeps block structure)', () => {
+    it('preserves headings, lists and paragraphs instead of flattening them', () => {
+        const out = sanitizeHtmlForBlock('<h2>Title</h2><ul><li>a</li><li>b</li></ul><p>p</p>');
+        expect(out).toContain('<h2>Title</h2>');
+        expect(out).toContain('<li>a</li>');
+        expect(out).toContain('<p>p</p>');
+    });
+
+    it('keeps text alignment via the style attribute', () => {
+        const out = sanitizeHtmlForBlock('<p style="text-align: center">c</p>');
+        expect(out).toContain('text-align');
+    });
+
+    it('still strips scripts and event handlers (XSS boundary)', () => {
+        const out = sanitizeHtmlForBlock('<p>ok</p><script>alert(1)</script>');
+        expect(out).toContain('<p>ok</p>');
+        expect(out.toLowerCase()).not.toContain('<script');
+        expect(out).not.toContain('alert');
+    });
+});
+
+describe('html-sanitizer: renderRichBlock (hydration-safe rich block)', () => {
+    it('passes a plain string through unchanged (no wrapper element)', () => {
+        expect(renderRichBlock('Just plain text')).toBe('Just plain text');
+    });
+
+    it('renders block HTML via a dangerouslySetInnerHTML <div>', () => {
+        const node = renderRichBlock('<h2>Title</h2><p>body</p>') as ReactElement<{
+            dangerouslySetInnerHTML: { __html: string };
+        }>;
+        expect(node.type).toBe('div');
+        const html = node.props.dangerouslySetInnerHTML.__html;
+        expect(html).toContain('<h2>Title</h2>');
+        expect(html).toContain('<p>body</p>');
+    });
+});
+
+describe('html-sanitizer: hasHtmlMarkup', () => {
+    it('detects tags in strings and is false for plain text / non-strings', () => {
+        expect(hasHtmlMarkup('<p>x</p>')).toBe(true);
+        expect(hasHtmlMarkup('plain')).toBe(false);
+        expect(hasHtmlMarkup(undefined)).toBe(false);
+        expect(hasHtmlMarkup(123)).toBe(false);
     });
 });
