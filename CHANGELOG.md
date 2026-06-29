@@ -14,6 +14,29 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.51 — 2026-06-29
+
+### Fixed
+- **Modals are dismissible only via their own close / cancel control by
+  default.** Close-on-outside-click and close-on-Escape are now off globally
+  (Mantine `Modal` theme defaults + `ModalWrapper`), so an accidental click
+  outside no longer discards unsaved edits (e.g. the data-table "Manage"
+  editor). A modal opts back in by passing `closeOnClickOutside` /
+  `closeOnEscape`.
+- **Data browser — the page-level Refresh now actually reloads rows.** The
+  Refresh button next to Apply previously refreshed only the table list and
+  missed new submissions (rows are fetched per expanded table). It now
+  invalidates the whole `admin/data` cache, refreshing the table list and every
+  expanded table at once.
+- **Data browser refresh is smooth.** A background refetch no longer dims the
+  whole table card with a full `LoadingOverlay`; the previous rows stay visible
+  (`keepPreviousData`) and the spinning refresh icon signals progress, so a
+  refresh no longer looks like a full component reload.
+
+Floor-neutral (no new backend dependency), so `supports.core` stays `>=0.1.24`.
+
+---
+
 ## v0.1.50 — 2026-06-29
 
 ### Fixed
