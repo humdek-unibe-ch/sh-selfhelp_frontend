@@ -14,6 +14,42 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.52 — 2026-06-29
+
+### Changed
+- **Interpolation v2 — variables are immutable, labels are human (host issue
+  #56).** The `{{` variable picker now inserts the stable data-column
+  `field_key` (e.g. `{{d.section_230}}`) and shows the column `display_name` as
+  a label chip. The chip renders the label, stores `{{field_key}}`, and
+  re-parses `{{field_key}}` back into a chip on load, so renaming an input or a
+  column changes only the visible label — the stored token never moves and the
+  data never forks. The round-trip lives in one place (`mentions.config.ts`), so
+  it applies to every field that uses the mention editor (text, markdown-inline,
+  textarea, data-config, condition builder, actions).
+
+### Added
+- **`{{` variable completion in markdown fields.** Markdown (Monaco) fields now
+  offer the same variable picker as the rich-text/inline fields through a Monaco
+  completion provider — type `{{` to insert a variable (shows the label, inserts
+  the token). `json`/`css` code editors are intentionally excluded.
+
+### Fixed
+- **`show-user-input` headers follow the column display name.** Table headers now
+  default to the column `display_name` (from the new section `field_labels` map),
+  so renaming a column relabels its header automatically instead of showing the
+  raw key. `fields_map` stays an explicit override and resolves to a column by
+  `field_key` first, then by `display_name`, so an existing mapping survives a
+  rename.
+
+Depends on core **0.1.25** (DataVariableResolver token → `field_key`,
+render-time `retrieved_data` scope keyed by `field_key`, and the
+`show-user-input` `field_labels` payload) and `@selfhelp/shared` **>=1.17.1**
+(the `IShowUserInputStyle.field_labels` type), so `supports.core` is raised
+`>=0.1.24` → `>=0.1.25`. Pre-release wipe: old name-based interpolation tokens
+are not migrated.
+
+---
+
 ## v0.1.51 — 2026-06-29
 
 ### Fixed
