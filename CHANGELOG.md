@@ -14,6 +14,38 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.55 — 2026-06-29
+
+### Added
+- **Rich-text rendering for `text` and `blockquote` content (host issue #56).**
+  These fields are now authored as full WYSIWYG (`textarea`) in the CMS, and the
+  public renderers (`TextStyle`, `BlockquoteStyle`) display the authored block
+  structure — headings, lists, paragraphs, alignment — instead of flattening it
+  to a single inline line. Rendering stays XSS- and hydration-safe via a new
+  block sanitizer; `<Text>` only becomes a `div` when the content has markup.
+  Requires core `>=0.1.28` (which retypes the fields), so `supports.core` is
+  raised to `>=0.1.28`.
+- **Closable field-help popover.** The field info icon now opens a dismissible
+  popover (stays open until closed / click-outside) that shows the help text and,
+  for structured fields, the example as a formatted, syntax-aware code block with
+  a one-click **Copy** button.
+
+### Changed
+- **Mail-config editor grouped by e-mail.** The `sh-mail-config` content fields
+  are arranged into one card per e-mail (Welcome, Confirmation, Recovery,
+  Password changed, 2FA) with Subject and Body stacked full-width, replacing the
+  cramped auto-fill grid that overflowed the subject inputs.
+
+### Fixed
+- **Single-line mention editors wrap instead of horizontal-scrolling.** `text` /
+  `markdown-inline` fields (e.g. "Welcome: Subject") now wrap long content and
+  grow vertically up to a cap, so the value is readable; interpolation tokens
+  still never break across lines.
+- **Condition-builder datetime picker z-index.** The date/time calendar now
+  portals above the condition-builder modal so it is no longer clipped/hidden.
+
+---
+
 ## v0.1.54 — 2026-06-29
 
 ### Added
