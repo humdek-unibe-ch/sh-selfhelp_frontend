@@ -306,7 +306,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
     
-    // Markdown field - use Monaco Editor
+    // Markdown field - use Monaco Editor with `{{` variable completion (issue #56 v2)
     if (field.type === 'markdown') {
         return renderFieldWithBadge(
             <MonacoEditorField
@@ -316,6 +316,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 language="markdown"
                 height={300}
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }

@@ -3,7 +3,11 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect } from 'vitest';
-import { buildVariableSuggestions } from '../mentions.config';
+import {
+    buildVariableSuggestions,
+    sanitizeForDatabase,
+    tokensToMentionHtml,
+} from '../mentions.config';
 
 /**
  * Issue #56: the section `data_variables` payload is a `token => label` map.
@@ -40,4 +44,73 @@ describe('buildVariableSuggestions (token/label mapping)', () => {
     expect(buildVariableSuggestions(undefined)).toEqual([]);
     expect(buildVariableSuggestions({})).toEqual([]);
   });
+});
+
+/**
+ * Issue #56 v2 — the interpolation chip round-trip.
+ *
+ * A variable is stored as the immutable `{{token}}` (e.g. `{{d.section_230}}`)
+ * but shown to the admin as a chip carrying the human `display_name`. These
+ * tests pin the round-trip that makes a rename safe: the visible label can
+ * change freely, the stored token never does. Display names may contain spaces.
+ */
+describe('mentions chip round-trip (issue #56 v2)', () => {
+    const dataVariables: Record<string, string> = {
+        'd.section_230': 'Full name',
+        'user.email': 'E-mail address',
+    };
+
+    it('hydrates a stored token into a label chip that keeps the token in data-id', () => {
+        const html = tokensToMentionHtml('Hi {{d.section_230}}', dataVariables);
+
+        expect(html).toContain('data-type="mention"');
+        expect(html).toContain('data-id="d.section_230"');
+        expect(html).toContain('data-label="Full name"');
+        // The visible chip text is the human label, not the raw token.
+        expect(html).toContain('>Full name<');
+        expect(html).not.toContain('{{d.section_230}}');
+    });
+
+    it('leaves unknown tokens as literal text so nothing is lost', () => {
+        const html = tokensToMentionHtml('Hi {{d.unknown_999}} and {{user.email}}', dataVariables);
+
+        expect(html).toContain('{{d.unknown_999}}');
+        expect(html).toContain('data-id="user.email"');
+    });
+
+    it('serializes a chip back to its immutable token from data-id, not the visible label', () => {
+        const chip = '<p>Hi <span data-type="mention" class="mention-variable" data-id="d.section_230" data-label="Full name">Full name</span></p>';
+
+        expect(sanitizeForDatabase(chip)).toBe('<p>Hi {{d.section_230}}</p>');
+    });
+
+    it('round-trips token -> chip -> token unchanged (rename safety)', () => {
+        const stored = 'Dear {{d.section_230}}, your {{user.email}} is confirmed.';
+
+        const hydrated = tokensToMentionHtml(stored, dataVariables);
+        const serialized = sanitizeForDatabase(hydrated);
+
+        expect(serialized).toBe(stored);
+    });
+
+    it('round-trips a display_name that contains spaces (golden rule)', () => {
+        // A spaced display name must NOT break hydration: only the immutable
+        // token lives between the braces, the spaces live in the label only.
+        const variables = { 'd.section_230': 'First and last name' };
+        const stored = 'Hello {{d.section_230}}!';
+
+        const hydrated = tokensToMentionHtml(stored, variables);
+        expect(hydrated).toContain('data-label="First and last name"');
+        expect(hydrated).toContain('>First and last name<');
+        // round-trips back to the exact token
+        expect(sanitizeForDatabase(hydrated)).toBe(stored);
+    });
+
+    it('escapes HTML-unsafe characters in a label so the chip stays well-formed', () => {
+        const html = tokensToMentionHtml('{{x}}', { x: 'A & B <c> "d"' });
+
+        // The attribute escapes quotes too; text content leaves quotes literal.
+        expect(html).toContain('data-label="A &amp; B &lt;c&gt; &quot;d&quot;"');
+        expect(html).toContain('>A &amp; B &lt;c&gt; "d"<');
+    });
 });

@@ -99,7 +99,11 @@ export function isFormattedVariable(str: string): boolean {
 
 /**
  * Sanitizes HTML by removing mention styling but keeping properly formatted variables
- * Used when saving to database to ensure clean storage
+ * Used when saving to database to ensure clean storage.
+ *
+ * Issue #56 v2: the chip shows the human `display_name`, but storage must keep the
+ * immutable `{{token}}`. Each mention span carries the token in `data-id`, so we
+ * serialize from `data-id` (never the visible label text).
  */
 export function sanitizeForDatabase(html: string): string {
     if (!html) return html;
@@ -121,6 +125,47 @@ export function sanitizeForDatabase(html: string): string {
     return tempDiv.innerHTML;
 }
 
+/** Escape a string for safe interpolation into HTML text content. */
+function escapeHtmlText(text: string): string {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/** Escape a string for safe interpolation into a double-quoted HTML attribute. */
+function escapeHtmlAttribute(text: string): string {
+    return escapeHtmlText(text).replace(/"/g, '&quot;');
+}
+
+/**
+ * Hydrate stored `{{token}}` occurrences back into Tiptap mention spans so the
+ * editor shows label chips on load. This is the inverse of
+ * {@link sanitizeForDatabase}: that turns chips into `{{token}}` for storage,
+ * this turns `{{token}}` back into `<span data-type="mention" …>label</span>`.
+ *
+ * Issue #56 v2: the token is the immutable interpolation key (e.g.
+ * `d.section_230`); the chip shows the human `display_name` from `dataVariables`.
+ * Only tokens present in `dataVariables` become chips — unknown tokens (typos, a
+ * not-yet-loaded variable, or system tokens absent from this section's map) stay
+ * as literal `{{token}}` text so nothing is lost. The token is matched as an
+ * opaque literal between `{{` and `}}`, so this stays forward-compatible with any
+ * token shape the backend emits.
+ *
+ * @param content stored field content (HTML for rich text, plain for single-line)
+ * @param dataVariables `token => label` map for the current section
+ */
+export function tokensToMentionHtml(content: string, dataVariables?: Record<string, string>): string {
+    if (!content || !dataVariables) {
+        return content;
+    }
+    return content.replace(/\{\{([^{}]+)\}\}/g, (whole: string, rawToken: string): string => {
+        const token = rawToken.trim();
+        if (!Object.prototype.hasOwnProperty.call(dataVariables, token)) {
+            return whole;
+        }
+        const label = dataVariables[token] || token;
+        return `<span data-type="mention" class="mention-variable" data-id="${escapeHtmlAttribute(token)}" data-label="${escapeHtmlAttribute(label)}">${escapeHtmlText(label)}</span>`;
+    });
+}
+
 /**
  * Creates the base Tiptap Mention extension configuration
  * Following official Tiptap patterns for mention implementation
@@ -137,16 +182,27 @@ export function createMentionConfig(
             'data-type': 'mention',
         },
         renderText({ node }) {
+            // Plain-text / single-line serialization always emits the stable
+            // `{{token}}` so storage stays token-based regardless of the human
+            // label shown in the chip (issue #56 v2).
             return formatVariable(node.attrs.id);
         },
         renderHTML({ options, node }) {
+            // The chip displays the human label (display_name); `data-id` keeps
+            // the immutable token, and `data-label` (emitted by the built-in
+            // attribute via options.HTMLAttributes) lets it parse back into a
+            // chip on reload. `sanitizeForDatabase` serializes back to
+            // `{{token}}` from `data-id` (issue #56 v2).
+            const label = typeof node.attrs.label === 'string' && node.attrs.label.length > 0
+                ? node.attrs.label
+                : formatVariable(node.attrs.id);
             return [
                 'span',
                 {
                     ...options.HTMLAttributes,
                     'data-id': node.attrs.id,
                 },
-                formatVariable(node.attrs.id),
+                label,
             ];
         },
         suggestion: {

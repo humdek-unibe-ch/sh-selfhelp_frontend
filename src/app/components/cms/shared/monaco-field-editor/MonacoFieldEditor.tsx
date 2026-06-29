@@ -7,6 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 import { Box, LoadingOverlay } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
 import type { BeforeMount, EditorProps, Monaco, OnMount } from '@monaco-editor/react';
+import type { languages } from 'monaco-editor';
 
 // Dynamic import for Monaco Editor to avoid SSR issues
 import dynamic from 'next/dynamic';
@@ -28,6 +29,77 @@ interface IMonacoFieldEditorProps {
     readOnly?: boolean;
     theme?: 'vs' | 'vs-dark' | 'hc-black';
     className?: string;
+    /**
+     * Interpolation variables (`token => label`) for the `{{` completion in
+     * markdown fields. Same map the Tiptap mention picker uses, so the picker
+     * stays consistent across editors (issue #56 v2). Ignored for `json`/`css`.
+     */
+    dataVariables?: Record<string, string>;
+}
+
+// Markdown `{{` completion is a SINGLE global provider keyed by model URI, so
+// several markdown editors can be mounted without stacking duplicate providers.
+// Each editor registers its own variable map under its model URI and removes it
+// on unmount; the provider resolves the right map from the triggering model.
+const markdownModelVariables = new Map<string, Record<string, string>>();
+let markdownVariableProvider: { dispose(): void } | null = null;
+
+function ensureMarkdownVariableProvider(monaco: Monaco): void {
+    if (markdownVariableProvider) {
+        return;
+    }
+    const provider: languages.CompletionItemProvider = {
+        triggerCharacters: ['{'],
+        provideCompletionItems(model, position) {
+            const variables = markdownModelVariables.get(model.uri.toString());
+            if (!variables || Object.keys(variables).length === 0) {
+                return { suggestions: [] };
+            }
+
+            const textUntil = model.getValueInRange({
+                startLineNumber: position.lineNumber,
+                startColumn: 1,
+                endLineNumber: position.lineNumber,
+                endColumn: position.column,
+            });
+            // Only suggest once the author has opened a `{{` interpolation.
+            const opened = textUntil.match(/\{\{\s*([\w.]*)$/);
+            if (!opened) {
+                return { suggestions: [] };
+            }
+            const query = opened[1] ?? '';
+
+            const textAfter = model.getValueInRange({
+                startLineNumber: position.lineNumber,
+                startColumn: position.column,
+                endLineNumber: position.lineNumber,
+                endColumn: model.getLineMaxColumn(position.lineNumber),
+            });
+            // Don't double the closing braces if the editor auto-closed `{{`.
+            const closing = textAfter.startsWith('}}') ? '' : '}}';
+
+            const range = {
+                startLineNumber: position.lineNumber,
+                startColumn: position.column - query.length,
+                endLineNumber: position.lineNumber,
+                endColumn: position.column,
+            };
+
+            const suggestions = Object.entries(variables).map(([token, label]) => ({
+                label: label || token,
+                kind: monaco.languages.CompletionItemKind.Variable,
+                detail: token,
+                // Insert the immutable token; the human label is only shown in
+                // the dropdown so storage stays `{{token}}` (issue #56 v2).
+                insertText: `${token}${closing}`,
+                filterText: `${label} ${token}`.trim(),
+                range,
+            }));
+
+            return { suggestions };
+        },
+    };
+    markdownVariableProvider = monaco.languages.registerCompletionItemProvider('markdown', provider);
 }
 
 const languageConfig: Record<TMonacoLanguage, {
@@ -68,12 +140,14 @@ export function MonacoFieldEditor({
     height = 300,
     readOnly = false,
     theme = 'vs',
-    className
+    className,
+    dataVariables
 }: IMonacoFieldEditorProps) {
     const [isEditorReady, setIsEditorReady] = useState(false);
     const editorRef = useRef<TMonacoEditorInstance | null>(null);
     const monacoRef = useRef<Monaco | null>(null);
     const currentValueRef = useRef<string>(value || '');
+    const modelUriRef = useRef<string | null>(null);
 
     const config = languageConfig[language];
 
@@ -81,6 +155,22 @@ export function MonacoFieldEditor({
     useEffect(() => {
         currentValueRef.current = value || '';
     }, [value]);
+
+    // Keep this model's `{{` completion variables current as they load/change.
+    useEffect(() => {
+        if (language === 'markdown' && modelUriRef.current && dataVariables) {
+            markdownModelVariables.set(modelUriRef.current, dataVariables);
+        }
+    }, [language, dataVariables]);
+
+    // Drop this model's variables when the field unmounts.
+    useEffect(() => {
+        return () => {
+            if (modelUriRef.current) {
+                markdownModelVariables.delete(modelUriRef.current);
+            }
+        };
+    }, []);
 
     const handleBeforeMount: BeforeMount = (monaco) => {
         monacoRef.current = monaco;
@@ -98,6 +188,18 @@ export function MonacoFieldEditor({
         editorRef.current = editor;
         monacoRef.current = monaco;
         setIsEditorReady(true);
+
+        // Register the `{{` variable completion for markdown fields only.
+        if (language === 'markdown') {
+            const model = editor.getModel();
+            if (model) {
+                modelUriRef.current = model.uri.toString();
+                if (dataVariables) {
+                    markdownModelVariables.set(modelUriRef.current, dataVariables);
+                }
+                ensureMarkdownVariableProvider(monaco);
+            }
+        }
 
         // Format document on mount for better initial display
         setTimeout(() => {

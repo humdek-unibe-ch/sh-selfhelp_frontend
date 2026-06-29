@@ -25,19 +25,23 @@ const editorMock = vi.hoisted(() => {
     const editor: {
         isDestroyed: boolean;
         html: string;
+        text: string;
         getHTML: ReturnType<typeof vi.fn>;
         getText: ReturnType<typeof vi.fn>;
         commands: { setContent: ReturnType<typeof vi.fn> };
     } = {
         isDestroyed: false,
         html: '<p></p>',
+        text: '',
         getHTML: vi.fn(() => {
             if (editor.isDestroyed) {
                 throw new TypeError("Cannot read properties of null (reading 'cached')");
             }
             return editor.html;
         }),
-        getText: vi.fn(() => ''),
+        // Single-line mode syncs via getText() (the stored token form); model it
+        // so the value-sync skip path is exercised the same way the editor does.
+        getText: vi.fn(() => editor.text),
         commands: { setContent },
     };
     return { editor, setContent };
@@ -60,6 +64,7 @@ describe('MentionEditor external value sync', () => {
     beforeEach(() => {
         editorMock.editor.isDestroyed = false;
         editorMock.editor.html = '<p></p>';
+        editorMock.editor.text = '';
         editorMock.editor.getHTML.mockClear();
         editorMock.editor.getText.mockClear();
         editorMock.setContent.mockClear();
@@ -91,7 +96,8 @@ describe('MentionEditor external value sync', () => {
     });
 
     it('leaves a live editor untouched when the value already matches', () => {
-        editorMock.editor.html = 'already in sync';
+        // Single-line mode compares the stored token form via getText().
+        editorMock.editor.text = 'already in sync';
 
         renderWithProviders(
             <MentionEditor value="already in sync" onChange={() => {}} singleLineMode showToolbar={false} />,

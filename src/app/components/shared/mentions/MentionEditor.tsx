@@ -16,7 +16,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import Mention from '@tiptap/extension-mention';
 import { Extension, type Extensions } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { buildVariableSuggestions, createMentionConfig, sanitizeForDatabase, type IVariableSuggestion } from '../../../../config/mentions.config';
+import { buildVariableSuggestions, createMentionConfig, sanitizeForDatabase, tokensToMentionHtml, type IVariableSuggestion } from '../../../../config/mentions.config';
 import { MentionSuggestionList } from './MentionSuggestionList';
 import { PreserveSpaces } from './PreserveSpacesExtension';
 import styles from './MentionEditor.module.css';
@@ -182,7 +182,9 @@ export function MentionEditor({
 
     const editor = useEditor({
         extensions,
-        content: value,
+        // Hydrate stored `{{token}}` into label chips for the initial paint
+        // (issue #56 v2); the value-sync effect keeps it in step afterwards.
+        content: tokensToMentionHtml(value, dataVariables),
         onUpdate: ({ editor }) => {
             if (isUpdatingRef.current) return;
 
@@ -212,15 +214,24 @@ export function MentionEditor({
         if (!editor || editor.isDestroyed) {
             return;
         }
-        if (editor.getHTML() === value) {
+        // Compare against the STORED (token) form, not the rendered chip HTML:
+        // the editor shows `display_name` chips while `value` holds `{{token}}`.
+        // `sanitizeForDatabase`/`getText` are the exact inverse of
+        // `tokensToMentionHtml`, so once the editor already holds this value the
+        // serialized form equals it and we skip setContent — no caret jump, no
+        // re-hydrate loop (issue #56 v2).
+        const serialized = (singleLineMode && !enableRichTextShortcuts)
+            ? editor.getText()
+            : sanitizeForDatabase(editor.getHTML());
+        if (serialized === value) {
             return;
         }
         isUpdatingRef.current = true;
-        editor.commands.setContent(value);
+        editor.commands.setContent(tokensToMentionHtml(value, dataVariables));
         setTimeout(() => {
             isUpdatingRef.current = false;
         }, 0);
-    }, [editor, value]);
+    }, [editor, value, dataVariables, singleLineMode, enableRichTextShortcuts]);
 
     return (
         <Input.Wrapper label={label} description={description} required={required} error={error}>
