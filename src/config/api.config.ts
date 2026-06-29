@@ -777,6 +777,14 @@ export const API_CONFIG = {
             route: (sectionId: number) => `/admin/sections/${sectionId}/data-variables`,
             permissions: []
         },
+        // Unified context-aware interpolation variable picker (issue #56 v2). One
+        // endpoint for every editor surface; `context` (section|page|action|global)
+        // and optional `id` are passed as query params. The backend enforces
+        // admin.page.read and only returns tokens that interpolate at runtime.
+        ADMIN_INTERPOLATION_VARIABLES: {
+            route: '/admin/interpolation/variables',
+            permissions: []
+        },
 
         // Admin section export/import endpoints
         ADMIN_SECTIONS_EXPORT_PAGE: {
