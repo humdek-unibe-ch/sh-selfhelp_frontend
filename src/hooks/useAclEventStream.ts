@@ -12,6 +12,16 @@ SPDX-License-Identifier: MPL-2.0
  * event types — `acl-changed` and `impersonation-status` — over a
  * single Mercure JWT scoped to two topics on one upstream socket.
  *
+ * ## One connection per BROWSER, not per tab
+ *
+ * The actual `EventSource` is owned by {@link subscribeSharedSse}: across all
+ * tabs of the browser exactly ONE leader tab holds the network connection and
+ * fans every event out to the others over a `BroadcastChannel`. This hook only
+ * supplies the cache-invalidation callbacks, so opening many tabs no longer
+ * stacks SSE connections and exhausts the browser's per-origin pool (the cause
+ * of the "Data Browser hangs once I have a few tabs open" report). See
+ * `src/utils/shared-sse.ts`.
+ *
  * ## Events handled
  *
  *   - **`acl-changed`** — `data: { aclVersion: string }`. Fired when
@@ -51,6 +61,7 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useImpersonationStore } from '../app/store/impersonation.store';
 import { ROUTES } from '../config/routes.config';
 import { setAuthSseConnected } from './auth-sse-status';
+import { subscribeSharedSse } from '../utils/shared-sse';
 
 /** React Query keys for the system-update views fed by the `system-update` SSE event. */
 const SYSTEM_UPDATE_STATUS_KEY = ['systemUpdateStatus'] as const;
@@ -79,10 +90,9 @@ function parseImpersonationStatus(raw: string): ImpersonationStatusPayload | nul
 }
 
 const SSE_ENDPOINT = '/api/auth/events';
-/** Max backoff between reconnection attempts after repeated failures. */
-const MAX_RECONNECT_DELAY_MS = 30_000;
-/** Initial backoff — doubles on each successive failure. */
-const INITIAL_RECONNECT_DELAY_MS = 1_000;
+
+/** Named events this stream forwards (must match the BFF / Mercure `event:` names). */
+const ACL_STREAM_EVENTS = ['acl-changed', 'impersonation-status', 'system-update'] as const;
 
 function shouldRedirectToLogin(pathname: string): boolean {
     if (!pathname.startsWith('/admin')) return false;
@@ -98,18 +108,8 @@ export function useAclEventStream(): void {
 
     useEffect(() => {
         if (!isAuthenticated) return undefined;
-        if (typeof window === 'undefined' || typeof EventSource === 'undefined') return undefined;
 
-        let es: EventSource | null = null;
-        let reconnectTimer: number | null = null;
-        let reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
-        let cancelled = false;
         let checkingAuth = false;
-        // Distinguish the first connect (SSR already gave fresh data) from a
-        // RE-connect after a drop, where `system-update` events were likely
-        // missed (e.g. the manager restarted the backend mid-update) and the
-        // UI must reconcile.
-        let hasConnectedBefore = false;
 
         const invalidateSystemUpdate = () => {
             void queryClient.invalidateQueries({ queryKey: SYSTEM_UPDATE_STATUS_KEY });
@@ -117,8 +117,11 @@ export function useAclEventStream(): void {
             void queryClient.invalidateQueries({ queryKey: SYSTEM_HEALTH_KEY });
         };
 
+        // Returns true when the session is genuinely gone (so the shared stream
+        // should stop reconnecting); false otherwise. Shared by the leader tab
+        // (via `onLeaderClosed`) and follower tabs (via `onSessionExpired`).
         const handleExpiredSession = async (): Promise<boolean> => {
-            if (checkingAuth || cancelled) return false;
+            if (checkingAuth) return false;
             checkingAuth = true;
             try {
                 const res = await fetch('/api/auth/user-data', {
@@ -151,109 +154,57 @@ export function useAclEventStream(): void {
             }
         };
 
-        const connect = () => {
-            if (cancelled) return;
-            try {
-                es = new EventSource(SSE_ENDPOINT);
-            } catch {
-                // EventSource constructor never normally throws, but if
-                // the browser lacks support we silently no-op.
-                return;
-            }
+        const handleImpersonation = (raw: string) => {
+            const payload = parseImpersonationStatus(raw);
+            if (payload === null) return;
 
-            es.addEventListener('open', () => {
-                // Successful handshake — reset backoff so the next
-                // disconnection starts retrying quickly again.
-                reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
-                // SSE is live → the System Maintenance page can stop any
-                // fallback poll.
-                setAuthSseConnected(true);
-                // On a RE-connect, reconcile state that may have changed while
-                // the stream was down (the whole point of dropping the timer
-                // poll): one targeted invalidation brings the update view back
-                // in sync.
-                if (hasConnectedBefore) {
-                    invalidateSystemUpdate();
-                }
-                hasConnectedBefore = true;
-            });
-
-            es.addEventListener('acl-changed', () => {
-                // Invalidating user-data is enough: `useAclVersionWatcher`
-                // will detect the bumped `aclVersion` after the refetch
-                // and cascade the navigation / admin / page caches.
-                void queryClient.invalidateQueries({
-                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
+            const store = useImpersonationStore.getState();
+            if (payload.active) {
+                if (typeof payload.targetEmail !== 'string') return;
+                store.setActive({
+                    targetEmail: payload.targetEmail,
+                    expiresInSec:
+                        typeof payload.expiresIn === 'number' ? payload.expiresIn : undefined,
                 });
-            });
-
-            es.addEventListener('impersonation-status', (evt) => {
-                const payload = parseImpersonationStatus(
-                    (evt as MessageEvent<string>).data
-                );
-                if (payload === null) return;
-
-                const store = useImpersonationStore.getState();
-                if (payload.active) {
-                    if (typeof payload.targetEmail !== 'string') return;
-                    store.setActive({
-                        targetEmail: payload.targetEmail,
-                        expiresInSec:
-                            typeof payload.expiresIn === 'number'
-                                ? payload.expiresIn
-                                : undefined,
-                    });
-                } else {
-                    // Either the target's session, the impersonating
-                    // session, or another tab of either side — they all
-                    // share this topic and must clear in lock-step.
-                    store.clear();
-                }
-            });
-
-            // A CMS update operation this user requested changed state (CMS
-            // request or manager write-back). Refetch the status so the System
-            // Maintenance page repaints its step tracker live — no polling.
-            es.addEventListener('system-update', () => {
-                invalidateSystemUpdate();
-            });
-
-            // The browser auto-reconnects on transient errors, but if the
-            // upstream returns 4xx (e.g. expired JWT) it stays closed.
-            // Re-open with backoff so the user does not silently lose
-            // permission updates.
-            es.addEventListener('error', () => {
-                void (async () => {
-                    if (!es) return;
-                    // The stream dropped → allow the fallback poll to take over
-                    // while an operation is in flight.
-                    setAuthSseConnected(false);
-                    if (es.readyState === EventSource.CLOSED && !cancelled) {
-                        es.close();
-                        es = null;
-                        const expired = await handleExpiredSession();
-                        if (expired || cancelled) {
-                            return;
-                        }
-                        reconnectTimer = window.setTimeout(connect, reconnectDelay);
-                        reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY_MS);
-                    }
-                })();
-            });
+            } else {
+                // Either the target's session, the impersonating session, or
+                // another tab of either side — they all share this topic and
+                // must clear in lock-step.
+                store.clear();
+            }
         };
 
-        connect();
+        const unsubscribe = subscribeSharedSse({
+            endpoint: SSE_ENDPOINT,
+            events: ACL_STREAM_EVENTS,
+            onEvent: (type, data) => {
+                if (type === 'acl-changed') {
+                    // Invalidating user-data is enough: `useAclVersionWatcher`
+                    // will detect the bumped `aclVersion` after the refetch and
+                    // cascade the navigation / admin / page caches.
+                    void queryClient.invalidateQueries({
+                        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
+                    });
+                } else if (type === 'impersonation-status') {
+                    handleImpersonation(data);
+                } else if (type === 'system-update') {
+                    invalidateSystemUpdate();
+                }
+            },
+            onStatus: (connected) => setAuthSseConnected(connected),
+            // Reconnected after a drop / tab became visible again: reconcile the
+            // system-update view that may have moved while we weren't listening.
+            onReopen: invalidateSystemUpdate,
+            onResume: invalidateSystemUpdate,
+            onLeaderClosed: handleExpiredSession,
+            onSessionExpired: () => {
+                void handleExpiredSession();
+            },
+        });
 
         return () => {
-            cancelled = true;
             setAuthSseConnected(false);
-            if (reconnectTimer !== null) {
-                window.clearTimeout(reconnectTimer);
-            }
-            if (es) {
-                es.close();
-                es = null;
-            }
+            unsubscribe();
         };
     }, [isAuthenticated, queryClient, router]);
 }
