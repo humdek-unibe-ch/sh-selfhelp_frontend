@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react';
 import { ActionIcon, Badge, Button, Divider, Group, MultiSelect, Stack, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useTableColumns, useDeleteColumns, useUpdateColumnDisplayName, useUpdateTableDisplayName } from '../../../../../hooks/useData';
+import type { IDataTableColumn } from '../../../../../types/responses/admin/data.types';
 import { IconArrowBackUp, IconDeviceFloppy, IconTrash } from '@tabler/icons-react';
 import { ConfirmDeleteColumnsModal } from './ConfirmDeleteColumnsModal';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
@@ -30,9 +31,11 @@ export function DataTableEditorModal({ open, onClose, formId, tableName, display
   const updateTableLabel = useUpdateTableDisplayName();
 
   const columns = useMemo(() => columnsResp?.columns || [], [columnsResp?.columns]);
-  // Only columns with a real storage key can be selected/relabelled.
+  // Only the table's own dynamic columns can be relabelled/deleted. Standard
+  // projection columns (record_id, user_name, …) carry a field key too but are
+  // read-only here (no id, owned by the platform) — exclude them (issue #56).
   const keyedColumns = useMemo(
-    () => columns.filter((c): c is { id: number; fieldKey: string; displayName: string | null; locked: boolean } => !!c.fieldKey),
+    () => columns.filter((c): c is IDataTableColumn & { fieldKey: string } => !c.standard && !!c.fieldKey),
     [columns],
   );
 
@@ -183,7 +186,7 @@ export function DataTableEditorModal({ open, onClose, formId, tableName, display
             ) : (
               <Stack gap="xs">
                 {keyedColumns.map((col) => (
-                  <Group key={col.id} wrap="nowrap" gap="xs" align="flex-end">
+                  <Group key={col.fieldKey} wrap="nowrap" gap="xs" align="flex-end">
                     <Tooltip label="Immutable storage key (field_key)">
                       <Text size="sm" ff="monospace" w={180} style={{ flexShrink: 0 }} truncate>
                         {col.fieldKey}

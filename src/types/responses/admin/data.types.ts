@@ -31,7 +31,8 @@ export interface IDataRowsResponse {
  * panel keys) and must never be parsed as a nested path.
  */
 export interface IDataTableColumn {
-  id: number;
+  /** Real `data_cols.id` for dynamic columns; null for standard projection columns. */
+  id: number | null;
   fieldKey: string | null;
   displayName: string | null;
   /**
@@ -40,6 +41,14 @@ export interface IDataTableColumn {
    * Use "Reset to auto" to clear the lock (issue #56).
    */
   locked: boolean;
+  /**
+   * True for the always-present projection columns every row implicitly carries
+   * (`record_id`, `id_users`, `user_name`, `user_code`, `entry_date`,
+   * `triggerType`). They are offered in the data-config builder / SQL filter but
+   * are read-only in the Data browser — no `id`, and cannot be renamed or
+   * deleted (issue #56).
+   */
+  standard?: boolean;
 }
 
 export interface IDataTableColumnsResponse {

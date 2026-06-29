@@ -17,7 +17,7 @@ import {
     Divider,
     Alert
 } from '@mantine/core';
-import { IconPlus, IconTrash, IconFilter, IconAlertCircle } from '@tabler/icons-react';
+import { IconPlus, IconTrash, IconFilter, IconAlertCircle, IconLock, IconLockOpen } from '@tabler/icons-react';
 import { FilterBuilderInline } from './FilterBuilderInline';
 import { type IDataSource } from './DataConfigModal';
 import { useDataTables, useTableColumns } from '../../../../../hooks/useData';
@@ -44,6 +44,10 @@ const RETRIEVE_OPTIONS = [
 
 export function DataSourceForm({ dataSource, onChange, index, dataVariables }: IDataSourceFormProps) {
     const [filterOpened, setFilterOpened] = useState(false);
+    // The raw SQL is normally produced by the builder, so it defaults to locked
+    // (read-only) to prevent accidental edits; unlock it for manual tweaks
+    // (issue #56 data-config SQL).
+    const [sqlLocked, setSqlLocked] = useState(true);
 
     // Load tables and columns
     const { data: tablesResp, isLoading: isTablesLoading } = useDataTables();
@@ -247,20 +251,34 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
                         <div style={{ marginTop: 12 }}>
                             <Group justify="space-between" align="center" mb={4}>
                                 <Text size="sm" fw={500}>Filter (SQL only)</Text>
-                                <Text size="xs" c="dimmed">Type <Text span ff="monospace">{'{{'}</Text> to insert a variable</Text>
+                                <Group gap="sm" align="center">
+                                    <Text size="xs" c="dimmed">Type <Text span ff="monospace">{'{{'}</Text> to insert a variable</Text>
+                                    <Button
+                                        size="compact-xs"
+                                        variant={sqlLocked ? 'light' : 'filled'}
+                                        color={sqlLocked ? 'gray' : 'blue'}
+                                        leftSection={sqlLocked ? <IconLock size={14} /> : <IconLockOpen size={14} />}
+                                        onClick={() => setSqlLocked((v) => !v)}
+                                    >
+                                        {sqlLocked ? 'Locked' : 'Unlocked'}
+                                    </Button>
+                                </Group>
                             </Group>
                             <Text size="xs" c="dimmed" mb={6}>
                                 Combined WHERE/ORDER/LIMIT. If a WHERE clause is present it must start with AND ...
                             </Text>
                             {/* Raw SQL is a code field: Monaco gives full free-text
                                 editing plus the `{{` interpolation completion, matching
-                                the CSS/JSON code-field pattern (issue #56 v2). */}
+                                the CSS/JSON code-field pattern (issue #56 v2). It
+                                defaults to locked because the builder usually owns the
+                                SQL; unlock to edit by hand (issue #56 data-config SQL). */}
                             <MonacoEditorField
                                 fieldId={index}
                                 value={dataSource.filter || ''}
                                 onChange={(val) => handleFieldChange('filter', val)}
                                 language="sql"
                                 height={120}
+                                disabled={sqlLocked}
                                 dataVariables={dataVariables}
                             />
                         </div>
