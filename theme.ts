@@ -4,10 +4,20 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { createTheme } from "@mantine/core";
+import { createTheme, Modal } from "@mantine/core";
 
 export const theme = createTheme({
   components: {
+    // Modals are dismissible only via their own close / cancel control by
+    // default: no accidental close on an outside click or Escape (which used to
+    // discard unsaved edits, e.g. the data-table "Manage" editor). A specific
+    // modal opts back in by passing `closeOnClickOutside` / `closeOnEscape`.
+    Modal: Modal.extend({
+      defaultProps: {
+        closeOnClickOutside: false,
+        closeOnEscape: false,
+      },
+    }),
     MultiSelect: {
       styles: {
         input: {
