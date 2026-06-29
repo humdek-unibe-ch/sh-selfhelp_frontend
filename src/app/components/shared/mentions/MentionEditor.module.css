@@ -56,23 +56,24 @@ SPDX-License-Identifier: MPL-2.0
     font-size: 14px;
 }
 
-/* Single line mode - looks like a text input */
+/* Single line mode - looks like a text input but wraps long content onto
+   multiple lines (and grows vertically up to a cap) instead of showing an ugly
+   horizontal scrollbar. Stays a single logical line (no block paragraphs), so
+   it is still distinct from the rich-text `textarea` editor (issue #56). */
 .singleLineEditor {
     min-height: 36px;
-    max-height: 36px;
-    overflow: hidden;
 }
 
 .singleLineEditor :global(.ProseMirror) {
     padding: 8px 12px;
     min-height: 36px;
-    max-height: 36px;
-    overflow: hidden;
-    white-space: pre;
+    max-height: 180px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
     font-size: 14px;
     line-height: 1.55;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .singleLineEditor :global(.ProseMirror .is-editor-empty:first-child::before) {
@@ -87,12 +88,17 @@ SPDX-License-Identifier: MPL-2.0
 .singleLineEditor :global(.ProseMirror p) {
     margin: 0;
     display: inline;
-    white-space: pre;
+    white-space: pre-wrap;
 }
 
 .singleLineEditor :global(.ProseMirror *) {
     display: inline;
-    white-space: pre;
+    white-space: pre-wrap;
+}
+
+/* Keep interpolation tokens intact - never break a {{token}} across lines. */
+.singleLineEditor :global(.ProseMirror .mention-variable) {
+    white-space: nowrap;
 }
 
 /* Single line paragraph styling */
