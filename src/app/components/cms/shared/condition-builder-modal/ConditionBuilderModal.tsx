@@ -174,7 +174,7 @@ function SearchableValueEditor(props: ValueEditorProps & { onChange?: (value: st
         const dateTimeEditorProps: ComponentProps<typeof MantineValueEditor> = {
             ...props,
             extraProps: {
-                popoverProps: { withinPortal: true, zIndex: 10001 },
+                popoverProps: { withinPortal: true, zIndex: 10050 },
                 style: { width: FIELD_SELECTOR_WIDTH },
             },
         };
