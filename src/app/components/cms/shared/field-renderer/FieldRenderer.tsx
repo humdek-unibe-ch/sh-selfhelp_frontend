@@ -25,6 +25,7 @@ import {
     MonacoEditorField
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+import { extractFieldHelpExample } from '../../../../../utils/field-help.utils';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { usePluginFieldRenderer } from '../../../frontend/plugin-runtime';
@@ -253,12 +254,22 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         }
     };
 
+    // Surface a copy-able example (from default_value or the help text) in the
+    // field's help popover for structured fields (issue #56 field audit).
+    const helpExample = extractFieldHelpExample(field.type, field.default_value, field.help);
+
     // Helper function to render field with type badge
     const renderFieldWithBadge = (children: React.ReactNode) => {
         return (
             <Stack gap="xs" className={className}>
                 <Group gap="xs" align="center">
-                    <FieldLabelWithTooltip label={getFieldLabel()} tooltip={field.help || ''} locale={locale} />
+                    <FieldLabelWithTooltip
+                        label={getFieldLabel()}
+                        tooltip={field.help || ''}
+                        locale={locale}
+                        example={helpExample?.code}
+                        exampleLanguage={helpExample?.language}
+                    />
                     {/* <Badge size="xs" variant="light" color={getFieldTypeBadgeColor(field.type)}>
                         {field.type || 'unknown'}
                     </Badge> */}
@@ -842,7 +853,9 @@ export function GlobalFieldRenderer({
             <Stack gap="xs" className={className}>
                 <FieldLabelWithTooltip
                     label="Data Config"
-                    tooltip="JSON configuration for section data handling and validation."
+                    tooltip="JSON configuration that loads data for this section so it can be interpolated with {{scope.field}}."
+                    example={'[\n  {\n    "scope": "my_form",\n    "table": "my_form",\n    "retrieve": "first",\n    "fields": [{ "field_name": "name", "field_holder": "name" }]\n  }\n]'}
+                    exampleLanguage="json"
                 />
                 <DataConfigField
                     fieldId={0}
