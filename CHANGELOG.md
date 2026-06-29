@@ -14,6 +14,41 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.54 — 2026-06-29
+
+### Added
+- **Type-driven CMS field editors (host issue #56).** The editor is now chosen
+  purely from the field **type**: `text` is a single-line `{{`-aware input,
+  `markdown-inline` adds inline bold/italic/underline/link, `textarea` is the rich
+  WYSIWYG editor (headings, lists, alignment, links) that **accepts Enter** — the
+  home for longer / nicely-formatted copy — and the new `code` type opens raw HTML
+  in the Monaco editor (`json`/`css`/`markdown`/SQL stay Monaco too). No more
+  per-name allowlist; only the structural identifiers `name` / `value` / `title`
+  stay plain inputs.
+- **Data-config builder shows the standard columns.** The builder now lists the
+  always-present row columns (`user_name`, `record_id`, `entry_date`, …) returned
+  by the columns endpoint, so you can filter / order by them like any other column.
+- **Lockable SQL filter.** The data-config SQL filter is a Monaco editor that is
+  **locked (read-only) by default** and unlockable for manual editing.
+- **Email "Style" presets** in the mail-config body editor (primary / secondary
+  button, strong link, muted text, callout box, inline code) via a palette
+  dropdown.
+
+### Fixed
+- **Reseeded mails keep their styling.** The `email-*` style presets now persist
+  on the real `<a>` / `<p>` / `<h*>` elements through load → edit → save (a global
+  Tiptap attribute instead of a span-only mark), so a reseeded mail body no longer
+  loses its button / callout styling.
+- **Mail links are no longer broken in the editor.** A `{{token}}` inside an
+  attribute (e.g. `<a href="{{system.special.reset_link}}">`) stays a literal
+  token — chips are only ever created in visible text — so the link markup
+  round-trips intact instead of leaking raw tag text.
+- **Multiline rich-text fields accept Enter** for newlines, lists, and headings.
+- **Condition-builder datetime picker is visible.** The calendar/time popover now
+  portals above the modal with a high z-index instead of being clipped/hidden.
+- The page / config interpolation picker only appears on fields that actually
+  render variables.
+
 ## v0.1.53 — 2026-06-29
 
 ### Added
