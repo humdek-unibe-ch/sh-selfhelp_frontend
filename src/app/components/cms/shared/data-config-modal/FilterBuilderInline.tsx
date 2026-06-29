@@ -8,7 +8,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Stack, Text, Divider, Group, Select as MantineSelect, NumberInput, ActionIcon, Button } from '@mantine/core';
 import { QueryBuilder, type RuleGroupType, type RuleType, type ValueEditorProps, defaultValidator, formatQuery } from 'react-querybuilder';
 import { mantineControlElements } from '@react-querybuilder/mantine';
-import { useTableColumnNames } from '../../../../../hooks/useData';
+import { useTableColumns } from '../../../../../hooks/useData';
 import { parseSQL } from 'react-querybuilder/parseSQL';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
 import { QUERY_BUILDER_CONTROL_CLASSNAMES } from '../../../../../constants/querybuilder.constants';
@@ -86,11 +86,25 @@ function ensureIds(node: RuleGroupType | RuleType): RuleGroupType | RuleType {
 
 export function FilterBuilderInline(props: IProps & { dataVariables?: Record<string, string> }) {
   const { tableName, initialSql, onSave, dataVariables } = props;
-  const { data: columnNames } = useTableColumnNames(tableName);
+  const { data: columnsResp } = useTableColumns(tableName);
   const fields = useMemo(() => {
-    const unique = Array.from(new Set(columnNames || []));
-    return unique.map((name) => ({ name, label: name, dataType: 'text' as const }));
-  }, [columnNames]);
+    // Field identifier is the immutable field_key (it goes into the WHERE SQL,
+    // which the backend pivots by field_key); the label shows the display_name.
+    const seen = new Set<string>();
+    const out: { name: string; label: string; dataType: 'text' }[] = [];
+    for (const col of columnsResp?.columns ?? []) {
+      if (!col.fieldKey || seen.has(col.fieldKey)) {
+        continue;
+      }
+      seen.add(col.fieldKey);
+      out.push({
+        name: col.fieldKey,
+        label: col.displayName && col.displayName !== '' ? col.displayName : col.fieldKey,
+        dataType: 'text' as const,
+      });
+    }
+    return out;
+  }, [columnsResp?.columns]);
 
   // Parse the combined initial SQL once for the lazy state initializers below
   // (replaces the previous one-time init effect; `splitCombinedSql` is pure).

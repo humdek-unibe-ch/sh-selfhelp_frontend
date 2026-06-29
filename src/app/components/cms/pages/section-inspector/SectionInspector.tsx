@@ -25,6 +25,7 @@ import {
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
+import { useSectionDataVariables } from '../../../../../hooks/useSectionDataVariables';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
 import { type IUpdateSectionRequest, type IUpdateSectionGlobalFields } from '../../../../../types/requests/admin/update-section.types';
@@ -89,6 +90,11 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         isLoading: sectionLoading,
         error: sectionError,
     } = useSectionDetails(pageId, sectionId, !!pageId && !!sectionId);
+
+    // Interpolation variable picker — fetched separately (and fresh) from the
+    // section payload so a data column added by a later form submission appears
+    // immediately, without re-saving the section (issue #56).
+    const { data: dataVariablesData } = useSectionDataVariables(sectionId, !!sectionId);
 
     // Fetch languages
     const { languages: languagesData, isLoading: languagesLoading } = usePublicLanguages();
@@ -214,8 +220,8 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     const hasMultipleLanguages = useMemo(() => languagesData.length > 1, [languagesData.length]);
 
     const dataVariables = useMemo(() =>
-        sectionDetailsData?.data_variables || {},
-        [sectionDetailsData?.data_variables]
+        dataVariablesData || {},
+        [dataVariablesData]
     );
 
     const contentFields = useMemo(() =>

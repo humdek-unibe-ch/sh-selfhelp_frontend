@@ -687,6 +687,10 @@ export const API_CONFIG = {
             route: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
             permissions: [PERMISSIONS.ADMIN_DATA_DELETE_COLUMNS]
         },
+        ADMIN_DATA_TABLE_COLUMN_DISPLAY_NAME_PATCH: {
+            route: (tableName: string) => `/admin/data/tables/${tableName}/columns/display-name`,
+            permissions: [PERMISSIONS.ADMIN_DATA_UPDATE_COLUMNS]
+        },
         ADMIN_DATA_RECORD_DELETE: {
             route: (recordId: number) => `/admin/data/records/${recordId}`,
             permissions: [PERMISSIONS.ADMIN_DATA_DELETE]
@@ -759,6 +763,14 @@ export const API_CONFIG = {
         },
         ADMIN_SECTIONS_GET_CHILDREN: {
             route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
+            permissions: []
+        },
+        // Interpolation variable picker for a section (token => label map). Served
+        // fresh by the backend (not from the cached section payload) so a data
+        // column added by a later form submission appears immediately. Mirrors
+        // ADMIN_SECTIONS_GET_ONE gating; the backend enforces admin.page.read.
+        ADMIN_SECTIONS_DATA_VARIABLES: {
+            route: (sectionId: number) => `/admin/sections/${sectionId}/data-variables`,
             permissions: []
         },
 

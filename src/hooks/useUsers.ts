@@ -46,13 +46,18 @@ const handleMutationError = (error: unknown) => {
 };
 
 /**
- * Hook to fetch paginated users list with search and sorting
+ * Hook to fetch paginated users list with search and sorting.
+ *
+ * `options.enabled` lets callers defer the request (default `true`). Screens
+ * that only need the users list to populate a filter dropdown can gate it on
+ * first interaction so the list isn't fetched on every page open.
  */
-export function useUsers(params: IUsersListParams = {}) {
+export function useUsers(params: IUsersListParams = {}, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: USER_QUERY_KEYS.list(params),
     queryFn: () => AdminUserApi.getUsers(params),
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.staleTime,
+    enabled: options?.enabled ?? true,
   });
 }
 

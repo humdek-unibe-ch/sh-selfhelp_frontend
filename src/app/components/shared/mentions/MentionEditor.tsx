@@ -16,7 +16,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import Mention from '@tiptap/extension-mention';
 import { Extension, type Extensions } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { createMentionConfig, sanitizeForDatabase, type IVariableSuggestion } from '../../../../config/mentions.config';
+import { buildVariableSuggestions, createMentionConfig, sanitizeForDatabase, type IVariableSuggestion } from '../../../../config/mentions.config';
 import { MentionSuggestionList } from './MentionSuggestionList';
 import { PreserveSpaces } from './PreserveSpacesExtension';
 import styles from './MentionEditor.module.css';
@@ -74,14 +74,13 @@ export function MentionEditor({
 }: IMentionEditorProps) {
     const isUpdatingRef = React.useRef(false);
 
-    // Convert dataVariables to IVariableSuggestion array
-    const variables: IVariableSuggestion[] = React.useMemo(() => {
-        if (!dataVariables) return [];
-        return Object.values(dataVariables).map((variableName) => ({
-            id: variableName,
-            label: variableName,
-        }));
-    }, [dataVariables]);
+    // Convert the `data_variables` token=>label map into picker items: the id is
+    // the stable token that gets inserted as `{{token}}`, the label is the human
+    // display text the admin sees and searches (issue #56).
+    const variables: IVariableSuggestion[] = React.useMemo(
+        () => buildVariableSuggestions(dataVariables),
+        [dataVariables],
+    );
 
     // Build extensions array based on mode
     const extensions = React.useMemo(() => {

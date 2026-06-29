@@ -77,6 +77,13 @@ export function DataAdminPage() {
 
   const [bulkExportOpen, setBulkExportOpen] = useState(false);
 
+  // Defer the (up to 100) user-list fetch — it only fills the "User" filter
+  // dropdown and otherwise runs on every page open. Load it on first dropdown
+  // interaction, or eagerly when a `?userId=` deep link needs the label.
+  const [shouldLoadUsers, setShouldLoadUsers] = useState<boolean>(
+    () => searchParams.get('userId') !== null
+  );
+
   // Active (applied) filters
   const [activeSelectedUserId, setActiveSelectedUserId] = useState<number>(-1);
   const [activeTableIds, setActiveTableIds] = useState<number[]>([]);
@@ -84,7 +91,10 @@ export function DataAdminPage() {
   const [activeSelectedLanguageId, setActiveSelectedLanguageId] = useState<number>(1);
 
   // Data fetching
-  const { data: usersResp, refetch: refetchUsers } = useUsers({ page: 1, pageSize: 100, sort: 'email', sortDirection: 'asc' });
+  const { data: usersResp, refetch: refetchUsers } = useUsers(
+    { page: 1, pageSize: 100, sort: 'email', sortDirection: 'asc' },
+    { enabled: shouldLoadUsers }
+  );
   const { data: tablesResp, refetch: refetchTables, isFetching: isTablesFetching } = useDataTables();
   const { languages, refetch: refetchLanguages } = usePublicLanguages();
 
@@ -161,6 +171,7 @@ export function DataAdminPage() {
 
     // Refresh
     const handleRefresh = useCallback(() => {
+    setShouldLoadUsers(true);
     void refetchUsers();
     void refetchTables();
     void refetchLanguages();
@@ -200,6 +211,7 @@ export function DataAdminPage() {
                 data={userOptions}
                 value={selectedUserId !== null ? String(selectedUserId) : null}
                 onChange={(val) => setSelectedUserId(val ? parseInt(val, 10) : null)}
+                onDropdownOpen={() => setShouldLoadUsers(true)}
                 searchable
                 clearable
                 w={320}

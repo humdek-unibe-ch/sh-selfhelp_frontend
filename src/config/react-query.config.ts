@@ -168,6 +168,11 @@ export const REACT_QUERY_CONFIG = {
         // the section inspector after edits.
         SECTION_DETAILS: (pageId: number | null, sectionId: number | null) =>
             ['admin', 'sections', 'details', pageId, sectionId],
+        // Per-section interpolation variable picker (token => label), read by
+        // `useSectionDataVariables`. Served fresh (REAL_TIME tier) so a data
+        // column added by a later form submission shows up without re-saving.
+        SECTION_DATA_VARIABLES: (sectionId: number | null) =>
+            ['admin', 'sections', 'data-variables', sectionId],
 
         // ── Admin cache management (read by useCacheStats/useCacheHealth,
         //    invalidated by the cache + section-utility clear mutations) ─────

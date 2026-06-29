@@ -13,6 +13,8 @@ import type {
   IDataTableColumnNamesResponse,
   IDeleteColumnsRequest,
   IDeleteColumnsResponse,
+  IUpdateColumnDisplayNameRequest,
+  IUpdateColumnDisplayNameResponse,
   IDeleteRecordResponse,
   IDeleteTableResponse,
   IDataExportTableParams,
@@ -97,6 +99,26 @@ export function useDeleteColumns() {
       },
     }
   );
+}
+
+export function useUpdateColumnDisplayName() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    { tableName: string; result: IUpdateColumnDisplayNameResponse },
+    unknown,
+    { tableName: string; body: IUpdateColumnDisplayNameRequest }
+  >({
+    mutationFn: async ({ tableName, body }) => ({
+      tableName,
+      result: await AdminDataApi.updateColumnDisplayName(tableName, body),
+    }),
+    onSuccess: ({ tableName }) => {
+      // Labels change column metadata + interpolation variables; refresh the
+      // column lists. Rows are keyed by field_key (unchanged) so they stay valid.
+      void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.columns(tableName) });
+      void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.columnNames(tableName) });
+    },
+  });
 }
 
 export function useDeleteRecord() {

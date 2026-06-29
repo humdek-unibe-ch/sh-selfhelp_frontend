@@ -20,7 +20,7 @@ import {
 import { IconPlus, IconTrash, IconFilter, IconAlertCircle } from '@tabler/icons-react';
 import { FilterBuilderInline } from './FilterBuilderInline';
 import { type IDataSource } from './DataConfigModal';
-import { useDataTables, useTableColumnNames } from '../../../../../hooks/useData';
+import { useDataTables, useTableColumns } from '../../../../../hooks/useData';
 import { LockedField } from '../../ui/locked-field/LockedField';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
 import classes from './DataConfigModal.module.css';
@@ -52,17 +52,30 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
         const found = tablesResp.dataTables.find((t) => t.name === dataSource.table);
         return found?.id;
     }, [tablesResp, dataSource.table]);
-    const { data: columnNames, isLoading: isColumnsLoading } = useTableColumnNames(dataSource.table);
+    const { data: columnsResp, isLoading: isColumnsLoading } = useTableColumns(dataSource.table);
 
     const tableOptions = useMemo(() => {
         const tables = tablesResp?.dataTables || [];
         return tables.map((t) => ({ value: t.name, label: t.displayName ? `${t.displayName} (${t.name})` : t.name }));
     }, [tablesResp]);
 
+    // The selected value is the immutable field_key (what the data resolver
+    // stores/looks up); the label shows the human display_name when curated.
     const columnOptions = useMemo(() => {
-        const unique = Array.from(new Set(columnNames || []));
-        return unique.map((name) => ({ value: name, label: name }));
-    }, [columnNames]);
+        const seen = new Set<string>();
+        const options: { value: string; label: string }[] = [];
+        for (const col of columnsResp?.columns ?? []) {
+            if (!col.fieldKey || seen.has(col.fieldKey)) {
+                continue;
+            }
+            seen.add(col.fieldKey);
+            options.push({
+                value: col.fieldKey,
+                label: col.displayName && col.displayName !== '' ? `${col.displayName} (${col.fieldKey})` : col.fieldKey,
+            });
+        }
+        return options;
+    }, [columnsResp?.columns]);
 
     const handleFieldChange = useCallback(<K extends keyof IDataSource>(field: K, value: IDataSource[K]) => {
         const updatedSource = { ...dataSource, [field]: value };

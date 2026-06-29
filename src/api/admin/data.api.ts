@@ -12,6 +12,8 @@ import type {
   IDataTableColumnNamesResponse,
   IDeleteColumnsRequest,
   IDeleteColumnsResponse,
+  IUpdateColumnDisplayNameRequest,
+  IUpdateColumnDisplayNameResponse,
   IDeleteRecordResponse,
   IDeleteTableResponse,
   IDataExportTableParams,
@@ -57,6 +59,15 @@ export const AdminDataApi = {
       {
         data: body,
       }
+    );
+    return response.data.data;
+  },
+
+  async updateColumnDisplayName(tableName: string, body: IUpdateColumnDisplayNameRequest): Promise<IUpdateColumnDisplayNameResponse> {
+    const response = await permissionAwareApiClient.patch<IBaseApiResponse<IUpdateColumnDisplayNameResponse>>(
+      API_CONFIG.ENDPOINTS.ADMIN_DATA_TABLE_COLUMN_DISPLAY_NAME_PATCH,
+      body,
+      tableName
     );
     return response.data.data;
   },

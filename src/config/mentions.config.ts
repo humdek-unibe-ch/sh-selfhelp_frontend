@@ -44,6 +44,27 @@ export interface IVariableSuggestion {
 }
 
 /**
+ * Build the mention dropdown items from the backend `data_variables` map.
+ *
+ * Issue #56: `data_variables` is a `token => label` map. The mention `id` is the
+ * stable interpolation TOKEN (inserted as `{{token}}` and persisted to content),
+ * while `label` is the human display text shown in the picker — so an admin
+ * browses/searches by the readable label but always stores the immutable key.
+ * The token is treated as an opaque literal and is never reformatted here.
+ *
+ * @param dataVariables `token => label` map from the section `data_variables`.
+ */
+export function buildVariableSuggestions(dataVariables?: Record<string, string>): IVariableSuggestion[] {
+    if (!dataVariables) {
+        return [];
+    }
+    return Object.entries(dataVariables).map(([token, label]) => ({
+        id: token,
+        label: label || token,
+    }));
+}
+
+/**
  * Variable bracket format for consistent mention rendering
  */
 export const VARIABLE_BRACKET_FORMAT = '{{}}';

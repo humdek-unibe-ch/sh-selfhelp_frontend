@@ -35,7 +35,7 @@ import {
 } from '@mantine/core';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconSortAscending, IconSortDescending, IconArrowsUpDown, IconRefresh, IconDownload, IconFileTypeCsv, IconJson } from '@tabler/icons-react';
-import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable } from '../../../../../hooks/useData';
+import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable, useTableColumns } from '../../../../../hooks/useData';
 import type { TDataExportFormat } from '../../../../../types/responses/admin/data.types';
 import { DataTableEditorModal } from '../modals/DataTableEditorModal';
 import { ConfirmDeleteTableModal } from '../modals/ConfirmDeleteTableModal';
@@ -78,13 +78,29 @@ export default function SingleDataTable({ formId, tableName, displayName, select
   };
 
   const { data, isLoading, isFetching, refetch } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted, language_id: selectedLanguageId });
+  const { data: columnsResp } = useTableColumns(tableName);
+
+  // Map immutable field_key -> human display label (issue #56). Rows are keyed
+  // by field_key; headers show the curated display_name when present.
+  const labelByKey = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const col of columnsResp?.columns ?? []) {
+      if (col.fieldKey) {
+        map[col.fieldKey] = col.displayName && col.displayName !== '' ? col.displayName : col.fieldKey;
+      }
+    }
+    return map;
+  }, [columnsResp?.columns]);
 
   const rows = useMemo(() => data?.rows || [], [data?.rows]);
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
     if (rows.length === 0) return [];
     const allKeys = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
     const baseCols = allKeys.map((key): ColumnDef<Record<string, unknown>> => ({
-      accessorKey: key,
+      // `id` + `accessorFn` (not `accessorKey`): a field_key may contain dots
+      // and must be read as an opaque literal, never as a nested path.
+      id: key,
+      accessorFn: (row) => row[key],
       header: ({ column }) => {
         const isSorted = column.getIsSorted();
         return (
@@ -100,7 +116,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             style={{ fontWeight: 'normal', justifyContent: 'space-between' }}
           >
-            {key}
+            {labelByKey[key] ?? key}
           </Button>
         );
       },
@@ -126,7 +142,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
         },
       },
     ];
-  }, [rows, displayName]);
+  }, [rows, displayName, labelByKey]);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by design; React Compiler intentionally skips memoizing here
   const table = useReactTable({
