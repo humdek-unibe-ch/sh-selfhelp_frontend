@@ -97,6 +97,7 @@ import {
     SYMFONY_API_PREFIX,
     SYMFONY_INTERNAL_URL,
 } from '../../../../config/server.config';
+import { bffDiagDec, bffDiagInc, bffDiagLog } from '../../_lib/preview-diag';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -177,6 +178,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // reconnect naturally falls back to `sh_auth` and re-subscribes as
     // the original admin.
     let bootstrap: MercureBootstrap;
+    const bootstrapStart = Date.now();
     try {
         const bootstrapRes = await fetch(
             `${SYMFONY_INTERNAL_URL}${SYMFONY_API_PREFIX}/auth/events`,
@@ -191,6 +193,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
                 next: { revalidate: 0 },
             }
         );
+
+        bffDiagLog('auth-events', 'bootstrap response', {
+            status: bootstrapRes.status,
+            ms: Date.now() - bootstrapStart,
+        });
 
         if (!bootstrapRes.ok) {
             // 401 from upstream means the JWT expired between the cookie
@@ -222,6 +229,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
             : '');
 
     let hubResponse: Response;
+    const hubStart = Date.now();
     try {
         hubResponse = await fetch(subscribeUrl, {
             method: 'GET',
@@ -242,8 +250,23 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     if (!hubResponse.ok || !hubResponse.body) {
+        bffDiagLog('auth-events', 'hub subscribe failed', {
+            status: hubResponse.status,
+            ms: Date.now() - hubStart,
+        });
         return new NextResponse(null, { status: hubResponse.status || 502 });
     }
+
+    // Diagnostics: count this as an ACTIVE upstream SSE and tear the count
+    // back down when the browser closes the EventSource (tab close / reconnect).
+    // A count that climbs and never returns to ~1-per-open-tab is the
+    // connection pile-up we suspect. No-op unless PREVIEW_DIAG=1.
+    const active = bffDiagInc('auth-events-active');
+    bffDiagLog('auth-events', 'stream open', { active, bootstrapHubMs: Date.now() - hubStart });
+    req.signal.addEventListener('abort', () => {
+        const left = bffDiagDec('auth-events-active');
+        bffDiagLog('auth-events', 'stream close', { active: left });
+    });
 
     // Step 3: pipe the body straight through. `Cache-Control: no-transform`
     // and `X-Accel-Buffering: no` defeat any reverse proxy / nginx layer

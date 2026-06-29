@@ -35,6 +35,7 @@ import {
     bufferRequest,
 } from '../_lib/proxy';
 import { buildRuntimeShimResponse } from '../plugins/runtime-shim/runtime-shim';
+import { bffDiagEnabled, bffDiagLog } from '../_lib/preview-diag';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,6 +94,10 @@ async function buildResponseWithCookieRotation(
 
     const { body: cleanBody, tokens } = stripTokensFromBody(payload);
     if (tokens) {
+        bffDiagLog('proxy', 'token rotation (body)', {
+            access: Boolean(tokens.access_token),
+            refresh: Boolean(tokens.refresh_token),
+        });
         const res = NextResponse.json(cleanBody, { status: upstream.status });
         // Set the refresh-pair first (if any), then overwrite with the body
         // tokens — those are the newest rotation the caller should keep.
@@ -109,7 +114,7 @@ async function buildResponseWithCookieRotation(
     return res;
 }
 
-async function handle(req: NextRequest, context: { params: Promise<{ path: string[] }> }): Promise<NextResponse> {
+async function handleInner(req: NextRequest, context: { params: Promise<{ path: string[] }> }): Promise<NextResponse> {
     const csrfFail = validateCsrf(req);
     if (csrfFail) return csrfFail;
 
@@ -129,6 +134,10 @@ async function handle(req: NextRequest, context: { params: Promise<{ path: strin
 
     if (upstream.status === 401) {
         const refreshed = await refreshInternal();
+        bffDiagLog('proxy', '401 -> refresh', {
+            path: req.nextUrl.pathname,
+            outcome: refreshed.status,
+        });
         if (refreshed.status === 'ok') {
             // Transparent retry with rotated token. Works for every HTTP
             // method because `buffered.body` is an `ArrayBuffer` we can
@@ -172,6 +181,23 @@ async function handle(req: NextRequest, context: { params: Promise<{ path: strin
     }
 
     return buildResponseWithCookieRotation(upstream, null);
+}
+
+/**
+ * Timing wrapper. When PREVIEW_DIAG is off this is a single boolean check then
+ * a tail call (no behavioural change); when on it logs per-request latency so a
+ * slowdown that appears once a Live Preview tab is open is visible against the
+ * `auth-events` stream counts.
+ */
+async function handle(req: NextRequest, context: { params: Promise<{ path: string[] }> }): Promise<NextResponse> {
+    if (!bffDiagEnabled()) return handleInner(req, context);
+    const start = Date.now();
+    const res = await handleInner(req, context);
+    bffDiagLog('proxy', `${req.method} ${req.nextUrl.pathname}`, {
+        status: res.status,
+        ms: Date.now() - start,
+    });
+    return res;
 }
 
 export const GET = handle;
