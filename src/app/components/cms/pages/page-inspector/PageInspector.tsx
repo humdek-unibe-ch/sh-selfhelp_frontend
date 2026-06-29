@@ -66,6 +66,7 @@ import {
     VersionComparisonViewer
 } from '../../page-versions';
 import { usePageFormStore } from '../../../../store/pageFormStore';
+import { useInterpolationVariables } from '../../../../../hooks/useInterpolationVariables';
 import { PageContentField, PagePropertyField } from './page-field-connectors';
 import {
     PageInfoPanel,
@@ -118,6 +119,11 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
         isLoading: fieldsLoading,
         error: fieldsError
     } = usePageFields(page?.id_pages || null, !!page);
+
+    // Interpolation `{{ }}` picker for this page's text fields (issue #56 v2).
+    // The mail-config page is detected server-side and gets the mail catalog
+    // (system.* + system.special.* links); other pages get system.* + globals.*.
+    const { data: pageDataVariables } = useInterpolationVariables('page', page?.id_pages ?? null, !!page);
 
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
     const { languages: languagesData, isLoading: languagesLoading } = usePublicLanguages();
@@ -359,6 +365,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                               languageId={lang.id}
                               locale={lang.locale}
                               className={styles.fullWidthLabel}
+                              dataVariables={pageDataVariables}
                               disabled={
                                 isConfigurationPage &&
                                 field.name.toLowerCase() === "title"
@@ -378,6 +385,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                         languageId={defaultLanguageId}
                         locale={languagesData[0]?.locale}
                         className={styles.fullWidthLabel}
+                        dataVariables={pageDataVariables}
                         disabled={
                           isConfigurationPage &&
                           field.name.toLowerCase() === "title"
@@ -408,6 +416,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                 <PageAdditionalProperties
                   fields={propertyFields}
                   defaultLanguageId={defaultLanguageId}
+                  dataVariables={pageDataVariables}
                 />
               </CollapsibleSection>
             )}
@@ -425,6 +434,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                     <PagePropertyField
                       field={field}
                       languageId={defaultLanguageId}
+                      dataVariables={pageDataVariables}
                     />
                   </Box>
                 ))}

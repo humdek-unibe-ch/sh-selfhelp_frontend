@@ -30,28 +30,32 @@ interface IMonacoFieldEditorProps {
     theme?: 'vs' | 'vs-dark' | 'hc-black';
     className?: string;
     /**
-     * Interpolation variables (`token => label`) for the `{{` completion in
-     * markdown fields. Same map the Tiptap mention picker uses, so the picker
-     * stays consistent across editors (issue #56 v2). Ignored for `json`/`css`.
+     * Interpolation variables (`token => label`) for the `{{` completion. Same
+     * map the Tiptap mention picker uses, so the picker stays consistent across
+     * every editor — Monaco markdown, CSS and JSON fields included (issue #56
+     * v2). Omit it for editors that should not offer interpolation.
      */
     dataVariables?: Record<string, string>;
 }
 
-// Markdown `{{` completion is a SINGLE global provider keyed by model URI, so
-// several markdown editors can be mounted without stacking duplicate providers.
+// The `{{` completion is a SINGLE global provider per language keyed by model
+// URI, so several editors can be mounted without stacking duplicate providers.
 // Each editor registers its own variable map under its model URI and removes it
 // on unmount; the provider resolves the right map from the triggering model.
-const markdownModelVariables = new Map<string, Record<string, string>>();
-let markdownVariableProvider: { dispose(): void } | null = null;
+// Coverage spans every Monaco-backed CMS field (markdown, custom CSS, JSON) so
+// `{{ }}` works wherever code is authored (issue #56 v2).
+const modelVariables = new Map<string, Record<string, string>>();
+const registeredProviderLanguages = new Set<string>();
 
-function ensureMarkdownVariableProvider(monaco: Monaco): void {
-    if (markdownVariableProvider) {
+function ensureVariableProvider(monaco: Monaco, language: TMonacoLanguage): void {
+    if (registeredProviderLanguages.has(language)) {
         return;
     }
+    registeredProviderLanguages.add(language);
     const provider: languages.CompletionItemProvider = {
         triggerCharacters: ['{'],
         provideCompletionItems(model, position) {
-            const variables = markdownModelVariables.get(model.uri.toString());
+            const variables = modelVariables.get(model.uri.toString());
             if (!variables || Object.keys(variables).length === 0) {
                 return { suggestions: [] };
             }
@@ -99,7 +103,7 @@ function ensureMarkdownVariableProvider(monaco: Monaco): void {
             return { suggestions };
         },
     };
-    markdownVariableProvider = monaco.languages.registerCompletionItemProvider('markdown', provider);
+    monaco.languages.registerCompletionItemProvider(language, provider);
 }
 
 const languageConfig: Record<TMonacoLanguage, {
@@ -158,16 +162,16 @@ export function MonacoFieldEditor({
 
     // Keep this model's `{{` completion variables current as they load/change.
     useEffect(() => {
-        if (language === 'markdown' && modelUriRef.current && dataVariables) {
-            markdownModelVariables.set(modelUriRef.current, dataVariables);
+        if (modelUriRef.current && dataVariables) {
+            modelVariables.set(modelUriRef.current, dataVariables);
         }
-    }, [language, dataVariables]);
+    }, [dataVariables]);
 
     // Drop this model's variables when the field unmounts.
     useEffect(() => {
         return () => {
             if (modelUriRef.current) {
-                markdownModelVariables.delete(modelUriRef.current);
+                modelVariables.delete(modelUriRef.current);
             }
         };
     }, []);
@@ -189,15 +193,15 @@ export function MonacoFieldEditor({
         monacoRef.current = monaco;
         setIsEditorReady(true);
 
-        // Register the `{{` variable completion for markdown fields only.
-        if (language === 'markdown') {
+        // Register the `{{` variable completion. Only editors handed a variable
+        // map opt in, but the provider itself spans markdown / CSS / JSON so
+        // interpolation works wherever code is authored (issue #56 v2).
+        if (dataVariables) {
             const model = editor.getModel();
             if (model) {
                 modelUriRef.current = model.uri.toString();
-                if (dataVariables) {
-                    markdownModelVariables.set(modelUriRef.current, dataVariables);
-                }
-                ensureMarkdownVariableProvider(monaco);
+                modelVariables.set(modelUriRef.current, dataVariables);
+                ensureVariableProvider(monaco, language);
             }
         }
 

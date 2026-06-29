@@ -292,7 +292,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     
 
     
-    // JSON field - use Monaco Editor
+    // JSON field - use Monaco Editor with `{{` variable completion (issue #56 v2)
     if (field.type === 'json') {
         return renderFieldWithBadge(
             <MonacoEditorField
@@ -302,6 +302,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 language="json"
                 height={250}
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }
@@ -722,7 +723,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
 
-    // CSS field - use Monaco Editor
+    // CSS field - use Monaco Editor with `{{` variable completion (issue #56 v2)
     if (field.type === 'css') {
         return renderFieldWithBadge(
             <MonacoEditorField
@@ -732,6 +733,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 language="css"
                 height={400}
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }

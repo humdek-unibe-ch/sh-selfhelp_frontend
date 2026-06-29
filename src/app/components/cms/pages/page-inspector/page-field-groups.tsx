@@ -343,11 +343,13 @@ export const PageSettings = React.memo(function PageSettings() {
 interface IPageAdditionalPropertiesProps {
     fields: IPageField[];
     defaultLanguageId: number;
+    dataVariables?: Record<string, string>;
 }
 
 export const PageAdditionalProperties = React.memo(function PageAdditionalProperties({
     fields,
-    defaultLanguageId
+    defaultLanguageId,
+    dataVariables
 }: IPageAdditionalPropertiesProps) {
     if (fields.length === 0) return null;
 
@@ -372,6 +374,7 @@ export const PageAdditionalProperties = React.memo(function PageAdditionalProper
                         <PagePropertyField
                             field={field}
                             languageId={defaultLanguageId}
+                            dataVariables={dataVariables}
                             className={styles.fullWidthLabel}
                         />
                     </Box>
