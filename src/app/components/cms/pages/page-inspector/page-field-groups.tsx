@@ -343,13 +343,15 @@ export const PageSettings = React.memo(function PageSettings() {
 interface IPageAdditionalPropertiesProps {
     fields: IPageField[];
     defaultLanguageId: number;
-    dataVariables?: Record<string, string>;
 }
 
+// Property fields (url, nav/footer position, page-type settings) are returned
+// verbatim by the backend and never interpolated at render, so they expose no
+// `{{ }}` picker (issue #56 v2 honest-picker rule). The picker lives on content
+// fields (mail-config templates) and sections instead.
 export const PageAdditionalProperties = React.memo(function PageAdditionalProperties({
     fields,
-    defaultLanguageId,
-    dataVariables
+    defaultLanguageId
 }: IPageAdditionalPropertiesProps) {
     if (fields.length === 0) return null;
 
@@ -374,7 +376,6 @@ export const PageAdditionalProperties = React.memo(function PageAdditionalProper
                         <PagePropertyField
                             field={field}
                             languageId={defaultLanguageId}
-                            dataVariables={dataVariables}
                             className={styles.fullWidthLabel}
                         />
                     </Box>

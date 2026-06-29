@@ -120,9 +120,13 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
         error: fieldsError
     } = usePageFields(page?.id_pages || null, !!page);
 
-    // Interpolation `{{ }}` picker for this page's text fields (issue #56 v2).
-    // The mail-config page is detected server-side and gets the mail catalog
-    // (system.* + system.special.* links); other pages get system.* + globals.*.
+    // Interpolation `{{ }}` picker for this page's CONTENT fields (issue #56 v2).
+    // Only the mail-config page actually interpolates page fields (its email
+    // templates are rendered by the mail subsystem) — it is detected server-side
+    // and returns the mail catalog (system.* + system.special.* links). Every
+    // other page returns an empty catalog because PageService renders page
+    // metadata verbatim, so the picker stays off those fields (honest-picker
+    // rule). Property fields never interpolate and therefore get no picker.
     const { data: pageDataVariables } = useInterpolationVariables('page', page?.id_pages ?? null, !!page);
 
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
@@ -416,7 +420,6 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                 <PageAdditionalProperties
                   fields={propertyFields}
                   defaultLanguageId={defaultLanguageId}
-                  dataVariables={pageDataVariables}
                 />
               </CollapsibleSection>
             )}
@@ -434,7 +437,6 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                     <PagePropertyField
                       field={field}
                       languageId={defaultLanguageId}
-                      dataVariables={pageDataVariables}
                     />
                   </Box>
                 ))}
