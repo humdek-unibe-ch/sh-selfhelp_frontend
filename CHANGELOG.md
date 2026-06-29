@@ -14,6 +14,35 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.53 — 2026-06-29
+
+### Added
+- **The `{{` interpolation picker is now global (host issue #56).** Every CMS
+  text surface offers the variable picker: the **page / config** content + property
+  fields, the **action** subject and body editors, the **data-config** SQL filter,
+  and the **custom CSS / Mobile CSS** and **JSON** code editors. The Monaco `{{`
+  completion provider now covers `css` and `json` (previously markdown only), so
+  any code field that carries variables gets type-`{{`-to-insert too.
+- **One modular variable system.** A single `useInterpolationVariables(context, id)`
+  hook fetches the catalog from the new unified core endpoint (`context` =
+  `section` | `page` | `action` | `global`); the section hook now delegates to it,
+  so there is one source of truth for the picker across the whole CMS. The action
+  picker offers `recipient.*`, `record.<field_key>` (from the action's selected
+  data table) and `system.*`; the page/global picker offers `system.*` + `globals.*`.
+
+### Changed
+- **Mail-config & page tokens are namespaced.** The picker on the mail-config page
+  (and other pages) offers the `system.*` / `system.special.*` tokens the backend
+  actually renders, matching the rewritten seeded auth mail templates.
+
+Depends on core **0.1.26** (the unified `GET /admin/interpolation/variables`
+endpoint that backs every context, plus the `system.*` mail namespace), so
+`supports.core` is raised `>=0.1.25` → `>=0.1.26`. The backend route is additive
+(the legacy section data-variables route still exists), so the backend
+`supports.frontend` floor is unchanged.
+
+---
+
 ## v0.1.52 — 2026-06-29
 
 ### Changed
