@@ -5,7 +5,8 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import React from 'react';
-import { Input } from '@mantine/core';
+import { Input, Menu, Button } from '@mantine/core';
+import { IconPalette } from '@tabler/icons-react';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -19,6 +20,7 @@ import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { buildVariableSuggestions, createMentionConfig, sanitizeForDatabase, tokensToMentionHtml, type IVariableSuggestion } from '../../../../config/mentions.config';
 import { MentionSuggestionList } from './MentionSuggestionList';
 import { PreserveSpaces } from './PreserveSpacesExtension';
+import { EmailStyleMark, EMAIL_STYLE_PRESETS } from './EmailStyleExtension';
 import styles from './MentionEditor.module.css';
 
 interface IMentionEditorProps {
@@ -35,8 +37,21 @@ interface IMentionEditorProps {
     maxItems?: number;
     /** If true, editor acts like a single-line text input without rich text features */
     singleLineMode?: boolean;
+    /**
+     * Compact (single-line-style) editor that WRAPS long content and grows in
+     * height instead of clipping to one line. Only meaningful with
+     * `singleLineMode`; the content stays a single logical line (Enter is still
+     * blocked) so plain-text storage round-trips unchanged (issue #56 multiline).
+     */
+    autoGrow?: boolean;
     /** If true, shows rich text toolbar (only applies when singleLineMode is false) */
     showToolbar?: boolean;
+    /**
+     * If true, adds the email "Style" preset dropdown to the rich-text toolbar so
+     * mail-config bodies can apply email-safe presets (buttons, callouts, muted
+     * text, inline code). Only applies in rich-text mode (issue #56 mail editor).
+     */
+    emailStyles?: boolean;
     /** If true, prevents auto-focus when the editor mounts */
     autoFocus?: boolean;
     /** Callback for key down events */
@@ -67,7 +82,9 @@ export function MentionEditor({
     maxVisibleRows = 5,
     maxItems = 50,
     singleLineMode = false,
+    autoGrow = false,
     showToolbar = true,
+    emailStyles = false,
     autoFocus = false,
     onKeyDown,
     enableRichTextShortcuts = false,
@@ -121,6 +138,13 @@ export function MentionEditor({
                 TextAlign.configure({ types: ['heading', 'paragraph'] }),
                 TextStyle
             );
+        }
+
+        // Register the email-style mark so stored `<span class="email-…">` presets
+        // hydrate back into the editor and the Style dropdown can apply them
+        // (issue #56 mail editor). Only the mail-config bodies opt in.
+        if (emailStyles && !singleLineMode) {
+            exts.push(EmailStyleMark);
         }
 
         // Always register the Mention node so the schema can render label chips
@@ -190,7 +214,7 @@ export function MentionEditor({
         return exts;
         // `variables` is intentionally excluded: suggestions read `variablesRef`
         // live, so the editor must NOT be rebuilt when the map loads/changes.
-    }, [maxVisibleRows, maxItems, singleLineMode, placeholder, enableRichTextShortcuts]);
+    }, [maxVisibleRows, maxItems, singleLineMode, placeholder, enableRichTextShortcuts, emailStyles]);
 
     const editor = useEditor({
         extensions,
@@ -303,11 +327,46 @@ export function MentionEditor({
                             <RichTextEditor.AlignJustify />
                             <RichTextEditor.AlignRight />
                         </RichTextEditor.ControlsGroup>
+
+                        {emailStyles && (
+                            <RichTextEditor.ControlsGroup>
+                                <Menu position="bottom-start" withinPortal shadow="md">
+                                    <Menu.Target>
+                                        <Button
+                                            size="compact-sm"
+                                            variant="default"
+                                            leftSection={<IconPalette size={14} />}
+                                            disabled={!editor}
+                                        >
+                                            Style
+                                        </Button>
+                                    </Menu.Target>
+                                    <Menu.Dropdown>
+                                        <Menu.Label>Email styles</Menu.Label>
+                                        {EMAIL_STYLE_PRESETS.map((preset) => (
+                                            <Menu.Item
+                                                key={preset.id}
+                                                onClick={() => editor?.chain().focus().setEmailStyle(preset.className).run()}
+                                            >
+                                                {preset.label}
+                                            </Menu.Item>
+                                        ))}
+                                        <Menu.Divider />
+                                        <Menu.Item
+                                            color="red"
+                                            onClick={() => editor?.chain().focus().unsetEmailStyle().run()}
+                                        >
+                                            Clear style
+                                        </Menu.Item>
+                                    </Menu.Dropdown>
+                                </Menu>
+                            </RichTextEditor.ControlsGroup>
+                        )}
                     </RichTextEditor.Toolbar>
                 )}
 
                 <RichTextEditor.Content
-                    className={singleLineMode ? styles.singleLineEditor : styles.richTextEditor}
+                    className={singleLineMode ? (autoGrow ? styles.autoGrowEditor : styles.singleLineEditor) : styles.richTextEditor}
                     onKeyDown={onKeyDown}
                 />
             </RichTextEditor>

@@ -20,6 +20,8 @@ interface IRichTextFieldProps {
     dataVariables?: Record<string, string>;
     maxVisibleRows?: number;
     maxItems?: number;
+    /** Show the email "Style" preset dropdown (mail-config bodies only). */
+    emailStyles?: boolean;
 }
 
 /**
@@ -40,6 +42,7 @@ export function RichTextField({
     dataVariables,
     maxVisibleRows = 5,
     maxItems = 50,
+    emailStyles = false,
 }: IRichTextFieldProps) {
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
@@ -61,6 +64,7 @@ export function RichTextField({
             maxItems={maxItems}
             singleLineMode={false}
             showToolbar={true}
+            emailStyles={emailStyles}
         />
     );
 }

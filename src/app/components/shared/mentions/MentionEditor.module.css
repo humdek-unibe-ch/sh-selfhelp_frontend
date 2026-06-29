@@ -111,3 +111,101 @@ SPDX-License-Identifier: MPL-2.0
     outline: none;
 }
 
+/* Auto-grow mode - single logical line that wraps and grows in height instead
+   of clipping to one line (issue #56 multiline). */
+.autoGrowEditor {
+    min-height: 36px;
+    background-color: var(--mantine-color-body);
+    border-radius: var(--mantine-radius-md);
+}
+
+.autoGrowEditor :global(.ProseMirror) {
+    padding: 8px 12px;
+    min-height: 36px;
+    max-height: 220px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.autoGrowEditor :global(.ProseMirror .is-editor-empty:first-child::before) {
+    color: var(--mantine-color-placeholder);
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+    font-size: 14px;
+}
+
+.autoGrowEditor :global(.ProseMirror p),
+.autoGrowEditor :global(.single-line-paragraph) {
+    margin: 0;
+    display: block;
+    white-space: pre-wrap;
+}
+
+.autoGrowEditor :global(.mention-variable) {
+    white-space: normal;
+}
+
+.autoGrowEditor :global(.ProseMirror:focus) {
+    outline: none;
+}
+
+/* Email style preset previews (issue #56 mail editor). These mirror the
+   email-safe inline CSS the backend MailHtmlRenderer applies at send time, so
+   the WYSIWYG preview looks like the delivered email. Scoped to the rich-text
+   editor so the global class names never leak into the rest of the app. */
+.richTextEditor :global(.email-button) {
+    display: inline-block;
+    background-color: #2f6fed;
+    color: #ffffff;
+    padding: 12px 28px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.richTextEditor :global(.email-button-secondary) {
+    display: inline-block;
+    background-color: #ffffff;
+    color: #2f6fed;
+    padding: 11px 27px;
+    border: 1px solid #2f6fed;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.richTextEditor :global(.email-link-strong) {
+    color: #2f6fed;
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+.richTextEditor :global(.email-muted) {
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.richTextEditor :global(.email-callout) {
+    display: block;
+    background-color: #f3f4f6;
+    border-radius: 6px;
+    padding: 12px 16px;
+    word-break: break-all;
+    color: #374151;
+}
+
+.richTextEditor :global(.email-code) {
+    display: inline-block;
+    font-family: Menlo, Consolas, monospace;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: #111827;
+}
+

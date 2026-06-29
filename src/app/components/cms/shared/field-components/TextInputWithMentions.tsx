@@ -25,6 +25,12 @@ interface ITextInputWithMentionsProps {
     onKeyDown?: (event: React.KeyboardEvent) => void;
     /** If true, enables rich text formatting shortcuts (bold, italic, underline) in single-line mode */
     enableRichTextShortcuts?: boolean;
+    /**
+     * If true, the field wraps long content and grows in height instead of
+     * clipping to one line (still a single logical line). Used for longer inline
+     * text fields like alerts/descriptions (issue #56 multiline).
+     */
+    autoGrow?: boolean;
 }
 
 /**
@@ -51,6 +57,7 @@ export function TextInputWithMentions({
     autoFocus = false,
     onKeyDown,
     enableRichTextShortcuts = false,
+    autoGrow = false,
 }: ITextInputWithMentionsProps) {
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
@@ -88,6 +95,7 @@ export function TextInputWithMentions({
                 maxVisibleRows={maxVisibleRows}
                 maxItems={maxItems}
                 singleLineMode={true}
+                autoGrow={autoGrow}
                 showToolbar={false}
                 autoFocus={autoFocus}
                 onKeyDown={onKeyDown}

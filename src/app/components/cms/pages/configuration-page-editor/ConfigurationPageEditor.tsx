@@ -248,6 +248,10 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                 }}
                 locale={locale}
                 dataVariables={pageDataVariables}
+                // Mail-config bodies are email templates: enable the email "Style"
+                // preset dropdown so admins can apply email-safe presets
+                // (buttons, callouts, muted text, inline code) (issue #56).
+                emailStyles={page.keyword === 'sh-mail-config'}
             />
         );
     };

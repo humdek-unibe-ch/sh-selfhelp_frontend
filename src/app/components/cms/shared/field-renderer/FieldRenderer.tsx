@@ -71,6 +71,43 @@ interface IFieldRendererProps {
     className?: string;
     disabled?: boolean;
     dataVariables?: Record<string, string>;
+    /**
+     * Show the email "Style" preset dropdown on rich-text (textarea) fields.
+     * Set by the mail-config editor so only email bodies get email presets
+     * (issue #56 mail editor).
+     */
+    emailStyles?: boolean;
+}
+
+/**
+ * Strictly single-line `text` / `markdown-inline` fields rendered as a plain
+ * Mantine input (no mentions): short identifiers with their own validation.
+ */
+const PLAIN_TEXT_FIELD_NAMES = new Set(['name', 'value', 'title']);
+
+/**
+ * Single-line `text` / `markdown-inline` fields that keep the mention picker but
+ * must stay on ONE line (labels/short captions). Everything else auto-grows
+ * (issue #56 multiline).
+ */
+const SINGLE_LINE_TEXT_FIELD_NAMES = new Set(['label', 'subtitle', 'placeholder', 'alt', 'caption']);
+
+export type TTextFieldMode = 'plain' | 'single-line' | 'multiline';
+
+/**
+ * Decide how a `text` / `markdown-inline` field is rendered:
+ * - `plain`: short identifier, plain input, own validation (name/value/title);
+ * - `single-line`: one-line mention editor (labels/captions);
+ * - `multiline`: auto-grow mention editor for longer inline copy (default).
+ */
+export function resolveTextFieldMode(fieldName: string): TTextFieldMode {
+    if (PLAIN_TEXT_FIELD_NAMES.has(fieldName)) {
+        return 'plain';
+    }
+    if (SINGLE_LINE_TEXT_FIELD_NAMES.has(fieldName)) {
+        return 'single-line';
+    }
+    return 'multiline';
 }
 
 // Props shared by the select-language / select-timezone branch components.
@@ -159,7 +196,7 @@ function SelectTimezoneField({ fieldId, fieldValue, onChange, disabled }: ISelec
 }
 
 export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Record<string, string> }) {
-    const { field, languageId, value, onChange, locale, className, disabled = false, dataVariables } = props;
+    const { field, languageId, value, onChange, locale, className, disabled = false, dataVariables, emailStyles = false } = props;
 
     // Plugin-supplied editor renderers take priority over host built-ins so
     // plugin-owned field types (e.g. `select-survey-js`) stay inside the
@@ -331,7 +368,8 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             onChange: onChange,
             placeholder: field.default_value || '',
             disabled: disabled,
-            dataVariables: dataVariables
+            dataVariables: dataVariables,
+            emailStyles: emailStyles
         };
         
         if (field.name === 'name') {
@@ -342,10 +380,14 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         return renderFieldWithBadge(<RichTextField {...richTextProps} />);
     }
 
-    // Text and markdown-inline fields - use TextInputWithMentions for single-line text with variable support
+    // Text and markdown-inline fields - mention-aware editors. Short identifiers
+    // stay plain inputs; labels/captions stay single-line; everything else
+    // auto-grows so longer inline copy (alerts, descriptions) is readable
+    // (issue #56 multiline).
     if (field.type === 'text' || field.type === 'markdown-inline') {
+        const textMode = resolveTextFieldMode(field.name);
 
-        if (field.name === 'name' || field.name === 'value' || field.name === 'title') {
+        if (textMode === 'plain') {
             return renderFieldWithBadge(
                 <TextInputField
                     fieldId={field.id}
@@ -355,7 +397,6 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             );
         }
 
-        // Prepare props conditionally to avoid inline object creation.
         // Only `markdown-inline` fields may carry inline formatting (bold / italic
         // / underline / link) — those tags survive to the web + mobile renderers.
         // Plain `text` fields disable the shortcuts so no `<strong>` etc. is ever
@@ -368,13 +409,10 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             placeholder: field.default_value || '',
             disabled: disabled,
             dataVariables: dataVariables,
-            enableRichTextShortcuts: allowInlineFormatting
+            enableRichTextShortcuts: allowInlineFormatting,
+            autoGrow: textMode === 'multiline'
         };
-        
-        if (field.name === 'name') {
-            textInputProps.validator = validateName;
-        }
-        
+
         return renderFieldWithBadge(<TextInputWithMentions {...textInputProps} />);
     }
 
