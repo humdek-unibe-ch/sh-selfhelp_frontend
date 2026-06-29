@@ -14,6 +14,28 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.50 — 2026-06-29
+
+### Fixed
+- **Real-time SSE no longer opens one connection per browser tab.** The
+  ACL / impersonation / system-update stream (`/api/auth/events`) and the
+  plugin-manager stream (`/api/plugins/events`) are now shared across all tabs
+  of a browser through a single elected leader tab (Web Locks + a
+  `BroadcastChannel` fan-out); follower tabs hold no network connection. Opening
+  several admin tabs no longer exhausts the browser's per-origin connection pool
+  and hangs other same-origin requests (the "Data browser hangs with a few tabs
+  open" report). On browsers without Web Locks it falls back to a per-tab
+  connection that is released while the tab is hidden and reopened on focus.
+
+### Added
+- **Opt-in SSE / BFF diagnostics** (`PREVIEW_DIAG=1` /
+  `NEXT_PUBLIC_PREVIEW_DIAG=1`), dark by default, for measuring live SSE
+  connection counts and per-request proxy latency during an investigation.
+
+Floor-neutral (no new backend dependency), so `supports.core` stays `>=0.1.24`.
+
+---
+
 ## v0.1.49 — 2026-06-29
 
 ### Added
