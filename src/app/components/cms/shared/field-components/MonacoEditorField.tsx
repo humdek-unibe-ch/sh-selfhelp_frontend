@@ -14,6 +14,8 @@ interface IMonacoEditorFieldProps {
     language: TMonacoLanguage;
     height?: number;
     disabled?: boolean;
+    /** Interpolation variables for the `{{` completion (markdown only). */
+    dataVariables?: Record<string, string>;
 }
 
 export function MonacoEditorField({
@@ -22,7 +24,8 @@ export function MonacoEditorField({
     onChange,
     language,
     height = 250,
-    disabled = false
+    disabled = false,
+    dataVariables
 }: IMonacoEditorFieldProps) {
     const { colorScheme } = useMantineColorScheme();
 
@@ -38,6 +41,7 @@ export function MonacoEditorField({
             height={height}
             readOnly={disabled}
             theme={colorScheme === 'dark' ? 'vs-dark' : 'vs'}
+            dataVariables={dataVariables}
         />
     );
 }

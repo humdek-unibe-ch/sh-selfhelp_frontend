@@ -168,6 +168,13 @@ export const REACT_QUERY_CONFIG = {
         // the section inspector after edits.
         SECTION_DETAILS: (pageId: number | null, sectionId: number | null) =>
             ['admin', 'sections', 'details', pageId, sectionId],
+        // Context-aware interpolation variable picker (token => label) for the
+        // unified `{{` system (issue #56 v2), read by `useInterpolationVariables`.
+        // Keyed by context (section|page|action|global) + target id so each
+        // surface caches independently. Served fresh (REAL_TIME tier) so a data
+        // column added by a later form submission shows up without re-saving.
+        INTERPOLATION_VARIABLES: (context: string, id: number | null) =>
+            ['admin', 'interpolation', 'variables', context, id],
 
         // ── Admin cache management (read by useCacheStats/useCacheHealth,
         //    invalidated by the cache + section-utility clear mutations) ─────

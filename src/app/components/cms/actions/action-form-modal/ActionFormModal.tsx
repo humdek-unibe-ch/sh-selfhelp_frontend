@@ -15,6 +15,7 @@ import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { ACTION_TRIGGER_TYPES } from '../../../../../constants/lookups.constants';
 import dynamic from 'next/dynamic';
 import { useDataTables } from '../../../../../hooks/useData';
+import { useInterpolationVariables } from '../../../../../hooks/useInterpolationVariables';
 import { ActionConfigBuilder } from '../action-config-builder/ActionConfigBuilder';
 
 // Default action config used for the initial state, the dedupe ref seed, and
@@ -67,6 +68,15 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
   const dataTablesOptions = useMemo(
     () => (tables?.dataTables || []).map((t) => ({ value: String(t.id), label: t.displayName || t.name })),
     [tables]
+  );
+
+  // Interpolation `{{ }}` picker for the action's subject/body editors (issue
+  // #56 v2): recipient.* + system.* + globals.* always, plus record.<field_key>
+  // columns from the selected data table once one is chosen.
+  const { data: actionDataVariables } = useInterpolationVariables(
+    'action',
+    Number(dataTableId) || null,
+    opened
   );
 
   // Memoized callback functions to prevent re-renders
@@ -273,6 +283,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
               value={configObj}
               onChange={handleConfigChange}
               onTranslationsChange={handleTranslationsChange}
+              dataVariables={actionDataVariables}
             />
           </div>
         </div>

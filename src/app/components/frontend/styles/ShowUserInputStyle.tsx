@@ -69,11 +69,27 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
 
     const rows: IShowUserInputEntry[] = style.entries ?? [];
 
+    // Issue #56 v2: rows are keyed by the immutable `field_key`; headers default
+    // to the column `display_name` from `field_labels` (so renaming a column
+    // relabels the header automatically). `fields_map` stays an explicit
+    // override that also selects/orders columns; each mapping resolves to a real
+    // data key by `field_key` first, then by current `display_name`, so a rename
+    // never breaks an existing mapping.
+    const fieldLabels: Record<string, string> = style.field_labels ?? {};
+    const dataKeys = Object.keys(rows[0] ?? {})
+        .filter(k => k !== 'entry_date' && k !== 'record_id' && k !== '_can_delete' && k !== 'id_users');
+
     const mappedCols: IColumn[] = fieldMappings.length
-        ? fieldMappings.map(m => ({ key: m.field_name, label: m.field_new_name }))
-        : Object.keys(rows[0] ?? {})
-            .filter(k => k !== 'entry_date' && k !== 'record_id' && k !== '_can_delete' && k !== 'id_users')
-            .map(k => ({ key: k, label: k }));
+        ? fieldMappings
+            .map(m => {
+                const key = dataKeys.includes(m.field_name)
+                    ? m.field_name
+                    : dataKeys.find(k => fieldLabels[k] === m.field_name);
+                if (!key) return null;
+                return { key, label: m.field_new_name || fieldLabels[key] || key };
+            })
+            .filter((c): c is IColumn => c !== null)
+        : dataKeys.map(k => ({ key: k, label: fieldLabels[k] || k }));
 
     const leadingCol: IColumn = showTimestamp
         ? { key: 'entry_date', label: 'Date' }

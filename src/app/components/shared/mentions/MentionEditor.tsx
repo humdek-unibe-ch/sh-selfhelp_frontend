@@ -5,7 +5,8 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import React from 'react';
-import { Input } from '@mantine/core';
+import { Input, Menu, Button } from '@mantine/core';
+import { IconPalette } from '@tabler/icons-react';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -16,9 +17,10 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import Mention from '@tiptap/extension-mention';
 import { Extension, type Extensions } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { createMentionConfig, sanitizeForDatabase, type IVariableSuggestion } from '../../../../config/mentions.config';
+import { buildVariableSuggestions, createMentionConfig, sanitizeForDatabase, tokensToMentionHtml, type IVariableSuggestion } from '../../../../config/mentions.config';
 import { MentionSuggestionList } from './MentionSuggestionList';
 import { PreserveSpaces } from './PreserveSpacesExtension';
+import { EmailStyleExtension, EMAIL_STYLE_PRESETS } from './EmailStyleExtension';
 import styles from './MentionEditor.module.css';
 
 interface IMentionEditorProps {
@@ -37,6 +39,12 @@ interface IMentionEditorProps {
     singleLineMode?: boolean;
     /** If true, shows rich text toolbar (only applies when singleLineMode is false) */
     showToolbar?: boolean;
+    /**
+     * If true, adds the email "Style" preset dropdown to the rich-text toolbar so
+     * mail-config bodies can apply email-safe presets (buttons, callouts, muted
+     * text, inline code). Only applies in rich-text mode (issue #56 mail editor).
+     */
+    emailStyles?: boolean;
     /** If true, prevents auto-focus when the editor mounts */
     autoFocus?: boolean;
     /** Callback for key down events */
@@ -68,20 +76,29 @@ export function MentionEditor({
     maxItems = 50,
     singleLineMode = false,
     showToolbar = true,
+    emailStyles = false,
     autoFocus = false,
     onKeyDown,
     enableRichTextShortcuts = false,
 }: IMentionEditorProps) {
     const isUpdatingRef = React.useRef(false);
 
-    // Convert dataVariables to IVariableSuggestion array
-    const variables: IVariableSuggestion[] = React.useMemo(() => {
-        if (!dataVariables) return [];
-        return Object.values(dataVariables).map((variableName) => ({
-            id: variableName,
-            label: variableName,
-        }));
-    }, [dataVariables]);
+    // Convert the `data_variables` token=>label map into picker items: the id is
+    // the stable token that gets inserted as `{{token}}`, the label is the human
+    // display text the admin sees and searches (issue #56).
+    const variables: IVariableSuggestion[] = React.useMemo(
+        () => buildVariableSuggestions(dataVariables),
+        [dataVariables],
+    );
+
+    // Live mirror of the picker items. The Mention extension reads this ref
+    // lazily on each `{{` keystroke, so variables that load AFTER the editor
+    // mounts appear in the dropdown without rebuilding the editor (issue #56 v2:
+    // the section variable map is fetched async, so on first paint it is empty).
+    const variablesRef = React.useRef<IVariableSuggestion[]>(variables);
+    React.useEffect(() => {
+        variablesRef.current = variables;
+    }, [variables]);
 
     // Build extensions array based on mode
     const extensions = React.useMemo(() => {
@@ -115,14 +132,27 @@ export function MentionEditor({
             );
         }
 
-        // Add mention extension if variables are available
-        if (variables.length > 0) {
-            exts.push(
-                Mention.configure(
-                    createMentionConfig(variables, MentionSuggestionList, maxVisibleRows, maxItems)
-                )
-            );
+        // Register the email-style mark so stored `<span class="email-…">` presets
+        // hydrate back into the editor and the Style dropdown can apply them
+        // (issue #56 mail editor). Only the mail-config bodies opt in.
+        if (emailStyles && !singleLineMode) {
+            exts.push(EmailStyleExtension);
         }
+
+        // Always register the Mention node so the schema can render label chips
+        // even before the variable map has loaded (issue #56 v2). Suggestions are
+        // read live from `variablesRef`, so a still-loading or later-updated map
+        // never requires recreating the editor.
+        exts.push(
+            Mention.configure(
+                // The getter is invoked by Tiptap's suggestion plugin only on a
+                // `{{` keystroke (an event) — never during render — so reading
+                // `variablesRef.current` lazily here is safe. react-hooks/refs
+                // can't prove that statically, hence the scoped disable.
+                // eslint-disable-next-line react-hooks/refs
+                createMentionConfig(() => variablesRef.current, MentionSuggestionList, maxVisibleRows, maxItems)
+            )
+        );
 
         // In single line mode, prevent Enter key from creating new lines
         if (singleLineMode) {
@@ -179,11 +209,15 @@ export function MentionEditor({
         }
 
         return exts;
-    }, [variables, maxVisibleRows, maxItems, singleLineMode, placeholder, enableRichTextShortcuts]);
+        // `variables` is intentionally excluded: suggestions read `variablesRef`
+        // live, so the editor must NOT be rebuilt when the map loads/changes.
+    }, [maxVisibleRows, maxItems, singleLineMode, placeholder, enableRichTextShortcuts, emailStyles]);
 
     const editor = useEditor({
         extensions,
-        content: value,
+        // Hydrate stored `{{token}}` into label chips for the initial paint
+        // (issue #56 v2); the value-sync effect keeps it in step afterwards.
+        content: tokensToMentionHtml(value, dataVariables),
         onUpdate: ({ editor }) => {
             if (isUpdatingRef.current) return;
 
@@ -203,6 +237,12 @@ export function MentionEditor({
         autofocus: autoFocus,
     });
 
+    // Tracks the variable map last used to hydrate, so we can detect the
+    // empty -> loaded transition (the section map is fetched async). Initialised
+    // to the mount-time map so an already-cached map doesn't trigger a redundant
+    // re-hydrate on the first effect run.
+    const lastHydratedVarsRef = React.useRef<Record<string, string> | undefined>(dataVariables);
+
     // Update editor content when value prop changes externally.
     // The editor can be torn down (Tiptap nulls its schema on destroy) while a
     // stale instance is still referenced here — e.g. when the section inspector
@@ -213,15 +253,38 @@ export function MentionEditor({
         if (!editor || editor.isDestroyed) {
             return;
         }
-        if (editor.getHTML() === value) {
+        // Compare against the STORED (token) form, not the rendered chip HTML:
+        // the editor shows `display_name` chips while `value` holds `{{token}}`.
+        // `sanitizeForDatabase`/`getText` are the exact inverse of
+        // `tokensToMentionHtml`, so once the editor already holds this value the
+        // serialized form equals it and we skip setContent — no caret jump, no
+        // re-hydrate loop (issue #56 v2).
+        const serialized = (singleLineMode && !enableRichTextShortcuts)
+            ? editor.getText()
+            : sanitizeForDatabase(editor.getHTML());
+        const varsChanged = lastHydratedVarsRef.current !== dataVariables;
+        lastHydratedVarsRef.current = dataVariables;
+
+        if (serialized === value) {
+            // Value is already in sync. But when the variable map first arrives
+            // (empty -> loaded), any stored `{{token}}` is still raw text in the
+            // editor — re-hydrate it into chips. Never do this while the admin is
+            // typing, so the caret is never yanked (issue #56 v2 first-paint fix).
+            if (varsChanged && !editor.isFocused) {
+                isUpdatingRef.current = true;
+                editor.commands.setContent(tokensToMentionHtml(value, dataVariables));
+                setTimeout(() => {
+                    isUpdatingRef.current = false;
+                }, 0);
+            }
             return;
         }
         isUpdatingRef.current = true;
-        editor.commands.setContent(value);
+        editor.commands.setContent(tokensToMentionHtml(value, dataVariables));
         setTimeout(() => {
             isUpdatingRef.current = false;
         }, 0);
-    }, [editor, value]);
+    }, [editor, value, dataVariables, singleLineMode, enableRichTextShortcuts]);
 
     return (
         <Input.Wrapper label={label} description={description} required={required} error={error}>
@@ -261,6 +324,41 @@ export function MentionEditor({
                             <RichTextEditor.AlignJustify />
                             <RichTextEditor.AlignRight />
                         </RichTextEditor.ControlsGroup>
+
+                        {emailStyles && (
+                            <RichTextEditor.ControlsGroup>
+                                <Menu position="bottom-start" withinPortal shadow="md">
+                                    <Menu.Target>
+                                        <Button
+                                            size="compact-sm"
+                                            variant="default"
+                                            leftSection={<IconPalette size={14} />}
+                                            disabled={!editor}
+                                        >
+                                            Style
+                                        </Button>
+                                    </Menu.Target>
+                                    <Menu.Dropdown>
+                                        <Menu.Label>Email styles</Menu.Label>
+                                        {EMAIL_STYLE_PRESETS.map((preset) => (
+                                            <Menu.Item
+                                                key={preset.id}
+                                                onClick={() => editor?.chain().focus().setEmailStyle(preset.className).run()}
+                                            >
+                                                {preset.label}
+                                            </Menu.Item>
+                                        ))}
+                                        <Menu.Divider />
+                                        <Menu.Item
+                                            color="red"
+                                            onClick={() => editor?.chain().focus().unsetEmailStyle().run()}
+                                        >
+                                            Clear style
+                                        </Menu.Item>
+                                    </Menu.Dropdown>
+                                </Menu>
+                            </RichTextEditor.ControlsGroup>
+                        )}
                     </RichTextEditor.Toolbar>
                 )}
 

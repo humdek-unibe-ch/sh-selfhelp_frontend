@@ -5,9 +5,10 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { useState } from 'react';
-import { Group, Stack, Text, TextInput, Badge } from '@mantine/core';
+import { Group, Stack, Text, Badge } from '@mantine/core';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { RichTextField } from '../../shared/field-components/RichTextField';
+import { TextInputWithMentions } from '../../shared/field-components/TextInputWithMentions';
 
 interface IGroupedTranslationInputProps {
   subjectValue?: { [languageId: number]: string };
@@ -20,6 +21,12 @@ interface IGroupedTranslationInputProps {
   onSubjectChange: (translations: { [languageId: number]: string }) => void;
   onBodyChange: (translations: { [languageId: number]: string }) => void;
   required?: boolean;
+  /**
+   * Interpolation `{{ }}` picker variables (token => label) for the subject +
+   * body editors — `recipient.*`, `record.*`, `system.*`, `globals.*` for the
+   * action (issue #56 v2).
+   */
+  dataVariables?: Record<string, string>;
 }
 
 export function GroupedTranslationInput({
@@ -32,6 +39,7 @@ export function GroupedTranslationInput({
   onSubjectChange,
   onBodyChange,
   required = false,
+  dataVariables,
 }: IGroupedTranslationInputProps) {
   const [activeLanguage, setActiveLanguage] = useState<string>('');
   const { languages: languagesData } = usePublicLanguages();
@@ -114,11 +122,13 @@ export function GroupedTranslationInput({
                 <span style={{ color: 'red', marginLeft: 8 }}>•</span>
               )}
             </Text>
-            <TextInput
+            <TextInputWithMentions
+              fieldId={parseInt(activeLanguage) * 1000 + 1}
               value={subjectValue[activeLanguageData.id] || ''}
-              onChange={(e) => handleSubjectChange(e.currentTarget.value)}
+              onChange={handleSubjectChange}
               placeholder={subjectPlaceholders?.[activeLanguageData.id] || subjectPlaceholder || `Enter subject for ${activeLanguageData.language}`}
               required={required}
+              dataVariables={dataVariables}
             />
           </Stack>
 
@@ -137,6 +147,7 @@ export function GroupedTranslationInput({
               placeholder={bodyPlaceholders?.[activeLanguageData.id] || bodyPlaceholder || `Enter body content for ${activeLanguageData.language}`}
               label=""
               required={required}
+              dataVariables={dataVariables}
             />
           </Stack>
         </Stack>

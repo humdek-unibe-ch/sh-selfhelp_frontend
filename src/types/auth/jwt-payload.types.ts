@@ -147,6 +147,8 @@ export const PERMISSIONS = {
     // Data operations
     ADMIN_DATA_DELETE: 'admin.data.delete',
     ADMIN_DATA_DELETE_COLUMNS: 'admin.data.delete_columns',
+    ADMIN_DATA_UPDATE_COLUMNS: 'admin.data.update_columns',
+    ADMIN_DATA_UPDATE_TABLES: 'admin.data.update_tables',
     ADMIN_DATA_READ: 'admin.data.read',
 
     // Group management

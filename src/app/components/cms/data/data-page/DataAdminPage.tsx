@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { useState, useCallback, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Alert,
@@ -18,7 +19,7 @@ import {
   Paper,
 } from '@mantine/core';
 import { IconAlertCircle, IconPackageExport } from '@tabler/icons-react';
-import { useDataTables } from '../../../../../hooks/useData';
+import { useDataTables, DATA_QUERY_KEYS } from '../../../../../hooks/useData';
 import { useCanAccessDataBrowser } from '../../../../../hooks/usePermissionChecks';
 import { useUsers } from '../../../../../hooks/useUsers';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
@@ -52,6 +53,7 @@ export function DataAdminPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const canAccessDataBrowser = useCanAccessDataBrowser();
+  const queryClient = useQueryClient();
 
   // Filter form state (what user is currently selecting)
   const [selectedUserId, setSelectedUserId] = useState<number | null>(() => {
@@ -77,6 +79,13 @@ export function DataAdminPage() {
 
   const [bulkExportOpen, setBulkExportOpen] = useState(false);
 
+  // Defer the (up to 100) user-list fetch — it only fills the "User" filter
+  // dropdown and otherwise runs on every page open. Load it on first dropdown
+  // interaction, or eagerly when a `?userId=` deep link needs the label.
+  const [shouldLoadUsers, setShouldLoadUsers] = useState<boolean>(
+    () => searchParams.get('userId') !== null
+  );
+
   // Active (applied) filters
   const [activeSelectedUserId, setActiveSelectedUserId] = useState<number>(-1);
   const [activeTableIds, setActiveTableIds] = useState<number[]>([]);
@@ -84,8 +93,11 @@ export function DataAdminPage() {
   const [activeSelectedLanguageId, setActiveSelectedLanguageId] = useState<number>(1);
 
   // Data fetching
-  const { data: usersResp, refetch: refetchUsers } = useUsers({ page: 1, pageSize: 100, sort: 'email', sortDirection: 'asc' });
-  const { data: tablesResp, refetch: refetchTables, isFetching: isTablesFetching } = useDataTables();
+  const { data: usersResp, refetch: refetchUsers } = useUsers(
+    { page: 1, pageSize: 100, sort: 'email', sortDirection: 'asc' },
+    { enabled: shouldLoadUsers }
+  );
+  const { data: tablesResp, isFetching: isTablesFetching } = useDataTables();
   const { languages, refetch: refetchLanguages } = usePublicLanguages();
 
   const userOptions = useMemo(() => {
@@ -159,12 +171,18 @@ export function DataAdminPage() {
     router.replace(currentPath, { scroll: false });
   }, [router]);
 
-    // Refresh
-    const handleRefresh = useCallback(() => {
+  // Refresh. The actual rows + column labels live in <SingleDataTable> under
+  // DATA_QUERY_KEYS.all (one query per expanded table), so refetching only the
+  // table list here used to miss new submissions. Invalidating the whole
+  // `admin/data` cache refreshes the table list and every expanded table at
+  // once; keepPreviousData + the per-table overlay keep it smooth (no full
+  // component reload).
+  const handleRefresh = useCallback(() => {
+    setShouldLoadUsers(true);
     void refetchUsers();
-    void refetchTables();
     void refetchLanguages();
-  }, [refetchUsers, refetchTables, refetchLanguages]);
+    void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.all });
+  }, [refetchUsers, refetchLanguages, queryClient]);
 
   return (
     <Paper p="md" radius="md">
@@ -200,6 +218,7 @@ export function DataAdminPage() {
                 data={userOptions}
                 value={selectedUserId !== null ? String(selectedUserId) : null}
                 onChange={(val) => setSelectedUserId(val ? parseInt(val, 10) : null)}
+                onDropdownOpen={() => setShouldLoadUsers(true)}
                 searchable
                 clearable
                 w={320}

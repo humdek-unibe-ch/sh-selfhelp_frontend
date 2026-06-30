@@ -115,69 +115,85 @@ export const MentionSuggestionList = React.forwardRef<IKeyboardHandler, IVariabl
             return null;
         }
 
+        const ROW_HEIGHT = 34;
+        const totalCount = items.length;
+        const isScrollable = displayItems.length > maxVisibleRows;
+
         return (
             <Paper
                 shadow="md"
-                style={{
-                    padding: 0,
-                    backgroundColor: 'white',
-                    borderRadius: '4px',
-                    minWidth: '200px',
-                    maxWidth: '400px',
-                }}
+                radius="md"
                 withBorder
+                // Theme-aware: Paper defaults to var(--mantine-color-body), so the
+                // dropdown reads correctly in both light and dark schemes
+                // (the old hardcoded white broke dark mode — issue #56 v2).
+                style={{ padding: 0, minWidth: 220, maxWidth: 420, overflow: 'hidden' }}
             >
                 <ScrollArea
                     viewportRef={viewportRef}
+                    // `type="always"` keeps the scrollbar visible so the operator
+                    // can see at a glance how many variables are available.
+                    type="always"
+                    scrollbarSize={8}
                     style={{
-                        height: Math.max(36, Math.min(displayItems.length * 36, maxVisibleRows * 36)),
-                        minHeight: '36px',
+                        height: Math.max(ROW_HEIGHT, Math.min(displayItems.length * ROW_HEIGHT, maxVisibleRows * ROW_HEIGHT)),
+                        minHeight: ROW_HEIGHT,
                     }}
-                    scrollbarSize={6}
                 >
-                    <List spacing="xs" size="sm" style={{ padding: '8px 0' }}>
-                        {displayItems.map((item, index) => (
-                            <List.Item
-                                key={item.id}
-                                ref={(el) => {
-                                    itemRefs.current[index] = el;
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    cursor: 'pointer',
-                                    backgroundColor:
-                                        selectedIndex === index
-                                            ? 'var(--mantine-color-blue-0)'
-                                            : 'transparent',
-                                    transition: 'background-color 0.15s ease',
-                                }}
-                                onClick={() => selectItem(index)}
-                                onMouseEnter={() => {
-                                    setSelectedIndex(index);
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor =
-                                        selectedIndex === index
-                                            ? 'var(--mantine-color-blue-0)'
-                                            : 'transparent';
-                                }}
-                            >
-                                <Text
-                                    size="sm"
-                                    style={{
-                                        fontFamily: 'monospace',
-                                        color:
-                                            selectedIndex === index
-                                                ? 'var(--mantine-color-blue-9)'
-                                                : 'inherit',
+                    <List listStyleType="none" style={{ padding: 4, margin: 0 }}>
+                        {displayItems.map((item, index) => {
+                            const selected = selectedIndex === index;
+                            // Show the human label as the primary text; when the
+                            // inserted token differs, show it dimmed so the admin
+                            // knows exactly what `{{ }}` will be stored.
+                            const showToken = item.label !== item.id;
+                            return (
+                                <List.Item
+                                    key={item.id}
+                                    ref={(el) => {
+                                        itemRefs.current[index] = el;
                                     }}
+                                    style={{
+                                        padding: '6px 10px',
+                                        borderRadius: 'var(--mantine-radius-sm)',
+                                        cursor: 'pointer',
+                                        backgroundColor: selected
+                                            ? 'var(--mantine-primary-color-light)'
+                                            : 'transparent',
+                                        color: selected
+                                            ? 'var(--mantine-primary-color-light-color)'
+                                            : 'var(--mantine-color-text)',
+                                        transition: 'background-color 0.1s ease',
+                                    }}
+                                    onClick={() => selectItem(index)}
+                                    onMouseEnter={() => setSelectedIndex(index)}
                                 >
-                                    {item.label}
-                                </Text>
-                            </List.Item>
-                        ))}
+                                    <Text size="sm" fw={500} style={{ lineHeight: 1.2 }}>
+                                        {item.label}
+                                    </Text>
+                                    {showToken && (
+                                        <Text size="xs" c="dimmed" style={{ fontFamily: 'monospace', lineHeight: 1.2 }}>
+                                            {`{{${item.id}}}`}
+                                        </Text>
+                                    )}
+                                </List.Item>
+                            );
+                        })}
                     </List>
                 </ScrollArea>
+                <Text
+                    size="xs"
+                    c="dimmed"
+                    ta="center"
+                    style={{
+                        padding: '4px 8px',
+                        borderTop: '1px solid var(--mantine-color-default-border)',
+                    }}
+                >
+                    {isScrollable
+                        ? `${displayItems.length} of ${totalCount} variables — scroll for more`
+                        : `${totalCount} variable${totalCount === 1 ? '' : 's'}`}
+                </Text>
             </Paper>
         );
     }

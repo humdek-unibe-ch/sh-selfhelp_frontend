@@ -14,15 +14,16 @@ import {
     ActionIcon,
     Card,
     Text,
+    TextInput,
     Divider,
     Alert
 } from '@mantine/core';
-import { IconPlus, IconTrash, IconFilter, IconAlertCircle } from '@tabler/icons-react';
+import { IconPlus, IconTrash, IconFilter, IconAlertCircle, IconLock, IconLockOpen } from '@tabler/icons-react';
 import { FilterBuilderInline } from './FilterBuilderInline';
 import { type IDataSource } from './DataConfigModal';
-import { useDataTables, useTableColumnNames } from '../../../../../hooks/useData';
-import { LockedField } from '../../ui/locked-field/LockedField';
+import { useDataTables, useTableColumns } from '../../../../../hooks/useData';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
+import { MonacoEditorField } from '../field-components';
 import classes from './DataConfigModal.module.css';
 
 interface IDataSourceFormProps {
@@ -44,6 +45,10 @@ const RETRIEVE_OPTIONS = [
 
 export function DataSourceForm({ dataSource, onChange, index, dataVariables }: IDataSourceFormProps) {
     const [filterOpened, setFilterOpened] = useState(false);
+    // The raw SQL is normally produced by the builder, so it defaults to locked
+    // (read-only) to prevent accidental edits; unlock it for manual tweaks
+    // (issue #56 data-config SQL).
+    const [sqlLocked, setSqlLocked] = useState(true);
 
     // Load tables and columns
     const { data: tablesResp, isLoading: isTablesLoading } = useDataTables();
@@ -52,17 +57,30 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
         const found = tablesResp.dataTables.find((t) => t.name === dataSource.table);
         return found?.id;
     }, [tablesResp, dataSource.table]);
-    const { data: columnNames, isLoading: isColumnsLoading } = useTableColumnNames(dataSource.table);
+    const { data: columnsResp, isLoading: isColumnsLoading } = useTableColumns(dataSource.table);
 
     const tableOptions = useMemo(() => {
         const tables = tablesResp?.dataTables || [];
         return tables.map((t) => ({ value: t.name, label: t.displayName ? `${t.displayName} (${t.name})` : t.name }));
     }, [tablesResp]);
 
+    // The selected value is the immutable field_key (what the data resolver
+    // stores/looks up); the label shows the human display_name when curated.
     const columnOptions = useMemo(() => {
-        const unique = Array.from(new Set(columnNames || []));
-        return unique.map((name) => ({ value: name, label: name }));
-    }, [columnNames]);
+        const seen = new Set<string>();
+        const options: { value: string; label: string }[] = [];
+        for (const col of columnsResp?.columns ?? []) {
+            if (!col.fieldKey || seen.has(col.fieldKey)) {
+                continue;
+            }
+            seen.add(col.fieldKey);
+            options.push({
+                value: col.fieldKey,
+                label: col.displayName && col.displayName !== '' ? `${col.displayName} (${col.fieldKey})` : col.fieldKey,
+            });
+        }
+        return options;
+    }, [columnsResp?.columns]);
 
     const handleFieldChange = useCallback(<K extends keyof IDataSource>(field: K, value: IDataSource[K]) => {
         const updatedSource = { ...dataSource, [field]: value };
@@ -150,15 +168,17 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
             {/* Basic Configuration */}
             <div className={classes.formGrid}>
                 <div className={classes.gridCol2}>
-                    <TextInputWithMentions
-                        fieldId={index * 100 + 1}
+                    {/* Scope is a plain identifier — the key the retrieved data is
+                        stored under for interpolation ({{scope.field_key}}) — not
+                        interpolated content itself, so it uses a simple text input
+                        rather than the mention editor. */}
+                    <TextInput
                         label="Scope"
                         placeholder="Enter scope name"
                         value={dataSource.scope}
-                        onChange={(value) => handleFieldChange('scope', value)}
+                        onChange={(e) => handleFieldChange('scope', e.currentTarget.value)}
                         required
                         description="Set data source scope name"
-                        dataVariables={dataVariables}
                     />
                 </div>
 
@@ -232,13 +252,37 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
                         )}
 
                         <div style={{ marginTop: 12 }}>
-                            <LockedField
-                                label="Filter (SQL only)"
-                                placeholder="Combined WHERE/ORDER/LIMIT. If WHERE is present it must start with AND ..."
-                                value={dataSource.filter}
-                                onChange={(e) => handleFieldChange('filter', e.currentTarget.value)}
-                                lockedTooltip="Enable manual editing"
-                                unlockedTooltip="Lock manual editing"
+                            <Group justify="space-between" align="center" mb={4}>
+                                <Text size="sm" fw={500}>Filter (SQL only)</Text>
+                                <Group gap="sm" align="center">
+                                    <Text size="xs" c="dimmed">Type <Text span ff="monospace">{'{{'}</Text> to insert a variable</Text>
+                                    <Button
+                                        size="compact-xs"
+                                        variant={sqlLocked ? 'light' : 'filled'}
+                                        color={sqlLocked ? 'gray' : 'blue'}
+                                        leftSection={sqlLocked ? <IconLock size={14} /> : <IconLockOpen size={14} />}
+                                        onClick={() => setSqlLocked((v) => !v)}
+                                    >
+                                        {sqlLocked ? 'Locked' : 'Unlocked'}
+                                    </Button>
+                                </Group>
+                            </Group>
+                            <Text size="xs" c="dimmed" mb={6}>
+                                Combined WHERE/ORDER/LIMIT. If a WHERE clause is present it must start with AND ...
+                            </Text>
+                            {/* Raw SQL is a code field: Monaco gives full free-text
+                                editing plus the `{{` interpolation completion, matching
+                                the CSS/JSON code-field pattern (issue #56 v2). It
+                                defaults to locked because the builder usually owns the
+                                SQL; unlock to edit by hand (issue #56 data-config SQL). */}
+                            <MonacoEditorField
+                                fieldId={index}
+                                value={dataSource.filter || ''}
+                                onChange={(val) => handleFieldChange('filter', val)}
+                                language="sql"
+                                height={120}
+                                disabled={sqlLocked}
+                                dataVariables={dataVariables}
                             />
                         </div>
                     </Card>

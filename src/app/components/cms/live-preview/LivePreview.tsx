@@ -78,6 +78,7 @@ import { useMobilePreviewSession } from './hooks/useMobilePreviewSession';
 import { usePreviewPreferenceSync } from './hooks/usePreviewPreferenceSync';
 import { usePreviewNavigationSync } from './hooks/usePreviewNavigationSync';
 import { usePreviewUrlMirror } from './hooks/usePreviewUrlMirror';
+import { previewDiagLog } from '../../../../utils/preview-diag';
 
 /**
  * localStorage flag: the live preview defaults to DRAFT only the FIRST time it
@@ -102,6 +103,15 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     const router = useRouter();
     const explicitOrigin = process.env.NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN ?? null;
     const isDev = process.env.NODE_ENV !== 'production';
+
+    // Diagnostics: mark when the Live Preview shell mounts/unmounts so the
+    // browser timeline can be lined up against the server `auth-events` stream
+    // counts (does opening/closing preview correlate with SSE pile-up?).
+    // No-op unless NEXT_PUBLIC_PREVIEW_DIAG=1.
+    useEffect(() => {
+        previewDiagLog('live-preview', 'shell mount');
+        return () => previewDiagLog('live-preview', 'shell unmount');
+    }, []);
 
     const { languages, isLoading: languagesLoading } = usePublicLanguages();
 

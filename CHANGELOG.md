@@ -14,6 +14,258 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.56 — 2026-06-30
+
+### Changed
+- **Data Config Builder: the Scope field is a plain text input.** Scope is only
+  the identifier the retrieved data is stored under for interpolation
+  (`{{scope.field_key}}`), not interpolated content, so it no longer uses the
+  rich mention editor — just type the name.
+
+### Fixed
+- **Data Config Builder: the last/only data source can now be removed.** The
+  remove (trash) action is available on every data source tab, and saving with
+  zero data sources persists a cleared `data_config`. Previously the last source
+  had no remove button and an empty configuration could not be saved.
+- Floor-neutral: both are UI-only changes that add no new backend dependency, so
+  `supports.core` stays `>=0.1.28`.
+
+---
+
+## v0.1.55 — 2026-06-29
+
+### Added
+- **Rich-text rendering for `text` and `blockquote` content (host issue #56).**
+  These fields are now authored as full WYSIWYG (`textarea`) in the CMS, and the
+  public renderers (`TextStyle`, `BlockquoteStyle`) display the authored block
+  structure — headings, lists, paragraphs, alignment — instead of flattening it
+  to a single inline line. Rendering stays XSS- and hydration-safe via a new
+  block sanitizer; `<Text>` only becomes a `div` when the content has markup.
+  Requires core `>=0.1.28` (which retypes the fields), so `supports.core` is
+  raised to `>=0.1.28`.
+- **Closable field-help popover.** The field info icon now opens a dismissible
+  popover (stays open until closed / click-outside) that shows the help text and,
+  for structured fields, the example as a formatted, syntax-aware code block with
+  a one-click **Copy** button.
+
+### Changed
+- **Mail-config editor grouped by e-mail.** The `sh-mail-config` content fields
+  are arranged into one card per e-mail (Welcome, Confirmation, Recovery,
+  Password changed, 2FA) with Subject and Body stacked full-width, replacing the
+  cramped auto-fill grid that overflowed the subject inputs.
+
+### Fixed
+- **Single-line mention editors wrap instead of horizontal-scrolling.** `text` /
+  `markdown-inline` fields (e.g. "Welcome: Subject") now wrap long content and
+  grow vertically up to a cap, so the value is readable; interpolation tokens
+  still never break across lines.
+- **Condition-builder datetime picker z-index.** The date/time calendar now
+  portals above the condition-builder modal so it is no longer clipped/hidden.
+
+---
+
+## v0.1.54 — 2026-06-29
+
+### Added
+- **Type-driven CMS field editors (host issue #56).** The editor is now chosen
+  purely from the field **type**: `text` is a single-line `{{`-aware input,
+  `markdown-inline` adds inline bold/italic/underline/link, `textarea` is the rich
+  WYSIWYG editor (headings, lists, alignment, links) that **accepts Enter** — the
+  home for longer / nicely-formatted copy — and the new `code` type opens raw HTML
+  in the Monaco editor (`json`/`css`/`markdown`/SQL stay Monaco too). No more
+  per-name allowlist; only the structural identifiers `name` / `value` / `title`
+  stay plain inputs.
+- **Data-config builder shows the standard columns.** The builder now lists the
+  always-present row columns (`user_name`, `record_id`, `entry_date`, …) returned
+  by the columns endpoint, so you can filter / order by them like any other column.
+- **Lockable SQL filter.** The data-config SQL filter is a Monaco editor that is
+  **locked (read-only) by default** and unlockable for manual editing.
+- **Email "Style" presets** in the mail-config body editor (primary / secondary
+  button, strong link, muted text, callout box, inline code) via a palette
+  dropdown.
+
+### Fixed
+- **Reseeded mails keep their styling.** The `email-*` style presets now persist
+  on the real `<a>` / `<p>` / `<h*>` elements through load → edit → save (a global
+  Tiptap attribute instead of a span-only mark), so a reseeded mail body no longer
+  loses its button / callout styling.
+- **Mail links are no longer broken in the editor.** A `{{token}}` inside an
+  attribute (e.g. `<a href="{{system.special.reset_link}}">`) stays a literal
+  token — chips are only ever created in visible text — so the link markup
+  round-trips intact instead of leaking raw tag text.
+- **Multiline rich-text fields accept Enter** for newlines, lists, and headings.
+- **Condition-builder datetime picker is visible.** The calendar/time popover now
+  portals above the modal with a high z-index instead of being clipped/hidden.
+- The page / config interpolation picker only appears on fields that actually
+  render variables.
+
+## v0.1.53 — 2026-06-29
+
+### Added
+- **The `{{` interpolation picker is now global (host issue #56).** Every CMS
+  text surface offers the variable picker: the **page / config** content + property
+  fields, the **action** subject and body editors, the **data-config** SQL filter,
+  and the **custom CSS / Mobile CSS** and **JSON** code editors. The Monaco `{{`
+  completion provider now covers `css` and `json` (previously markdown only), so
+  any code field that carries variables gets type-`{{`-to-insert too.
+- **One modular variable system.** A single `useInterpolationVariables(context, id)`
+  hook fetches the catalog from the new unified core endpoint (`context` =
+  `section` | `page` | `action` | `global`); the section hook now delegates to it,
+  so there is one source of truth for the picker across the whole CMS. The action
+  picker offers `recipient.*`, `record.<field_key>` (from the action's selected
+  data table) and `system.*`; the page/global picker offers `system.*` + `globals.*`.
+
+### Changed
+- **Mail-config & page tokens are namespaced.** The picker on the mail-config page
+  (and other pages) offers the `system.*` / `system.special.*` tokens the backend
+  actually renders, matching the rewritten seeded auth mail templates.
+
+Depends on core **0.1.26** (the unified `GET /admin/interpolation/variables`
+endpoint that backs every context, plus the `system.*` mail namespace), so
+`supports.core` is raised `>=0.1.25` → `>=0.1.26`. The backend route is additive
+(the legacy section data-variables route still exists), so the backend
+`supports.frontend` floor is unchanged.
+
+---
+
+## v0.1.52 — 2026-06-29
+
+### Changed
+- **Interpolation v2 — variables are immutable, labels are human (host issue
+  #56).** The `{{` variable picker now inserts the stable data-column
+  `field_key` (e.g. `{{d.section_230}}`) and shows the column `display_name` as
+  a label chip. The chip renders the label, stores `{{field_key}}`, and
+  re-parses `{{field_key}}` back into a chip on load, so renaming an input or a
+  column changes only the visible label — the stored token never moves and the
+  data never forks. The round-trip lives in one place (`mentions.config.ts`), so
+  it applies to every field that uses the mention editor (text, markdown-inline,
+  textarea, data-config, condition builder, actions).
+
+### Added
+- **`{{` variable completion in markdown fields.** Markdown (Monaco) fields now
+  offer the same variable picker as the rich-text/inline fields through a Monaco
+  completion provider — type `{{` to insert a variable (shows the label, inserts
+  the token). `json`/`css` code editors are intentionally excluded.
+
+### Fixed
+- **`show-user-input` headers follow the column display name.** Table headers now
+  default to the column `display_name` (from the new section `field_labels` map),
+  so renaming a column relabels its header automatically instead of showing the
+  raw key. `fields_map` stays an explicit override and resolves to a column by
+  `field_key` first, then by `display_name`, so an existing mapping survives a
+  rename.
+
+Depends on core **0.1.25** (DataVariableResolver token → `field_key`,
+render-time `retrieved_data` scope keyed by `field_key`, and the
+`show-user-input` `field_labels` payload) and `@selfhelp/shared` **>=1.17.1**
+(the `IShowUserInputStyle.field_labels` type), so `supports.core` is raised
+`>=0.1.24` → `>=0.1.25`. Pre-release wipe: old name-based interpolation tokens
+are not migrated.
+
+---
+
+## v0.1.51 — 2026-06-29
+
+### Fixed
+- **Modals are dismissible only via their own close / cancel control by
+  default.** Close-on-outside-click and close-on-Escape are now off globally
+  (Mantine `Modal` theme defaults + `ModalWrapper`), so an accidental click
+  outside no longer discards unsaved edits (e.g. the data-table "Manage"
+  editor). A modal opts back in by passing `closeOnClickOutside` /
+  `closeOnEscape`.
+- **Data browser — the page-level Refresh now actually reloads rows.** The
+  Refresh button next to Apply previously refreshed only the table list and
+  missed new submissions (rows are fetched per expanded table). It now
+  invalidates the whole `admin/data` cache, refreshing the table list and every
+  expanded table at once.
+- **Data browser refresh is smooth.** A background refetch no longer dims the
+  whole table card with a full `LoadingOverlay`; the previous rows stay visible
+  (`keepPreviousData`) and the spinning refresh icon signals progress, so a
+  refresh no longer looks like a full component reload.
+
+Floor-neutral (no new backend dependency), so `supports.core` stays `>=0.1.24`.
+
+---
+
+## v0.1.50 — 2026-06-29
+
+### Fixed
+- **Real-time SSE no longer opens one connection per browser tab.** The
+  ACL / impersonation / system-update stream (`/api/auth/events`) and the
+  plugin-manager stream (`/api/plugins/events`) are now shared across all tabs
+  of a browser through a single elected leader tab (Web Locks + a
+  `BroadcastChannel` fan-out); follower tabs hold no network connection. Opening
+  several admin tabs no longer exhausts the browser's per-origin connection pool
+  and hangs other same-origin requests (the "Data browser hangs with a few tabs
+  open" report). On browsers without Web Locks it falls back to a per-tab
+  connection that is released while the tab is hidden and reopened on focus.
+
+### Added
+- **Opt-in SSE / BFF diagnostics** (`PREVIEW_DIAG=1` /
+  `NEXT_PUBLIC_PREVIEW_DIAG=1`), dark by default, for measuring live SSE
+  connection counts and per-request proxy latency during an investigation.
+
+Floor-neutral (no new backend dependency), so `supports.core` stays `>=0.1.24`.
+
+---
+
+## v0.1.49 — 2026-06-29
+
+### Added
+- **Data-table & column display-name locking (host issue #56).** The data
+  browser column editor (`DataTableEditorModal`) now shows an `Auto` / `Manual`
+  badge per column and a "Reset to auto" action that clears a manual label so it
+  follows the form input name again. A new **table label** editor at the top of
+  the same modal renames the whole data table and locks it (a manual rename
+  stops the form's display name from overwriting it on save), with its own
+  reset-to-auto control. Locked tables show a `Locked` badge in the data browser.
+- **CMS section inspector surfaces the data table.** For form sections the
+  inspector now shows the effective data-table label, a `Locked` badge when the
+  label is admin-locked, and an "Open in Data browser" deep link
+  (`/admin/data?tableIds=<id>`), so an editor renaming the form display name can
+  see when the data-table label is locked and jump straight to it.
+
+### Changed
+- The column display-name PATCH and the new
+  `PATCH /cms-api/v1/admin/data/tables/{tableName}/display-name`
+  (permission `admin.data.update_tables`) are wired through
+  `useUpdateColumnDisplayName` / `useUpdateTableDisplayName`. The admin
+  data-table list and column responses now carry a `locked` flag, and
+  `getSection` exposes an optional `data_table` block; those contracts first
+  ship in core 0.1.24, so `supports.core` is raised `0.1.23` -> `0.1.24`.
+
+## v0.1.48 — 2026-06-26
+
+### Changed
+- **Data columns now use an immutable key + human label (host issue #56).** The
+  admin data-table column endpoints return `{ id, fieldKey, displayName }`
+  instead of `{ id, name }`. The data browser shows the curated `displayName`
+  in column headers while reading row values by the stable `fieldKey` (via an
+  `accessorFn`, so dotted survey keys are treated as opaque literals, never as
+  nested paths). The data-config field pickers and the filter builder now label
+  options by `displayName` while storing the `fieldKey`.
+- **The CMS variable picker shows display names, inserts stable tokens.** The
+  variable picker is a `token => label` map; the mention picker lists the human
+  label but inserts the immutable `{{token}}`, so renaming a field's label never
+  changes stored interpolation tokens.
+- **The variable picker is fetched on demand, not from the section payload.**
+  The section inspector now loads the picker from the dedicated
+  `GET /cms-api/v1/admin/sections/{sectionId}/data-variables` endpoint
+  (`useSectionDataVariables`, REAL_TIME tier, refetched on inspector open /
+  window focus) instead of reading `data_variables` off `getSection`. Because
+  the backend serves it fresh from the live data-table columns, a column added
+  by a later form submission shows up in the picker without re-saving the
+  section. `getSection` responses are now `{ section, fields, languages }`.
+
+### Added
+- **Edit column display labels.** The "Manage table" modal can rename a
+  column's human label without touching its storage key, via the new
+  `PATCH /cms-api/v1/admin/data/tables/{tableName}/columns/display-name`
+  (gated by `admin.data.update_columns`).
+
+> Requires core `>=0.1.23` (the `field_key`/`display_name` data-column split);
+> `supports.core` raised `0.1.21 -> 0.1.23`.
+
 ## v0.1.47 — 2026-06-25
 
 ### Fixed

@@ -46,4 +46,12 @@ export function createHandlers(custom: HttpHandler[] = []): HttpHandler[] {
  */
 export const defaultHandlers: HttpHandler[] = [
     http.get('*/cms-api/v1/health', () => HttpResponse.json(apiEnvelope({ status: 'ok' }))),
+    // Unified interpolation `{{ }}` picker (issue #56 v2). Any editor surface
+    // mounted in a test fetches this on open; default to an empty catalog so
+    // specs that don't care about the picker don't trip MSW's unhandled-request
+    // warning. Specs needing real variables override via `server.use(...)`.
+    http.get('*/admin/interpolation/variables', ({ request }) => {
+        const context = new URL(request.url).searchParams.get('context') ?? 'global';
+        return HttpResponse.json(apiEnvelope({ context, data_variables: {} }));
+    }),
 ];

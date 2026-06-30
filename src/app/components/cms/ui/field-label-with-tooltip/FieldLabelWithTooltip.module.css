@@ -12,4 +12,33 @@ SPDX-License-Identifier: MPL-2.0
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
+}
+
+/* Help popover ------------------------------------------------------------ */
+.helpText {
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.exampleBlock {
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: var(--mantine-radius-sm);
+    background-color: var(--mantine-color-default-hover);
+    overflow: hidden;
+}
+
+.exampleHeader {
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.exampleCode {
+    margin: 0;
+    padding: 8px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: pre;
+    color: var(--mantine-color-text);
+    tab-size: 2;
 } 

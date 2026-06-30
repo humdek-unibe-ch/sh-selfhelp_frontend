@@ -25,6 +25,7 @@ import {
     MonacoEditorField
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+import { extractFieldHelpExample } from '../../../../../utils/field-help.utils';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { usePluginFieldRenderer } from '../../../frontend/plugin-runtime';
@@ -71,7 +72,23 @@ interface IFieldRendererProps {
     className?: string;
     disabled?: boolean;
     dataVariables?: Record<string, string>;
+    /**
+     * Show the email "Style" preset dropdown on rich-text (textarea) fields.
+     * Set by the mail-config editor so only email bodies get email presets
+     * (issue #56 mail editor).
+     */
+    emailStyles?: boolean;
 }
+
+/**
+ * `text` / `markdown-inline` fields whose value is a structural identifier or a
+ * predefined option value, NOT user-facing copy: rendered as a plain input with
+ * its own validation and no interpolation picker. Everything else of these types
+ * is a single-line mention editor. The richer/longer content uses the dedicated
+ * `textarea` (rich text) and `markdown` / `json` / `css` / `code` types instead,
+ * so the editor is driven purely by field TYPE (issue #56).
+ */
+const PLAIN_IDENTIFIER_FIELD_NAMES = new Set(['name', 'value', 'title']);
 
 // Props shared by the select-language / select-timezone branch components.
 // These are extracted into dedicated components so their data hooks are called
@@ -159,7 +176,7 @@ function SelectTimezoneField({ fieldId, fieldValue, onChange, disabled }: ISelec
 }
 
 export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Record<string, string> }) {
-    const { field, languageId, value, onChange, locale, className, disabled = false, dataVariables } = props;
+    const { field, languageId, value, onChange, locale, className, disabled = false, dataVariables, emailStyles = false } = props;
 
     // Plugin-supplied editor renderers take priority over host built-ins so
     // plugin-owned field types (e.g. `select-survey-js`) stay inside the
@@ -237,12 +254,22 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         }
     };
 
+    // Surface a copy-able example (from default_value or the help text) in the
+    // field's help popover for structured fields (issue #56 field audit).
+    const helpExample = extractFieldHelpExample(field.type, field.default_value, field.help);
+
     // Helper function to render field with type badge
     const renderFieldWithBadge = (children: React.ReactNode) => {
         return (
             <Stack gap="xs" className={className}>
                 <Group gap="xs" align="center">
-                    <FieldLabelWithTooltip label={getFieldLabel()} tooltip={field.help || ''} locale={locale} />
+                    <FieldLabelWithTooltip
+                        label={getFieldLabel()}
+                        tooltip={field.help || ''}
+                        locale={locale}
+                        example={helpExample?.code}
+                        exampleLanguage={helpExample?.language}
+                    />
                     {/* <Badge size="xs" variant="light" color={getFieldTypeBadgeColor(field.type)}>
                         {field.type || 'unknown'}
                     </Badge> */}
@@ -292,7 +319,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     
 
     
-    // JSON field - use Monaco Editor
+    // JSON field - use Monaco Editor with `{{` variable completion (issue #56 v2)
     if (field.type === 'json') {
         return renderFieldWithBadge(
             <MonacoEditorField
@@ -302,11 +329,12 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 language="json"
                 height={250}
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }
     
-    // Markdown field - use Monaco Editor
+    // Markdown field - use Monaco Editor with `{{` variable completion (issue #56 v2)
     if (field.type === 'markdown') {
         return renderFieldWithBadge(
             <MonacoEditorField
@@ -316,10 +344,28 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 language="markdown"
                 height={300}
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }
     
+    // Code field - raw markup (e.g. html_tag_content) in a Monaco HTML editor with
+    // `{{` variable completion. Hand-written HTML must NOT go through the WYSIWYG,
+    // which would normalise/strip it (issue #56 field-type cleanup).
+    if (field.type === 'code') {
+        return renderFieldWithBadge(
+            <MonacoEditorField
+                fieldId={field.id}
+                value={fieldValue}
+                onChange={onChange}
+                language="html"
+                height={300}
+                disabled={disabled}
+                dataVariables={dataVariables}
+            />
+        );
+    }
+
     // Textarea field - now uses rich text editor
     if (field.type === 'textarea') {
         // Prepare props conditionally to avoid inline object creation
@@ -329,7 +375,8 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             onChange: onChange,
             placeholder: field.default_value || '',
             disabled: disabled,
-            dataVariables: dataVariables
+            dataVariables: dataVariables,
+            emailStyles: emailStyles
         };
         
         if (field.name === 'name') {
@@ -340,10 +387,13 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         return renderFieldWithBadge(<RichTextField {...richTextProps} />);
     }
 
-    // Text and markdown-inline fields - use TextInputWithMentions for single-line text with variable support
+    // Text and markdown-inline fields - single-line mention editors. Structural
+    // identifiers / predefined values stay plain inputs (no interpolation); every
+    // other text field gets the `{{ }}` picker. Longer / multiline / rich copy is
+    // authored through the `textarea` (rich text) type, so this is type-driven and
+    // never grows into a fake multiline box (issue #56).
     if (field.type === 'text' || field.type === 'markdown-inline') {
-
-        if (field.name === 'name' || field.name === 'value' || field.name === 'title') {
+        if (PLAIN_IDENTIFIER_FIELD_NAMES.has(field.name)) {
             return renderFieldWithBadge(
                 <TextInputField
                     fieldId={field.id}
@@ -353,7 +403,6 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             );
         }
 
-        // Prepare props conditionally to avoid inline object creation.
         // Only `markdown-inline` fields may carry inline formatting (bold / italic
         // / underline / link) — those tags survive to the web + mobile renderers.
         // Plain `text` fields disable the shortcuts so no `<strong>` etc. is ever
@@ -366,13 +415,9 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             placeholder: field.default_value || '',
             disabled: disabled,
             dataVariables: dataVariables,
-            enableRichTextShortcuts: allowInlineFormatting
+            enableRichTextShortcuts: allowInlineFormatting,
         };
-        
-        if (field.name === 'name') {
-            textInputProps.validator = validateName;
-        }
-        
+
         return renderFieldWithBadge(<TextInputWithMentions {...textInputProps} />);
     }
 
@@ -721,7 +766,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
 
-    // CSS field - use Monaco Editor
+    // CSS field - use Monaco Editor with `{{` variable completion (issue #56 v2)
     if (field.type === 'css') {
         return renderFieldWithBadge(
             <MonacoEditorField
@@ -731,6 +776,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 language="css"
                 height={400}
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }
@@ -807,7 +853,9 @@ export function GlobalFieldRenderer({
             <Stack gap="xs" className={className}>
                 <FieldLabelWithTooltip
                     label="Data Config"
-                    tooltip="JSON configuration for section data handling and validation."
+                    tooltip="JSON configuration that loads data for this section so it can be interpolated with {{scope.field}}."
+                    example={'[\n  {\n    "scope": "my_form",\n    "table": "my_form",\n    "retrieve": "first",\n    "fields": [{ "field_name": "name", "field_holder": "name" }]\n  }\n]'}
+                    exampleLanguage="json"
                 />
                 <DataConfigField
                     fieldId={0}

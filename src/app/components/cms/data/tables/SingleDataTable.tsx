@@ -16,6 +16,7 @@ import {
 } from '@tanstack/react-table';
 import {
   ActionIcon,
+  Badge,
   Box,
   Card,
   Group,
@@ -35,7 +36,7 @@ import {
 } from '@mantine/core';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconSortAscending, IconSortDescending, IconArrowsUpDown, IconRefresh, IconDownload, IconFileTypeCsv, IconJson } from '@tabler/icons-react';
-import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable } from '../../../../../hooks/useData';
+import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable, useTableColumns } from '../../../../../hooks/useData';
 import type { TDataExportFormat } from '../../../../../types/responses/admin/data.types';
 import { DataTableEditorModal } from '../modals/DataTableEditorModal';
 import { ConfirmDeleteTableModal } from '../modals/ConfirmDeleteTableModal';
@@ -44,12 +45,13 @@ interface ISingleDataTableProps {
   formId: number;
   tableName: string;
   displayName: string;
+  locked?: boolean; // table label admin-locked (provenance `manual`, issue #56)
   selectedUserId: number; // -1 means all users
   showDeleted: boolean;
   selectedLanguageId: number;
 }
 
-export default function SingleDataTable({ formId, tableName, displayName, selectedUserId, showDeleted, selectedLanguageId }: ISingleDataTableProps) {
+export default function SingleDataTable({ formId, tableName, displayName, locked = false, selectedUserId, showDeleted, selectedLanguageId }: ISingleDataTableProps) {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isDeleteRowOpen, setIsDeleteRowOpen] = useState<null | { id: number; label: string }>(null);
   const [isDeleteTableOpen, setIsDeleteTableOpen] = useState(false);
@@ -78,13 +80,29 @@ export default function SingleDataTable({ formId, tableName, displayName, select
   };
 
   const { data, isLoading, isFetching, refetch } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted, language_id: selectedLanguageId });
+  const { data: columnsResp } = useTableColumns(tableName);
+
+  // Map immutable field_key -> human display label (issue #56). Rows are keyed
+  // by field_key; headers show the curated display_name when present.
+  const labelByKey = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const col of columnsResp?.columns ?? []) {
+      if (col.fieldKey) {
+        map[col.fieldKey] = col.displayName && col.displayName !== '' ? col.displayName : col.fieldKey;
+      }
+    }
+    return map;
+  }, [columnsResp?.columns]);
 
   const rows = useMemo(() => data?.rows || [], [data?.rows]);
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
     if (rows.length === 0) return [];
     const allKeys = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
     const baseCols = allKeys.map((key): ColumnDef<Record<string, unknown>> => ({
-      accessorKey: key,
+      // `id` + `accessorFn` (not `accessorKey`): a field_key may contain dots
+      // and must be read as an opaque literal, never as a nested path.
+      id: key,
+      accessorFn: (row) => row[key],
       header: ({ column }) => {
         const isSorted = column.getIsSorted();
         return (
@@ -100,7 +118,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             style={{ fontWeight: 'normal', justifyContent: 'space-between' }}
           >
-            {key}
+            {labelByKey[key] ?? key}
           </Button>
         );
       },
@@ -126,7 +144,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
         },
       },
     ];
-  }, [rows, displayName]);
+  }, [rows, displayName, labelByKey]);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by design; React Compiler intentionally skips memoizing here
   const table = useReactTable({
@@ -145,10 +163,19 @@ export default function SingleDataTable({ formId, tableName, displayName, select
 
   return (
     <Card withBorder style={{ position: 'relative' }}>
-      <LoadingOverlay visible={isLoading || isFetching} />
+      {/* Only block the card on the first load. Background refetches keep the
+          previous rows (React Query `keepPreviousData`) and surface progress
+          through the spinning refresh icon, so a refresh no longer looks like a
+          full component reload. */}
+      <LoadingOverlay visible={isLoading} />
       <Group justify="space-between" mb="sm">
         <Group>
           <Title order={4}>{displayName}</Title>
+          {locked && (
+            <Tooltip label="Label manually locked — the form display name no longer overwrites it">
+              <Badge color="orange" variant="light" size="sm">Locked</Badge>
+            </Tooltip>
+          )}
           <Text c="dimmed">({tableName}) • {rows.length} records</Text>
         </Group>
         <Group gap="xs">
@@ -222,7 +249,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
         </Table>
       </Box>
 
-      <DataTableEditorModal open={isEditorOpen} onClose={() => setIsEditorOpen(false)} formId={formId} tableName={tableName} displayName={displayName} />
+      <DataTableEditorModal open={isEditorOpen} onClose={() => setIsEditorOpen(false)} formId={formId} tableName={tableName} displayName={displayName} locked={locked} />
 
       {/* Confirm delete row modal */}
       <ModalWrapper

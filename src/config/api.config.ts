@@ -687,6 +687,14 @@ export const API_CONFIG = {
             route: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
             permissions: [PERMISSIONS.ADMIN_DATA_DELETE_COLUMNS]
         },
+        ADMIN_DATA_TABLE_COLUMN_DISPLAY_NAME_PATCH: {
+            route: (tableName: string) => `/admin/data/tables/${tableName}/columns/display-name`,
+            permissions: [PERMISSIONS.ADMIN_DATA_UPDATE_COLUMNS]
+        },
+        ADMIN_DATA_TABLE_DISPLAY_NAME_PATCH: {
+            route: (tableName: string) => `/admin/data/tables/${tableName}/display-name`,
+            permissions: [PERMISSIONS.ADMIN_DATA_UPDATE_TABLES]
+        },
         ADMIN_DATA_RECORD_DELETE: {
             route: (recordId: number) => `/admin/data/records/${recordId}`,
             permissions: [PERMISSIONS.ADMIN_DATA_DELETE]
@@ -759,6 +767,14 @@ export const API_CONFIG = {
         },
         ADMIN_SECTIONS_GET_CHILDREN: {
             route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
+            permissions: []
+        },
+        // Unified context-aware interpolation variable picker (issue #56 v2). One
+        // endpoint for every editor surface; `context` (section|page|action|global)
+        // and optional `id` are passed as query params. The backend enforces
+        // admin.page.read and only returns tokens that interpolate at runtime.
+        ADMIN_INTERPOLATION_VARIABLES: {
+            route: '/admin/interpolation/variables',
             permissions: []
         },
 

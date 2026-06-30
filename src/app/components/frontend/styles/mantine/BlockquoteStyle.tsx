@@ -6,7 +6,7 @@ import React from 'react';
 import { Blockquote } from '@mantine/core';
 import IconComponent from '../../../shared/common/IconComponent';
 import { type IBlockquoteStyle } from '../../../../../types/common/styles.types';
-import { renderRichInline } from '../../../../../utils/html-sanitizer.utils';
+import { renderRichBlock } from '../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for BlockquoteStyle component
@@ -29,9 +29,10 @@ interface IBlockquoteStyleProps {
  * @returns {JSX.Element} Rendered Mantine Blockquote with styled configuration
  */
 const BlockquoteStyle: React.FC<IBlockquoteStyleProps> = ({ style, styleProps, cssClass }) => {
-    // Dedicated markdown-inline field — render the safe inline subset (bold /
-    // italic / underline / links) the author applied instead of stripping it.
-    const content = renderRichInline(
+    // Rich-text (`textarea`) field — render the full block structure (headings,
+    // lists, paragraphs, alignment) the author applied. Mantine `<Blockquote>` is
+    // itself a block element, so nested block HTML is valid (issue #56).
+    const content = renderRichBlock(
         style.blockquote_content?.content || 'This is a blockquote with some quoted text content.'
     );
     const cite = style.cite?.content;

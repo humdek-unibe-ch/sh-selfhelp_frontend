@@ -13,6 +13,10 @@ import type {
   IDataTableColumnNamesResponse,
   IDeleteColumnsRequest,
   IDeleteColumnsResponse,
+  IUpdateColumnDisplayNameRequest,
+  IUpdateColumnDisplayNameResponse,
+  IUpdateTableDisplayNameRequest,
+  IUpdateTableDisplayNameResponse,
   IDeleteRecordResponse,
   IDeleteTableResponse,
   IDataExportTableParams,
@@ -97,6 +101,45 @@ export function useDeleteColumns() {
       },
     }
   );
+}
+
+export function useUpdateColumnDisplayName() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    { tableName: string; result: IUpdateColumnDisplayNameResponse },
+    unknown,
+    { tableName: string; body: IUpdateColumnDisplayNameRequest }
+  >({
+    mutationFn: async ({ tableName, body }) => ({
+      tableName,
+      result: await AdminDataApi.updateColumnDisplayName(tableName, body),
+    }),
+    onSuccess: ({ tableName }) => {
+      // Labels change column metadata + interpolation variables; refresh the
+      // column lists. Rows are keyed by field_key (unchanged) so they stay valid.
+      void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.columns(tableName) });
+      void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.columnNames(tableName) });
+    },
+  });
+}
+
+export function useUpdateTableDisplayName() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    { tableName: string; result: IUpdateTableDisplayNameResponse },
+    unknown,
+    { tableName: string; body: IUpdateTableDisplayNameRequest }
+  >({
+    mutationFn: async ({ tableName, body }) => ({
+      tableName,
+      result: await AdminDataApi.updateTableDisplayName(tableName, body),
+    }),
+    onSuccess: () => {
+      // The label + lock live on the tables list; refresh it so the Data
+      // browser and the CMS section inspector reflect the new name/lock.
+      void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.tables() });
+    },
+  });
 }
 
 export function useDeleteRecord() {

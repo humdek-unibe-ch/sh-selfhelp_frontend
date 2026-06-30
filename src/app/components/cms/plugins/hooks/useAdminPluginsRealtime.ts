@@ -13,6 +13,15 @@ SPDX-License-Identifier: MPL-2.0
  * hook invalidates the admin React Query caches so the UI repaints
  * from a fresh fetch — no polling, no manual refresh.
  *
+ * ## One connection per BROWSER, not per tab
+ *
+ * Like {@link useAclEventStream}, the real `EventSource` is owned by
+ * {@link subscribeSharedSse}: a single leader tab holds the connection for the
+ * whole browser and fans events out to the others over a `BroadcastChannel`.
+ * This is what stops every admin tab from holding a SECOND permanent SSE (this
+ * one) on top of the ACL stream and exhausting the browser's per-origin
+ * connection pool. See `src/utils/shared-sse.ts`.
+ *
  * Events handled (must match the SSE `event:` names emitted by
  * `PluginStateMercurePublisher::publish()`):
  *
@@ -41,10 +50,9 @@ import { useRouter } from 'next/navigation';
 import { useAuthStatus } from '../../../../../hooks/useUserData';
 import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { setPluginSseConnected } from './plugin-sse-status';
+import { subscribeSharedSse } from '../../../../../utils/shared-sse';
 
 const SSE_ENDPOINT = '/api/plugins/events';
-const MAX_RECONNECT_DELAY_MS = 30_000;
-const INITIAL_RECONNECT_DELAY_MS = 1_000;
 
 const ADMIN_PLUGINS_KEY = ['admin-plugins'] as const;
 const ADMIN_PLUGINS_AVAILABLE_KEY = ['admin-plugins', 'available'] as const;
@@ -60,6 +68,11 @@ const PLUGIN_STATE_EVENTS = [
     'plugin-purged',
 ] as const;
 
+const PLUGIN_PROGRESS_EVENT = 'plugin-operation-progress';
+
+/** Every named event the stream forwards. */
+const PLUGIN_STREAM_EVENTS = [...PLUGIN_STATE_EVENTS, PLUGIN_PROGRESS_EVENT] as const;
+
 export function useAdminPluginsRealtime(): void {
     const queryClient = useQueryClient();
     const router = useRouter();
@@ -67,17 +80,6 @@ export function useAdminPluginsRealtime(): void {
 
     useEffect(() => {
         if (!isAuthenticated) return undefined;
-        if (typeof window === 'undefined' || typeof EventSource === 'undefined') return undefined;
-
-        let es: EventSource | null = null;
-        let reconnectTimer: number | null = null;
-        let reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
-        let cancelled = false;
-        // Distinguishes the first successful connect (SSR already provided
-        // fresh data) from a RE-connect after a drop (where events were likely
-        // missed — e.g. the manager restarted Symfony for a plugin/system
-        // operation — and the UI must reconcile).
-        let hasConnectedBefore = false;
 
         const invalidatePluginSurfaceCaches = () => {
             void queryClient.invalidateQueries({ queryKey: ADMIN_PLUGINS_KEY });
@@ -101,62 +103,36 @@ export function useAdminPluginsRealtime(): void {
             void queryClient.invalidateQueries({ queryKey: ADMIN_PLUGIN_OPERATIONS_KEY });
         };
 
-        const connect = () => {
-            if (cancelled) return;
-            try {
-                es = new EventSource(SSE_ENDPOINT);
-            } catch {
-                return;
-            }
-
-            es.addEventListener('open', () => {
-                reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
-                // SSE is live → stop any fallback polling.
-                setPluginSseConnected(true);
-                // On a RE-connect, reconcile state that may have changed while
-                // the stream was down (the whole point of dropping the timer
-                // poll): one full invalidation brings the UI back in sync.
-                if (hasConnectedBefore) {
-                    invalidatePluginSurfaceCaches();
-                }
-                hasConnectedBefore = true;
-            });
-
-            for (const eventName of PLUGIN_STATE_EVENTS) {
-                es.addEventListener(eventName, invalidatePluginSurfaceCaches);
-            }
-
-            // Progress events are noisy — only invalidate the
-            // operations list so the install/update detail view picks
-            // up new log lines without thrashing the plugins list.
-            es.addEventListener('plugin-operation-progress', invalidateOperationsOnly);
-
-            es.addEventListener('error', () => {
-                if (!es) return;
-                // The stream dropped → allow the fallback poll to take over
-                // while an operation is in flight.
-                setPluginSseConnected(false);
-                if (es.readyState === EventSource.CLOSED && !cancelled) {
-                    es.close();
-                    es = null;
-                    reconnectTimer = window.setTimeout(connect, reconnectDelay);
-                    reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY_MS);
-                }
-            });
+        // Lighter reconcile for a tab regaining visibility: refresh the plugin
+        // data without forcing a full RSC `router.refresh()` on every focus.
+        const reconcilePluginQueries = () => {
+            void queryClient.invalidateQueries({ queryKey: ADMIN_PLUGINS_KEY });
+            void queryClient.invalidateQueries({ queryKey: ADMIN_PLUGIN_OPERATIONS_KEY });
         };
 
-        connect();
+        const unsubscribe = subscribeSharedSse({
+            endpoint: SSE_ENDPOINT,
+            events: PLUGIN_STREAM_EVENTS,
+            onEvent: (type) => {
+                // Progress events are noisy — only invalidate the operations
+                // list so the install/update detail view picks up new log lines
+                // without thrashing the plugins list.
+                if (type === PLUGIN_PROGRESS_EVENT) {
+                    invalidateOperationsOnly();
+                } else {
+                    invalidatePluginSurfaceCaches();
+                }
+            },
+            onStatus: (connected) => setPluginSseConnected(connected),
+            // Reconnected after a drop (e.g. the manager restarted Symfony for a
+            // plugin/system operation): events were likely missed, so reconcile.
+            onReopen: invalidatePluginSurfaceCaches,
+            onResume: reconcilePluginQueries,
+        });
 
         return () => {
-            cancelled = true;
             setPluginSseConnected(false);
-            if (reconnectTimer !== null) {
-                window.clearTimeout(reconnectTimer);
-            }
-            if (es) {
-                es.close();
-                es = null;
-            }
+            unsubscribe();
         };
     }, [isAuthenticated, queryClient, router]);
 }

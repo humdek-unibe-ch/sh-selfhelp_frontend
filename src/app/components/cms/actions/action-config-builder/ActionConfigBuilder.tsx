@@ -77,6 +77,12 @@ interface IActionConfigBuilderProps {
     value?: IActionConfig;
     onChange: (cfg: IActionConfig) => void;
     onTranslationsChange?: (translations: { [key: string]: { [languageId: number]: string } }) => void;
+    /**
+     * Interpolation `{{ }}` picker variables (token => label) for the action's
+     * notification subject + body editors — `recipient.*`, `record.*`,
+     * `system.*`, `globals.*` (issue #56 v2).
+     */
+    dataVariables?: Record<string, string>;
 }
 
 function ensureArray<T>(arr: T[] | undefined): T[] { return Array.isArray(arr) ? arr : []; }
@@ -95,7 +101,7 @@ const repeatEveryOptions = Array.from({ length: 30 }, (_, i) => {
 const ordinal20Options = Array.from({ length: 20 }, (_, i) => ({ value: String(i + 1), label: toOrdinal(i + 1) }));
 const daysOfMonthOptions = Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }));
 
-export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsChange }: IActionConfigBuilderProps) {
+export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsChange, dataVariables }: IActionConfigBuilderProps) {
     const [config, setConfig] = useState<IActionConfig>(value || { blocks: [] });
     const lastPropJsonRef = useRef<string>(JSON.stringify(value || { blocks: [] }));
     const lastEmittedJsonRef = useRef<string>(JSON.stringify(value || { blocks: [] }));
@@ -881,6 +887,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
                     {/* Subject and Body fields for both email and push notifications */}
                     <GroupedTranslationInput
+                        dataVariables={dataVariables}
                         subjectValue={localTranslations[`${prefix}.subject`] || {}}
                         bodyValue={localTranslations[`${prefix}.body`] || {}}
                         subjectPlaceholder={n.notification_types === 'email' ? "Enter email subject" : "Enter notification title"}

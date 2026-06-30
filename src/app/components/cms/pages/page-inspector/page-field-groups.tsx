@@ -345,6 +345,10 @@ interface IPageAdditionalPropertiesProps {
     defaultLanguageId: number;
 }
 
+// Property fields (url, nav/footer position, page-type settings) are returned
+// verbatim by the backend and never interpolated at render, so they expose no
+// `{{ }}` picker (issue #56 v2 honest-picker rule). The picker lives on content
+// fields (mail-config templates) and sections instead.
 export const PageAdditionalProperties = React.memo(function PageAdditionalProperties({
     fields,
     defaultLanguageId

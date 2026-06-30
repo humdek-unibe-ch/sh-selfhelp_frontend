@@ -66,6 +66,7 @@ import {
     VersionComparisonViewer
 } from '../../page-versions';
 import { usePageFormStore } from '../../../../store/pageFormStore';
+import { useInterpolationVariables } from '../../../../../hooks/useInterpolationVariables';
 import { PageContentField, PagePropertyField } from './page-field-connectors';
 import {
     PageInfoPanel,
@@ -118,6 +119,15 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
         isLoading: fieldsLoading,
         error: fieldsError
     } = usePageFields(page?.id_pages || null, !!page);
+
+    // Interpolation `{{ }}` picker for this page's CONTENT fields (issue #56 v2).
+    // Only the mail-config page actually interpolates page fields (its email
+    // templates are rendered by the mail subsystem) — it is detected server-side
+    // and returns the mail catalog (system.* + system.special.* links). Every
+    // other page returns an empty catalog because PageService renders page
+    // metadata verbatim, so the picker stays off those fields (honest-picker
+    // rule). Property fields never interpolate and therefore get no picker.
+    const { data: pageDataVariables } = useInterpolationVariables('page', page?.id_pages ?? null, !!page);
 
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
     const { languages: languagesData, isLoading: languagesLoading } = usePublicLanguages();
@@ -359,6 +369,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                               languageId={lang.id}
                               locale={lang.locale}
                               className={styles.fullWidthLabel}
+                              dataVariables={pageDataVariables}
                               disabled={
                                 isConfigurationPage &&
                                 field.name.toLowerCase() === "title"
@@ -378,6 +389,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                         languageId={defaultLanguageId}
                         locale={languagesData[0]?.locale}
                         className={styles.fullWidthLabel}
+                        dataVariables={pageDataVariables}
                         disabled={
                           isConfigurationPage &&
                           field.name.toLowerCase() === "title"
