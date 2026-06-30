@@ -203,7 +203,11 @@ export function DataConfigModal({
             isLoading={isSaving}
             saveLabel="Save Configuration"
             cancelLabel="Cancel"
-            disabled={dataSources.length === 0}
+            // Saving with zero data sources is allowed on purpose: it lets an
+            // author remove the last/only data source and persist a cleared
+            // config (DataConfigField serialises an empty list to an empty
+            // field value).
+            disabled={false}
             scrollAreaHeight="70vh"
             modalStyles={{
                 content: { height: '90vh' },
@@ -225,20 +229,23 @@ export function DataConfigModal({
                                         key={index}
                                         value={index.toString()}
                                         rightSection={
-                                            dataSources.length > 1 ? (
-                                                <ActionIcon
-                                                    component="div"
-                                                    size="xs"
-                                                    color="red"
-                                                    variant="subtle"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleRemoveDataSource(index);
-                                                    }}
-                                                >
-                                                    <IconTrash size={12} />
-                                                </ActionIcon>
-                                            ) : null
+                                            // Always offer removal, including the
+                                            // only/last data source: removing it
+                                            // leaves zero sources, which Save then
+                                            // persists as a cleared data_config.
+                                            <ActionIcon
+                                                component="div"
+                                                size="xs"
+                                                color="red"
+                                                variant="subtle"
+                                                aria-label={`Remove Data Source ${index + 1}`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemoveDataSource(index);
+                                                }}
+                                            >
+                                                <IconTrash size={12} />
+                                            </ActionIcon>
                                         }
                                     >
                                         <Group gap="xs">

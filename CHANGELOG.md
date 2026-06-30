@@ -14,6 +14,24 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.56 — 2026-06-30
+
+### Changed
+- **Data Config Builder: the Scope field is a plain text input.** Scope is only
+  the identifier the retrieved data is stored under for interpolation
+  (`{{scope.field_key}}`), not interpolated content, so it no longer uses the
+  rich mention editor — just type the name.
+
+### Fixed
+- **Data Config Builder: the last/only data source can now be removed.** The
+  remove (trash) action is available on every data source tab, and saving with
+  zero data sources persists a cleared `data_config`. Previously the last source
+  had no remove button and an empty configuration could not be saved.
+- Floor-neutral: both are UI-only changes that add no new backend dependency, so
+  `supports.core` stays `>=0.1.28`.
+
+---
+
 ## v0.1.55 — 2026-06-29
 
 ### Added

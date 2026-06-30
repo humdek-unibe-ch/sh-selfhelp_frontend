@@ -14,6 +14,7 @@ import {
     ActionIcon,
     Card,
     Text,
+    TextInput,
     Divider,
     Alert
 } from '@mantine/core';
@@ -167,15 +168,17 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
             {/* Basic Configuration */}
             <div className={classes.formGrid}>
                 <div className={classes.gridCol2}>
-                    <TextInputWithMentions
-                        fieldId={index * 100 + 1}
+                    {/* Scope is a plain identifier — the key the retrieved data is
+                        stored under for interpolation ({{scope.field_key}}) — not
+                        interpolated content itself, so it uses a simple text input
+                        rather than the mention editor. */}
+                    <TextInput
                         label="Scope"
                         placeholder="Enter scope name"
                         value={dataSource.scope}
-                        onChange={(value) => handleFieldChange('scope', value)}
+                        onChange={(e) => handleFieldChange('scope', e.currentTarget.value)}
                         required
                         description="Set data source scope name"
-                        dataVariables={dataVariables}
                     />
                 </div>
 
