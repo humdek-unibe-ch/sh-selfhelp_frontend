@@ -145,6 +145,11 @@ export function MentionEditor({
         // never requires recreating the editor.
         exts.push(
             Mention.configure(
+                // The getter is invoked by Tiptap's suggestion plugin only on a
+                // `{{` keystroke (an event) — never during render — so reading
+                // `variablesRef.current` lazily here is safe. react-hooks/refs
+                // can't prove that statically, hence the scoped disable.
+                // eslint-disable-next-line react-hooks/refs
                 createMentionConfig(() => variablesRef.current, MentionSuggestionList, maxVisibleRows, maxItems)
             )
         );

@@ -110,8 +110,14 @@ describe('mentions chip round-trip (issue #56 v2)', () => {
     it('escapes HTML-unsafe characters in a label so the chip stays well-formed', () => {
         const html = tokensToMentionHtml('{{x}}', { x: 'A & B <c> "d"' });
 
-        // The attribute escapes quotes too; text content leaves quotes literal.
-        expect(html).toContain('data-label="A &amp; B &lt;c&gt; &quot;d&quot;"');
+        // `tokensToMentionHtml` round-trips through the DOM, so the output follows
+        // the HTML serialization spec (identical in jsdom and real browsers):
+        //  - double-quoted attribute: escape `&` and `"` only (`<`/`>` are legal
+        //    inside an attribute value, so they stay literal);
+        //  - text content: escape `&`, `<`, `>` (a literal `"` is fine there).
+        // Both forms are well-formed — the chars that could break the attribute or
+        // the markup are escaped.
+        expect(html).toContain('data-label="A &amp; B <c> &quot;d&quot;"');
         expect(html).toContain('>A &amp; B &lt;c&gt; "d"<');
     });
 });
