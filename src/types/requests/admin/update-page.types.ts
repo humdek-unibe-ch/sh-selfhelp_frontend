@@ -7,6 +7,7 @@ SPDX-License-Identifier: MPL-2.0
  * Based on backend API route: admin_update_page
  * Updated to match JSON schema validation requirements
  */
+import { type IPageRouteItem } from '../../common/pages.type';
 
 /**
  * Page data structure for updates
@@ -21,17 +22,24 @@ export interface IUpdatePageData {
     /** Whether the page is headless */
     headless?: boolean;
     
-    /** Navigation position */
-    navPosition?: number | null;
-    
-    /** Footer position */
-    footerPosition?: number | null;
-    
     /** Whether the page has open access */
     openAccess?: boolean;
     
     /** Access type code from lookups with typeCode=pageAccessTypes */
     pageAccessTypeCode?: string;
+
+    /**
+     * CMS-in-CMS organization axis (issue #30): `public` | `cms` | null
+     * (null resolves to public).
+     */
+    surface?: 'public' | 'cms' | null;
+
+    /**
+     * Full desired set of DB-driven public routes (issue #30). When present,
+     * the backend syncs create/update/delete, validates global conflicts, and
+     * enforces a single canonical route.
+     */
+    routes?: IPageRouteItem[];
     
     /** ID of the parent page */
     parent?: number | null;

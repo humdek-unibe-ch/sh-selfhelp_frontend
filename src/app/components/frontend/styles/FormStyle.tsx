@@ -6,8 +6,12 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import BasicStyle from './BasicStyle';
 import { Button, Alert, LoadingOverlay, Group, Modal, Stack, Text, Title } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
+import { usePageModal } from '../../contexts/PageModalContext';
+import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { type IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
 import { type IFormLogStyle, type IFormRecordStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline, stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
@@ -44,6 +48,9 @@ export { FileInputRegistrationContext, FormFieldValueContext };
 
 const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const pageContent = usePageContentValue();
+    const router = useRouter();
+    const queryClient = useQueryClient();
+    const { inModal, closeModal } = usePageModal();
     const [formKey, setFormKey] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -65,6 +72,10 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const alertErrorTitle = style.alert_error_title?.content || 'Error';
     const confirmSubmit = style.confirm_submit?.content === '1';
     const confirmMessage = style.confirm_message?.content || 'Are you sure you want to submit?';
+    // CMS-in-CMS modal flow (web-only): close the surrounding modal and/or
+    // redirect after a successful save. Both come from form section fields.
+    const closeModalOnSave = style.close_modal_on_save?.content === '1';
+    const redirectOnSave = style.redirect_on_save?.content?.trim() || '';
 
     // Extract button configuration (btn_update_label/btn_update_color are record-only)
     const saveLabel = style.btn_save_label?.content || 'Save';
@@ -379,6 +390,21 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             // Handle success alert - prefer backend message over style message
             const _successMessage = response?.data?.message || alertSuccess;
 
+            // CMS-in-CMS modal flow: after a successful save, refresh the page
+            // content (so the underlying list shows the new/updated row) and
+            // either redirect or close the surrounding modal. No-op for normal
+            // standalone forms (neither field set / not in a modal).
+            if (redirectOnSave || (closeModalOnSave && inModal)) {
+                void queryClient.invalidateQueries({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL,
+                });
+                if (redirectOnSave) {
+                    router.push(redirectOnSave);
+                } else {
+                    closeModal();
+                }
+            }
+
         } catch (error) {
             // Extract error message from API response if available
             let errorMessage = alertError || 'Failed to submit form. Please try again.';
@@ -407,7 +433,13 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
         confirmSubmit,
         submitFormMutation,
         updateFormMutation,
-        collectFilesFromInputs
+        collectFilesFromInputs,
+        redirectOnSave,
+        closeModalOnSave,
+        inModal,
+        closeModal,
+        router,
+        queryClient
     ]);
 
     const handleCancel = useCallback(() => {

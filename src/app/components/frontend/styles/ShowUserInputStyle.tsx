@@ -8,7 +8,8 @@ import React, { useState } from 'react';
 import {
     Table, Text, TextInput, Pagination, Group, ActionIcon, Modal, Stack, Button, Alert, ScrollArea, Title
 } from '@mantine/core';
-import { IconTrash, IconSearch, IconAlertCircle, IconChevronUp, IconChevronDown, IconSelector, IconDownload } from '@tabler/icons-react';
+import { IconTrash, IconSearch, IconAlertCircle, IconChevronUp, IconChevronDown, IconSelector, IconDownload, IconPlus, IconEye } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
 import { useDeleteFormMutation } from '../../../../hooks/useFormSubmission';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import type { IShowUserInputStyle, IShowUserInputEntry } from '../../../../shared';
@@ -37,6 +38,7 @@ const PAGE_SIZE = 10;
 const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, styleProps, cssClass }) => {
     const pageContent = usePageContentValue();
     const deleteMutation = useDeleteFormMutation();
+    const router = useRouter();
 
     const heading = style.title?.content;
     const emptyText = style.empty_text?.content || 'No entries found.';
@@ -50,6 +52,13 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
     const defaultOrderDir = (style.dt_default_order_dir?.content ?? 'asc') as 'asc' | 'desc';
     const csvExport = style.csv_export?.content === '1';
     const deleteEntry = style.delete_entry?.content === '1';
+    // CMS-in-CMS controls (web-only): an "Add new" button (opens the create
+    // form, typically a modal) and a per-row open/edit action. `edit_url` uses a
+    // single-brace `{record_id}` placeholder substituted per row at click time
+    // (NOT a backend {{...}} interpolation token).
+    const addUrl = style.add_url?.content?.trim() || '';
+    const editUrl = style.edit_url?.content?.trim() || '';
+    const hasRowActions = deleteEntry || editUrl !== '';
     const spacing = style.spacing?.content || 'md';
     const striped = style.web_table_striped?.content === '1';
     const highlightOnHover = style.web_table_highlight_on_hover?.content !== '0';
@@ -187,14 +196,14 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
                                 </Group>
                             </Table.Th>
                         ))}
-                        {deleteEntry && <Table.Th style={{ width: 40 }}>Actions</Table.Th>}
+                        {hasRowActions && <Table.Th style={{ width: 88 }}>Actions</Table.Th>}
                     </Table.Tr>
                 </Table.Thead>
             )}
             <Table.Tbody>
                 {pageRows.length === 0 ? (
                     <Table.Tr>
-                        <Table.Td colSpan={allColumns.length + (deleteEntry ? 1 : 0)}>
+                        <Table.Td colSpan={allColumns.length + (hasRowActions ? 1 : 0)}>
                             <Text ta="center" c="dimmed" size="sm">{emptyText}</Text>
                         </Table.Td>
                     </Table.Tr>
@@ -205,19 +214,31 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
                                 <Text size="sm">{String(row[col.key] ?? '')}</Text>
                             </Table.Td>
                         ))}
-                        {deleteEntry && (
+                        {hasRowActions && (
                             <Table.Td>
-                                {row._can_delete && (
-                                    <ActionIcon
-                                        color="red"
-                                        variant="subtle"
-                                        size="sm"
-                                        aria-label={`Delete record ${row['record_id']}`}
-                                        onClick={() => setDeleteTarget({ record_id: Number(row['record_id']) })}
-                                    >
-                                        <IconTrash size={14} />
-                                    </ActionIcon>
-                                )}
+                                <Group gap={4} wrap="nowrap">
+                                    {editUrl && (
+                                        <ActionIcon
+                                            variant="subtle"
+                                            size="sm"
+                                            aria-label={`Open record ${row['record_id']}`}
+                                            onClick={() => router.push(editUrl.replace('{record_id}', String(row['record_id'])))}
+                                        >
+                                            <IconEye size={14} />
+                                        </ActionIcon>
+                                    )}
+                                    {deleteEntry && row._can_delete && (
+                                        <ActionIcon
+                                            color="red"
+                                            variant="subtle"
+                                            size="sm"
+                                            aria-label={`Delete record ${row['record_id']}`}
+                                            onClick={() => setDeleteTarget({ record_id: Number(row['record_id']) })}
+                                        >
+                                            <IconTrash size={14} />
+                                        </ActionIcon>
+                                    )}
+                                </Group>
                             </Table.Td>
                         )}
                     </Table.Tr>
@@ -229,17 +250,28 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
     return (
         <div className={cssClass} {...styleProps}>
             {heading && <Title order={3} mb="sm">{heading}</Title>}
-            {csvExport && (
-                <Group justify="flex-end" mb="xs">
-                    <Button
-                        variant="light"
-                        size="xs"
-                        leftSection={<IconDownload size={14} />}
-                        onClick={handleExportCsv}
-                        disabled={sorted.length === 0}
-                    >
-                        Export CSV
-                    </Button>
+            {(addUrl || csvExport) && (
+                <Group justify="space-between" mb="xs">
+                    {addUrl ? (
+                        <Button
+                            size="xs"
+                            leftSection={<IconPlus size={14} />}
+                            onClick={() => router.push(addUrl)}
+                        >
+                            Add new
+                        </Button>
+                    ) : <span />}
+                    {csvExport && (
+                        <Button
+                            variant="light"
+                            size="xs"
+                            leftSection={<IconDownload size={14} />}
+                            onClick={handleExportCsv}
+                            disabled={sorted.length === 0}
+                        >
+                            Export CSV
+                        </Button>
+                    )}
                 </Group>
             )}
             {searching && (

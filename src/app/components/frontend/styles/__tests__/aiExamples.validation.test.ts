@@ -7,7 +7,7 @@ import { validateAllExamples } from '../../../../../../scripts/validate-ai-examp
 
 /**
  * Drift guard for the curated AI section examples
- * (`docs/reference/ai-prompts/generated-examples/*.json`).
+ * (`examples/sections/*.json`).
  *
  * Each example is validated DB-free against the committed live-schema snapshot
  * (`docs/reference/ai-prompts/style-schema.snapshot.json`) using the same
