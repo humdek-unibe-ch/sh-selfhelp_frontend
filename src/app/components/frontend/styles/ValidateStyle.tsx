@@ -9,7 +9,7 @@ import { ROUTES } from '../../../../config/routes.config';
 import { type IValidateStyle } from '../../../../types/common/styles.types';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useValidateTokenMutation, useCompleteValidationMutation, useTokenValidation } from '../../../../hooks/mutations/useValidationMutations';
 
 /**
@@ -22,7 +22,6 @@ interface IValidateStyleProps {
 }
 
 const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssClass }) => {
-    const params = useParams();
     const router = useRouter();
     const pageContent = usePageContentValue();
     const [formKey, _setFormKey] = useState(0);
@@ -41,22 +40,11 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     const [passwordError, setPasswordError] = useState<string>('');
     const [redirectCountdown, setRedirectCountdown] = useState(3);
 
-    // Extract userId and token from URL path
-    // This works with any URL pattern as long as it contains /validate/{uid}/{token}
-    let userId = 0;
-    let token = '';
-
-    // Get the current pathname from params.slug (since we're using [[...slug]])
-    if (params.slug && Array.isArray(params.slug)) {
-        const pathParts = params.slug;
-        const validateIndex = pathParts.indexOf('validate');
-
-        if (validateIndex !== -1 && pathParts.length > validateIndex + 2) {
-            // Found validate in path, extract uid and token
-            userId = parseInt(pathParts[validateIndex + 1]) || 0;
-            token = pathParts[validateIndex + 2] || '';
-        }
-    }
+    // DB-driven routing (issue #30): userId + token come from the resolved
+    // page's snake_case `route_params` (`/validate/{user_id}/{token}`), not from
+    // re-parsing the URL. Works for any public path the CMS maps to this page.
+    const userId = Number.parseInt(pageContent?.route_params?.user_id ?? '', 10) || 0;
+    const token = pageContent?.route_params?.token ?? '';
 
     // Token validation hooks
     const { data: tokenValidation, isLoading: isValidatingToken, error: tokenValidationError } = useTokenValidation(userId, token);

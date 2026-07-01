@@ -147,6 +147,26 @@ export const API_CONFIG = {
             route: (keyword: string) => `/pages/by-keyword/${encodeURIComponent(keyword)}`,
             permissions: []
         },
+        /**
+         * DB-driven public path resolution (issue #30). Maps a full public URL
+         * path (`/reset/42/abc`, `/team/7`) to page content + route params via
+         * the `page_routes` contract. Open-access API route; the resolved page
+         * still enforces full ACL. `path` + `language_id` + `preview` are sent
+         * as query params (axios `params`), so the route itself is static.
+         */
+        PAGES_RESOLVE: {
+            route: '/pages/resolve',
+            permissions: []
+        },
+        NAVIGATION_GET: {
+            route: (languageId?: number) =>
+                languageId ? `/navigation?language_id=${languageId}` : '/navigation',
+            permissions: []
+        },
+        NAVIGATION_LAST_VISITED: {
+            route: '/navigation/last-visited',
+            permissions: []
+        },
 
         // Public languages endpoint
         LANGUAGES: {
@@ -193,6 +213,96 @@ export const API_CONFIG = {
         ADMIN_PAGES_SECTIONS_GET: {
             route: (pageId: number) => `/admin/pages/${pageId}/sections`,
             permissions: [PERMISSIONS.ADMIN_PAGE_READ]
+        },
+        // Admin page export/import (issue #30, Phase 5) — portable page bundles
+        ADMIN_PAGES_EXPORT: {
+            route: '/admin/pages/export',
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
+        ADMIN_PAGES_EXAMPLES: {
+            route: '/admin/pages/examples',
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
+        ADMIN_PAGES_EXPORT_SUGGEST: {
+            route: (pageId: number) => `/admin/pages/${pageId}/export/suggest`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
+        ADMIN_PAGES_IMPORT_VALIDATE: {
+            route: '/admin/pages/import/validate',
+            permissions: [PERMISSIONS.ADMIN_PAGE_CREATE]
+        },
+        ADMIN_PAGES_IMPORT: {
+            route: '/admin/pages/import',
+            permissions: [PERMISSIONS.ADMIN_PAGE_CREATE]
+        },
+        // CMS-in-CMS "Create list + detail pages" wizard (issue #30, Phase 6)
+        ADMIN_PAGES_CMS_APP: {
+            route: '/admin/pages/cms-app',
+            permissions: [PERMISSIONS.ADMIN_PAGE_CREATE]
+        },
+
+        ADMIN_NAVIGATION_GET: {
+            route: '/admin/navigation',
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_READ],
+        },
+        ADMIN_NAVIGATION_MENU_PREVIEW: {
+            route: (menuKey: string, languageId?: number) =>
+                languageId
+                    ? `/admin/navigation/menus/${menuKey}/preview?language_id=${languageId}`
+                    : `/admin/navigation/menus/${menuKey}/preview`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_READ],
+        },
+        ADMIN_NAVIGATION_MENU_UPDATE: {
+            route: (menuKey: string) => `/admin/navigation/menus/${menuKey}`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_SETTINGS_UPDATE: {
+            route: '/admin/navigation/settings',
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_MENU_ITEM_CREATE: {
+            route: (menuKey: string) => `/admin/navigation/menus/${menuKey}/items`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_MENU_ITEM_UPDATE: {
+            route: (itemId: number) => `/admin/navigation/items/${itemId}`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_MENU_ITEM_DELETE: {
+            route: (itemId: number) => `/admin/navigation/items/${itemId}`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_MENU_REORDER: {
+            route: (menuKey: string) => `/admin/navigation/menus/${menuKey}/reorder`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_ITEM_CONVERT_AUTO_CHILDREN: {
+            route: (itemId: number) => `/admin/navigation/items/${itemId}/convert-auto-children`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_ITEM_EXCLUSION_ADD: {
+            route: (itemId: number) => `/admin/navigation/items/${itemId}/exclusions`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_ITEM_EXCLUSION_REMOVE: {
+            route: (itemId: number, pageId: number) => `/admin/navigation/items/${itemId}/exclusions/${pageId}`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        SEARCH_PAGES: {
+            route: (query: string, languageId?: number) => {
+                const params = new URLSearchParams({ query });
+                if (languageId) params.set('language_id', String(languageId));
+                return `/search/pages?${params.toString()}`;
+            },
+            permissions: [],
+        },
+        SEARCH_CONTENT: {
+            route: (query: string, languageId?: number) => {
+                const params = new URLSearchParams({ query });
+                if (languageId) params.set('language_id', String(languageId));
+                return `/search?${params.toString()}`;
+            },
+            permissions: [],
         },
 
         // Admin languages endpoints

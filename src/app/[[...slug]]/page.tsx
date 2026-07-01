@@ -31,7 +31,8 @@ import { notFound, redirect } from 'next/navigation';
 import {
     getFrontendPageSeoSSR,
     getPageByKeywordSSRCached,
-    getPageByKeywordSSRStatus,
+    resolvePageByPathSSRCached,
+    resolvePageByPathSSRStatus,
     resolveLanguageSSR,
     resolvePreviewSSR,
     extractSsrPage,
@@ -40,7 +41,7 @@ import type { IPageContent } from '../../shared';
 import { MaintenanceClient } from '../MaintenanceClient';
 import { MAINTENANCE_KEYWORD, hasRenderableMaintenancePage, isMaintenanceStatus } from '../maintenance';
 import DynamicPageClient from './DynamicPageClient';
-import { buildStaticFallbackPath, keywordFromSlug } from './slug-routing';
+import { buildStaticFallbackPath, pathFromSlug } from './slug-routing';
 
 /**
  * Returns true when the page should fall back to its static route.
@@ -62,18 +63,19 @@ export async function generateMetadata({
     params: Promise<{ slug?: string[] }>;
 }): Promise<Metadata> {
     const { slug } = await params;
-    const keyword = keywordFromSlug(slug);
+    const path = pathFromSlug(slug);
     const [{ id: languageId }, preview] = await Promise.all([
         resolveLanguageSSR(),
         resolvePreviewSSR(),
     ]);
 
-    const [envelope, navSeo] = await Promise.all([
-        getPageByKeywordSSRCached(keyword, languageId, preview),
-        getFrontendPageSeoSSR(keyword, languageId),
-    ]);
-
+    const envelope = await resolvePageByPathSSRCached(path, languageId, preview);
     const page = extractSsrPage(envelope);
+
+    // SEO fallback list is keyed by keyword; use the resolver-returned keyword.
+    const navSeo = page?.keyword
+        ? await getFrontendPageSeoSSR(page.keyword, languageId)
+        : { title: null, description: null };
 
     const payloadTitle =
         typeof page?.title === 'string' && page.title.trim() ? page.title.trim() : null;
@@ -105,13 +107,13 @@ export default async function SlugPage({
     params: Promise<{ slug?: string[] }>;
 }) {
     const { slug } = await params;
-    const keyword = keywordFromSlug(slug);
+    const path = pathFromSlug(slug);
     const [{ id: languageId }, preview] = await Promise.all([
         resolveLanguageSSR(),
         resolvePreviewSSR(),
     ]);
 
-    const { status, data: envelope } = await getPageByKeywordSSRStatus(keyword, languageId, preview);
+    const { status, data: envelope } = await resolvePageByPathSSRStatus(path, languageId, preview);
 
     // Instance in maintenance: Symfony returns a clean 503 for normal page
     // traffic while keeping the `maintenance` page reachable. Render the styled
@@ -134,7 +136,9 @@ export default async function SlugPage({
 
     const page = extractSsrPage(envelope);
 
-    const fallbackPath = buildStaticFallbackPath(keyword, slug);
+    // Static fallback (resolved keyword + route params) when a system page is
+    // missing its functional section — keeps operators out of a dead end.
+    const fallbackPath = page ? buildStaticFallbackPath(page.keyword, page.route_params) : null;
     if (fallbackPath && shouldFallback(page)) {
         redirect(fallbackPath);
     }
@@ -143,5 +147,12 @@ export default async function SlugPage({
         notFound();
     }
 
-    return <DynamicPageClient keyword={keyword} initialPageId={page.id} />;
+    return (
+        <DynamicPageClient
+            keyword={page.keyword}
+            initialPageId={page.id}
+            path={path}
+            routeParams={page.route_params}
+        />
+    );
 }

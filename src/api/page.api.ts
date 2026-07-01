@@ -45,4 +45,23 @@ export const PageApi = {
         );
         return response.data.data.page;
     },
+
+    /**
+     * Resolve a full public URL path to its page content via the DB-driven
+     * `page_routes` contract (issue #30). Unlike {@link getPageByKeyword} this
+     * carries the matched `route_params` (snake_case) on the returned page, so
+     * parameterized URLs (`/reset/42/abc`, `/team/7`) render the right record
+     * and the auth styles can read `page.route_params.user_id` / `.token`.
+     */
+    async resolvePageByPath(path: string, languageId?: number, preview?: boolean): Promise<IPageContent> {
+        const queryParams: Record<string, string> = { path };
+        if (languageId) queryParams.language_id = languageId.toString();
+        if (preview) queryParams.preview = 'true';
+
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>(
+            API_CONFIG.ENDPOINTS.PAGES_RESOLVE,
+            { params: queryParams }
+        );
+        return response.data.data.page;
+    },
 };

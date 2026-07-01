@@ -7,10 +7,11 @@ SPDX-License-Identifier: MPL-2.0
 import React, { useState } from 'react';
 import { Box, Card, TextInput, Button, Alert, Text } from '@mantine/core';
 import { IconCheck, IconMail, IconLock, IconX } from '@tabler/icons-react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { type IResetPasswordStyle } from '../../../../types/common/styles.types';
 import { ROUTES } from '../../../../config/routes.config';
 import { AuthApi } from '../../../../api/auth.api';
+import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import DOMPurify from 'isomorphic-dompurify';
 
 interface IResetPasswordStyleProps {
@@ -34,40 +35,15 @@ type TResetPasswordStyleFields = IResetPasswordStyle & {
     reset_error_pw_mismatch?: { content?: string };
 };
 
-/**
- * Pull `/reset/{userId}/{token}` out of the `[[...slug]]` catch-all. Returns
- * zero/empty when the URL is just the request page (`/reset`), which switches
- * the component to "request a reset link" mode.
- */
-function extractResetTarget(slug: string | string[] | undefined): { userId: number; token: string } {
-    if (!Array.isArray(slug)) {
-        return { userId: 0, token: '' };
-    }
-
-    // Static fallback route (`/auth/reset-password/[...slug]`) receives only
-    // the trailing `[userId, token]` segments, not the public `reset` prefix.
-    if (slug.length >= 2 && slug[0] !== 'reset') {
-        return {
-            userId: parseInt(slug[0], 10) || 0,
-            token: slug[1] || '',
-        };
-    }
-
-    const idx = slug.indexOf('reset');
-    if (idx === -1 || slug.length <= idx + 2) {
-        return { userId: 0, token: '' };
-    }
-    return {
-        userId: parseInt(slug[idx + 1], 10) || 0,
-        token: slug[idx + 2] || '',
-    };
-}
-
 const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, styleProps, cssClass }) => {
     const resetStyle = style as TResetPasswordStyleFields;
-    const params = useParams();
     const router = useRouter();
-    const { userId, token } = extractResetTarget(params?.slug as string | string[] | undefined);
+    // DB-driven routing (issue #30): the reset target comes from the resolved
+    // page's snake_case `route_params` (`/reset/{user_id}/{token}`), not from
+    // parsing the URL. Plain `/reset` has no params -> "request a link" mode.
+    const pageContent = usePageContentValue();
+    const userId = Number.parseInt(pageContent?.route_params?.user_id ?? '', 10) || 0;
+    const token = pageContent?.route_params?.token ?? '';
     const isSetMode = userId > 0 && token !== '';
 
     const mantineColor = ((style as { color?: { content?: string } }).color?.content as string | undefined) || 'blue';

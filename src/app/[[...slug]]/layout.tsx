@@ -22,7 +22,7 @@ import { QueryClient, dehydrate, HydrationBoundary } from '@tanstack/react-query
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import {
     getFrontendPagesSSR,
-    getPageByKeywordSSRCached,
+    resolvePageByPathSSRCached,
     resolveLanguageSSR,
     resolvePreviewSSR,
     unwrapSsrList,
@@ -31,14 +31,7 @@ import {
 import SlugShell from './SlugLayout/SlugShell';
 import { WebsiteHeader } from '../components/frontend/layout/header/WebsiteHeader';
 import { WebsiteFooter } from '../components/frontend/layout/footer/WebsiteFooter';
-
-/** Backend keyword used for the landing page (matches Symfony's `home` page). */
-const HOME_KEYWORD = 'home';
-
-function keywordFromSlug(slug: string[] | undefined): string {
-    if (!slug || slug.length === 0) return HOME_KEYWORD;
-    return slug.join('/');
-}
+import { pathFromSlug } from './slug-routing';
 
 export default async function SlugRouteLayout({
     children,
@@ -48,7 +41,7 @@ export default async function SlugRouteLayout({
     params: Promise<{ slug?: string[] }>;
 }) {
     const { slug } = await params;
-    const keyword = keywordFromSlug(slug);
+    const path = pathFromSlug(slug);
     const [{ id: languageId }, preview] = await Promise.all([
         resolveLanguageSSR(),
         resolvePreviewSSR(),
@@ -59,8 +52,10 @@ export default async function SlugRouteLayout({
     });
 
     // Prefetch the page content under the SAME cache key the client hook
-    // will read (`['page-by-keyword', keyword, languageId, preview]`). The
-    // preview flag is resolved from `sh_preview` on the server, so admins
+    // will read (`['page-by-keyword', '__path__', path, languageId, preview]`,
+    // i.e. PAGE_BY_PATH). The DB resolver maps the URL path to the page, so the
+    // client `usePageContentByPath` mounts the hydrated entry without a refetch.
+    // The preview flag is resolved from `sh_preview` on the server, so admins
     // toggling preview mode see a single request per navigation instead of
     // published-then-preview double fetches.
     const [navEnvelope, pageEnvelope] = await Promise.all([
@@ -79,13 +74,13 @@ export default async function SlugRouteLayout({
             },
         }).then(() => queryClient.getQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(languageId))),
         queryClient.prefetchQuery({
-            queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, languageId, preview),
+            queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_PATH(path, languageId, preview),
             queryFn: async () => {
-                const raw = await getPageByKeywordSSRCached(keyword, languageId, preview);
+                const raw = await resolvePageByPathSSRCached(path, languageId, preview);
                 return extractSsrPage(raw);
             },
         }).then(() =>
-            queryClient.getQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, languageId, preview))
+            queryClient.getQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_PATH(path, languageId, preview))
         ),
     ]);
 

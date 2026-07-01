@@ -16,6 +16,7 @@ import '@mantine/tiptap/styles.css';
 import { AppShell } from '@mantine/core';
 import { DebugMenu } from '../../components/shared/common/debug';
 import { PreviewModeIndicator } from '../../components/shared/common/PreviewModeIndicator';
+import { WebStartupRedirect } from '../../components/frontend/navigation/WebStartupRedirect';
 import { usePreviewMode } from '../../components/contexts/PreviewModeContext';
 import styles from './SlugLayout.module.css';
 
@@ -64,6 +65,7 @@ export default function SlugShell({ isHeadless, header, footer, children }: ISlu
             )}
 
             <AppShell.Main className={styles.mainLayout}>
+                <WebStartupRedirect />
                 {isPreviewMode && <PreviewModeIndicator />}
                 <div className={styles.contentArea}>{children}</div>
 
