@@ -14,6 +14,123 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.58 — 2026-07-01
+
+### Added
+- **Menu builder admin UI** at `/admin/navigation`: edit web header, web footer,
+  mobile drawer, and mobile bottom tabs; drag reorder; child-source modes;
+  exclusions; convert auto-children; startup/search settings; and web header
+  preset selector.
+- **Navigation assignments on page create** — optional step to add a new page to
+  one or more menus in the same transaction (`navigationAssignments`).
+- **Page inspector navigation membership** — read-only badges (explicit vs
+  auto-included), add/remove/open-in-builder shortcuts.
+- **Search visibility** page property — inherit / show / hide in website search
+  (access rules still apply).
+- **Grouped footer columns** — `web_footer` menu groups, nested page links, and
+  external URLs render as footer columns.
+- **Header search** wired to backend search modes (`content_index`, searchable
+  pages, menu pages) with min-char threshold from navigation settings.
+- **Web startup redirect** — guest/logged-in landing pages and last-visited
+  fallback from `GET /navigation` startup payload.
+- **Example bundles catalogue** — hero home, mobile onboarding, and CMS-in-CMS
+  templates importable from the admin export/import dialog.
+- **Playwright visual spec** for the public navigation header (`e2e/visual/navigation-header.spec.ts`).
+
+### Changed
+- **Website header** now renders from `GET /navigation` via
+  `WebsiteHeaderRenderer` (six Mantine-inspired presets) instead of
+  page-level `web_nav_render` grouping.
+- **Admin sidebar** menu sections (web header, footer, mobile drawer, tabs) are
+  driven by resolved menu-builder preview trees.
+- **Public branch navigation** uses shared menu resolution instead of per-page
+  render modes.
+- Raised `supports.core` `>=0.1.31` → `>=0.1.32` for the menu-builder backend
+  wave. Pairs with `@selfhelp/shared` `1.21.0`.
+
+### Removed
+- Page-level **header/footer position** editors (`MenuPositionEditor`,
+  `DragDropMenuPositioner`).
+- **`GlobalDynamicNav` / `VirtualNavigation`** and page-level
+  `web_nav_render` / `mobile_nav_render` inspector fields.
+
+---
+
+## v0.1.57 — 2026-06-30
+
+### Added
+- **DB-driven public routing (host issue #30).** The catch-all route turns the
+  slug into a path and resolves the page server-side via the new open-access
+  endpoint `GET /cms-api/v1/pages/resolve`, replacing client-side keyword parsing.
+  Dynamic URL segments arrive as `route_params` and the response carries
+  `matched_url_pattern` / `canonical_url`.
+- **Page export / import.** The admin Pages list gains a dialog to export selected
+  pages as a portable bundle (with related-page suggestions) and to validate +
+  import a bundle (keyword/route prefixes, skip-conflicting, activate-routes).
+- **"Create list + detail pages" wizard.** A guided modal scaffolds a public
+  and/or admin list+detail page pair bound to a data table (DB routes + entry
+  styles), with a live URL preview and quick links to the generated pages.
+- **Navigation pages, nav rendering & page icons (host issue #30).** The page
+  inspector gains a mobile-icon picker (`select-icon-mobile`, lucide preview via
+  `lucide-react`) and two navigation-render selects (`web_nav_render` /
+  `mobile_nav_render`) with friendly labels + descriptions, plus hint banners
+  explaining the automatic navigation menu. Public pages with no body sections
+  but menu-visible children auto-render a **virtual navigation** block via the
+  web renderer registry (`header-dropdown` default, `tabs`, `sidebar-drawer`,
+  `hero-cards`).
+- **"Example bundles" import tab.** The page export/import dialog lists the
+  shipped example bundles (`GET /admin/pages/examples`) and loads one straight
+  into the import flow with a safe keyword/route prefix pre-filled.
+- **Sized, standardized page modals (`open_in_modal`).** Pages that open in a
+  modal now render through one shared `PageModal` — identical header (page title +
+  close), backdrop, and a scrollable body for every modal. Authors set the box
+  size with the new page properties **Modal width / Modal height** via a preset
+  dropdown (`auto`, `50%`…`100%`) that also accepts a typed custom CSS length;
+  empty falls back to the default **80%** of the viewport and every modal (incl.
+  `auto`) is capped at **90%**.
+- **Import viewer groups.** The page import dialog gains a **Viewer groups**
+  multiselect; the chosen groups are granted access to every imported page
+  (read-only on public pages, full access on CMS-app pages). Admins always have
+  access.
+
+### Changed
+- **Reset-password / Validate styles read route params.** They consume
+  `route_params.user_id` / `route_params.token` from the resolver instead of
+  parsing the URL; `ROUTES.RESET_PASSWORD` is `/reset`.
+- **Global header menu respects the navigation contract.** The website header
+  menu now renders through the same shared web nav-render registry as in-page
+  navigation, so it shows page **icons** + child **dropdowns** and links use each
+  page's real (DB-resolvable) `url`.
+- **Global menu is fully dynamic per page menu style.** Top-level menu pages are
+  grouped by their `web_nav_render` and the header loads **one menu per used
+  style** — only the styles the site actually uses appear (one style → one menu,
+  several styles → several menus). Inline-friendly styles (`header-dropdown`,
+  `tabs`) render directly in the bar; overflow styles (`sidebar-drawer`,
+  `hero-cards`) render inside a slide-over **Drawer** opened by a burger button.
+  The pure grouping helper `groupByWebNavRender` is unit-tested.
+- Raised `supports.core` `>=0.1.28` → `>=0.1.31`: every public page is now resolved
+  through `/pages/resolve`, which first ships in core `0.1.31` (backend
+  `supports.frontend` raised to `>=0.1.57` in lockstep). Pairs with
+  `@selfhelp/shared >=1.20.0` (the navigation module + page-icon/nav-render types
+  + the optional `IPageContent.modal_width`/`modal_height`; caret bumped
+  `^1.18.0` → `^1.20.0`).
+
+### Fixed
+- **Imported (and nested) pages are reachable again.** Removed the legacy
+  `/{keyword}` child-page URL rewrite that broke DB-driven routing — navigation
+  links now use each page's real route path, so an imported page no longer 404s.
+- **Modal pages close again.** The shared `PageModal` now closes on the header
+  close button, the backdrop, and `Escape` — it dismisses the modal immediately
+  and navigates back (falling back to the home page when there is no history), so
+  an `open_in_modal` page opened directly no longer gets stuck open.
+- **Menu pages with a non-default style no longer vanish.** Pages set to a menu
+  style the header doesn't render inline (e.g. **hero-cards** or sidebar-drawer)
+  used to show nothing in the global menu; they now load in the overflow Drawer.
+- **Modal header is clearly separated.** `PageModal` uses the same header
+  treatment as `ModalWrapper` (titled, divider, no footer) for a consistent look.
+
+---
+
 ## v0.1.56 — 2026-06-30
 
 ### Changed

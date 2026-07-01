@@ -17,8 +17,7 @@ interface LinkItem {
     children?: LinkItem[];
     icon?: React.ReactNode;
     hasNavPosition?: boolean;
-    nav_position?: number | null;
-    footer_position?: number | null;
+    menuBadges?: string[];
     onClick?: () => void;
     keyword?: string;
 }
@@ -51,8 +50,7 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
             const hasNestedLinks = Array.isArray(item.children) && item.children.length > 0;
             const isItemOpen = openItems.includes(itemPath);
             const isItemActive = activeItem === item.link;
-            const isMenuPage = item.nav_position !== null && item.nav_position !== undefined;
-            const isFooterPage = item.footer_position !== null && item.footer_position !== undefined;
+            const menuBadges = item.menuBadges ?? [];
 
             return (
                 <div className={classes.children} key={item.keyword || item.label}>
@@ -82,18 +80,13 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                                 </Text>
                                 
                                 {/* Badges */}
-                                {(isMenuPage || isFooterPage) && (
+                                {menuBadges.length > 0 && (
                                     <Group gap="xs">
-                                        {isMenuPage && (
-                                            <Badge size="xs" variant="light" color="blue">
-                                                Menu
+                                        {menuBadges.map((badge) => (
+                                            <Badge key={badge} size="xs" variant="light" color="blue">
+                                                {badge}
                                             </Badge>
-                                        )}
-                                        {isFooterPage && (
-                                            <Badge size="xs" variant="light" color="green">
-                                                Footer
-                                            </Badge>
-                                        )}
+                                        ))}
                                     </Group>
                                 )}
                             </Group>

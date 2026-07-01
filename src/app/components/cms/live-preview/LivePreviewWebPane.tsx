@@ -51,7 +51,7 @@ interface ILivePreviewWebPaneProps {
 
 export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneProps) {
     const { isPreviewMode } = usePreviewMode();
-    const { routes, footerPages } = useAppNavigation();
+    const { routes, footerMenu, headerMenu } = useAppNavigation();
 
     const effectiveKeyword = keyword && keyword.trim() ? keyword.trim().replace(/^\/+/, '') : HOME_KEYWORD;
 
@@ -98,7 +98,7 @@ export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneP
                                 <AuthButton />
                                 <ThemeToggle />
                                 <LanguageSelector />
-                                <BurgerMenuClient />
+                                <BurgerMenuClient initialHeaderMenu={headerMenu} />
                             </Group>
                         </Flex>
                     </Container>
@@ -111,7 +111,7 @@ export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneP
 
                     <DynamicPageClient keyword={effectiveKeyword} initialPageId={pageId} />
 
-                    {footerPages.length > 0 && (
+                    {(footerMenu?.items?.length ?? 0) > 0 && (
                         <Box
                             component="footer"
                             w="100%"
@@ -122,7 +122,7 @@ export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneP
                             <Container size="xl">
                                 <Stack gap="lg">
                                     <Group justify="center" gap="xl">
-                                        <FooterLinks footerPages={footerPages} />
+                                        <FooterLinks footerMenu={footerMenu} />
                                     </Group>
                                     <Divider />
                                     <Text size="sm" c="dimmed" ta="center">
