@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
  *
  * Replaces the old `fix-ai-examples.mjs` (which patched fields that no longer
  * exist). Instead of a hand-written field list it validates every example in
- * `docs/reference/ai-prompts/generated-examples/` against
+ * `examples/sections/` against
  * `docs/reference/ai-prompts/style-schema.snapshot.json` — a committed snapshot
  * of the backend live style catalog (the same schema the runtime prompt is
  * built from, so CI needs no database).
@@ -44,7 +44,10 @@ import { classifyClassString } from '@selfhelp/shared';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(HERE, '..');
-const DEFAULT_EXAMPLES_DIR = join(REPO_ROOT, 'docs', 'reference', 'ai-prompts', 'generated-examples');
+// All curated examples now live in the consolidated `examples/` tree
+// (`examples/sections/` = single-section/page-content samples; `examples/cms-in-cms/`
+// = importable page bundles). The schema snapshot stays under docs/reference.
+const DEFAULT_EXAMPLES_DIR = join(REPO_ROOT, 'examples', 'sections');
 const DEFAULT_SNAPSHOT_PATH = join(REPO_ROOT, 'docs', 'reference', 'ai-prompts', 'style-schema.snapshot.json');
 
 // languages table — real human locales vs the property locale.

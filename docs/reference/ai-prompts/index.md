@@ -31,7 +31,7 @@ field-scope contract, and how the curated examples here are kept valid.
 | Machine-readable catalog | same endpoint with `?format=json` | n/a |
 | Task-filtered catalog | same endpoint with `?styles=card,simple-grid,…` | n/a |
 | Offline snapshot of the rendered prompt | `sh-selfhelp_backend/docs/ai/ai_section_generation_prompt.md` | No (regenerated, **not** the runtime source) |
-| Curated example JSON (this folder) | `generated-examples/*.json` | Yes (manual curation, validated) |
+| Curated example JSON | `../../../examples/sections/*.json` | Yes (manual curation, validated) |
 | DB-free schema snapshot used by validation | `style-schema.snapshot.json` (this folder) | No (regenerated from the live schema) |
 
 The endpoint composes `prompt_template_base.md` with a **dynamically
@@ -136,10 +136,13 @@ Per-field names, defaults, options, help and `renderTarget` always come
 from the **live catalog** — this guide intentionally does not duplicate the
 full field list (that is exactly how drift crept in before).
 
-## Curated examples in this folder
+## Curated examples
 
-Every file under `generated-examples/` is importable as-is and is validated
-in CI (see below):
+All curated examples now live in the consolidated [`examples/`](../../../examples/README.md)
+tree at the repo root. The single-section samples below are under
+[`examples/sections/`](../../../examples/sections/); importable page bundles are
+under `examples/cms-in-cms/`. Every file under `examples/sections/` is importable
+as-is and is validated in CI (see below):
 
 | File | Demonstrates |
 | --- | --- |
