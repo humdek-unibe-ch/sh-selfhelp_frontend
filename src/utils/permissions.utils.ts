@@ -343,6 +343,14 @@ export class PermissionChecker {
     return this.hasPermission(PERMISSIONS.ADMIN_CACHE_READ);
   }
 
+  canReadNavigation(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_NAVIGATION_READ);
+  }
+
+  canUpdateNavigation(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_NAVIGATION_UPDATE);
+  }
+
   /**
    * Check if user can read the instance system version / update status.
    */

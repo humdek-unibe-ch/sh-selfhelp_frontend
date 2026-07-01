@@ -4,8 +4,9 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useEffect, useRef} from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
     Stack,
@@ -17,36 +18,48 @@ import {
     Box,
     Alert,
     LoadingOverlay,
-    SimpleGrid,
-    ActionIcon,
-    Tooltip,
     Title,
     Paper,
+    SegmentedControl,
+    MultiSelect,
+    Select,
+    ActionIcon,
+    Tooltip,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useQueryClient } from '@tanstack/react-query';
 import { useCreatePageMutation } from '../../../../../hooks/mutations/useCreatePageMutation';
 import { ModalWrapper } from '../../../shared';
 
-import { IconInfoCircle, IconEdit, IconLock } from '@tabler/icons-react';
+import { IconInfoCircle, IconEdit, IconLock, IconWorld, IconLayoutDashboard } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
-import { PAGE_ACCESS_TYPES, PAGE_ACCESS_TYPES_MOBILE_AND_WEB } from '../../../../../constants/lookups.constants';
-import { type ICreatePageFormValues, type ICreatePageModalProps } from '../../../../../types/forms/create-page.types';
+import { useGroups } from '../../../../../hooks/useGroups';
+import {
+    PAGE_ACCESS_TYPES,
+    PAGE_ACCESS_TYPES_MOBILE_AND_WEB,
+    PAGE_SURFACE_PUBLIC,
+    PAGE_SURFACE_CMS,
+} from '../../../../../constants/lookups.constants';
+import {
+    CREATE_PAGE_MENU_KEYS,
+    type ICreatePageFormValues,
+    type ICreatePageModalProps,
+    type TCreatePageMenuKey,
+} from '../../../../../types/forms/create-page.types';
 import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
-import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
-import { MenuType } from '../page-inspector/PageInspector';
 import { type ICreatePageRequest } from '../../../../../types/requests/admin/create-page.types';
+import { AdminNavigationApi } from '../../../../../api/admin/navigation.api';
+import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 
+const MENU_LABELS: Record<TCreatePageMenuKey, string> = {
+    web_header: 'Web header',
+    web_footer: 'Web footer',
+    mobile_drawer: 'Mobile drawer',
+    mobile_bottom_tabs: 'Mobile bottom tabs',
+};
 
-export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreatePageModalProps) => {
+export const CreatePageModal = ({ opened, onClose, parentPage = null, navigationPrefill }: ICreatePageModalProps) => {
     const router = useRouter();
-
-    // References to get final positions from DragDropMenuPositioner components
-    const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
-    const footerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
-    
-    // React Query client for cache invalidation
     const queryClient = useQueryClient();
     
     // Create page mutation
@@ -68,22 +81,36 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
     // Fetch lookups and admin pages
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
     const { isLoading: pagesLoading } = useAdminPages();
+    const { data: navigationOverview } = useQuery({
+        queryKey: ['admin-navigation-overview'],
+        queryFn: () => AdminNavigationApi.getOverview(),
+        enabled: opened,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.ADMIN_PAGES.staleTime,
+    });
+
+    // Groups for the access-group multiselect (CMS-in-CMS ACL authoring).
+    const { data: groupsData } = useGroups({ pageSize: 200, sort: 'name', sortDirection: 'asc' });
+    const groupOptions = (groupsData?.groups ?? []).map((group) => ({
+        value: String(group.id),
+        label: group.name,
+    }));
 
     // Use Mantine's useForm for form management
     const form = useForm<ICreatePageFormValues>({
         initialValues: {
             keyword: '',
-            headerMenu: false,
-            headerMenuPosition: null,
-            footerMenu: false,
-            footerMenuPosition: null,
+            navigationMenus: [],
+            navigationMenuOptions: {},
             headlessPage: false,
             pageAccessType: PAGE_ACCESS_TYPES_MOBILE_AND_WEB,
             urlPattern: '',
-            navigationPage: false,
             openAccess: false,
             customUrlEdit: false,
             parentPage: parentPage?.id_pages || null,
+            surface: PAGE_SURFACE_PUBLIC,
+            accessGroups: [],
+            syncUrlWithParent: Boolean(parentPage?.id_pages),
+            oldRoutePolicy: 'ask',
         },
         validate: {
             keyword: (value) => {
@@ -102,33 +129,118 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         },
     });
 
-    // Generate URL pattern based on keyword, navigation page setting, and parent context
-    const generateUrlPattern = (keyword: string, isNavigation: boolean, parentPage: IAdminPage | null) => {
+    // Generate a clean, Symfony-compatible URL from the keyword + parent context.
+    // The backend turns this URL into an active, canonical `page_route` on create,
+    // so the page is reachable immediately (editable later in the Routes panel).
+    // The legacy AltoRouter `[i:nav]` token is gone — navigation is now modelled
+    // with child pages + a per-page navigation rendering type.
+    const generateUrlPattern = (keyword: string, parentPage: IAdminPage | null) => {
         if (!keyword.trim()) return '';
-        
+
         // Remove spaces and convert to lowercase for URL safety
         const cleanKeyword = keyword.trim().toLowerCase().replace(/\s+/g, '-');
-        
-        let baseUrl = `/${cleanKeyword}`;
-        
-        // If this is a child page, prepend the parent's URL path
+
+        // If this is a child page, prepend the parent's URL path so the route
+        // nests under the parent (e.g. /parent/child).
         if (parentPage && parentPage.url) {
-            // Remove leading slash from parent URL and append child keyword
             const parentPath = parentPage.url.startsWith('/') ? parentPage.url.slice(1) : parentPage.url;
-            // Remove any existing parameters from parent URL for clean hierarchy
-            const cleanParentPath = parentPath.split('/[')[0]; // Remove [i:nav] or other parameters
-            baseUrl = `/${cleanParentPath}/${cleanKeyword}`;
+            // Drop any trailing parameter segment of the parent url for a clean hierarchy.
+            const cleanParentPath = parentPath.split('/[')[0].split('/{')[0];
+            return `/${cleanParentPath}/${cleanKeyword}`;
         }
-        
-        return isNavigation ? `${baseUrl}/[i:nav]` : baseUrl;
+
+        return `/${cleanKeyword}`;
     };
 
-    // Update URL pattern when keyword, navigation page, or parent changes
+    // Apply navigation prefill from the menu builder.
     useEffect(() => {
-        const urlPattern = generateUrlPattern(form.values.keyword, form.values.navigationPage, parentPage);
+        if (!opened || !navigationPrefill) {
+            return;
+        }
+        const { menuKey, parentItemId } = navigationPrefill;
+        if (!form.values.navigationMenus.includes(menuKey)) {
+            form.setFieldValue('navigationMenus', [...form.values.navigationMenus, menuKey]);
+        }
+        form.setFieldValue('navigationMenuOptions', {
+            ...form.values.navigationMenuOptions,
+            [menuKey]: {
+                ...(form.values.navigationMenuOptions[menuKey] ?? {}),
+                parentItemId: parentItemId ?? null,
+            },
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on open + prefill only
+    }, [opened, navigationPrefill]);
+
+    const parentAutoIncludeMenus = useMemo((): TCreatePageMenuKey[] => {
+        if (!parentPage?.id_pages || !navigationOverview?.menus) {
+            return [];
+        }
+        const autoMenus: TCreatePageMenuKey[] = [];
+        for (const menuKey of CREATE_PAGE_MENU_KEYS) {
+            const items = navigationOverview.menus[menuKey]?.items ?? [];
+            const hasAutoParent = items.some(
+                (item) => item.page_id === parentPage.id_pages && item.child_source === 'page_children',
+            );
+            if (hasAutoParent) {
+                autoMenus.push(menuKey);
+            }
+        }
+        return autoMenus;
+    }, [navigationOverview, parentPage]);
+
+    // When creating a child under a page that already lives in menus, default parent menu items.
+    useEffect(() => {
+        if (!opened || !parentPage?.navigationMembership?.length) {
+            return;
+        }
+        const nextMenus = [...form.values.navigationMenus];
+        const nextOptions = { ...form.values.navigationMenuOptions };
+        for (const membership of parentPage.navigationMembership) {
+            if (!membership.explicit || !membership.menu_item_id) {
+                continue;
+            }
+            const menuKey = membership.menu_key as TCreatePageMenuKey;
+            if (!CREATE_PAGE_MENU_KEYS.includes(menuKey) || parentAutoIncludeMenus.includes(menuKey)) {
+                continue;
+            }
+            if (!nextMenus.includes(menuKey)) {
+                nextMenus.push(menuKey);
+            }
+            nextOptions[menuKey] = {
+                ...(nextOptions[menuKey] ?? {}),
+                parentItemId: membership.menu_item_id,
+                childSource: nextOptions[menuKey]?.childSource ?? 'manual',
+            };
+        }
+        form.setFieldValue('navigationMenus', nextMenus);
+        form.setFieldValue('navigationMenuOptions', nextOptions);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- parent membership defaults only when modal opens
+    }, [opened, parentPage?.id_pages, parentAutoIncludeMenus]);
+
+    const menuParentOptions = useMemo(() => {
+        const map: Partial<Record<TCreatePageMenuKey, Array<{ value: string; label: string }>>> = {};
+        if (!navigationOverview?.menus) {
+            return map;
+        }
+        for (const menuKey of CREATE_PAGE_MENU_KEYS) {
+            const items = navigationOverview.menus[menuKey]?.items ?? [];
+            map[menuKey] = [
+                { value: '', label: 'Root level' },
+                ...items.map((item) => ({
+                    value: String(item.id),
+                    label: `#${item.id} ${item.item_type}${item.page_id ? ` → page ${item.page_id}` : ''}`,
+                })),
+            ];
+        }
+        return map;
+    }, [navigationOverview]);
+
+    // Update URL pattern when keyword or parent changes.
+    useEffect(() => {
+        const urlPattern = generateUrlPattern(form.values.keyword, parentPage);
         form.setFieldValue('urlPattern', urlPattern);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on the specific form values read; `form` is a fresh object each render, so depending on it would re-run every render and call setFieldValue in a loop. `form.setFieldValue` is stable.
-    }, [form.values.keyword, form.values.navigationPage, parentPage]);
+    }, [form.values.keyword, parentPage]);
 
 
 
@@ -136,31 +248,36 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
 
     // Handle form submission
     const handleSubmit = async (values: ICreatePageFormValues) => {
-        // Get final calculated positions from DragDropMenuPositioner components
-        const finalHeaderPosition = headerMenuGetFinalPosition.current ? headerMenuGetFinalPosition.current() : null;
-        const finalFooterPosition = footerMenuGetFinalPosition.current ? footerMenuGetFinalPosition.current() : null;
-        
+        const navigationAssignments = values.navigationMenus
+            .filter((menuKey) => !parentAutoIncludeMenus.includes(menuKey))
+            .map((menuKey) => {
+            const options = values.navigationMenuOptions[menuKey];
+            return {
+                menuKey,
+                ...(options?.childSource ? { childSource: options.childSource } : {}),
+                ...(options?.parentItemId ? { parentItemId: options.parentItemId } : {}),
+            };
+        });
+
         const submitData: ICreatePageRequest = {
             keyword: values.keyword,
             pageAccessTypeCode: values.pageAccessType,
             headless: values.headlessPage,
             openAccess: values.openAccess,
             url: values.urlPattern,
-            navPosition: finalHeaderPosition,
-            footerPosition: finalFooterPosition,
             parent: values.parentPage,
+            surface: values.surface,
+            accessGroups: values.accessGroups,
+            navigationAssignments,
+            syncUrlWithParent: values.syncUrlWithParent && Boolean(values.parentPage),
+            oldRoutePolicy: values.syncUrlWithParent ? values.oldRoutePolicy : undefined,
         };
 
-        
-        // Use the mutation instead of direct API call
         createPageMutation.mutate(submitData);
     };
 
-    // Handle modal close
     const handleClose = () => {
         form.reset();
-        form.setFieldValue('headerMenuPosition', null);
-        form.setFieldValue('footerMenuPosition', null);
         onClose();
     };
 
@@ -230,6 +347,64 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
                                     </Stack>
                                 </Paper>
 
+                                {/* Surface & Access (CMS-in-CMS) */}
+                                <Paper p="md" withBorder>
+                                    <Stack gap="md">
+                                        <Title order={4} size="h5" c="blue">Surface &amp; Access</Title>
+
+                                        <Box>
+                                            <Text size="sm" fw={500} mb="xs">Page Surface</Text>
+                                            <SegmentedControl
+                                                fullWidth
+                                                value={form.values.surface}
+                                                onChange={(value) => form.setFieldValue('surface', value)}
+                                                data={[
+                                                    {
+                                                        value: PAGE_SURFACE_PUBLIC,
+                                                        label: (
+                                                            <Group gap="xs" justify="center" wrap="nowrap">
+                                                                <IconWorld size="1rem" />
+                                                                <span>Public website</span>
+                                                            </Group>
+                                                        ),
+                                                    },
+                                                    {
+                                                        value: PAGE_SURFACE_CMS,
+                                                        label: (
+                                                            <Group gap="xs" justify="center" wrap="nowrap">
+                                                                <IconLayoutDashboard size="1rem" />
+                                                                <span>CMS application</span>
+                                                            </Group>
+                                                        ),
+                                                    },
+                                                ]}
+                                            />
+                                            <Text size="xs" c="dimmed" mt="xs">
+                                                {form.values.surface === PAGE_SURFACE_CMS
+                                                    ? 'CMS application pages are grouped separately and default to admin/editor-only access. Use these for CMS-in-CMS tooling (e.g. /cms/team).'
+                                                    : 'Public website pages are shown to your normal audience under standard page access rules.'}
+                                            </Text>
+                                        </Box>
+
+                                        <MultiSelect
+                                            label="Additional access groups"
+                                            placeholder="Admin always has access"
+                                            data={groupOptions}
+                                            value={form.values.accessGroups.map(String)}
+                                            onChange={(values) =>
+                                                form.setFieldValue('accessGroups', values.map(Number))
+                                            }
+                                            searchable
+                                            clearable
+                                            description={
+                                                form.values.surface === PAGE_SURFACE_CMS
+                                                    ? 'Selected groups get full edit access to this CMS application page.'
+                                                    : 'Selected groups get read access to this public page.'
+                                            }
+                                        />
+                                    </Stack>
+                                </Paper>
+
                                 {/* Page Settings */}
                                 <Paper p="md" withBorder>
                                     <Stack gap="md">
@@ -241,11 +416,6 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
                                                 label="Headless Page"
                                                 description="No header/footer layout"
                                                 {...form.getInputProps('headlessPage', { type: 'checkbox' })}
-                                            />
-                                            <Checkbox
-                                                label="Navigation Page"
-                                                description="Add [i:nav] parameter"
-                                                {...form.getInputProps('navigationPage', { type: 'checkbox' })}
                                             />
                                             <Checkbox
                                                 label="Open Access"
@@ -282,47 +452,130 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
                                                 }
                                             />
                                         </Box>
+
+                                        <Alert
+                                            icon={<IconInfoCircle size="1rem" />}
+                                            color="blue"
+                                            variant="light"
+                                        >
+                                            <Text size="sm">
+                                                A public web address (route) is created automatically
+                                                from this URL, so the page works as soon as it is saved.
+                                                You can fine-tune or add more addresses later in the
+                                                page&apos;s <Text span fw={600}>Routes</Text> panel.
+                                            </Text>
+                                        </Alert>
+
+                                        {form.values.parentPage ? (
+                                            <Stack gap="xs">
+                                                <Checkbox
+                                                    label="Sync URL with page parent"
+                                                    description="Update the canonical route to follow the parent URL plus this page slug"
+                                                    {...form.getInputProps('syncUrlWithParent', { type: 'checkbox' })}
+                                                />
+                                                {form.values.syncUrlWithParent ? (
+                                                    <Select
+                                                        label="Old public route"
+                                                        data={[
+                                                            { value: 'ask', label: 'Ask each time (use global default)' },
+                                                            { value: 'keep_alias', label: 'Keep as alias/redirect' },
+                                                            { value: 'remove_old_route', label: 'Remove old route' },
+                                                        ]}
+                                                        {...form.getInputProps('oldRoutePolicy')}
+                                                    />
+                                                ) : null}
+                                            </Stack>
+                                        ) : null}
                                     </Stack>
                                 </Paper>
 
-                                {/* Menu Positioning - 2 Columns */}
+                                {/* Navigation assignments */}
                                 <Paper p="md" withBorder>
                                     <Stack gap="md">
-                                        <Title order={4} size="h5" c="blue">Menu Positioning</Title>
-                                        
-                                        <SimpleGrid cols={2} spacing="md">
-                                            {/* Header Menu */}
-                                            <DragDropMenuPositioner
-                                                menuType={MenuType.HEADER}
-                                                title="Header Menu Position"
-                                                newPageKeyword={form.values.keyword}
-                                                enabled={form.values.headerMenu}
-                                                position={form.values.headerMenuPosition}
-                                                onEnabledChange={(enabled) => form.setFieldValue('headerMenu', enabled)}
-                                                onPositionChange={(position) => form.setFieldValue('headerMenuPosition', position)}
-                                                onGetFinalPosition={(getFinalPositionFn) => {
-                                                    headerMenuGetFinalPosition.current = getFinalPositionFn;
-                                                }}
-                                                parentPage={parentPage}
-                                                checkboxLabel="Header Menu"
-                                            />
-
-                                            {/* Footer Menu */}
-                                            <DragDropMenuPositioner
-                                                menuType={MenuType.FOOTER}
-                                                title="Footer Menu Position"
-                                                newPageKeyword={form.values.keyword}
-                                                enabled={form.values.footerMenu}
-                                                position={form.values.footerMenuPosition}
-                                                onEnabledChange={(enabled) => form.setFieldValue('footerMenu', enabled)}
-                                                onPositionChange={(position) => form.setFieldValue('footerMenuPosition', position)}
-                                                onGetFinalPosition={(getFinalPositionFn) => {
-                                                    footerMenuGetFinalPosition.current = getFinalPositionFn;
-                                                }}
-                                                parentPage={parentPage}
-                                                checkboxLabel="Footer Menu"
-                                            />
-                                        </SimpleGrid>
+                                        <Title order={4} size="h5" c="blue">Navigation (optional)</Title>
+                                        <Text size="sm" c="dimmed">
+                                            Add this page to one or more public menus. Order and nesting can be adjusted later in the menu builder.
+                                        </Text>
+                                        {parentAutoIncludeMenus.length > 0 ? (
+                                            <Alert color="blue" variant="light" icon={<IconInfoCircle size="1rem" />}>
+                                                <Text size="sm">
+                                                    The parent page auto-includes child pages in{' '}
+                                                    {parentAutoIncludeMenus.map((key) => MENU_LABELS[key]).join(', ')}.
+                                                    This new child will appear there automatically — no extra menu item is needed.
+                                                </Text>
+                                            </Alert>
+                                        ) : null}
+                                        <Stack gap="xs">
+                                            {CREATE_PAGE_MENU_KEYS.map((menuKey) => {
+                                                const autoIncluded = parentAutoIncludeMenus.includes(menuKey);
+                                                return (
+                                                <Box key={menuKey}>
+                                                    <Checkbox
+                                                        label={MENU_LABELS[menuKey]}
+                                                        description={autoIncluded
+                                                            ? 'Inherited from parent auto-include rule'
+                                                            : undefined}
+                                                        disabled={autoIncluded}
+                                                        checked={autoIncluded || form.values.navigationMenus.includes(menuKey)}
+                                                        onChange={(event) => {
+                                                            if (autoIncluded) {
+                                                                return;
+                                                            }
+                                                            const checked = event.currentTarget.checked;
+                                                            const current = form.values.navigationMenus;
+                                                            form.setFieldValue(
+                                                                'navigationMenus',
+                                                                checked
+                                                                    ? [...current, menuKey]
+                                                                    : current.filter((k) => k !== menuKey),
+                                                            );
+                                                        }}
+                                                    />
+                                                    {form.values.navigationMenus.includes(menuKey) && !autoIncluded ? (
+                                                        <Stack gap="xs" ml="lg">
+                                                            <Select
+                                                                size="xs"
+                                                                label="Parent menu item"
+                                                                data={menuParentOptions[menuKey] ?? [{ value: '', label: 'Root level' }]}
+                                                                value={form.values.navigationMenuOptions[menuKey]?.parentItemId
+                                                                    ? String(form.values.navigationMenuOptions[menuKey]?.parentItemId)
+                                                                    : ''}
+                                                                onChange={(value) => {
+                                                                    form.setFieldValue('navigationMenuOptions', {
+                                                                        ...form.values.navigationMenuOptions,
+                                                                        [menuKey]: {
+                                                                            ...(form.values.navigationMenuOptions[menuKey] ?? {}),
+                                                                            parentItemId: value ? Number(value) : null,
+                                                                        },
+                                                                    });
+                                                                }}
+                                                            />
+                                                            {(menuKey === 'mobile_drawer' || menuKey === 'web_header') ? (
+                                                                <Select
+                                                                    size="xs"
+                                                                    label="Child pages"
+                                                                    data={[
+                                                                        { value: 'manual', label: 'Manual only' },
+                                                                        { value: 'page_children', label: 'Auto-include child pages' },
+                                                                    ]}
+                                                                    value={form.values.navigationMenuOptions[menuKey]?.childSource ?? 'manual'}
+                                                                    onChange={(value) => {
+                                                                        form.setFieldValue('navigationMenuOptions', {
+                                                                            ...form.values.navigationMenuOptions,
+                                                                            [menuKey]: {
+                                                                                ...(form.values.navigationMenuOptions[menuKey] ?? {}),
+                                                                                childSource: value ?? 'manual',
+                                                                            },
+                                                                        });
+                                                                    }}
+                                                                />
+                                                            ) : null}
+                                                        </Stack>
+                                                    ) : null}
+                                                </Box>
+                                            );
+                                            })}
+                                        </Stack>
                                     </Stack>
                                 </Paper>
                             </Stack>

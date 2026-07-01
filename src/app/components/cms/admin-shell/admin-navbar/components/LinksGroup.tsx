@@ -11,8 +11,10 @@ import {
   Collapse,
   Text,
   UnstyledButton,
+  ActionIcon,
+  Tooltip,
 } from '@mantine/core';
-import { IconChevronRight } from '@tabler/icons-react';
+import { IconChevronRight, IconRoute } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
 import classes from './LinksGroup.module.css';
 import { useIsClient } from '../../../../../../hooks/useIsClient';
@@ -25,6 +27,7 @@ interface INavLinkItem {
   onClick?: () => void;
   id?: number | string;
   links?: INavLinkItem[];
+  menuBuilderLink?: string;
 }
 
 // Helper function to check if any nested link is active
@@ -181,30 +184,44 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
       }
 
       return (
-        <Text<'a'>
-          component="a"
-          className={`${classes.link} ${getNestedLinkClass(level)}`}
-          href={item.link}
-          key={item.id || item.label}
-          data-active={isItemActive}
-          onClick={(e) => {
-            e.preventDefault();
-            handleItemClick(item.link, item.onClick, e);
-          }}
-          onMouseDown={(e: React.MouseEvent) => {
-            // Handle middle click
-            if (e.button === 1) {
+        <Group key={item.id || item.label} gap={4} wrap="nowrap" className={getNestedLinkClass(level)}>
+          <Text<'a'>
+            component="a"
+            className={`${classes.link}`}
+            href={item.link}
+            data-active={isItemActive}
+            style={{ flex: 1 }}
+            onClick={(e) => {
               e.preventDefault();
-              window.open(item.link, '_blank');
-            }
-          }}
-          onContextMenu={(e: React.MouseEvent) => {
-            // Allow right-click context menu for "open in new tab"
-            e.stopPropagation();
-          }}
-        >
-          {item.label}
-        </Text>
+              handleItemClick(item.link, item.onClick, e);
+            }}
+            onMouseDown={(e: React.MouseEvent) => {
+              if (e.button === 1) {
+                e.preventDefault();
+                window.open(item.link, '_blank');
+              }
+            }}
+            onContextMenu={(e: React.MouseEvent) => {
+              e.stopPropagation();
+            }}
+          >
+            {item.label}
+          </Text>
+          {item.menuBuilderLink ? (
+            <Tooltip label="Edit in menu builder">
+              <ActionIcon
+                component="a"
+                href={item.menuBuilderLink}
+                variant="subtle"
+                size="sm"
+                aria-label="Edit in menu builder"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <IconRoute size={14} />
+              </ActionIcon>
+            </Tooltip>
+          ) : null}
+        </Group>
       );
     });
   };

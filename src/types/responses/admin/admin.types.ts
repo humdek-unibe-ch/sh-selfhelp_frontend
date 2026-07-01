@@ -11,19 +11,30 @@ export interface IAdminPageSectionsData {
     sections: IPageField[];
 }
 
+export interface INavigationMembershipBadge {
+    menu_key: string;
+    menu_item_id: number;
+    explicit: boolean;
+}
+
 export interface IAdminPage {
     id_pages: number;
     keyword: string;
     url: string;
     id_parent_page: number | null;
-    nav_position: number | null;
-    footer_position: number | null;
+    navigationMembership?: INavigationMembershipBadge[];
     is_headless: boolean;
     is_open_access: boolean;
     id_page_access_types: number;
     id_page_types: number;
     is_system: boolean;
     crud: number;
+    /**
+     * CMS-in-CMS organization axis (issue #30): `public` website pages vs `cms`
+     * application pages. The admin pages list groups by this value. Optional to
+     * tolerate cached responses; absent is treated as `public`.
+     */
+    page_surface?: 'public' | 'cms';
 }
 
 export type TAdminPageSectionsResponse = IBaseApiResponse<IAdminPageSectionsData>;
@@ -122,7 +133,6 @@ export interface IPageHierarchy {
     hasChildren: boolean;
     children: IPageHierarchy[];
     level: number;
-    nav_position: number | null;
     is_system: boolean;
     is_headless: boolean;
 }

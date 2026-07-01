@@ -140,6 +140,10 @@ export const PERMISSIONS = {
     ADMIN_CACHE_MANAGE: 'admin.cache.manage',
     ADMIN_CACHE_READ: 'admin.cache.read',
 
+    // Navigation menu builder
+    ADMIN_NAVIGATION_READ: 'admin.navigation.read',
+    ADMIN_NAVIGATION_UPDATE: 'admin.navigation.update',
+
     // CMS Preferences
     ADMIN_CMS_PREFERENCES_READ: 'admin.cms_preferences.read',
     ADMIN_CMS_PREFERENCES_UPDATE: 'admin.cms_preferences.update',

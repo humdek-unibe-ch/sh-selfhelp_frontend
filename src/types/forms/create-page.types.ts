@@ -4,37 +4,43 @@ SPDX-License-Identifier: MPL-2.0
 */
 /**
  * TypeScript interfaces for create page form and related types.
- * 
- * @module types/forms/create-page.types
  */
-
 import { type IAdminPage } from '../responses/admin/admin.types';
+
+export const CREATE_PAGE_MENU_KEYS = [
+    'web_header',
+    'web_footer',
+    'mobile_drawer',
+    'mobile_bottom_tabs',
+] as const;
+
+export type TCreatePageMenuKey = (typeof CREATE_PAGE_MENU_KEYS)[number];
 
 export interface ICreatePageFormValues {
     keyword: string;
-    headerMenu: boolean;
-    headerMenuPosition: number | null;
-    footerMenu: boolean;
-    footerMenuPosition: number | null;
+    navigationMenus: TCreatePageMenuKey[];
+    /** Per-menu options when the menu is selected (childSource, parentItemId, etc.). */
+    navigationMenuOptions: Partial<Record<TCreatePageMenuKey, { childSource?: string; parentItemId?: number | null }>>;
     headlessPage: boolean;
     pageAccessType: string;
     urlPattern: string;
-    navigationPage: boolean;
     openAccess: boolean;
     customUrlEdit: boolean;
     parentPage?: number | null;
+    surface: string;
+    accessGroups: number[];
+    syncUrlWithParent: boolean;
+    oldRoutePolicy: 'ask' | 'keep_alias' | 'remove_old_route';
 }
 
-export interface IMenuPageItem {
-    id: string;
-    keyword: string;
-    label: string;
-    position: number;
-    isNew?: boolean;
+export interface ICreatePageNavigationPrefill {
+    menuKey: TCreatePageMenuKey;
+    parentItemId?: number | null;
 }
 
 export interface ICreatePageModalProps {
     opened: boolean;
     onClose: () => void;
     parentPage?: IAdminPage | null;
-} 
+    navigationPrefill?: ICreatePageNavigationPrefill;
+}

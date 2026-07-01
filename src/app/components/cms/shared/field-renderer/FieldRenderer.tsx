@@ -15,6 +15,8 @@ import {
     CheckboxField,
     SelectField,
     SelectIconField,
+    SelectIconMobileField,
+    ModalSizeSelectField,
     SliderField,
     SegmentedControlField,
     UnknownField,
@@ -240,6 +242,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             case 'select-language': return 'green';
             case 'select-timezone': return 'purple';
             case 'select-icon': return 'violet';
+            case 'select-icon-mobile': return 'violet';
             case 'select-css': return 'violet';
             case 'select-group': return 'cyan';
             case 'select-data_table': return 'grape';
@@ -692,7 +695,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
 
-    // Select Icon field - dynamic Tabler icons
+    // Select Icon field - dynamic Tabler icons (web menu icon)
     if (field.type === 'select-icon') {
         return renderFieldWithBadge(
             <SelectIconField
@@ -701,6 +704,35 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Search and select icon..."
+                disabled={disabled}
+            />
+        );
+    }
+
+    // Select Icon field - curated lucide set (mobile menu icon)
+    if (field.type === 'select-icon-mobile') {
+        return renderFieldWithBadge(
+            <SelectIconMobileField
+                fieldId={field.id}
+                config={field.config || {}}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder="Search and select icon..."
+                disabled={disabled}
+            />
+        );
+    }
+
+    // Modal size selects (web modal width / height). A dropdown of size presets
+    // (auto, 50%..100%) + manual entry — the same creatable-select the section
+    // editor uses for CSS-like values. Options live in the component (web-only).
+    if (field.type === 'select-modal-size') {
+        return renderFieldWithBadge(
+            <ModalSizeSelectField
+                fieldId={field.id}
+                config={field.config || {}}
+                value={fieldValue}
+                onChange={onChange}
                 disabled={disabled}
             />
         );

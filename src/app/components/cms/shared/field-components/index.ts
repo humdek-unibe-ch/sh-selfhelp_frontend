@@ -12,6 +12,8 @@ export { CheckboxField } from './CheckboxField';
 export { MonacoEditorField } from './MonacoEditorField';
 export { SelectField } from './SelectField';
 export { SelectIconField } from '../../../shared/common/SelectIconField';
+export { SelectIconMobileField } from './SelectIconMobileField';
+export { ModalSizeSelectField } from './ModalSizeSelectField';
 export { SliderField } from './SliderField';
 export { SegmentedControlField } from './SegmentedControlField';
 export { UnknownField } from './UnknownField';

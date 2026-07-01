@@ -245,3 +245,16 @@ export function useCanCreateRegistrationCodes(): boolean {
   const { permissionChecker } = useAuth();
   return permissionChecker?.canCreateRegistrationCodes() ?? false;
 }
+
+/**
+ * Navigation menu builder permissions
+ */
+export function useCanReadNavigation(): boolean {
+  const { permissionChecker } = useAuth();
+  return permissionChecker?.canReadNavigation() ?? false;
+}
+
+export function useCanUpdateNavigation(): boolean {
+  const { permissionChecker } = useAuth();
+  return permissionChecker?.canUpdateNavigation() ?? false;
+}

@@ -53,6 +53,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module components/cms/live-preview/LivePreview
  */
 
+import { isOnAnyMobileMenu } from '@selfhelp/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
@@ -130,14 +131,19 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     const { currentLanguageId, languages: ctxLanguages } = useLanguageContext();
     const queryClient = useQueryClient();
 
-    // The CMS knows every page's nav position, so it can decide on/off-menu
-    // RELIABLY and tell the mobile app how to present the page (`modal=on|off`).
-    const { routes: navRoutes, isLoading: navLoading } = useAppNavigation();
+    // Menu-builder membership drives on/off-menu modal presentation for mobile preview.
+    const { routes: navRoutes, navigation, isLoading: navLoading } = useAppNavigation();
     const isOnMenu = useMemo(() => {
         const page = navRoutes.find((p) => p.keyword === keyword);
-        if (!page) return false;
-        return page.navPosition !== null && page.navPosition !== undefined && !page.is_headless;
-    }, [navRoutes, keyword]);
+        if (!page || page.is_headless || !navigation) {
+            return false;
+        }
+        const pageId = page.id_pages ?? page.id;
+        if (pageId == null) {
+            return false;
+        }
+        return isOnAnyMobileMenu(navigation.menus, pageId);
+    }, [navRoutes, navigation, keyword]);
     const effectiveModal: TPreviewModalMode = useMemo(() => {
         if (modal) return modal; // explicit route override (?modal=) wins
         if (navLoading || navRoutes.length === 0) return 'auto'; // let the app fall back

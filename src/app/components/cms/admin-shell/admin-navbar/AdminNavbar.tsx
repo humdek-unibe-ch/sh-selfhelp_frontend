@@ -18,37 +18,22 @@ import {
     IconFileText,
     IconPlus,
     IconPuzzle,
+    IconWand,
+    IconTransfer,
+    IconRoute,
 } from '@tabler/icons-react';
-import { useAdminPages, type IPageHierarchy } from '../../../../../hooks/useAdminPages';
+import { useAdminPages } from '../../../../../hooks/useAdminPages';
+import { useAdminNavigationPreview } from '../../../../../hooks/useAdminNavigationPreview';
+import { pageHasMenuMembership, buildMenuPreviewSectionLinks } from '../../../../../utils/admin-navigation-membership';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { usePluginMenuItems } from '../../../frontend/plugin-runtime/PluginsProvider';
 import { LinksGroup } from './components/LinksGroup';
 import { CreatePageModal } from '../../pages/create-page/CreatePage';
+import { CmsAppWizardModal } from '../../pages/admin-pages-list/CmsAppWizardModal';
+import { PageExportImportModal } from '../../pages/admin-pages-list/PageExportImportModal';
 import { SelfHelpLogo, PreviewModeToggle, AuthButton } from '../../../shared';
 import classes from './AdminNavbar.module.css';
 import { NavigationSearch } from './components';
-
-interface INavigationLink {
-    label: string;
-    link: string;
-    links?: INavigationLink[];
-    selectable?: boolean; // Flag to determine if parent item is clickable when it has children
-    onClick?: () => void; // Optional click handler for custom actions
-    id?: number | string;
-}
-
-// Helper function to transform pages into navigation structure (supports hierarchical structure)
-function transformPagesToNavigation(pages: IPageHierarchy[]): INavigationLink[] {
-    return pages.map((page): INavigationLink => ({
-        label: page.keyword, // Use keyword since title field no longer exists
-        link: `/admin/pages/${page.keyword}`,
-        links: page.children && page.children.length > 0
-            ? transformPagesToNavigation(page.children)
-            : undefined, // Handle children recursively
-        selectable: true, // Page items are always selectable
-        id: page.id_pages
-    }));
-}
 
 export function AdminNavbar() {
     const {
@@ -56,14 +41,19 @@ export function AdminNavbar() {
         configurationPageLinks,
         categorizedSystemPages,
         categorizedRegularPages,
-        hierarchicalPages,
         isLoading
     } = useAdminPages();
 
     const { permissionChecker, hasPermission } = useAuth();
     const pluginMenuItems = usePluginMenuItems();
+    const { data: headerPreviewLinks = [] } = useAdminNavigationPreview('web_header');
+    const { data: footerPreviewLinks = [] } = useAdminNavigationPreview('web_footer');
+    const { data: mobileDrawerPreviewLinks = [] } = useAdminNavigationPreview('mobile_drawer');
+    const { data: mobileTabsPreviewLinks = [] } = useAdminNavigationPreview('mobile_bottom_tabs');
 
     const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
+    const [isCmsAppWizardOpen, setIsCmsAppWizardOpen] = useState(false);
+    const [isExportImportOpen, setIsExportImportOpen] = useState(false);
 
     // Transform pages data for search component (flat structure now)
     const adminPagesData = useMemo(() => ({
@@ -73,11 +63,10 @@ export function AdminNavbar() {
         // Add raw pages data for search (cast to match expected format)
         allPages: pages?.map(page => ({
             keyword: page.keyword,
-            title: page.keyword, // Use keyword since title field no longer exists
-            nav_position: page.nav_position || undefined,
-            footer_position: page.footer_position || undefined,
-            is_system: Boolean(page.is_system), 
-            children: [] // No children in new flat structure
+            title: page.keyword,
+            navigationMembership: page.navigationMembership ?? [],
+            is_system: Boolean(page.is_system),
+            children: [],
         })) || []
     }), [configurationPageLinks, categorizedSystemPages, categorizedRegularPages, pages]);
 
@@ -87,38 +76,16 @@ export function AdminNavbar() {
     const navigationData = useMemo(() => {
         if (isLoading || !permissionChecker) return [];
 
-        // Get menu pages (pages that appear in website navigation) from hierarchical data
-        const menuPages = hierarchicalPages?.filter(page =>
-            page.nav_position !== null &&
-            page.nav_position !== undefined &&
-            !Boolean(page.is_system)
-        ).sort((a, b) => (a.nav_position || 0) - (b.nav_position || 0)) || [];
-
-
-        // Get content pages (pages that don't appear in website navigation, excluding configuration pages and system pages)
+        // Get content-only pages (not in any public menu) from admin membership badges
         const configurationKeywords = new Set(configurationPageLinks?.map(p => p.keyword) || []);
         const contentPages = pages?.filter(page =>
-            (page.nav_position === null || page.nav_position === undefined) &&
-            (page.footer_position === null || page.footer_position === undefined) &&
-            !Boolean(page.is_system) && // Exclude system pages
-            !configurationKeywords.has(page.keyword) // Exclude configuration pages
+            !pageHasMenuMembership(page.navigationMembership, 'web_header') &&
+            !pageHasMenuMembership(page.navigationMembership, 'web_footer') &&
+            !pageHasMenuMembership(page.navigationMembership, 'mobile_drawer') &&
+            !pageHasMenuMembership(page.navigationMembership, 'mobile_bottom_tabs') &&
+            !Boolean(page.is_system) &&
+            !configurationKeywords.has(page.keyword)
         ) || [];
-
-
-        // Get footer pages — INCLUDING system pages that have a footer
-        // position. Legal pages (privacy, agb, impressum, disclaimer) are
-        // marked `is_system = 1` AND have a `footer_position`; previously
-        // the `is_system` filter dropped them out of the admin sidebar
-        // entirely so admins had no way to find them under "Footer Pages".
-        // They still appear in the dedicated "System Pages → Legal"
-        // bucket below — the duplication is intentional, since both
-        // mental models (browse-by-purpose vs browse-by-position) are
-        // valid and the admins we asked preferred to see footer content
-        // listed where it shows up on the website.
-        const footerPages = pages?.filter(page =>
-            page.footer_position !== null &&
-            page.footer_position !== undefined
-        ).sort((a, b) => (a.footer_position || 0) - (b.footer_position || 0)) || [];
 
         const menuItems = [];
 
@@ -176,28 +143,76 @@ export function AdminNavbar() {
             });
         }
 
-        // 2. Menu Pages section (pages that appear in website navigation) - check if user can read pages
-        if (permissionChecker.canReadPages() && menuPages.length > 0) {
+        // CMS app wizard — scaffolds list + detail pages, routes, sections and
+        // ACLs in one safe transaction (see CmsAppWizardModal / CmsAppWizardService).
+        if (permissionChecker.canCreatePages()) {
             menuItems.push({
-                label: 'Menu Pages',
+                label: 'New CMS App',
+                icon: <IconWand size={16} />,
+                link: '#',
+                onClick: () => setIsCmsAppWizardOpen(true),
+                id: 'new-cms-app'
+            });
+        }
+
+        // Page bundle export / import (single page, multiple selected pages, or a
+        // related-page bundle). Backend enforces per-action permissions.
+        if (permissionChecker.canReadPages()) {
+            menuItems.push({
+                label: 'Import / Export',
+                icon: <IconTransfer size={16} />,
+                link: '#',
+                onClick: () => setIsExportImportOpen(true),
+                id: 'pages-export-import'
+            });
+        }
+
+        // Navigation menu builder sections (resolved menu preview trees)
+        if (permissionChecker.canReadNavigation()) {
+            menuItems.push({
+                label: 'Navigation',
+                icon: <IconRoute size={16} />,
+                link: '/admin/navigation',
+                id: 'navigation-builder',
+            });
+        }
+
+        // 2. Web header — resolved menu-builder preview only (empty → link to builder)
+        if (permissionChecker.canReadNavigation()) {
+            menuItems.push({
+                label: 'Web header',
                 icon: <IconFiles size={16} />,
                 initiallyOpened: true,
-                links: transformPagesToNavigation(menuPages),
+                links: buildMenuPreviewSectionLinks(headerPreviewLinks, 'web_header'),
                 id: 'menu-pages'
             });
         }
 
-        // 3. Footer Pages section (separate category for footer pages) - check if user can read pages
-        if (permissionChecker.canReadPages() && footerPages.length > 0) {
+        // 3. Web footer — resolved menu-builder preview only
+        if (permissionChecker.canReadNavigation()) {
             menuItems.push({
-                label: 'Footer Pages',
+                label: 'Web footer',
                 icon: <IconFiles size={16} />,
-                links: footerPages.map(page => ({
-                    label: page.keyword, // Use keyword since title field no longer exists
-                    link: `/admin/pages/${page.keyword}`,
-                    id: page.id_pages
-                })),
+                links: buildMenuPreviewSectionLinks(footerPreviewLinks, 'web_footer'),
                 id: 'footer-pages'
+            });
+        }
+
+        if (permissionChecker.canReadNavigation()) {
+            menuItems.push({
+                label: 'Mobile drawer',
+                icon: <IconFiles size={16} />,
+                links: buildMenuPreviewSectionLinks(mobileDrawerPreviewLinks, 'mobile_drawer'),
+                id: 'mobile-drawer-pages',
+            });
+        }
+
+        if (permissionChecker.canReadNavigation()) {
+            menuItems.push({
+                label: 'Mobile bottom tabs',
+                icon: <IconFiles size={16} />,
+                links: buildMenuPreviewSectionLinks(mobileTabsPreviewLinks, 'mobile_bottom_tabs'),
+                id: 'mobile-tabs-pages',
             });
         }
 
@@ -343,7 +358,7 @@ export function AdminNavbar() {
         }
 
         return menuItems;
-    }, [pages, configurationPageLinks, categorizedSystemPages, hierarchicalPages, isLoading, permissionChecker, pluginMenuItems, hasPermission]);
+    }, [pages, configurationPageLinks, categorizedSystemPages, isLoading, permissionChecker, pluginMenuItems, hasPermission, headerPreviewLinks, footerPreviewLinks, mobileDrawerPreviewLinks, mobileTabsPreviewLinks]);
 
     const links = navigationData.map((item) => <LinksGroup {...item} key={item.id || item.label} />);
 
@@ -376,6 +391,17 @@ export function AdminNavbar() {
             <CreatePageModal
                 opened={isCreatePageModalOpen}
                 onClose={() => setIsCreatePageModalOpen(false)}
+            />
+
+            <CmsAppWizardModal
+                opened={isCmsAppWizardOpen}
+                onClose={() => setIsCmsAppWizardOpen(false)}
+            />
+
+            <PageExportImportModal
+                opened={isExportImportOpen}
+                onClose={() => setIsExportImportOpen(false)}
+                pages={pages ?? []}
             />
         </nav>
     );

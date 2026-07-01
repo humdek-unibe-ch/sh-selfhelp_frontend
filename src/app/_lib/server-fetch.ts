@@ -53,12 +53,10 @@ import {
 } from '../../config/server.config';
 import { IMPERSONATE_COOKIE } from '../../config/cookie-names';
 import {
-    selectMenuPages,
     selectProfilePages,
     transformNavigationPages,
-    selectFooterPages
 } from '../../utils/navigation.utils';
-import type { IPageItem, IGetPageResponse, IPageContent, ILanguage } from '../../shared';
+import type { IPageItem, IGetPageResponse, IPageContent, ILanguage, INavigationPayload } from '../../shared';
 
 /** SSR cache lifetime for `/languages` in seconds. */
 const LANGUAGES_REVALIDATE_SECONDS = 300;
@@ -172,36 +170,19 @@ export const getFrontendPagesSSR = cache(async (languageId: number): Promise<unk
 });
 
 /**
- * Resolve the server-rendered top-level menu items for a given language.
- *
- * Performs the same transform + filter as `useAppNavigation`'s `select`
- * (via the shared helpers in `utils/navigation.utils`) so the HTML emitted
- * by the Server Component header matches the post-hydration client render
- * char-for-char. Wrapped in `cache()` so the slug layout, the SSR header,
- * and `generateMetadata` all share a single `/pages/language/{id}` round-trip
- * per request.
- *
- * Returns an empty array when the upstream call fails — the client menu
- * still mounts and the React Query refetch will fill in the gap.
+ * Fetch the menu-builder navigation payload for SSR (header/footer presets).
  */
-export const getMenuPagesSSR = cache(async (languageId: number): Promise<IPageItem[]> => {
-    const raw = await getFrontendPagesSSR(languageId);
-    const list = unwrapSsrList(raw);
-    if (list.length === 0) return [];
-    const transformed = transformNavigationPages(list as Parameters<typeof transformNavigationPages>[0]);
-    return selectMenuPages(transformed);
+export const getNavigationSSR = cache(async (languageId: number): Promise<INavigationPayload | null> => {
+    const envelope = await fetchJson<{ data?: INavigationPayload }>(`/navigation?language_id=${languageId}`);
+    return envelope?.data ?? null;
 });
 
 /**
- * Resolve the server-rendered footer items for a given language.
- * Matches the logic in useAppNavigation().footerPages.
+ * Resolve the server-rendered footer menu items for a given language.
  */
-export const getFooterPagesSSR = cache(async (languageId: number): Promise<IPageItem[]> => {
-    const raw = await getFrontendPagesSSR(languageId);
-    const list = unwrapSsrList(raw);
-    if (list.length === 0) return [];
-        const transformed = transformNavigationPages(list as Parameters<typeof transformNavigationPages>[0]);
-        return selectFooterPages(transformed);
+export const getFooterMenuSSR = cache(async (languageId: number) => {
+    const navigation = await getNavigationSSR(languageId);
+    return navigation?.menus?.web_footer ?? null;
 });
 
 /**
@@ -485,6 +466,41 @@ export const getPageByKeywordSSRStatus = cache(
         const params = new URLSearchParams({ language_id: String(languageId) });
         if (preview) params.set('preview', '1');
         return fetchJsonWithStatus(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`);
+    }
+);
+
+/**
+ * Resolve a full public URL path to its page envelope via the DB-driven
+ * `page_routes` contract (issue #30). This is the canonical SSR entry point for
+ * the public `[[...slug]]` route: it maps `/reset/42/abc`, `/team/7`, `/` (home)
+ * etc. to page content + `route_params` + `matched_url_pattern` + `canonical_url`,
+ * replacing the old hardcoded slug→keyword special-casing.
+ *
+ * Deduplicated per request via `cache()` so the layout prefetch,
+ * `generateMetadata`, and the page body share one Symfony round-trip.
+ */
+export const resolvePageByPathSSRCached = cache(
+    async (path: string, languageId: number, preview = false): Promise<IGetPageResponse | null> => {
+        const params = new URLSearchParams({ path, language_id: String(languageId) });
+        if (preview) params.set('preview', '1');
+        return fetchJson(`/pages/resolve?${params.toString()}`);
+    }
+);
+
+/**
+ * Status-aware variant of {@link resolvePageByPathSSRCached}. Lets the slug page
+ * tell a real 404 (unresolved path → `notFound()`) apart from a 503 (instance in
+ * maintenance → render the maintenance page). Deduplicated per request.
+ */
+export const resolvePageByPathSSRStatus = cache(
+    async (
+        path: string,
+        languageId: number,
+        preview = false
+    ): Promise<{ status: number | null; data: IGetPageResponse | null }> => {
+        const params = new URLSearchParams({ path, language_id: String(languageId) });
+        if (preview) params.set('preview', '1');
+        return fetchJsonWithStatus(`/pages/resolve?${params.toString()}`);
     }
 );
 

@@ -1,0 +1,42 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/*
+ * Page-modal chrome — mirrors the admin `ModalWrapper` look (a clearly separated
+ * header band + a scrollable body) so every `open_in_modal` page looks the same
+ * as the rest of the app's modals. The only difference from `ModalWrapper` is
+ * that page modals have NO footer. The box SIZE is set inline by `PageModal`
+ * (width/height/auto, capped at 90% of the viewport).
+ */
+
+/* Flex column so the header stays fixed and the body owns the scroll. */
+.modalContent {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Body becomes the flex container for the header + scroll region. */
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+/* Clearly separated header band (same as ModalWrapper). */
+.modalHeader {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-default-hover);
+}
+
+/* Scrollable content area below the header. */
+.modalScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}

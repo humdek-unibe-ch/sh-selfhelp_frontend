@@ -118,6 +118,8 @@ export const REACT_QUERY_CONFIG = {
         // ── Frontend navigation (public) ──────────────────────────────────
         FRONTEND_PAGES: (languageId: number) => ['frontend-pages', languageId],
         FRONTEND_PAGES_ALL: ['frontend-pages'],
+        NAVIGATION: (languageId: number) => ['navigation', languageId],
+        NAVIGATION_ALL: ['navigation'],
 
         // ── Public page content (keyword-driven) ──────────────────────────
         PAGE_BY_KEYWORD: (keyword: string, languageId: number, preview = false) =>
@@ -125,6 +127,20 @@ export const REACT_QUERY_CONFIG = {
         // Prefix base used by mutations and `useIsFetching` to touch every
         // keyword + language + preview variant at once.
         PAGE_BY_KEYWORD_ALL: ['page-by-keyword'],
+
+        // ── Public page content (path-driven, DB routing — issue #30) ─────
+        // Parameterized public URLs (`/reset/42/abc`, `/team/7`) resolve by
+        // PATH, not keyword, so two records under one keyword (`/team/7` vs
+        // `/team/8`) never collide in cache. Deliberately nested UNDER the
+        // `page-by-keyword` prefix so every existing `PAGE_BY_KEYWORD_ALL`
+        // invalidation (form submit, page/section edit, ACL rotation, language
+        // switch) and the `useIsFetching(PAGE_BY_KEYWORD_ALL)` spinner cover
+        // path entries too — no extra invalidation wiring required. The
+        // `'__path__'` sentinel can never collide with a real (kebab/underscore)
+        // keyword segment.
+        PAGE_BY_PATH: (path: string, languageId: number, preview = false) =>
+            ['page-by-keyword', '__path__', path, languageId, preview ? 'preview' : 'published'] as const,
+        PAGE_BY_PATH_ALL: ['page-by-keyword', '__path__'],
 
         // ── Admin page list ───────────────────────────────────────────────
         ADMIN_PAGES: ['admin-pages'],

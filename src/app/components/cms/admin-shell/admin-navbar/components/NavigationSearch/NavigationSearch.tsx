@@ -23,6 +23,8 @@ import styles from './NavigationSearch.module.css';
 import { useNavigationStore } from '../../../../../../store/navigation.store';
 import { useAuth } from '../../../../../../../hooks/useAuth';
 import { usePluginMenuItems } from '../../../../../frontend/plugin-runtime';
+import { pageHasMenuMembership } from '../../../../../../../utils/admin-navigation-membership';
+import type { INavigationMembershipBadge } from '../../../../../../../types/responses/admin/admin.types';
 
 interface ISearchableItem {
     id: string;
@@ -54,8 +56,7 @@ interface IAdminPageData {
     allPages?: Array<{
         keyword: string;
         title?: string;
-        nav_position?: number | null;
-        footer_position?: number | null;
+        navigationMembership?: INavigationMembershipBadge[];
         is_system: boolean;
         children?: Array<{
             keyword: string;
@@ -332,22 +333,22 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                 // Filter menu pages from raw data (preserves hierarchy)
                 const menuPages = convertAllPagesToRegularFormat(
                     adminPagesData.allPages.filter((page) =>
-                        page.nav_position !== null && page.nav_position !== undefined && !page.is_system &&
-                        !configurationKeywords.has(page.keyword) // Exclude configuration pages
+                        pageHasMenuMembership(page.navigationMembership, 'web_header') && !page.is_system &&
+                        !configurationKeywords.has(page.keyword)
                     )
                 );
                 const footerPages = convertAllPagesToRegularFormat(
                     adminPagesData.allPages.filter((page) =>
-                        page.footer_position !== null && page.footer_position !== undefined && !page.is_system &&
-                        !configurationKeywords.has(page.keyword) // Exclude configuration pages
+                        pageHasMenuMembership(page.navigationMembership, 'web_footer') && !page.is_system &&
+                        !configurationKeywords.has(page.keyword)
                     )
                 );
                 const otherPages = convertAllPagesToRegularFormat(
                     adminPagesData.allPages.filter((page) =>
-                        (page.nav_position === null || page.nav_position === undefined) &&
-                        (page.footer_position === null || page.footer_position === undefined) &&
+                        !pageHasMenuMembership(page.navigationMembership, 'web_header') &&
+                        !pageHasMenuMembership(page.navigationMembership, 'web_footer') &&
                         !page.is_system &&
-                        !configurationKeywords.has(page.keyword) // Exclude configuration pages
+                        !configurationKeywords.has(page.keyword)
                     )
                 );
 

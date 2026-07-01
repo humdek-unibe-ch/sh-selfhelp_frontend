@@ -11,7 +11,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
-import { transformPageData, type IBaseApiResponse } from '../shared';
+import { transformPageData, type IBaseApiResponse, type INavigationPayload } from '../shared';
 
 // Re-export the shared transformer so existing imports keep working.
 // The implementation lives in `@selfhelp/shared` so the mobile app and
@@ -39,5 +39,28 @@ export const NavigationApi = {
 
         // Return raw API data - transformation will happen in React Query select for caching
         return response.data.data;
-    }
+    },
+
+    /**
+     * Fetches the resolved navigation payload (menus, startup, search).
+     */
+    async getNavigation(languageId: number): Promise<INavigationPayload> {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<INavigationPayload>>(
+            API_CONFIG.ENDPOINTS.NAVIGATION_GET,
+            languageId,
+        );
+        return response.data.data;
+    },
+
+    async recordLastVisited(payload: {
+        page_id: number;
+        keyword: string;
+        url?: string;
+        platform?: 'web' | 'mobile';
+    }): Promise<void> {
+        await permissionAwareApiClient.put(
+            API_CONFIG.ENDPOINTS.NAVIGATION_LAST_VISITED,
+            payload,
+        );
+    },
 };

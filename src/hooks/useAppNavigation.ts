@@ -2,48 +2,38 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-/**
- * Custom hook for managing application navigation and menu structure.
- * Provides functionality to fetch and transform navigation data from the API
- * into routes and menu items compatible with the application's layout system.
- * 
- * @module hooks/useAppNavigation
- */
+'use client';
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
 import { type IResourceItem } from '@refinedev/core';
 import { NavigationApi } from '../api/navigation.api';
-import { type IPageItem } from '../shared';
+import {
+    type IPageItem,
+    type INavigationMenu,
+    type INavigationPayload,
+} from '../shared';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLanguageContext } from '../app/components/contexts/LanguageContext';
 import {
-    selectFooterPages,
-    selectMenuPages,
     selectProfilePages,
     transformNavigationPages,
 } from '../utils/navigation.utils';
 
 interface INavigationData {
     pages: IPageItem[];
-    menuPages: IPageItem[];
-    footerPages: IPageItem[];
+    navigation: INavigationPayload | null;
+    headerMenu: INavigationMenu | null;
+    footerMenu: INavigationMenu | null;
     profilePages: IPageItem[];
     routes: IPageItem[];
-    resources?: IResourceItem[]; // Refine resources for admin mode
+    resources?: IResourceItem[];
 }
 
-/**
- * Recursively flattens a tree structure of pages into a flat array
- * @param pages - Array of pages that may contain children
- * @returns Flat array of all pages (including nested children)
- */
 function flattenPages(pages: IPageItem[]): IPageItem[] {
     let result: IPageItem[] = [];
     for (const page of pages) {
-        // Add the current page (without children to avoid circular references)
         result.push({ ...page, children: [] });
-        
-        // Recursively add all children
         if (page.children && page.children.length > 0) {
             result = result.concat(flattenPages(page.children));
         }
@@ -52,22 +42,15 @@ function flattenPages(pages: IPageItem[]): IPageItem[] {
 }
 
 /**
- * Unified hook for fetching and managing navigation data for both admin and user interfaces.
- * Uses React Query for data fetching and caching with select to transform data once.
- * Now uses language-specific endpoint to ensure titles are always available.
- * @param {Object} options - Configuration options
- * @param {boolean} options.isAdmin - Whether to generate admin resources for Refine
- * @returns {Object} Object containing organized navigation data and query state
+ * Unified hook for fetching pages + navigation payload for public UI.
  */
 export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
     const { isAdmin = false } = options;
     const { currentLanguageId } = useLanguageContext();
 
-    const { data, isLoading, error, isFetching } = useQuery({
+    const pagesQuery = useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(currentLanguageId),
-        queryFn: () => {
-            return NavigationApi.getPagesWithLanguage(currentLanguageId);
-        },
+        queryFn: () => NavigationApi.getPagesWithLanguage(currentLanguageId),
         enabled: currentLanguageId > 0,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.gcTime,
@@ -75,75 +58,80 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
         refetchOnMount: false,
         retry: 1,
         placeholderData: keepPreviousData,
-        select: (rawPages): INavigationData => {
-            // Apply the shared transform (`transformPageData` + child URL
-            // fix). The same helper backs the SSR `getMenuPagesSSR` call so
-            // server-rendered menu HTML matches what we render after
-            // hydration char-for-char (no React hydration warning, no flash).
-            const fixedPages = transformNavigationPages(rawPages);
-            const pages = fixedPages;
-
-            const menuPages = selectMenuPages(fixedPages);
-            const footerPages = selectFooterPages(fixedPages);
-            // Same helper as `getProfilePagesSSR` (server-fetch.ts) so the
-            // SSR-rendered profile button text ("Profil") matches the
-            // post-hydration render char-for-char.
-            const profilePages = selectProfilePages(fixedPages);
-
-            // Flatten ALL pages (including children) for route checking
-            const routes = flattenPages(fixedPages);
-
-            // Generate Refine resources for admin mode
-            let resources: IResourceItem[] = [];
-            if (isAdmin) {
-                resources = pages.map(page => ({
-                    name: page.keyword,
-                    list: `/admin/pages/${page.keyword}`,
-                    show: `/admin/pages/${page.keyword}`,
-                    edit: `/admin/pages/${page.keyword}/edit`,
-                    create: `/admin/pages/create`,
-                    meta: {
-                        label: page.title || page.keyword, // Use title if available, fallback to keyword
-                        parent: page.parent_page_id ? pages.find(p => p.id_pages === page.parent_page_id)?.keyword : undefined,
-                        canDelete: true,
-                        nav: page.navPosition !== null,
-                        navOrder: page.navPosition,
-                        footer: page.footerPosition !== null,
-                        footerOrder: page.footerPosition,
-                        params: page.url?.includes('[') ? { nav: { type: 'number' } } : {},
-                        protocol: ['web']
-                    }
-                }));
-
-            }
-
-            const result = {
-                pages,
-                menuPages,
-                footerPages,
-                profilePages,
-                routes,
-                resources
-            };
-
-            // Store transformed data in window for DevTools inspection
-            if (typeof window !== 'undefined') {
-                (window as unknown as Record<string, unknown>).__NAVIGATION_DATA__ = result;
-            }
-
-            return result;
-        }
     });
 
-    return { 
-        pages: data?.pages ?? [], 
-        menuPages: data?.menuPages ?? [], 
-        footerPages: data?.footerPages ?? [], 
-        profilePages: data?.profilePages ?? [],
-        routes: data?.routes ?? [],
-        resources: data?.resources ?? [],
-        isLoading: isLoading, 
+    const navigationQuery = useQuery({
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION(currentLanguageId),
+        queryFn: () => NavigationApi.getNavigation(currentLanguageId),
+        enabled: currentLanguageId > 0,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.gcTime,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        retry: 1,
+        placeholderData: keepPreviousData,
+    });
+
+    const rawPages = pagesQuery.data ?? [];
+    const fixedPages = transformNavigationPages(rawPages);
+    const navigation = navigationQuery.data ?? null;
+    const headerMenu = navigation?.menus?.web_header ?? null;
+    const footerMenu = navigation?.menus?.web_footer ?? null;
+    const profilePages = selectProfilePages(fixedPages);
+    const routes = flattenPages(fixedPages);
+
+    const resources: IResourceItem[] = useMemo(() => {
+        if (!isAdmin) {
+            return [];
+        }
+        return fixedPages.map((page) => ({
+            name: page.keyword,
+            list: `/admin/pages/${page.keyword}`,
+            show: `/admin/pages/${page.keyword}`,
+            edit: `/admin/pages/${page.keyword}/edit`,
+            create: `/admin/pages/create`,
+            meta: {
+                label: page.title || page.keyword,
+                parent: page.parent_page_id
+                    ? fixedPages.find((p) => p.id_pages === page.parent_page_id)?.keyword
+                    : undefined,
+                canDelete: true,
+                params: page.url?.includes('[') ? { nav: { type: 'number' } } : {},
+                protocol: ['web'],
+            },
+        }));
+    }, [fixedPages, isAdmin]);
+
+    const data: INavigationData = useMemo(() => ({
+        pages: fixedPages,
+        navigation,
+        headerMenu,
+        footerMenu,
+        profilePages,
+        routes,
+        resources,
+    }), [fixedPages, navigation, headerMenu, footerMenu, profilePages, routes, resources]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            (window as unknown as Record<string, unknown>).__NAVIGATION_DATA__ = data;
+        }
+    }, [data]);
+
+    const isLoading = pagesQuery.isLoading || navigationQuery.isLoading;
+    const isFetching = pagesQuery.isFetching || navigationQuery.isFetching;
+    const error = pagesQuery.error ?? navigationQuery.error;
+
+    return {
+        pages: data.pages,
+        navigation: data.navigation,
+        headerMenu: data.headerMenu,
+        footerMenu: data.footerMenu,
+        profilePages: data.profilePages,
+        routes: data.routes,
+        resources: data.resources ?? [],
+        isLoading,
         error,
-        isFetching
+        isFetching,
     };
 }

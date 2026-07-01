@@ -1,12 +1,12 @@
 /*
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
-*/
+ */
 /**
  * Custom hook for managing admin pages data.
  * Provides functionality to fetch and transform admin pages data from the API
  * into a structured format suitable for navigation and management interfaces.
- * 
+ *
  * @module hooks/useAdminPages
  */
 
@@ -16,6 +16,7 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
 import { parseCrudPermissions, type ICrudPermissions } from '../utils/permissions.utils';
 import { AdminApi } from '../api/admin';
+import { pageHasMenuMembership } from '../utils/admin-navigation-membership';
 
 export interface ISystemPageLink {
     label: string;
@@ -28,18 +29,17 @@ export interface ISystemPageLink {
 
 export interface IPageHierarchy {
     id: number;
-    id_pages: number; // For compatibility with IAdminPage
+    id_pages: number;
     keyword: string;
     label: string;
     link: string;
-    url: string; // For compatibility with IAdminPage
-    id_parent_page: number | null; // For compatibility with IAdminPage
-    id_page_types: number; // For compatibility with IAdminPage
+    url: string;
+    id_parent_page: number | null;
+    id_page_types: number;
     hasChildren: boolean;
     children: IPageHierarchy[];
     level: number;
-    nav_position: number | null;
-    footer_position: number | null;
+    navigationMembership: IAdminPage['navigationMembership'];
     is_system: boolean;
     is_headless: boolean;
     is_open_access: boolean;
@@ -68,7 +68,14 @@ export interface IConfigurationPageLink {
     keyword: string;
     id: number;
     title: string;
-    nav_position: number | null;
+}
+
+function isInWebHeader(page: IPageHierarchy): boolean {
+    return pageHasMenuMembership(page.navigationMembership, 'web_header');
+}
+
+function isInWebFooter(page: IPageHierarchy): boolean {
+    return pageHasMenuMembership(page.navigationMembership, 'web_footer');
 }
 
 /**
@@ -77,25 +84,20 @@ export interface IConfigurationPageLink {
  */
 export function useAdminPages() {
     const { isAuthenticated, user } = useAuth();
-    
-    // The access token lives in an httpOnly cookie and is invisible to JS.
-    // We rely on Refine's `isAuthenticated` (served by the BFF catch-all
-    // at `/api/auth/user-data`) combined with the presence of a transformed
-    // user object.
+
     const isActuallyAuthenticated = !!isAuthenticated && !!user;
-    
+
     const { data, isLoading, error, isFetching } = useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES,
         queryFn: async () => {
             return await AdminApi.getAdminPages();
         },
-        enabled: isActuallyAuthenticated, // Only fetch when user is truly authenticated
+        enabled: isActuallyAuthenticated,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.ADMIN_PAGES.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.ADMIN_PAGES.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         placeholderData: keepPreviousData,
         select: (data: IAdminPage[]) => {
-            // Ensure data is an array to prevent undefined errors
             if (!data || !Array.isArray(data)) {
                 return {
                     allPages: [],
@@ -109,164 +111,143 @@ export function useAdminPages() {
                         profile: [],
                         errors: [],
                         legal: [],
-                        other: []
+                        other: [],
                     },
                     hierarchicalPages: [],
                     categorizedRegularPages: {
                         menu: [],
                         footer: [],
-                        other: []
-                    }
+                        other: [],
+                    },
                 };
             }
 
-            // Separate configuration pages (id_page_types > 3) and regular pages
-            const configurationPages = data.filter(page => page.id_page_types && page.id_page_types > 3);
-            const regularPages = data.filter(page => !page.id_page_types || page.id_page_types <= 3);
+            const configurationPages = data.filter((page) => page.id_page_types && page.id_page_types > 3);
+            const regularPages = data.filter((page) => !page.id_page_types || page.id_page_types <= 3);
+            const systemPages = data.filter((page) => page.is_system && (!page.id_page_types || page.id_page_types <= 3));
 
-            const systemPages = data.filter(page => page.is_system && (!page.id_page_types || page.id_page_types <= 3));
+            const getAdminLabel = (page: IAdminPage): string => page.keyword;
 
-            // Helper function to get page label for admin interface (always use keyword)
-            const getAdminLabel = (page: IAdminPage): string => {
-                return page.keyword;
-            };
-
-            // Build system page links (empty for now since no system pages identified)
             const systemPageLinks: ISystemPageLink[] = [];
 
-            // Build configuration page links (sorted by nav_position)
             const configurationPageLinks: IConfigurationPageLink[] = configurationPages
-                .sort((a, b) => (a.nav_position || 0) - (b.nav_position || 0))
-                .map(page => ({
+                .sort((a, b) => a.keyword.localeCompare(b.keyword))
+                .map((page) => ({
                     label: page.keyword,
                     link: `/admin/pages/${page.keyword}`,
                     keyword: page.keyword,
                     id: page.id_pages,
                     title: page.keyword,
-                    nav_position: page.nav_position
                 }));
 
-            // Categorize system pages based on is_system field
-            const currentSystemPages = data.filter(page => page.is_system);
+            const currentSystemPages = data.filter((page) => page.is_system);
             const categorizedSystemPages = {
-                authentication: currentSystemPages.filter(page => page.keyword?.toLowerCase().includes('auth') || page.keyword?.toLowerCase().includes('login')).map(page => ({
-                    label: page.keyword,
-                    link: `/admin/pages/${page.keyword}`,
-                    keyword: page.keyword,
-                    id: page.id_pages,
-                    title: page.keyword
-                })),
-                profile: currentSystemPages.filter(page => page.keyword?.toLowerCase().includes('profile')).map(page => ({
-                    label: page.keyword,
-                    link: `/admin/pages/${page.keyword}`,
-                    keyword: page.keyword,
-                    id: page.id_pages,
-                    title: page.keyword
-                })),
-                errors: currentSystemPages.filter(page => page.keyword?.toLowerCase().includes('error') || page.keyword?.toLowerCase().includes('404')).map(page => ({
-                    label: page.keyword,
-                    link: `/admin/pages/${page.keyword}`,
-                    keyword: page.keyword,
-                    id: page.id_pages,
-                    title: page.keyword
-                })),
-                legal: currentSystemPages.filter(page => page.keyword?.toLowerCase().includes('privacy') || page.keyword?.toLowerCase().includes('terms') || page.keyword?.toLowerCase().includes('legal')).map(page => ({
-                    label: page.keyword,
-                    link: `/admin/pages/${page.keyword}`,
-                    keyword: page.keyword,
-                    id: page.id_pages,
-                    title: page.keyword
-                })),
-                other: currentSystemPages.filter(page =>
-                    !page.keyword?.toLowerCase().includes('auth') &&
-                    !page.keyword?.toLowerCase().includes('login') &&
-                    !page.keyword?.toLowerCase().includes('profile') &&
-                    !page.keyword?.toLowerCase().includes('error') &&
-                    !page.keyword?.toLowerCase().includes('404') &&
-                    !page.keyword?.toLowerCase().includes('privacy') &&
-                    !page.keyword?.toLowerCase().includes('terms') &&
-                    !page.keyword?.toLowerCase().includes('legal')
-                ).map(page => ({
-                    label: page.keyword,
-                    link: `/admin/pages/${page.keyword}`,
-                    keyword: page.keyword,
-                    id: page.id_pages,
-                    title: page.keyword
-                }))
-            };
-
-            // Build hierarchical structure from flat array using parent relationships
-            const buildHierarchy = (pages: IAdminPage[], parentId: number | null = null, level: number = 0): IPageHierarchy[] => {
-                const children = pages.filter(page => page.id_parent_page === parentId);
-
-
-                return children.map(page => {
-                    // Parse CRUD permissions from the crud field
-                    const permissions = parseCrudPermissions(page.crud);
-
-                    // Get direct children
-                    const childPages = buildHierarchy(pages, page.id_pages, level + 1);
-
-                    // Sort children based on parent page's position type
-                    let sortedChildren = childPages;
-                    if (page.nav_position !== null) {
-                        // Parent is in navigation - sort children by nav_position
-                        sortedChildren = childPages.sort((a, b) => (a.nav_position || 0) - (b.nav_position || 0));
-                    } else if (page.footer_position !== null) {
-                        // Parent is in footer - sort children by footer_position
-                        sortedChildren = childPages.sort((a, b) => (a.footer_position || 0) - (b.footer_position || 0));
-                    } else {
-                        // No specific position - sort by keyword
-                        sortedChildren = childPages.sort((a, b) => a.keyword.localeCompare(b.keyword));
-                    }
-
-                    return {
-                        id: page.id_pages,
-                        id_pages: page.id_pages, // For compatibility with IAdminPage
-                        keyword: page.keyword,
-                        label: getAdminLabel(page),
+                authentication: currentSystemPages
+                    .filter((page) => page.keyword?.toLowerCase().includes('auth') || page.keyword?.toLowerCase().includes('login'))
+                    .map((page) => ({
+                        label: page.keyword,
                         link: `/admin/pages/${page.keyword}`,
-                        url: page.url, // For compatibility with IAdminPage
-                        id_parent_page: page.id_parent_page, // For compatibility with IAdminPage
-                        id_page_types: page.id_page_types, // For compatibility with IAdminPage
-                        hasChildren: sortedChildren.length > 0,
-                        children: sortedChildren,
-                        level,
-                        nav_position: page.nav_position,
-                        footer_position: page.footer_position,
-                        is_system: page.is_system,
-                        is_headless: page.is_headless,
-                        is_open_access: page.is_open_access,
-                        id_page_access_types: page.id_page_access_types,
-                        crud: page.crud,
-                        permissions
-                    };
-                });
+                        keyword: page.keyword,
+                        id: page.id_pages,
+                        title: page.keyword,
+                    })),
+                profile: currentSystemPages
+                    .filter((page) => page.keyword?.toLowerCase().includes('profile'))
+                    .map((page) => ({
+                        label: page.keyword,
+                        link: `/admin/pages/${page.keyword}`,
+                        keyword: page.keyword,
+                        id: page.id_pages,
+                        title: page.keyword,
+                    })),
+                errors: currentSystemPages
+                    .filter((page) => page.keyword?.toLowerCase().includes('error') || page.keyword?.toLowerCase().includes('404'))
+                    .map((page) => ({
+                        label: page.keyword,
+                        link: `/admin/pages/${page.keyword}`,
+                        keyword: page.keyword,
+                        id: page.id_pages,
+                        title: page.keyword,
+                    })),
+                legal: currentSystemPages
+                    .filter((page) =>
+                        page.keyword?.toLowerCase().includes('privacy')
+                        || page.keyword?.toLowerCase().includes('terms')
+                        || page.keyword?.toLowerCase().includes('legal'),
+                    )
+                    .map((page) => ({
+                        label: page.keyword,
+                        link: `/admin/pages/${page.keyword}`,
+                        keyword: page.keyword,
+                        id: page.id_pages,
+                        title: page.keyword,
+                    })),
+                other: currentSystemPages
+                    .filter(
+                        (page) =>
+                            !page.keyword?.toLowerCase().includes('auth')
+                            && !page.keyword?.toLowerCase().includes('login')
+                            && !page.keyword?.toLowerCase().includes('profile')
+                            && !page.keyword?.toLowerCase().includes('error')
+                            && !page.keyword?.toLowerCase().includes('404')
+                            && !page.keyword?.toLowerCase().includes('privacy')
+                            && !page.keyword?.toLowerCase().includes('terms')
+                            && !page.keyword?.toLowerCase().includes('legal'),
+                    )
+                    .map((page) => ({
+                        label: page.keyword,
+                        link: `/admin/pages/${page.keyword}`,
+                        keyword: page.keyword,
+                        id: page.id_pages,
+                        title: page.keyword,
+                    })),
             };
 
-            // Build the hierarchical structure starting from root pages (parent = null)
+            const buildHierarchy = (pages: IAdminPage[], parentId: number | null = null, level = 0): IPageHierarchy[] => {
+                const children = pages.filter((page) => page.id_parent_page === parentId);
+
+                return children
+                    .map((page) => {
+                        const permissions = parseCrudPermissions(page.crud);
+                        const childPages = buildHierarchy(pages, page.id_pages, level + 1);
+                        const sortedChildren = [...childPages].sort((a, b) => a.keyword.localeCompare(b.keyword));
+
+                        return {
+                            id: page.id_pages,
+                            id_pages: page.id_pages,
+                            keyword: page.keyword,
+                            label: getAdminLabel(page),
+                            link: `/admin/pages/${page.keyword}`,
+                            url: page.url,
+                            id_parent_page: page.id_parent_page,
+                            id_page_types: page.id_page_types,
+                            hasChildren: sortedChildren.length > 0,
+                            children: sortedChildren,
+                            level,
+                            navigationMembership: page.navigationMembership ?? [],
+                            is_system: page.is_system,
+                            is_headless: page.is_headless,
+                            is_open_access: page.is_open_access,
+                            id_page_access_types: page.id_page_access_types,
+                            crud: page.crud,
+                            permissions,
+                        };
+                    })
+                    .sort((a, b) => a.keyword.localeCompare(b.keyword));
+            };
+
             const hierarchicalPages = buildHierarchy(regularPages);
 
-
-            // Categorize regular pages based on their configured positions.
-            const menuPages = hierarchicalPages.filter(page =>
-                page.nav_position !== null && page.nav_position !== undefined
+            const menuPages = hierarchicalPages.filter((page) => isInWebHeader(page) && !page.is_system);
+            const footerPages = hierarchicalPages.filter((page) => isInWebFooter(page));
+            const otherRegularPages = hierarchicalPages.filter(
+                (page) => !isInWebHeader(page) && !isInWebFooter(page),
             );
-
-            const footerPages = hierarchicalPages.filter(page =>
-                page.footer_position !== null && page.footer_position !== undefined
-            );
-
-            const otherRegularPages = hierarchicalPages.filter(page =>
-                (page.nav_position === null || page.nav_position === undefined) &&
-                (page.footer_position === null || page.footer_position === undefined)
-            );
-
 
             const categorizedRegularPages: ICategorizedPages = {
-                menu: menuPages.sort((a, b) => (a.nav_position || 0) - (b.nav_position || 0)),
-                footer: footerPages.sort((a, b) => (a.footer_position || 0) - (b.footer_position || 0)),
-                other: otherRegularPages.sort((a, b) => a.label.localeCompare(b.label))
+                menu: menuPages.sort((a, b) => a.keyword.localeCompare(b.keyword)),
+                footer: footerPages.sort((a, b) => a.keyword.localeCompare(b.keyword)),
+                other: otherRegularPages.sort((a, b) => a.label.localeCompare(b.label)),
             };
 
             return {
@@ -278,12 +259,12 @@ export function useAdminPages() {
                 configurationPageLinks,
                 categorizedSystemPages,
                 hierarchicalPages,
-                categorizedRegularPages
+                categorizedRegularPages,
             };
         },
         refetchOnWindowFocus: false,
-        refetchOnMount: false, // Use cached data first for faster navigation
-        refetchOnReconnect: true, // Refetch when connection is restored
+        refetchOnMount: false,
+        refetchOnReconnect: true,
     });
 
     return {
@@ -298,16 +279,16 @@ export function useAdminPages() {
             profile: [] as ISystemPageLink[],
             errors: [] as ISystemPageLink[],
             legal: [] as ISystemPageLink[],
-            other: [] as ISystemPageLink[]
+            other: [] as ISystemPageLink[],
         },
         hierarchicalPages: data?.hierarchicalPages || [],
         categorizedRegularPages: data?.categorizedRegularPages || {
             menu: [],
             footer: [],
-            other: []
+            other: [],
         },
         isLoading,
         isFetching,
-        error
+        error,
     };
 }
