@@ -17,15 +17,22 @@ import {
     ThemeIcon,
     Loader,
     Alert,
-    Stack
+    Stack,
+    Button
 } from '@mantine/core';
 import { 
     IconSearch, 
     IconFile, 
     IconChevronRight, 
     IconAlertCircle,
-    IconFileText
+    IconFileText,
+    IconWorld,
+    IconLayoutDashboard,
+    IconTransfer,
+    IconWand
 } from '@tabler/icons-react';
+import { PageExportImportModal } from './PageExportImportModal';
+import { CmsAppWizardModal } from './CmsAppWizardModal';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import {
@@ -50,6 +57,8 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
     const router = useRouter();
     const { pages, isLoading, error } = useAdminPages();
     const [searchQuery, setSearchQuery] = useState('');
+    const [exportImportOpen, setExportImportOpen] = useState(false);
+    const [wizardOpen, setWizardOpen] = useState(false);
     
     // Only the selected *keyword* lives in the store; the matching page
     // object is derived from the React Query cache when needed so we don't
@@ -135,6 +144,23 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
 
         return filterPages(pageTree);
     }, [pageTree, searchQuery]);
+
+    // CMS-in-CMS organization (issue #30): split top-level pages into the
+    // public website group and the CMS application group. Subtrees stay intact
+    // under their root. The CMS group only appears when such pages exist, so the
+    // common public-only install keeps the flat look.
+    const { publicPages, cmsPages } = useMemo(() => {
+        const publicList: PageTreeItem[] = [];
+        const cmsList: PageTreeItem[] = [];
+        filteredPages.forEach((page) => {
+            if (page.page_surface === 'cms') {
+                cmsList.push(page);
+            } else {
+                publicList.push(page);
+            }
+        });
+        return { publicPages: publicList, cmsPages: cmsList };
+    }, [filteredPages]);
 
     const handlePageClick = (page: IAdminPage) => {
         setSelectedKeyword(page.keyword);
@@ -244,6 +270,35 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
                 onChange={(event) => setSearchQuery(event.currentTarget.value)}
                 size="sm"
             />
+            <Group gap="xs" grow>
+                <Button
+                    variant="light"
+                    size="xs"
+                    leftSection={<IconWand size="0.9rem" />}
+                    onClick={() => setWizardOpen(true)}
+                >
+                    New app
+                </Button>
+                <Button
+                    variant="light"
+                    size="xs"
+                    leftSection={<IconTransfer size="0.9rem" />}
+                    onClick={() => setExportImportOpen(true)}
+                >
+                    Export / Import
+                </Button>
+            </Group>
+
+            <CmsAppWizardModal
+                opened={wizardOpen}
+                onClose={() => setWizardOpen(false)}
+            />
+
+            <PageExportImportModal
+                opened={exportImportOpen}
+                onClose={() => setExportImportOpen(false)}
+                pages={pages ?? []}
+            />
 
             <ScrollArea
                 className={classes.scrollContainer}
@@ -252,7 +307,32 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
             >
                 <Stack gap={2} pb="md">
                     {filteredPages.length > 0 ? (
-                        filteredPages.map(page => renderPageItem(page))
+                        cmsPages.length > 0 ? (
+                            <>
+                                <Group gap={6} px="xs" pt={4} pb={2}>
+                                    <IconWorld size="0.85rem" color="var(--mantine-color-blue-6)" />
+                                    <Text size="xs" fw={700} c="dimmed" tt="uppercase">
+                                        Public website
+                                    </Text>
+                                </Group>
+                                {publicPages.length > 0 ? (
+                                    publicPages.map(page => renderPageItem(page))
+                                ) : (
+                                    <Text size="xs" c="dimmed" px="xs" py={4}>
+                                        No public pages.
+                                    </Text>
+                                )}
+                                <Group gap={6} px="xs" pt="sm" pb={2}>
+                                    <IconLayoutDashboard size="0.85rem" color="var(--mantine-color-grape-6)" />
+                                    <Text size="xs" fw={700} c="dimmed" tt="uppercase">
+                                        CMS application
+                                    </Text>
+                                </Group>
+                                {cmsPages.map(page => renderPageItem(page))}
+                            </>
+                        ) : (
+                            filteredPages.map(page => renderPageItem(page))
+                        )
                     ) : (
                         <Text size="sm" c="dimmed" ta="center" py="xl">
                             {searchQuery ? 'No pages found matching your search.' : 'No pages available.'}

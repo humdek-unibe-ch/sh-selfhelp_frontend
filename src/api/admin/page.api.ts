@@ -17,6 +17,17 @@ import { type ICreatePageRequest } from '../../types/requests/admin/create-page.
 import { type IUpdatePageRequest } from '../../types/requests/admin/update-page.types';
 import { type IPageFieldsResponse, type IPageFieldsData, type TPageFieldsResponse, type IPageSectionWithFields } from '../../types/common/pages.type';
 import { type IRestoreFromVersionResponse } from '../../types/responses/admin/page-version.types';
+import {
+    type IPageBundle,
+    type IPageImportOptions,
+    type IPageImportValidationReport,
+    type IPageImportResult,
+    type IPageExampleBundle
+} from '../../types/requests/admin/page-export-import.types';
+import {
+    type ICreateCmsAppRequest,
+    type ICreateCmsAppResult
+} from '../../types/requests/admin/cms-app-wizard.types';
 
 export const AdminPageApi = {
     /**
@@ -116,5 +127,92 @@ export const AdminPageApi = {
             versionId
         );
         return response.data;
+    },
+
+    /**
+     * Exports one or more pages as a portable bundle (issue #30, Phase 5).
+     * @param {number[]} pageIds - Ids of the pages to include in the bundle
+     * @returns {Promise<IPageBundle>} The portable page bundle
+     * @throws {Error} When API request fails
+     */
+    async exportPages(pageIds: number[]): Promise<IPageBundle> {
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IPageBundle>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_EXPORT,
+            { pageIds }
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Lists the shipped importable example page bundles (issue #30, decision E),
+     * so the import UI can offer ready-made "Example bundles".
+     * @returns {Promise<IPageExampleBundle[]>} The available example bundles
+     * @throws {Error} When API request fails
+     */
+    async getExampleBundles(): Promise<IPageExampleBundle[]> {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<{ examples: IPageExampleBundle[] }>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_EXAMPLES
+        );
+        return response.data.data.examples;
+    },
+
+    /**
+     * Suggests the related page ids that belong in a bundle with the given page.
+     * @param {number} pageId - The seed page id
+     * @returns {Promise<number[]>} Seed id plus any related ids (deduplicated)
+     * @throws {Error} When API request fails
+     */
+    async suggestExportBundle(pageId: number): Promise<number[]> {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<{ page_ids: number[] }>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_EXPORT_SUGGEST,
+            pageId
+        );
+        return response.data.data.page_ids;
+    },
+
+    /**
+     * Dry-run validation of a page bundle before import (issue #30, Phase 5).
+     * @param {IPageBundle} bundle - The bundle to validate
+     * @param {IPageImportOptions} options - Import behaviour toggles
+     * @returns {Promise<IPageImportValidationReport>} Structured validation report
+     * @throws {Error} When API request fails
+     */
+    async validateImportPages(bundle: IPageBundle, options: IPageImportOptions = {}): Promise<IPageImportValidationReport> {
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IPageImportValidationReport>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_IMPORT_VALIDATE,
+            { bundle, options }
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Imports a validated page bundle (issue #30, Phase 5).
+     * @param {IPageBundle} bundle - The bundle to import
+     * @param {IPageImportOptions} options - Import behaviour toggles
+     * @returns {Promise<IPageImportResult>} The created pages
+     * @throws {Error} When API request fails
+     */
+    async importPages(bundle: IPageBundle, options: IPageImportOptions = {}): Promise<IPageImportResult> {
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IPageImportResult>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_IMPORT,
+            { bundle, options }
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Runs the CMS-in-CMS "Create list + detail pages" wizard (issue #30, Phase 6).
+     * Atomically scaffolds the public and/or admin list+detail page pairs bound
+     * to a data table, with DB-driven routes and entry-list/entry-record holders.
+     * @param {ICreateCmsAppRequest} payload - The wizard configuration
+     * @returns {Promise<ICreateCmsAppResult>} The created pages
+     * @throws {Error} When API request fails
+     */
+    async createCmsApp(payload: ICreateCmsAppRequest): Promise<ICreateCmsAppResult> {
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<ICreateCmsAppResult>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_CMS_APP,
+            payload
+        );
+        return response.data.data;
     }
 }; 
