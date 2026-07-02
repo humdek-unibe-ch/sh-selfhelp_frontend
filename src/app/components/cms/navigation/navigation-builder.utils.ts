@@ -4,8 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import type { IAdminNavigationMenuItem } from '../../../../api/admin/navigation.api';
 import type { IAdminPage } from '../../../../types/responses/admin/admin.types';
-import type { TMenuKey } from './navigation-builder.constants';
-import { isMobileMenuKey } from './navigation-builder.constants';
+import { isMobileMenuKey, type TMenuKey } from './navigation-builder.constants';
 
 export interface INavigationItemDisplay {
     primary: string;

@@ -71,8 +71,7 @@ import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indi
 
 import type { IAdminNavigationMenuItem } from '../../../../api/admin/navigation.api';
 import type { IAdminPage } from '../../../../types/responses/admin/admin.types';
-import type { TMenuKey } from './navigation-builder.constants';
-import { menuPlatformForKey } from './navigation-builder.constants';
+import { menuPlatformForKey, type TMenuKey } from './navigation-builder.constants';
 import {
     buildChildDropPayload,
     buildSiblingReorderPayload,
@@ -243,7 +242,7 @@ function MenuItemRow({
 
         if (!row || !canUpdate) {
 
-            return;
+            return () => {};
 
         }
 
@@ -806,7 +805,7 @@ export function NavigationMenuItemsList({
 
         if (!canUpdate) {
 
-            return;
+            return () => {};
 
         }
 
