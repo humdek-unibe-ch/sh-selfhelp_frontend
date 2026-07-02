@@ -143,6 +143,8 @@ export const PERMISSIONS = {
     // Navigation menu builder
     ADMIN_NAVIGATION_READ: 'admin.navigation.read',
     ADMIN_NAVIGATION_UPDATE: 'admin.navigation.update',
+    ADMIN_NAVIGATION_EXPORT: 'admin.navigation.export',
+    ADMIN_NAVIGATION_IMPORT: 'admin.navigation.import',
 
     // CMS Preferences
     ADMIN_CMS_PREFERENCES_READ: 'admin.cms_preferences.read',

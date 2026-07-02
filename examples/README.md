@@ -16,6 +16,7 @@ what you can do with them.
 | --- | --- | --- |
 | [`sections/`](./sections/) | Single-section / page-content JSON samples (one tree of sections). | Paste into the page editor's **Add section → Import** tab, or feed to AI tooling as reference. Validated in CI against the live style schema. |
 | [`cms-in-cms/`](./cms-in-cms/) | Importable **page bundles** (pages + routes + sections + optional data). | Admin → Pages → **Export / Import** → *Import*, upload the `*.bundle.json`. |
+| [`navigation/`](./navigation/) | Importable **navigation bundles** (`selfhelp/navigation-bundle` v1.0) with optional embedded pages. | Admin → Navigation → **Export / Import**, or `POST /admin/navigation/import`. |
 | [`pages/`](./pages/) | Curated landing/onboarding page bundles (`hero-home`, `mobile-onboarding`). | Same import flow as `cms-in-cms/`. |
 
 ## sections/
@@ -35,6 +36,12 @@ for the per-file catalog and the prompt contract.
 | --- | --- |
 | [`hero-home.bundle.json`](./pages/hero-home.bundle.json) | Polished responsive hero home (also seeded on fresh installs when `home` is untouched). |
 | [`mobile-onboarding.bundle.json`](./pages/mobile-onboarding.bundle.json) | Mobile-first onboarding/landing screen. Import via **Export / Import**, then set as **Mobile guest start page** under **Admin → Navigation → Start & search** if you want it as the app entry screen. Not auto-seeded — avoids overwriting customer content. |
+
+## navigation/
+
+| Bundle | Purpose |
+| --- | --- |
+| [`menu-demo.bundle.json`](./navigation/menu-demo.bundle.json) | 20-page realistic mini-site with all four menus wired (dropdown header, grouped footer, mobile drawer, bottom tabs). Import with optional `keyword_prefix` (e.g. `qa-demo-`) to avoid clashes. |
 
 ## cms-in-cms/
 

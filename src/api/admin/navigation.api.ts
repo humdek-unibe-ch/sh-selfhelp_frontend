@@ -5,6 +5,13 @@ SPDX-License-Identifier: MPL-2.0
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../shared';
+import type {
+    INavigationBundle,
+    INavigationExportOptions,
+    INavigationImportOptions,
+    INavigationImportResult,
+    INavigationImportValidationResult,
+} from '../../types/requests/admin/navigation-export-import.types';
 
 export interface IAdminNavigationMenuItemTranslation {
     language_id: number;
@@ -143,4 +150,85 @@ export class AdminNavigationApi {
         );
         return response.data.data ?? {};
     }
+
+    static async exportNavigation(options: INavigationExportOptions = {}): Promise<INavigationBundle> {
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<INavigationBundle>>(
+            API_CONFIG.ENDPOINTS.ADMIN_NAVIGATION_EXPORT,
+            { options: buildNavigationExportRequestOptions(options) },
+        );
+        return response.data.data;
+    }
+
+    static async validateNavigationImport(
+        bundle: INavigationBundle,
+        options: INavigationImportOptions = {},
+    ): Promise<INavigationImportValidationResult> {
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<INavigationImportValidationResult>>(
+            API_CONFIG.ENDPOINTS.ADMIN_NAVIGATION_IMPORT_VALIDATE,
+            { bundle, options: buildNavigationImportRequestOptions(options) },
+        );
+        return response.data.data;
+    }
+
+    static async importNavigation(
+        bundle: INavigationBundle,
+        options: INavigationImportOptions = {},
+        dryRun = false,
+    ): Promise<INavigationImportResult | INavigationImportValidationResult> {
+        const response = await permissionAwareApiClient.post<
+            IBaseApiResponse<INavigationImportResult | INavigationImportValidationResult>
+        >(
+            API_CONFIG.ENDPOINTS.ADMIN_NAVIGATION_IMPORT,
+            { bundle, options: buildNavigationImportRequestOptions(options) },
+            dryRun ? { params: { dry_run: 1 } } : undefined,
+        );
+        return response.data.data;
+    }
+}
+
+function buildNavigationExportRequestOptions(options: INavigationExportOptions): Record<string, unknown> {
+    const payload: Record<string, unknown> = {
+        mode: options.exportMode ?? 'full_snapshot',
+        include_pages: options.includePages ?? false,
+        include_settings: options.includeSettings ?? false,
+    };
+
+    if (options.selectedPageIds && options.selectedPageIds.length > 0) {
+        payload.page_ids = options.selectedPageIds;
+    }
+    if (options.pageKeywords && options.pageKeywords.length > 0) {
+        payload.page_keywords = options.pageKeywords;
+    }
+    if (options.menuKeys && options.menuKeys.length > 0) {
+        payload.menu_keys = options.menuKeys;
+    }
+    if (options.keywordPrefix !== undefined) {
+        payload.default_keyword_prefix = options.keywordPrefix;
+    }
+
+    return payload;
+}
+
+function buildNavigationImportRequestOptions(options: INavigationImportOptions): Record<string, unknown> {
+    const payload: Record<string, unknown> = {
+        missing_pages_mode: options.missingPagesMode ?? 'strict',
+    };
+
+    if (options.keywordPrefix !== undefined) {
+        payload.keyword_prefix = options.keywordPrefix;
+    }
+    if (options.routePrefix !== undefined) {
+        payload.route_prefix = options.routePrefix;
+    }
+    if (options.menuPolicies) {
+        payload.menu_policies = options.menuPolicies;
+    }
+    if (options.importSettings !== undefined) {
+        payload.import_settings = options.importSettings;
+    }
+    if (options.accessGroups && options.accessGroups.length > 0) {
+        payload.access_groups = options.accessGroups;
+    }
+
+    return payload;
 }

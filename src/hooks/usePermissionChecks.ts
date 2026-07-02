@@ -258,3 +258,13 @@ export function useCanUpdateNavigation(): boolean {
   const { permissionChecker } = useAuth();
   return permissionChecker?.canUpdateNavigation() ?? false;
 }
+
+export function useCanExportNavigation(): boolean {
+  const { permissionChecker } = useAuth();
+  return permissionChecker?.canExportNavigation() ?? false;
+}
+
+export function useCanImportNavigation(): boolean {
+  const { permissionChecker } = useAuth();
+  return permissionChecker?.canImportNavigation() ?? false;
+}

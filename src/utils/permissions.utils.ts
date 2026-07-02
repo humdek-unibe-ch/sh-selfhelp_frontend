@@ -351,6 +351,14 @@ export class PermissionChecker {
     return this.hasPermission(PERMISSIONS.ADMIN_NAVIGATION_UPDATE);
   }
 
+  canExportNavigation(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_NAVIGATION_EXPORT);
+  }
+
+  canImportNavigation(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_NAVIGATION_IMPORT);
+  }
+
   /**
    * Check if user can read the instance system version / update status.
    */

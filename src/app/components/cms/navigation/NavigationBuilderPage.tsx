@@ -28,7 +28,7 @@ import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { patchNavigationOverview, schedulePublicNavigationRefresh } from '../../../../utils/admin-navigation-cache.utils';
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { useLanguageContext } from '../../contexts/LanguageContext';
-import { useCanUpdateNavigation } from '../../../../hooks/usePermissionChecks';
+import { useCanExportNavigation, useCanImportNavigation, useCanUpdateNavigation } from '../../../../hooks/usePermissionChecks';
 import { CreatePageModal } from '../pages/create-page/CreatePage';
 import { type IAdminPage } from '../../../../types/responses/admin/admin.types';
 import { WEB_HEADER_PRESET_OPTIONS as SHARED_PRESET_OPTIONS } from '@selfhelp/shared';
@@ -47,6 +47,7 @@ import {
     nestStoredMenuItems,
 } from './navigation-builder.utils';
 import { NavigationSettingsPanel } from './NavigationSettingsPanel';
+import { NavigationExportImportPanel } from './NavigationExportImportPanel';
 import { NavigationMenuItemsList } from './NavigationMenuItemsList';
 import { AddMenuItemModal, EditMenuItemModal } from './NavigationItemModals';
 
@@ -72,6 +73,9 @@ export function NavigationBuilderPage(): React.ReactElement {
     const searchParams = useSearchParams();
     const { currentLanguageId } = useLanguageContext();
     const canUpdateNavigation = useCanUpdateNavigation();
+    const canExportNavigation = useCanExportNavigation();
+    const canImportNavigation = useCanImportNavigation();
+    const showExportImportTab = canExportNavigation || canImportNavigation;
     const { pages } = useAdminPages();
 
     const menuParam = searchParams.get('menu');
@@ -81,11 +85,13 @@ export function NavigationBuilderPage(): React.ReactElement {
     const [addOpen, setAddOpen] = useState(false);
     const [addParentItemId, setAddParentItemId] = useState<number | null>(null);
     const [addParentItemLabel, setAddParentItemLabel] = useState<string | null>(null);
-    const [editItem, setEditItem] = useState<IAdminNavigationMenuItem | null>(null);
+    const [manualEditItem, setManualEditItem] = useState<IAdminNavigationMenuItem | null>(null);
     const [createPageOpen, setCreatePageOpen] = useState(false);
     const [createPrefill, setCreatePrefill] = useState<INavigationPrefill | null>(null);
 
-    const activeMenu: TMenuKey = activeTab === 'settings' ? 'web_header' : activeTab;
+    const activeMenu: TMenuKey = activeTab === 'settings' || activeTab === 'export_import'
+        ? 'web_header'
+        : activeTab;
 
     const replaceTabInUrl = useCallback((tab: TNavigationTab, itemId?: number | null) => {
         router.replace(buildNavigationUrl(pathname, tab, itemId), { scroll: false });
@@ -106,7 +112,7 @@ export function NavigationBuilderPage(): React.ReactElement {
     const previewQuery = useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_NAVIGATION_PREVIEW(activeMenu, currentLanguageId),
         queryFn: () => AdminNavigationApi.getMenuPreview(activeMenu, currentLanguageId),
-        enabled: currentLanguageId > 0 && activeTab !== 'settings',
+        enabled: currentLanguageId > 0 && activeTab !== 'settings' && activeTab !== 'export_import',
     });
 
     const refreshBuilderPreview = () => {
@@ -173,16 +179,6 @@ export function NavigationBuilderPage(): React.ReactElement {
         },
     });
 
-    useEffect(() => {
-        if (!highlightedItemId || !data?.menus[activeMenu]?.items?.length) {
-            return;
-        }
-        const match = data.menus[activeMenu]?.items.find((item) => item.id === highlightedItemId) ?? null;
-        if (match) {
-            setEditItem(match);
-        }
-    }, [highlightedItemId, data, activeMenu]);
-
     const presetMutation = useMutation({
         mutationFn: (preset: string) => AdminNavigationApi.updateMenuDefinition('web_header', { preset }),
         onMutate: (preset) => {
@@ -244,6 +240,15 @@ export function NavigationBuilderPage(): React.ReactElement {
 
     const pageById = useMemo(() => buildPageLookup(pages), [pages]);
 
+    const urlEditItem = useMemo(() => {
+        if (!highlightedItemId || !data?.menus[activeMenu]?.items?.length) {
+            return null;
+        }
+        return data.menus[activeMenu]?.items.find((item) => item.id === highlightedItemId) ?? null;
+    }, [highlightedItemId, data, activeMenu]);
+
+    const editItem = manualEditItem ?? urlEditItem;
+
     if (isLoading) {
         return <Loader />;
     }
@@ -258,7 +263,6 @@ export function NavigationBuilderPage(): React.ReactElement {
 
     const menu = data.menus[activeMenu];
     const items = menu?.items ?? [];
-    const nestedStoredItems = nestStoredMenuItems(items);
     const previewItems = flattenPreviewItems(
         (previewQuery.data?.resolved?.items as Array<Record<string, unknown>> | undefined) ?? [],
     );
@@ -318,6 +322,9 @@ export function NavigationBuilderPage(): React.ReactElement {
                         <Tabs.Tab key={tab.key} value={tab.key}>{tab.label}</Tabs.Tab>
                     ))}
                     <Tabs.Tab value="settings">Settings</Tabs.Tab>
+                    {showExportImportTab ? (
+                        <Tabs.Tab value="export_import">Export / import</Tabs.Tab>
+                    ) : null}
                 </Tabs.List>
 
                 {MENU_TABS.map((tab) => {
@@ -388,7 +395,7 @@ export function NavigationBuilderPage(): React.ReactElement {
                                         highlightedItemId={isActiveMenuTab ? highlightedItemId : null}
                                         canUpdate={canUpdateNavigation && isActiveMenuTab}
                                         onReorder={(order) => reorderMutation.mutate(order)}
-                                        onEdit={setEditItem}
+                                        onEdit={setManualEditItem}
                                         onAddExistingChildPage={isActiveMenuTab ? openAddExistingChild : () => {}}
                                         onCreateChildPage={openCreatePageHere}
                                         onRemove={(itemId) => deleteMutation.mutate(itemId)}
@@ -408,6 +415,14 @@ export function NavigationBuilderPage(): React.ReactElement {
                         onSave={(payload) => settingsMutation.mutate(payload)}
                     />
                 </Tabs.Panel>
+
+                {showExportImportTab ? (
+                    <Tabs.Panel value="export_import" pt="md">
+                        <NavigationExportImportPanel
+                            onImported={() => refreshBuilderFully({ pages: true, publicNav: true })}
+                        />
+                    </Tabs.Panel>
+                ) : null}
             </Tabs>
 
             <AddMenuItemModal
@@ -430,7 +445,7 @@ export function NavigationBuilderPage(): React.ReactElement {
                 previewItems={previewItems}
                 opened={editItem !== null}
                 onClose={() => {
-                    setEditItem(null);
+                    setManualEditItem(null);
                     if (highlightedItemId) {
                         replaceTabInUrl(activeTab);
                     }

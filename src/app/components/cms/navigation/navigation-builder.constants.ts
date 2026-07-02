@@ -12,11 +12,12 @@ export const MENU_TABS = [
 
 export type TMenuKey = (typeof MENU_TABS)[number]['key'];
 
-export type TNavigationTab = TMenuKey | 'settings';
+export type TNavigationTab = TMenuKey | 'settings' | 'export_import';
 
 export const NAVIGATION_TAB_VALUES: readonly TNavigationTab[] = [
     ...MENU_TABS.map((tab) => tab.key),
     'settings',
+    'export_import',
 ];
 
 export function isNavigationTab(value: string | null | undefined): value is TNavigationTab {

@@ -276,6 +276,18 @@ export const API_CONFIG = {
             route: (menuKey: string) => `/admin/navigation/menus/${menuKey}/reorder`,
             permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
         },
+        ADMIN_NAVIGATION_EXPORT: {
+            route: '/admin/navigation/export',
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_EXPORT],
+        },
+        ADMIN_NAVIGATION_IMPORT_VALIDATE: {
+            route: '/admin/navigation/import/validate',
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_IMPORT],
+        },
+        ADMIN_NAVIGATION_IMPORT: {
+            route: '/admin/navigation/import',
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_IMPORT],
+        },
         SEARCH_PAGES: {
             route: (query: string, languageId?: number) => {
                 const params = new URLSearchParams({ query });
