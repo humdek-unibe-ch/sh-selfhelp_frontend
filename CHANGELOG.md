@@ -116,6 +116,12 @@ No engineering diary, no implementation detail — that belongs in
   `^1.18.0` → `^1.20.0`).
 
 ### Fixed
+- **Off-menu web pages no longer open in a modal.** Visiting a public page that is
+  not on the web header/footer (for example the legacy seeded `/home` page after a
+  navigation menu replace import) now renders as a normal full page. Web modals are
+  limited to pages with the explicit `open_in_modal` property. Closing a modal
+  with no browser history now returns to the configured web startup page instead
+  of always pushing `/`.
 - **Imported (and nested) pages are reachable again.** Removed the legacy
   `/{keyword}` child-page URL rewrite that broke DB-driven routing — navigation
   links now use each page's real route path, so an imported page no longer 404s.

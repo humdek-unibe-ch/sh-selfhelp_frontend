@@ -17,13 +17,15 @@ import { usePageContentByPath } from '../../hooks/usePageContentByPath';
 import { useSyncDocumentMetadata } from '../../hooks/useSyncDocumentMetadata';
 import { useAppNavigation } from '../../hooks/useAppNavigation';
 import { useRecordLastVisitedPage } from '../../hooks/useRecordLastVisitedPage';
+import { useAuth } from '../../hooks/useAuth';
+import { shouldOpenPageInWebModal } from './pageModalPolicy';
+import { stripHtmlTags } from '../../utils/html-sanitizer.utils';
+import { type TStyle } from '../../types/common/styles.types';
 import { PageContextProvider } from '../components/contexts/PageContext';
 import { PageModalProvider } from '../components/contexts/PageModalContext';
 import { PageContentRenderer } from '../components';
 import { BranchNavigation } from '../components/frontend/navigation/BranchNavigation';
-import { resolveHolderRedirectPath, isPageOnWebMenu } from '../../shared';
-import { stripHtmlTags } from '../../utils/html-sanitizer.utils';
-import { type TStyle } from '../../types/common/styles.types';
+import { resolveHolderRedirectPath, resolveWebStartupPath } from '../../shared';
 
 interface IDynamicPageClientProps {
     keyword: string;
@@ -63,6 +65,7 @@ export default function DynamicPageClient({
     const { currentLanguageId } = useLanguageContext();
     const { isPreviewMode } = usePreviewMode();
     const router = useRouter();
+    const { isAuthenticated } = useAuth();
 
     // Public slug pages resolve by PATH (DB routing); the keyword-keyed hook is
     // kept only for the hardcoded maintenance render (no path). Both hooks read
@@ -89,21 +92,20 @@ export default function DynamicPageClient({
     // In-page branch navigation from the resolved public menu tree.
     const { navigation } = useAppNavigation();
 
-    // When the resolved page opts into `open_in_modal`, its content is rendered
-    // inside a modal overlay (CMS-in-CMS create/edit/detail opened from a list).
-    // Off-menu public pages (not on web header/footer) also open in a modal,
-    // mirroring mobile off-menu behaviour once navigation has loaded.
-    const offWebMenu = Boolean(
-        pageContent && navigation && pageId > 0 && !isHeadless && !isPageOnWebMenu(navigation, pageId),
-    );
-    const isModal = Boolean(pageContent?.open_in_modal) || offWebMenu;
+    // Web modals are opt-in via the `open_in_modal` page property (CMS-in-CMS
+    // create/edit/detail). Off-menu pages stay full pages on web; mobile handles
+    // off-menu presentation in the native shell.
+    const isModal = shouldOpenPageInWebModal(pageContent);
     const closeModal = useCallback(() => {
         if (typeof window !== 'undefined' && window.history.length > 1) {
             router.back();
-        } else {
-            router.push('/');
+            return;
         }
-    }, [router]);
+        const fallback = navigation
+            ? resolveWebStartupPath(navigation.startup, isAuthenticated)
+            : '/';
+        router.push(fallback || '/');
+    }, [router, navigation, isAuthenticated]);
     const isContentUpdating = isFetching || isLanguageChanging;
     const sections = useMemo(() => pageContent?.sections ?? [], [pageContent]);
 
