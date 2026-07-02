@@ -1,0 +1,70 @@
+.rowWrapper {
+    position: relative;
+}
+
+.rowWrapper.isDropTarget {
+    outline: 1px dashed var(--mantine-color-blue-5);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-md);
+}
+
+.rowWrapper.isContainerTarget {
+    outline: 2px solid var(--mantine-color-green-6);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-md);
+}
+
+.rowWrapper.isInvalidDropTarget {
+    outline: 2px solid var(--mantine-color-red-6);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-md);
+}
+
+.dropZoneArea {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+    border: 2px dashed transparent;
+    border-radius: var(--mantine-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 150ms ease;
+    pointer-events: none;
+}
+
+.dropZoneArea.ready {
+    pointer-events: auto;
+    max-height: 8px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    opacity: 0;
+}
+
+.dropZoneArea.active {
+    max-height: 36px;
+    opacity: 1;
+    border-style: solid;
+    border-color: var(--mantine-color-green-6);
+    background: light-dark(var(--mantine-color-green-1), var(--mantine-color-green-8));
+}
+
+.dropZoneArea.invalid {
+    border-color: var(--mantine-color-red-6);
+    background: light-dark(var(--mantine-color-red-1), var(--mantine-color-red-9));
+}
+
+.dropZoneText {
+    color: light-dark(var(--mantine-color-green-7), var(--mantine-color-green-4));
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.dropZoneArea.invalid .dropZoneText {
+    color: light-dark(var(--mantine-color-red-7), var(--mantine-color-red-4));
+}

@@ -6,18 +6,23 @@ import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../shared';
 
+export interface IAdminNavigationMenuItemTranslation {
+    language_id: number;
+    label: string | null;
+}
+
 export interface IAdminNavigationMenuItem {
     id: number;
     parent_item_id: number | null;
     item_type: string;
     page_id: number | null;
     external_url: string | null;
-    icon_override: string | null;
+    icon: string | null;
+    mobile_icon: string | null;
+    label: string | null;
+    translations?: IAdminNavigationMenuItemTranslation[];
     position: number;
-    child_source: string | null;
-    auto_include_depth: number | null;
     is_active: boolean;
-    excluded_page_ids: number[];
 }
 
 export interface IAdminNavigationMenuDefinition {
@@ -47,28 +52,18 @@ export interface ICreateNavigationMenuItemRequest {
     item_type?: 'page' | 'external_url' | 'group';
     page_id?: number | null;
     external_url?: string | null;
-    icon_override?: string | null;
+    icon?: string | null;
+    mobile_icon?: string | null;
+    label?: string | null;
+    translations?: IAdminNavigationMenuItemTranslation[];
     position?: number;
     parent_item_id?: number | null;
-    child_source?: string;
-    auto_include_depth?: number | null;
+    child_page_ids?: number[];
+    include_descendants?: boolean;
     is_active?: boolean;
-    translations?: Array<{
-        language_id: number;
-        label?: string | null;
-        description?: string | null;
-        aria_label?: string | null;
-    }>;
 }
 
-export interface IUpdateNavigationMenuItemRequest extends ICreateNavigationMenuItemRequest {
-    translations?: Array<{
-        language_id: number;
-        label?: string | null;
-        description?: string | null;
-        aria_label?: string | null;
-    }>;
-}
+export interface IUpdateNavigationMenuItemRequest extends ICreateNavigationMenuItemRequest {}
 
 export class AdminNavigationApi {
     static async getOverview(): Promise<IAdminNavigationOverview> {
@@ -87,8 +82,14 @@ export class AdminNavigationApi {
         return response.data.data;
     }
 
-    static async createMenuItem(menuKey: string, payload: ICreateNavigationMenuItemRequest): Promise<IAdminNavigationMenuItem> {
-        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminNavigationMenuItem>>(
+    static async createMenuItem(
+        menuKey: string,
+        payload: ICreateNavigationMenuItemRequest,
+    ): Promise<{ item: IAdminNavigationMenuItem; children: IAdminNavigationMenuItem[] }> {
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<{
+            item: IAdminNavigationMenuItem;
+            children: IAdminNavigationMenuItem[];
+        }>>(
             API_CONFIG.ENDPOINTS.ADMIN_NAVIGATION_MENU_ITEM_CREATE,
             payload,
             menuKey,
@@ -133,31 +134,6 @@ export class AdminNavigationApi {
             menuKey,
         );
         return response.data.data;
-    }
-
-    static async convertAutoChildren(itemId: number, languageId = 1): Promise<IAdminNavigationMenuItem[]> {
-        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminNavigationMenuItem[]>>(
-            API_CONFIG.ENDPOINTS.ADMIN_NAVIGATION_ITEM_CONVERT_AUTO_CHILDREN,
-            { language_id: languageId },
-            itemId,
-        );
-        return response.data.data ?? [];
-    }
-
-    static async addMenuItemExclusion(itemId: number, pageId: number): Promise<void> {
-        await permissionAwareApiClient.post(
-            API_CONFIG.ENDPOINTS.ADMIN_NAVIGATION_ITEM_EXCLUSION_ADD,
-            { page_id: pageId },
-            itemId,
-        );
-    }
-
-    static async removeMenuItemExclusion(itemId: number, pageId: number): Promise<void> {
-        await permissionAwareApiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_NAVIGATION_ITEM_EXCLUSION_REMOVE,
-            itemId,
-            pageId,
-        );
     }
 
     static async updateSettings(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
