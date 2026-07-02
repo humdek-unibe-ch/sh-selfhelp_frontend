@@ -266,7 +266,7 @@ export const PageNavigationMembership = React.memo(function PageNavigationMember
                         <Group key={`${entry.key}-${entry.menuItemId}`} gap="xs" justify="space-between" wrap="nowrap">
                             <Group gap="xs">
                                 <Badge variant="light" color={entry.explicit ? 'blue' : 'gray'}>
-                                    {entry.label}{entry.explicit ? '' : ' (auto)'}
+                                    {entry.label}
                                 </Badge>
                                 <Button
                                     component="a"
@@ -296,7 +296,7 @@ export const PageNavigationMembership = React.memo(function PageNavigationMember
                                     variant="subtle"
                                     size="xs"
                                 >
-                                    Manage exclusions
+                                    Open in builder
                                 </Button>
                             )}
                         </Group>
