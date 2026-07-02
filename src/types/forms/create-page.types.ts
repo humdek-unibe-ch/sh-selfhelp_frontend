@@ -16,11 +16,27 @@ export const CREATE_PAGE_MENU_KEYS = [
 
 export type TCreatePageMenuKey = (typeof CREATE_PAGE_MENU_KEYS)[number];
 
+export const WEB_CREATE_PAGE_MENU_KEYS = [
+    'web_header',
+    'web_footer',
+] as const;
+
+export const MOBILE_CREATE_PAGE_MENU_KEYS = [
+    'mobile_drawer',
+    'mobile_bottom_tabs',
+] as const;
+
+export type TCreatePageMenuPlatform = 'web' | 'mobile';
+
 export interface ICreatePageFormValues {
     keyword: string;
     navigationMenus: TCreatePageMenuKey[];
     /** Per-menu options when the menu is selected (childSource, parentItemId, etc.). */
-    navigationMenuOptions: Partial<Record<TCreatePageMenuKey, { childSource?: string; parentItemId?: number | null }>>;
+    navigationMenuOptions: Partial<Record<TCreatePageMenuKey, {
+        childSource?: string;
+        parentItemId?: number | null;
+        insertPosition?: string;
+    }>>;
     headlessPage: boolean;
     pageAccessType: string;
     urlPattern: string;
