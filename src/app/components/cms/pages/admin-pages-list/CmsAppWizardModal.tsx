@@ -52,6 +52,7 @@ import {
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { useDataTables } from '../../../../../hooks/useData';
 import { useGroups } from '../../../../../hooks/useGroups';
+import { isSystemAdminGroup } from '../../../../../utils/create-page-navigation.utils';
 import { useCreateCmsAppMutation } from '../../../../../hooks/mutations/useCreateCmsAppMutation';
 import {
     type ICreateCmsAppRequest,
@@ -106,10 +107,12 @@ export function CmsAppWizardModal({ opened, onClose }: ICmsAppWizardModalProps) 
     }));
 
     const { data: groupsData } = useGroups({ pageSize: 200, sort: 'name', sortDirection: 'asc' });
-    const groupOptions = (groupsData?.groups ?? []).map((group) => ({
-        value: String(group.id),
-        label: group.name,
-    }));
+    const groupOptions = (groupsData?.groups ?? [])
+        .filter((group) => !isSystemAdminGroup(group))
+        .map((group) => ({
+            value: String(group.id),
+            label: group.name,
+        }));
 
     const form = useForm<IWizardFormValues>({
         initialValues: {
@@ -423,7 +426,7 @@ export function CmsAppWizardModal({ opened, onClose }: ICmsAppWizardModalProps) 
                         <MultiSelect
                             label="Additional access groups"
                             description="Optional groups granted access (on top of surface defaults)."
-                            placeholder="Select groups"
+                            placeholder="Admins always have access — select other groups"
                             data={groupOptions}
                             searchable
                             clearable
