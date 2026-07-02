@@ -30,6 +30,7 @@ import {
     type IUpdateNavigationMenuItemRequest,
 } from '../../../../api/admin/navigation.api';
 import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
+import { invalidateAdminNavigationQueries } from '../../../../utils/admin-navigation-cache.utils';
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { useLanguageContext } from '../../contexts/LanguageContext';
 import { useCanUpdateNavigation } from '../../../../hooks/usePermissionChecks';
@@ -482,19 +483,20 @@ export function NavigationBuilderPage(): React.ReactElement {
     const [draggedId, setDraggedId] = useState<number | null>(null);
 
     const { data, isLoading, error } = useQuery({
-        queryKey: ['admin', 'navigation', 'overview'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_NAVIGATION_OVERVIEW,
         queryFn: () => AdminNavigationApi.getOverview(),
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.ADMIN_PAGES.staleTime,
     });
 
     const previewQuery = useQuery({
-        queryKey: ['admin', 'navigation', 'preview', activeMenu, currentLanguageId],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_NAVIGATION_PREVIEW(activeMenu, currentLanguageId),
         queryFn: () => AdminNavigationApi.getMenuPreview(activeMenu, currentLanguageId),
         enabled: currentLanguageId > 0,
     });
 
     const invalidate = () => {
-        void queryClient.invalidateQueries({ queryKey: ['admin', 'navigation'] });
+        void invalidateAdminNavigationQueries(queryClient);
+        void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
     };
 
     const deleteMutation = useMutation({

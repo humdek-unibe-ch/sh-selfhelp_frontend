@@ -43,7 +43,7 @@ export function useAdminNavigationPreview(menuKey: string, languageId = 1) {
     const enabled = !!isAuthenticated && !!user;
 
     return useQuery({
-        queryKey: ['admin-navigation-preview', menuKey, languageId],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_NAVIGATION_PREVIEW(menuKey, languageId),
         queryFn: async () => {
             const preview = await AdminNavigationApi.getMenuPreview(menuKey, languageId);
             const resolved = preview.resolved as { items?: IResolvedMenuItem[] } | null;

@@ -15,6 +15,7 @@ import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../api/admin';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
+import { invalidateAdminNavigationQueries } from '../../utils/admin-navigation-cache.utils';
 import { type ICreatePageRequest } from '../../types/requests/admin/create-page.types';
 import { type IAdminPage } from '../../types/responses/admin/admin.types';
 import { parseApiError } from '../../utils/mutation-error-handler';
@@ -46,7 +47,7 @@ export function useCreatePageMutation(options: ICreatePageMutationOptions = {}) 
             // previous refetch+remove churn is unnecessary.
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
-                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL }),
+                invalidateAdminNavigationQueries(queryClient),
             ]);
 
             if (showNotifications) {

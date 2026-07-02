@@ -145,6 +145,12 @@ export const REACT_QUERY_CONFIG = {
         // ── Admin page list ───────────────────────────────────────────────
         ADMIN_PAGES: ['admin-pages'],
 
+        // ── Admin navigation (builder overview + sidebar preview) ─────────
+        ADMIN_NAVIGATION_OVERVIEW: ['admin-navigation', 'overview'],
+        ADMIN_NAVIGATION_PREVIEW: (menuKey: string, languageId: number) =>
+            ['admin-navigation', 'preview', menuKey, languageId] as const,
+        ADMIN_NAVIGATION_ALL: ['admin-navigation'],
+
         // ── Admin page editor detail caches ───────────────────────────────
         // `pageId` is the numeric id in the editor and the keyword in
         // keyword-driven callers; `null`/`undefined` mirror the disabled-query

@@ -16,6 +16,7 @@ import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../api/admin';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
+import { invalidateAdminNavigationQueries } from '../../utils/admin-navigation-cache.utils';
 import {
     type ICreateCmsAppRequest,
     type ICreateCmsAppResult
@@ -43,7 +44,7 @@ export function useCreateCmsAppMutation(options: ICreateCmsAppMutationOptions = 
         onSuccess: async (result: ICreateCmsAppResult) => {
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
-                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL }),
+                invalidateAdminNavigationQueries(queryClient),
             ]);
 
             if (showNotifications) {
