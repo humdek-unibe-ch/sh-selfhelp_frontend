@@ -29,6 +29,8 @@ export interface IAdminMenuPreviewLink {
     id?: number | string;
     menuBuilderLink?: string;
     selectable?: boolean;
+    menuIcon?: string | null;
+    menuPlatform?: 'web' | 'mobile';
 }
 
 /**

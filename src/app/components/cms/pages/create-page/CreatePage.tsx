@@ -218,15 +218,6 @@ function CreatePageWizard({
         [navigationOverview, parentPage],
     );
 
-    const parentAutoIncludeMenus = useMemo((): TCreatePageMenuKey[] => {
-        if (!parentPage?.id_pages) {
-            return [];
-        }
-        return childPageMenuContexts
-            .filter((context) => context.mode === 'auto_include')
-            .map((context) => context.menuKey);
-    }, [childPageMenuContexts, parentPage?.id_pages]);
-
     const wizardMenuKeys = useMemo((): TCreatePageMenuKey[] => {
         if (!parentPage?.id_pages) {
             return [...CREATE_PAGE_MENU_KEYS];
@@ -331,7 +322,6 @@ function CreatePageWizard({
             : generateUrlPattern(values.keyword, parentPage);
 
         const navigationAssignments = values.navigationMenus
-            .filter((menuKey) => !parentAutoIncludeMenus.includes(menuKey))
             .map((menuKey) => {
                 const options = values.navigationMenuOptions[menuKey];
                 const items = navigationOverview?.menus[menuKey]?.items ?? [];
@@ -346,7 +336,6 @@ function CreatePageWizard({
                 );
                 return {
                     menuKey,
-                    ...(options?.childSource ? { childSource: options.childSource } : {}),
                     ...(parentItemId ? { parentItemId } : {}),
                     ...(position !== undefined ? { position } : {}),
                 };
@@ -438,8 +427,7 @@ function CreatePageWizard({
     );
 
     const renderMenuTabPanel = (menuKey: TCreatePageMenuKey) => {
-        const autoIncluded = parentAutoIncludeMenus.includes(menuKey);
-        const isAssigned = autoIncluded || form.values.navigationMenus.includes(menuKey);
+        const isAssigned = form.values.navigationMenus.includes(menuKey);
         const childContext = childPageMenuContexts.find((entry) => entry.menuKey === menuKey);
         const lockedParentItemId = childContext?.parentItemId
             ?? form.values.navigationMenuOptions[menuKey]?.parentItemId
@@ -450,17 +438,14 @@ function CreatePageWizard({
                 <Checkbox
                     label={`Add to ${MENU_LABELS[menuKey]}`}
                     description={
-                        autoIncluded
-                            ? 'Inherited from parent auto-include rule'
-                            : isChildPageFlow
-                                ? 'Optional — appears nested under the parent page in this menu'
-                                : 'Optional — leave unchecked to skip this menu'
+                        isChildPageFlow
+                            ? 'Optional — appears nested under the parent page in this menu'
+                            : 'Optional — leave unchecked to skip this menu'
                     }
-                    disabled={autoIncluded}
                     checked={isAssigned}
                     onChange={(event) => toggleMenuAssignment(menuKey, event.currentTarget.checked)}
                 />
-                {isAssigned && !autoIncluded ? (
+                {isAssigned ? (
                     <>
                         {isChildPageFlow ? (
                             <TextInput
@@ -507,23 +492,9 @@ function CreatePageWizard({
                             }}
                         />
                         {!isChildPageFlow && (menuKey === 'mobile_drawer' || menuKey === 'web_header') ? (
-                            <Select
-                                label="Child pages"
-                                data={[
-                                    { value: 'manual', label: 'Manual only' },
-                                    { value: 'page_children', label: 'Auto-include child pages' },
-                                ]}
-                                value={form.values.navigationMenuOptions[menuKey]?.childSource ?? 'manual'}
-                                onChange={(value) => {
-                                    form.setFieldValue('navigationMenuOptions', {
-                                        ...form.values.navigationMenuOptions,
-                                        [menuKey]: {
-                                            ...(form.values.navigationMenuOptions[menuKey] ?? {}),
-                                            childSource: value ?? 'manual',
-                                        },
-                                    });
-                                }}
-                            />
+                            <Text size="sm" c="dimmed">
+                                Create the page first. Add child pages later via Add existing page in the Navigation builder.
+                            </Text>
                         ) : null}
                     </>
                 ) : null}
@@ -694,15 +665,6 @@ function CreatePageWizard({
                                 : 'Optionally add this page to menus and choose where it appears. Fine-tune later in the menu builder.'}
                         </Text>
 
-                        {parentAutoIncludeMenus.length > 0 ? (
-                            <Alert color="blue" variant="light" icon={<IconInfoCircle size="1rem" />}>
-                                <Text size="sm">
-                                    Parent auto-includes children in{' '}
-                                    {parentAutoIncludeMenus.map((key) => MENU_LABELS[key]).join(', ')}.
-                                </Text>
-                            </Alert>
-                        ) : null}
-
                         {isChildPageFlow && wizardMenuKeys.length === 0 ? (
                             <Alert color="yellow" variant="light" icon={<IconInfoCircle size="1rem" />}>
                                 <Text size="sm">
@@ -718,8 +680,7 @@ function CreatePageWizard({
                             >
                                 <Tabs.List grow>
                                     {wizardMenuKeys.map((menuKey) => {
-                                        const assigned = parentAutoIncludeMenus.includes(menuKey)
-                                            || form.values.navigationMenus.includes(menuKey);
+                                        const assigned = form.values.navigationMenus.includes(menuKey);
                                         return (
                                             <Tabs.Tab
                                                 key={menuKey}

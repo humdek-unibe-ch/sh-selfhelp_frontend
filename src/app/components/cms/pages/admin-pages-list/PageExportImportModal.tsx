@@ -31,6 +31,7 @@ import {
     Loader,
     MultiSelect,
     ScrollArea,
+    SimpleGrid,
     Stack,
     Switch,
     Tabs,
@@ -413,22 +414,32 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
 
                         <Divider label="Safe-import options" labelPosition="left" />
 
-                        <Group grow align="flex-start">
-                            <TextInput
-                                label="Keyword prefix"
-                                placeholder="e.g. imported_"
-                                description="Prepended to every page keyword to avoid collisions."
-                                value={keywordPrefix}
-                                onChange={(event) => setKeywordPrefix(event.currentTarget.value)}
-                            />
-                            <TextInput
-                                label="Route prefix"
-                                placeholder="e.g. /imported"
-                                description="Prepended to every imported route path. Note: in-bundle links are not rewritten, so leave empty unless you know the bundle has no internal links."
-                                value={routePrefix}
-                                onChange={(event) => setRoutePrefix(event.currentTarget.value)}
-                            />
-                        </Group>
+                        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                            <Stack gap={6}>
+                                <Text size="sm" fw={500}>Keyword prefix</Text>
+                                <Text size="xs" c="dimmed" mih={44} lh={1.45}>
+                                    Prepended to every page keyword to avoid collisions.
+                                </Text>
+                                <TextInput
+                                    aria-label="Keyword prefix"
+                                    placeholder="e.g. imported_"
+                                    value={keywordPrefix}
+                                    onChange={(event) => setKeywordPrefix(event.currentTarget.value)}
+                                />
+                            </Stack>
+                            <Stack gap={6}>
+                                <Text size="sm" fw={500}>Route prefix</Text>
+                                <Text size="xs" c="dimmed" mih={44} lh={1.45}>
+                                    Prepended to every imported route path. Note: in-bundle links are not rewritten, so leave empty unless you know the bundle has no internal links.
+                                </Text>
+                                <TextInput
+                                    aria-label="Route prefix"
+                                    placeholder="e.g. /imported"
+                                    value={routePrefix}
+                                    onChange={(event) => setRoutePrefix(event.currentTarget.value)}
+                                />
+                            </Stack>
+                        </SimpleGrid>
 
                         <MultiSelect
                             label="Viewer groups"

@@ -16,6 +16,7 @@ import {
 } from '@mantine/core';
 import { IconChevronRight, IconRoute } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
+import { MenuItemIcon } from '../../../navigation/MenuItemIcon';
 import classes from './LinksGroup.module.css';
 import { useIsClient } from '../../../../../../hooks/useIsClient';
 
@@ -28,6 +29,8 @@ interface INavLinkItem {
   id?: number | string;
   links?: INavLinkItem[];
   menuBuilderLink?: string;
+  menuIcon?: string | null;
+  menuPlatform?: 'web' | 'mobile';
 }
 
 // Helper function to check if any nested link is active
@@ -185,6 +188,11 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
 
       return (
         <Group key={item.id || item.label} gap={4} wrap="nowrap" className={getNestedLinkClass(level)}>
+          {item.menuIcon && item.menuPlatform ? (
+            <Box style={{ flexShrink: 0, display: 'inline-flex', marginLeft: 4 }}>
+              <MenuItemIcon iconName={item.menuIcon} platform={item.menuPlatform} size={14} />
+            </Box>
+          ) : null}
           <Text<'a'>
             component="a"
             className={`${classes.link}`}
@@ -375,19 +383,21 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
             handleItemClick(item.link, item.onClick, e);
           }}
           onMouseDown={(e: React.MouseEvent) => {
-            // Handle middle click
             if (e.button === 1) {
               e.preventDefault();
               window.open(item.link, '_blank');
             }
           }}
-
           onContextMenu={(e: React.MouseEvent) => {
-            // Allow right-click context menu for "open in new tab"
             e.stopPropagation();
           }}
         >
-          {item.label}
+          <Group gap={6} wrap="nowrap">
+            {item.menuIcon && item.menuPlatform ? (
+              <MenuItemIcon iconName={item.menuIcon} platform={item.menuPlatform} size={14} />
+            ) : null}
+            <span>{item.label}</span>
+          </Group>
         </Text>
       );
     });

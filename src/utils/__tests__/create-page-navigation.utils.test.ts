@@ -38,12 +38,11 @@ function menuItem(partial: Partial<IAdminNavigationMenuItem>): IAdminNavigationM
         item_type: 'page',
         page_id: 1,
         external_url: null,
-        icon_override: null,
+        icon: null,
+        mobile_icon: null,
+        label: null,
         position: 10,
-        child_source: 'manual',
-        auto_include_depth: null,
         is_active: true,
-        excluded_page_ids: [],
         ...partial,
     };
 }
@@ -97,7 +96,7 @@ describe('resolveMenuInsertPosition', () => {
 describe('resolveChildPageMenuContexts', () => {
     const parent = page({ id_pages: 10, keyword: 'tessss', url: '/tessss' });
 
-    it('returns auto_include when parent menu item uses page_children', () => {
+    it('returns under_parent when parent has a menu item', () => {
         const overview = {
             menus: {
                 web_header: {
@@ -105,14 +104,14 @@ describe('resolveChildPageMenuContexts', () => {
                     platform: 'web',
                     surface: 'public',
                     items: [
-                        menuItem({ id: 8, page_id: 10, child_source: 'page_children' }),
+                        menuItem({ id: 8, page_id: 10 }),
                     ],
                 },
             },
             settings: {},
         };
         expect(resolveChildPageMenuContexts(parent, overview)).toEqual([
-            { menuKey: 'web_header', mode: 'auto_include', parentItemId: 8 },
+            { menuKey: 'web_header', mode: 'under_parent', parentItemId: 8 },
         ]);
     });
 
@@ -124,7 +123,7 @@ describe('resolveChildPageMenuContexts', () => {
                     platform: 'web',
                     surface: 'public',
                     items: [
-                        menuItem({ id: 9, page_id: 10, child_source: 'manual' }),
+                        menuItem({ id: 9, page_id: 10 }),
                     ],
                 },
             },
@@ -186,7 +185,6 @@ describe('buildInitialNavigationMenusState', () => {
                 web_header: {
                     parentItemId: 9,
                     insertPosition: 'end',
-                    childSource: 'manual',
                 },
             },
         });

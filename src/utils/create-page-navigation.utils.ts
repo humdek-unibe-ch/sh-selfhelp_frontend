@@ -109,7 +109,7 @@ export function resolveMenuInsertPosition(
     return undefined;
 }
 
-export type TChildPageMenuMode = 'auto_include' | 'under_parent';
+export type TChildPageMenuMode = 'under_parent';
 
 export interface IChildPageMenuContext {
     menuKey: TCreatePageMenuKey;
@@ -119,8 +119,7 @@ export interface IChildPageMenuContext {
 }
 
 /**
- * Menus where a child page may appear: only under the parent's existing menu
- * entry (or auto-included when the parent uses page_children).
+ * Menus where a child page may appear: only under the parent's existing menu entry.
  */
 export function resolveChildPageMenuContexts(
     parentPage: IAdminPage,
@@ -137,16 +136,6 @@ export function resolveChildPageMenuContexts(
         const items = navigationOverview.menus[menuKey]?.items ?? [];
         const parentItems = items.filter((item) => item.page_id === parentPageId);
         if (parentItems.length === 0) {
-            continue;
-        }
-
-        const autoParent = parentItems.find((item) => item.child_source === 'page_children');
-        if (autoParent) {
-            contexts.push({
-                menuKey,
-                mode: 'auto_include',
-                parentItemId: autoParent.id,
-            });
             continue;
         }
 
@@ -178,9 +167,6 @@ export function buildInitialNavigationMenusState(
 
     if (parentPage?.navigationMembership?.length && navigationOverview) {
         const childPageMenuContexts = resolveChildPageMenuContexts(parentPage, navigationOverview);
-        const parentAutoIncludeMenus = childPageMenuContexts
-            .filter((context) => context.mode === 'auto_include')
-            .map((context) => context.menuKey);
         const wizardMenuKeys = parentPage.id_pages
             ? childPageMenuContexts.map((context) => context.menuKey)
             : [...CREATE_PAGE_MENU_KEYS];
@@ -190,7 +176,7 @@ export function buildInitialNavigationMenusState(
                 continue;
             }
             const menuKey = membership.menu_key as TCreatePageMenuKey;
-            if (!wizardMenuKeys.includes(menuKey) || parentAutoIncludeMenus.includes(menuKey)) {
+            if (!wizardMenuKeys.includes(menuKey)) {
                 continue;
             }
             if (!navigationMenus.includes(menuKey)) {
@@ -200,7 +186,6 @@ export function buildInitialNavigationMenusState(
                 ...(navigationMenuOptions[menuKey] ?? {}),
                 parentItemId: membership.menu_item_id,
                 insertPosition: navigationMenuOptions[menuKey]?.insertPosition ?? 'end',
-                childSource: navigationMenuOptions[menuKey]?.childSource ?? 'manual',
             };
         }
     }

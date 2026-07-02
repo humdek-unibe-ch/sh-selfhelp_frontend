@@ -45,7 +45,7 @@ function DropdownItem({ item, atDepthLimit = false }: { item: INavigationMenuIte
     const children = (item.children ?? []).filter((child) => child.page != null || child.item_type === 'external_url');
     const label = getNavigationItemLabel(item);
     const href = getNavigationItemHref(item);
-    const icon = item.icon ?? item.page?.icon;
+    const icon = item.icon ?? null;
     const ariaLabel = getNavigationItemAriaLabel(item);
 
     if (children.length > 0 && !atDepthLimit) {
@@ -77,7 +77,7 @@ function DropdownItem({ item, atDepthLimit = false }: { item: INavigationMenuIte
                     {children.map((child) => (
                         <Menu.Item
                             key={String(child.id)}
-                            leftSection={<NavIcon name={child.icon ?? child.page?.icon} size={16} />}
+                            leftSection={<NavIcon name={child.icon} size={16} />}
                         >
                             <InternalLink href={getNavigationItemHref(child)} aria-label={getNavigationItemAriaLabel(child)}>
                                 <Text size="sm">{getNavigationItemLabel(child)}</Text>
@@ -138,7 +138,7 @@ function TabsPreset({ items }: { items: INavigationMenuItem[] }) {
                         <Tabs.Tab key={String(item.id)} value={href}>
                             <InternalLink href={href} aria-label={getNavigationItemAriaLabel(item)}>
                                 <Group gap="xs">
-                                    <NavIcon name={item.icon ?? item.page?.icon} />
+                                    <NavIcon name={item.icon} />
                                     <Text size="sm">{getNavigationItemLabel(item)}</Text>
                                 </Group>
                             </InternalLink>
@@ -167,14 +167,14 @@ function MegaMenuPreset({ items, atDepthLimit = false }: { items: INavigationMen
                                         <span onClick={(event) => event.stopPropagation()} role="presentation">
                                             <InternalLink href={getNavigationItemHref(item)} aria-label={getNavigationItemAriaLabel(item)}>
                                                 <Group gap="xs" wrap="nowrap">
-                                                    <NavIcon name={item.icon ?? item.page?.icon} />
+                                                    <NavIcon name={item.icon} />
                                                     <Text size="sm" fw={500}>{getNavigationItemLabel(item)}</Text>
                                                 </Group>
                                             </InternalLink>
                                         </span>
                                     ) : (
                                         <>
-                                            <NavIcon name={item.icon ?? item.page?.icon} />
+                                            <NavIcon name={item.icon} />
                                             <Text size="sm" fw={500}>{getNavigationItemLabel(item)}</Text>
                                         </>
                                     )}
@@ -189,7 +189,7 @@ function MegaMenuPreset({ items, atDepthLimit = false }: { items: INavigationMen
                                         <InternalLink href={getNavigationItemHref(child)} aria-label={getNavigationItemAriaLabel(child)}>
                                             <Stack gap={4}>
                                                 <Group gap="xs">
-                                                    <NavIcon name={child.icon ?? child.page?.icon} size={16} />
+                                                    <NavIcon name={child.icon} size={16} />
                                                     <Text size="sm" fw={600}>{getNavigationItemLabel(child)}</Text>
                                                 </Group>
                                                 {child.description ? (

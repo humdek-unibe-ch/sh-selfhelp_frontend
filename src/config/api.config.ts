@@ -276,18 +276,6 @@ export const API_CONFIG = {
             route: (menuKey: string) => `/admin/navigation/menus/${menuKey}/reorder`,
             permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
         },
-        ADMIN_NAVIGATION_ITEM_CONVERT_AUTO_CHILDREN: {
-            route: (itemId: number) => `/admin/navigation/items/${itemId}/convert-auto-children`,
-            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
-        },
-        ADMIN_NAVIGATION_ITEM_EXCLUSION_ADD: {
-            route: (itemId: number) => `/admin/navigation/items/${itemId}/exclusions`,
-            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
-        },
-        ADMIN_NAVIGATION_ITEM_EXCLUSION_REMOVE: {
-            route: (itemId: number, pageId: number) => `/admin/navigation/items/${itemId}/exclusions/${pageId}`,
-            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
-        },
         SEARCH_PAGES: {
             route: (query: string, languageId?: number) => {
                 const params = new URLSearchParams({ query });

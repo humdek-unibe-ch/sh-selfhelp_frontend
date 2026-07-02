@@ -49,7 +49,10 @@ export function useImportPagesMutation(options: IImportPagesMutationOptions = {}
 
         onSuccess: async (result: IPageImportResult) => {
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
+                queryClient.refetchQueries({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES,
+                    type: 'active',
+                }),
                 invalidateAdminNavigationQueries(queryClient),
             ]);
 

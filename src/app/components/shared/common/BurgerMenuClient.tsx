@@ -50,7 +50,7 @@ function BurgerNavTree({
         const children = (item.children ?? []).filter(
             (child) => child.item_type === 'external_url' || child.page != null || child.item_type === 'group',
         );
-        const iconName = item.icon ?? item.page?.icon ?? null;
+        const iconName = item.icon ?? null;
         const active = isItemActive(item, pathname);
         const handleNavigate = href
             ? () => {
