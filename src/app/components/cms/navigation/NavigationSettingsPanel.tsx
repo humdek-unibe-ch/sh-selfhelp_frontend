@@ -18,6 +18,8 @@ import {
 
     Group,
 
+    Image,
+
     NumberInput,
 
     Paper,
@@ -28,11 +30,19 @@ import {
 
     Text,
 
+    TextInput,
+
     Title,
 
 } from '@mantine/core';
 
 import { useAdminPages } from '../../../../hooks/useAdminPages';
+
+import { useAssets } from '../../../../hooks/useAssets';
+
+import { getAssetUrl } from '../../../../utils/asset-url.utils';
+
+const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|svg|webp|avif)$/i;
 
 
 
@@ -63,6 +73,12 @@ interface INavigationSettingsFormState {
     mobile_start_page_source: string;
 
     route_sync_old_route_policy: string;
+
+    logo_asset_path: string | null;
+
+    logo_alt: string | null;
+
+    logo_link_page_id: number | null;
 
 }
 
@@ -97,6 +113,12 @@ function settingsToFormState(settings: Record<string, unknown>): INavigationSett
         mobile_start_page_source: String(settings.mobile_start_page_source ?? 'same_as_web'),
 
         route_sync_old_route_policy: String(settings.route_sync_old_route_policy ?? 'ask'),
+
+        logo_asset_path: typeof settings.logo_asset_path === 'string' && settings.logo_asset_path !== '' ? settings.logo_asset_path : null,
+
+        logo_alt: typeof settings.logo_alt === 'string' && settings.logo_alt !== '' ? settings.logo_alt : null,
+
+        logo_link_page_id: settings.logo_link_page_id ? Number(settings.logo_link_page_id) : null,
 
     };
 
@@ -133,6 +155,12 @@ function formStateToPayload(state: INavigationSettingsFormState): Record<string,
         mobile_start_page_source: state.mobile_start_page_source,
 
         route_sync_old_route_policy: state.route_sync_old_route_policy,
+
+        logo_asset_path: state.logo_asset_path,
+
+        logo_alt: state.logo_alt,
+
+        logo_link_page_id: state.logo_link_page_id,
 
     };
 
@@ -190,6 +218,26 @@ function NavigationSettingsForm({
 
     );
 
+    const { data: assetsData } = useAssets({ pageSize: 500 });
+
+    const imageAssetOptions = useMemo(() => {
+
+        const assets = assetsData?.assets ?? [];
+
+        return assets
+
+            .filter((asset) => IMAGE_EXTENSIONS.test(asset.file_name))
+
+            .map((asset) => ({
+
+                value: asset.file_path,
+
+                label: asset.original_name && asset.original_name.trim() !== '' ? asset.original_name : asset.file_name,
+
+            }));
+
+    }, [assetsData]);
+
 
 
     const savedState = useMemo(() => settingsToFormState(settings), [settings]);
@@ -226,7 +274,7 @@ function NavigationSettingsForm({
 
             <div>
 
-                <Title order={4}>Start & search</Title>
+                <Title order={4}>Navigation settings</Title>
 
                 <Text size="sm" c="dimmed" mt={4}>
 
@@ -241,6 +289,140 @@ function NavigationSettingsForm({
             <Paper withBorder radius="md" p="lg">
 
                 <Stack gap="md">
+
+                    <div>
+
+                        <Text fw={600}>Branding</Text>
+
+                        <Text size="sm" c="dimmed">
+
+                            Logo shown in the web header and the mobile drawer. Upload images under Assets first.
+
+                        </Text>
+
+                    </div>
+
+                    <Group align="flex-start" gap="md" wrap="nowrap">
+
+                        <Paper
+
+                            withBorder
+
+                            radius="md"
+
+                            p="xs"
+
+                            w={96}
+
+                            h={96}
+
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+
+                        >
+
+                            {formState.logo_asset_path ? (
+
+                                <Image
+
+                                    src={getAssetUrl(formState.logo_asset_path)}
+
+                                    alt={formState.logo_alt ?? 'Logo preview'}
+
+                                    fit="contain"
+
+                                    mah={80}
+
+                                    maw={80}
+
+                                />
+
+                            ) : (
+
+                                <Text size="xs" c="dimmed" ta="center">No logo selected</Text>
+
+                            )}
+
+                        </Paper>
+
+                        <Stack gap="sm" style={{ flex: 1 }}>
+
+                            <Select
+
+                                label="Logo image"
+
+                                description="Falls back to the text logo when empty."
+
+                                searchable
+
+                                clearable
+
+                                data={imageAssetOptions}
+
+                                value={formState.logo_asset_path}
+
+                                onChange={(value) => update('logo_asset_path', value)}
+
+                                disabled={readOnly}
+
+                            />
+
+                            <Group grow align="flex-start">
+
+                                <TextInput
+
+                                    label="Logo alt text"
+
+                                    description="Accessible name, also used as the text logo."
+
+                                    value={formState.logo_alt ?? ''}
+
+                                    onChange={(event) => update('logo_alt', event.currentTarget.value === '' ? null : event.currentTarget.value)}
+
+                                    disabled={readOnly}
+
+                                />
+
+                                <Select
+
+                                    label="Logo links to"
+
+                                    description="Page opened on logo click. Empty = home."
+
+                                    searchable
+
+                                    clearable
+
+                                    data={pageOptions}
+
+                                    value={formState.logo_link_page_id ? String(formState.logo_link_page_id) : null}
+
+                                    onChange={(value) => update('logo_link_page_id', value ? Number(value) : null)}
+
+                                    disabled={readOnly}
+
+                                />
+
+                            </Group>
+
+                        </Stack>
+
+                    </Group>
+
+                </Stack>
+
+            </Paper>
+
+
+
+            <Paper withBorder radius="md" p="lg">
+
+                <Stack gap="md">
+
+                    <div>
+
+                        <Text fw={600}>Start & search</Text>
+
+                    </div>
 
                     <Select
 
