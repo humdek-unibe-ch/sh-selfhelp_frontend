@@ -159,6 +159,8 @@ export default function DynamicPageClient({
     // back to the SSR-provided prop for the very first paint before hydration.
     const effectiveRouteParams = pageContent?.route_params ?? routeParams;
 
+    const pageBody = <PageContentRenderer sections={sections as unknown as TStyle[]} />;
+
     const rendered = (
         <PageModalProvider value={{ inModal: isModal, closeModal }}>
             <PageContextProvider
@@ -168,12 +170,15 @@ export default function DynamicPageClient({
                 path={path ?? null}
                 routeParams={effectiveRouteParams}
             >
-                {/* In modal mode the page is just its content (no child-nav menu). */}
-                {!isModal && hasBranchNav && (
-                    <BranchNavigation navigation={navigation} currentPageId={pageId} compact={hasSections} />
-                )}
-                {(isModal || hasSections || !hasBranchNav) && (
-                    <PageContentRenderer sections={sections as unknown as TStyle[]} />
+                {/* Branch layout (sidebar/pills/breadcrumbs/pager) wraps the content
+                    for pages inside a menu branch. Modals and headless landing pages
+                    render bare content. */}
+                {!isModal && !isHeadless && hasBranchNav ? (
+                    <BranchNavigation navigation={navigation} currentPageId={pageId}>
+                        {pageBody}
+                    </BranchNavigation>
+                ) : (
+                    pageBody
                 )}
             </PageContextProvider>
         </PageModalProvider>

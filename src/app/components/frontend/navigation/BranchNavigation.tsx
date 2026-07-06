@@ -4,93 +4,229 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { Group, ScrollArea, Tabs, Text, UnstyledButton, useMantineTheme } from '@mantine/core';
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import {
+    Box,
+    Breadcrumbs,
+    Flex,
+    Group,
+    ScrollArea,
+    Stack,
+    Text,
+} from '@mantine/core';
+import { IconArrowLeft, IconArrowRight, IconChevronRight } from '@tabler/icons-react';
+import {
+    type IBranchNavContext,
+    type IBranchNavSegment,
+    type IBreadcrumbEntry,
     type INavigationPayload,
-    resolveWebBranchNavGroup,
+    resolveWebBranchNavContext,
 } from '../../../../shared';
 import { InternalLink } from '../../shared';
 import { IconComponent } from '../../shared/common';
+import classes from './BranchNavigation.module.css';
 
 interface IBranchNavigationProps {
     navigation: INavigationPayload | null | undefined;
     currentPageId: number;
-    compact?: boolean;
+    children: ReactNode;
 }
 
-function segmentHref(segment: { url: string | null; keyword: string }): string {
-    return segment.url ?? (segment.keyword === 'home' ? '/' : `/${segment.keyword}`);
+function segmentHref(segment: IBranchNavSegment): string {
+    if (segment.url && segment.url !== '') {
+        return segment.url.startsWith('/') ? segment.url : `/${segment.url}`;
+    }
+    return segment.keyword === 'home' ? '/' : `/${segment.keyword}`;
+}
+
+function BranchBreadcrumbs({ breadcrumbs }: { breadcrumbs: IBreadcrumbEntry[] }) {
+    return (
+        <Breadcrumbs
+            separator={<IconChevronRight size={13} stroke={1.75} style={{ opacity: 0.45 }} />}
+            separatorMargin={6}
+            mb="md"
+        >
+            {breadcrumbs.map((crumb, index) => {
+                const isLast = index === breadcrumbs.length - 1;
+                if (isLast || !crumb.url) {
+                    return (
+                        <Text key={`${crumb.label}-${index}`} size="sm" c={isLast ? undefined : 'dimmed'} fw={isLast ? 600 : 400}>
+                            {crumb.label}
+                        </Text>
+                    );
+                }
+                return (
+                    <InternalLink key={`${crumb.label}-${index}`} href={crumb.url} className={classes.crumbLink}>
+                        {crumb.label}
+                    </InternalLink>
+                );
+            })}
+        </Breadcrumbs>
+    );
+}
+
+/** Prev/next neighbour pager: arrow + neighbour page title (already language-resolved). */
+function BranchPager({ pager }: { pager: IBranchNavContext['pager'] }) {
+    if (!pager.prev && !pager.next) {
+        return null;
+    }
+    return (
+        <Group justify="space-between" mt="xl" wrap="nowrap" gap="md">
+            {pager.prev ? (
+                <InternalLink href={segmentHref(pager.prev)} className={classes.pagerCard} aria-label={`Previous: ${pager.prev.label}`}>
+                    <IconArrowLeft size={18} stroke={1.75} style={{ flexShrink: 0, opacity: 0.7 }} />
+                    <Text size="sm" fw={500} lineClamp={1}>
+                        {pager.prev.label}
+                    </Text>
+                </InternalLink>
+            ) : (
+                <span />
+            )}
+            {pager.next ? (
+                <InternalLink
+                    href={segmentHref(pager.next)}
+                    className={classes.pagerCard}
+                    aria-label={`Next: ${pager.next.label}`}
+                    style={{ marginLeft: 'auto', textAlign: 'right' }}
+                >
+                    <Text size="sm" fw={500} lineClamp={1}>
+                        {pager.next.label}
+                    </Text>
+                    <IconArrowRight size={18} stroke={1.75} style={{ flexShrink: 0, opacity: 0.7 }} />
+                </InternalLink>
+            ) : (
+                <span />
+            )}
+        </Group>
+    );
+}
+
+function PillStrip({ segments, currentPageId }: { segments: IBranchNavSegment[]; currentPageId: number }) {
+    return (
+        <ScrollArea type="never">
+            <Group gap={8} wrap="nowrap" py={4}>
+                {segments.map((segment) => (
+                    <InternalLink
+                        key={segment.pageId}
+                        href={segmentHref(segment)}
+                        className={classes.pill}
+                        data-active={segment.pageId === currentPageId || undefined}
+                    >
+                        {segment.icon ? <IconComponent iconName={segment.icon} size={14} /> : null}
+                        <Text size="sm" span fw="inherit">
+                            {segment.label}
+                        </Text>
+                    </InternalLink>
+                ))}
+            </Group>
+        </ScrollArea>
+    );
+}
+
+function SidebarNav({ context, currentPageId }: { context: IBranchNavContext; currentPageId: number }) {
+    return (
+        <Stack gap={2}>
+            {context.heading ? (
+                <Text size="xs" fw={700} tt="uppercase" c="dimmed" px={12} pb={6} lts={0.5}>
+                    {context.heading}
+                </Text>
+            ) : null}
+            {context.segments.map((segment) => (
+                <InternalLink
+                    key={segment.pageId}
+                    href={segmentHref(segment)}
+                    className={classes.sideLink}
+                    data-active={segment.pageId === currentPageId || undefined}
+                >
+                    {segment.icon ? <IconComponent iconName={segment.icon} size={16} /> : null}
+                    <Text size="sm" span fw="inherit" lineClamp={1}>
+                        {segment.label}
+                    </Text>
+                </InternalLink>
+            ))}
+        </Stack>
+    );
 }
 
 /**
- * In-page sibling/child navigation derived from resolved web menus.
+ * Branch layout for pages that live inside a menu branch (parent with
+ * children). Presentation is controlled by the CMS: the menu-level
+ * `children_nav` default plus the per-parent-item override, and the
+ * menu-level `show_breadcrumbs` toggle.
+ *
+ * - `sidebar`: sticky left sidebar with the sibling group (pill strip on
+ *   small screens), breadcrumbs above the content, prev/next pager below.
+ * - `pills`: horizontal pill strip above the content + breadcrumbs + pager.
+ * - `none`: content only (breadcrumbs still honoured when enabled).
+ *
+ * Pages outside any branch (top-level leaves) render their content untouched.
  */
-export function BranchNavigation({ navigation, currentPageId, compact = false }: IBranchNavigationProps) {
-    const theme = useMantineTheme();
-    const segments = useMemo(
-        () => (navigation ? resolveWebBranchNavGroup(navigation, currentPageId) : null),
+export function BranchNavigation({ navigation, currentPageId, children }: IBranchNavigationProps) {
+    const context = useMemo(
+        () => (navigation ? resolveWebBranchNavContext(navigation, currentPageId) : null),
         [navigation, currentPageId],
     );
 
-    if (!segments || segments.length === 0) {
-        return null;
+    if (!context) {
+        return <>{children}</>;
     }
 
-    const activeBackground = theme.colors[theme.primaryColor][theme.primaryShade as number] ?? theme.colors.blue[6];
-    const inactiveBackground = theme.colors.gray[1];
-    const activeTextColor = theme.white;
+    const crumbs = context.showBreadcrumbs && context.breadcrumbs.length > 1
+        ? <BranchBreadcrumbs breadcrumbs={context.breadcrumbs} />
+        : null;
+    const pagerEl = <BranchPager pager={context.pager} />;
 
-    if (compact) {
+    if (context.mode === 'none') {
+        if (!crumbs) {
+            return <>{children}</>;
+        }
         return (
-            <ScrollArea type="auto" offsetScrollbars>
-                <Group gap="xs" py="xs" px="md" wrap="nowrap">
-                    {segments.map((segment) => {
-                        const href = segmentHref(segment);
-                        const active = segment.pageId === currentPageId;
-                        return (
-                            <InternalLink key={segment.pageId} href={href}>
-                                <UnstyledButton
-                                    px="sm"
-                                    py={6}
-                                    style={{
-                                        borderRadius: theme.radius.xl,
-                                        background: active ? activeBackground : inactiveBackground,
-                                    }}
-                                >
-                                    <Group gap={6} wrap="nowrap">
-                                        {segment.icon ? <IconComponent iconName={segment.icon} size={14} /> : null}
-                                        <Text size="sm" c={active ? activeTextColor : undefined} fw={active ? 600 : 500}>
-                                            {segment.label}
-                                        </Text>
-                                    </Group>
-                                </UnstyledButton>
-                            </InternalLink>
-                        );
-                    })}
-                </Group>
-            </ScrollArea>
+            <Box px="md" pt="md">
+                {crumbs}
+                {children}
+            </Box>
         );
     }
 
-    const activeHref = segments.find((s) => s.pageId === currentPageId)?.url
-        ?? segments[0]?.url
-        ?? '/';
+    if (context.mode === 'pills') {
+        return (
+            <Box px="md" pt="sm" pb="md">
+                <PillStrip segments={context.segments} currentPageId={currentPageId} />
+                <Box mt="sm">
+                    {crumbs}
+                    {children}
+                    {pagerEl}
+                </Box>
+            </Box>
+        );
+    }
 
+    // sidebar mode
     return (
-        <Tabs value={activeHref} variant="outline" color={theme.primaryColor}>
-            <Tabs.List>
-                {segments.map((segment) => {
-                    const href = segmentHref(segment);
-                    return (
-                        <Tabs.Tab key={segment.pageId} value={href}>
-                            <InternalLink href={href}>
-                                <Text size="sm">{segment.label}</Text>
-                            </InternalLink>
-                        </Tabs.Tab>
-                    );
-                })}
-            </Tabs.List>
-        </Tabs>
+        <Box px="md" py="md">
+            {/* Small screens: fall back to the pill strip. */}
+            <Box hiddenFrom="md" mb="sm">
+                <PillStrip segments={context.segments} currentPageId={currentPageId} />
+            </Box>
+            <Flex gap="xl" align="flex-start">
+                <Box
+                    component="aside"
+                    w={240}
+                    visibleFrom="md"
+                    style={{
+                        flexShrink: 0,
+                        position: 'sticky',
+                        top: 'calc(var(--app-shell-header-height, 60px) + 16px)',
+                    }}
+                >
+                    <SidebarNav context={context} currentPageId={currentPageId} />
+                </Box>
+                <Box style={{ flex: 1, minWidth: 0 }}>
+                    {crumbs}
+                    {children}
+                    {pagerEl}
+                </Box>
+            </Flex>
+        </Box>
     );
 }

@@ -22,6 +22,7 @@ import { QueryClient, dehydrate, HydrationBoundary } from '@tanstack/react-query
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import {
     getFrontendPagesSSR,
+    getNavigationSSR,
     resolvePageByPathSSRCached,
     resolveLanguageSSR,
     resolvePreviewSSR,
@@ -90,6 +91,13 @@ export default async function SlugRouteLayout({
     const page = (pageEnvelope as { is_headless?: boolean } | null) ?? null;
     const isHeadless = Boolean(page?.is_headless);
 
+    // Header preset drives the AppShell header height (double presets render
+    // two rows). `getNavigationSSR` is request-cached, so the `WebsiteHeader`
+    // slot below reuses this same round-trip.
+    const headerPreset = isHeadless
+        ? null
+        : (await getNavigationSSR(languageId))?.menus?.web_header?.preset ?? null;
+
     // Touch navEnvelope so TypeScript doesn't prune the prefetch.
     void navEnvelope;
 
@@ -104,6 +112,7 @@ export default async function SlugRouteLayout({
         <HydrationBoundary state={dehydratedState}>
             <SlugShell
                 isHeadless={isHeadless}
+                initialHeaderPreset={headerPreset}
                 header={!isHeadless ? <WebsiteHeader /> : undefined}
                 footer={!isHeadless ? <WebsiteFooter /> : undefined}
             >
