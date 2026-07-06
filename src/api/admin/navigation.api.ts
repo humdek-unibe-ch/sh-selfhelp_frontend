@@ -38,6 +38,8 @@ export interface IAdminNavigationMenuItem {
     is_active: boolean;
     /** Per-parent override of the children navigation presentation (web menus). */
     children_nav?: TNavigationChildrenNavMode | null;
+    /** Per-parent override of the prev/next pager (`null` = inherit menu default). */
+    show_pager?: boolean | null;
 }
 
 export interface IAdminNavigationMenuDefinition {
@@ -52,6 +54,8 @@ export interface IAdminNavigationMenuDefinition {
     children_nav?: TNavigationChildrenNavMode | null;
     /** Menu-level breadcrumb toggle (web menus). */
     show_breadcrumbs?: boolean;
+    /** Menu-level prev/next pager toggle (web menus). */
+    show_pager?: boolean;
     items: IAdminNavigationMenuItem[];
 }
 
@@ -82,6 +86,7 @@ export interface ICreateNavigationMenuItemRequest {
     include_descendants?: boolean;
     is_active?: boolean;
     children_nav?: TNavigationChildrenNavMode | null;
+    show_pager?: boolean | null;
 }
 
 export interface IUpdateNavigationMenuItemRequest extends ICreateNavigationMenuItemRequest {}
@@ -153,6 +158,7 @@ export class AdminNavigationApi {
             item_limit?: number | null;
             children_nav?: TNavigationChildrenNavMode | null;
             show_breadcrumbs?: boolean;
+            show_pager?: boolean;
         },
     ): Promise<IAdminNavigationMenuDefinition> {
         const response = await permissionAwareApiClient.put<IBaseApiResponse<IAdminNavigationMenuDefinition>>(

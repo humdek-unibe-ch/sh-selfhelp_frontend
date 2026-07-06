@@ -80,6 +80,9 @@ function EditMenuItemModalContent({
     );
     const [layer, setLayer] = useState<'top' | null>(() => item.layer ?? null);
     const [childrenNav, setChildrenNav] = useState<string>(() => item.children_nav ?? 'inherit');
+    const [showPager, setShowPager] = useState<string>(
+        () => (item.show_pager == null ? 'inherit' : (item.show_pager ? 'show' : 'hide')),
+    );
     const [labelTranslations, setLabelTranslations] = useState<TMenuItemTranslations>(
         () => translationsRecordFromItem(item.translations, item.label, currentLanguageId),
     );
@@ -110,8 +113,13 @@ function EditMenuItemModalContent({
         }
         if (menuPlatform === 'web') {
             payload.children_nav = childrenNav === 'inherit' ? null : (childrenNav as TNavigationChildrenNavMode);
+            payload.show_pager = showPager === 'inherit' ? null : showPager === 'show';
         }
         if (item.item_type === 'group' || item.item_type === 'external_url') {
+            payload.translations = buildMenuItemTranslationsPayload(labelTranslations);
+        } else if (item.item_type === 'page' && menuPlatform === 'web') {
+            // Page items: presentation-only rows (description / ARIA label for
+            // mega menus and footer columns) — the label stays the page title.
             payload.translations = buildMenuItemTranslationsPayload(labelTranslations);
         }
         updateMutation.mutate(payload);
@@ -155,20 +163,33 @@ function EditMenuItemModalContent({
                     />
                 ) : null}
                 {menuPlatform === 'web' ? (
-                    <Select
-                        label="Child pages navigation"
-                        description={hasChildren
-                            ? 'How this item\u2019s child pages are presented on the website.'
-                            : 'Takes effect when this item has child pages.'}
-                        data={[
-                            { value: 'inherit', label: 'Menu default' },
-                            { value: 'sidebar', label: 'Left sidebar' },
-                            { value: 'pills', label: 'Pill strip' },
-                            { value: 'none', label: 'Hidden' },
-                        ]}
-                        value={childrenNav}
-                        onChange={(value) => setChildrenNav(value ?? 'inherit')}
-                    />
+                    <>
+                        <Select
+                            label="Child pages navigation"
+                            description={hasChildren
+                                ? 'How this item\u2019s child pages are presented on the website.'
+                                : 'Takes effect when this item has child pages.'}
+                            data={[
+                                { value: 'inherit', label: 'Menu default' },
+                                { value: 'sidebar', label: 'Left sidebar' },
+                                { value: 'pills', label: 'Pill strip' },
+                                { value: 'none', label: 'Hidden' },
+                            ]}
+                            value={childrenNav}
+                            onChange={(value) => setChildrenNav(value ?? 'inherit')}
+                        />
+                        <Select
+                            label="Prev / next pager"
+                            description="Pager buttons at the bottom of this item's child pages."
+                            data={[
+                                { value: 'inherit', label: 'Menu default' },
+                                { value: 'show', label: 'Show' },
+                                { value: 'hide', label: 'Hide' },
+                            ]}
+                            value={showPager}
+                            onChange={(value) => setShowPager(value ?? 'inherit')}
+                        />
+                    </>
                 ) : null}
                 {!isMobileMenuKey(menuKey) ? (
                     <SelectIconField
@@ -203,6 +224,15 @@ function EditMenuItemModalContent({
                         onChange={setLabelTranslations}
                         required
                         description="Shown in the public menu for this language. Falls back to the default CMS language when a translation is missing."
+                    />
+                ) : null}
+                {item.item_type === 'page' && menuPlatform === 'web' ? (
+                    <MenuItemLabelTranslationsField
+                        value={labelTranslations}
+                        onChange={setLabelTranslations}
+                        withLabelField={false}
+                        label="Menu presentation"
+                        description="Optional per-language description shown under this entry in mega menus, plus a screen-reader label. The menu label itself is the page title."
                     />
                 ) : null}
             </Stack>

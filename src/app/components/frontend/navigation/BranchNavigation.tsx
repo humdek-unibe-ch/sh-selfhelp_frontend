@@ -174,7 +174,7 @@ export function BranchNavigation({ navigation, currentPageId, children }: IBranc
     const crumbs = context.showBreadcrumbs && context.breadcrumbs.length > 1
         ? <BranchBreadcrumbs breadcrumbs={context.breadcrumbs} />
         : null;
-    const pagerEl = <BranchPager pager={context.pager} />;
+    const pagerEl = context.showPager ? <BranchPager pager={context.pager} /> : null;
 
     if (context.mode === 'none') {
         if (!crumbs) {

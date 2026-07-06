@@ -71,7 +71,7 @@ interface IPresetSelectOption {
 function renderPresetOption(
     options: readonly IPresetSelectOption[],
 ): (input: { option: { value: string; label: string } }) => React.ReactNode {
-    return ({ option }) => {
+    return function PresetOptionRow({ option }) {
         const preset = options.find((candidate) => candidate.value === option.value);
         return (
             <Stack gap={2}>
@@ -216,7 +216,7 @@ export function NavigationBuilderPage(): React.ReactElement {
     const menuDefinitionMutation = useMutation({
         mutationFn: ({ menuKey, payload }: {
             menuKey: 'web_header' | 'web_footer';
-            payload: { preset?: string; children_nav?: TNavigationChildrenNavMode | null; show_breadcrumbs?: boolean };
+            payload: { preset?: string; children_nav?: TNavigationChildrenNavMode | null; show_breadcrumbs?: boolean; show_pager?: boolean };
         }) => AdminNavigationApi.updateMenuDefinition(menuKey, payload),
         onMutate: ({ menuKey, payload }) => {
             applyOverviewPatch((current) => {
@@ -352,7 +352,7 @@ export function NavigationBuilderPage(): React.ReactElement {
                         <Tabs.Panel key={tab.key} value={tab.key} pt="md">
                             <Stack gap="md">
                                 <Paper withBorder radius="md" p="md">
-                                    <Group justify="space-between" align="flex-end" wrap="wrap">
+                                    <Group justify="space-between" align="flex-start" wrap="wrap">
                                         <div>
                                             <Text fw={600}>{tab.label}</Text>
                                             <Group gap="xs">
@@ -373,10 +373,12 @@ export function NavigationBuilderPage(): React.ReactElement {
                                             </Group>
                                         </div>
                                         {tab.key === 'web_header' ? (
-                                            <Group gap="md" align="flex-end" wrap="wrap">
+                                            <Group gap="lg" align="flex-start" wrap="wrap">
                                                 <Select
                                                     w={220}
                                                     label="Header preset"
+                                                    description="Row layout and panel style"
+                                                    inputWrapperOrder={['label', 'input', 'description']}
                                                     data={WEB_HEADER_PRESET_OPTIONS.map((opt) => ({
                                                         value: opt.value,
                                                         label: opt.label,
@@ -389,9 +391,10 @@ export function NavigationBuilderPage(): React.ReactElement {
                                                     }}
                                                 />
                                                 <Select
-                                                    w={190}
+                                                    w={220}
                                                     label="Child pages navigation"
                                                     description="Default for pages with children"
+                                                    inputWrapperOrder={['label', 'input', 'description']}
                                                     data={[
                                                         { value: 'sidebar', label: 'Left sidebar' },
                                                         { value: 'pills', label: 'Pill strip' },
@@ -408,19 +411,37 @@ export function NavigationBuilderPage(): React.ReactElement {
                                                         }
                                                     }}
                                                 />
-                                                <Switch
-                                                    label="Breadcrumbs"
-                                                    description="Trail on child pages"
-                                                    checked={tabMenu?.show_breadcrumbs ?? false}
-                                                    disabled={!canUpdateNavigation}
-                                                    onChange={(event) => {
-                                                        menuDefinitionMutation.mutate({
-                                                            menuKey: 'web_header',
-                                                            payload: { show_breadcrumbs: event.currentTarget.checked },
-                                                        });
-                                                    }}
-                                                    pb={6}
-                                                />
+                                                <div>
+                                                    <Text size="sm" fw={500} lh="var(--mantine-line-height-sm)" mb={7}>
+                                                        Child page extras
+                                                    </Text>
+                                                    <Stack gap={8}>
+                                                        <Switch
+                                                            size="sm"
+                                                            label="Breadcrumbs"
+                                                            checked={tabMenu?.show_breadcrumbs ?? false}
+                                                            disabled={!canUpdateNavigation}
+                                                            onChange={(event) => {
+                                                                menuDefinitionMutation.mutate({
+                                                                    menuKey: 'web_header',
+                                                                    payload: { show_breadcrumbs: event.currentTarget.checked },
+                                                                });
+                                                            }}
+                                                        />
+                                                        <Switch
+                                                            size="sm"
+                                                            label="Prev / next pager"
+                                                            checked={tabMenu?.show_pager ?? true}
+                                                            disabled={!canUpdateNavigation}
+                                                            onChange={(event) => {
+                                                                menuDefinitionMutation.mutate({
+                                                                    menuKey: 'web_header',
+                                                                    payload: { show_pager: event.currentTarget.checked },
+                                                                });
+                                                            }}
+                                                        />
+                                                    </Stack>
+                                                </div>
                                             </Group>
                                         ) : tab.key === 'web_footer' ? (
                                             <Select
