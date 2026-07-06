@@ -44,7 +44,9 @@ const EntryRecordDeleteStyle: React.FC<IEntryRecordDeleteStyleProps> = ({ style,
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [busy, setBusy] = useState(false);
 
-    const label = fieldText(style, 'label') || 'Delete';
+    // `label_delete` is the style's catalog field (the generic `label` field is
+    // not linked to entry-record-delete, so it can never carry CMS content here).
+    const label = fieldText(style, 'label_delete') || 'Delete';
     const confirmTitle = fieldText(style, 'confirmation_title') || 'Delete entry?';
     const confirmMessage = fieldText(style, 'confirmation_message');
     const confirmContinue = fieldText(style, 'confirmation_continue') || 'Delete';

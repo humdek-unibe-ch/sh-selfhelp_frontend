@@ -22,6 +22,9 @@ vi.mock('../../../../hooks/usePageContentValue', () => ({
 vi.mock('../../../../hooks/useFormSubmission', () => ({
     useDeleteFormMutation: () => ({ mutate: vi.fn(), isPending: false }),
 }));
+vi.mock('next/navigation', () => ({
+    useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
+}));
 
 import ShowUserInputStyle from '../ShowUserInputStyle';
 
