@@ -510,37 +510,33 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
 
                         <Divider label="Safe-import options" labelPosition="left" />
 
+                        {/* `inputWrapperOrder` puts the description BELOW the input, so
+                            the two inputs stay on the same row regardless of how long
+                            each explanation runs — no manual min-height alignment. */}
                         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                            <Stack gap={6}>
-                                <Text size="sm" fw={500}>Keyword prefix</Text>
-                                <Text size="xs" c="dimmed" mih={44} lh={1.45}>
-                                    Prepended to every page keyword to avoid collisions.
-                                </Text>
-                                <TextInput
-                                    aria-label="Keyword prefix"
-                                    placeholder="e.g. imported_"
-                                    value={keywordPrefix}
-                                    onChange={(event) => setKeywordPrefix(event.currentTarget.value)}
-                                />
-                            </Stack>
-                            <Stack gap={6}>
-                                <Text size="sm" fw={500}>Route prefix</Text>
-                                <Text size="xs" c="dimmed" mih={44} lh={1.45}>
-                                    Prepended to every imported route path. Note: in-bundle links are not rewritten, so leave empty unless you know the bundle has no internal links.
-                                </Text>
-                                <TextInput
-                                    aria-label="Route prefix"
-                                    placeholder="e.g. /imported"
-                                    value={routePrefix}
-                                    onChange={(event) => setRoutePrefix(event.currentTarget.value)}
-                                />
-                            </Stack>
+                            <TextInput
+                                label="Keyword prefix"
+                                description="Prepended to every page keyword to avoid collisions."
+                                inputWrapperOrder={['label', 'input', 'description']}
+                                placeholder="e.g. imported_"
+                                value={keywordPrefix}
+                                onChange={(event) => setKeywordPrefix(event.currentTarget.value)}
+                            />
+                            <TextInput
+                                label="Route prefix"
+                                description="Prepended to every imported route path. In-bundle links are not rewritten — leave empty unless the bundle has no internal links."
+                                inputWrapperOrder={['label', 'input', 'description']}
+                                placeholder="e.g. /imported"
+                                value={routePrefix}
+                                onChange={(event) => setRoutePrefix(event.currentTarget.value)}
+                            />
                         </SimpleGrid>
 
                         <MultiSelect
                             label="Viewer groups"
                             placeholder={accessGroups.length > 0 ? undefined : 'Admins always have access — pick groups that should see these pages'}
                             description="Groups granted access to the imported pages (read-only on public pages, full access on CMS-app pages). Admins always get full access."
+                            inputWrapperOrder={['label', 'input', 'description']}
                             data={groupOptions}
                             value={accessGroups}
                             onChange={setAccessGroups}
@@ -550,18 +546,20 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
                             maxDropdownHeight={220}
                         />
 
-                        <Group gap="xl">
+                        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                             <Switch
                                 label="Skip conflicting routes"
+                                description="Skip pages whose route already exists instead of failing."
                                 checked={skipConflictingRoutes}
                                 onChange={(event) => setSkipConflictingRoutes(event.currentTarget.checked)}
                             />
                             <Switch
                                 label="Activate routes"
+                                description="Imported pages are immediately reachable at their routes."
                                 checked={activateRoutes}
                                 onChange={(event) => setActivateRoutes(event.currentTarget.checked)}
                             />
-                        </Group>
+                        </SimpleGrid>
 
                         {validateError && (
                             <Alert color="red" icon={<IconX size="1rem" />} variant="light">
