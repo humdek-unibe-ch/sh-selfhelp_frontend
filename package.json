@@ -51,7 +51,7 @@
         "@refinedev/core": "^5.0.12",
         "@refinedev/nextjs-router": "^7.0.5",
         "@refinedev/simple-rest": "^6.0.1",
-        "@selfhelp/shared": "file:selfhelp-shared-2.0.0.tgz",
+        "@selfhelp/shared": "file:selfhelp-shared-2.1.0.tgz",
         "@tabler/icons-react": "^3.41.1",
         "@tanstack/react-query": "^5.99.2",
         "@tanstack/react-table": "^8.21.3",
