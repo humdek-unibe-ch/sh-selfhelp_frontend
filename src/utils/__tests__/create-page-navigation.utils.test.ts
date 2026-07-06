@@ -3,7 +3,11 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect } from 'vitest';
-import type { IAdminNavigationMenuItem } from '../../api/admin/navigation.api';
+import type {
+    IAdminNavigationMenuDefinition,
+    IAdminNavigationMenuItem,
+    IAdminNavigationOverview,
+} from '../../api/admin/navigation.api';
 import type { IAdminPage } from '../../types/responses/admin/admin.types';
 import {
     buildInitialNavigationMenusState,
@@ -42,9 +46,24 @@ function menuItem(partial: Partial<IAdminNavigationMenuItem>): IAdminNavigationM
         mobile_icon: null,
         label: null,
         position: 10,
+        layer: null,
         is_active: true,
         ...partial,
     };
+}
+
+function webHeaderOverview(items: IAdminNavigationMenuItem[]): IAdminNavigationOverview {
+    const webHeader: IAdminNavigationMenuDefinition = {
+        key: 'web_header',
+        platform: 'web',
+        surface: 'header',
+        preset: 'dropdown',
+        max_depth: null,
+        item_limit: null,
+        is_system: true,
+        items,
+    };
+    return { menus: { web_header: webHeader }, settings: {} };
 }
 
 describe('isSystemAdminGroup', () => {
@@ -97,38 +116,14 @@ describe('resolveChildPageMenuContexts', () => {
     const parent = page({ id_pages: 10, keyword: 'tessss', url: '/tessss' });
 
     it('returns under_parent when parent has a menu item', () => {
-        const overview = {
-            menus: {
-                web_header: {
-                    menu_key: 'web_header',
-                    platform: 'web',
-                    surface: 'public',
-                    items: [
-                        menuItem({ id: 8, page_id: 10 }),
-                    ],
-                },
-            },
-            settings: {},
-        };
+        const overview = webHeaderOverview([menuItem({ id: 8, page_id: 10 })]);
         expect(resolveChildPageMenuContexts(parent, overview)).toEqual([
             { menuKey: 'web_header', mode: 'under_parent', parentItemId: 8 },
         ]);
     });
 
     it('returns under_parent for explicit parent menu items', () => {
-        const overview = {
-            menus: {
-                web_header: {
-                    menu_key: 'web_header',
-                    platform: 'web',
-                    surface: 'public',
-                    items: [
-                        menuItem({ id: 9, page_id: 10 }),
-                    ],
-                },
-            },
-            settings: {},
-        };
+        const overview = webHeaderOverview([menuItem({ id: 9, page_id: 10 })]);
         expect(resolveChildPageMenuContexts(parent, overview)).toEqual([
             { menuKey: 'web_header', mode: 'under_parent', parentItemId: 9 },
         ]);
@@ -167,17 +162,7 @@ describe('buildInitialNavigationMenusState', () => {
                 explicit: true,
             }],
         });
-        const overview = {
-            menus: {
-                web_header: {
-                    menu_key: 'web_header',
-                    platform: 'web',
-                    surface: 'public',
-                    items: [menuItem({ id: 9, page_id: 10 })],
-                },
-            },
-            settings: {},
-        };
+        const overview = webHeaderOverview([menuItem({ id: 9, page_id: 10 })]);
 
         expect(buildInitialNavigationMenusState(parent, undefined, overview)).toEqual({
             navigationMenus: ['web_header'],
@@ -199,17 +184,7 @@ describe('resolveInitialMenuTab', () => {
 
     it('uses the first child-page menu context when creating under a parent', () => {
         const parent = page({ id_pages: 10 });
-        const overview = {
-            menus: {
-                web_header: {
-                    menu_key: 'web_header',
-                    platform: 'web',
-                    surface: 'public',
-                    items: [menuItem({ id: 9, page_id: 10 })],
-                },
-            },
-            settings: {},
-        };
+        const overview = webHeaderOverview([menuItem({ id: 9, page_id: 10 })]);
         expect(resolveInitialMenuTab(undefined, parent, overview)).toBe('web_header');
     });
 });

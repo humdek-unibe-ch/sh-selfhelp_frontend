@@ -31,9 +31,8 @@ export type TCreatePageMenuPlatform = 'web' | 'mobile';
 export interface ICreatePageFormValues {
     keyword: string;
     navigationMenus: TCreatePageMenuKey[];
-    /** Per-menu options when the menu is selected (childSource, parentItemId, etc.). */
+    /** Per-menu options when the menu is selected (parentItemId, insert position). */
     navigationMenuOptions: Partial<Record<TCreatePageMenuKey, {
-        childSource?: string;
         parentItemId?: number | null;
         insertPosition?: string;
     }>>;

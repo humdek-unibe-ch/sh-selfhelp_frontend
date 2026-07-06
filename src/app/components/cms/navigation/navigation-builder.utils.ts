@@ -75,6 +75,21 @@ export function buildPageLookup(pages: IAdminPage[] | undefined): Map<number, IA
     return lookup;
 }
 
+/**
+ * Human title for a page in the given admin UI language, falling back to the
+ * default-language `title` the backend attaches to the admin pages list.
+ */
+export function pageDisplayTitle(page: IAdminPage, languageId?: number | null): string | null {
+    if (languageId != null) {
+        const match = page.titles?.find((entry) => entry.language_id === languageId)?.title;
+        if (match && match.trim() !== '') {
+            return match;
+        }
+    }
+    const fallback = page.title ?? null;
+    return fallback && fallback.trim() !== '' ? fallback : null;
+}
+
 export function getDirectCmsChildPages(pages: IAdminPage[], parentPageId: number): IAdminPage[] {
     return pages
         .filter((page) => page.id_parent_page === parentPageId)
@@ -113,7 +128,7 @@ export function getMenuItemDisplay(
         const page = pageById.get(item.page_id);
         const resolved = resolvedLabelByItemId.get(item.id);
         return {
-            primary: resolved ?? page?.keyword ?? `Page #${item.page_id}`,
+            primary: resolved ?? (page ? pageDisplayTitle(page) ?? page.keyword : `Page #${item.page_id}`),
             secondary: page ? formatPageRoutePath(page.url, page.keyword) : undefined,
         };
     }
@@ -189,6 +204,7 @@ export function buildSiblingStepPayload(
     items: IAdminNavigationMenuItem[],
     itemId: number,
     direction: 'up' | 'down',
+    sameLayerOnly = false,
 ): Array<{ item_id: number; position: number; parent_item_id?: number | null }> {
     const item = items.find((row) => row.id === itemId);
     if (!item) {
@@ -196,7 +212,9 @@ export function buildSiblingStepPayload(
     }
 
     const siblings = items
-        .filter((row) => row.parent_item_id === item.parent_item_id)
+        .filter((row) => row.parent_item_id === item.parent_item_id
+            // Layer mode: root items step within their own top/main row only.
+            && (!sameLayerOnly || item.parent_item_id !== null || (row.layer ?? null) === (item.layer ?? null)))
         .sort((a, b) => a.position - b.position);
     const index = siblings.findIndex((row) => row.id === itemId);
     if (index < 0) {

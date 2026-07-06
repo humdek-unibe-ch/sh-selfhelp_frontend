@@ -9,7 +9,6 @@ export interface INavigationAssignmentRequest {
     menuKey: string;
     parentItemId?: number | null;
     position?: number | null;
-    childSource?: string;
 }
 
 export interface ICreatePageRequest {

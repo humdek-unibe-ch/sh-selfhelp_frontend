@@ -16,6 +16,7 @@ import {
     Paper,
     Select,
     Stack,
+    Switch,
     Tabs,
     Text,
 } from '@mantine/core';
@@ -31,7 +32,14 @@ import { useLanguageContext } from '../../contexts/LanguageContext';
 import { useCanExportNavigation, useCanImportNavigation, useCanUpdateNavigation } from '../../../../hooks/usePermissionChecks';
 import { CreatePageModal } from '../pages/create-page/CreatePage';
 import { type IAdminPage } from '../../../../types/responses/admin/admin.types';
-import { WEB_HEADER_PRESET_OPTIONS as SHARED_PRESET_OPTIONS } from '@selfhelp/shared';
+import {
+    WEB_FOOTER_PRESET_OPTIONS,
+    WEB_HEADER_PRESET_OPTIONS,
+    isDoubleWebHeaderPreset,
+    resolveWebFooterPreset,
+    resolveWebHeaderPreset,
+    type TNavigationChildrenNavMode,
+} from '@selfhelp/shared';
 import { PageHeader } from '../../shared/common/PageHeader';
 import {
     MENU_TABS,
@@ -49,7 +57,32 @@ import {
 import { NavigationSettingsPanel } from './NavigationSettingsPanel';
 import { NavigationExportImportPanel } from './NavigationExportImportPanel';
 import { NavigationMenuItemsList } from './NavigationMenuItemsList';
+import { NavigationStructuralPreview } from './NavigationStructuralPreview';
 import { AddMenuItemModal, EditMenuItemModal } from './NavigationItemModals';
+
+/** Option shape shared by both preset catalogs (label + explanatory blurb). */
+interface IPresetSelectOption {
+    value: string;
+    label: string;
+    description?: string;
+}
+
+/** Two-line preset option: name plus its description underneath. */
+function renderPresetOption(
+    options: readonly IPresetSelectOption[],
+): (input: { option: { value: string; label: string } }) => React.ReactNode {
+    return ({ option }) => {
+        const preset = options.find((candidate) => candidate.value === option.value);
+        return (
+            <Stack gap={2}>
+                <Text size="sm">{option.label}</Text>
+                {preset?.description ? (
+                    <Text size="xs" c="dimmed">{preset.description}</Text>
+                ) : null}
+            </Stack>
+        );
+    };
+}
 
 interface INavigationPrefill {
     menuKey: TMenuKey;
@@ -144,7 +177,7 @@ export function NavigationBuilderPage(): React.ReactElement {
     });
 
     const reorderMutation = useMutation({
-        mutationFn: (order: Array<{ item_id: number; position: number; parent_item_id?: number | null }>) =>
+        mutationFn: (order: Array<{ item_id: number; position: number; parent_item_id?: number | null; layer?: 'top' | null }>) =>
             AdminNavigationApi.reorderMenuItems(activeMenu, order),
         onMutate: (order) => {
             const positionById = new Map(order.map((row) => [row.item_id, row]));
@@ -162,6 +195,7 @@ export function NavigationBuilderPage(): React.ReactElement {
                         ...item,
                         position: patch.position,
                         parent_item_id: patch.parent_item_id ?? item.parent_item_id,
+                        layer: 'layer' in patch ? patch.layer ?? null : item.layer,
                     };
                 });
                 return {
@@ -179,11 +213,14 @@ export function NavigationBuilderPage(): React.ReactElement {
         },
     });
 
-    const presetMutation = useMutation({
-        mutationFn: (preset: string) => AdminNavigationApi.updateMenuDefinition('web_header', { preset }),
-        onMutate: (preset) => {
+    const menuDefinitionMutation = useMutation({
+        mutationFn: ({ menuKey, payload }: {
+            menuKey: 'web_header' | 'web_footer';
+            payload: { preset?: string; children_nav?: TNavigationChildrenNavMode | null; show_breadcrumbs?: boolean };
+        }) => AdminNavigationApi.updateMenuDefinition(menuKey, payload),
+        onMutate: ({ menuKey, payload }) => {
             applyOverviewPatch((current) => {
-                const menu = current.menus.web_header;
+                const menu = current.menus[menuKey];
                 if (!menu) {
                     return current;
                 }
@@ -191,38 +228,7 @@ export function NavigationBuilderPage(): React.ReactElement {
                     ...current,
                     menus: {
                         ...current.menus,
-                        web_header: { ...menu, preset },
-                    },
-                };
-            });
-        },
-        onSettled: () => {
-            refreshBuilderPreview();
-            schedulePublicNavigationRefresh(queryClient);
-        },
-    });
-
-    const footerPresetMutation = useMutation({
-        mutationFn: (layout: string) => AdminNavigationApi.updateMenuDefinition('web_footer', {
-            config: { footer_layout: layout },
-        }),
-        onMutate: (layout) => {
-            applyOverviewPatch((current) => {
-                const menu = current.menus.web_footer;
-                if (!menu) {
-                    return current;
-                }
-                const config = {
-                    ...(typeof menu.config === 'object' && menu.config !== null
-                        ? menu.config as Record<string, unknown>
-                        : {}),
-                    footer_layout: layout,
-                };
-                return {
-                    ...current,
-                    menus: {
-                        ...current.menus,
-                        web_footer: { ...menu, config },
+                        [menuKey]: { ...menu, ...payload },
                     },
                 };
             });
@@ -332,6 +338,15 @@ export function NavigationBuilderPage(): React.ReactElement {
                     const tabItems = tabMenu?.items ?? [];
                     const tabNestedItems = nestStoredMenuItems(tabItems);
                     const isActiveMenuTab = activeTab === tab.key;
+                    const rootItemCount = tabItems.filter((item) => item.parent_item_id === null).length;
+                    const itemLimit = tabMenu?.item_limit ?? null;
+                    const overItemLimit = itemLimit !== null && rootItemCount > itemLimit;
+                    const headerPreset = tab.key === 'web_header' ? resolveWebHeaderPreset(tabMenu?.preset) : null;
+                    const headerLayerMode = tab.key === 'web_header' && isDoubleWebHeaderPreset(headerPreset);
+                    const topLayerCount = tab.key === 'web_header'
+                        ? tabItems.filter((item) => item.layer === 'top').length
+                        : 0;
+                    const footerPreset = tab.key === 'web_footer' ? resolveWebFooterPreset(tabMenu?.preset) : null;
 
                     return (
                         <Tabs.Panel key={tab.key} value={tab.key} pt="md">
@@ -340,48 +355,112 @@ export function NavigationBuilderPage(): React.ReactElement {
                                     <Group justify="space-between" align="flex-end" wrap="wrap">
                                         <div>
                                             <Text fw={600}>{tab.label}</Text>
-                                            <Text size="sm" c="dimmed">
-                                                {tabItems.length} stored item{tabItems.length === 1 ? '' : 's'}
-                                            </Text>
+                                            <Group gap="xs">
+                                                <Text size="sm" c="dimmed">
+                                                    {tabItems.length} stored item{tabItems.length === 1 ? '' : 's'}
+                                                </Text>
+                                                {itemLimit !== null ? (
+                                                    <Badge
+                                                        variant="light"
+                                                        color={overItemLimit ? 'orange' : 'gray'}
+                                                        title={overItemLimit
+                                                            ? 'Extra root items are not shown; only the first ones up to the limit render.'
+                                                            : 'Root items rendered by this menu.'}
+                                                    >
+                                                        {rootItemCount} / {itemLimit} root items
+                                                    </Badge>
+                                                ) : null}
+                                            </Group>
                                         </div>
                                         {tab.key === 'web_header' ? (
-                                            <Select
-                                                w={260}
-                                                label="Header preset"
-                                                data={SHARED_PRESET_OPTIONS.map((opt) => ({
-                                                    value: opt.value,
-                                                    label: opt.label,
-                                                }))}
-                                                value={tabMenu?.preset ?? 'dropdown'}
-                                                disabled={!canUpdateNavigation}
-                                                onChange={(value) => {
-                                                    if (value) presetMutation.mutate(value);
-                                                }}
-                                            />
+                                            <Group gap="md" align="flex-end" wrap="wrap">
+                                                <Select
+                                                    w={220}
+                                                    label="Header preset"
+                                                    data={WEB_HEADER_PRESET_OPTIONS.map((opt) => ({
+                                                        value: opt.value,
+                                                        label: opt.label,
+                                                    }))}
+                                                    renderOption={renderPresetOption(WEB_HEADER_PRESET_OPTIONS)}
+                                                    value={headerPreset}
+                                                    disabled={!canUpdateNavigation}
+                                                    onChange={(value) => {
+                                                        if (value) menuDefinitionMutation.mutate({ menuKey: 'web_header', payload: { preset: value } });
+                                                    }}
+                                                />
+                                                <Select
+                                                    w={190}
+                                                    label="Child pages navigation"
+                                                    description="Default for pages with children"
+                                                    data={[
+                                                        { value: 'sidebar', label: 'Left sidebar' },
+                                                        { value: 'pills', label: 'Pill strip' },
+                                                        { value: 'none', label: 'Hidden' },
+                                                    ]}
+                                                    value={tabMenu?.children_nav ?? 'sidebar'}
+                                                    disabled={!canUpdateNavigation}
+                                                    onChange={(value) => {
+                                                        if (value) {
+                                                            menuDefinitionMutation.mutate({
+                                                                menuKey: 'web_header',
+                                                                payload: { children_nav: value as TNavigationChildrenNavMode },
+                                                            });
+                                                        }
+                                                    }}
+                                                />
+                                                <Switch
+                                                    label="Breadcrumbs"
+                                                    description="Trail on child pages"
+                                                    checked={tabMenu?.show_breadcrumbs ?? false}
+                                                    disabled={!canUpdateNavigation}
+                                                    onChange={(event) => {
+                                                        menuDefinitionMutation.mutate({
+                                                            menuKey: 'web_header',
+                                                            payload: { show_breadcrumbs: event.currentTarget.checked },
+                                                        });
+                                                    }}
+                                                    pb={6}
+                                                />
+                                            </Group>
                                         ) : tab.key === 'web_footer' ? (
                                             <Select
                                                 w={260}
                                                 label="Footer layout"
-                                                data={[
-                                                    { value: 'columns', label: 'Columns (grouped)' },
-                                                    { value: 'inline', label: 'Inline links' },
-                                                ]}
-                                                value={
-                                                    (typeof tabMenu?.config === 'object' && tabMenu?.config !== null
-                                                        ? (tabMenu.config as Record<string, unknown>).footer_layout
-                                                        : null) as string | undefined ?? 'columns'
-                                                }
+                                                data={WEB_FOOTER_PRESET_OPTIONS.map((opt) => ({
+                                                    value: opt.value,
+                                                    label: opt.label,
+                                                }))}
+                                                renderOption={renderPresetOption(WEB_FOOTER_PRESET_OPTIONS)}
+                                                value={footerPreset}
                                                 disabled={!canUpdateNavigation}
                                                 onChange={(value) => {
-                                                    if (value) {
-                                                        footerPresetMutation.mutate(value);
-                                                    }
+                                                    if (value) menuDefinitionMutation.mutate({ menuKey: 'web_footer', payload: { preset: value } });
                                                 }}
                                             />
-                                        ) : tabMenu?.preset ? (
-                                            <Badge variant="light">preset: {tabMenu.preset}</Badge>
                                         ) : null}
                                     </Group>
+                                    {tab.key === 'web_header' && !headerLayerMode && topLayerCount > 0 ? (
+                                        <Alert color="blue" variant="light" mt="sm" p="xs">
+                                            {topLayerCount} item{topLayerCount === 1 ? '' : 's'} assigned to the top row
+                                            {' '}are appended after the main items in single-row presets. Their assignment
+                                            {' '}is kept — switch back to a double preset to restore the split.
+                                        </Alert>
+                                    ) : null}
+                                    {tab.key === 'web_footer' && footerPreset === 'inline' ? (
+                                        <Alert color="blue" variant="light" mt="sm" p="xs">
+                                            Inline layout hides group headings and shows their links in one flat row.
+                                            {' '}Groups are kept and restored when you switch back to columns.
+                                        </Alert>
+                                    ) : null}
+                                    <NavigationStructuralPreview
+                                        menuKey={tab.key}
+                                        items={tabItems}
+                                        layerMode={headerLayerMode}
+                                        footerPreset={footerPreset}
+                                        itemLimit={itemLimit}
+                                        pageById={pageById}
+                                        resolvedLabelByItemId={isActiveMenuTab ? resolvedLabelByItemId : new Map()}
+                                    />
                                 </Paper>
 
                                 <div>
@@ -390,6 +469,7 @@ export function NavigationBuilderPage(): React.ReactElement {
                                         menuKey={tab.key}
                                         items={tabItems}
                                         nestedItems={tabNestedItems}
+                                        layerMode={headerLayerMode}
                                         pageById={pageById}
                                         resolvedLabelByItemId={isActiveMenuTab ? resolvedLabelByItemId : new Map()}
                                         highlightedItemId={isActiveMenuTab ? highlightedItemId : null}
@@ -429,6 +509,7 @@ export function NavigationBuilderPage(): React.ReactElement {
                 menuKey={activeMenu}
                 parentItemId={addParentItemId}
                 parentItemLabel={addParentItemLabel}
+                menuItems={items}
                 opened={addOpen}
                 onClose={() => {
                     setAddOpen(false);

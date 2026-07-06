@@ -5,18 +5,29 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useState } from 'react';
-import { Badge, Group, Stack, Text, TextInput } from '@mantine/core';
+import { Badge, Group, Stack, Text, TextInput, Textarea } from '@mantine/core';
 import { usePublicLanguages } from '../../../../hooks/useLanguages';
+import type { IAdminNavigationMenuItemTranslation } from '../../../../api/admin/navigation.api';
 
-export type TMenuItemLabelTranslations = Record<number, string>;
+export interface IMenuItemTranslationDraft {
+    label: string;
+    description: string;
+    aria_label: string;
+}
+
+export type TMenuItemTranslations = Record<number, IMenuItemTranslationDraft>;
+
+const EMPTY_DRAFT: IMenuItemTranslationDraft = { label: '', description: '', aria_label: '' };
 
 interface IMenuItemLabelTranslationsFieldProps {
-    value: TMenuItemLabelTranslations;
-    onChange: (value: TMenuItemLabelTranslations) => void;
+    value: TMenuItemTranslations;
+    onChange: (value: TMenuItemTranslations) => void;
     label?: string;
     description?: string;
     required?: boolean;
     placeholder?: string;
+    /** Show the description + ARIA label presentation fields (default true). */
+    withPresentationFields?: boolean;
 }
 
 export function MenuItemLabelTranslationsField({
@@ -26,12 +37,13 @@ export function MenuItemLabelTranslationsField({
     description,
     required = false,
     placeholder,
+    withPresentationFields = true,
 }: IMenuItemLabelTranslationsFieldProps): React.ReactElement {
     const { languages: languagesData } = usePublicLanguages();
     const [activeLanguage, setActiveLanguage] = useState<string>('');
 
     const languagesWithStatus = (languagesData ?? []).map((language) => {
-        const translated = (value[language.id] ?? '').trim();
+        const translated = (value[language.id]?.label ?? '').trim();
 
         return {
             id: language.id,
@@ -49,18 +61,22 @@ export function MenuItemLabelTranslationsField({
         (entry) => String(entry.id) === activeLanguage,
     );
 
-    const handleChange = (nextValue: string) => {
+    const handleFieldChange = (field: keyof IMenuItemTranslationDraft, nextValue: string) => {
         const languageId = Number(activeLanguage);
         if (!Number.isFinite(languageId)) {
             return;
         }
         onChange({
             ...value,
-            [languageId]: nextValue,
+            [languageId]: {
+                ...(value[languageId] ?? EMPTY_DRAFT),
+                [field]: nextValue,
+            },
         });
     };
 
     const missingCount = languagesWithStatus.filter((entry) => !entry.hasTranslation).length;
+    const activeDraft = activeLanguageData ? value[activeLanguageData.id] ?? EMPTY_DRAFT : EMPTY_DRAFT;
 
     return (
         <Stack gap="xs">
@@ -99,15 +115,37 @@ export function MenuItemLabelTranslationsField({
             </Group>
 
             {activeLanguageData ? (
-                <TextInput
-                    value={value[activeLanguageData.id] ?? ''}
-                    onChange={(event) => handleChange(event.currentTarget.value)}
-                    placeholder={
-                        placeholder
-                        ?? `Enter label for ${activeLanguageData.language}`
-                    }
-                    required={required}
-                />
+                <>
+                    <TextInput
+                        label="Label"
+                        value={activeDraft.label}
+                        onChange={(event) => handleFieldChange('label', event.currentTarget.value)}
+                        placeholder={
+                            placeholder
+                            ?? `Enter label for ${activeLanguageData.language}`
+                        }
+                        required={required}
+                    />
+                    {withPresentationFields ? (
+                        <>
+                            <Textarea
+                                label="Description"
+                                autosize
+                                minRows={1}
+                                maxRows={3}
+                                value={activeDraft.description}
+                                onChange={(event) => handleFieldChange('description', event.currentTarget.value)}
+                                placeholder="Optional — shown under mega-menu entries and footer column headings"
+                            />
+                            <TextInput
+                                label="ARIA label"
+                                value={activeDraft.aria_label}
+                                onChange={(event) => handleFieldChange('aria_label', event.currentTarget.value)}
+                                placeholder="Optional — screen-reader text when the label alone is not descriptive"
+                            />
+                        </>
+                    ) : null}
+                </>
             ) : null}
 
             {required && missingCount > 0 ? (
@@ -120,30 +158,34 @@ export function MenuItemLabelTranslationsField({
 }
 
 export function buildMenuItemTranslationsPayload(
-    value: TMenuItemLabelTranslations,
-): Array<{ language_id: number; label: string }> {
+    value: TMenuItemTranslations,
+): Array<{ language_id: number; label: string | null; description: string | null; aria_label: string | null }> {
     return Object.entries(value)
-        .filter(([, label]) => typeof label === 'string' && label.trim() !== '')
-        .map(([languageId, label]) => ({
+        .map(([languageId, draft]) => ({
             language_id: Number(languageId),
-            label: label.trim(),
+            label: draft.label.trim() === '' ? null : draft.label.trim(),
+            description: draft.description.trim() === '' ? null : draft.description.trim(),
+            aria_label: draft.aria_label.trim() === '' ? null : draft.aria_label.trim(),
         }))
-        .filter((row) => Number.isFinite(row.language_id));
+        .filter((row) => Number.isFinite(row.language_id)
+            && (row.label !== null || row.description !== null || row.aria_label !== null));
 }
 
 export function translationsRecordFromItem(
-    translations: Array<{ language_id: number; label: string | null }> | undefined,
+    translations: IAdminNavigationMenuItemTranslation[] | undefined,
     fallbackLabel: string | null | undefined,
     defaultLanguageId: number,
-): TMenuItemLabelTranslations {
-    const record: TMenuItemLabelTranslations = {};
+): TMenuItemTranslations {
+    const record: TMenuItemTranslations = {};
     for (const row of translations ?? []) {
-        if (row.label) {
-            record[row.language_id] = row.label;
-        }
+        record[row.language_id] = {
+            label: row.label ?? '',
+            description: row.description ?? '',
+            aria_label: row.aria_label ?? '',
+        };
     }
     if (Object.keys(record).length === 0 && fallbackLabel) {
-        record[defaultLanguageId] = fallbackLabel;
+        record[defaultLanguageId] = { ...EMPTY_DRAFT, label: fallbackLabel };
     }
 
     return record;

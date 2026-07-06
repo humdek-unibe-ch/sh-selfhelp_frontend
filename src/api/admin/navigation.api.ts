@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
-import type { IBaseApiResponse } from '../../shared';
+import type { IBaseApiResponse, TNavigationChildrenNavMode } from '../../shared';
 import type {
     INavigationBundle,
     INavigationExportOptions,
@@ -15,7 +15,11 @@ import type {
 
 export interface IAdminNavigationMenuItemTranslation {
     language_id: number;
+    /** Present on reads; not sent on writes. */
+    locale?: string;
     label: string | null;
+    description?: string | null;
+    aria_label?: string | null;
 }
 
 export interface IAdminNavigationMenuItem {
@@ -29,17 +33,25 @@ export interface IAdminNavigationMenuItem {
     label: string | null;
     translations?: IAdminNavigationMenuItemTranslation[];
     position: number;
+    /** `'top'` puts a web-header root item on the top utility row of double presets. */
+    layer: 'top' | null;
     is_active: boolean;
+    /** Per-parent override of the children navigation presentation (web menus). */
+    children_nav?: TNavigationChildrenNavMode | null;
 }
 
 export interface IAdminNavigationMenuDefinition {
-    menu_key: string;
+    key: string;
     platform: string;
     surface: string;
-    preset?: string | null;
-    max_depth?: number | null;
-    item_limit?: number | null;
-    config?: Record<string, unknown> | null;
+    preset: string | null;
+    max_depth: number | null;
+    item_limit: number | null;
+    is_system: boolean;
+    /** Menu-level default for child-page navigation (web menus). */
+    children_nav?: TNavigationChildrenNavMode | null;
+    /** Menu-level breadcrumb toggle (web menus). */
+    show_breadcrumbs?: boolean;
     items: IAdminNavigationMenuItem[];
 }
 
@@ -65,9 +77,11 @@ export interface ICreateNavigationMenuItemRequest {
     translations?: IAdminNavigationMenuItemTranslation[];
     position?: number;
     parent_item_id?: number | null;
+    layer?: 'top' | null;
     child_page_ids?: number[];
     include_descendants?: boolean;
     is_active?: boolean;
+    children_nav?: TNavigationChildrenNavMode | null;
 }
 
 export interface IUpdateNavigationMenuItemRequest extends ICreateNavigationMenuItemRequest {}
@@ -122,7 +136,7 @@ export class AdminNavigationApi {
 
     static async reorderMenuItems(
         menuKey: string,
-        order: Array<{ item_id: number; position: number; parent_item_id?: number | null }>,
+        order: Array<{ item_id: number; position: number; parent_item_id?: number | null; layer?: 'top' | null }>,
     ): Promise<void> {
         await permissionAwareApiClient.put(
             API_CONFIG.ENDPOINTS.ADMIN_NAVIGATION_MENU_REORDER,
@@ -133,7 +147,13 @@ export class AdminNavigationApi {
 
     static async updateMenuDefinition(
         menuKey: string,
-        payload: { preset?: string; max_depth?: number | null; item_limit?: number | null; config?: Record<string, unknown> | null },
+        payload: {
+            preset?: string;
+            max_depth?: number | null;
+            item_limit?: number | null;
+            children_nav?: TNavigationChildrenNavMode | null;
+            show_breadcrumbs?: boolean;
+        },
     ): Promise<IAdminNavigationMenuDefinition> {
         const response = await permissionAwareApiClient.put<IBaseApiResponse<IAdminNavigationMenuDefinition>>(
             API_CONFIG.ENDPOINTS.ADMIN_NAVIGATION_MENU_UPDATE,
@@ -228,6 +248,12 @@ function buildNavigationImportRequestOptions(options: INavigationImportOptions):
     }
     if (options.accessGroups && options.accessGroups.length > 0) {
         payload.access_groups = options.accessGroups;
+    }
+    if (options.skipConflictingRoutes !== undefined) {
+        payload.skip_conflicting_routes = options.skipConflictingRoutes;
+    }
+    if (options.activateRoutes !== undefined) {
+        payload.activate_routes = options.activateRoutes;
     }
 
     return payload;

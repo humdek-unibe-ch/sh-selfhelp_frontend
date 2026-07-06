@@ -35,6 +35,10 @@ export interface IAdminPage {
      * tolerate cached responses; absent is treated as `public`.
      */
     page_surface?: 'public' | 'cms';
+    /** Page title in the CMS default language (from the `title` page field). */
+    title?: string | null;
+    /** Page title per language, for language-aware pickers. */
+    titles?: Array<{ language_id: number; title: string }>;
 }
 
 export type TAdminPageSectionsResponse = IBaseApiResponse<IAdminPageSectionsData>;
