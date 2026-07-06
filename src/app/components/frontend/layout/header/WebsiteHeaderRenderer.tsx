@@ -88,28 +88,61 @@ function NavTrigger({ item, withChevron }: { item: INavigationMenuItem; withChev
     );
 }
 
-/** One row inside a plain dropdown panel: icon, label, optional description. */
-function DropdownRow({ item }: { item: INavigationMenuItem }) {
+/** Indented grandchild links (depth 3) under a dropdown row / mega cell. */
+function SubLinkList({ items, indent = 34 }: { items: INavigationMenuItem[]; indent?: number }) {
+    if (items.length === 0) {
+        return null;
+    }
     return (
-        <InternalLink
-            href={getNavigationItemHref(item)}
-            aria-label={getNavigationItemAriaLabel(item)}
-            className={classes.dropdownRow}
-        >
-            <span style={{ display: 'inline-flex', marginTop: 2, opacity: 0.75 }}>
-                {item.icon ? <NavIcon name={item.icon} size={16} /> : <IconPoint size={16} style={{ opacity: 0.4 }} />}
-            </span>
-            <Stack gap={2} style={{ minWidth: 0 }}>
-                <Text size="sm" fw={500} lh={1.3}>
-                    {getNavigationItemLabel(item)}
-                </Text>
-                {item.description ? (
-                    <Text size="xs" c="dimmed" lineClamp={2} lh={1.35}>
-                        {item.description}
+        <div className={classes.subLinkList} style={{ marginLeft: indent }}>
+            {items.map((child) => (
+                <InternalLink
+                    key={String(child.id)}
+                    href={getNavigationItemHref(child)}
+                    aria-label={getNavigationItemAriaLabel(child)}
+                    className={classes.subLink}
+                >
+                    {child.icon ? <NavIcon name={child.icon} size={13} /> : null}
+                    <span>{getNavigationItemLabel(child)}</span>
+                </InternalLink>
+            ))}
+        </div>
+    );
+}
+
+function navigableChildren(item: INavigationMenuItem): INavigationMenuItem[] {
+    return (item.children ?? []).filter(
+        (child) => child.page != null || child.item_type === 'external_url',
+    );
+}
+
+/** One row inside a plain dropdown panel: icon, label, optional description,
+    plus indented grandchild links when the menu depth allows them. */
+function DropdownRow({ item }: { item: INavigationMenuItem }) {
+    const grandchildren = navigableChildren(item);
+    return (
+        <div>
+            <InternalLink
+                href={getNavigationItemHref(item)}
+                aria-label={getNavigationItemAriaLabel(item)}
+                className={classes.dropdownRow}
+            >
+                <span style={{ display: 'inline-flex', marginTop: 2, opacity: 0.75 }}>
+                    {item.icon ? <NavIcon name={item.icon} size={16} /> : <IconPoint size={16} style={{ opacity: 0.4 }} />}
+                </span>
+                <Stack gap={2} style={{ minWidth: 0 }}>
+                    <Text size="sm" fw={500} lh={1.3}>
+                        {getNavigationItemLabel(item)}
                     </Text>
-                ) : null}
-            </Stack>
-        </InternalLink>
+                    {item.description ? (
+                        <Text size="xs" c="dimmed" lineClamp={2} lh={1.35}>
+                            {item.description}
+                        </Text>
+                    ) : null}
+                </Stack>
+            </InternalLink>
+            <SubLinkList items={grandchildren} indent={36} />
+        </div>
     );
 }
 
@@ -191,28 +224,33 @@ function TabsPreset({ items }: { items: INavigationMenuItem[] }) {
     );
 }
 
-/** One cell of the mega menu grid: tinted icon tile + title + description. */
+/** One cell of the mega menu grid: tinted icon tile + title + description,
+    plus indented grandchild links when the menu depth allows them. */
 function MegaMenuCell({ item }: { item: INavigationMenuItem }) {
+    const grandchildren = navigableChildren(item);
     return (
-        <InternalLink
-            href={getNavigationItemHref(item)}
-            aria-label={getNavigationItemAriaLabel(item)}
-            className={classes.megaItem}
-        >
-            <ThemeIcon variant="light" radius="md" size={38} color="blue">
-                {item.icon ? <NavIcon name={item.icon} size={20} /> : <IconPoint size={20} />}
-            </ThemeIcon>
-            <Stack gap={2} style={{ minWidth: 0 }}>
-                <Text size="sm" fw={600} lh={1.3}>
-                    {getNavigationItemLabel(item)}
-                </Text>
-                {item.description ? (
-                    <Text size="xs" c="dimmed" lineClamp={2} lh={1.4}>
-                        {item.description}
+        <div>
+            <InternalLink
+                href={getNavigationItemHref(item)}
+                aria-label={getNavigationItemAriaLabel(item)}
+                className={classes.megaItem}
+            >
+                <ThemeIcon variant="light" radius="md" size={38} color="blue">
+                    {item.icon ? <NavIcon name={item.icon} size={20} /> : <IconPoint size={20} />}
+                </ThemeIcon>
+                <Stack gap={2} style={{ minWidth: 0 }}>
+                    <Text size="sm" fw={600} lh={1.3}>
+                        {getNavigationItemLabel(item)}
                     </Text>
-                ) : null}
-            </Stack>
-        </InternalLink>
+                    {item.description ? (
+                        <Text size="xs" c="dimmed" lineClamp={2} lh={1.4}>
+                            {item.description}
+                        </Text>
+                    ) : null}
+                </Stack>
+            </InternalLink>
+            <SubLinkList items={grandchildren} indent={62} />
+        </div>
     );
 }
 

@@ -42,6 +42,34 @@ SPDX-License-Identifier: MPL-2.0
     background-color: var(--mantine-color-default-hover);
 }
 
+/* Indented grandchildren under a dropdown/mega entry (depth 3).
+   The horizontal indent is set inline (dropdown vs mega icon widths). */
+.subLinkList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 2px 0 4px;
+    padding-left: 10px;
+    border-left: 1px solid var(--mantine-color-default-border);
+}
+
+.subLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-dimmed);
+    font-size: var(--mantine-font-size-xs);
+    text-decoration: none;
+    transition: background-color 100ms ease, color 100ms ease;
+}
+
+.subLink:hover {
+    background-color: var(--mantine-color-default-hover);
+    color: var(--mantine-color-text);
+}
+
 /* Cells inside the mega menu grid. */
 .megaItem {
     display: flex;

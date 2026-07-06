@@ -28,6 +28,12 @@ interface IMenuItemLabelTranslationsFieldProps {
     placeholder?: string;
     /** Show the description + ARIA label presentation fields (default true). */
     withPresentationFields?: boolean;
+    /**
+     * Show the Label input (default true). Page items hide it — their menu
+     * label always comes from the page title; only the presentation fields
+     * (description / ARIA label) are stored per language.
+     */
+    withLabelField?: boolean;
 }
 
 export function MenuItemLabelTranslationsField({
@@ -38,12 +44,16 @@ export function MenuItemLabelTranslationsField({
     required = false,
     placeholder,
     withPresentationFields = true,
+    withLabelField = true,
 }: IMenuItemLabelTranslationsFieldProps): React.ReactElement {
     const { languages: languagesData } = usePublicLanguages();
     const [activeLanguage, setActiveLanguage] = useState<string>('');
 
     const languagesWithStatus = (languagesData ?? []).map((language) => {
-        const translated = (value[language.id]?.label ?? '').trim();
+        const draft = value[language.id];
+        const translated = withLabelField
+            ? (draft?.label ?? '').trim()
+            : `${draft?.description ?? ''}${draft?.aria_label ?? ''}`.trim();
 
         return {
             id: language.id,
@@ -116,16 +126,18 @@ export function MenuItemLabelTranslationsField({
 
             {activeLanguageData ? (
                 <>
-                    <TextInput
-                        label="Label"
-                        value={activeDraft.label}
-                        onChange={(event) => handleFieldChange('label', event.currentTarget.value)}
-                        placeholder={
-                            placeholder
-                            ?? `Enter label for ${activeLanguageData.language}`
-                        }
-                        required={required}
-                    />
+                    {withLabelField ? (
+                        <TextInput
+                            label="Label"
+                            value={activeDraft.label}
+                            onChange={(event) => handleFieldChange('label', event.currentTarget.value)}
+                            placeholder={
+                                placeholder
+                                ?? `Enter label for ${activeLanguageData.language}`
+                            }
+                            required={required}
+                        />
+                    ) : null}
                     {withPresentationFields ? (
                         <>
                             <Textarea

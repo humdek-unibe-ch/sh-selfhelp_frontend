@@ -4,6 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {
     WEB_HEADER_PRESET_VALUES,
     type INavigationMenu,
@@ -132,6 +133,27 @@ describe('WebsiteHeaderRenderer', () => {
             expect(screen.getAllByRole('link', { name: /About/i }).length).toBeGreaterThan(0);
         },
     );
+
+    it('renders grandchild sub-links inside the opened dropdown panel', async () => {
+        const nested = menuWithPreset('dropdown');
+        nested.items = [{
+            ...item('Services', 1),
+            children: [{
+                ...item('Training', 2),
+                children: [item('Basics', 3)],
+            }],
+        }];
+        renderWithProviders(<WebsiteHeaderRenderer menu={nested} />);
+
+        const user = userEvent.setup();
+        await user.hover(screen.getByRole('link', { name: /Services/i }));
+
+        // jsdom does not run the open transition, so query text content
+        // (role queries would filter the still-hidden popover).
+        expect(await screen.findByText('Training')).toBeInTheDocument();
+        const basics = await screen.findByText('Basics');
+        expect(basics.closest('a')).toHaveAttribute('href', '/basics');
+    });
 
     it('respects max_depth by not rendering nested dropdown children beyond the limit', () => {
         const nested = menuWithPreset('dropdown');
