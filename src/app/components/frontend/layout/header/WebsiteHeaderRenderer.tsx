@@ -6,17 +6,17 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useMemo, type ReactNode } from 'react';
 import {
-    Group,
-    Menu,
-    Text,
-    UnstyledButton,
-    Tabs,
-    Stack,
-    SimpleGrid,
-    Card,
     Divider,
+    Group,
+    HoverCard,
+    SimpleGrid,
+    Stack,
+    Tabs,
+    Text,
+    ThemeIcon,
 } from '@mantine/core';
-import { IconChevronDown } from '@tabler/icons-react';
+import { usePathname } from 'next/navigation';
+import { IconChevronDown, IconPoint } from '@tabler/icons-react';
 import {
     type INavigationMenu,
     type INavigationMenuItem,
@@ -25,11 +25,15 @@ import {
     getNavigationItemAriaLabel,
     getNavigationItemHref,
     getNavigationItemLabel,
+    isDoubleWebHeaderPreset,
+    mergeHeaderLayers,
     resolveMenuMaxDepth,
     resolveWebHeaderPreset,
+    splitHeaderLayers,
 } from '@selfhelp/shared';
 import { InternalLink } from '../../../shared';
 import { IconComponent } from '../../../shared/common';
+import classes from './WebsiteHeaderRenderer.module.css';
 
 interface IWebsiteHeaderRendererProps {
     menu: INavigationMenu | null | undefined;
@@ -41,69 +45,112 @@ function NavIcon({ name, size = 18 }: { name?: string | null; size?: number }) {
     return <IconComponent iconName={name} size={size} />;
 }
 
-function DropdownItem({ item, atDepthLimit = false }: { item: INavigationMenuItem; atDepthLimit?: boolean }) {
-    const children = (item.children ?? []).filter((child) => child.page != null || child.item_type === 'external_url');
-    const label = getNavigationItemLabel(item);
-    const href = getNavigationItemHref(item);
-    const icon = item.icon ?? null;
-    const ariaLabel = getNavigationItemAriaLabel(item);
+function useIsActive(href: string | undefined): boolean {
+    const pathname = usePathname();
+    if (!href || href === '#') return false;
+    const clean = pathname.split('#')[0].split('?')[0].replace(/\/+$/, '') || '/';
+    const target = href.replace(/\/+$/, '') || '/';
+    return clean === target;
+}
 
-    if (children.length > 0 && !atDepthLimit) {
+/**
+ * Top-level trigger: a padded pill. When the item has its own page the whole
+ * pill is a link; hovering still opens the child panel (chevron included).
+ */
+function NavTrigger({ item, withChevron }: { item: INavigationMenuItem; withChevron: boolean }) {
+    const href = getNavigationItemHref(item);
+    const ariaLabel = getNavigationItemAriaLabel(item);
+    const label = getNavigationItemLabel(item);
+    const isActive = useIsActive(href);
+
+    const inner = (
+        <>
+            <NavIcon name={item.icon} size={16} />
+            <Text size="sm" fw={500} span style={{ whiteSpace: 'nowrap' }}>
+                {label}
+            </Text>
+            {withChevron ? <IconChevronDown size={14} stroke={1.75} style={{ opacity: 0.6 }} /> : null}
+        </>
+    );
+
+    if (href && href !== '#') {
         return (
-            <Menu trigger="hover" withinPortal>
-                <Menu.Target>
-                    <UnstyledButton component="div" aria-label={ariaLabel}>
-                        <Group gap="xs" wrap="nowrap">
-                            {href ? (
-                                <span onClick={(event) => event.stopPropagation()} role="presentation">
-                                    <InternalLink href={href} aria-label={ariaLabel}>
-                                        <Group gap="xs" wrap="nowrap">
-                                            <NavIcon name={icon} />
-                                            <Text size="sm" fw={500}>{label}</Text>
-                                        </Group>
-                                    </InternalLink>
-                                </span>
-                            ) : (
-                                <>
-                                    <NavIcon name={icon} />
-                                    <Text size="sm" fw={500}>{label}</Text>
-                                </>
-                            )}
-                            <IconChevronDown size={16} stroke={1.5} />
-                        </Group>
-                    </UnstyledButton>
-                </Menu.Target>
-                <Menu.Dropdown>
-                    {children.map((child) => (
-                        <Menu.Item
-                            key={String(child.id)}
-                            leftSection={<NavIcon name={child.icon} size={16} />}
-                        >
-                            <InternalLink href={getNavigationItemHref(child)} aria-label={getNavigationItemAriaLabel(child)}>
-                                <Text size="sm">{getNavigationItemLabel(child)}</Text>
-                            </InternalLink>
-                        </Menu.Item>
-                    ))}
-                </Menu.Dropdown>
-            </Menu>
+            <InternalLink href={href} aria-label={ariaLabel} className={classes.navTrigger} data-active={isActive || undefined}>
+                {inner}
+            </InternalLink>
         );
     }
 
     return (
-        <InternalLink href={href} aria-label={ariaLabel}>
-            <UnstyledButton>
-                <Group gap="xs">
-                    <NavIcon name={icon} />
-                    <Text size="sm" fw={500}>{label}</Text>
-                </Group>
-            </UnstyledButton>
+        <span className={classes.navTrigger} aria-label={ariaLabel} role="button" tabIndex={0}>
+            {inner}
+        </span>
+    );
+}
+
+/** One row inside a plain dropdown panel: icon, label, optional description. */
+function DropdownRow({ item }: { item: INavigationMenuItem }) {
+    return (
+        <InternalLink
+            href={getNavigationItemHref(item)}
+            aria-label={getNavigationItemAriaLabel(item)}
+            className={classes.dropdownRow}
+        >
+            <span style={{ display: 'inline-flex', marginTop: 2, opacity: 0.75 }}>
+                {item.icon ? <NavIcon name={item.icon} size={16} /> : <IconPoint size={16} style={{ opacity: 0.4 }} />}
+            </span>
+            <Stack gap={2} style={{ minWidth: 0 }}>
+                <Text size="sm" fw={500} lh={1.3}>
+                    {getNavigationItemLabel(item)}
+                </Text>
+                {item.description ? (
+                    <Text size="xs" c="dimmed" lineClamp={2} lh={1.35}>
+                        {item.description}
+                    </Text>
+                ) : null}
+            </Stack>
         </InternalLink>
+    );
+}
+
+function DropdownItem({ item, atDepthLimit = false }: { item: INavigationMenuItem; atDepthLimit?: boolean }) {
+    const children = (item.children ?? []).filter((child) => child.page != null || child.item_type === 'external_url');
+
+    if (children.length === 0 || atDepthLimit) {
+        return <NavTrigger item={item} withChevron={false} />;
+    }
+
+    return (
+        <HoverCard
+            openDelay={60}
+            closeDelay={120}
+            position="bottom-start"
+            shadow="lg"
+            radius="md"
+            offset={4}
+            withinPortal
+            transitionProps={{ transition: 'pop-top-left', duration: 120 }}
+        >
+            <HoverCard.Target>
+                {/* span wrapper: HoverCard needs a single stable target element */}
+                <span style={{ display: 'inline-flex' }}>
+                    <NavTrigger item={item} withChevron />
+                </span>
+            </HoverCard.Target>
+            <HoverCard.Dropdown p={6} miw={240} maw={320}>
+                <Stack gap={2}>
+                    {children.map((child) => (
+                        <DropdownRow key={String(child.id)} item={child} />
+                    ))}
+                </Stack>
+            </HoverCard.Dropdown>
+        </HoverCard>
     );
 }
 
 function DropdownPreset({ items, atDepthLimit = false }: { items: INavigationMenuItem[]; atDepthLimit?: boolean }) {
     return (
-        <Group gap="lg">
+        <Group gap={4} wrap="nowrap">
             {items.map((item) => (
                 <DropdownItem key={String(item.id)} item={item} atDepthLimit={atDepthLimit} />
             ))}
@@ -113,15 +160,9 @@ function DropdownPreset({ items, atDepthLimit = false }: { items: INavigationMen
 
 function SimplePreset({ items }: { items: INavigationMenuItem[] }) {
     return (
-        <Group gap="lg">
+        <Group gap={4} wrap="nowrap">
             {items.map((item) => (
-                <InternalLink
-                    key={String(item.id)}
-                    href={getNavigationItemHref(item)}
-                    aria-label={getNavigationItemAriaLabel(item)}
-                >
-                    <Text size="sm" fw={500}>{getNavigationItemLabel(item)}</Text>
-                </InternalLink>
+                <NavTrigger key={String(item.id)} item={item} withChevron={false} />
             ))}
         </Group>
     );
@@ -150,72 +191,97 @@ function TabsPreset({ items }: { items: INavigationMenuItem[] }) {
     );
 }
 
+/** One cell of the mega menu grid: tinted icon tile + title + description. */
+function MegaMenuCell({ item }: { item: INavigationMenuItem }) {
+    return (
+        <InternalLink
+            href={getNavigationItemHref(item)}
+            aria-label={getNavigationItemAriaLabel(item)}
+            className={classes.megaItem}
+        >
+            <ThemeIcon variant="light" radius="md" size={38} color="blue">
+                {item.icon ? <NavIcon name={item.icon} size={20} /> : <IconPoint size={20} />}
+            </ThemeIcon>
+            <Stack gap={2} style={{ minWidth: 0 }}>
+                <Text size="sm" fw={600} lh={1.3}>
+                    {getNavigationItemLabel(item)}
+                </Text>
+                {item.description ? (
+                    <Text size="xs" c="dimmed" lineClamp={2} lh={1.4}>
+                        {item.description}
+                    </Text>
+                ) : null}
+            </Stack>
+        </InternalLink>
+    );
+}
+
 function MegaMenuPreset({ items, atDepthLimit = false }: { items: INavigationMenuItem[]; atDepthLimit?: boolean }) {
     return (
-        <Group gap="lg">
+        <Group gap={4} wrap="nowrap">
             {items.map((item) => {
-                const children = item.children ?? [];
+                const children = (item.children ?? []).filter(
+                    (child) => child.page != null || child.item_type === 'external_url',
+                );
                 if (children.length === 0 || atDepthLimit) {
                     return <DropdownItem key={String(item.id)} item={item} atDepthLimit={atDepthLimit} />;
                 }
                 return (
-                    <Menu key={String(item.id)} trigger="hover" withinPortal width={420}>
-                        <Menu.Target>
-                            <UnstyledButton component="div" aria-label={getNavigationItemAriaLabel(item)}>
-                                <Group gap="xs" wrap="nowrap">
-                                    {getNavigationItemHref(item) ? (
-                                        <span onClick={(event) => event.stopPropagation()} role="presentation">
-                                            <InternalLink href={getNavigationItemHref(item)} aria-label={getNavigationItemAriaLabel(item)}>
-                                                <Group gap="xs" wrap="nowrap">
-                                                    <NavIcon name={item.icon} />
-                                                    <Text size="sm" fw={500}>{getNavigationItemLabel(item)}</Text>
-                                                </Group>
-                                            </InternalLink>
-                                        </span>
-                                    ) : (
-                                        <>
-                                            <NavIcon name={item.icon} />
-                                            <Text size="sm" fw={500}>{getNavigationItemLabel(item)}</Text>
-                                        </>
-                                    )}
-                                    <IconChevronDown size={16} stroke={1.5} />
-                                </Group>
-                            </UnstyledButton>
-                        </Menu.Target>
-                        <Menu.Dropdown>
-                            <SimpleGrid cols={2} p="sm">
+                    <HoverCard
+                        key={String(item.id)}
+                        openDelay={60}
+                        closeDelay={120}
+                        position="bottom-start"
+                        shadow="lg"
+                        radius="md"
+                        offset={4}
+                        withinPortal
+                        transitionProps={{ transition: 'pop-top-left', duration: 120 }}
+                    >
+                        <HoverCard.Target>
+                            <span style={{ display: 'inline-flex' }}>
+                                <NavTrigger item={item} withChevron />
+                            </span>
+                        </HoverCard.Target>
+                        <HoverCard.Dropdown p="md" w={children.length > 3 ? 560 : 300}>
+                            <SimpleGrid cols={children.length > 3 ? 2 : 1} spacing={4} verticalSpacing={4}>
                                 {children.map((child) => (
-                                    <Card key={String(child.id)} padding="sm" withBorder>
-                                        <InternalLink href={getNavigationItemHref(child)} aria-label={getNavigationItemAriaLabel(child)}>
-                                            <Stack gap={4}>
-                                                <Group gap="xs">
-                                                    <NavIcon name={child.icon} size={16} />
-                                                    <Text size="sm" fw={600}>{getNavigationItemLabel(child)}</Text>
-                                                </Group>
-                                                {child.description ? (
-                                                    <Text size="xs" c="dimmed">{child.description}</Text>
-                                                ) : null}
-                                            </Stack>
-                                        </InternalLink>
-                                    </Card>
+                                    <MegaMenuCell key={String(child.id)} item={child} />
                                 ))}
                             </SimpleGrid>
-                        </Menu.Dropdown>
-                    </Menu>
+                        </HoverCard.Dropdown>
+                    </HoverCard>
                 );
             })}
         </Group>
     );
 }
 
-function UtilityRow({ utilitySlot }: { utilitySlot?: ReactNode }) {
-    if (!utilitySlot) {
+function TopRow({ items, utilitySlot }: { items: INavigationMenuItem[]; utilitySlot?: ReactNode }) {
+    if (items.length === 0 && !utilitySlot) {
         return null;
     }
 
     return (
-        <Group justify="flex-end" gap="md" wrap="nowrap" w="100%">
-            {utilitySlot}
+        <Group justify="space-between" gap="md" wrap="nowrap" w="100%">
+            <Group gap={2} wrap="nowrap" component="nav" aria-label="Secondary navigation">
+                {items.map((item) => (
+                    <InternalLink
+                        key={String(item.id)}
+                        href={getNavigationItemHref(item)}
+                        aria-label={getNavigationItemAriaLabel(item)}
+                        className={classes.topRowLink}
+                    >
+                        <NavIcon name={item.icon} size={14} />
+                        <Text size="xs" fw={500} span style={{ whiteSpace: 'nowrap' }}>
+                            {getNavigationItemLabel(item)}
+                        </Text>
+                    </InternalLink>
+                ))}
+            </Group>
+            <Group justify="flex-end" gap="md" wrap="nowrap">
+                {utilitySlot}
+            </Group>
         </Group>
     );
 }
@@ -240,6 +306,11 @@ function renderInnerPreset(
 
 /**
  * Renders the global `web_header` menu using the menu-builder preset.
+ *
+ * Double presets split root items into a top utility row (`layer: 'top'`,
+ * flat links next to the utility slot) and the main navigation row. Single
+ * presets merge both layers into one row (main items first, top items
+ * appended) without touching the stored layer assignments.
  */
 export function WebsiteHeaderRenderer({ menu, utilitySlot }: IWebsiteHeaderRendererProps) {
     const maxDepth = resolveMenuMaxDepth(menu?.max_depth);
@@ -253,7 +324,7 @@ export function WebsiteHeaderRenderer({ menu, utilitySlot }: IWebsiteHeaderRende
     }
 
     const preset = resolveWebHeaderPreset(menu?.preset);
-    const isDouble = preset === 'double-dropdown' || preset === 'double-mega-menu';
+    const isDouble = isDoubleWebHeaderPreset(preset);
     const innerPreset = preset === 'double-dropdown'
         ? 'dropdown'
         : preset === 'double-mega-menu'
@@ -261,9 +332,9 @@ export function WebsiteHeaderRenderer({ menu, utilitySlot }: IWebsiteHeaderRende
             : preset;
 
     const atDepthLimit = maxDepth !== null && maxDepth <= 1;
-    const mainNav = renderInnerPreset(innerPreset, items, atDepthLimit);
 
     if (!isDouble) {
+        const mainNav = renderInnerPreset(innerPreset, mergeHeaderLayers(items), atDepthLimit);
         return (
             <Group gap="lg" wrap="nowrap" style={{ flex: 1 }} component="nav" aria-label="Main navigation">
                 {mainNav}
@@ -271,11 +342,19 @@ export function WebsiteHeaderRenderer({ menu, utilitySlot }: IWebsiteHeaderRende
         );
     }
 
+    const { top, main } = splitHeaderLayers(items);
+    const mainNav = renderInnerPreset(innerPreset, main, atDepthLimit);
+
     return (
-        <Stack gap={6} style={{ flex: 1 }}>
-            <UtilityRow utilitySlot={utilitySlot} />
+        <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+            <TopRow items={top} utilitySlot={utilitySlot} />
             <Divider />
-            <Group component="nav" aria-label="Main navigation" wrap="nowrap">
+            <Group
+                component="nav"
+                aria-label="Main navigation"
+                wrap="nowrap"
+                style={{ overflowX: 'auto', scrollbarWidth: 'none' }}
+            >
                 {mainNav}
             </Group>
         </Stack>

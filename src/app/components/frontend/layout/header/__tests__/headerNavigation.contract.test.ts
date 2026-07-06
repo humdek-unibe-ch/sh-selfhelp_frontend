@@ -15,7 +15,16 @@ function menuItem(partial: Partial<INavigationMenuItem>): INavigationMenuItem {
         id: 1,
         item_type: 'page',
         label: 'Home',
+        description: null,
+        aria_label: null,
+        icon: null,
+        mobile_icon: null,
         position: 0,
+        layer: null,
+        external_url: null,
+        page: null,
+        is_active: true,
+        children_nav: null,
         children: [],
         ...partial,
     };
@@ -24,10 +33,10 @@ function menuItem(partial: Partial<INavigationMenuItem>): INavigationMenuItem {
 function navigationPayload(headerItems: INavigationMenuItem[]): INavigationPayload {
     return {
         menus: {
-            web_header: { key: 'web_header', platform: 'web', surface: 'header', preset: 'dropdown', items: headerItems },
-            web_footer: { key: 'web_footer', platform: 'web', surface: 'footer', items: [] },
-            mobile_drawer: { key: 'mobile_drawer', platform: 'mobile', surface: 'drawer', items: [] },
-            mobile_bottom_tabs: { key: 'mobile_bottom_tabs', platform: 'mobile', surface: 'bottom_tabs', items: [] },
+            web_header: { key: 'web_header', platform: 'web', surface: 'header', preset: 'dropdown', max_depth: null, item_limit: null, children_nav: 'sidebar', show_breadcrumbs: false, items: headerItems },
+            web_footer: { key: 'web_footer', platform: 'web', surface: 'footer', preset: 'columns', max_depth: 2, item_limit: null, children_nav: null, show_breadcrumbs: false, items: [] },
+            mobile_drawer: { key: 'mobile_drawer', platform: 'mobile', surface: 'drawer', preset: null, max_depth: null, item_limit: null, children_nav: null, show_breadcrumbs: false, items: [] },
+            mobile_bottom_tabs: { key: 'mobile_bottom_tabs', platform: 'mobile', surface: 'bottom_tabs', preset: null, max_depth: 2, item_limit: 5, children_nav: null, show_breadcrumbs: false, items: [] },
         },
         startup: {
             web_guest_start_page: null,

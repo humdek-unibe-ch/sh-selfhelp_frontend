@@ -1,0 +1,77 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/* Top-level nav trigger: padded pill with hover + active states. */
+.navTrigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-text);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 100ms ease, color 100ms ease;
+}
+
+.navTrigger:hover {
+    background-color: var(--mantine-color-default-hover);
+}
+
+.navTrigger[data-active='true'] {
+    background-color: var(--mantine-color-blue-light);
+    color: var(--mantine-color-blue-light-color);
+}
+
+/* Rows inside a dropdown panel. */
+.dropdownRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-text);
+    text-decoration: none;
+    transition: background-color 100ms ease;
+}
+
+.dropdownRow:hover {
+    background-color: var(--mantine-color-default-hover);
+}
+
+/* Cells inside the mega menu grid. */
+.megaItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--mantine-radius-md);
+    color: var(--mantine-color-text);
+    text-decoration: none;
+    transition: background-color 100ms ease;
+}
+
+.megaItem:hover {
+    background-color: var(--mantine-color-default-hover);
+}
+
+/* Slim links in the top utility row of double presets. */
+.topRowLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-dimmed);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 100ms ease, color 100ms ease;
+}
+
+.topRowLink:hover {
+    background-color: var(--mantine-color-default-hover);
+    color: var(--mantine-color-text);
+}

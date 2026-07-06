@@ -4,13 +4,19 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
-import { WEB_HEADER_PRESET_VALUES, type INavigationMenu, type INavigationMenuItem } from '@selfhelp/shared';
+import {
+    WEB_HEADER_PRESET_VALUES,
+    type INavigationMenu,
+    type INavigationMenuItem,
+    type TWebHeaderPreset,
+} from '@selfhelp/shared';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 import { WebsiteHeaderRenderer } from '../WebsiteHeaderRenderer';
 
 vi.mock('next/navigation', () => ({
     useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
     useSearchParams: () => ({ get: () => null }),
+    usePathname: () => '/',
 }));
 
 vi.mock('../../../../../../hooks/useAuth', () => ({
@@ -31,23 +37,35 @@ vi.mock('../../../shared/common', () => ({
     IconComponent: () => null,
 }));
 
-function item(label: string, id: number): INavigationMenuItem {
+function item(label: string, id: number, layer: 'top' | null = null): INavigationMenuItem {
     return {
         id,
         item_type: 'page',
         label,
+        description: null,
+        aria_label: null,
+        icon: null,
+        mobile_icon: null,
         position: id,
+        layer,
+        external_url: null,
         page: { id: 100 + id, keyword: label.toLowerCase(), url: `/${label.toLowerCase()}`, title: label },
+        is_active: true,
+        children_nav: null,
         children: [],
     };
 }
 
-function menuWithPreset(preset: string): INavigationMenu {
+function menuWithPreset(preset: TWebHeaderPreset): INavigationMenu {
     return {
         key: 'web_header',
         platform: 'web',
         surface: 'header',
         preset,
+        max_depth: null,
+        item_limit: null,
+        children_nav: 'sidebar',
+        show_breadcrumbs: false,
         items: [item('About', 1), item('Contact', 2)],
     };
 }
@@ -135,5 +153,31 @@ describe('WebsiteHeaderRenderer', () => {
             expect(screen.getByRole('link', { name: /About/i })).toBeInTheDocument();
             unmount();
         }
+    });
+
+    it('splits top-layer items into the secondary row for double presets', () => {
+        const menu = menuWithPreset('double-dropdown');
+        menu.items = [item('About', 1), item('Support', 2, 'top')];
+
+        renderWithProviders(<WebsiteHeaderRenderer menu={menu} />);
+
+        const topNav = screen.getByRole('navigation', { name: /Secondary navigation/i });
+        const mainNav = screen.getByRole('navigation', { name: /Main navigation/i });
+        expect(topNav).toContainElement(screen.getByRole('link', { name: /Support/i }));
+        expect(mainNav).toContainElement(screen.getByRole('link', { name: /About/i }));
+    });
+
+    it('merges top-layer items into the single row for single presets', () => {
+        const menu = menuWithPreset('dropdown');
+        menu.items = [item('Support', 1, 'top'), item('About', 2)];
+
+        renderWithProviders(<WebsiteHeaderRenderer menu={menu} />);
+
+        expect(screen.queryByRole('navigation', { name: /Secondary navigation/i })).not.toBeInTheDocument();
+        const mainNav = screen.getByRole('navigation', { name: /Main navigation/i });
+        const links = screen.getAllByRole('link');
+        expect(mainNav).toContainElement(screen.getByRole('link', { name: /Support/i }));
+        // Main-layer items render first, top-layer items are appended.
+        expect(links.map((link) => link.textContent)).toEqual(['About', 'Support']);
     });
 });
