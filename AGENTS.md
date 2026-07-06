@@ -196,6 +196,19 @@ CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` t
 - Be careful with dynamic Tailwind class generation, mobile class prefixing, and HTML sanitization.
 - Unknown or unsupported CMS styles should continue to render through the existing `UnknownStyle` path.
 
+## Navigation System Rules
+
+Navigation is a cross-repo contract: the backend `GET /navigation` payload (menus `web_header` / `web_footer` / `mobile_drawer` / `mobile_bottom_tabs` + `settings` + `branding`) is typed in `@selfhelp/shared` and rendered here. Backend reference: `sh-selfhelp_backend/docs/developer/29-navigation-menu-builder.md`.
+
+- **Loading:** `useAppNavigation` is the single navigation source (React Query; SSR-seeded, Mercure/refresh aware). Never fetch or reshape the payload ad hoc; consume `navigation.menus[key]`, `navigation.branding`, `navigation.settings`.
+- **Header rendering:** `WebsiteHeaderLayout` + `WebsiteHeaderRenderer` render `web_header` by `preset` (`simple` | `dropdown` | `mega-menu` | `tabs` | `double-dropdown` | `double-mega-menu`). Double presets split root items by `layer` (`'top'` utility row vs main row) via the shared `headerLayers` helpers; single presets merge them. Items support three levels — grandchildren render as indented sub-links inside dropdown/mega panels (`SubLinkList`); `item.description` renders in dropdown rows and mega cells. Respect `max_depth` via the shared `clampMenuItemsAtDepth`; never hand-roll depth logic.
+- **Branding:** `HeaderBrand` renders the configured logo (`branding.logo_url` via `getAssetUrl`, link to `branding.link_url`, fallback text + home). Do not hardcode brand text/logo in headers.
+- **Child-page navigation (branch nav):** pages with menu children use the shared `branchNav` helpers to resolve the effective mode (item override → menu default): `sidebar` | `pills` | `none`, plus `show_breadcrumbs` and the `show_pager` toggles (menu default + per-item override) for the prev/next pager cards. The renderers live under `src/app/components/frontend/layout/branch-nav/`.
+- **Admin builder:** `src/app/components/cms/navigation/` (`NavigationBuilderPage`, items list + dnd, item modals, settings panel, export/import panel, structural preview). Menu writes go through `AdminNavigationApi` and must patch the overview cache (`patchNavigationOverview`) + schedule the public refresh (`schedulePublicNavigationRefresh`).
+- **Admin navbar:** `AdminNavbar` groups pages by menu membership using `useAdminNavigationPreview(menuKey)`; every link id is namespaced (`web_header:31`, `system:login`, `nav:users`) — keep ids namespaced to avoid React key collisions.
+- **Live preview parity:** `LivePreviewWebPane` must render the real `WebsiteHeaderLayout` (same presets, branding, headless handling) — never a simplified copy. The mobile preview pane relies on menu data being available to the preview token (backend `MobilePreviewAccessGuard` allows `navigation_get_v1`).
+- **Bundles/examples:** navigation example bundles live in `examples/navigation/` (canonical; backend mirrors under `tests/fixtures/examples/`). Update `menu-demo.bundle.json` in both repos when the bundle contract changes.
+
 ## Accessibility Rules
 - Treat accessibility as a default requirement for all public and admin UI work, not as an optional follow-up.
 - Prefer semantic HTML first; use the correct native element before adding ARIA roles or custom keyboard behavior.
