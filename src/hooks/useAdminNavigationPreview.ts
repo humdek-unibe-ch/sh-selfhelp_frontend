@@ -37,7 +37,9 @@ function transformResolvedItems(items: IResolvedMenuItem[], menuKey: string): IA
         return {
             label: item.label ?? keyword,
             link: item.page ? `/admin/pages/${item.page.keyword}` : '#',
-            id: item.page?.id ?? item.id,
+            // Namespaced per menu: page ids repeat across menus (and can equal
+            // menu-item ids), which produced duplicate React keys in the navbar.
+            id: `${menuKey}:${item.id}`,
             menuBuilderLink: menuItemId !== null
                 ? `/admin/navigation?menu=${encodeURIComponent(menuKey)}&item=${menuItemId}`
                 : undefined,
