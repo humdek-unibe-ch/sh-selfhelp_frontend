@@ -191,7 +191,7 @@ describe('NavigationExportImportPanel', () => {
 
         await user.click(within(dialog).getByRole('button', { name: /^Import navigation$/i }));
         expect(mutateAsync).toHaveBeenCalledWith({ bundle, options: expect.objectContaining({
-            keywordPrefix: 'qa-demo-',
+            keywordPrefix: '',
             menuPolicies: expect.objectContaining({ web_header: 'replace' }),
         }) });
     });

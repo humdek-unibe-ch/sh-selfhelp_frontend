@@ -219,7 +219,7 @@ export function NavigationExportImportPanel({
             setValidation(null);
             notifications.show({
                 title: 'Demo bundle loaded',
-                message: 'Review the demo import options (replace all menus, prefix qa-demo-, routes under /demo) before validating.',
+                message: 'Review the demo import options (replace all menus, demo-* page keywords, routes under /demo) before validating.',
                 color: 'blue',
             });
         } catch {
@@ -537,7 +537,7 @@ export function NavigationExportImportPanel({
 
                             <TextInput
                                 label="Keyword prefix"
-                                description="Applied to page keywords during import (e.g. qa-demo-)."
+                                description="Prepended to embedded page keywords to avoid collisions (leave empty when the bundle already namespaces them)."
                                 value={importOptions.keywordPrefix ?? ''}
                                 onChange={(event) => {
                                     setImportOptions((current) => ({
@@ -608,7 +608,7 @@ export function NavigationExportImportPanel({
                                     </Button>
                                 </Group>
                                 <Text size="xs" c="dimmed">
-                                    Demo reset sets all menus to replace, prefix <Code>qa-demo-</Code>, and route prefix <Code>/demo</Code>.
+                                    Demo reset sets all menus to replace, keeps the bundle&apos;s <Code>demo-*</Code> keywords, and routes under <Code>/demo</Code>.
                                 </Text>
                                 {MENU_TABS.map((tab) => (
                                     <Radio.Group

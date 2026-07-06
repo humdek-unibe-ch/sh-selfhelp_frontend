@@ -69,8 +69,10 @@ export const DEFAULT_IMPORT_OPTIONS: INavigationImportOptions = {
     },
 };
 
+// The demo bundle's pages are already namespaced (`demo-*` keywords), so the
+// demo preset applies no extra keyword prefix — only the `/demo` route prefix.
 export const DEMO_IMPORT_OPTIONS: INavigationImportOptions = {
-    keywordPrefix: 'qa-demo-',
+    keywordPrefix: '',
     routePrefix: '/demo',
     missingPagesMode: 'strict',
     menuPolicies: {

@@ -41,7 +41,7 @@ for the per-file catalog and the prompt contract.
 
 | Bundle | Purpose |
 | --- | --- |
-| [`menu-demo.bundle.json`](./navigation/menu-demo.bundle.json) | 20-page realistic mini-site with all four menus wired (dropdown header, grouped footer, mobile drawer, bottom tabs). Import with optional `keyword_prefix` (e.g. `qa-demo-`) to avoid clashes. |
+| [`menu-demo.bundle.json`](./navigation/menu-demo.bundle.json) | 22-page realistic mini-site with all four menus wired (dropdown header with mega-menu descriptions and a three-level Services > Training branch, grouped footer, mobile drawer, bottom tabs). Pages ship namespaced `demo-*` keywords (no prefix needed); routes default under `/demo`. |
 
 ## cms-in-cms/
 
