@@ -14,6 +14,79 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.59 — 2026-07-06
+
+Navigation overhaul — strict contract v2, no backward compatibility. Pairs with
+core `0.1.33` and `@selfhelp/shared` `2.0.0` (breaking major).
+
+### Added
+- **Header top row (double presets)** — `web_header` root items with
+  `layer: 'top'` render as the upper utility-row links on `double-dropdown` /
+  `double-mega-menu`; single presets merge both rows deterministically (main
+  first, then top) via shared `splitHeaderLayers` / `mergeHeaderLayers`.
+- **Builder layer sections** — the menu builder shows separate "Top row" /
+  "Main row" sections for double header presets with drag between rows and
+  "Move to top/main row" item actions; top-row items cannot have children.
+- **Footer preset picker** — `web_footer` layout (`columns` / `inline`) is a
+  typed preset with shared options/labels; `inline` flattens groups to one link
+  row via shared `flattenFooterItems`.
+- **Presentation fields** — item modals edit per-language `label`,
+  `description`, and `aria_label`; the public payload always carries them.
+- **Item-limit counter** — the bottom-tabs builder tab shows the root-item
+  count against the menu `item_limit`.
+- **Burger top-row section** — the mobile burger drawer renders main items,
+  then a divider and the top-row links.
+- **Branch navigation layout (sidebar / pills / breadcrumbs / pager)** — pages
+  inside a menu branch render with a sticky left sidebar (collapses to a pill
+  strip on small screens), an optional breadcrumb trail, and prev/next pager
+  cards with the neighbour pages' translated titles. Driven by the new
+  `children_nav` (menu default + per-item override) and `show_breadcrumbs`
+  contract via shared `resolveWebBranchNavContext`; configured in the menu
+  builder (web header tab + item edit modal).
+- **Corner admin edit button** — admins get a floating edit button stacked
+  under the debug button (top-left) on every public page that jumps straight
+  to `/admin/pages/{keyword}` for the page being viewed; hidden in preview and
+  on admin routes.
+- **Header search across languages** — search hits now come from all
+  languages (deduped per page, request-language title preferred) and render as
+  rich options (title + snippet + type badge) keyed by unique page keywords —
+  fixing the Mantine "Duplicate options" crash on same-title pages.
+- **Titled page pickers** — the add-existing-page picker, child checkboxes,
+  and start-page selectors label pages with their localized title (two-line
+  option: title + URL/keyword) instead of raw keywords.
+- **Landing templates in the example gallery** — the `hero-home` bundle is
+  rebuilt as a full headless landing page (hero split, stats, six feature
+  cards, how-it-works, quote, CTA; de-CH + en-GB, dark/light safe) and a new
+  `mobile-onboarding` guest onboarding bundle ships alongside it.
+
+### Changed
+- Header/footer/burger rendering and active states now come from
+  `@selfhelp/shared` `2.0.0` (`isMenuItemActiveOnWeb`, footer helpers,
+  `isDoubleWebHeaderPreset`); local duplicates were deleted.
+- Navigation bundle export/import panel accepts only the strict
+  `selfhelp/navigation-bundle` **v2.0** (menus with `preset` / `max_depth` /
+  `item_limit`, items with `layer`, translations with `aria_label`).
+- Admin navigation API types are strict: menu definitions carry `key`,
+  `is_system`, `preset`, `max_depth`, `item_limit`; items carry `layer`,
+  `children_nav`.
+- **Mega menu + dropdown restyle** — hover-card panels with icon tiles,
+  two-line entries, proper spacing/radius, and active-state pills on the
+  top-level triggers (new `WebsiteHeaderRenderer.module.css`).
+- **Utility cluster grouping** — language, theme toggle, and profile now sit
+  together in the header (both single- and double-row presets); the standalone
+  admin header button is replaced by the corner edit button.
+- Live Preview web→mobile sync resolves nested page URLs to their real CMS
+  keyword via the navigation route list (off-menu pages open as modal pages on
+  mobile instead of failing to load by path).
+
+### Removed
+- `config` handling on menus (`config.footer_layout` replaced by the preset).
+- Child-source / auto-include UI assumptions and the legacy
+  `src/types/navigation/navigation.types.ts` vocabulary file.
+- v1.0 bundle import support and fixtures.
+- The pill-tab-only child-page navigation (now one of the `children_nav`
+  modes) and the old header `AdminButton`.
+
 ## v0.1.58 — 2026-07-01
 
 ### Added
