@@ -82,8 +82,15 @@ export default function DynamicPageClient({
 
     // React Query is the single source of truth for "language change in
     // flight": a language switch invalidates `page-by-keyword`, which
-    // surfaces here as `useIsFetching` > 0.
-    const pendingLangFetches = useIsFetching({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
+    // surfaces here as `useIsFetching` > 0. Only OBSERVED queries count —
+    // hover prefetches (`usePagePrefetch`) share the same key prefix but have
+    // no observers, and counting them toggled `data-language-changing` on
+    // every link hover, which applied the min-height guard and made the
+    // footer jump ("flash") while the prefetch was in flight.
+    const pendingLangFetches = useIsFetching({
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL,
+        predicate: (query) => query.getObserversCount() > 0,
+    });
     const isLanguageChanging = pendingLangFetches > 0;
 
     const pageId = pageContent?.id ?? initialPageId;
