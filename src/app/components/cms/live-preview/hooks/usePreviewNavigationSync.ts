@@ -38,6 +38,12 @@ export interface IUsePreviewNavigationSyncOptions {
     currentPrefsRef: RefObject<IPreviewPreferences>;
     /** Push the shared theme to the frame (from `usePreviewPreferenceSync`). */
     sendPreferencesMobile: (prefs: IPreviewPreferences) => void;
+    /**
+     * Optional path→keyword resolver (defaults to `keywordFromPreviewPath`
+     * without a page list). The shell passes one backed by the navigation
+     * payload so nested page URLs map to their real CMS keyword.
+     */
+    resolveKeyword?: (path: string) => string | null;
 }
 
 export interface IUsePreviewNavigationSyncResult {
@@ -58,6 +64,7 @@ export function usePreviewNavigationSync(
         setCurrentKeyword,
         currentPrefsRef,
         sendPreferencesMobile,
+        resolveKeyword,
     } = opts;
 
     // Loop guard: when the shell pushes a NAVIGATE to the mobile frame it records
@@ -85,13 +92,13 @@ export function usePreviewNavigationSync(
     // page and drive the mobile frame to match.
     const handleWebNavigate = useCallback(
         (path: string) => {
-            const kw = keywordFromPreviewPath(path);
+            const kw = resolveKeyword ? resolveKeyword(path) : keywordFromPreviewPath(path);
             if (kw === currentKeywordRef.current) return;
             currentKeywordRef.current = kw;
             setCurrentKeyword(kw);
             sendNavigateMobile(kw);
         },
-        [sendNavigateMobile, currentKeywordRef, setCurrentKeyword],
+        [sendNavigateMobile, currentKeywordRef, setCurrentKeyword, resolveKeyword],
     );
 
     // Synchronized navigation FROM mobile: when the mobile frame reports it

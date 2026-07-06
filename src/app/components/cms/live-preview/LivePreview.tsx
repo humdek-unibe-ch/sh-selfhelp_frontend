@@ -79,6 +79,7 @@ import { useMobilePreviewSession } from './hooks/useMobilePreviewSession';
 import { usePreviewPreferenceSync } from './hooks/usePreviewPreferenceSync';
 import { usePreviewNavigationSync } from './hooks/usePreviewNavigationSync';
 import { usePreviewUrlMirror } from './hooks/usePreviewUrlMirror';
+import { keywordFromPreviewPath } from './utils/previewKeyword';
 import { previewDiagLog } from '../../../../utils/preview-diag';
 
 /**
@@ -254,6 +255,12 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         mobileMessageOrigin,
         mobileIframeRef,
     });
+    // Nested page URLs (`/demo/legal/imprint`) must map back to the page's real
+    // CMS keyword (`imprint`) so both panes address the SAME page.
+    const resolvePreviewKeyword = useCallback(
+        (path: string) => keywordFromPreviewPath(path, navRoutes),
+        [navRoutes],
+    );
     const { handleWebNavigate } = usePreviewNavigationSync({
         previewActive,
         mobileMessageOrigin,
@@ -262,6 +269,7 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         setCurrentKeyword,
         currentPrefsRef,
         sendPreferencesMobile,
+        resolveKeyword: resolvePreviewKeyword,
     });
 
     // Mirror the canonical page into the shell's own address bar (history only).
