@@ -4,9 +4,9 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { ActionIcon, Autocomplete, Loader, Modal, Stack } from '@mantine/core';
+import { ActionIcon, Autocomplete, Group, Loader, Modal, Stack, Text } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { IconSearch } from '@tabler/icons-react';
+import { IconFileText, IconSearch } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -22,10 +22,18 @@ interface ISearchHit {
     keyword?: string;
     url?: string | null;
     title?: string;
+    snippet?: string | null;
 }
 
 interface ISearchResponse {
     results: ISearchHit[];
+}
+
+/** Autocomplete option backed by a search hit; `value` is the unique keyword. */
+interface ISearchOption {
+    value: string;
+    label: string;
+    hit: ISearchHit;
 }
 
 function searchEndpointForMode(
@@ -40,11 +48,34 @@ function searchEndpointForMode(
     return API_CONFIG.ENDPOINTS.SEARCH_PAGES;
 }
 
+/**
+ * Dedupe hits into options keyed by the page keyword (unique per page), so
+ * two pages sharing a visible title ("Impressum" in header + footer) can
+ * never produce duplicate Autocomplete values.
+ */
+function buildSearchOptions(hits: ISearchHit[]): ISearchOption[] {
+    const seen = new Set<string>();
+    const options: ISearchOption[] = [];
+    for (const hit of hits) {
+        const value = hit.keyword || (hit.page_id != null ? `page-${hit.page_id}` : '');
+        if (!value || seen.has(value)) {
+            continue;
+        }
+        seen.add(value);
+        options.push({
+            value,
+            label: hit.title || hit.keyword || value,
+            hit,
+        });
+    }
+    return options;
+}
+
 interface IHeaderSearchFieldProps {
     query: string;
     onQueryChange: (value: string) => void;
     onNavigate: (value: string) => void;
-    options: string[];
+    options: ISearchOption[];
     loading: boolean;
     compact?: boolean;
 }
@@ -57,17 +88,49 @@ function HeaderSearchField({
     loading,
     compact = false,
 }: IHeaderSearchFieldProps): React.ReactElement {
+    const optionByValue = useMemo(
+        () => new Map(options.map((option) => [option.value, option])),
+        [options],
+    );
+
     return (
         <Autocomplete
             placeholder="Search"
-            data={options}
+            data={options.map(({ value, label }) => ({ value, label }))}
             value={query}
             onChange={onQueryChange}
             onOptionSubmit={onNavigate}
-            rightSection={loading ? <Loader size={16} /> : null}
+            // The backend already filtered; matching option values (keywords)
+            // against the typed title text would wrongly drop results.
+            filter={({ options: comboboxOptions }) => comboboxOptions}
+            renderOption={({ option }) => {
+                const searchOption = optionByValue.get(option.value);
+                const hit = searchOption?.hit;
+                return (
+                    <Group gap="sm" wrap="nowrap" align="flex-start">
+                        <IconFileText size={16} style={{ marginTop: 2, opacity: 0.6, flexShrink: 0 }} />
+                        <Stack gap={2} style={{ minWidth: 0 }}>
+                            <Text size="sm" fw={500} lineClamp={1}>
+                                {searchOption?.label ?? option.value}
+                            </Text>
+                            {hit?.snippet ? (
+                                <Text size="xs" c="dimmed" lineClamp={2}>
+                                    {hit.snippet}
+                                </Text>
+                            ) : hit?.url ? (
+                                <Text size="xs" c="dimmed" lineClamp={1}>
+                                    {hit.url}
+                                </Text>
+                            ) : null}
+                        </Stack>
+                    </Group>
+                );
+            }}
+            rightSection={loading ? <Loader size={16} /> : <IconSearch size={16} style={{ opacity: 0.5 }} />}
             w={compact ? '100%' : 220}
             size="sm"
             autoFocus={compact}
+            comboboxProps={{ width: compact ? undefined : 320, position: 'bottom-end', shadow: 'md' }}
         />
     );
 }
@@ -117,10 +180,7 @@ export function HeaderSearch(): React.ReactElement | null {
         [searchMode, menuHits, remoteHits],
     );
 
-    const options = useMemo(
-        () => hits.map((hit: ISearchHit) => hit.title || hit.keyword || '').filter(Boolean),
-        [hits],
-    );
+    const options = useMemo(() => buildSearchOptions(hits), [hits]);
 
     if (currentLanguageId <= 0 || searchMode === 'off') {
         return null;
@@ -129,10 +189,12 @@ export function HeaderSearch(): React.ReactElement | null {
     const loading = searchMode === 'menu_pages' ? false : isFetching;
 
     const navigateToHit = (value: string) => {
-        const hit = hits.find((row: ISearchHit) => (row.title || row.keyword) === value);
+        const option = options.find((row) => row.value === value);
+        const hit = option?.hit;
         const href = hit?.url || (hit?.keyword ? `/${hit.keyword}` : null);
         if (href) {
             router.push(href);
+            setQuery('');
             close();
         }
     };
