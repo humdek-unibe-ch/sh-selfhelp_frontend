@@ -5,10 +5,11 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { Group } from '@mantine/core';
-import { resolveWebHeaderPreset, type INavigationMenu } from '@selfhelp/shared';
+import { isDoubleWebHeaderPreset, resolveWebHeaderPreset, type INavigationMenu } from '@selfhelp/shared';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
 import { AuthButton } from '../../../shared/auth/AuthButton';
 import { LanguageSelector } from '../../../shared/common/LanguageSelector';
+import { ThemeToggle } from '../../../shared/common/ThemeToggle';
 import { HeaderSearch } from './HeaderSearch';
 import { WebsiteHeaderMenu } from './WebsiteHeaderMenu';
 import type { IPageItem } from '../../../../../shared';
@@ -18,11 +19,13 @@ interface IWebsiteHeaderNavRowProps {
     initialProfilePages?: IPageItem[];
 }
 
+/** Top-row utility cluster: search, then language + theme + profile grouped together. */
 function HeaderUtilitySlot({ initialProfilePages = [] }: { initialProfilePages?: IPageItem[] }) {
     return (
         <Group gap="sm" wrap="nowrap" justify="flex-end">
             <HeaderSearch />
             <LanguageSelector />
+            <ThemeToggle />
             <AuthButton initialProfilePages={initialProfilePages} />
         </Group>
     );
@@ -39,7 +42,7 @@ export function WebsiteHeaderNavRow({
     const { headerMenu: liveHeaderMenu } = useAppNavigation();
     const menu = liveHeaderMenu ?? initialHeaderMenu;
     const preset = resolveWebHeaderPreset(menu?.preset);
-    const isDouble = preset === 'double-dropdown' || preset === 'double-mega-menu';
+    const isDouble = isDoubleWebHeaderPreset(preset);
 
     if (isDouble) {
         return (

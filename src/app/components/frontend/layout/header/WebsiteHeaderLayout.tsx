@@ -7,7 +7,6 @@ SPDX-License-Identifier: MPL-2.0
 import { Container, Flex, Group, Text } from '@mantine/core';
 import { resolveWebHeaderPreset, type INavigationMenu } from '@selfhelp/shared';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
-import { AdminButton } from '../../../shared/auth/AdminButton';
 import { AuthButton } from '../../../shared/auth/AuthButton';
 import { LanguageSelector } from '../../../shared/common/LanguageSelector';
 import { ThemeToggle } from '../../../shared/common/ThemeToggle';
@@ -31,27 +30,29 @@ export function WebsiteHeaderLayout({
 
     return (
         <Container size="xl" h="100%">
-            <Flex justify="space-between" align="center" h="100%">
-                <Text size="xl" fw={700} c="blue" className="cursor-pointer">
+            <Flex justify="space-between" align="center" h="100%" gap="md">
+                <Text size="xl" fw={700} c="blue" className="cursor-pointer" style={{ whiteSpace: 'nowrap' }}>
                     Your Logo
                 </Text>
 
-                <Group gap="md" visibleFrom="md" style={{ flex: 1 }}>
+                <Group gap="md" visibleFrom="md" style={{ flex: 1, minWidth: 0 }}>
                     <WebsiteHeaderNavRow
                         initialHeaderMenu={menu}
                         initialProfilePages={initialProfilePages}
                     />
                 </Group>
 
-                <Group gap="sm">
-                    <AdminButton />
+                {/* Utility cluster: language + theme + profile grouped together.
+                    Double presets host this cluster in the top utility row
+                    (HeaderUtilitySlot), so here only the burger remains. */}
+                <Group gap="sm" wrap="nowrap">
                     {!isDouble ? (
                         <>
-                            <AuthButton initialProfilePages={initialProfilePages} />
                             <LanguageSelector />
+                            <ThemeToggle />
+                            <AuthButton initialProfilePages={initialProfilePages} />
                         </>
                     ) : null}
-                    <ThemeToggle />
                     <BurgerMenuClient initialHeaderMenu={menu} />
                 </Group>
             </Flex>

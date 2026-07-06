@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import type { ReactNode } from 'react';
-import { Burger, Drawer, NavLink, Stack } from '@mantine/core';
+import { Burger, Divider, Drawer, NavLink, Stack } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -13,6 +13,8 @@ import {
     type INavigationMenuItem,
     getNavigationItemHref,
     getNavigationItemLabel,
+    isMenuItemActiveOnWeb,
+    splitHeaderLayers,
 } from '@selfhelp/shared';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import IconComponent from './IconComponent';
@@ -20,15 +22,6 @@ import IconComponent from './IconComponent';
 interface IBurgerMenuClientProps {
     /** Server-resolved `web_header` menu for first paint. */
     initialHeaderMenu?: INavigationMenu | null;
-}
-
-function isItemActive(item: INavigationMenuItem, pathname: string): boolean {
-    const href = getNavigationItemHref(item);
-    if (href && (pathname === href || pathname.startsWith(`${href}/`))) {
-        return true;
-    }
-
-    return (item.children ?? []).some((child) => isItemActive(child, pathname));
 }
 
 function BurgerNavTree({
@@ -51,7 +44,7 @@ function BurgerNavTree({
             (child) => child.item_type === 'external_url' || child.page != null || child.item_type === 'group',
         );
         const iconName = item.icon ?? null;
-        const active = isItemActive(item, pathname);
+        const active = isMenuItemActiveOnWeb(item, pathname);
         const handleNavigate = href
             ? () => {
                 onNavigate();
@@ -110,6 +103,17 @@ export function BurgerMenuClient({ initialHeaderMenu = null }: IBurgerMenuClient
         return null;
     }
 
+    // Main navigation first; top-row utility links follow after a divider.
+    const { top, main } = splitHeaderLayers(items);
+
+    const handleNavigateHref = (href: string) => {
+        if (href.startsWith('http://') || href.startsWith('https://')) {
+            window.location.assign(href);
+            return;
+        }
+        router.push(href);
+    };
+
     return (
         <>
             <Burger opened={opened} onClick={toggle} size="sm" hiddenFrom="md" aria-label="Open navigation menu" />
@@ -122,17 +126,22 @@ export function BurgerMenuClient({ initialHeaderMenu = null }: IBurgerMenuClient
             >
                 <Stack gap={4}>
                     <BurgerNavTree
-                        items={items}
+                        items={main}
                         pathname={pathname}
                         onNavigate={close}
-                        onNavigateHref={(href) => {
-                            if (href.startsWith('http://') || href.startsWith('https://')) {
-                                window.location.assign(href);
-                                return;
-                            }
-                            router.push(href);
-                        }}
+                        onNavigateHref={handleNavigateHref}
                     />
+                    {top.length > 0 ? (
+                        <>
+                            <Divider my={4} />
+                            <BurgerNavTree
+                                items={top}
+                                pathname={pathname}
+                                onNavigate={close}
+                                onNavigateHref={handleNavigateHref}
+                            />
+                        </>
+                    ) : null}
                 </Stack>
             </Drawer>
         </>

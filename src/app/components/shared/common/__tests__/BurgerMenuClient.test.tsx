@@ -32,13 +32,26 @@ vi.mock('../IconComponent', () => ({
     default: () => null,
 }));
 
-function item(label: string, id: number, children: INavigationMenuItem[] = []): INavigationMenuItem {
+function item(
+    label: string,
+    id: number,
+    children: INavigationMenuItem[] = [],
+    layer: 'top' | null = null,
+): INavigationMenuItem {
     return {
         id,
         item_type: 'page',
         label,
+        description: null,
+        aria_label: null,
+        icon: null,
+        mobile_icon: null,
         position: id,
+        layer,
+        external_url: null,
         page: { id: 100 + id, keyword: label.toLowerCase(), url: `/${label.toLowerCase()}`, title: label },
+        is_active: true,
+        children_nav: null,
         children,
     };
 }
@@ -48,9 +61,14 @@ const headerMenu: INavigationMenu = {
     platform: 'web',
     surface: 'header',
     preset: 'dropdown',
+    max_depth: null,
+    item_limit: null,
+    children_nav: 'sidebar',
+    show_breadcrumbs: false,
     items: [
         item('About', 1, [item('Team', 2)]),
         item('Contact', 3),
+        item('Support', 4, [], 'top'),
     ],
 };
 
@@ -77,5 +95,18 @@ describe('BurgerMenuClient', () => {
         expect(screen.getByText('About')).toBeInTheDocument();
         expect(screen.getByText('Team')).toBeInTheDocument();
         expect(screen.getByText('Contact')).toBeInTheDocument();
+    });
+
+    it('lists top-layer links after the main tree in the drawer', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(<BurgerMenuClient initialHeaderMenu={headerMenu} />);
+
+        await user.click(screen.getByLabelText('Open navigation menu'));
+
+        await waitFor(() => {
+            expect(screen.getByRole('dialog', { name: /menu/i })).toBeInTheDocument();
+        });
+        const labels = screen.getAllByText(/About|Contact|Support/).map((node) => node.textContent);
+        expect(labels.indexOf('Support')).toBeGreaterThan(labels.indexOf('Contact'));
     });
 });
