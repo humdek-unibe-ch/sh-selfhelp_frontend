@@ -14,6 +14,12 @@ SPDX-License-Identifier: MPL-2.0
  *    skip-conflicts, activate-routes), dry-run validate (errors/warnings +
  *    preview), then confirm the import.
  *
+ * The import flow accepts BOTH bundle formats: plain `selfhelp/page-bundle`
+ * files go through the pages import endpoint, while `selfhelp/navigation-bundle`
+ * files (e.g. the shipped menu demo) are routed to the navigation import
+ * endpoint so their embedded pages AND menu structure are created together —
+ * a navigation bundle imported here never silently drops its menus.
+ *
  * @module app/components/cms/pages/admin-pages-list/PageExportImportModal
  */
 
@@ -50,8 +56,10 @@ import {
     IconWand,
     IconX,
 } from '@tabler/icons-react';
+import { NAVIGATION_BUNDLE_FORMAT } from '@selfhelp/shared';
 import { AdminApi } from '../../../../../api/admin';
-import { useImportPagesMutation } from '../../../../../hooks/mutations';
+import { AdminNavigationApi } from '../../../../../api/admin/navigation.api';
+import { useImportNavigationMutation, useImportPagesMutation } from '../../../../../hooks/mutations';
 import { useGroups } from '../../../../../hooks/useGroups';
 import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import {
@@ -60,6 +68,10 @@ import {
     type IPageImportOptions,
     type IPageImportValidationReport,
 } from '../../../../../types/requests/admin/page-export-import.types';
+import {
+    type INavigationBundle,
+    type INavigationImportOptions,
+} from '../../../../../types/requests/admin/navigation-export-import.types';
 import { parseApiError } from '../../../../../utils/mutation-error-handler';
 
 interface IPageExportImportModalProps {
@@ -69,6 +81,13 @@ interface IPageExportImportModalProps {
 }
 
 type TPageImportOptions = IPageImportOptions;
+
+type TImportableBundle = IPageBundle | INavigationBundle;
+
+/** Navigation bundles carry menus and must go through the navigation importer. */
+function isNavigationBundle(candidate: TImportableBundle | null): candidate is INavigationBundle {
+    return candidate?.format === NAVIGATION_BUNDLE_FORMAT;
+}
 
 export function PageExportImportModal({ opened, onClose, pages }: IPageExportImportModalProps) {
     const [activeTab, setActiveTab] = useState<string>('export');
@@ -87,7 +106,7 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
 
     // ---- Import state ----
     const [importFile, setImportFile] = useState<File | null>(null);
-    const [bundle, setBundle] = useState<IPageBundle | null>(null);
+    const [bundle, setBundle] = useState<TImportableBundle | null>(null);
     const [parseError, setParseError] = useState<string | null>(null);
     const [keywordPrefix, setKeywordPrefix] = useState('');
     const [routePrefix, setRoutePrefix] = useState('');
@@ -99,6 +118,14 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
     const [validateError, setValidateError] = useState<string | null>(null);
 
     const importMutation = useImportPagesMutation({
+        onSuccess: () => {
+            handleClose();
+        },
+    });
+
+    // Navigation bundles (menus + embedded pages) go through the navigation
+    // importer so the imported pages end up wrapped in the menu structure.
+    const importNavigationMutation = useImportNavigationMutation({
         onSuccess: () => {
             handleClose();
         },
@@ -119,6 +146,21 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
             routePrefix: routePrefix.trim() || undefined,
             skipConflictingRoutes,
             activateRoutes,
+            accessGroups: accessGroups.length > 0 ? accessGroups.map(Number) : undefined,
+        }),
+        [keywordPrefix, routePrefix, skipConflictingRoutes, activateRoutes, accessGroups]
+    );
+
+    // Prefixes are sent verbatim (empty string = "no prefix") so the visible
+    // inputs stay authoritative even when the bundle ships import_hints —
+    // the hints are used to PRE-FILL the inputs, never applied silently.
+    const navigationImportOptions: INavigationImportOptions = useMemo(
+        () => ({
+            keywordPrefix: keywordPrefix.trim(),
+            routePrefix: routePrefix.trim(),
+            skipConflictingRoutes,
+            activateRoutes,
+            missingPagesMode: 'strict',
             accessGroups: accessGroups.length > 0 ? accessGroups.map(Number) : undefined,
         }),
         [keywordPrefix, routePrefix, skipConflictingRoutes, activateRoutes, accessGroups]
@@ -182,13 +224,22 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
     function handleUseExample(example: IPageExampleBundle) {
         resetImportState();
         setBundle(example.bundle);
-        // Keyword prefix only — keep keywords unique without a route prefix. A
-        // route prefix would rewrite the page routes but NOT the in-bundle
-        // navigation links (e.g. a list item linking to "/cms/team-members/{id}"),
-        // so the demo's internal links would 404. With no route prefix the
-        // bundle's own routes/links stay self-consistent and resolve immediately.
-        setKeywordPrefix(`demo_${example.id.replace(/-/g, '_')}_`);
-        setRoutePrefix('');
+        if (isNavigationBundle(example.bundle)) {
+            // Navigation bundles ship their own tested prefixes (the menu item
+            // keywords and embedded page routes must stay in sync, and the
+            // backend applies the SAME prefix to both) — seed the inputs from
+            // the bundle's import hints so what runs is what the user sees.
+            setKeywordPrefix(example.bundle.import_hints?.default_keyword_prefix ?? '');
+            setRoutePrefix(example.bundle.import_hints?.default_route_prefix ?? '');
+        } else {
+            // Keyword prefix only — keep keywords unique without a route prefix. A
+            // route prefix would rewrite the page routes but NOT the in-bundle
+            // navigation links (e.g. a list item linking to "/cms/team-members/{id}"),
+            // so the demo's internal links would 404. With no route prefix the
+            // bundle's own routes/links stay self-consistent and resolve immediately.
+            setKeywordPrefix(`demo_${example.id.replace(/-/g, '_')}_`);
+            setRoutePrefix('');
+        }
         setActiveTab('import');
     }
 
@@ -250,7 +301,16 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
         if (!file) return;
         try {
             const text = await file.text();
-            const parsed = JSON.parse(text) as IPageBundle;
+            const parsed = JSON.parse(text) as TImportableBundle;
+            if (isNavigationBundle(parsed)) {
+                // Navigation bundle: menus (+ optionally embedded pages). Seed
+                // the prefix inputs from its import hints so validate/import
+                // run with the bundle's tested defaults.
+                setBundle(parsed);
+                setKeywordPrefix(parsed.import_hints?.default_keyword_prefix ?? '');
+                setRoutePrefix(parsed.import_hints?.default_route_prefix ?? '');
+                return;
+            }
             if (!parsed || !Array.isArray(parsed.pages)) {
                 setParseError('The selected file is not a valid page bundle (missing "pages" array).');
                 return;
@@ -267,8 +327,21 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
         setValidateError(null);
         setReport(null);
         try {
-            const result = await AdminApi.validateImportPages(bundle, importOptions);
-            setReport(result);
+            if (isNavigationBundle(bundle)) {
+                const result = await AdminNavigationApi.validateNavigationImport(bundle, navigationImportOptions);
+                setReport({
+                    valid: result.valid,
+                    issues: result.issues.map((issue) => ({
+                        level: issue.level,
+                        code: issue.code,
+                        message: issue.menu_key ? `[${issue.menu_key}] ${issue.message}` : issue.message,
+                        page_keyword: issue.page_keyword ?? null,
+                    })),
+                });
+            } else {
+                const result = await AdminApi.validateImportPages(bundle, importOptions);
+                setReport(result);
+            }
         } catch (error) {
             setValidateError(parseApiError(error).errorMessage);
         } finally {
@@ -278,13 +351,20 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
 
     function handleImport() {
         if (!bundle) return;
+        if (isNavigationBundle(bundle)) {
+            importNavigationMutation.mutate({ bundle, options: navigationImportOptions });
+            return;
+        }
         importMutation.mutate({ bundle, options: importOptions });
     }
 
-    const bundlePageCount = bundle?.pages.length ?? 0;
+    const bundleIsNavigation = isNavigationBundle(bundle);
+    const bundlePageCount = bundle?.pages?.length ?? 0;
+    const bundleMenuCount = bundleIsNavigation ? Object.keys(bundle.menus ?? {}).length : 0;
     const errorCount = report?.issues.filter((issue) => issue.level === 'error').length ?? 0;
     const warningCount = report?.issues.filter((issue) => issue.level === 'warning').length ?? 0;
     const canImport = report?.valid === true && bundle !== null;
+    const isImporting = importMutation.isPending || importNavigationMutation.isPending;
 
     // Footer actions are tab-specific (the Examples tab acts per-card in the body),
     // rendered in the shared ModalWrapper footer so the header/body/footer chrome
@@ -320,9 +400,9 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
                 </Button>
                 <Button
                     color="green"
-                    disabled={!canImport || importMutation.isPending}
+                    disabled={!canImport || isImporting}
                     leftSection={
-                        importMutation.isPending ? <Loader size="0.9rem" /> : <IconUpload size="0.9rem" />
+                        isImporting ? <Loader size="0.9rem" /> : <IconUpload size="0.9rem" />
                     }
                     onClick={handleImport}
                 >
@@ -388,7 +468,7 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
                     <Stack gap="md">
                         <FileInput
                             label="Bundle file"
-                            description="Upload a page bundle JSON exported from this or another SelfHelp instance."
+                            description="Upload a page bundle or navigation bundle JSON exported from this or another SelfHelp instance."
                             placeholder="Choose a .json bundle"
                             accept="application/json,.json"
                             leftSection={<IconFileImport size="0.9rem" />}
@@ -406,9 +486,25 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
                         {bundle && (
                             <Alert color="blue" variant="light">
                                 <Text size="sm">
-                                    Bundle loaded: <strong>{bundlePageCount}</strong> page(s)
+                                    {bundleIsNavigation ? (
+                                        <>
+                                            Navigation bundle loaded: <strong>{bundleMenuCount}</strong> menu(s)
+                                            {' · '}<strong>{bundlePageCount}</strong> embedded page(s)
+                                        </>
+                                    ) : (
+                                        <>
+                                            Bundle loaded: <strong>{bundlePageCount}</strong> page(s)
+                                        </>
+                                    )}
                                     {bundle.core_version ? ` · exported from core ${bundle.core_version}` : ''}
                                 </Text>
+                                {bundleIsNavigation && (
+                                    <Text size="xs" c="dimmed" mt={4}>
+                                        Importing creates the pages first, then wraps them into the
+                                        web header/footer and mobile drawer/tab menus carried by the
+                                        bundle. Admins always get full access to the imported pages.
+                                    </Text>
+                                )}
                             </Alert>
                         )}
 
@@ -563,6 +659,11 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
                                             <Badge variant="light" color="blue">
                                                 {example.page_count} page(s)
                                             </Badge>
+                                            {isNavigationBundle(example.bundle) && (
+                                                <Badge variant="light" color="grape">
+                                                    navigation + pages
+                                                </Badge>
+                                            )}
                                         </Group>
                                         {example.description && (
                                             <Text size="sm" c="dimmed">

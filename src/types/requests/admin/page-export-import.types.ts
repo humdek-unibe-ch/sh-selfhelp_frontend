@@ -13,6 +13,8 @@ SPDX-License-Identifier: MPL-2.0
  * @module types/requests/admin/page-export-import.types
  */
 
+import type { INavigationBundle } from './navigation-export-import.types';
+
 /** A portable export bundle of one or more pages. */
 export interface IPageBundle {
     format: string;
@@ -63,14 +65,15 @@ export interface IPageImportResult {
 }
 
 /**
- * A shipped, ready-made example page bundle returned by
- * `GET /admin/pages/examples`. The `bundle` field is a full {@link IPageBundle}
- * that loads straight into the existing validate/import flow.
+ * A shipped, ready-made example bundle returned by `GET /admin/pages/examples`.
+ * The `bundle` field is either a full {@link IPageBundle} or a
+ * `selfhelp/navigation-bundle` (navigation examples embed their pages); the
+ * modal routes each format to the matching validate/import endpoint.
  */
 export interface IPageExampleBundle {
     id: string;
     title: string;
     description: string;
     page_count: number;
-    bundle: IPageBundle;
+    bundle: IPageBundle | INavigationBundle;
 }

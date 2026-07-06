@@ -65,9 +65,11 @@ import { NavigationExportImportPanel } from '../NavigationExportImportPanel';
 
 const bundle: INavigationBundle = {
     format: 'selfhelp/navigation-bundle',
-    version: '1.0',
+    version: '2.0',
     menus: {
-        web_header: { items: [{ ref: 'home', page_keyword: 'demo-home' }] },
+        web_header: {
+            items: [{ ref: 'home', parent_ref: null, item_type: 'page', position: 10, page_keyword: 'demo-home' }],
+        },
     },
 };
 

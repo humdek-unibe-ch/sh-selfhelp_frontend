@@ -171,7 +171,7 @@ export function NavigationExportImportPanel({
         try {
             const parsed = JSON.parse(text) as unknown;
             if (!isNavigationBundle(parsed)) {
-                setParseError('The JSON is not a valid navigation bundle (missing "menus" object).');
+                setParseError('The JSON is not a valid selfhelp/navigation-bundle v2.0 (check "format", "version", and "menus").');
                 return;
             }
             setBundle(parsed);

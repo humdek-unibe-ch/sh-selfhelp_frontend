@@ -2,6 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+import { NAVIGATION_BUNDLE_FORMAT, isNavigationBundleVersionSupported } from '@selfhelp/shared';
 import type {
     INavigationBundle,
     INavigationImportIssue,
@@ -88,8 +89,11 @@ export function isNavigationBundle(value: unknown): value is INavigationBundle {
     if (!value || typeof value !== 'object') {
         return false;
     }
-    const candidate = value as INavigationBundle;
-    return typeof candidate.menus === 'object' && candidate.menus !== null;
+    const candidate = value as Partial<INavigationBundle>;
+    return candidate.format === NAVIGATION_BUNDLE_FORMAT
+        && isNavigationBundleVersionSupported(candidate.version)
+        && typeof candidate.menus === 'object'
+        && candidate.menus !== null;
 }
 
 export function navigationExportFilename(): string {

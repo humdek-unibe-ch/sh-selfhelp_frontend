@@ -50,7 +50,11 @@ describe('useImportNavigationMutation', () => {
         });
 
         result.current.mutate({
-            bundle: { menus: { web_header: { items: [] } } },
+            bundle: {
+                format: 'selfhelp/navigation-bundle',
+                version: '2.0',
+                menus: { web_header: { items: [] } },
+            },
             options: { missingPagesMode: 'strict' },
         });
 

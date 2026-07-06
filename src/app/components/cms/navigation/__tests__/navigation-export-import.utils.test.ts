@@ -13,22 +13,29 @@ import {
 
 const sampleBundle: INavigationBundle = {
     format: 'selfhelp/navigation-bundle',
-    version: '1.0',
+    version: '2.0',
     menus: {
         web_header: {
-            items: [{ ref: 'a' }, { ref: 'b' }],
+            items: [
+                { ref: 'a', parent_ref: null, item_type: 'page', position: 10, page_keyword: 'demo-home' },
+                { ref: 'b', parent_ref: null, item_type: 'page', position: 20, page_keyword: 'demo-about' },
+            ],
         },
         mobile_drawer: {
-            items: [{ ref: 'c' }],
+            items: [
+                { ref: 'c', parent_ref: null, item_type: 'page', position: 10, page_keyword: 'demo-home' },
+            ],
         },
     },
     pages: [{ keyword: 'demo-home' }],
 };
 
 describe('navigation-export-import.utils', () => {
-    it('detects navigation bundles by menus object', () => {
+    it('detects strict v2.0 navigation bundles only', () => {
         expect(isNavigationBundle(sampleBundle)).toBe(true);
         expect(isNavigationBundle({ pages: [] })).toBe(false);
+        expect(isNavigationBundle({ ...sampleBundle, version: '1.0' })).toBe(false);
+        expect(isNavigationBundle({ ...sampleBundle, format: 'other' })).toBe(false);
     });
 
     it('counts menu items across menus', () => {

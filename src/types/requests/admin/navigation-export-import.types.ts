@@ -3,11 +3,16 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 
-export type TNavigationMenuKey =
-    | 'web_header'
-    | 'web_footer'
-    | 'mobile_drawer'
-    | 'mobile_bottom_tabs';
+import type { TNavigationMenuKey } from '@selfhelp/shared';
+
+export type { TNavigationMenuKey };
+
+/** Strict `selfhelp/navigation-bundle` v2.0 contract (shared with mobile). */
+export type {
+    INavigationBundle,
+    INavigationBundleItem as INavigationBundleMenuItem,
+    INavigationBundleMenu,
+} from '@selfhelp/shared';
 
 export type TNavigationExportMode = 'full_snapshot' | 'branch';
 export type TNavigationMissingPagesMode = 'strict' | 'skip_missing' | 'create_stubs';
@@ -40,33 +45,10 @@ export interface INavigationImportOptions {
     importSettings?: boolean;
     /** Group ids granted access to embedded pages (admin always has full access). */
     accessGroups?: number[];
-}
-
-export interface INavigationBundleMenuItem {
-    ref: string;
-    parent_ref?: string | null;
-    item_type?: string;
-    page_keyword?: string;
-    [key: string]: unknown;
-}
-
-export interface INavigationBundleMenu {
-    items?: INavigationBundleMenuItem[];
-    [key: string]: unknown;
-}
-
-export interface INavigationBundle {
-    format?: string;
-    version?: string;
-    export_mode?: string;
-    import_hints?: {
-        default_keyword_prefix?: string;
-        default_route_prefix?: string;
-    };
-    menus: Record<string, INavigationBundleMenu>;
-    settings?: Record<string, unknown>;
-    pages?: unknown[];
-    [key: string]: unknown;
+    /** Skip embedded-page routes that collide with existing routes instead of aborting. */
+    skipConflictingRoutes?: boolean;
+    /** When false, embedded-page routes are created inactive (default true). */
+    activateRoutes?: boolean;
 }
 
 export interface INavigationImportIssue {
