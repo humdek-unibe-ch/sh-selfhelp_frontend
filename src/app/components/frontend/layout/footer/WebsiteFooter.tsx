@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 "use server";
-import { Box, Container, Stack, Text } from '@mantine/core';
+import { Box, Container } from '@mantine/core';
 import styles from './WebsiteFooter.module.css';
 import { resolveLanguageSSR, getFooterMenuSSR } from '../../../../_lib/server-fetch';
 import { FooterLinks } from './FooterLinks';
@@ -24,15 +24,9 @@ export async function WebsiteFooter() {
     const footerMenu = await getFooterMenuSSR(languageId);
 
     return (
-        <Box component="footer" w="100%" py="xl" className={styles.footer}>
+        <Box component="footer" w="100%" py={{ base: 'lg', sm: 'xl' }} className={styles.footer}>
             <Container size="xl">
-                <Stack gap="lg">
-                    <FooterLinks footerMenu={footerMenu} />
-
-                    <Text size="sm" c="dimmed" ta="center">
-                        © {new Date().getFullYear()} SelfHelp. All rights reserved.
-                    </Text>
-                </Stack>
+                <FooterLinks footerMenu={footerMenu} />
             </Container>
         </Box>
     );

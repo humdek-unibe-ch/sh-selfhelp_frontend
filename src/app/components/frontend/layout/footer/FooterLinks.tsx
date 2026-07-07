@@ -4,7 +4,8 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { Anchor, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Accordion, Anchor, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import {
     type INavigationMenu,
     type INavigationMenuItem,
@@ -19,6 +20,10 @@ import {
 } from '../../../../../shared';
 import { usePagePrefetch } from '../../../../../hooks/usePagePrefetch';
 import { InternalLink } from '../../../shared';
+import classes from './FooterLinks.module.css';
+
+/** Below Mantine `sm` — stack meta links and collapse column groups. */
+const MOBILE_FOOTER_QUERY = '(max-width: 48em)';
 
 interface IFooterLinkProps {
     item: INavigationMenuItem;
@@ -35,7 +40,14 @@ function FooterLink({ item, createHoverPrefetch }: IFooterLinkProps): React.Reac
 
     if (item.item_type === 'external_url' && item.external_url) {
         return (
-            <Anchor href={item.external_url} target="_blank" rel="noopener noreferrer" size="sm" aria-label={ariaLabel}>
+            <Anchor
+                href={item.external_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                size="sm"
+                aria-label={ariaLabel}
+                className={classes.link}
+            >
                 {label}
             </Anchor>
         );
@@ -51,8 +63,9 @@ function FooterLink({ item, createHoverPrefetch }: IFooterLinkProps): React.Reac
             href={getNavigationItemHref(item)}
             onMouseEnter={keyword ? createHoverPrefetch(keyword) : undefined}
             aria-label={ariaLabel}
+            className={classes.link}
         >
-            <Text size="sm" component="span">
+            <Text size="sm" component="span" c="inherit">
                 {label}
             </Text>
         </InternalLink>
@@ -66,14 +79,14 @@ interface IFooterColumnProps {
 
 function FooterColumn({ group, createHoverPrefetch }: IFooterColumnProps): React.ReactElement {
     return (
-        <Stack gap="xs" align="flex-start">
-            <Text fw={600} size="sm" aria-label={group.aria_label?.trim() || getNavigationItemLabel(group)}>
+        <Stack gap="xs" align="flex-start" className={classes.column}>
+            <Text fw={600} size="sm" className={classes.columnHeading} aria-label={group.aria_label?.trim() || getNavigationItemLabel(group)}>
                 {getNavigationItemLabel(group)}
             </Text>
             {group.description ? (
                 <Text size="xs" c="dimmed">{group.description}</Text>
             ) : null}
-            <Stack gap={4} align="flex-start">
+            <Stack gap={4} align="flex-start" className={classes.columnLinks}>
                 {footerGroupLinks(group).map((child) => (
                     <FooterLink
                         key={String(child.id)}
@@ -86,6 +99,50 @@ function FooterColumn({ group, createHoverPrefetch }: IFooterColumnProps): React
     );
 }
 
+interface IFooterMobileAccordionProps {
+    columns: INavigationMenuItem[];
+    createHoverPrefetch: (keyword: string) => (() => void) | undefined;
+}
+
+function FooterMobileAccordion({ columns, createHoverPrefetch }: IFooterMobileAccordionProps): React.ReactElement {
+    return (
+        <Accordion
+            multiple
+            chevronPosition="right"
+            classNames={{
+                root: classes.mobileAccordion,
+                item: classes.mobileAccordionItem,
+                control: classes.mobileAccordionControl,
+                label: classes.mobileAccordionLabel,
+                panel: classes.mobileAccordionPanel,
+                content: classes.mobileAccordionContent,
+            }}
+        >
+            {columns.map((group) => (
+                <Accordion.Item key={String(group.id)} value={String(group.id)}>
+                    <Accordion.Control aria-label={group.aria_label?.trim() || getNavigationItemLabel(group)}>
+                        {getNavigationItemLabel(group)}
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                        <Stack gap={4} align="flex-start">
+                            {group.description ? (
+                                <Text size="xs" c="dimmed">{group.description}</Text>
+                            ) : null}
+                            {footerGroupLinks(group).map((child) => (
+                                <FooterLink
+                                    key={String(child.id)}
+                                    item={child}
+                                    createHoverPrefetch={createHoverPrefetch}
+                                />
+                            ))}
+                        </Stack>
+                    </Accordion.Panel>
+                </Accordion.Item>
+            ))}
+        </Accordion>
+    );
+}
+
 /**
  * Renders the global `web_footer` menu using its preset:
  * `columns` — group headings become columns, standalone links form a trailing
@@ -94,6 +151,7 @@ function FooterColumn({ group, createHoverPrefetch }: IFooterColumnProps): React
  */
 export function FooterLinks({ footerMenu }: { footerMenu: INavigationMenu | null }): React.ReactElement | null {
     const { createHoverPrefetch } = usePagePrefetch();
+    const isMobileFooter = useMediaQuery(MOBILE_FOOTER_QUERY) ?? false;
     const items = footerMenu?.items ?? [];
     const preset = resolveWebFooterPreset(footerMenu?.preset);
 
@@ -103,7 +161,7 @@ export function FooterLinks({ footerMenu }: { footerMenu: INavigationMenu | null
             return null;
         }
         return (
-            <Group gap="lg" wrap="wrap" justify="center">
+            <Group gap="lg" wrap="wrap" justify="center" className={classes.inlineRow}>
                 {links.map((item) => (
                     <FooterLink key={String(item.id)} item={item} createHoverPrefetch={createHoverPrefetch} />
                 ))}
@@ -117,24 +175,35 @@ export function FooterLinks({ footerMenu }: { footerMenu: INavigationMenu | null
         return null;
     }
 
+    const standaloneLinks = standalone.map((item) => (
+        <FooterLink key={String(item.id)} item={item} createHoverPrefetch={createHoverPrefetch} />
+    ));
+
     return (
-        <Stack gap="lg" w="100%">
+        <Stack gap="lg" w="100%" className={classes.columnsLayout}>
             {columns.length > 0 ? (
-                <SimpleGrid cols={{ base: 1, xs: 2, md: Math.max(Math.min(columns.length, 4), 1) }} spacing="lg" w="100%">
-                    {columns.map((group) => (
-                        <FooterColumn
-                            key={String(group.id)}
-                            group={group}
-                            createHoverPrefetch={createHoverPrefetch}
-                        />
-                    ))}
-                </SimpleGrid>
+                isMobileFooter ? (
+                    <FooterMobileAccordion columns={columns} createHoverPrefetch={createHoverPrefetch} />
+                ) : (
+                    <SimpleGrid
+                        cols={{ base: 1, sm: 2, md: Math.max(Math.min(columns.length, 4), 1) }}
+                        spacing={{ base: 'lg', sm: 'lg' }}
+                        w="100%"
+                        className={classes.columnsGrid}
+                    >
+                        {columns.map((group) => (
+                            <FooterColumn
+                                key={String(group.id)}
+                                group={group}
+                                createHoverPrefetch={createHoverPrefetch}
+                            />
+                        ))}
+                    </SimpleGrid>
+                )
             ) : null}
             {standalone.length > 0 ? (
-                <Group gap="lg" wrap="wrap" justify="center">
-                    {standalone.map((item) => (
-                        <FooterLink key={String(item.id)} item={item} createHoverPrefetch={createHoverPrefetch} />
-                    ))}
+                <Group gap="lg" wrap="wrap" justify="center" className={classes.metaRow}>
+                    {standaloneLinks}
                 </Group>
             ) : null}
         </Stack>

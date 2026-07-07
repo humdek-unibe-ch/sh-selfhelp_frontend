@@ -2,11 +2,18 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { INavigationMenu, INavigationMenuItem } from '@selfhelp/shared';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 import { FooterLinks } from '../FooterLinks';
+
+const mockUseMediaQuery = vi.fn(() => false);
+
+vi.mock('@mantine/hooks', () => ({
+    useMediaQuery: () => mockUseMediaQuery(),
+}));
 
 vi.mock('../../../../../../hooks/usePagePrefetch', () => ({
     usePagePrefetch: () => ({ createHoverPrefetch: () => undefined }),
@@ -87,6 +94,10 @@ function footerMenu(preset: 'columns' | 'inline'): INavigationMenu {
 }
 
 describe('FooterLinks', () => {
+    beforeEach(() => {
+        mockUseMediaQuery.mockReturnValue(false);
+    });
+
     it('renders grouped footer columns with headings and nested links', () => {
         renderWithProviders(<FooterLinks footerMenu={footerMenu('columns')} />);
 
@@ -103,6 +114,7 @@ describe('FooterLinks', () => {
         const external = screen.getByRole('link', { name: 'LinkedIn' });
         expect(external).toHaveAttribute('href', 'https://example.com/linkedin');
         expect(external).toHaveAttribute('target', '_blank');
+        expect(external.className).toContain('link');
     });
 
     it('flattens groups into one link row for the inline preset', () => {
@@ -145,5 +157,28 @@ describe('FooterLinks', () => {
         expect(screen.getByRole('link', { name: 'Company LinkedIn profile (external)' }))
             .toHaveAttribute('href', 'https://example.com/linkedin');
         expect(screen.getByText('How to reach us')).toBeInTheDocument();
+    });
+
+    it('renders collapsible column groups on mobile viewports', async () => {
+        mockUseMediaQuery.mockReturnValue(true);
+        const user = userEvent.setup();
+        renderWithProviders(<FooterLinks footerMenu={footerMenu('columns')} />);
+
+        const supportToggle = screen.getByRole('button', { name: 'Support' });
+        const legalToggle = screen.getByRole('button', { name: 'Legal' });
+        expect(supportToggle).toHaveAttribute('aria-expanded', 'false');
+        expect(legalToggle).toHaveAttribute('aria-expanded', 'false');
+
+        await user.click(supportToggle);
+        expect(supportToggle).toHaveAttribute('aria-expanded', 'true');
+        expect(legalToggle).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('keeps standalone links in a horizontal meta row on mobile viewports', () => {
+        mockUseMediaQuery.mockReturnValue(true);
+        renderWithProviders(<FooterLinks footerMenu={footerMenu('columns')} />);
+
+        expect(screen.getByRole('link', { name: 'LinkedIn' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Support' })).toBeInTheDocument();
     });
 });
