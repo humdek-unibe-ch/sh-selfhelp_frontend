@@ -191,6 +191,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
             onClose={onClose}
             title={mode === 'create' ? 'Create New User' : 'Edit User'}
             size="xl"
+            disableScroll
             onSave={handleSave}
             onCancel={onClose}
             isLoading={isSubmitting}
