@@ -80,6 +80,10 @@ interface INavigationSettingsFormState {
 
     logo_link_page_id: number | null;
 
+    logo_size: string;
+
+    logo_variant: string;
+
 }
 
 
@@ -119,6 +123,10 @@ function settingsToFormState(settings: Record<string, unknown>): INavigationSett
         logo_alt: typeof settings.logo_alt === 'string' && settings.logo_alt !== '' ? settings.logo_alt : null,
 
         logo_link_page_id: settings.logo_link_page_id ? Number(settings.logo_link_page_id) : null,
+
+        logo_size: String(settings.logo_size ?? 'md'),
+
+        logo_variant: String(settings.logo_variant ?? 'logo-and-name'),
 
     };
 
@@ -161,6 +169,10 @@ function formStateToPayload(state: INavigationSettingsFormState): Record<string,
         logo_alt: state.logo_alt,
 
         logo_link_page_id: state.logo_link_page_id,
+
+        logo_size: state.logo_size,
+
+        logo_variant: state.logo_variant,
 
     };
 
@@ -218,7 +230,9 @@ function NavigationSettingsForm({
 
     );
 
-    const { data: assetsData } = useAssets({ pageSize: 500 });
+    // fresh: newly uploaded assets appear in the picker without a full
+    // browser refresh (refetch on mount + window focus).
+    const { data: assetsData } = useAssets({ pageSize: 500 }, { fresh: true });
 
     const imageAssetOptions = useMemo(() => {
 
@@ -397,6 +411,60 @@ function NavigationSettingsForm({
                                     value={formState.logo_link_page_id ? String(formState.logo_link_page_id) : null}
 
                                     onChange={(value) => update('logo_link_page_id', value ? Number(value) : null)}
+
+                                    disabled={readOnly}
+
+                                />
+
+                            </Group>
+
+                            <Group grow align="flex-start">
+
+                                <Select
+
+                                    label="Logo size"
+
+                                    description="Rendered height in the header / drawer."
+
+                                    data={[
+
+                                        { value: 'sm', label: 'Small (24 px)' },
+
+                                        { value: 'md', label: 'Medium (32 px)' },
+
+                                        { value: 'lg', label: 'Large (44 px)' },
+
+                                        { value: 'xl', label: 'Extra large (56 px)' },
+
+                                    ]}
+
+                                    value={formState.logo_size}
+
+                                    onChange={(value) => update('logo_size', value ?? 'md')}
+
+                                    disabled={readOnly}
+
+                                />
+
+                                <Select
+
+                                    label="Logo display"
+
+                                    description="How logo and site name are combined."
+
+                                    data={[
+
+                                        { value: 'logo-and-name', label: 'Logo + name' },
+
+                                        { value: 'logo-only', label: 'Logo only' },
+
+                                        { value: 'name-only', label: 'Name only' },
+
+                                    ]}
+
+                                    value={formState.logo_variant}
+
+                                    onChange={(value) => update('logo_variant', value ?? 'logo-and-name')}
 
                                     disabled={readOnly}
 
