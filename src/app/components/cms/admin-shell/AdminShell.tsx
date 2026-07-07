@@ -57,7 +57,7 @@ export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProp
         <>
             <AppShell
                 navbar={{
-                    width: 300,
+                    width: 340,
                     breakpoint: 'sm',
                     // `mobile`: burger toggle (transient, useDisclosure).
                     // `desktop`: persisted user pref in the UI store so the

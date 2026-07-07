@@ -5,51 +5,96 @@ SPDX-License-Identifier: MPL-2.0
 .navbar {
   background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
   height: 100%;
-  width: 300px;
-  padding: var(--mantine-spacing-md);
-  padding-bottom: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  overflow: hidden;
 }
 
 .header {
-  padding: var(--mantine-spacing-md);
-  padding-top: 0;
-  margin-left: calc(var(--mantine-spacing-md) * -1);
-  margin-right: calc(var(--mantine-spacing-md) * -1);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
   color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-bottom: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
 }
 
 .links {
   flex: 1;
-  margin-left: calc(var(--mantine-spacing-md) * -1);
-  margin-right: calc(var(--mantine-spacing-md) * -1);
+  min-height: 0;
 }
 
 .linksInner {
-  padding-top: var(--mantine-spacing-sm);
-  padding-bottom: var(--mantine-spacing-xl);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-sm) var(--mantine-spacing-xl);
 }
 
-.section + .section {
-  margin-top: var(--mantine-spacing-md);
-  padding-top: var(--mantine-spacing-sm);
-  border-top: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+/* --- Accordion group styling (multiple open, quiet & compact) ------------- */
+.accordionRoot {
+  --accordion-radius: var(--mantine-radius-md);
 }
 
-.sectionLabel {
-  padding: 4px var(--mantine-spacing-md) 6px;
-  font-size: 11px;
+.accordionItem {
+  border: none;
+  background: transparent;
+}
+
+.accordionItem + .accordionItem {
+  margin-top: 2px;
+}
+
+.accordionControlRow {
+  display: flex;
+  align-items: center;
+  border-radius: var(--mantine-radius-md);
+
+  &:hover {
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
+  }
+}
+
+.accordionControl {
+  padding: 0 var(--mantine-spacing-xs);
+  min-height: 38px;
+  border-radius: var(--mantine-radius-md);
+  background: transparent !important;
+
+  &:hover {
+    background: transparent !important;
+  }
+}
+
+.accordionLabel {
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  padding-top: 8px;
+  padding-bottom: 8px;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+}
+
+.accordionIcon {
+  display: inline-flex;
+  align-items: center;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
+}
+
+.accordionChevron {
+  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
+}
+
+.accordionActions {
+  padding-right: 6px;
+  flex-shrink: 0;
+}
+
+.accordionPanel {
+  padding: 0;
+}
+
+.accordionContent {
+  padding: 2px 0 8px;
 }
 
 .footer {
-  margin-left: calc(var(--mantine-spacing-md) * -1);
-  margin-right: calc(var(--mantine-spacing-md) * -1);
   border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
 }

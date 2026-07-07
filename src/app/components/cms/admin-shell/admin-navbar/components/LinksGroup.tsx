@@ -11,12 +11,9 @@ import {
   Collapse,
   Text,
   UnstyledButton,
-  ActionIcon,
-  Tooltip,
 } from '@mantine/core';
-import { IconChevronRight, IconRoute } from '@tabler/icons-react';
+import { IconChevronRight } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
-import { MenuItemIcon } from '../../../navigation/MenuItemIcon';
 import classes from './LinksGroup.module.css';
 import { useIsClient } from '../../../../../../hooks/useIsClient';
 
@@ -104,6 +101,37 @@ function usePersistedDisclosure(
   return [opened, setOpened] as const;
 }
 
+/**
+ * A standalone top-level navbar link (e.g. Dashboard) rendered outside the
+ * accordion, styled to align with the accordion controls.
+ */
+export function NavDirectLink({ label, icon, link, active }: {
+  label: string;
+  icon?: React.ReactNode;
+  link: string;
+  active?: boolean;
+}) {
+  const router = useRouter();
+  return (
+    <UnstyledButton
+      component="a"
+      href={link}
+      className={classes.directLink}
+      data-active={active || undefined}
+      onClick={(e: React.MouseEvent) => {
+        if (e.button === 1 || e.ctrlKey || e.metaKey) return;
+        e.preventDefault();
+        router.push(link);
+      }}
+    >
+      <Group gap={10} wrap="nowrap">
+        <Box className={classes.directLinkIcon}>{icon}</Box>
+        <span>{label}</span>
+      </Group>
+    </UnstyledButton>
+  );
+}
+
 interface ILinksGroupProps {
   icon?: React.ReactNode;
   label: string;
@@ -140,13 +168,13 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
       window.open(href, '_blank');
       return;
     }
-    
+
     // If there's a custom click handler, use it
     if (clickHandler) {
       clickHandler();
       return;
     }
-    
+
     // Only navigate if it's not just a '#' placeholder
     if (href && href !== '#') {
       router.push(href);
@@ -187,49 +215,28 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
       }
 
       return (
-        <Group key={item.id || item.label} gap={4} wrap="nowrap" className={getNestedLinkClass(level)}>
-          {item.menuIcon && item.menuPlatform ? (
-            <Box style={{ flexShrink: 0, display: 'inline-flex', marginLeft: 4 }}>
-              <MenuItemIcon iconName={item.menuIcon} platform={item.menuPlatform} size={14} />
-            </Box>
-          ) : null}
-          <Text<'a'>
-            component="a"
-            className={`${classes.link}`}
-            href={item.link}
-            data-active={isItemActive}
-            style={{ flex: 1 }}
-            onClick={(e) => {
+        <Text<'a'>
+          component="a"
+          key={item.id || item.label}
+          className={`${classes.link} ${getNestedLinkClass(level)}`}
+          href={item.link}
+          data-active={isItemActive}
+          onClick={(e) => {
+            e.preventDefault();
+            handleItemClick(item.link, item.onClick, e);
+          }}
+          onMouseDown={(e: React.MouseEvent) => {
+            if (e.button === 1) {
               e.preventDefault();
-              handleItemClick(item.link, item.onClick, e);
-            }}
-            onMouseDown={(e: React.MouseEvent) => {
-              if (e.button === 1) {
-                e.preventDefault();
-                window.open(item.link, '_blank');
-              }
-            }}
-            onContextMenu={(e: React.MouseEvent) => {
-              e.stopPropagation();
-            }}
-          >
-            {item.label}
-          </Text>
-          {item.menuBuilderLink ? (
-            <Tooltip label="Edit in menu builder">
-              <ActionIcon
-                component="a"
-                href={item.menuBuilderLink}
-                variant="subtle"
-                size="sm"
-                aria-label="Edit in menu builder"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <IconRoute size={14} />
-              </ActionIcon>
-            </Tooltip>
-          ) : null}
-        </Group>
+              window.open(item.link, '_blank');
+            }
+          }}
+          onContextMenu={(e: React.MouseEvent) => {
+            e.stopPropagation();
+          }}
+        >
+          {item.label}
+        </Text>
       );
     });
   };
@@ -243,11 +250,14 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
           {/* Main clickable area for navigation */}
           <UnstyledButton
             onClick={() => {
-              // Always handle navigation/selection for main area
+              // Groups without a real link toggle on the whole row —
+              // the chevron alone is a small hit target.
               if (link && link !== '#') {
                 handleItemClick(link, onClick);
               } else if (onClick) {
                 onClick();
+              } else if (hasLinks) {
+                setOpened((o: boolean) => !o);
               }
             }}
             onMouseDown={(e: React.MouseEvent) => {
@@ -266,11 +276,11 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
             className={classes.nestedLink}
           >
             <Box className={classes.iconContainer}>
-              <Box mr="md">{icon}</Box>
+              {icon ? <Box className={classes.groupIcon}>{icon}</Box> : null}
               <Box>{label}</Box>
             </Box>
           </UnstyledButton>
-          
+
           {/* Separate clickable area for expand/collapse */}
           {hasLinks && (
             <UnstyledButton
@@ -282,7 +292,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
             >
               <IconChevronRight
                 className={`${classes.chevron} ${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}
-                size="1rem"
+                size="0.9rem"
                 stroke={1.5}
               />
             </UnstyledButton>
@@ -310,6 +320,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
   const router = useRouter();
   const storageKey = `navbar-nested-${label.replace(/\s+/g, '-').toLowerCase()}-${level}-opened`;
   const hasActiveChild = checkForActiveChild(links, pathname);
+  const isActive = link === pathname;
 
   // Deterministic initial state to keep SSR and first client render in sync.
   // See the matching comment in `LinksGroup` above.
@@ -325,13 +336,13 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
       window.open(href, '_blank');
       return;
     }
-    
+
     // If there's a custom click handler, use it
     if (clickHandler) {
       clickHandler();
       return;
     }
-    
+
     // Only navigate if it's not just a '#' placeholder
     if (href && href !== '#') {
       router.push(href);
@@ -392,12 +403,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
             e.stopPropagation();
           }}
         >
-          <Group gap={6} wrap="nowrap">
-            {item.menuIcon && item.menuPlatform ? (
-              <MenuItemIcon iconName={item.menuIcon} platform={item.menuPlatform} size={14} />
-            ) : null}
-            <span>{item.label}</span>
-          </Group>
+          {item.label}
         </Text>
       );
     });
@@ -419,8 +425,9 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
     <>
       <Box
         className={`${classes.link} ${getNestedParentLinkClass(level)}`}
+        data-active={isActive}
       >
-        <Group justify="space-between" gap={0}>
+        <Group justify="space-between" gap={0} wrap="nowrap">
           {/* Main clickable area for navigation */}
           <UnstyledButton
             onClick={() => {
@@ -429,6 +436,8 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
                 handleItemClick(link, onClick, undefined);
               } else if (onClick) {
                 onClick();
+              } else {
+                setOpened((o: boolean) => !o);
               }
             }}
             className={classes.nestedLink}
@@ -446,7 +455,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
           >
             <IconChevronRight
               className={`${classes.chevron} ${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}
-              size="1rem"
+              size="0.9rem"
               stroke={1.5}
             />
           </UnstyledButton>

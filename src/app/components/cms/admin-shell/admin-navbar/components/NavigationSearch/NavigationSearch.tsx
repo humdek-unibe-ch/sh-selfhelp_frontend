@@ -56,6 +56,8 @@ interface IAdminPageData {
     allPages?: Array<{
         keyword: string;
         title?: string;
+        /** Titles per language so search matches any translation. */
+        titles?: Array<{ language_id: number; title: string }>;
         navigationMembership?: INavigationMembershipBadge[];
         is_system: boolean;
         children?: Array<{
@@ -237,10 +239,12 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                 keyword: string;
                 label: string;
                 title?: string;
+                extraTerms?: string[];
                 children?: Array<{
                     keyword: string;
                     label: string;
                     title?: string;
+                    extraTerms?: string[];
                     children?: unknown[];
                 }>;
             }>, categoryName: string) => {
@@ -248,10 +252,12 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                     keyword: string;
                     label: string;
                     title?: string;
+                    extraTerms?: string[];
                     children?: Array<{
                         keyword: string;
                         label: string;
                         title?: string;
+                        extraTerms?: string[];
                         children?: unknown[];
                     }>;
                 }, level: number = 0) => {
@@ -262,7 +268,10 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                         displayName.toLowerCase(),
                         page.keyword,
                         page.label.toLowerCase(),
-                        categoryName.toLowerCase()
+                        categoryName.toLowerCase(),
+                        // Titles in every CMS language, so a page titled
+                        // "Über uns" is found by its title, not just keyword.
+                        ...(page.extraTerms ?? []),
                     ];
 
                     // Only add level-specific keywords for actual submenus (level > 0)
@@ -311,10 +320,12 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                     keyword: string;
                     label: string;
                     title?: string;
+                    extraTerms?: string[];
                     children?: Array<{
                         keyword: string;
                         label: string;
                         title?: string;
+                        extraTerms?: string[];
                         children?: unknown[];
                     }>;
                 }> => {
@@ -323,6 +334,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                         keyword: page.keyword,
                         label: page.title || page.keyword, // Use title as label for display
                         title: page.title,
+                        extraTerms: (page.titles ?? []).map(t => t.title.toLowerCase()),
                         children: page.children ? convertAllPagesToRegularFormat(page.children as typeof adminPagesData.allPages) : undefined
                     }));
                 };

@@ -2,49 +2,89 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+
+/* Standalone top-level link (Dashboard) aligned with accordion controls */
+.directLink {
+  display: block;
+  width: 100%;
+  padding: 8px var(--mantine-spacing-sm);
+  margin-bottom: 4px;
+  border-radius: var(--mantine-radius-md);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-dark-0));
+
+  &:hover {
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
+  }
+
+  &[data-active] {
+    background-color: light-dark(var(--mantine-color-blue-0), rgba(34, 139, 230, 0.15));
+    color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-2));
+  }
+}
+
+.directLinkIcon {
+  display: inline-flex;
+  align-items: center;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
+}
+
+.directLink[data-active] .directLinkIcon {
+  color: inherit;
+}
+
+/* Sub-group header inside an accordion panel (e.g. "Content Pages") */
 .control {
   font-weight: 500;
   display: block;
   width: 100%;
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
-  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+  padding: 6px var(--mantine-spacing-sm);
+  color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-gray-3));
   font-size: var(--mantine-font-size-sm);
   border-radius: var(--mantine-radius-sm);
 
   &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
     color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
   }
 
   &[data-active="true"] {
-    background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-6));
-    color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-2));
+    background-color: light-dark(var(--mantine-color-blue-0), rgba(34, 139, 230, 0.15));
+    color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-2));
     font-weight: 600;
   }
 }
 
+.groupIcon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 10px;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
+}
+
+/* Nested link rows: soft neutral guide rail + pill hover/active states */
 .link {
   font-weight: 400;
   display: block;
   text-decoration: none;
-  padding: 5px var(--mantine-spacing-md);
-  padding-left: 31px;
-  margin-left: var(--mantine-spacing-md);
-  font-size: var(--mantine-font-size-sm);
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
-  border-left: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-radius: var(--mantine-radius-sm);
+  padding: 5px 10px;
+  margin: 1px 0 1px 14px;
+  font-size: 13px;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  border-left: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-top-right-radius: var(--mantine-radius-sm);
+  border-bottom-right-radius: var(--mantine-radius-sm);
 
   &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
     color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
   }
 
   &[data-active="true"] {
-    background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-6));
-    color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-2));
+    background-color: light-dark(var(--mantine-color-blue-0), rgba(34, 139, 230, 0.15));
+    color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-2));
     font-weight: 500;
-    border-left-color: var(--mantine-color-blue-6);
   }
 }
 
@@ -55,45 +95,22 @@ SPDX-License-Identifier: MPL-2.0
 /* Additional styles for inline style conversion */
 .nestedLink {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   padding: 0;
   background-color: transparent;
   border: none;
+  font-size: inherit;
+  color: inherit;
+  font-weight: inherit;
 }
 
 .iconContainer {
   display: flex;
   align-items: center;
-}
-
-.expandIcon {
-  transition: transform 200ms ease;
-}
-
-.actionIcon {
-  opacity: 0.7;
-  transition: opacity 200ms ease;
-}
-
-.actionIcon:hover {
-  opacity: 1;
-}
-
-.linkContainer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.linkText {
-  flex: 1;
-}
-
-.linkIcon {
-  margin-left: auto;
+  min-width: 0;
 }
 
 .chevronButton {
@@ -104,32 +121,33 @@ SPDX-License-Identifier: MPL-2.0
   display: flex;
   align-items: center;
   justify-content: center;
+  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
   transition: background-color 200ms ease;
 }
 
 .chevronButton:hover {
-  background-color: var(--mantine-color-gray-1);
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4));
 }
 
 .chevronIcon {
   transition: transform 200ms ease;
 }
 
-/* Dynamic styles for nested links */
+/* Indentation per nesting level */
 .nestedLinkLevel1 {
-  padding-left: calc(16px + var(--mantine-spacing-md));
+  padding-left: 14px;
 }
 
 .nestedLinkLevel2 {
-  padding-left: calc(32px + var(--mantine-spacing-md));
+  padding-left: 26px;
 }
 
 .nestedLinkLevel3 {
-  padding-left: calc(48px + var(--mantine-spacing-md));
+  padding-left: 38px;
 }
 
 .nestedLinkLevel4 {
-  padding-left: calc(64px + var(--mantine-spacing-md));
+  padding-left: 50px;
 }
 
 /* Chevron rotation states */
@@ -141,23 +159,23 @@ SPDX-License-Identifier: MPL-2.0
   transform: none;
 }
 
-/* Nested parent link styles */
+/* Nested parent link styles (rows that also expand) */
 .nestedParentLink {
-  padding-left: calc(16px + var(--mantine-spacing-md));
+  padding-left: 14px;
   font-weight: 500;
 }
 
 .nestedParentLinkLevel2 {
-  padding-left: calc(32px + var(--mantine-spacing-md));
+  padding-left: 26px;
   font-weight: 500;
 }
 
 .nestedParentLinkLevel3 {
-  padding-left: calc(48px + var(--mantine-spacing-md));
+  padding-left: 38px;
   font-weight: 500;
 }
 
 .nestedParentLinkLevel4 {
-  padding-left: calc(64px + var(--mantine-spacing-md));
+  padding-left: 50px;
   font-weight: 500;
 }

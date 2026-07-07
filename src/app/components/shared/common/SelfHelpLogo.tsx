@@ -9,26 +9,30 @@ import Image from 'next/image';
 
 interface SelfHelpLogoProps {
   size?: number;
+  /**
+   * Compact renders a small logo mark + small product name on one tight row —
+   * used in the admin navbar header where vertical space is precious.
+   */
+  variant?: 'default' | 'compact';
 }
 
-export function SelfHelpLogo({ size = 30 }: SelfHelpLogoProps) {
+export function SelfHelpLogo({ size = 30, variant = 'default' }: SelfHelpLogoProps) {
   const { colorScheme } = useMantineColorScheme();
-  
+
   const logoSrc = colorScheme === 'dark' ? '/assets/images/logo_negative.svg' : '/assets/images/logo.svg';
+  const isCompact = variant === 'compact';
+  const markSize = isCompact ? Math.min(size, 24) : size;
 
   return (
-    <Group gap="xs">
-      <Image 
+    <Group gap={isCompact ? 8 : 'xs'} wrap="nowrap">
+      <Image
         src={logoSrc}
-        alt="SelfHelp Logo" 
-        width={size} 
-        height={size}
+        alt="SelfHelp Logo"
+        width={markSize}
+        height={markSize}
         className="object-contain"
       />
-      <Text 
-        fw={700} 
-        size="xl"
-      >
+      <Text fw={isCompact ? 600 : 700} size={isCompact ? 'sm' : 'xl'} lh={1}>
         SelfHelp
       </Text>
     </Group>

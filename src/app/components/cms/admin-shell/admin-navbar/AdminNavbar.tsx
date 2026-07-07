@@ -4,8 +4,8 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useMemo, useState } from 'react';
-import { ScrollArea, Group, Box, Text } from '@mantine/core';
+import { useEffect, useMemo, useState } from 'react';
+import { ScrollArea, Group, Box, Accordion, ActionIcon, Tooltip } from '@mantine/core';
 import {
     IconDashboard,
     IconUsers,
@@ -24,19 +24,80 @@ import {
     IconLayoutBottombar,
     IconMenu2,
     IconLayoutGrid,
+    IconFiles,
+    IconShieldLock,
 } from '@tabler/icons-react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useAdminNavigationPreview } from '../../../../../hooks/useAdminNavigationPreview';
 import { pageHasMenuMembership, buildMenuPreviewSectionLinks, type IAdminMenuPreviewLink } from '../../../../../utils/admin-navigation-membership';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { usePluginMenuItems } from '../../../frontend/plugin-runtime/PluginsProvider';
-import { LinksGroup } from './components/LinksGroup';
+import { LinksGroup, NavDirectLink } from './components/LinksGroup';
 import { CreatePageModal } from '../../pages/create-page/CreatePage';
 import { CmsAppWizardModal } from '../../pages/admin-pages-list/CmsAppWizardModal';
 import { PageExportImportModal } from '../../pages/admin-pages-list/PageExportImportModal';
 import { SelfHelpLogo, PreviewModeToggle, AuthButton } from '../../../shared';
+import { useIsClient } from '../../../../../hooks/useIsClient';
 import classes from './AdminNavbar.module.css';
 import { NavigationSearch } from './components';
+
+/** One item inside an accordion group panel. */
+type TNavbarItem = {
+    label: string;
+    icon?: React.ReactNode;
+    link?: string;
+    links?: IAdminMenuPreviewLink[];
+    onClick?: () => void;
+    initiallyOpened?: boolean;
+    id: string;
+};
+
+/** One accordion group with optional quick actions rendered in the control row. */
+type TNavbarGroup = {
+    id: string;
+    label: string;
+    icon: React.ReactNode;
+    items: TNavbarItem[];
+    actions?: Array<{ id: string; label: string; icon: React.ReactNode; onClick: () => void }>;
+};
+
+const ACCORDION_STORAGE_KEY = 'admin-navbar-accordion-open';
+const DEFAULT_OPEN_GROUPS = ['pages', 'menus'];
+
+/** Accordion open state persisted across sessions (SSR-safe, applied post-hydration). */
+function usePersistedAccordion(): readonly [string[], (value: string[]) => void] {
+    const hydrated = useIsClient();
+    const [value, setValue] = useState<string[]>(DEFAULT_OPEN_GROUPS);
+    const [restored, setRestored] = useState(false);
+
+    useEffect(() => {
+        if (!hydrated || restored) return;
+        setRestored(true);
+        try {
+            const stored = localStorage.getItem(ACCORDION_STORAGE_KEY);
+            if (stored !== null) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed) && parsed.every((v) => typeof v === 'string')) {
+                    setValue(parsed);
+                }
+            }
+        } catch {
+            // Corrupt value — keep defaults.
+        }
+    }, [hydrated, restored]);
+
+    const update = (next: string[]) => {
+        setValue(next);
+        try {
+            localStorage.setItem(ACCORDION_STORAGE_KEY, JSON.stringify(next));
+        } catch {
+            // Quota / private mode — best-effort.
+        }
+    };
+
+    return [value, update] as const;
+}
 
 export function AdminNavbar() {
     const {
@@ -49,6 +110,8 @@ export function AdminNavbar() {
 
     const { permissionChecker, hasPermission } = useAuth();
     const pluginMenuItems = usePluginMenuItems();
+    const router = useRouter();
+    const pathname = usePathname();
     const { data: headerPreviewLinks = [] } = useAdminNavigationPreview('web_header');
     const { data: footerPreviewLinks = [] } = useAdminNavigationPreview('web_footer');
     const { data: mobileDrawerPreviewLinks = [] } = useAdminNavigationPreview('mobile_drawer');
@@ -57,33 +120,32 @@ export function AdminNavbar() {
     const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
     const [isCmsAppWizardOpen, setIsCmsAppWizardOpen] = useState(false);
     const [isExportImportOpen, setIsExportImportOpen] = useState(false);
+    const [openGroups, setOpenGroups] = usePersistedAccordion();
 
-    // Transform pages data for search component (flat structure now)
+    // Search index: pages searchable by keyword AND by their titles in every
+    // language (the menu shows titles, so search must match them too).
     const adminPagesData = useMemo(() => ({
         configurationPageLinks,
         categorizedSystemPages,
         categorizedRegularPages,
-        // Add raw pages data for search (cast to match expected format)
         allPages: pages?.map(page => ({
             keyword: page.keyword,
-            title: page.keyword,
+            title: page.title ?? page.keyword,
+            titles: page.titles ?? [],
             navigationMembership: page.navigationMembership ?? [],
             is_system: Boolean(page.is_system),
             children: [],
         })) || []
     }), [configurationPageLinks, categorizedSystemPages, categorizedRegularPages, pages]);
 
-
-
-    // Build navigation data as labelled sections: WORKSPACE (day-to-day
-    // tools), PAGES (create + import + content/system/config page lists),
-    // MENUS (one group per navigation menu, mirroring the menu builder), and
-    // SYSTEM (automation, plugins, system tools). Every id is namespaced so
-    // page ids can repeat across sections without React key collisions.
-    const navigationSections = useMemo(() => {
+    // Build the accordion groups: PAGES (content/system/config page lists with
+    // create/wizard/import quick actions), MENUS (one sub-group per navigation
+    // menu, mirroring the menu builder), USERS & ACCESS, CONTENT, AUTOMATION and
+    // SYSTEM. Every id is namespaced so page ids can repeat across groups
+    // without React key collisions.
+    const navbarGroups = useMemo<TNavbarGroup[]>(() => {
         if (isLoading || !permissionChecker) return [];
 
-        // Content-only pages (not in any public menu) from admin membership badges
         const configurationKeywords = new Set(configurationPageLinks?.map(p => p.keyword) || []);
         const contentPages = pages?.filter(page =>
             !pageHasMenuMembership(page.navigationMembership, 'web_header') &&
@@ -94,75 +156,34 @@ export function AdminNavbar() {
             !configurationKeywords.has(page.keyword)
         ) || [];
 
-        type TNavbarItem = {
-            label: string;
-            icon?: React.ReactNode;
-            link?: string;
-            links?: IAdminMenuPreviewLink[];
-            onClick?: () => void;
-            initiallyOpened?: boolean;
-            id: string;
-        };
-        const sections: Array<{ label: string | null; id: string; items: TNavbarItem[] }> = [];
+        const groups: TNavbarGroup[] = [];
 
-        // --- Workspace ---------------------------------------------------
-        const workspace: TNavbarItem[] = [{
-            label: 'Dashboard',
-            icon: <IconDashboard size={16} />,
-            link: '/admin',
-            id: 'dashboard',
-        }];
-
-        if (permissionChecker.canManageUsers()) {
-            const userManagementLinks = [];
-            if (permissionChecker.canReadUsers()) userManagementLinks.push({ label: 'Users', link: '/admin/users', id: 'nav:users' });
-            if (permissionChecker.canReadGroups()) userManagementLinks.push({ label: 'Groups', link: '/admin/groups', id: 'nav:groups' });
-            if (permissionChecker.canReadRoles()) userManagementLinks.push({ label: 'Roles', link: '/admin/roles', id: 'nav:roles' });
-            if (permissionChecker.canReadRegistrationCodes()) userManagementLinks.push({ label: 'Registration Codes', link: '/admin/registration-codes', id: 'nav:registration-codes' });
-            if (userManagementLinks.length > 0) {
-                workspace.push({ label: 'User Management', icon: <IconUsers size={16} />, links: userManagementLinks, id: 'user-management' });
-            }
-        }
-
-        if (permissionChecker.canManageAssets()) {
-            const contentLinks = [];
-            if (permissionChecker.canReadAssets()) contentLinks.push({ label: 'Assets', link: '/admin/assets', id: 'nav:assets' });
-            if (permissionChecker.canDeleteSections()) contentLinks.push({ label: 'Unused Sections', link: '/admin/unused-sections', id: 'nav:unused-sections' });
-            if (contentLinks.length > 0) {
-                workspace.push({ label: 'Content', icon: <IconPhoto size={16} />, links: contentLinks, id: 'content' });
-            }
-        }
-
-        sections.push({ label: null, id: 'workspace', items: workspace });
-
-        // --- Pages ---------------------------------------------------------
+        // --- Pages -----------------------------------------------------------
         const pageItems: TNavbarItem[] = [];
+        const pageActions: TNavbarGroup['actions'] = [];
         if (permissionChecker.canCreatePages()) {
-            pageItems.push({
-                label: 'Create Page',
-                icon: <IconPlus size={16} />,
-                link: '#',
-                onClick: () => setIsCreatePageModalOpen(true),
+            pageActions.push({
                 id: 'create-page',
+                label: 'Create page',
+                icon: <IconPlus size={15} />,
+                onClick: () => setIsCreatePageModalOpen(true),
             });
             // CMS app wizard — scaffolds list + detail pages, routes, sections
             // and ACLs in one safe transaction (see CmsAppWizardModal).
-            pageItems.push({
-                label: 'New CMS App',
-                icon: <IconWand size={16} />,
-                link: '#',
-                onClick: () => setIsCmsAppWizardOpen(true),
+            pageActions.push({
                 id: 'new-cms-app',
+                label: 'New CMS app',
+                icon: <IconWand size={15} />,
+                onClick: () => setIsCmsAppWizardOpen(true),
             });
         }
         // Page bundle export / import; backend enforces per-action permissions.
         if (permissionChecker.canReadPages()) {
-            pageItems.push({
-                label: 'Import / Export',
-                icon: <IconTransfer size={16} />,
-                link: '#',
-                onClick: () => setIsExportImportOpen(true),
+            pageActions.push({
                 id: 'pages-export-import',
+                label: 'Import / export pages',
+                icon: <IconTransfer size={15} />,
+                onClick: () => setIsExportImportOpen(true),
             });
         }
 
@@ -238,53 +259,97 @@ export function AdminNavbar() {
             });
         }
 
-        sections.push({ label: 'Pages', id: 'pages', items: pageItems });
-
-        // --- Menus: one group per navigation menu (mirrors the builder) ----
-        if (permissionChecker.canReadNavigation()) {
-            const menuItems: TNavbarItem[] = [{
-                label: 'Menu Builder',
-                icon: <IconRoute size={16} />,
-                link: '/admin/navigation',
-                id: 'navigation-builder',
-            }, {
-                label: 'Web header',
-                icon: <IconLayoutNavbar size={16} />,
-                initiallyOpened: true,
-                links: buildMenuPreviewSectionLinks(headerPreviewLinks, 'web_header'),
-                id: 'menu-pages',
-            }, {
-                label: 'Web footer',
-                icon: <IconLayoutBottombar size={16} />,
-                links: buildMenuPreviewSectionLinks(footerPreviewLinks, 'web_footer'),
-                id: 'footer-pages',
-            }, {
-                label: 'Mobile drawer',
-                icon: <IconMenu2 size={16} />,
-                links: buildMenuPreviewSectionLinks(mobileDrawerPreviewLinks, 'mobile_drawer'),
-                id: 'mobile-drawer-pages',
-            }, {
-                label: 'Mobile bottom tabs',
-                icon: <IconLayoutGrid size={16} />,
-                links: buildMenuPreviewSectionLinks(mobileTabsPreviewLinks, 'mobile_bottom_tabs'),
-                id: 'mobile-tabs-pages',
-            }];
-
-            sections.push({ label: 'Menus', id: 'menus', items: menuItems });
+        if (pageItems.length > 0 || pageActions.length > 0) {
+            groups.push({
+                id: 'pages',
+                label: 'Pages',
+                icon: <IconFiles size={17} />,
+                items: pageItems,
+                actions: pageActions,
+            });
         }
 
-        // --- System ---------------------------------------------------------
-        const systemItems: TNavbarItem[] = [];
+        // --- Menus: one sub-group per navigation menu (mirrors the builder) ---
+        if (permissionChecker.canReadNavigation()) {
+            groups.push({
+                id: 'menus',
+                label: 'Menus',
+                icon: <IconRoute size={17} />,
+                actions: [{
+                    id: 'open-menu-builder',
+                    label: 'Open menu builder',
+                    icon: <IconRoute size={15} />,
+                    onClick: () => router.push('/admin/navigation'),
+                }],
+                items: [{
+                    label: 'Web header',
+                    icon: <IconLayoutNavbar size={16} />,
+                    initiallyOpened: true,
+                    links: buildMenuPreviewSectionLinks(headerPreviewLinks, 'web_header'),
+                    id: 'menu-pages',
+                }, {
+                    label: 'Web footer',
+                    icon: <IconLayoutBottombar size={16} />,
+                    links: buildMenuPreviewSectionLinks(footerPreviewLinks, 'web_footer'),
+                    id: 'footer-pages',
+                }, {
+                    label: 'Mobile drawer',
+                    icon: <IconMenu2 size={16} />,
+                    links: buildMenuPreviewSectionLinks(mobileDrawerPreviewLinks, 'mobile_drawer'),
+                    id: 'mobile-drawer-pages',
+                }, {
+                    label: 'Mobile bottom tabs',
+                    icon: <IconLayoutGrid size={16} />,
+                    links: buildMenuPreviewSectionLinks(mobileTabsPreviewLinks, 'mobile_bottom_tabs'),
+                    id: 'mobile-tabs-pages',
+                }],
+            });
+        }
+
+        // --- Users & access ----------------------------------------------------
+        if (permissionChecker.canManageUsers()) {
+            const userItems: TNavbarItem[] = [];
+            if (permissionChecker.canReadUsers()) userItems.push({ label: 'Users', link: '/admin/users', id: 'nav:users' });
+            if (permissionChecker.canReadGroups()) userItems.push({ label: 'Groups', link: '/admin/groups', id: 'nav:groups' });
+            if (permissionChecker.canReadRoles()) userItems.push({ label: 'Roles', link: '/admin/roles', id: 'nav:roles' });
+            if (permissionChecker.canReadRegistrationCodes()) userItems.push({ label: 'Registration Codes', link: '/admin/registration-codes', id: 'nav:registration-codes' });
+            if (userItems.length > 0) {
+                groups.push({ id: 'users', label: 'Users & Access', icon: <IconShieldLock size={17} />, items: userItems });
+            }
+        }
+
+        // --- Content library ----------------------------------------------------
+        if (permissionChecker.canManageAssets()) {
+            const contentItems: TNavbarItem[] = [];
+            if (permissionChecker.canReadAssets()) contentItems.push({ label: 'Assets', link: '/admin/assets', id: 'nav:assets' });
+            if (permissionChecker.canDeleteSections()) contentItems.push({ label: 'Unused Sections', link: '/admin/unused-sections', id: 'nav:unused-sections' });
+            if (contentItems.length > 0) {
+                groups.push({ id: 'content', label: 'Content', icon: <IconPhoto size={17} />, items: contentItems });
+            }
+        }
+
+        // --- Automation -----------------------------------------------------------
         if (permissionChecker.canManageActions() || permissionChecker.canManageScheduledJobs()) {
-            const automationLinks = [];
-            if (permissionChecker.canReadActions()) automationLinks.push({ label: 'Actions', link: '/admin/actions', id: 'nav:actions' });
+            const automationItems: TNavbarItem[] = [];
+            if (permissionChecker.canReadActions()) automationItems.push({ label: 'Actions', link: '/admin/actions', id: 'nav:actions' });
             if (permissionChecker.canReadScheduledJobs()) {
-                automationLinks.push({ label: 'Scheduled Jobs', link: '/admin/scheduled-jobs', id: 'nav:scheduled-jobs' });
-                automationLinks.push({ label: 'Scheduled Jobs Calendar', link: '/admin/scheduled-jobs/calendar', id: 'nav:scheduled-jobs-calendar' });
+                automationItems.push({ label: 'Scheduled Jobs', link: '/admin/scheduled-jobs', id: 'nav:scheduled-jobs' });
+                automationItems.push({ label: 'Jobs Calendar', link: '/admin/scheduled-jobs/calendar', id: 'nav:scheduled-jobs-calendar' });
             }
-            if (automationLinks.length > 0) {
-                systemItems.push({ label: 'Automation', icon: <IconPlayerPlay size={16} />, links: automationLinks, id: 'automation' });
+            if (automationItems.length > 0) {
+                groups.push({ id: 'automation', label: 'Automation', icon: <IconPlayerPlay size={17} />, items: automationItems });
             }
+        }
+
+        // --- System -----------------------------------------------------------
+        const systemItems: TNavbarItem[] = [];
+        if (permissionChecker.canManageLanguages()) systemItems.push({ label: 'Languages', link: '/admin/languages', id: 'nav:languages' });
+        if (permissionChecker.canAccessDataBrowser()) systemItems.push({ label: 'Data Browser', link: '/admin/data', id: 'nav:data-browser' });
+        if (permissionChecker.canViewAuditLogs()) systemItems.push({ label: 'Audit Logs', link: '/admin/data-access', id: 'nav:audit-logs' });
+        if (permissionChecker.canReadCache()) systemItems.push({ label: 'Cache Management', link: '/admin/cache', id: 'nav:cache' });
+        if (permissionChecker.canReadSystem()) systemItems.push({ label: 'System Maintenance', link: '/admin/system', id: 'nav:system' });
+        if (permissionChecker.canManagePlugins()) {
+            systemItems.push({ label: 'Plugin Management', link: '/admin/plugins', id: 'nav:plugin-management' });
         }
 
         // Plugin-contributed menu items, each gated on its declared permission
@@ -301,48 +366,57 @@ export function AdminNavbar() {
             systemItems.push({ label: 'Plugins', icon: <IconPuzzle size={16} />, links: pluginMenuLinks, id: 'plugins' });
         }
 
-        const systemToolLinks = [];
-        if (permissionChecker.canManageLanguages()) systemToolLinks.push({ label: 'Languages', link: '/admin/languages', id: 'nav:languages' });
-        if (permissionChecker.canAccessDataBrowser()) systemToolLinks.push({ label: 'Data Browser', link: '/admin/data', id: 'nav:data-browser' });
-        if (permissionChecker.canViewAuditLogs()) systemToolLinks.push({ label: 'Audit Logs', link: '/admin/data-access', id: 'nav:audit-logs' });
-        if (permissionChecker.canReadCache()) systemToolLinks.push({ label: 'Cache Management', link: '/admin/cache', id: 'nav:cache' });
-        if (permissionChecker.canReadSystem()) systemToolLinks.push({ label: 'System Maintenance', link: '/admin/system', id: 'nav:system' });
-        if (permissionChecker.canManagePlugins()) {
-            systemToolLinks.push({ label: 'Plugin Management', link: '/admin/plugins', id: 'nav:plugin-management' });
-        }
-        if (systemToolLinks.length > 0) {
-            systemItems.push({ label: 'System Tools', icon: <IconDatabase size={16} />, links: systemToolLinks, id: 'system-tools' });
-        }
-
         if (systemItems.length > 0) {
-            sections.push({ label: 'System', id: 'system', items: systemItems });
+            groups.push({ id: 'system', label: 'System', icon: <IconDatabase size={17} />, items: systemItems });
         }
 
-        return sections;
-    }, [pages, configurationPageLinks, categorizedSystemPages, isLoading, permissionChecker, pluginMenuItems, hasPermission, headerPreviewLinks, footerPreviewLinks, mobileDrawerPreviewLinks, mobileTabsPreviewLinks]);
+        return groups;
+    }, [pages, configurationPageLinks, categorizedSystemPages, isLoading, permissionChecker, pluginMenuItems, hasPermission, headerPreviewLinks, footerPreviewLinks, mobileDrawerPreviewLinks, mobileTabsPreviewLinks, router]);
 
-    const links = navigationSections.map((section) => (
-        <Box key={section.id} className={classes.section}>
-            {section.label ? (
-                <Text className={classes.sectionLabel} component="div">
-                    {section.label}
-                </Text>
-            ) : null}
-            {section.items.map((item) => <LinksGroup {...item} key={item.id} />)}
-        </Box>
+    const accordionItems = navbarGroups.map((group) => (
+        <Accordion.Item key={group.id} value={group.id} className={classes.accordionItem}>
+            <Box className={classes.accordionControlRow}>
+                <Accordion.Control
+                    icon={<Box className={classes.accordionIcon}>{group.icon}</Box>}
+                    className={classes.accordionControl}
+                >
+                    {group.label}
+                </Accordion.Control>
+                {group.actions && group.actions.length > 0 ? (
+                    <Group gap={2} wrap="nowrap" className={classes.accordionActions}>
+                        {group.actions.map((action) => (
+                            <Tooltip key={action.id} label={action.label} position="bottom" withArrow>
+                                <ActionIcon
+                                    variant="subtle"
+                                    color="gray"
+                                    size="sm"
+                                    aria-label={action.label}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        action.onClick();
+                                    }}
+                                >
+                                    {action.icon}
+                                </ActionIcon>
+                            </Tooltip>
+                        ))}
+                    </Group>
+                ) : null}
+            </Box>
+            <Accordion.Panel className={classes.accordionPanel}>
+                {group.items.map((item) => <LinksGroup {...item} key={item.id} />)}
+            </Accordion.Panel>
+        </Accordion.Item>
     ));
 
     return (
         <nav className={classes.navbar}>
-            {/* Navigation Header */}
-            <Box p="md" className="border-b border-gray-3">
-                <Group gap="md" align="center" mb="md">
-                    <SelfHelpLogo size={30} />
-                </Group>
-
-                <Box mb="md">
+            {/* Compact header: brand + preview toggle on one row, search below */}
+            <Box className={classes.header}>
+                <Group justify="space-between" align="center" wrap="nowrap" mb="sm">
+                    <SelfHelpLogo variant="compact" />
                     <PreviewModeToggle showLabel={false} />
-                </Box>
+                </Group>
 
                 <NavigationSearch
                     adminPagesData={adminPagesData}
@@ -350,14 +424,36 @@ export function AdminNavbar() {
                 />
             </Box>
 
-            <ScrollArea className={classes.links} scrollbars="y">
-                <div className={classes.linksInner}>{links}</div>
+            <ScrollArea className={classes.links} scrollbars="y" type="hover">
+                <div className={classes.linksInner}>
+                    <NavDirectLink
+                        label="Dashboard"
+                        icon={<IconDashboard size={17} />}
+                        link="/admin"
+                        active={pathname === '/admin'}
+                    />
+                    <Accordion
+                        multiple
+                        value={openGroups}
+                        onChange={setOpenGroups}
+                        classNames={{
+                            root: classes.accordionRoot,
+                            item: classes.accordionItem,
+                            control: classes.accordionControl,
+                            label: classes.accordionLabel,
+                            chevron: classes.accordionChevron,
+                            content: classes.accordionContent,
+                        }}
+                    >
+                        {accordionItems}
+                    </Accordion>
+                </div>
             </ScrollArea>
 
             <div className={classes.footer}>
                 <AuthButton variant="navbar" />
             </div>
-            
+
             <CreatePageModal
                 opened={isCreatePageModalOpen}
                 onClose={() => setIsCreatePageModalOpen(false)}
