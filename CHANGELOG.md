@@ -58,8 +58,38 @@ core `0.1.33` and `@selfhelp/shared` `2.0.0` (breaking major).
   rebuilt as a full headless landing page (hero split, stats, six feature
   cards, how-it-works, quote, CTA; de-CH + en-GB, dark/light safe) and a new
   `mobile-onboarding` guest onboarding bundle ships alongside it.
+- **Admin analytics dashboard** — `/admin` is a real dashboard: page-view
+  totals, unique visitors, and web/mobile split cards, a per-day traffic area
+  chart (views/visitors toggle), top pages, external referrers, and a
+  "Today's operations" panel (due/executed jobs, form submissions, visits).
+  Filters: platform (all/web/mobile) and range (7/30/90 days, 12 months, all
+  time). Powered by the new core `admin.analytics.read` endpoints
+  (`/admin/analytics/summary`, `/admin/analytics/today`); widgets hide for
+  users without the permission.
+- **Branding size + placement** — navigation settings let editors pick the
+  logo size (`sm`–`xl`) and variant (logo + name / logo only / name only);
+  the asset dropdown now refetches on open/focus so new uploads appear
+  without a full browser refresh (`useAssets` `fresh` option).
 
 ### Changed
+- **Admin navbar accordion redesign** — the left admin menu is grouped into
+  persistent multi-open accordion sections (Pages / Menus / Users & Access /
+  Content / Automation / System / Admin) with inline quick actions (create
+  page, CMS app wizard, import/export, menu builder), a compact brand row
+  (small logo + wordmark), wider rail, no icons on nested page links, and a
+  soft left-border indent instead of the blue indicator line for submenus.
+- **Navbar search matches titles** — the admin quick search indexes every
+  language's page title alongside keywords/URLs.
+- **Consistent admin page padding** — all admin routes render inside
+  `AdminPageContainer` (uniform gutters for roles/groups/users/assets/data/
+  cache/languages/actions/scheduled-jobs/plugins/system/navigation/…).
+- **Wider two-column modals** — menu placement & icon, add-menu-item, user,
+  group, and role modals lay out in two columns (~860px) so they fit without
+  internal scrolling.
+- **Headless auth pages matched to login** — reset-password (request + set
+  forms, success screens) renders in the same centered `Paper` card as login
+  with `PasswordInput` fields and a back-to-sign-in link; core 0.1.33 flags
+  `reset-password` / `validate` / `maintenance` headless.
 - Header/footer/burger rendering and active states now come from
   `@selfhelp/shared` `2.0.0` (`isMenuItemActiveOnWeb`, footer helpers,
   `isDoubleWebHeaderPreset`); local duplicates were deleted.
