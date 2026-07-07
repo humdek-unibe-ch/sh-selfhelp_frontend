@@ -80,7 +80,8 @@ export function UnusedSectionsPage() {
 
     return (
         <>
-            <Container size="xl" py="xl">
+            {/* Outer padding comes from AdminPageContainer in the route. */}
+            <Container size="xl" p={0} m={0} maw="100%">
                 <Stack gap="lg">
                     {/* Header */}
                     <Group justify="space-between" align="flex-start">

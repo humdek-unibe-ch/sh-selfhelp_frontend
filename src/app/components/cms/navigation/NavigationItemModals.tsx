@@ -9,6 +9,8 @@ import { useMutation } from '@tanstack/react-query';
 import {
     Alert,
     Checkbox,
+    Divider,
+    Grid,
     Select,
     Stack,
     Switch,
@@ -125,116 +127,130 @@ function EditMenuItemModalContent({
         updateMutation.mutate(payload);
     };
 
+    // Two-column layout inside a wide modal: placement controls on the left,
+    // icon + presentation on the right — everything visible without scrolling.
     return (
         <ModalWrapper
             opened
             onClose={onClose}
             title="Menu placement & icon"
-            size="md"
+            size={860}
             onSave={handleSave}
             onCancel={onClose}
             isLoading={updateMutation.isPending}
             saveLabel="Save"
         >
-            <Stack gap="sm">
+            <Stack gap="md">
                 <Text size="sm" c="dimmed">
                     Adjust where this entry appears in the {menuLabel} menu. Icons are stored per menu — the same page can use different icons in header, footer, and mobile menus.
                 </Text>
-                <Select
-                    label="Parent item"
-                    clearable
-                    data={parentItemOptions(menuItems, pageById, resolvedLabelByItemId, item.id)}
-                    value={parentItemId}
-                    onChange={setParentItemId}
-                />
-                {isHeaderRootItem ? (
-                    <Select
-                        label="Header row"
-                        description={hasChildren
-                            ? 'Items with children stay in the main row — top-row links are flat.'
-                            : 'The top row is only shown by double header presets; the assignment is kept when switching presets.'}
-                        data={[
-                            { value: 'main', label: 'Main row' },
-                            { value: 'top', label: 'Top row (utility links)' },
-                        ]}
-                        value={layer === 'top' ? 'top' : 'main'}
-                        disabled={hasChildren}
-                        onChange={(value) => setLayer(value === 'top' ? 'top' : null)}
-                    />
-                ) : null}
-                {menuPlatform === 'web' ? (
-                    <>
-                        <Select
-                            label="Child pages navigation"
-                            description={hasChildren
-                                ? 'How this item\u2019s child pages are presented on the website.'
-                                : 'Takes effect when this item has child pages.'}
-                            data={[
-                                { value: 'inherit', label: 'Menu default' },
-                                { value: 'sidebar', label: 'Left sidebar' },
-                                { value: 'pills', label: 'Pill strip' },
-                                { value: 'none', label: 'Hidden' },
-                            ]}
-                            value={childrenNav}
-                            onChange={(value) => setChildrenNav(value ?? 'inherit')}
-                        />
-                        <Select
-                            label="Prev / next pager"
-                            description="Pager buttons at the bottom of this item's child pages."
-                            data={[
-                                { value: 'inherit', label: 'Menu default' },
-                                { value: 'show', label: 'Show' },
-                                { value: 'hide', label: 'Hide' },
-                            ]}
-                            value={showPager}
-                            onChange={(value) => setShowPager(value ?? 'inherit')}
-                        />
-                    </>
-                ) : null}
-                {!isMobileMenuKey(menuKey) ? (
-                    <SelectIconField
-                        fieldId={item.id}
-                        config={{}}
-                        value={icon}
-                        onChange={setIcon}
-                        placeholder="Search and select web icon..."
-                    />
-                ) : (
-                    <SelectIconMobileField
-                        fieldId={item.id}
-                        config={{}}
-                        value={mobileIcon}
-                        onChange={setMobileIcon}
-                        placeholder="Search and select mobile icon..."
-                    />
-                )}
-                {menuPlatform === 'web' && item.mobile_icon ? (
-                    <Text size="xs" c="dimmed">
-                        Mobile icon for this page is configured separately in the mobile drawer or tabs menu.
-                    </Text>
-                ) : null}
-                {menuPlatform === 'mobile' && item.icon ? (
-                    <Text size="xs" c="dimmed">
-                        Web icon for this page is configured separately in the web header or footer menu.
-                    </Text>
-                ) : null}
-                {(item.item_type === 'group' || item.item_type === 'external_url') ? (
-                    <MenuItemLabelTranslationsField
-                        value={labelTranslations}
-                        onChange={setLabelTranslations}
-                        required
-                        description="Shown in the public menu for this language. Falls back to the default CMS language when a translation is missing."
-                    />
-                ) : null}
-                {item.item_type === 'page' && menuPlatform === 'web' ? (
-                    <MenuItemLabelTranslationsField
-                        value={labelTranslations}
-                        onChange={setLabelTranslations}
-                        withLabelField={false}
-                        label="Menu presentation"
-                        description="Optional per-language description shown under this entry in mega menus, plus a screen-reader label. The menu label itself is the page title."
-                    />
-                ) : null}
+                <Grid gap="xl">
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                        <Stack gap="sm">
+                            <Divider label="Placement" labelPosition="left" />
+                            <Select
+                                label="Parent item"
+                                clearable
+                                data={parentItemOptions(menuItems, pageById, resolvedLabelByItemId, item.id)}
+                                value={parentItemId}
+                                onChange={setParentItemId}
+                            />
+                            {isHeaderRootItem ? (
+                                <Select
+                                    label="Header row"
+                                    description={hasChildren
+                                        ? 'Items with children stay in the main row — top-row links are flat.'
+                                        : 'The top row is only shown by double header presets; the assignment is kept when switching presets.'}
+                                    data={[
+                                        { value: 'main', label: 'Main row' },
+                                        { value: 'top', label: 'Top row (utility links)' },
+                                    ]}
+                                    value={layer === 'top' ? 'top' : 'main'}
+                                    disabled={hasChildren}
+                                    onChange={(value) => setLayer(value === 'top' ? 'top' : null)}
+                                />
+                            ) : null}
+                            {menuPlatform === 'web' ? (
+                                <>
+                                    <Select
+                                        label="Child pages navigation"
+                                        description={hasChildren
+                                            ? 'How this item\u2019s child pages are presented on the website.'
+                                            : 'Takes effect when this item has child pages.'}
+                                        data={[
+                                            { value: 'inherit', label: 'Menu default' },
+                                            { value: 'sidebar', label: 'Left sidebar' },
+                                            { value: 'pills', label: 'Pill strip' },
+                                            { value: 'none', label: 'Hidden' },
+                                        ]}
+                                        value={childrenNav}
+                                        onChange={(value) => setChildrenNav(value ?? 'inherit')}
+                                    />
+                                    <Select
+                                        label="Prev / next pager"
+                                        description="Pager buttons at the bottom of this item's child pages."
+                                        data={[
+                                            { value: 'inherit', label: 'Menu default' },
+                                            { value: 'show', label: 'Show' },
+                                            { value: 'hide', label: 'Hide' },
+                                        ]}
+                                        value={showPager}
+                                        onChange={(value) => setShowPager(value ?? 'inherit')}
+                                    />
+                                </>
+                            ) : null}
+                        </Stack>
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                        <Stack gap="sm">
+                            <Divider label="Icon & presentation" labelPosition="left" />
+                            {!isMobileMenuKey(menuKey) ? (
+                                <SelectIconField
+                                    fieldId={item.id}
+                                    config={{}}
+                                    value={icon}
+                                    onChange={setIcon}
+                                    placeholder="Search and select web icon..."
+                                />
+                            ) : (
+                                <SelectIconMobileField
+                                    fieldId={item.id}
+                                    config={{}}
+                                    value={mobileIcon}
+                                    onChange={setMobileIcon}
+                                    placeholder="Search and select mobile icon..."
+                                />
+                            )}
+                            {menuPlatform === 'web' && item.mobile_icon ? (
+                                <Text size="xs" c="dimmed">
+                                    Mobile icon for this page is configured separately in the mobile drawer or tabs menu.
+                                </Text>
+                            ) : null}
+                            {menuPlatform === 'mobile' && item.icon ? (
+                                <Text size="xs" c="dimmed">
+                                    Web icon for this page is configured separately in the web header or footer menu.
+                                </Text>
+                            ) : null}
+                            {(item.item_type === 'group' || item.item_type === 'external_url') ? (
+                                <MenuItemLabelTranslationsField
+                                    value={labelTranslations}
+                                    onChange={setLabelTranslations}
+                                    required
+                                    description="Shown in the public menu for this language. Falls back to the default CMS language when a translation is missing."
+                                />
+                            ) : null}
+                            {item.item_type === 'page' && menuPlatform === 'web' ? (
+                                <MenuItemLabelTranslationsField
+                                    value={labelTranslations}
+                                    onChange={setLabelTranslations}
+                                    withLabelField={false}
+                                    label="Menu presentation"
+                                    description="Optional per-language description shown under this entry in mega menus, plus a screen-reader label. The menu label itself is the page title."
+                                />
+                            ) : null}
+                        </Stack>
+                    </Grid.Col>
+                </Grid>
             </Stack>
         </ModalWrapper>
     );
@@ -428,18 +444,128 @@ function AddMenuItemModalContent({
         createMutation.mutate(payload);
     };
 
+    // Right column only appears when it has content (children picker or label
+    // translations); otherwise the form stays a comfortable single column.
+    const hasRightColumn = (itemType === 'page' && layer !== 'top' && directChildPages.length > 0)
+        || itemType === 'external_url'
+        || itemType === 'group';
+
+    const leftColumn = (
+        <Stack gap="sm">
+            <Select
+                label="Item type"
+                data={[
+                    { value: 'page', label: 'Page' },
+                    { value: 'external_url', label: 'External URL' },
+                    { value: 'group', label: 'Group heading' },
+                ]}
+                value={itemType}
+                onChange={(value) => setItemType((value as typeof itemType) ?? 'page')}
+            />
+
+            {isHeaderRootTarget && itemType !== 'group' ? (
+                <Select
+                    label="Header row"
+                    description="The top row is only shown by double header presets; the assignment is kept when switching presets."
+                    data={[
+                        { value: 'main', label: 'Main row' },
+                        { value: 'top', label: 'Top row (utility links)' },
+                    ]}
+                    value={layer === 'top' ? 'top' : 'main'}
+                    onChange={(value) => setLayer(value === 'top' ? 'top' : null)}
+                />
+            ) : null}
+
+            {itemType === 'page' ? (
+                <Stack gap={4}>
+                    <Select
+                        label="Page"
+                        searchable
+                        data={pageOptions}
+                        renderOption={renderPageOption}
+                        value={pageId}
+                        onChange={handlePageChange}
+                        nothingFoundMessage={
+                            hiddenPageCount > 0 && pageOptions.length === 0
+                                ? 'All pages are already in this menu'
+                                : 'No matching page'
+                        }
+                    />
+                    {hiddenPageCount > 0 ? (
+                        <Text size="xs" c="dimmed">
+                            {hiddenPageCount} page(s) already in this menu are not listed.
+                        </Text>
+                    ) : null}
+                </Stack>
+            ) : null}
+
+            {itemType === 'external_url' ? (
+                <TextInput label="URL" value={externalUrl} onChange={(e) => setExternalUrl(e.currentTarget.value)} />
+            ) : null}
+        </Stack>
+    );
+
+    const rightColumn = (
+        <Stack gap="sm">
+            {itemType === 'external_url' ? (
+                <MenuItemLabelTranslationsField
+                    value={labelTranslations}
+                    onChange={setLabelTranslations}
+                    required
+                    description="Link text shown in the menu for each language."
+                />
+            ) : null}
+
+            {itemType === 'group' ? (
+                <MenuItemLabelTranslationsField
+                    value={labelTranslations}
+                    onChange={setLabelTranslations}
+                    required
+                    label="Group heading translations"
+                    description="Non-clickable section title (for example a footer column heading)."
+                />
+            ) : null}
+
+            {itemType === 'page' && layer !== 'top' && directChildPages.length > 0 ? (
+                <Stack gap="xs">
+                    <Text size="sm" fw={500}>CMS child pages</Text>
+                    <Text size="sm" c="dimmed">
+                        Selected children will be created as real menu items under this parent menu item.
+                        Menus do not auto-update from the page tree later.
+                    </Text>
+                    {directChildPages.map((child) => {
+                        const childTitle = pageDisplayTitle(child, currentLanguageId);
+                        return (
+                            <Checkbox
+                                key={child.id_pages}
+                                label={childTitle ? `${childTitle} \u00b7 ${child.keyword}` : child.keyword}
+                                checked={selectedChildPageIds.includes(child.id_pages)}
+                                onChange={(event) => toggleChild(child.id_pages, event.currentTarget.checked)}
+                            />
+                        );
+                    })}
+                    <Switch
+                        label="Include grandchildren"
+                        checked={includeDescendants}
+                        onChange={(event) => setIncludeDescendants(event.currentTarget.checked)}
+                    />
+                </Stack>
+            ) : null}
+        </Stack>
+    );
+
     return (
         <ModalWrapper
             opened
             onClose={onClose}
             title={modalTitle}
-            size="md"
+            size={hasRightColumn ? 860 : 'md'}
             onSave={handleAdd}
             onCancel={onClose}
             isLoading={createMutation.isPending}
             saveLabel="Add"
         >
-            <Stack gap="sm">
+            <Stack gap="md">
                 {parentItemId ? (
                     <Text size="sm" c="dimmed">
                         New item will be nested under
@@ -449,100 +575,14 @@ function AddMenuItemModalContent({
                     </Text>
                 ) : null}
 
-                <Select
-                    label="Item type"
-                    data={[
-                        { value: 'page', label: 'Page' },
-                        { value: 'external_url', label: 'External URL' },
-                        { value: 'group', label: 'Group heading' },
-                    ]}
-                    value={itemType}
-                    onChange={(value) => setItemType((value as typeof itemType) ?? 'page')}
-                />
-
-                {isHeaderRootTarget && itemType !== 'group' ? (
-                    <Select
-                        label="Header row"
-                        description="The top row is only shown by double header presets; the assignment is kept when switching presets."
-                        data={[
-                            { value: 'main', label: 'Main row' },
-                            { value: 'top', label: 'Top row (utility links)' },
-                        ]}
-                        value={layer === 'top' ? 'top' : 'main'}
-                        onChange={(value) => setLayer(value === 'top' ? 'top' : null)}
-                    />
-                ) : null}
-
-                {itemType === 'page' ? (
-                    <Stack gap={4}>
-                        <Select
-                            label="Page"
-                            searchable
-                            data={pageOptions}
-                            renderOption={renderPageOption}
-                            value={pageId}
-                            onChange={handlePageChange}
-                            nothingFoundMessage={
-                                hiddenPageCount > 0 && pageOptions.length === 0
-                                    ? 'All pages are already in this menu'
-                                    : 'No matching page'
-                            }
-                        />
-                        {hiddenPageCount > 0 ? (
-                            <Text size="xs" c="dimmed">
-                                {hiddenPageCount} page(s) already in this menu are not listed.
-                            </Text>
-                        ) : null}
-                    </Stack>
-                ) : null}
-
-                {itemType === 'external_url' ? (
-                    <>
-                        <TextInput label="URL" value={externalUrl} onChange={(e) => setExternalUrl(e.currentTarget.value)} />
-                        <MenuItemLabelTranslationsField
-                            value={labelTranslations}
-                            onChange={setLabelTranslations}
-                            required
-                            description="Link text shown in the menu for each language."
-                        />
-                    </>
-                ) : null}
-
-                {itemType === 'group' ? (
-                    <MenuItemLabelTranslationsField
-                        value={labelTranslations}
-                        onChange={setLabelTranslations}
-                        required
-                        label="Group heading translations"
-                        description="Non-clickable section title (for example a footer column heading)."
-                    />
-                ) : null}
-
-                {itemType === 'page' && layer !== 'top' && directChildPages.length > 0 ? (
-                    <Stack gap="xs">
-                        <Text size="sm" fw={500}>CMS child pages</Text>
-                        <Text size="sm" c="dimmed">
-                            Selected children will be created as real menu items under this parent menu item.
-                            Menus do not auto-update from the page tree later.
-                        </Text>
-                        {directChildPages.map((child) => {
-                            const childTitle = pageDisplayTitle(child, currentLanguageId);
-                            return (
-                                <Checkbox
-                                    key={child.id_pages}
-                                    label={childTitle ? `${childTitle} \u00b7 ${child.keyword}` : child.keyword}
-                                    checked={selectedChildPageIds.includes(child.id_pages)}
-                                    onChange={(event) => toggleChild(child.id_pages, event.currentTarget.checked)}
-                                />
-                            );
-                        })}
-                        <Switch
-                            label="Include grandchildren"
-                            checked={includeDescendants}
-                            onChange={(event) => setIncludeDescendants(event.currentTarget.checked)}
-                        />
-                    </Stack>
-                ) : null}
+                {hasRightColumn ? (
+                    <Grid gap="xl">
+                        <Grid.Col span={{ base: 12, sm: 6 }}>{leftColumn}</Grid.Col>
+                        <Grid.Col span={{ base: 12, sm: 6 }}>{rightColumn}</Grid.Col>
+                    </Grid>
+                ) : (
+                    leftColumn
+                )}
 
                 {submitError ? (
                     <Alert color="red" title="Could not add menu item">
