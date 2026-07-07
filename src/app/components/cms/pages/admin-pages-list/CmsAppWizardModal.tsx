@@ -40,6 +40,7 @@ import {
     Tooltip,
     Paper,
     Box,
+    Stepper,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import {
@@ -103,6 +104,7 @@ interface IPlannedRoute {
 
 export function CmsAppWizardModal({ opened, onClose, onBrowseTemplates }: ICmsAppWizardModalProps) {
     const [result, setResult] = useState<ICreateCmsAppResult | null>(null);
+    const [activeStep, setActiveStep] = useState(0);
 
     const { data: dataTablesData, isLoading: tablesLoading } = useDataTables();
     const tableOptions = (dataTablesData?.dataTables ?? []).map((table) => ({
@@ -187,9 +189,15 @@ export function CmsAppWizardModal({ opened, onClose, onBrowseTemplates }: ICmsAp
     const handleClose = () => {
         form.reset();
         setResult(null);
+        setActiveStep(0);
         createCmsAppMutation.reset();
         onClose();
     };
+
+    const isLastStep = activeStep >= 2;
+    const isFirstStep = activeStep <= 0;
+    const goNextStep = () => setActiveStep((prev) => Math.min(prev + 1, 2));
+    const goPreviousStep = () => setActiveStep((prev) => Math.max(prev - 1, 0));
 
     const handleGenerate = () => {
         if (noSurfaceSelected) {
@@ -234,18 +242,20 @@ export function CmsAppWizardModal({ opened, onClose, onBrowseTemplates }: ICmsAp
             onClose={handleClose}
             title="Create list + detail pages"
             size="xl"
-            onSave={result ? undefined : handleGenerate}
-            saveLabel="Generate pages"
-            onCancel={handleClose}
-            cancelLabel={result ? 'Done' : 'Cancel'}
+            onSave={result ? undefined : (isLastStep ? handleGenerate : goNextStep)}
+            saveLabel={result ? 'Done' : isLastStep ? 'Generate pages' : 'Next step'}
+            onCancel={result ? handleClose : (isFirstStep ? handleClose : goPreviousStep)}
+            cancelLabel={result ? 'Done' : isFirstStep ? 'Cancel' : 'Back'}
             isLoading={createCmsAppMutation.isPending}
-            disabled={noSurfaceSelected}
+            disabled={result ? false : (isLastStep ? noSurfaceSelected : false)}
+            disableScroll
+            cancelPosition="left"
             customActions={
                 result ? undefined : (
                     <Group gap={6} c="dimmed" mr="auto">
                         <IconWand size="1rem" />
                         <Text size="xs">
-                            {create_form ? 'Creates the form, its data table, and the pages' : 'Binds to an existing table'}
+                            Step {activeStep + 1} of 3
                         </Text>
                     </Group>
                 )
@@ -316,6 +326,12 @@ export function CmsAppWizardModal({ opened, onClose, onBrowseTemplates }: ICmsAp
                 </Stack>
             ) : (
                 <Stack gap="md">
+                    <Stepper active={activeStep} size="xs">
+                        <Stepper.Step label="Data source" description="Base + form/table" />
+                        <Stepper.Step label="Pages & access" description="Surfaces + groups" />
+                        <Stepper.Step label="Review" description="Routes + create" />
+                    </Stepper>
+
                     <Alert color="blue" icon={<IconInfoCircle size="1rem" />}>
                         This scaffolds a working <strong>list + detail</strong> CMS app. The list links each
                         row to its detail page; the detail page filters the table on{' '}
@@ -344,24 +360,26 @@ export function CmsAppWizardModal({ opened, onClose, onBrowseTemplates }: ICmsAp
                         </Paper>
                     )}
 
-                    <TextInput
-                        label="Base name"
-                        description="Lowercase keyword base for pages, URLs and (by default) the new data table."
-                        placeholder="team-members"
-                        withAsterisk
-                        {...form.getInputProps('base_name')}
-                    />
+                    {activeStep === 0 && (
+                        <>
+                            <TextInput
+                                label="Base name"
+                                description="Lowercase keyword base for pages, URLs and (by default) the new data table."
+                                placeholder="team-members"
+                                withAsterisk
+                                {...form.getInputProps('base_name')}
+                            />
 
-                    <Divider label="Data source" labelPosition="center" />
+                            <Divider label="Data source" labelPosition="center" />
 
-                    <Switch
-                        label="Create a new form + data table"
-                        description="Recommended. Builds an admin form at /cms/<base>/form that owns a fresh data table, and binds the list/detail/delete to it. No existing table needed."
-                        checked={form.values.create_form}
-                        onChange={(event) => form.setFieldValue('create_form', event.currentTarget.checked)}
-                    />
+                            <Switch
+                                label="Create a new form + data table"
+                                description="Recommended. Builds an admin form at /cms/<base>/form that owns a fresh data table, and binds the list/detail/delete to it. No existing table needed."
+                                checked={form.values.create_form}
+                                onChange={(event) => form.setFieldValue('create_form', event.currentTarget.checked)}
+                            />
 
-                    {form.values.create_form ? (
+                            {form.values.create_form ? (
                         <Stack gap="xs">
                             <Group justify="space-between" align="center">
                                 <Text size="sm" fw={500}>Form fields</Text>
@@ -429,77 +447,83 @@ export function CmsAppWizardModal({ opened, onClose, onBrowseTemplates }: ICmsAp
                                 </Stack>
                             </Paper>
                         </Stack>
-                    ) : (
-                        <Select
-                            label="Existing data table"
-                            description="Bind the generated pages to a table that already exists."
-                            placeholder={tablesLoading ? 'Loading...' : 'Select a data table'}
-                            data={tableOptions}
-                            searchable
-                            withAsterisk
-                            {...form.getInputProps('data_table')}
-                        />
+                            ) : (
+                                <Select
+                                    label="Existing data table"
+                                    description="Bind the generated pages to a table that already exists."
+                                    placeholder={tablesLoading ? 'Loading...' : 'Select a data table'}
+                                    data={tableOptions}
+                                    searchable
+                                    withAsterisk
+                                    {...form.getInputProps('data_table')}
+                                />
+                            )}
+                        </>
                     )}
 
-                    <Divider label="Pages & access" labelPosition="center" />
+                    {activeStep === 1 && (
+                        <>
+                            <Divider label="Pages & access" labelPosition="center" />
 
-                    <Group grow align="flex-start">
-                        <TextInput
-                            label="Detail route parameter"
-                            description="snake_case name for the record id in the URL."
-                            {...form.getInputProps('record_id_param')}
-                        />
-                        <MultiSelect
-                            label="Additional access groups"
-                            description="Optional groups granted access (on top of surface defaults)."
-                            placeholder="Admins always have access — select other groups"
-                            data={groupOptions}
-                            searchable
-                            clearable
-                            value={form.values.access_groups}
-                            onChange={(value) => form.setFieldValue('access_groups', value)}
-                        />
-                    </Group>
+                            <Group grow align="flex-start">
+                                <TextInput
+                                    label="Detail route parameter"
+                                    description="snake_case name for the record id in the URL."
+                                    {...form.getInputProps('record_id_param')}
+                                />
+                                <MultiSelect
+                                    label="Additional access groups"
+                                    description="Optional groups granted access (on top of surface defaults)."
+                                    placeholder="Admins always have access — select other groups"
+                                    data={groupOptions}
+                                    searchable
+                                    clearable
+                                    value={form.values.access_groups}
+                                    onChange={(value) => form.setFieldValue('access_groups', value)}
+                                />
+                            </Group>
 
-                    <Group grow align="flex-start">
-                        <TextInput
-                            label="List heading (optional)"
-                            placeholder="Defaults to the base name"
-                            {...form.getInputProps('list_title')}
-                        />
-                        <TextInput
-                            label="Detail heading (optional)"
-                            placeholder="Defaults to '<list> detail'"
-                            {...form.getInputProps('detail_title')}
-                        />
-                    </Group>
+                            <Group grow align="flex-start">
+                                <TextInput
+                                    label="List heading (optional)"
+                                    placeholder="Defaults to the base name"
+                                    {...form.getInputProps('list_title')}
+                                />
+                                <TextInput
+                                    label="Detail heading (optional)"
+                                    placeholder="Defaults to '<list> detail'"
+                                    {...form.getInputProps('detail_title')}
+                                />
+                            </Group>
 
-                    <Group gap="xl">
-                        <Switch
-                            label="Create public pages"
-                            description="/<base> and /<base>/{record_id}"
-                            checked={form.values.create_public}
-                            onChange={(event) =>
-                                form.setFieldValue('create_public', event.currentTarget.checked)
-                            }
-                        />
-                        <Switch
-                            label="Create admin (CMS) pages"
-                            description="/cms/<base> and /cms/<base>/{record_id}"
-                            checked={form.values.create_admin}
-                            onChange={(event) =>
-                                form.setFieldValue('create_admin', event.currentTarget.checked)
-                            }
-                        />
-                    </Group>
+                            <Group gap="xl">
+                                <Switch
+                                    label="Create public pages"
+                                    description="/<base> and /<base>/{record_id}"
+                                    checked={form.values.create_public}
+                                    onChange={(event) =>
+                                        form.setFieldValue('create_public', event.currentTarget.checked)
+                                    }
+                                />
+                                <Switch
+                                    label="Create admin (CMS) pages"
+                                    description="/cms/<base> and /cms/<base>/{record_id}"
+                                    checked={form.values.create_admin}
+                                    onChange={(event) =>
+                                        form.setFieldValue('create_admin', event.currentTarget.checked)
+                                    }
+                                />
+                            </Group>
 
-                    {noSurfaceSelected && (
-                        <Alert color="red" variant="light">
-                            Select at least one of public / admin pages to create.
-                        </Alert>
+                            {noSurfaceSelected && (
+                                <Alert color="red" variant="light">
+                                    Select at least one of public / admin pages to create.
+                                </Alert>
+                            )}
+                        </>
                     )}
 
-                    {plannedRoutes.length > 0 && (
+                    {activeStep === 2 && plannedRoutes.length > 0 && (
                         <>
                             <Divider label="Pages that will be created" labelPosition="center" />
                             <Table withTableBorder withColumnBorders>
