@@ -4,17 +4,17 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { Container, Flex, Group } from '@mantine/core';
+import { Container, Flex, Group, Box } from '@mantine/core';
 import { resolveWebHeaderPreset, type INavigationMenu } from '@selfhelp/shared';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
 import { AuthButton } from '../../../shared/auth/AuthButton';
 import { LanguageSelector } from '../../../shared/common/LanguageSelector';
 import { ThemeToggle } from '../../../shared/common/ThemeToggle';
 import { BurgerMenuClient } from '../../../shared/common/BurgerMenuClient';
-import type { IPageItem, INavigationBranding } from '../../../../../shared';
+import type { IPageItem, INavigationBranding, INavigationPayload } from '../../../../../shared';
 import { HeaderBrand } from './HeaderBrand';
+import { HeaderUtilityCluster } from './HeaderUtilityCluster';
 import { WebsiteHeaderNavRow } from './WebsiteHeaderNavRow';
-import type { INavigationPayload } from '../../../../../shared';
 
 interface IWebsiteHeaderLayoutProps {
     initialHeaderMenu?: INavigationMenu | null;
@@ -36,8 +36,10 @@ export function WebsiteHeaderLayout({
 
     return (
         <Container size="xl" h="100%">
-            <Flex justify="space-between" align="center" h="100%" gap="md">
-                <HeaderBrand initialBranding={initialBranding} />
+            <Flex justify="space-between" align="center" h="100%" gap="xs">
+                <Box style={{ minWidth: 0, flexShrink: 1 }}>
+                    <HeaderBrand initialBranding={initialBranding} />
+                </Box>
 
                 <Group gap="md" visibleFrom="md" style={{ flex: 1, minWidth: 0 }}>
                     <WebsiteHeaderNavRow
@@ -47,17 +49,20 @@ export function WebsiteHeaderLayout({
                     />
                 </Group>
 
-                {/* Utility cluster: language + theme + profile grouped together.
-                    Double presets host this cluster in the top utility row
-                    (HeaderUtilitySlot), so here only the burger remains. */}
-                <Group gap="sm" wrap="nowrap">
+                <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
                     {!isDouble ? (
-                        <>
+                        <Group gap="sm" wrap="nowrap" visibleFrom="md">
                             <LanguageSelector />
                             <ThemeToggle />
                             <AuthButton initialProfilePages={initialProfilePages} />
-                        </>
+                        </Group>
                     ) : null}
+                    <Group gap="xs" wrap="nowrap" hiddenFrom="md">
+                        <HeaderUtilityCluster
+                            initialProfilePages={initialProfilePages}
+                            initialNavigation={initialNavigation}
+                        />
+                    </Group>
                     <BurgerMenuClient initialHeaderMenu={menu} />
                 </Group>
             </Flex>

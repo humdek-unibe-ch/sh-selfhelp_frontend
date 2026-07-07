@@ -7,10 +7,8 @@ SPDX-License-Identifier: MPL-2.0
 import { Group } from '@mantine/core';
 import { isDoubleWebHeaderPreset, resolveWebHeaderPreset, type INavigationMenu } from '@selfhelp/shared';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
-import { AuthButton } from '../../../shared/auth/AuthButton';
-import { LanguageSelector } from '../../../shared/common/LanguageSelector';
-import { ThemeToggle } from '../../../shared/common/ThemeToggle';
 import { HeaderSearch } from './HeaderSearch';
+import { HeaderUtilityCluster } from './HeaderUtilityCluster';
 import { WebsiteHeaderMenu } from './WebsiteHeaderMenu';
 import type { IPageItem, INavigationPayload } from '../../../../../shared';
 
@@ -29,12 +27,10 @@ function HeaderUtilitySlot({
     initialNavigation?: INavigationPayload | null;
 }) {
     return (
-        <Group gap="sm" wrap="nowrap" justify="flex-end">
-            <HeaderSearch initialNavigation={initialNavigation} />
-            <LanguageSelector />
-            <ThemeToggle />
-            <AuthButton initialProfilePages={initialProfilePages} />
-        </Group>
+        <HeaderUtilityCluster
+            initialProfilePages={initialProfilePages}
+            initialNavigation={initialNavigation}
+        />
     );
 }
 
