@@ -26,11 +26,12 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { useMemo } from 'react';
-import { Box, Container, Divider, Group, Stack, Text } from '@mantine/core';
+import { Box, Container } from '@mantine/core';
 import { isDoubleWebHeaderPreset, resolveWebHeaderPreset } from '@selfhelp/shared';
 import DynamicPageClient from '../../../[[...slug]]/DynamicPageClient';
 import { WebsiteHeaderLayout } from '../../frontend/layout/header/WebsiteHeaderLayout';
 import { FooterLinks } from '../../frontend/layout/footer/FooterLinks';
+import footerStyles from '../../frontend/layout/footer/WebsiteFooter.module.css';
 import { PreviewModeIndicator } from '../../shared/common/PreviewModeIndicator';
 import { usePreviewMode } from '../../contexts/PreviewModeContext';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
@@ -53,7 +54,7 @@ interface ILivePreviewWebPaneProps {
 
 export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneProps) {
     const { isPreviewMode } = usePreviewMode();
-    const { routes, footerMenu, headerMenu } = useAppNavigation();
+    const { routes, footerMenu, headerMenu, navigation, profilePages } = useAppNavigation();
 
     const effectiveKeyword = keyword && keyword.trim() ? keyword.trim().replace(/^\/+/, '') : HOME_KEYWORD;
 
@@ -99,7 +100,11 @@ export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneP
                             background: 'var(--mantine-color-body)',
                         }}
                     >
-                        <WebsiteHeaderLayout initialHeaderMenu={headerMenu} />
+                        <WebsiteHeaderLayout
+                            initialHeaderMenu={headerMenu}
+                            initialNavigation={navigation}
+                            initialProfilePages={profilePages}
+                        />
                     </Box>
                 )}
 
@@ -114,20 +119,12 @@ export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneP
                         <Box
                             component="footer"
                             w="100%"
-                            py="xl"
+                            py={{ base: 'lg', sm: 'xl' }}
                             mt="xl"
-                            style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
+                            className={footerStyles.footer}
                         >
                             <Container size="xl">
-                                <Stack gap="lg">
-                                    <Group justify="center" gap="xl">
-                                        <FooterLinks footerMenu={footerMenu} />
-                                    </Group>
-                                    <Divider />
-                                    <Text size="sm" c="dimmed" ta="center">
-                                        © {new Date().getFullYear()} SelfHelp. All rights reserved.
-                                    </Text>
-                                </Stack>
+                                <FooterLinks footerMenu={footerMenu} />
                             </Container>
                         </Box>
                     )}
