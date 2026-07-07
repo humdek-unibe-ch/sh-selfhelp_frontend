@@ -6,10 +6,8 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useState, useMemo, useEffect } from 'react';
 import {
-    Modal,
     Stack,
     Text,
-    Button,
     Group,
     Alert,
     LoadingOverlay,
@@ -23,7 +21,6 @@ import {
 } from '@mantine/core';
 import {
     IconInfoCircle,
-    IconDeviceFloppy,
     IconChevronDown,
     IconChevronUp,
     IconSearch,
@@ -34,6 +31,7 @@ import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useGroupDetails, useUpdateGroupAcls } from '../../../../../hooks/useGroups';
 import { convertAclsToApiFormat, convertApiAclsToUiFormat } from '../../../../../utils/acl-conversion.utils';
 import { useQueryClient } from '@tanstack/react-query';
+import { ModalWrapper } from '../../../shared';
 
 export interface IAclPage {
     id: number;
@@ -219,7 +217,7 @@ export function AclManagement({
 
                 <Stack gap="xs">
                     {pages.map(page => (
-                        <Paper key={page.id} p="xs" style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}>
+                        <Paper key={page.id} p="xs" style={{ backgroundColor: 'var(--mantine-color-default)' }} withBorder>
                             <Stack gap="xs">
                                 <Group justify="space-between">
                                     <Group gap="xs">
@@ -330,7 +328,7 @@ export function AclManagement({
 
                     {/* Selected Pages Summary */}
                     {selectedPages.length > 0 && (
-                        <Paper p="sm" withBorder style={{ backgroundColor: 'var(--mantine-color-blue-0)' }}>
+                        <Paper p="sm" withBorder style={{ backgroundColor: 'var(--mantine-color-default)' }}>
                             <Text size="sm" fw={500} mb="xs">
                                 Selected Pages ({selectedPages.length})
                             </Text>
@@ -439,41 +437,29 @@ export function AdvancedAclModal({
     const isSubmitting = updateAclsMutation.isPending;
 
     return (
-        <Modal
+        <ModalWrapper
             opened={opened}
             onClose={onClose}
-            title={
-                <Text size="lg" fw={600}>
-                    Advanced ACL Management - {groupName}
-                </Text>
-            }
+            title={`Advanced ACL Management - ${groupName}`}
             size="xl"
-            centered
+            onCancel={onClose}
+            onSave={() => {
+                void handleSave();
+            }}
+            isLoading={isSubmitting}
+            saveLabel="Save ACL Changes"
+            cancelLabel="Cancel"
+            scrollAreaHeight="calc(100dvh - 14rem)"
         >
             <LoadingOverlay visible={isLoading} />
 
-            <Stack gap="md">
-                <AclManagement
-                    selectedPages={selectedPages}
-                    onChange={setSelectedPages}
-                    showHeader={false}
-                    maxHeight={500}
-                    initiallyExpanded={true}
-                />
-
-                <Group justify="flex-end" gap="sm">
-                    <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-                        Cancel
-                    </Button>
-                    <Button
-                        leftSection={<IconDeviceFloppy size="1rem" />}
-                        onClick={handleSave}
-                        loading={isSubmitting}
-                    >
-                        Save ACL Changes
-                    </Button>
-                </Group>
-            </Stack>
-        </Modal>
+            <AclManagement
+                selectedPages={selectedPages}
+                onChange={setSelectedPages}
+                showHeader={false}
+                maxHeight={500}
+                initiallyExpanded={true}
+            />
+        </ModalWrapper>
     );
 } 
