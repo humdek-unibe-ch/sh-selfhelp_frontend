@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import { type IResourceItem } from '@refinedev/core';
 import { NavigationApi } from '../api/navigation.api';
@@ -15,10 +15,12 @@ import {
 } from '../shared';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLanguageContext } from '../app/components/contexts/LanguageContext';
+import { useAuthUser } from './useUserData';
 import {
     selectProfilePages,
     transformNavigationPages,
 } from '../utils/navigation.utils';
+import { keepPlaceholderWithinAuthScope } from '../utils/navigation-query.utils';
 
 interface INavigationData {
     pages: IPageItem[];
@@ -47,29 +49,36 @@ function flattenPages(pages: IPageItem[]): IPageItem[] {
 export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
     const { isAdmin = false } = options;
     const { currentLanguageId } = useLanguageContext();
+    const { user, isLoading: isAuthLoading } = useAuthUser();
+    // Navigation visibility is permission-filtered. Keep guest and logged-in
+    // caches isolated so a fresh login never reuses a "guest-empty" menu for
+    // 10 minutes due staleTime.
+    const authScope = user?.id != null ? `user:${user.id}` : 'guest';
+
+    const navigationEnabled = currentLanguageId > 0 && !isAuthLoading;
 
     const pagesQuery = useQuery({
-        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(currentLanguageId),
+        queryKey: [...REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(currentLanguageId), authScope],
         queryFn: () => NavigationApi.getPagesWithLanguage(currentLanguageId),
-        enabled: currentLanguageId > 0,
+        enabled: navigationEnabled,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.gcTime,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
         retry: 1,
-        placeholderData: keepPreviousData,
+        placeholderData: keepPlaceholderWithinAuthScope(authScope),
     });
 
     const navigationQuery = useQuery({
-        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION(currentLanguageId),
+        queryKey: [...REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION(currentLanguageId), authScope],
         queryFn: () => NavigationApi.getNavigation(currentLanguageId),
-        enabled: currentLanguageId > 0,
+        enabled: navigationEnabled,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.gcTime,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
         retry: 1,
-        placeholderData: keepPreviousData,
+        placeholderData: keepPlaceholderWithinAuthScope(authScope),
     });
 
     const rawPages = pagesQuery.data ?? [];

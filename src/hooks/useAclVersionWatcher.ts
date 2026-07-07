@@ -25,18 +25,28 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 export function useAclVersionWatcher(): void {
     const queryClient = useQueryClient();
     const { user } = useAuthUser();
-    const previousVersionRef = useRef<string | null | undefined>(undefined);
+    const previousAclSignatureRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
-        const current = user?.aclVersion ?? null;
+        const currentSignature = `${user?.id ?? 'guest'}:${user?.aclVersion ?? 'none'}`;
 
-        if (previousVersionRef.current === undefined) {
-            previousVersionRef.current = current;
+        if (previousAclSignatureRef.current === undefined) {
+            previousAclSignatureRef.current = currentSignature;
+            // First authenticated mount can happen right after login with
+            // user-data already hydrated. In that case there is no "change"
+            // event to trigger invalidation, but we still must refresh
+            // permission-filtered navigation immediately.
+            if (user?.id != null) {
+                void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
+                void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION_ALL });
+                void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
+                void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
+            }
             return;
         }
 
-        if (current !== previousVersionRef.current) {
-            previousVersionRef.current = current;
+        if (currentSignature !== previousAclSignatureRef.current) {
+            previousAclSignatureRef.current = currentSignature;
             // ACL changes can hide/show entire pages and individual sections,
             // so we invalidate every cache that encodes permission-filtered
             // content: navigation, admin tree, and the public page content
@@ -45,5 +55,5 @@ export function useAclVersionWatcher(): void {
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
         }
-    }, [user?.aclVersion, queryClient]);
+    }, [user?.id, user?.aclVersion, queryClient]);
 }

@@ -17,6 +17,7 @@ import {
 } from '../../../../_lib/server-fetch';
 
 import { WebsiteHeaderLayout } from './WebsiteHeaderLayout';
+import type { INavigationPayload } from '../../../../../shared';
 
 
 
@@ -51,6 +52,7 @@ export async function WebsiteHeader() {
 
 
     const initialHeaderMenu = navigation?.menus?.web_header ?? null;
+    const initialBranding = navigation?.branding ?? null;
 
 
 
@@ -59,6 +61,8 @@ export async function WebsiteHeader() {
         <WebsiteHeaderLayout
 
             initialHeaderMenu={initialHeaderMenu}
+            initialNavigation={navigation as INavigationPayload | null}
+            initialBranding={initialBranding}
 
             initialProfilePages={initialProfilePages}
 

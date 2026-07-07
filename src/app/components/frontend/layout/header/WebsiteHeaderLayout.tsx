@@ -11,17 +11,22 @@ import { AuthButton } from '../../../shared/auth/AuthButton';
 import { LanguageSelector } from '../../../shared/common/LanguageSelector';
 import { ThemeToggle } from '../../../shared/common/ThemeToggle';
 import { BurgerMenuClient } from '../../../shared/common/BurgerMenuClient';
-import type { IPageItem } from '../../../../../shared';
+import type { IPageItem, INavigationBranding } from '../../../../../shared';
 import { HeaderBrand } from './HeaderBrand';
 import { WebsiteHeaderNavRow } from './WebsiteHeaderNavRow';
+import type { INavigationPayload } from '../../../../../shared';
 
 interface IWebsiteHeaderLayoutProps {
     initialHeaderMenu?: INavigationMenu | null;
+    initialNavigation?: INavigationPayload | null;
+    initialBranding?: INavigationBranding | null;
     initialProfilePages?: IPageItem[];
 }
 
 export function WebsiteHeaderLayout({
     initialHeaderMenu = null,
+    initialNavigation = null,
+    initialBranding = null,
     initialProfilePages = [],
 }: IWebsiteHeaderLayoutProps) {
     const { headerMenu: liveHeaderMenu } = useAppNavigation();
@@ -32,11 +37,12 @@ export function WebsiteHeaderLayout({
     return (
         <Container size="xl" h="100%">
             <Flex justify="space-between" align="center" h="100%" gap="md">
-                <HeaderBrand />
+                <HeaderBrand initialBranding={initialBranding} />
 
                 <Group gap="md" visibleFrom="md" style={{ flex: 1, minWidth: 0 }}>
                     <WebsiteHeaderNavRow
                         initialHeaderMenu={menu}
+                        initialNavigation={initialNavigation}
                         initialProfilePages={initialProfilePages}
                     />
                 </Group>

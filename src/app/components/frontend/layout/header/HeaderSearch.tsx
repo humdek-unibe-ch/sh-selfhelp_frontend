@@ -15,7 +15,7 @@ import { permissionAwareApiClient } from '../../../../../api/base.api';
 import { API_CONFIG } from '../../../../../config/api.config';
 import { useLanguageContext } from '../../../contexts/LanguageContext';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
-import type { IBaseApiResponse } from '../../../../../shared';
+import type { IBaseApiResponse, INavigationPayload } from '../../../../../shared';
 
 interface ISearchHit {
     page_id?: number;
@@ -135,14 +135,20 @@ function HeaderSearchField({
     );
 }
 
-export function HeaderSearch(): React.ReactElement | null {
+interface IHeaderSearchProps {
+    /** SSR navigation fallback used to avoid hydration flicker. */
+    initialNavigation?: INavigationPayload | null;
+}
+
+export function HeaderSearch({ initialNavigation = null }: IHeaderSearchProps): React.ReactElement | null {
     const router = useRouter();
     const { currentLanguageId } = useLanguageContext();
-    const { navigation } = useAppNavigation();
+    const { navigation: liveNavigation } = useAppNavigation();
     const [query, setQuery] = useState('');
     const [opened, { open, close }] = useDisclosure(false);
     const compact = useMediaQuery('(max-width: 62em)') ?? false;
 
+    const navigation = liveNavigation ?? initialNavigation;
     const searchMode = navigation?.search?.mode ?? 'off';
     const minChars = navigation?.search?.min_chars ?? 2;
     const resultLimit = navigation?.search?.result_limit ?? 8;

@@ -12,18 +12,25 @@ import { LanguageSelector } from '../../../shared/common/LanguageSelector';
 import { ThemeToggle } from '../../../shared/common/ThemeToggle';
 import { HeaderSearch } from './HeaderSearch';
 import { WebsiteHeaderMenu } from './WebsiteHeaderMenu';
-import type { IPageItem } from '../../../../../shared';
+import type { IPageItem, INavigationPayload } from '../../../../../shared';
 
 interface IWebsiteHeaderNavRowProps {
     initialHeaderMenu?: INavigationMenu | null;
+    initialNavigation?: INavigationPayload | null;
     initialProfilePages?: IPageItem[];
 }
 
 /** Top-row utility cluster: search, then language + theme + profile grouped together. */
-function HeaderUtilitySlot({ initialProfilePages = [] }: { initialProfilePages?: IPageItem[] }) {
+function HeaderUtilitySlot({
+    initialProfilePages = [],
+    initialNavigation = null,
+}: {
+    initialProfilePages?: IPageItem[];
+    initialNavigation?: INavigationPayload | null;
+}) {
     return (
         <Group gap="sm" wrap="nowrap" justify="flex-end">
-            <HeaderSearch />
+            <HeaderSearch initialNavigation={initialNavigation} />
             <LanguageSelector />
             <ThemeToggle />
             <AuthButton initialProfilePages={initialProfilePages} />
@@ -37,6 +44,7 @@ function HeaderUtilitySlot({ initialProfilePages = [] }: { initialProfilePages?:
  */
 export function WebsiteHeaderNavRow({
     initialHeaderMenu = null,
+    initialNavigation = null,
     initialProfilePages = [],
 }: IWebsiteHeaderNavRowProps) {
     const { headerMenu: liveHeaderMenu } = useAppNavigation();
@@ -48,7 +56,12 @@ export function WebsiteHeaderNavRow({
         return (
             <WebsiteHeaderMenu
                 initialHeaderMenu={menu}
-                utilitySlot={<HeaderUtilitySlot initialProfilePages={initialProfilePages} />}
+                utilitySlot={
+                    <HeaderUtilitySlot
+                        initialProfilePages={initialProfilePages}
+                        initialNavigation={initialNavigation}
+                    />
+                }
             />
         );
     }
@@ -56,7 +69,7 @@ export function WebsiteHeaderNavRow({
     return (
         <Group gap="md" wrap="nowrap" style={{ flex: 1 }}>
             <WebsiteHeaderMenu initialHeaderMenu={menu} />
-            <HeaderSearch />
+            <HeaderSearch initialNavigation={initialNavigation} />
         </Group>
     );
 }
