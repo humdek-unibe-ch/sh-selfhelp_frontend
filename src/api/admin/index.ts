@@ -19,6 +19,7 @@ export { AdminAssetApi } from './asset.api';
 export { AdminPermissionApi } from './permission.api';
 export { AdminScheduledJobsApi } from './scheduled-jobs.api';
 export { AdminDataAccessApi } from './data-access.api';
+export { AdminAnalyticsApi } from './analytics.api';
 
 // Aggregated admin API used by hooks that need multiple admin domains.
 import { AdminPageApi } from './page.api';

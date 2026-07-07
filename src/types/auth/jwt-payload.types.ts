@@ -140,6 +140,9 @@ export const PERMISSIONS = {
     ADMIN_CACHE_MANAGE: 'admin.cache.manage',
     ADMIN_CACHE_READ: 'admin.cache.read',
 
+    // Dashboard analytics (anonymous page-view aggregates)
+    ADMIN_ANALYTICS_READ: 'admin.analytics.read',
+
     // Navigation menu builder
     ADMIN_NAVIGATION_READ: 'admin.navigation.read',
     ADMIN_NAVIGATION_UPDATE: 'admin.navigation.update',

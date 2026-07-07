@@ -343,6 +343,13 @@ export class PermissionChecker {
     return this.hasPermission(PERMISSIONS.ADMIN_CACHE_READ);
   }
 
+  /**
+   * Check if user can read dashboard analytics
+   */
+  canReadAnalytics(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_ANALYTICS_READ);
+  }
+
   canReadNavigation(): boolean {
     return this.hasPermission(PERMISSIONS.ADMIN_NAVIGATION_READ);
   }

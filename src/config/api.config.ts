@@ -720,6 +720,16 @@ export const API_CONFIG = {
             permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
         },
 
+        // Admin analytics endpoints (dashboard)
+        ADMIN_ANALYTICS_SUMMARY: {
+            route: '/admin/analytics/summary',
+            permissions: [PERMISSIONS.ADMIN_ANALYTICS_READ]
+        },
+        ADMIN_ANALYTICS_TODAY: {
+            route: '/admin/analytics/today',
+            permissions: [PERMISSIONS.ADMIN_ANALYTICS_READ]
+        },
+
         // Admin cache endpoints
         ADMIN_CACHE_STATS: {
             route: '/admin/cache/stats',

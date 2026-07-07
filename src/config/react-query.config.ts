@@ -145,6 +145,11 @@ export const REACT_QUERY_CONFIG = {
         // ── Admin page list ───────────────────────────────────────────────
         ADMIN_PAGES: ['admin-pages'],
 
+        // ── Admin dashboard analytics ──────────────────────────────────────
+        ADMIN_ANALYTICS_SUMMARY: (from: string, to: string, granularity: string, platform: string) =>
+            ['admin-analytics', 'summary', from, to, granularity, platform] as const,
+        ADMIN_ANALYTICS_TODAY: ['admin-analytics', 'today'],
+
         // ── Admin navigation (builder overview + sidebar preview) ─────────
         ADMIN_NAVIGATION_OVERVIEW: ['admin-navigation', 'overview'],
         ADMIN_NAVIGATION_PREVIEW: (menuKey: string, languageId: number) =>
