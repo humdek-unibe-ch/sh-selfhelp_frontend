@@ -17,6 +17,10 @@ import {
     splitHeaderLayers,
 } from '@selfhelp/shared';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
+import {
+    isPreviewInternalPath,
+    usePreviewNavigation,
+} from '../../cms/live-preview/PreviewNavigationContext';
 import IconComponent from './IconComponent';
 
 interface IBurgerMenuClientProps {
@@ -61,7 +65,6 @@ function BurgerNavTree({
                     active={active}
                     defaultOpened={active}
                     pl={depth * 12}
-                    onClick={handleNavigate}
                 >
                     <BurgerNavTree
                         items={children}
@@ -96,6 +99,7 @@ export function BurgerMenuClient({ initialHeaderMenu = null }: IBurgerMenuClient
     const pathname = usePathname();
     const router = useRouter();
     const { headerMenu } = useAppNavigation();
+    const previewNav = usePreviewNavigation();
     const menu = headerMenu ?? initialHeaderMenu;
     const items = menu?.items ?? [];
 
@@ -107,6 +111,10 @@ export function BurgerMenuClient({ initialHeaderMenu = null }: IBurgerMenuClient
     const { top, main } = splitHeaderLayers(items);
 
     const handleNavigateHref = (href: string) => {
+        if (previewNav && isPreviewInternalPath(href)) {
+            previewNav.navigate(href);
+            return;
+        }
         if (href.startsWith('http://') || href.startsWith('https://')) {
             window.location.assign(href);
             return;

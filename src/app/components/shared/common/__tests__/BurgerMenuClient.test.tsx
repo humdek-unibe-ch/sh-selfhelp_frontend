@@ -10,6 +10,7 @@ import { renderWithProviders } from '../../../../../test-utils/renderWithProvide
 import { BurgerMenuClient } from '../BurgerMenuClient';
 
 const mockUseMediaQuery = vi.fn();
+const mockRouterPush = vi.fn();
 
 vi.mock('@mantine/hooks', async (importOriginal) => {
     const actual = await importOriginal();
@@ -25,7 +26,7 @@ vi.mock('../../../../../hooks/useAppNavigation', () => ({
 
 vi.mock('next/navigation', () => ({
     usePathname: () => '/about',
-    useRouter: () => ({ push: vi.fn() }),
+    useRouter: () => ({ push: mockRouterPush }),
 }));
 
 vi.mock('../IconComponent', () => ({
@@ -75,6 +76,7 @@ const headerMenu: INavigationMenu = {
 describe('BurgerMenuClient', () => {
     beforeEach(() => {
         mockUseMediaQuery.mockReturnValue(true);
+        mockRouterPush.mockReset();
     });
 
     it('renders nothing on large viewports', () => {
@@ -108,5 +110,37 @@ describe('BurgerMenuClient', () => {
         });
         const labels = screen.getAllByText(/About|Contact|Support/).map((node) => node.textContent);
         expect(labels.indexOf('Support')).toBeGreaterThan(labels.indexOf('Contact'));
+    });
+
+    it('expands a parent item without navigating when it has children', async () => {
+        const user = userEvent.setup();
+        const productsMenu: INavigationMenu = {
+            ...headerMenu,
+            items: [item('Products', 10, [item('Product A', 11), item('Product B', 12)])],
+        };
+        renderWithProviders(<BurgerMenuClient initialHeaderMenu={productsMenu} />);
+
+        await user.click(screen.getByLabelText('Open navigation menu'));
+        await waitFor(() => {
+            expect(screen.getByRole('dialog', { name: /menu/i })).toBeInTheDocument();
+        });
+        await user.click(screen.getByText('Products'));
+
+        expect(mockRouterPush).not.toHaveBeenCalled();
+        await user.click(screen.getByText('Product A'));
+        expect(mockRouterPush).toHaveBeenCalledWith('/product a');
+    });
+
+    it('navigates when a leaf item is selected', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(<BurgerMenuClient initialHeaderMenu={headerMenu} />);
+
+        await user.click(screen.getByLabelText('Open navigation menu'));
+        await waitFor(() => {
+            expect(screen.getByText('Contact')).toBeInTheDocument();
+        });
+        await user.click(screen.getByText('Contact'));
+
+        expect(mockRouterPush).toHaveBeenCalledWith('/contact');
     });
 });
