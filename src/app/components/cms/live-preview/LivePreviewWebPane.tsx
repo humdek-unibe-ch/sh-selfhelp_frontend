@@ -29,6 +29,7 @@ import { useMemo } from 'react';
 import { Box, Container } from '@mantine/core';
 import { isDoubleWebHeaderPreset, resolveWebHeaderPreset } from '@selfhelp/shared';
 import DynamicPageClient from '../../../[[...slug]]/DynamicPageClient';
+import slugLayoutStyles from '../../../[[...slug]]/SlugLayout/SlugLayout.module.css';
 import { WebsiteHeaderLayout } from '../../frontend/layout/header/WebsiteHeaderLayout';
 import { FooterLinks } from '../../frontend/layout/footer/FooterLinks';
 import footerStyles from '../../frontend/layout/footer/WebsiteFooter.module.css';
@@ -108,25 +109,37 @@ export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneP
                     </Box>
                 )}
 
-                {/* Scrolling page body + footer (footer scrolls with content, as on
-                    the real site) */}
-                <Box style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
-                    {isPreviewMode && <PreviewModeIndicator />}
+                {/* Page body + sticky footer — mirrors `SlugShell` so short pages
+                    keep the footer at the bottom of the preview pane. */}
+                <Box
+                    style={{
+                        flex: 1,
+                        minHeight: 0,
+                        overflow: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
+                    }}
+                >
+                    <div className={slugLayoutStyles.contentArea}>
+                        {isPreviewMode && <PreviewModeIndicator />}
 
-                    <DynamicPageClient keyword={effectiveKeyword} initialPageId={pageId} />
+                        <DynamicPageClient keyword={effectiveKeyword} initialPageId={pageId} />
+                    </div>
 
                     {!isHeadless && (footerMenu?.items?.length ?? 0) > 0 && (
-                        <Box
-                            component="footer"
-                            w="100%"
-                            py={{ base: 'lg', sm: 'xl' }}
-                            mt="xl"
-                            className={footerStyles.footer}
-                        >
-                            <Container size="xl">
-                                <FooterLinks footerMenu={footerMenu} />
-                            </Container>
-                        </Box>
+                        <div className={slugLayoutStyles.footerWrapper}>
+                            <Box
+                                component="footer"
+                                w="100%"
+                                py={{ base: 'lg', sm: 'xl' }}
+                                mt="xl"
+                                className={footerStyles.footer}
+                            >
+                                <Container size="xl">
+                                    <FooterLinks footerMenu={footerMenu} />
+                                </Container>
+                            </Box>
+                        </div>
                     )}
                 </Box>
             </Box>
