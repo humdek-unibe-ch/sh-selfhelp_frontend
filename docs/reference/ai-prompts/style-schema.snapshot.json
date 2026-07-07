@@ -1,10 +1,13 @@
 {
     "_comment": "DB-free schema snapshot consumed by scripts/validate-ai-examples.mjs and the AI-examples vitest. Generated from the backend live style catalog (GET /cms-api/v1/admin/ai/section-prompt-template?format=json equivalent). Regenerate with: (backend) scripts/build-style-audit.php then copy via the documented step in docs/reference/ai-prompts/index.md.",
-    "generated_at": "2026-06-22T19:23:11+00:00",
-    "shared_version_at_generation": "1.14.22",
+    "generated_at": "2026-07-06T23:32:13+00:00",
+    "shared_version_at_generation": "3.0.0",
     "languages": {
         "default": "de-CH",
-        "content": ["de-CH", "en-GB"],
+        "content": [
+            "de-CH",
+            "en-GB"
+        ],
         "property": "all"
     },
     "styles": {
@@ -408,7 +411,7 @@
             "fields": {
                 "blockquote_content": {
                     "scope": "content",
-                    "type": "markdown-inline",
+                    "type": "textarea",
                     "default": null
                 },
                 "cite": {
@@ -1129,7 +1132,7 @@
                 },
                 "web_color_picker_swatches": {
                     "scope": "web",
-                    "type": "textarea",
+                    "type": "json",
                     "default": "[\"#2e2e2e\", \"#868e96\", \"#fa5252\", \"#e64980\", \"#be4bdb\", \"#7950f2\", \"#4c6ef5\", \"#228be6\"]"
                 },
                 "web_color_picker_swatches_per_row": {
@@ -1368,7 +1371,7 @@
                 },
                 "web_datepicker_time_grid_config": {
                     "scope": "web",
-                    "type": "textarea",
+                    "type": "json",
                     "default": null
                 },
                 "web_datepicker_time_step": {
@@ -1442,64 +1445,12 @@
         "entry-list": {
             "renderTarget": "both",
             "canHaveChildren": true,
-            "fields": {
-                "data_table": {
-                    "scope": "common",
-                    "type": "select-data_table",
-                    "default": ""
-                },
-                "filter": {
-                    "scope": "common",
-                    "type": "code",
-                    "default": null
-                },
-                "load_as_table": {
-                    "scope": "common",
-                    "type": "checkbox",
-                    "default": "0"
-                },
-                "own_entries_only": {
-                    "scope": "common",
-                    "type": "checkbox",
-                    "default": "1"
-                },
-                "scope": {
-                    "scope": "common",
-                    "type": "text",
-                    "default": ""
-                }
-            }
+            "fields": {}
         },
         "entry-record": {
             "renderTarget": "both",
             "canHaveChildren": true,
-            "fields": {
-                "data_table": {
-                    "scope": "common",
-                    "type": "select-data_table",
-                    "default": ""
-                },
-                "filter": {
-                    "scope": "common",
-                    "type": "code",
-                    "default": null
-                },
-                "own_entries_only": {
-                    "scope": "common",
-                    "type": "checkbox",
-                    "default": "1"
-                },
-                "scope": {
-                    "scope": "common",
-                    "type": "text",
-                    "default": ""
-                },
-                "url_param": {
-                    "scope": "common",
-                    "type": "text",
-                    "default": "record_id"
-                }
-            }
+            "fields": {}
         },
         "entry-record-delete": {
             "renderTarget": "both",
@@ -1534,11 +1485,142 @@
                     "scope": "common",
                     "type": "checkbox",
                     "default": "1"
-                },
-                "type": {
+                }
+            }
+        },
+        "entry-table": {
+            "renderTarget": "both",
+            "canHaveChildren": false,
+            "fields": {
+                "add_url": {
                     "scope": "common",
-                    "type": "style-bootstrap",
-                    "default": "danger"
+                    "type": "text",
+                    "default": ""
+                },
+                "csv_export": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "data_table": {
+                    "scope": "common",
+                    "type": "select-data_table",
+                    "default": ""
+                },
+                "delete_entry": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "delete_modal_body": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "Are you sure you want to delete this entry?"
+                },
+                "delete_modal_title": {
+                    "scope": "content",
+                    "type": "text",
+                    "default": "Delete entry"
+                },
+                "dt_default_order_column": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "dt_default_order_dir": {
+                    "scope": "common",
+                    "type": "select",
+                    "default": "asc"
+                },
+                "dt_info": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "dt_paginate": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "dt_searching": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "dt_sortable": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "edit_url": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
+                "empty_text": {
+                    "scope": "content",
+                    "type": "textarea",
+                    "default": "No entries found."
+                },
+                "fields_map": {
+                    "scope": "content",
+                    "type": "json",
+                    "default": ""
+                },
+                "own_entries_only": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "show_timestamp": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "spacing": {
+                    "scope": "common",
+                    "type": "spacing",
+                    "default": ""
+                },
+                "title": {
+                    "scope": "content",
+                    "type": "markdown-inline",
+                    "default": ""
+                },
+                "web_table_caption_side": {
+                    "scope": "web",
+                    "type": "segment",
+                    "default": ""
+                },
+                "web_table_highlight_on_hover": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_table_sticky_header": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_table_striped": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_table_with_column_borders": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "web_table_with_row_borders": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "web_table_with_table_border": {
+                    "scope": "web",
+                    "type": "checkbox",
+                    "default": "1"
                 }
             }
         },
@@ -1815,9 +1897,14 @@
                     "type": "select",
                     "default": "filled"
                 },
+                "close_modal_on_save": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
                 "confirm_message": {
                     "scope": "content",
-                    "type": "text",
+                    "type": "textarea",
                     "default": "Are you sure you want to submit?"
                 },
                 "confirm_submit": {
@@ -1839,6 +1926,11 @@
                     "scope": "common",
                     "type": "select-page-keyword",
                     "default": null
+                },
+                "redirect_on_save": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
                 },
                 "spacing": {
                     "scope": "common",
@@ -1936,9 +2028,14 @@
                     "type": "select",
                     "default": "filled"
                 },
+                "close_modal_on_save": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "0"
+                },
                 "confirm_message": {
                     "scope": "content",
-                    "type": "text",
+                    "type": "textarea",
                     "default": "Are you sure you want to submit?"
                 },
                 "confirm_submit": {
@@ -1951,15 +2048,30 @@
                     "type": "textarea",
                     "default": ""
                 },
+                "load_record_from": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
+                },
                 "name": {
                     "scope": "common",
                     "type": "text",
                     "default": null
                 },
+                "own_entries_only": {
+                    "scope": "common",
+                    "type": "checkbox",
+                    "default": "1"
+                },
                 "redirect_at_end": {
                     "scope": "common",
                     "type": "select-page-keyword",
                     "default": null
+                },
+                "redirect_on_save": {
+                    "scope": "common",
+                    "type": "text",
+                    "default": ""
                 },
                 "spacing": {
                     "scope": "common",
@@ -2127,7 +2239,7 @@
                 },
                 "text": {
                     "scope": "content",
-                    "type": "markdown-inline",
+                    "type": "textarea",
                     "default": "Highlight some text in this content"
                 }
             }
@@ -2143,7 +2255,7 @@
                 },
                 "html_tag_content": {
                     "scope": "content",
-                    "type": "textarea",
+                    "type": "code",
                     "default": null
                 }
             }
@@ -2549,11 +2661,6 @@
                     "scope": "common",
                     "type": "json",
                     "default": null
-                },
-                "scope": {
-                    "scope": "common",
-                    "type": "text",
-                    "default": ""
                 }
             }
         },
@@ -3514,7 +3621,7 @@
                 },
                 "range_slider_marks_values": {
                     "scope": "content",
-                    "type": "textarea",
+                    "type": "json",
                     "default": ""
                 },
                 "size": {
@@ -3648,7 +3755,7 @@
         "ref-container": {
             "renderTarget": "both",
             "canHaveChildren": true,
-            "fields": []
+            "fields": {}
         },
         "register": {
             "renderTarget": "both",
@@ -3985,7 +4092,7 @@
                 },
                 "segmented_control_data": {
                     "scope": "content",
-                    "type": "textarea",
+                    "type": "json",
                     "default": "[{\"value\":\"option1\",\"label\":\"Option 1\"},{\"value\":\"option2\",\"label\":\"Option 2\"},{\"value\":\"option3\",\"label\":\"Option 3\"}]"
                 },
                 "size": {
@@ -4054,11 +4161,6 @@
                     "type": "select",
                     "default": ""
                 },
-                "multi_select_data": {
-                    "scope": "content",
-                    "type": "textarea",
-                    "default": null
-                },
                 "name": {
                     "scope": "common",
                     "type": "text",
@@ -4093,132 +4195,6 @@
                     "scope": "common",
                     "type": "text",
                     "default": null
-                }
-            }
-        },
-        "show-user-input": {
-            "renderTarget": "both",
-            "canHaveChildren": false,
-            "fields": {
-                "csv_export": {
-                    "scope": "common",
-                    "type": "checkbox",
-                    "default": "0"
-                },
-                "data_table": {
-                    "scope": "common",
-                    "type": "select-data_table",
-                    "default": ""
-                },
-                "delete_entry": {
-                    "scope": "common",
-                    "type": "checkbox",
-                    "default": "1"
-                },
-                "delete_modal_body": {
-                    "scope": "content",
-                    "type": "text",
-                    "default": "Are you sure you want to delete this entry?"
-                },
-                "delete_modal_title": {
-                    "scope": "content",
-                    "type": "text",
-                    "default": "Delete entry"
-                },
-                "dt_default_order_column": {
-                    "scope": "common",
-                    "type": "text",
-                    "default": ""
-                },
-                "dt_default_order_dir": {
-                    "scope": "common",
-                    "type": "select",
-                    "default": "asc"
-                },
-                "dt_info": {
-                    "scope": "common",
-                    "type": "checkbox",
-                    "default": "0"
-                },
-                "dt_paginate": {
-                    "scope": "common",
-                    "type": "checkbox",
-                    "default": "0"
-                },
-                "dt_searching": {
-                    "scope": "common",
-                    "type": "checkbox",
-                    "default": "0"
-                },
-                "dt_sortable": {
-                    "scope": "common",
-                    "type": "checkbox",
-                    "default": "0"
-                },
-                "empty_text": {
-                    "scope": "content",
-                    "type": "text",
-                    "default": "No entries found."
-                },
-                "fields_map": {
-                    "scope": "content",
-                    "type": "json",
-                    "default": ""
-                },
-                "own_entries_only": {
-                    "scope": "common",
-                    "type": "checkbox",
-                    "default": "1"
-                },
-                "show_timestamp": {
-                    "scope": "common",
-                    "type": "checkbox",
-                    "default": "0"
-                },
-                "spacing": {
-                    "scope": "common",
-                    "type": "spacing",
-                    "default": ""
-                },
-                "title": {
-                    "scope": "content",
-                    "type": "markdown-inline",
-                    "default": ""
-                },
-                "web_table_caption_side": {
-                    "scope": "web",
-                    "type": "segment",
-                    "default": ""
-                },
-                "web_table_highlight_on_hover": {
-                    "scope": "web",
-                    "type": "checkbox",
-                    "default": "1"
-                },
-                "web_table_sticky_header": {
-                    "scope": "web",
-                    "type": "checkbox",
-                    "default": "0"
-                },
-                "web_table_striped": {
-                    "scope": "web",
-                    "type": "checkbox",
-                    "default": "0"
-                },
-                "web_table_with_column_borders": {
-                    "scope": "web",
-                    "type": "checkbox",
-                    "default": "1"
-                },
-                "web_table_with_row_borders": {
-                    "scope": "web",
-                    "type": "checkbox",
-                    "default": "0"
-                },
-                "web_table_with_table_border": {
-                    "scope": "web",
-                    "type": "checkbox",
-                    "default": "1"
                 }
             }
         },
@@ -4329,7 +4305,7 @@
                 },
                 "slider_marks_values": {
                     "scope": "content",
-                    "type": "textarea",
+                    "type": "json",
                     "default": ""
                 },
                 "spacing": {
@@ -4681,7 +4657,7 @@
                 },
                 "text": {
                     "scope": "content",
-                    "type": "markdown-inline",
+                    "type": "textarea",
                     "default": null
                 },
                 "text_align": {
@@ -5225,7 +5201,7 @@
                 },
                 "error_text": {
                     "scope": "content",
-                    "type": "text",
+                    "type": "textarea",
                     "default": "This validation link is invalid or has expired. Please request a new validation email."
                 },
                 "error_title": {
@@ -5275,7 +5251,7 @@
                 },
                 "loading_text": {
                     "scope": "content",
-                    "type": "text",
+                    "type": "textarea",
                     "default": "Please wait while we validate your account activation link..."
                 },
                 "loading_title": {
@@ -5358,7 +5334,7 @@
         "version": {
             "renderTarget": "both",
             "canHaveChildren": false,
-            "fields": []
+            "fields": {}
         },
         "video": {
             "renderTarget": "both",

@@ -23,7 +23,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module app/components/cms/pages/admin-pages-list/PageExportImportModal
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     Alert,
     Badge,
@@ -78,6 +78,8 @@ interface IPageExportImportModalProps {
     opened: boolean;
     onClose: () => void;
     pages: IAdminPage[];
+    /** Tab shown when the modal opens (default 'export'); 'examples' is the template gallery. */
+    initialTab?: 'export' | 'import' | 'examples';
 }
 
 type TPageImportOptions = IPageImportOptions;
@@ -89,8 +91,8 @@ function isNavigationBundle(candidate: TImportableBundle | null): candidate is I
     return candidate?.format === NAVIGATION_BUNDLE_FORMAT;
 }
 
-export function PageExportImportModal({ opened, onClose, pages }: IPageExportImportModalProps) {
-    const [activeTab, setActiveTab] = useState<string>('export');
+export function PageExportImportModal({ opened, onClose, pages, initialTab = 'export' }: IPageExportImportModalProps) {
+    const [activeTab, setActiveTab] = useState<string>(initialTab);
 
     // ---- Export state ----
     const [selectedExportIds, setSelectedExportIds] = useState<string[]>([]);
@@ -216,6 +218,16 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
         }
     }
 
+    // Honour the caller's initial tab every time the dialog opens (e.g. the
+    // app wizard's "Browse templates" entry opens straight into the gallery).
+    useEffect(() => {
+        if (opened) {
+            handleTabChange(initialTab);
+        }
+        // handleTabChange is recreated per render; opened/initialTab are the real triggers.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [opened, initialTab]);
+
     /**
      * Load a shipped example straight into the import flow: seed the bundle, a
      * safe keyword/route prefix (so the demo never collides with real pages) and
@@ -232,13 +244,13 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
             setKeywordPrefix(example.bundle.import_hints?.default_keyword_prefix ?? '');
             setRoutePrefix(example.bundle.import_hints?.default_route_prefix ?? '');
         } else {
-            // Keyword prefix only — keep keywords unique without a route prefix. A
-            // route prefix would rewrite the page routes but NOT the in-bundle
-            // navigation links (e.g. a list item linking to "/cms/team-members/{id}"),
-            // so the demo's internal links would 404. With no route prefix the
-            // bundle's own routes/links stay self-consistent and resolve immediately.
+            // Both prefixes: keywords stay unique AND the routes move under a
+            // demo base. The backend importer rewrites in-bundle content links
+            // (card links, add/edit URLs, cancel/redirect URLs) to match the
+            // route prefix, so the imported app is fully clickable and never
+            // collides with an already-imported copy of the same template.
             setKeywordPrefix(`demo_${example.id.replace(/-/g, '_')}_`);
-            setRoutePrefix('');
+            setRoutePrefix(`/demo-${example.id}`);
         }
         setActiveTab('import');
     }
@@ -430,7 +442,7 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
                         Import
                     </Tabs.Tab>
                     <Tabs.Tab value="examples" leftSection={<IconLayoutGrid size="0.9rem" />}>
-                        Example bundles
+                        Start from template
                     </Tabs.Tab>
                 </Tabs.List>
 
@@ -524,7 +536,7 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
                             />
                             <TextInput
                                 label="Route prefix"
-                                description="Prepended to every imported route path. In-bundle links are not rewritten — leave empty unless the bundle has no internal links."
+                                description="Prepended to every imported route path. In-bundle content links (cards, add/edit buttons, cancel URLs) are rewritten to match, so the imported app stays clickable."
                                 inputWrapperOrder={['label', 'input', 'description']}
                                 placeholder="e.g. /imported"
                                 value={routePrefix}
@@ -620,13 +632,14 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
                     </Stack>
                 </Tabs.Panel>
 
-                {/* ---------------- Example bundles ---------------- */}
+                {/* ---------------- Start from template ---------------- */}
                 <Tabs.Panel value="examples" pt="md">
                     <Stack gap="md">
                         <Text size="sm" c="dimmed">
-                            Ready-made example bundles shipped with the CMS. Load one to populate the
-                            Import tab (with a safe keyword/route prefix already filled in), then
-                            validate and import to try the pattern end-to-end.
+                            Ready-made templates shipped with the CMS — complete apps with sample
+                            data (team pages, news, FAQ, events and more). Pick one to populate the
+                            Import tab with safe keyword/route prefixes already filled in, then
+                            validate and import; the app is clickable immediately.
                         </Text>
 
                         {isLoadingExamples && (
@@ -668,13 +681,22 @@ export function PageExportImportModal({ opened, onClose, pages }: IPageExportImp
                                                 {example.description}
                                             </Text>
                                         )}
+                                        {(example.tags?.length ?? 0) > 0 && (
+                                            <Group gap={6} mt={6}>
+                                                {example.tags.map((tag) => (
+                                                    <Badge key={tag} variant="outline" color="gray" size="xs">
+                                                        {tag}
+                                                    </Badge>
+                                                ))}
+                                            </Group>
+                                        )}
                                     </Box>
                                     <Button
                                         variant="light"
                                         leftSection={<IconFileImport size="0.9rem" />}
                                         onClick={() => handleUseExample(example)}
                                     >
-                                        Use this bundle
+                                        Use this template
                                     </Button>
                                 </Group>
                             </Card>

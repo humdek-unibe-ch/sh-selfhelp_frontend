@@ -269,7 +269,7 @@ export type TStyleName =
     | 'list' | 'list-item'
     | 'datepicker'
     | 'typography'
-    | 'show-user-input'
+    | 'entry-table'
     | 'timeline-item'
     // system / error surfaces
     | 'no-access' | 'missing' | 'not-found';
@@ -405,8 +405,8 @@ export type {
     IEntryRecordStyle,
     IEntryRecordDeleteStyle,
     ILoopStyle,
-    IShowUserInputStyle,
-    IShowUserInputEntry,
+    IEntryTableStyle,
+    IEntryTableEntry,
 } from '../../shared';
 
 // ===== Frontend-only legacy styles =====
@@ -426,7 +426,7 @@ export interface IVersionStyle extends IBaseStyle {
     style_name: 'version';
 }
 
-// `IShowUserInputStyle` / `IShowUserInputEntry` are owned by `@selfhelp/shared`
+// `IEntryTableStyle` / `IEntryTableEntry` are owned by `@selfhelp/shared`
 // (re-exported above) so the web + mobile renderers share one source of truth.
 
 // ===== Discriminated union of all styles =====
@@ -515,7 +515,7 @@ import type {
     IEntryRecordStyle,
     IEntryRecordDeleteStyle,
     ILoopStyle,
-    IShowUserInputStyle,
+    IEntryTableStyle,
     INoAccessStyle,
     IMissingStyle,
     INotFoundStyle,
@@ -553,7 +553,7 @@ export type TStyle =
     | IAccordionStyle | IAccordionItemStyle | ITabsStyle | ITabStyle
     | ITimelineStyle | ITimelineItemStyle | IListStyle | IListItemStyle
     | IEntryListStyle | IEntryRecordStyle | IEntryRecordDeleteStyle
-    | ILoopStyle | IVersionStyle | IShowUserInputStyle
+    | ILoopStyle | IVersionStyle | IEntryTableStyle
     // system / error surfaces
     | INoAccessStyle | IMissingStyle | INotFoundStyle;
 

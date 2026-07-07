@@ -16,10 +16,27 @@ No engineering diary, no implementation detail — that belongs in
 
 ## v0.1.59 — 2026-07-06
 
-Navigation overhaul — strict contract v2, no backward compatibility. Pairs with
-core `0.1.33` and `@selfhelp/shared` `2.0.0` (breaking major).
+Navigation overhaul — strict contract v2, no backward compatibility — plus the
+CMS-in-CMS polish wave (entry-table rename, record edit mode, template
+gallery). Pairs with core `0.1.33` and `@selfhelp/shared` `3.0.0` (breaking
+major: navigation contract v2 landed in `2.0.0`, the `show-user-input` →
+`entry-table` style rename in `3.0.0`).
 
 ### Added
+- **Start from template gallery** — the Export/Import dialog's example tab
+  becomes a template gallery: six curated CMS-in-CMS apps (team members, news,
+  FAQ accordion, events, contact directory, testimonials) with descriptions and
+  tag badges. **Use this template** pre-fills a demo keyword prefix AND route
+  prefix (the backend rewrites in-bundle links to match), so one click gives a
+  collision-free, fully clickable app with sample data. The CMS app wizard
+  cross-links to the gallery via a **Browse templates** panel.
+- **Record edit mode (`form-record`)** — forms configured with
+  `load_record_from` prefill the record addressed by the route param (all
+  languages, translatable inputs grouped in language tabs) and submit an
+  **update** with the explicit `record_id`; the wizard's admin detail page is
+  now that edit form in a modal instead of a read-only `entry-record`.
+- **`entry-table` per-row edit affordance** — rows expose a pencil action when
+  the server-computed `_can_edit` flag allows it (mirrors `_can_delete`).
 - **Header top row (double presets)** — `web_header` root items with
   `layer: 'top'` render as the upper utility-row links on `double-dropdown` /
   `double-mega-menu`; single presets merge both rows deterministically (main
@@ -91,8 +108,13 @@ core `0.1.33` and `@selfhelp/shared` `2.0.0` (breaking major).
   with `PasswordInput` fields and a back-to-sign-in link; core 0.1.33 flags
   `reset-password` / `validate` / `maintenance` headless.
 - Header/footer/burger rendering and active states now come from
-  `@selfhelp/shared` `2.0.0` (`isMenuItemActiveOnWeb`, footer helpers,
+  `@selfhelp/shared` (`isMenuItemActiveOnWeb`, footer helpers,
   `isDoubleWebHeaderPreset`); local duplicates were deleted.
+- **`show-user-input` renamed `entry-table`** (`@selfhelp/shared` `3.0.0`):
+  the renderer is `EntryTableStyle.tsx`, dispatched on `style_name:
+  'entry-table'` with `IEntryTableStyle` / `IEntryTableEntry` types. No alias
+  is kept — sections keep working because the backend renames the style row in
+  the same release.
 - Navigation bundle export/import panel accepts only the strict
   `selfhelp/navigation-bundle` **v2.0** (menus with `preset` / `max_depth` /
   `item_limit`, items with `layer`, translations with `aria_label`).

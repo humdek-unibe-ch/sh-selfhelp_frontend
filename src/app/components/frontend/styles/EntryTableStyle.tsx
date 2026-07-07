@@ -8,11 +8,11 @@ import React, { useState } from 'react';
 import {
     Table, Text, TextInput, Pagination, Group, ActionIcon, Modal, Stack, Button, Alert, ScrollArea, Title
 } from '@mantine/core';
-import { IconTrash, IconSearch, IconAlertCircle, IconChevronUp, IconChevronDown, IconSelector, IconDownload, IconPlus, IconEye } from '@tabler/icons-react';
+import { IconTrash, IconSearch, IconAlertCircle, IconChevronUp, IconChevronDown, IconSelector, IconDownload, IconPlus, IconPencil } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useDeleteFormMutation } from '../../../../hooks/useFormSubmission';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
-import type { IShowUserInputStyle, IShowUserInputEntry } from '../../../../shared';
+import type { IEntryTableStyle, IEntryTableEntry } from '../../../../shared';
 
 
 interface IFieldMapping {
@@ -27,15 +27,15 @@ interface IColumn {
 
 type TSortDir = 'asc' | 'desc' | null;
 
-interface IShowUserInputStyleProps {
-    style: IShowUserInputStyle;
+interface IEntryTableStyleProps {
+    style: IEntryTableStyle;
     styleProps: Record<string, string>;
     cssClass: string;
 }
 
 const PAGE_SIZE = 10;
 
-const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, styleProps, cssClass }) => {
+const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, cssClass }) => {
     const pageContent = usePageContentValue();
     const deleteMutation = useDeleteFormMutation();
     const router = useRouter();
@@ -76,7 +76,7 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
         return [];
     })();
 
-    const rows: IShowUserInputEntry[] = style.entries ?? [];
+    const rows: IEntryTableEntry[] = style.entries ?? [];
 
     // Issue #56 v2: rows are keyed by the immutable `field_key`; headers default
     // to the column `display_name` from `field_labels` (so renaming a column
@@ -86,7 +86,7 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
     // never breaks an existing mapping.
     const fieldLabels: Record<string, string> = style.field_labels ?? {};
     const dataKeys = Object.keys(rows[0] ?? {})
-        .filter(k => k !== 'entry_date' && k !== 'record_id' && k !== '_can_delete' && k !== 'id_users');
+        .filter(k => k !== 'entry_date' && k !== 'record_id' && k !== '_can_delete' && k !== '_can_edit' && k !== 'id_users');
 
     const mappedCols: IColumn[] = fieldMappings.length
         ? fieldMappings
@@ -217,14 +217,14 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
                         {hasRowActions && (
                             <Table.Td>
                                 <Group gap={4} wrap="nowrap">
-                                    {editUrl && (
+                                    {editUrl && row._can_edit !== false && (
                                         <ActionIcon
                                             variant="subtle"
                                             size="sm"
-                                            aria-label={`Open record ${row['record_id']}`}
+                                            aria-label={`Edit record ${row['record_id']}`}
                                             onClick={() => router.push(editUrl.replace('{record_id}', String(row['record_id'])))}
                                         >
-                                            <IconEye size={14} />
+                                            <IconPencil size={14} />
                                         </ActionIcon>
                                     )}
                                     {deleteEntry && row._can_delete && (
@@ -363,4 +363,4 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style, stylePr
     );
 };
 
-export default ShowUserInputStyle;
+export default EntryTableStyle;

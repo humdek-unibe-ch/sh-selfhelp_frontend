@@ -58,6 +58,7 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
     const { pages, isLoading, error } = useAdminPages();
     const [searchQuery, setSearchQuery] = useState('');
     const [exportImportOpen, setExportImportOpen] = useState(false);
+    const [exportImportTab, setExportImportTab] = useState<'export' | 'examples'>('export');
     const [wizardOpen, setWizardOpen] = useState(false);
     
     // Only the selected *keyword* lives in the store; the matching page
@@ -283,7 +284,10 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
                     variant="light"
                     size="xs"
                     leftSection={<IconTransfer size="0.9rem" />}
-                    onClick={() => setExportImportOpen(true)}
+                    onClick={() => {
+                        setExportImportTab('export');
+                        setExportImportOpen(true);
+                    }}
                 >
                     Export / Import
                 </Button>
@@ -292,12 +296,18 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
             <CmsAppWizardModal
                 opened={wizardOpen}
                 onClose={() => setWizardOpen(false)}
+                onBrowseTemplates={() => {
+                    setWizardOpen(false);
+                    setExportImportTab('examples');
+                    setExportImportOpen(true);
+                }}
             />
 
             <PageExportImportModal
                 opened={exportImportOpen}
                 onClose={() => setExportImportOpen(false)}
                 pages={pages ?? []}
+                initialTab={exportImportTab}
             />
 
             <ScrollArea

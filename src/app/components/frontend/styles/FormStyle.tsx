@@ -345,10 +345,13 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             if (isRecord && existingRecordId) {
                 // Update existing record
                 if (hasFiles) {
-                    // Send as FormData for file uploads - add required fields to clean FormData
+                    // Send as FormData for file uploads - add required fields to clean FormData.
+                    // The backend multipart branch reads the target record from the
+                    // `update_based_on` JSON param (a bare `record_id` field would be
+                    // treated as form data and the update would create a new row).
                     cleanFormData.append('page_id', String(pageId));
                     cleanFormData.append('section_id', String(sectionId));
-                    cleanFormData.append('record_id', String(existingRecordId));
+                    cleanFormData.append('update_based_on', JSON.stringify({ record_id: existingRecordId }));
                     response = await updateFormMutation.mutateAsync(cleanFormData);
                 } else {
                     // Send as JSON for regular data

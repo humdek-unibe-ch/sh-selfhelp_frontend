@@ -114,7 +114,7 @@ export { default as TypographyStyle } from './mantine/TypographyStyle';
 
 // Special Components
 export { default as UnknownStyle } from './mantine/UnknownStyle';
-export { default as ShowUserInputStyle } from './ShowUserInputStyle';
+export { default as EntryTableStyle } from './EntryTableStyle';
 
 // Utility Styles
 export { default as BasicStyle } from './BasicStyle';

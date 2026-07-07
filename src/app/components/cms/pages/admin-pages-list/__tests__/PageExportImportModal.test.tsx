@@ -97,11 +97,11 @@ describe('PageExportImportModal — navigation bundle routing', () => {
         const user = userEvent.setup();
         setup();
 
-        await user.click(screen.getByRole('tab', { name: /Example bundles/ }));
+        await user.click(screen.getByRole('tab', { name: /Start from template/ }));
         expect(await screen.findByText('Navigation menu demo')).toBeInTheDocument();
         expect(screen.getByText('navigation + pages')).toBeInTheDocument();
 
-        await user.click(screen.getByRole('button', { name: /Use this bundle/ }));
+        await user.click(screen.getByRole('button', { name: /Use this template/ }));
 
         // Jumped to the Import tab with the bundle summary + hint-seeded prefixes.
         expect(await screen.findByText(/Navigation bundle loaded:/)).toBeInTheDocument();
@@ -151,12 +151,14 @@ describe('PageExportImportModal — navigation bundle routing', () => {
         const user = userEvent.setup();
         setup();
 
-        await user.click(screen.getByRole('tab', { name: /Example bundles/ }));
-        await user.click(await screen.findByRole('button', { name: /Use this bundle/ }));
+        await user.click(screen.getByRole('tab', { name: /Start from template/ }));
+        await user.click(await screen.findByRole('button', { name: /Use this template/ }));
 
-        // Page-bundle examples seed a demo keyword prefix derived from their id.
+        // Page-bundle templates seed BOTH demo prefixes derived from their id
+        // (the backend rewrites in-bundle content links to the route prefix).
         expect(await screen.findByText(/Bundle loaded:/)).toBeInTheDocument();
         expect(screen.getByLabelText('Keyword prefix')).toHaveValue('demo_cms_demo_');
+        expect(screen.getByLabelText('Route prefix')).toHaveValue('/demo-cms-demo');
 
         await user.click(screen.getByRole('button', { name: 'Validate' }));
         await waitFor(() => expect(validateImportPages).toHaveBeenCalledTimes(1));

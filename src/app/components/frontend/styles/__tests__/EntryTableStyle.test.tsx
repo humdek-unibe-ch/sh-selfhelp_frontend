@@ -8,7 +8,7 @@ import type { ComponentProps } from 'react';
 import { renderWithProviders } from '../../../../../test-utils/renderWithProviders';
 
 /**
- * Issue #56 v2 — show-user-input headers.
+ * Issue #56 v2 — entry-table (ex show-user-input) headers.
  *
  * Rows now arrive keyed by the immutable data-column `field_key`, and the style
  * receives a `field_labels` map (`field_key => display_name`). Headers must
@@ -26,22 +26,22 @@ vi.mock('next/navigation', () => ({
     useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
 }));
 
-import ShowUserInputStyle from '../ShowUserInputStyle';
+import EntryTableStyle from '../EntryTableStyle';
 
-type ShowUserInputStyleField = ComponentProps<typeof ShowUserInputStyle>['style'];
+type EntryTableStyleField = ComponentProps<typeof EntryTableStyle>['style'];
 
-function makeStyle(overrides: Record<string, unknown> = {}): ShowUserInputStyleField {
-    return { id: 1, style_name: 'show-user-input', ...overrides } as unknown as ShowUserInputStyleField;
+function makeStyle(overrides: Record<string, unknown> = {}): EntryTableStyleField {
+    return { id: 1, style_name: 'entry-table', ...overrides } as unknown as EntryTableStyleField;
 }
 
 const rows = [
     { record_id: 1, id_users: 5, section_230: 'Ada', section_231: 'ada@example.test' },
 ];
 
-describe('ShowUserInputStyle headers (issue #56 v2)', () => {
+describe('EntryTableStyle headers (issue #56 v2)', () => {
     it('labels headers with the column display_name from field_labels, not the field_key', () => {
         renderWithProviders(
-            <ShowUserInputStyle
+            <EntryTableStyle
                 style={makeStyle({
                     entries: rows,
                     field_labels: { section_230: 'Full name', section_231: 'Email' },
@@ -59,7 +59,7 @@ describe('ShowUserInputStyle headers (issue #56 v2)', () => {
 
     it('lets fields_map override a header, matched by the stable field_key', () => {
         renderWithProviders(
-            <ShowUserInputStyle
+            <EntryTableStyle
                 style={makeStyle({
                     entries: rows,
                     field_labels: { section_230: 'Full name', section_231: 'Email' },
@@ -78,7 +78,7 @@ describe('ShowUserInputStyle headers (issue #56 v2)', () => {
 
     it('still resolves a fields_map entry written against the display_name after a rename', () => {
         renderWithProviders(
-            <ShowUserInputStyle
+            <EntryTableStyle
                 style={makeStyle({
                     entries: rows,
                     field_labels: { section_230: 'Full name' },

@@ -39,6 +39,7 @@ import {
     ActionIcon,
     Tooltip,
     Paper,
+    Box,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import {
@@ -48,6 +49,7 @@ import {
     IconCheck,
     IconPlus,
     IconTrash,
+    IconLayoutGrid,
 } from '@tabler/icons-react';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { useDataTables } from '../../../../../hooks/useData';
@@ -74,6 +76,8 @@ const FORM_FIELD_STYLE_OPTIONS: Array<{ value: TCmsAppFormFieldStyle; label: str
 interface ICmsAppWizardModalProps {
     opened: boolean;
     onClose: () => void;
+    /** Opens the "Start from template" gallery instead (closes the wizard). */
+    onBrowseTemplates?: () => void;
 }
 
 interface IWizardFormValues {
@@ -97,7 +101,7 @@ interface IPlannedRoute {
     pattern: string;
 }
 
-export function CmsAppWizardModal({ opened, onClose }: ICmsAppWizardModalProps) {
+export function CmsAppWizardModal({ opened, onClose, onBrowseTemplates }: ICmsAppWizardModalProps) {
     const [result, setResult] = useState<ICreateCmsAppResult | null>(null);
 
     const { data: dataTablesData, isLoading: tablesLoading } = useDataTables();
@@ -317,6 +321,28 @@ export function CmsAppWizardModal({ opened, onClose }: ICmsAppWizardModalProps) 
                         row to its detail page; the detail page filters the table on{' '}
                         <Code>{form.values.record_id_param || 'record_id'}{' = {{route.'}{form.values.record_id_param || 'record_id'}{'}}'}</Code>.
                     </Alert>
+
+                    {onBrowseTemplates && (
+                        <Paper withBorder p="sm" radius="md">
+                            <Group justify="space-between" wrap="nowrap">
+                                <Box>
+                                    <Text size="sm" fw={500}>Prefer a ready-made app?</Text>
+                                    <Text size="xs" c="dimmed">
+                                        Team pages, news, FAQ, events and more — polished templates with
+                                        sample data, importable in one click.
+                                    </Text>
+                                </Box>
+                                <Button
+                                    variant="light"
+                                    size="xs"
+                                    leftSection={<IconLayoutGrid size="0.9rem" />}
+                                    onClick={onBrowseTemplates}
+                                >
+                                    Browse templates
+                                </Button>
+                            </Group>
+                        </Paper>
+                    )}
 
                     <TextInput
                         label="Base name"

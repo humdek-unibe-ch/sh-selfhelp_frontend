@@ -45,15 +45,34 @@ for the per-file catalog and the prompt contract.
 
 ## cms-in-cms/
 
-Full **page bundles** that scaffold a working CMS-in-CMS application:
+Full **page bundles** that scaffold a working CMS-in-CMS application. All six
+are surfaced in the admin UI as the **"Start from template" gallery** (Pages →
+Import dialog) for one-click prefixed import, ship translated de-CH/en-GB
+content plus sample rows (`options.importData=true`), and share the same
+portable pattern: the public pages bind data through `@section:<form>` tokens,
+the admin page is an `entry-table` CRUD grid (search/sort/pagination/CSV,
+built-in delete), and one modal form page carries two routes — `.../form`
+(create) and `.../{record_id}` (edit via `load_record_from`).
 
 | Bundle | Demonstrates |
 | --- | --- |
-| `team-members.bundle.json` | A list + detail "Team members" app: a public list page (`/team`), a detail page (`/team/{record_id}`) bound to a data table, with DB-driven routes and `{{route.*}}` interpolation. |
+| `team-members.bundle.json` | **Flagship.** Public card grid with avatar initials, role badges and contact links (`/team-members`), a shareable profile detail page (`/team-members/{record_id}`), an admin CRUD grid, and a translatable bio field. |
+| `news.bundle.json` | News/blog: category select input, date, summary + translatable body; public list/detail pair with category badges. |
+| `faq.bundle.json` | FAQ: public accordion with **one accordion item per data row** (entry-list hydration inside a Mantine accordion); list-only public surface. |
+| `events.bundle.json` | Events: date badges with icons, location line, teaser clamp; public list/detail pair. |
+| `contact-directory.bundle.json` | Contact directory (compact 3-page variant, no public detail): tap-to-call `tel:` and `mailto:` links per card. |
+| `testimonials.bundle.json` | Testimonials wall (3-page variant): blockquote cards with avatar + author line, translatable quote. |
+
+Every bundle is import-guarded in backend CI
+(`tests/Golden/CmsInCmsTemplateBundlesImportTest.php` imports each one with
+keyword + route prefixes and asserts the hydrated public render), with fixture
+copies under `sh-selfhelp_backend/tests/fixtures/examples/`. If you edit a
+bundle here, sync the fixture copy.
 
 To import: **Admin → Pages**, open the **Export / Import** dialog (the transfer
-icon next to the page search), switch to **Import**, upload the bundle, optionally
-set a keyword/route prefix to avoid clashing with existing pages, then confirm.
+icon next to the page search), switch to **Import**, pick a template from the
+gallery (or upload a bundle file), optionally set a keyword/route prefix to
+avoid clashing with existing pages, then confirm.
 
 Adding a new example? Drop the file in the matching folder and add a row to the
 relevant table above so it stays discoverable.

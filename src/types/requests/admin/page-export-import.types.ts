@@ -74,6 +74,8 @@ export interface IPageExampleBundle {
     id: string;
     title: string;
     description: string;
+    /** Gallery badges carried by the bundle (e.g. "cms-in-cms", "list + detail"). */
+    tags: string[];
     page_count: number;
     bundle: IPageBundle | INavigationBundle;
 }
