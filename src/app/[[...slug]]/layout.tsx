@@ -26,6 +26,7 @@ import {
     resolvePageByPathSSRCached,
     resolveLanguageSSR,
     resolvePreviewSSR,
+    resolveSsrNavigationAuthScope,
     unwrapSsrList,
     extractSsrPage,
 } from '../_lib/server-fetch';
@@ -43,9 +44,10 @@ export default async function SlugRouteLayout({
 }) {
     const { slug } = await params;
     const path = pathFromSlug(slug);
-    const [{ id: languageId }, preview] = await Promise.all([
+    const [{ id: languageId }, preview, authScope] = await Promise.all([
         resolveLanguageSSR(),
         resolvePreviewSSR(),
+        resolveSsrNavigationAuthScope(),
     ]);
 
     const queryClient = new QueryClient({
@@ -59,9 +61,9 @@ export default async function SlugRouteLayout({
     // The preview flag is resolved from `sh_preview` on the server, so admins
     // toggling preview mode see a single request per navigation instead of
     // published-then-preview double fetches.
-    const [navEnvelope, pageEnvelope] = await Promise.all([
+    const [navEnvelope, pageEnvelope, navigationEnvelope] = await Promise.all([
         queryClient.prefetchQuery({
-            queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(languageId),
+            queryKey: [...REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(languageId), authScope],
             queryFn: async () => {
                 const raw = await getFrontendPagesSSR(languageId);
                 // Store the RAW flat pages list (envelope unwrapped). The
@@ -73,7 +75,9 @@ export default async function SlugRouteLayout({
                 const pages = unwrapSsrList(raw);
                 return pages;
             },
-        }).then(() => queryClient.getQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(languageId))),
+        }).then(() =>
+            queryClient.getQueryData([...REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(languageId), authScope]),
+        ),
         queryClient.prefetchQuery({
             queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_PATH(path, languageId, preview),
             queryFn: async () => {
@@ -82,6 +86,12 @@ export default async function SlugRouteLayout({
             },
         }).then(() =>
             queryClient.getQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_PATH(path, languageId, preview))
+        ),
+        queryClient.prefetchQuery({
+            queryKey: [...REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION(languageId), authScope],
+            queryFn: async () => getNavigationSSR(languageId),
+        }).then(() =>
+            queryClient.getQueryData([...REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION(languageId), authScope]),
         ),
     ]);
 
@@ -100,6 +110,7 @@ export default async function SlugRouteLayout({
 
     // Touch navEnvelope so TypeScript doesn't prune the prefetch.
     void navEnvelope;
+    void navigationEnvelope;
 
     const dehydratedState = dehydrate(queryClient);
 

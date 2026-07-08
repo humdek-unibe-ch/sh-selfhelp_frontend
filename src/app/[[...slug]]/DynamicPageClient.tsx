@@ -25,7 +25,11 @@ import { PageContextProvider } from '../components/contexts/PageContext';
 import { PageModalProvider } from '../components/contexts/PageModalContext';
 import { PageContentRenderer } from '../components';
 import { BranchNavigation } from '../components/frontend/navigation/BranchNavigation';
-import { resolveHolderRedirectPath, resolveWebStartupPath } from '../../shared';
+import {
+    resolveHolderRedirectPath,
+    resolveWebStartupPath,
+    type INavigationPayload,
+} from '../../shared';
 
 interface IDynamicPageClientProps {
     keyword: string;
@@ -45,6 +49,12 @@ interface IDynamicPageClientProps {
     path?: string;
     /** Snake_case route params from the matched pattern (`{ user_id, token }`, `{ record_id }`). */
     routeParams?: Record<string, string>;
+    /**
+     * Server-resolved navigation payload so branch sidebar/pills render on
+     * the first paint — same pattern as `WebsiteHeaderLayout`'s
+     * `initialNavigation` fallback while `useAppNavigation` hydrates.
+     */
+    initialNavigation?: INavigationPayload | null;
 }
 
 /**
@@ -61,6 +71,7 @@ export default function DynamicPageClient({
     initialPageId,
     path,
     routeParams,
+    initialNavigation = null,
 }: IDynamicPageClientProps) {
     const { currentLanguageId } = useLanguageContext();
     const { isPreviewMode } = usePreviewMode();
@@ -97,7 +108,8 @@ export default function DynamicPageClient({
     const isHeadless = Boolean(pageContent?.is_headless);
 
     // In-page branch navigation from the resolved public menu tree.
-    const { navigation } = useAppNavigation();
+    const { navigation: liveNavigation } = useAppNavigation();
+    const navigation = liveNavigation ?? initialNavigation;
 
     // Web modals are opt-in via the `open_in_modal` page property (CMS-in-CMS
     // create/edit/detail). Off-menu pages stay full pages on web; mobile handles

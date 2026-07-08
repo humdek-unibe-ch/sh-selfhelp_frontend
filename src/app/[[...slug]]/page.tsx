@@ -30,6 +30,7 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import {
     getFrontendPageSeoSSR,
+    getNavigationSSR,
     getPageByKeywordSSRCached,
     resolvePageByPathSSRCached,
     resolvePageByPathSSRStatus,
@@ -113,7 +114,10 @@ export default async function SlugPage({
         resolvePreviewSSR(),
     ]);
 
-    const { status, data: envelope } = await resolvePageByPathSSRStatus(path, languageId, preview);
+    const [{ status, data: envelope }, initialNavigation] = await Promise.all([
+        resolvePageByPathSSRStatus(path, languageId, preview),
+        getNavigationSSR(languageId),
+    ]);
 
     // Instance in maintenance: Symfony returns a clean 503 for normal page
     // traffic while keeping the `maintenance` page reachable. Render the styled
@@ -153,6 +157,7 @@ export default async function SlugPage({
             initialPageId={page.id}
             path={path}
             routeParams={page.route_params}
+            initialNavigation={initialNavigation}
         />
     );
 }

@@ -356,6 +356,22 @@ export const getAuthMeSSR = cache(async (): Promise<unknown> => {
 });
 
 /**
+ * Auth scope for SSR navigation cache keys. Matches the client
+ * `useAppNavigation` scope so dehydrated `navigation` / `frontend-pages`
+ * entries hydrate on the first client paint instead of refetching after
+ * `useAuthUser` settles.
+ */
+export const resolveSsrNavigationAuthScope = cache(async (): Promise<string> => {
+    const jar = await cookies();
+    if (!jar.get(AUTH_COOKIE)?.value) {
+        return 'guest';
+    }
+    const userData = await getAuthMeSSR();
+    const userId = (userData as { data?: { id?: number } } | null)?.data?.id;
+    return typeof userId === 'number' ? `user:${userId}` : 'guest';
+});
+
+/**
  * Fetch the public languages list. Languages are the source of truth for
  * locale → id mapping (the `languages` table is user-editable) so we must
  * resolve the user's preferred language against this list rather than a

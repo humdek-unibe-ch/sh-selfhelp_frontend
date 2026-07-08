@@ -3,24 +3,37 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { describe, expect, it } from 'vitest';
-import { keepPlaceholderWithinAuthScope } from '../navigation-query.utils';
+import {
+    keepPlaceholderWithinAuthScope,
+    navigationAuthScopeFromUserId,
+} from '../navigation-query.utils';
 
-describe('keepPlaceholderWithinAuthScope', () => {
-    it('reuses placeholder data within the same auth scope', () => {
-        const keep = keepPlaceholderWithinAuthScope<string[]>('user:7');
-        expect(
-            keep(['about'], {
-                queryKey: ['navigation', 1, 'user:7'],
-            } as unknown as Parameters<typeof keep>[1]),
-        ).toEqual(['about']);
+describe('navigationAuthScopeFromUserId', () => {
+    it('returns guest scope when user id is missing', () => {
+        expect(navigationAuthScopeFromUserId(null)).toBe('guest');
+        expect(navigationAuthScopeFromUserId(undefined)).toBe('guest');
     });
 
-    it('drops placeholder data when auth scope changes', () => {
-        const keep = keepPlaceholderWithinAuthScope<string[]>('user:7');
+    it('returns user-scoped key when user id is present', () => {
+        expect(navigationAuthScopeFromUserId(42)).toBe('user:42');
+    });
+});
+
+describe('keepPlaceholderWithinAuthScope', () => {
+    it('reuses placeholder only when auth scope matches', () => {
+        const keep = keepPlaceholderWithinAuthScope('guest');
+        const previousData = { menus: {} };
+
         expect(
-            keep(['about'], {
+            keep(previousData, {
                 queryKey: ['navigation', 1, 'guest'],
-            } as unknown as Parameters<typeof keep>[1]),
+            } as never),
+        ).toBe(previousData);
+
+        expect(
+            keep(previousData, {
+                queryKey: ['navigation', 1, 'user:7'],
+            } as never),
         ).toBeUndefined();
     });
 });

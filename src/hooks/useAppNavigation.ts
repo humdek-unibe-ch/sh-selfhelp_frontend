@@ -20,7 +20,7 @@ import {
     selectProfilePages,
     transformNavigationPages,
 } from '../utils/navigation.utils';
-import { keepPlaceholderWithinAuthScope } from '../utils/navigation-query.utils';
+import { keepPlaceholderWithinAuthScope, navigationAuthScopeFromUserId } from '../utils/navigation-query.utils';
 
 interface INavigationData {
     pages: IPageItem[];
@@ -53,7 +53,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
     // Navigation visibility is permission-filtered. Keep guest and logged-in
     // caches isolated so a fresh login never reuses a "guest-empty" menu for
     // 10 minutes due staleTime.
-    const authScope = user?.id != null ? `user:${user.id}` : 'guest';
+    const authScope = navigationAuthScopeFromUserId(user?.id);
 
     const navigationEnabled = currentLanguageId > 0 && !isAuthLoading;
 
