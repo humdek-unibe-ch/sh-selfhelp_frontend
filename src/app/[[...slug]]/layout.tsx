@@ -94,9 +94,9 @@ export default async function SlugRouteLayout({
     // Header preset drives the AppShell header height (double presets render
     // two rows). `getNavigationSSR` is request-cached, so the `WebsiteHeader`
     // slot below reuses this same round-trip.
-    const headerPreset = isHeadless
-        ? null
-        : (await getNavigationSSR(languageId))?.menus?.web_header?.preset ?? null;
+    const navigationForShell = isHeadless ? null : await getNavigationSSR(languageId);
+    const headerPreset = navigationForShell?.menus?.web_header?.preset ?? null;
+    const initialBranding = navigationForShell?.branding ?? null;
 
     // Touch navEnvelope so TypeScript doesn't prune the prefetch.
     void navEnvelope;
@@ -113,6 +113,7 @@ export default async function SlugRouteLayout({
             <SlugShell
                 isHeadless={isHeadless}
                 initialHeaderPreset={headerPreset}
+                initialBranding={initialBranding}
                 header={!isHeadless ? <WebsiteHeader /> : undefined}
                 footer={!isHeadless ? <WebsiteFooter /> : undefined}
             >

@@ -15,6 +15,7 @@ import type { IPageItem, INavigationBranding, INavigationPayload } from '../../.
 import { HeaderBrand } from './HeaderBrand';
 import { HeaderUtilityCluster } from './HeaderUtilityCluster';
 import { WebsiteHeaderNavRow } from './WebsiteHeaderNavRow';
+import classes from './WebsiteHeaderLayout.module.css';
 
 interface IWebsiteHeaderLayoutProps {
     initialHeaderMenu?: INavigationMenu | null;
@@ -36,12 +37,27 @@ export function WebsiteHeaderLayout({
 
     return (
         <Container size="xl" h="100%">
-            <Flex justify="space-between" align="center" h="100%" gap="xs">
-                <Box style={{ minWidth: 0, flexShrink: 1 }}>
+            <Flex
+                justify="space-between"
+                align={isDouble ? 'stretch' : 'center'}
+                h="100%"
+                gap="xs"
+            >
+                <Box className={classes.brandSlot}>
                     <HeaderBrand initialBranding={initialBranding} />
                 </Box>
 
-                <Group gap="md" visibleFrom="md" style={{ flex: 1, minWidth: 0 }}>
+                <Group
+                    gap="md"
+                    visibleFrom="md"
+                    wrap="nowrap"
+                    style={{
+                        flex: '1 1 0',
+                        minWidth: 0,
+                        alignSelf: 'stretch',
+                        justifyContent: 'center',
+                    }}
+                >
                     <WebsiteHeaderNavRow
                         initialHeaderMenu={menu}
                         initialNavigation={initialNavigation}

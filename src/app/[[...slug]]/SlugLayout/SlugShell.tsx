@@ -21,12 +21,9 @@ import { PreviewModeIndicator } from '../../components/shared/common/PreviewMode
 import { WebStartupRedirect } from '../../components/frontend/navigation/WebStartupRedirect';
 import { usePreviewMode } from '../../components/contexts/PreviewModeContext';
 import { useAppNavigation } from '../../../hooks/useAppNavigation';
+import { resolveWebHeaderHeight } from '../../components/frontend/layout/header/headerLayout.utils';
+import type { INavigationBranding } from '../../../shared';
 import styles from './SlugLayout.module.css';
-
-/** Single-row header height (Mantine AppShell offset). */
-const HEADER_HEIGHT = 60;
-/** Two-row height for the double presets (top utility row + main nav row). */
-const DOUBLE_HEADER_HEIGHT = 104;
 
 interface ISlugShellProps {
     /**
@@ -41,6 +38,11 @@ interface ISlugShellProps {
      * Live preset switches take over once the client navigation query lands.
      */
     initialHeaderPreset?: string | null;
+    /**
+     * Server-resolved branding so the first paint reserves enough header
+     * height for large logo sizes.
+     */
+    initialBranding?: INavigationBranding | null;
     /**
      * Server-rendered website header (`<WebsiteHeader />`). Passed as a
      * slot so the server-rendered menu HTML is part of the very first
@@ -70,6 +72,7 @@ interface ISlugShellProps {
 export default function SlugShell({
     isHeadless,
     initialHeaderPreset = null,
+    initialBranding = null,
     header,
     footer,
     children,
@@ -78,10 +81,11 @@ export default function SlugShell({
     // Double header presets render two rows (top utility row + main nav), so
     // the AppShell offset must grow with them or the page content hides the
     // second row and the header links overlap the hero.
-    const { headerMenu } = useAppNavigation();
+    const { headerMenu, navigation } = useAppNavigation();
     const preset = headerMenu?.preset ?? initialHeaderPreset;
     const isDouble = isDoubleWebHeaderPreset(resolveWebHeaderPreset(preset));
-    const headerHeight = isDouble ? DOUBLE_HEADER_HEIGHT : HEADER_HEIGHT;
+    const branding = navigation?.branding ?? initialBranding;
+    const headerHeight = resolveWebHeaderHeight(isDouble, branding);
 
     return (
         <AppShell header={!isHeadless ? { height: headerHeight } : undefined}>

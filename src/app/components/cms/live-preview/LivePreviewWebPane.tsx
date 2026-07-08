@@ -37,11 +37,7 @@ import { PreviewModeIndicator } from '../../shared/common/PreviewModeIndicator';
 import { usePreviewMode } from '../../contexts/PreviewModeContext';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { PreviewNavigationProvider } from './PreviewNavigationContext';
-
-/** Single-row header height — mirrors `SlugShell`. */
-const HEADER_HEIGHT = 60;
-/** Two-row height for the double presets — mirrors `SlugShell`. */
-const DOUBLE_HEADER_HEIGHT = 104;
+import { resolveWebHeaderHeight } from '../../frontend/layout/header/headerLayout.utils';
 
 /** Backend keyword used for the landing page (matches the public slug route). */
 const HOME_KEYWORD = 'home';
@@ -71,7 +67,7 @@ export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneP
 
     // Double presets render two header rows, exactly like `SlugShell`.
     const isDouble = isDoubleWebHeaderPreset(resolveWebHeaderPreset(headerMenu?.preset));
-    const headerHeight = isDouble ? DOUBLE_HEADER_HEIGHT : HEADER_HEIGHT;
+    const headerHeight = resolveWebHeaderHeight(isDouble, navigation?.branding);
 
     const navValue = useMemo(() => ({ navigate: onNavigate }), [onNavigate]);
 
@@ -104,6 +100,7 @@ export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneP
                         <WebsiteHeaderLayout
                             initialHeaderMenu={headerMenu}
                             initialNavigation={navigation}
+                            initialBranding={navigation?.branding ?? null}
                             initialProfilePages={profilePages}
                         />
                     </Box>
