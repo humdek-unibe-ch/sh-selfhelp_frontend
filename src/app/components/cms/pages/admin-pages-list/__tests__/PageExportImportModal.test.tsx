@@ -43,7 +43,16 @@ vi.mock('../../../../../../hooks/mutations', () => ({
 }));
 
 vi.mock('../../../../../../hooks/useGroups', () => ({
-    useGroups: () => ({ data: { groups: [] }, isLoading: false }),
+    useGroups: () => ({
+        data: {
+            groups: [
+                { id: 1, name: 'admin', description: null, id_group_types: null, requires_2fa: false, users_count: 1, acls: [] },
+                { id: 2, name: 'subject', description: null, id_group_types: null, requires_2fa: false, users_count: 1, acls: [] },
+                { id: 3, name: 'therapist', description: null, id_group_types: null, requires_2fa: false, users_count: 1, acls: [] },
+            ],
+        },
+        isLoading: false,
+    }),
 }));
 
 import { PageExportImportModal } from '../PageExportImportModal';
@@ -167,5 +176,22 @@ describe('PageExportImportModal — navigation bundle routing', () => {
         await user.click(await screen.findByRole('button', { name: 'Import' }));
         expect(importPagesMutate).toHaveBeenCalledTimes(1);
         expect(importNavigationMutate).not.toHaveBeenCalled();
+    });
+
+    it('hides the admin group from viewer-group options (admin is always granted)', async () => {
+        const user = userEvent.setup();
+        setup();
+
+        await user.click(screen.getByRole('tab', { name: /Import/ }));
+
+        expect(screen.getByText(/admin group is always granted full access automatically/i)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Optional — admins already have access')).toBeInTheDocument();
+
+        // Open the searchable MultiSelect via its visible input field.
+        await user.click(screen.getByPlaceholderText('Optional — admins already have access'));
+
+        expect(await screen.findByText('subject')).toBeInTheDocument();
+        expect(screen.getByText('therapist')).toBeInTheDocument();
+        expect(screen.queryByRole('option', { name: 'admin' })).not.toBeInTheDocument();
     });
 });

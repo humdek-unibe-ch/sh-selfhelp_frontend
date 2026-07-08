@@ -149,7 +149,10 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
             routePrefix: routePrefix.trim() || undefined,
             skipConflictingRoutes,
             activateRoutes,
-            accessGroups: accessGroups.length > 0 ? accessGroups.map(Number) : undefined,
+            // Never send admin here — createPage always grants full admin ACL.
+            accessGroups: accessGroups.length > 0
+                ? accessGroups.map(Number).filter((id) => Number.isFinite(id) && id > 0)
+                : undefined,
         }),
         [keywordPrefix, routePrefix, skipConflictingRoutes, activateRoutes, accessGroups]
     );
@@ -170,14 +173,17 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
     );
 
     // Groups available as importer-selected "viewer" groups. Admin is always
-    // granted full access by the backend; these grant read (public) / full CRUD
-    // (cms-app) so imported pages are visible to real users.
+    // granted full access by the backend; hide it from this picker so operators
+    // cannot (and need not) select it. Remaining groups get read (public) /
+    // full CRUD (cms-app) so imported pages are visible to real users.
     const { data: groupsData } = useGroups({ pageSize: 1000 });
     const groupOptions = useMemo(
-        () => (groupsData?.groups ?? []).map((group) => ({
-            value: String(group.id),
-            label: group.name,
-        })),
+        () => (groupsData?.groups ?? [])
+            .filter((group) => group.name.trim().toLowerCase() !== 'admin')
+            .map((group) => ({
+                value: String(group.id),
+                label: group.name,
+            })),
         [groupsData]
     );
 
@@ -537,8 +543,8 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
 
                         <MultiSelect
                             label="Viewer groups"
-                            placeholder={accessGroups.length > 0 ? undefined : 'Admins always have access — pick groups that should see these pages'}
-                            description="Groups granted access to the imported pages (read-only on public pages, full access on CMS-app pages). Admins always get full access."
+                            placeholder={accessGroups.length > 0 ? undefined : 'Optional — admins already have access'}
+                            description="Extra groups that should see the imported pages (read-only on public pages, full access on CMS-app pages). The admin group is always granted full access automatically and is not listed here."
                             inputWrapperOrder={['label', 'input', 'description']}
                             data={groupOptions}
                             value={accessGroups}
