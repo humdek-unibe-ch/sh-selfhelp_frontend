@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { Group } from '@mantine/core';
+import { Group, Box } from '@mantine/core';
 import { isDoubleWebHeaderPreset, resolveWebHeaderPreset, type INavigationMenu } from '@selfhelp/shared';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
 import { HeaderSearch } from './HeaderSearch';
@@ -50,21 +50,25 @@ export function WebsiteHeaderNavRow({
 
     if (isDouble) {
         return (
-            <WebsiteHeaderMenu
-                initialHeaderMenu={menu}
-                utilitySlot={
-                    <HeaderUtilitySlot
-                        initialProfilePages={initialProfilePages}
-                        initialNavigation={initialNavigation}
-                    />
-                }
-            />
+            <Box style={{ flex: '1 1 0', minWidth: 0, width: '100%' }}>
+                <WebsiteHeaderMenu
+                    initialHeaderMenu={menu}
+                    utilitySlot={
+                        <HeaderUtilitySlot
+                            initialProfilePages={initialProfilePages}
+                            initialNavigation={initialNavigation}
+                        />
+                    }
+                />
+            </Box>
         );
     }
 
     return (
-        <Group gap="md" wrap="nowrap" style={{ flex: 1 }}>
-            <WebsiteHeaderMenu initialHeaderMenu={menu} />
+        <Group gap="md" wrap="nowrap" style={{ flex: '1 1 0', minWidth: 0, width: '100%' }}>
+            <Box style={{ flex: '1 1 0', minWidth: 0, width: '100%' }}>
+                <WebsiteHeaderMenu initialHeaderMenu={menu} />
+            </Box>
             <HeaderSearch initialNavigation={initialNavigation} />
         </Group>
     );

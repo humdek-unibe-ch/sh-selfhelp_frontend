@@ -14,6 +14,7 @@ import {
     Tabs,
     Text,
     ThemeIcon,
+    Box,
 } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import { IconChevronDown, IconPoint } from '@tabler/icons-react';
@@ -33,6 +34,7 @@ import {
 } from '@selfhelp/shared';
 import { InternalLink } from '../../../shared';
 import { IconComponent } from '../../../shared/common';
+import { HeaderNavOverflow } from './HeaderNavOverflow';
 import classes from './WebsiteHeaderRenderer.module.css';
 
 interface IWebsiteHeaderRendererProps {
@@ -181,46 +183,144 @@ function DropdownItem({ item, atDepthLimit = false }: { item: INavigationMenuIte
     );
 }
 
+function OverflowPanelStack({ items, atDepthLimit = false }: { items: INavigationMenuItem[]; atDepthLimit?: boolean }) {
+    return (
+        <Stack gap={2}>
+            {items.map((item) => {
+                const children = (item.children ?? []).filter(
+                    (child) => child.page != null || child.item_type === 'external_url',
+                );
+                if (children.length > 0 && !atDepthLimit) {
+                    return <DropdownRow key={String(item.id)} item={item} />;
+                }
+                return (
+                    <InternalLink
+                        key={String(item.id)}
+                        href={getNavigationItemHref(item)}
+                        aria-label={getNavigationItemAriaLabel(item)}
+                        className={classes.overflowPanelLink}
+                    >
+                        {item.icon ? <NavIcon name={item.icon} size={16} /> : null}
+                        <Text size="sm" fw={500}>
+                            {getNavigationItemLabel(item)}
+                        </Text>
+                    </InternalLink>
+                );
+            })}
+        </Stack>
+    );
+}
+
+function MeasureNavPill({ item, withChevron = false }: { item: INavigationMenuItem; withChevron?: boolean }) {
+    return (
+        <span className={classes.navTrigger}>
+            <NavIcon name={item.icon} size={16} />
+            <Text size="sm" fw={500} span style={{ whiteSpace: 'nowrap' }}>
+                {getNavigationItemLabel(item)}
+            </Text>
+            {withChevron ? <IconChevronDown size={14} stroke={1.75} style={{ opacity: 0.6 }} /> : null}
+        </span>
+    );
+}
+
+function MeasureTopRowPill({ item }: { item: INavigationMenuItem }) {
+    return (
+        <span className={classes.topRowLink}>
+            <NavIcon name={item.icon} size={14} />
+            <Text size="xs" fw={500} span style={{ whiteSpace: 'nowrap' }}>
+                {getNavigationItemLabel(item)}
+            </Text>
+        </span>
+    );
+}
+
 function DropdownPreset({ items, atDepthLimit = false }: { items: INavigationMenuItem[]; atDepthLimit?: boolean }) {
     return (
-        <Group gap={4} wrap="nowrap">
-            {items.map((item) => (
+        <HeaderNavOverflow
+            key={items.map((item) => item.id).join('-')}
+            items={items}
+            getItemKey={(item) => String(item.id)}
+            measureItem={(item) => {
+                const children = (item.children ?? []).filter(
+                    (child) => child.page != null || child.item_type === 'external_url',
+                );
+                return <MeasureNavPill item={item} withChevron={children.length > 0 && !atDepthLimit} />;
+            }}
+            renderVisibleItems={(visibleItems) => visibleItems.map((item) => (
                 <DropdownItem key={String(item.id)} item={item} atDepthLimit={atDepthLimit} />
             ))}
-        </Group>
+            renderOverflowItems={(overflowItems) => (
+                <OverflowPanelStack items={[...overflowItems]} atDepthLimit={atDepthLimit} />
+            )}
+        />
     );
 }
 
 function SimplePreset({ items }: { items: INavigationMenuItem[] }) {
     return (
-        <Group gap={4} wrap="nowrap">
-            {items.map((item) => (
+        <HeaderNavOverflow
+            key={items.map((item) => item.id).join('-')}
+            items={items}
+            getItemKey={(item) => String(item.id)}
+            measureItem={(item) => <MeasureNavPill item={item} />}
+            renderVisibleItems={(visibleItems) => visibleItems.map((item) => (
                 <NavTrigger key={String(item.id)} item={item} withChevron={false} />
             ))}
-        </Group>
+            renderOverflowItems={(overflowItems) => (
+                <OverflowPanelStack items={[...overflowItems]} />
+            )}
+        />
     );
 }
 
 function TabsPreset({ items }: { items: INavigationMenuItem[] }) {
+    const pathname = usePathname();
     const firstHref = items[0] ? getNavigationItemHref(items[0]) : undefined;
+    const activeItem = items.find((item) => {
+        const href = getNavigationItemHref(item);
+        if (!href || href === '#') {
+            return false;
+        }
+        const clean = pathname.split('#')[0].split('?')[0].replace(/\/+$/, '') || '/';
+        const target = href.replace(/\/+$/, '') || '/';
+        return clean === target;
+    });
+    const tabsValue = activeItem ? getNavigationItemHref(activeItem) : firstHref;
+
     return (
-        <Tabs defaultValue={firstHref}>
-            <Tabs.List>
-                {items.map((item) => {
-                    const href = getNavigationItemHref(item);
-                    return (
-                        <Tabs.Tab key={String(item.id)} value={href}>
-                            <InternalLink href={href} aria-label={getNavigationItemAriaLabel(item)}>
-                                <Group gap="xs">
-                                    <NavIcon name={item.icon} />
-                                    <Text size="sm">{getNavigationItemLabel(item)}</Text>
-                                </Group>
-                            </InternalLink>
-                        </Tabs.Tab>
-                    );
-                })}
-            </Tabs.List>
-        </Tabs>
+        <HeaderNavOverflow
+            key={items.map((item) => item.id).join('-')}
+            items={items}
+            overflowTriggerVariant="icon"
+            getItemKey={(item) => String(item.id)}
+            measureItem={(item) => <MeasureNavPill item={item} />}
+            renderVisibleItems={() => null}
+            integrateOverflow={({ visibleItems, overflowMenu }) => (
+                <Tabs value={tabsValue} variant="default">
+                    <Tabs.List style={{ flexWrap: 'nowrap' }}>
+                        {visibleItems.map((item) => {
+                            const href = getNavigationItemHref(item);
+                            return (
+                                <Tabs.Tab key={String(item.id)} value={href}>
+                                    <InternalLink href={href} aria-label={getNavigationItemAriaLabel(item)}>
+                                        <Group gap="xs" wrap="nowrap">
+                                            <NavIcon name={item.icon} />
+                                            <Text size="sm">{getNavigationItemLabel(item)}</Text>
+                                        </Group>
+                                    </InternalLink>
+                                </Tabs.Tab>
+                            );
+                        })}
+                        {overflowMenu ? (
+                            <div className={classes.tabsOverflowSlot}>{overflowMenu}</div>
+                        ) : null}
+                    </Tabs.List>
+                </Tabs>
+            )}
+            renderOverflowItems={(overflowItems) => (
+                <OverflowPanelStack items={[...overflowItems]} />
+            )}
+        />
     );
 }
 
@@ -254,44 +354,74 @@ function MegaMenuCell({ item }: { item: INavigationMenuItem }) {
     );
 }
 
+function MegaMenuItem({ item, atDepthLimit = false }: { item: INavigationMenuItem; atDepthLimit?: boolean }) {
+    const children = (item.children ?? []).filter(
+        (child) => child.page != null || child.item_type === 'external_url',
+    );
+    if (children.length === 0 || atDepthLimit) {
+        return <DropdownItem item={item} atDepthLimit={atDepthLimit} />;
+    }
+    return (
+        <HoverCard
+            openDelay={60}
+            closeDelay={120}
+            position="bottom-start"
+            shadow="lg"
+            radius="md"
+            offset={4}
+            withinPortal
+            transitionProps={{ transition: 'pop-top-left', duration: 120 }}
+        >
+            <HoverCard.Target>
+                <span style={{ display: 'inline-flex' }}>
+                    <NavTrigger item={item} withChevron />
+                </span>
+            </HoverCard.Target>
+            <HoverCard.Dropdown p="md" w={children.length > 3 ? 560 : 300}>
+                <SimpleGrid cols={children.length > 3 ? 2 : 1} spacing={4} verticalSpacing={4}>
+                    {children.map((child) => (
+                        <MegaMenuCell key={String(child.id)} item={child} />
+                    ))}
+                </SimpleGrid>
+            </HoverCard.Dropdown>
+        </HoverCard>
+    );
+}
+
 function MegaMenuPreset({ items, atDepthLimit = false }: { items: INavigationMenuItem[]; atDepthLimit?: boolean }) {
     return (
-        <Group gap={4} wrap="nowrap">
-            {items.map((item) => {
+        <HeaderNavOverflow
+            key={items.map((item) => item.id).join('-')}
+            items={items}
+            getItemKey={(item) => String(item.id)}
+            measureItem={(item) => {
                 const children = (item.children ?? []).filter(
                     (child) => child.page != null || child.item_type === 'external_url',
                 );
-                if (children.length === 0 || atDepthLimit) {
-                    return <DropdownItem key={String(item.id)} item={item} atDepthLimit={atDepthLimit} />;
-                }
-                return (
-                    <HoverCard
-                        key={String(item.id)}
-                        openDelay={60}
-                        closeDelay={120}
-                        position="bottom-start"
-                        shadow="lg"
-                        radius="md"
-                        offset={4}
-                        withinPortal
-                        transitionProps={{ transition: 'pop-top-left', duration: 120 }}
-                    >
-                        <HoverCard.Target>
-                            <span style={{ display: 'inline-flex' }}>
-                                <NavTrigger item={item} withChevron />
-                            </span>
-                        </HoverCard.Target>
-                        <HoverCard.Dropdown p="md" w={children.length > 3 ? 560 : 300}>
-                            <SimpleGrid cols={children.length > 3 ? 2 : 1} spacing={4} verticalSpacing={4}>
-                                {children.map((child) => (
-                                    <MegaMenuCell key={String(child.id)} item={child} />
-                                ))}
-                            </SimpleGrid>
-                        </HoverCard.Dropdown>
-                    </HoverCard>
-                );
-            })}
-        </Group>
+                return <MeasureNavPill item={item} withChevron={children.length > 0 && !atDepthLimit} />;
+            }}
+            renderVisibleItems={(visibleItems) => visibleItems.map((item) => (
+                <MegaMenuItem key={String(item.id)} item={item} atDepthLimit={atDepthLimit} />
+            ))}
+            renderOverflowItems={(overflowItems) => (
+                <OverflowPanelStack items={[...overflowItems]} atDepthLimit={atDepthLimit} />
+            )}
+        />
+    );
+}
+
+function TopRowLink({ item }: { item: INavigationMenuItem }) {
+    return (
+        <InternalLink
+            href={getNavigationItemHref(item)}
+            aria-label={getNavigationItemAriaLabel(item)}
+            className={classes.topRowLink}
+        >
+            <NavIcon name={item.icon} size={14} />
+            <Text size="xs" fw={500} span style={{ whiteSpace: 'nowrap' }}>
+                {getNavigationItemLabel(item)}
+            </Text>
+        </InternalLink>
     );
 }
 
@@ -301,23 +431,52 @@ function TopRow({ items, utilitySlot }: { items: INavigationMenuItem[]; utilityS
     }
 
     return (
-        <Group justify="space-between" gap="md" wrap="nowrap" w="100%">
-            <Group gap={2} wrap="nowrap" component="nav" aria-label="Secondary navigation">
-                {items.map((item) => (
-                    <InternalLink
-                        key={String(item.id)}
-                        href={getNavigationItemHref(item)}
-                        aria-label={getNavigationItemAriaLabel(item)}
-                        className={classes.topRowLink}
-                    >
-                        <NavIcon name={item.icon} size={14} />
-                        <Text size="xs" fw={500} span style={{ whiteSpace: 'nowrap' }}>
-                            {getNavigationItemLabel(item)}
-                        </Text>
-                    </InternalLink>
-                ))}
-            </Group>
-            <Group justify="flex-end" gap="md" wrap="nowrap">
+        <Group justify="space-between" gap="md" wrap="nowrap" w="100%" align="center">
+            {items.length > 0 ? (
+                <Box component="span" style={{ flex: '1 1 0', minWidth: 0 }}>
+                    <HeaderNavOverflow
+                        key={items.map((item) => item.id).join('-')}
+                        items={items}
+                        gap={2}
+                        className={classes.topRowOverflow}
+                        getItemKey={(item) => String(item.id)}
+                        measureItem={(item) => <MeasureTopRowPill item={item} />}
+                        renderVisibleItems={(visibleItems) => (
+                            <Group
+                                gap={2}
+                                wrap="nowrap"
+                                component="nav"
+                                aria-label="Secondary navigation"
+                                style={{ minWidth: 0 }}
+                            >
+                                {visibleItems.map((item) => (
+                                    <TopRowLink key={String(item.id)} item={item} />
+                                ))}
+                            </Group>
+                        )}
+                        renderOverflowItems={(overflowItems) => (
+                            <Stack gap={2}>
+                                {overflowItems.map((item) => (
+                                    <InternalLink
+                                        key={String(item.id)}
+                                        href={getNavigationItemHref(item)}
+                                        aria-label={getNavigationItemAriaLabel(item)}
+                                        className={classes.overflowPanelLink}
+                                    >
+                                        {item.icon ? <NavIcon name={item.icon} size={14} /> : null}
+                                        <Text size="sm" fw={500}>
+                                            {getNavigationItemLabel(item)}
+                                        </Text>
+                                    </InternalLink>
+                                ))}
+                            </Stack>
+                        )}
+                    />
+                </Box>
+            ) : (
+                <span />
+            )}
+            <Group justify="flex-end" gap="md" wrap="nowrap" style={{ flexShrink: 0 }}>
                 {utilitySlot}
             </Group>
         </Group>
@@ -374,9 +533,9 @@ export function WebsiteHeaderRenderer({ menu, utilitySlot }: IWebsiteHeaderRende
     if (!isDouble) {
         const mainNav = renderInnerPreset(innerPreset, mergeHeaderLayers(items), atDepthLimit);
         return (
-            <Group gap="lg" wrap="nowrap" style={{ flex: 1 }} component="nav" aria-label="Main navigation">
+            <nav aria-label="Main navigation" style={{ flex: '1 1 0', minWidth: 0, width: '100%', display: 'flex' }}>
                 {mainNav}
-            </Group>
+            </nav>
         );
     }
 
@@ -384,17 +543,12 @@ export function WebsiteHeaderRenderer({ menu, utilitySlot }: IWebsiteHeaderRende
     const mainNav = renderInnerPreset(innerPreset, main, atDepthLimit);
 
     return (
-        <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+        <Stack gap={4} style={{ flex: 1, minWidth: 0, width: '100%' }}>
             <TopRow items={top} utilitySlot={utilitySlot} />
             <Divider />
-            <Group
-                component="nav"
-                aria-label="Main navigation"
-                wrap="nowrap"
-                style={{ overflowX: 'auto', scrollbarWidth: 'none' }}
-            >
+            <nav aria-label="Main navigation" style={{ minWidth: 0, width: '100%', display: 'flex' }}>
                 {mainNav}
-            </Group>
+            </nav>
         </Stack>
     );
 }
