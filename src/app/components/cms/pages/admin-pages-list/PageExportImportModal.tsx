@@ -23,7 +23,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module app/components/cms/pages/admin-pages-list/PageExportImportModal
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
     Alert,
     Badge,
@@ -92,7 +92,8 @@ function isNavigationBundle(candidate: TImportableBundle | null): candidate is I
 }
 
 export function PageExportImportModal({ opened, onClose, pages, initialTab = 'export' }: IPageExportImportModalProps) {
-    const [activeTab, setActiveTab] = useState<string>(initialTab);
+    const [userSelectedTab, setUserSelectedTab] = useState<string | null>(null);
+    const activeTab = userSelectedTab ?? initialTab;
 
     // ---- Export state ----
     const [selectedExportIds, setSelectedExportIds] = useState<string[]>([]);
@@ -212,21 +213,11 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
 
     function handleTabChange(value: string | null) {
         const next = value ?? 'export';
-        setActiveTab(next);
+        setUserSelectedTab(next);
         if (next === 'examples') {
             void loadExamples();
         }
     }
-
-    // Honour the caller's initial tab every time the dialog opens (e.g. the
-    // app wizard's "Browse templates" entry opens straight into the gallery).
-    useEffect(() => {
-        if (opened) {
-            handleTabChange(initialTab);
-        }
-        // handleTabChange is recreated per render; opened/initialTab are the real triggers.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [opened, initialTab]);
 
     /**
      * Load a shipped example straight into the import flow: seed the bundle, a
@@ -252,14 +243,14 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
             setKeywordPrefix(`demo_${example.id.replace(/-/g, '_')}_`);
             setRoutePrefix(`/demo-${example.id}`);
         }
-        setActiveTab('import');
+        setUserSelectedTab('import');
     }
 
     function handleClose() {
         setSelectedExportIds([]);
         setExportError(null);
         resetImportState();
-        setActiveTab('export');
+        setUserSelectedTab(null);
         onClose();
     }
 

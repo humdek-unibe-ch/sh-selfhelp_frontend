@@ -4,11 +4,10 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollArea, Group, Box, Accordion, ActionIcon, Tooltip } from '@mantine/core';
 import {
     IconDashboard,
-    IconUsers,
     IconSettingsAutomation,
     IconPhoto,
     IconSettings,
@@ -38,7 +37,6 @@ import { CreatePageModal } from '../../pages/create-page/CreatePage';
 import { CmsAppWizardModal } from '../../pages/admin-pages-list/CmsAppWizardModal';
 import { PageExportImportModal } from '../../pages/admin-pages-list/PageExportImportModal';
 import { SelfHelpLogo, PreviewModeToggle, AuthButton } from '../../../shared';
-import { useIsClient } from '../../../../../hooks/useIsClient';
 import classes from './AdminNavbar.module.css';
 import { NavigationSearch } from './components';
 
@@ -67,28 +65,25 @@ const DEFAULT_OPEN_GROUPS = ['pages', 'menus'];
 
 /** Accordion open state persisted across sessions (SSR-safe, applied post-hydration). */
 function usePersistedAccordion(): readonly [string[], (value: string[]) => void] {
-    const hydrated = useIsClient();
-    const [value, setValue] = useState<string[]>(DEFAULT_OPEN_GROUPS);
-    const [restored, setRestored] = useState(false);
-
-    useEffect(() => {
-        if (!hydrated || restored) return;
-        setRestored(true);
+    const [value, setValue] = useState<string[]>(() => {
+        if (typeof window === 'undefined') return DEFAULT_OPEN_GROUPS;
         try {
             const stored = localStorage.getItem(ACCORDION_STORAGE_KEY);
             if (stored !== null) {
                 const parsed = JSON.parse(stored);
                 if (Array.isArray(parsed) && parsed.every((v) => typeof v === 'string')) {
-                    setValue(parsed);
+                    return parsed;
                 }
             }
         } catch {
             // Corrupt value — keep defaults.
         }
-    }, [hydrated, restored]);
+        return DEFAULT_OPEN_GROUPS;
+    });
 
     const update = (next: string[]) => {
         setValue(next);
+        if (typeof window === 'undefined') return;
         try {
             localStorage.setItem(ACCORDION_STORAGE_KEY, JSON.stringify(next));
         } catch {

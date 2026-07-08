@@ -67,6 +67,7 @@ function rangeToParams(range: TRangeKey): { from: string; to: string; granularit
         case 'all':
             return { from: '2000-01-01', to, granularity: 'month' };
     }
+    return { from: '2000-01-01', to, granularity: 'month' };
 }
 
 /**
