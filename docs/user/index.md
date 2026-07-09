@@ -11,6 +11,7 @@ This is a non-technical orientation for people who manage content and users in t
 ## What you can do in the admin UI
 
 - Create and edit CMS pages and the sections inside them.
+- Manage **CMS Apps** (team directory, news, …): import templates, scaffold pages, Manage content, Live preview — see [cms-apps.md](cms-apps.md).
 - Save changes as a draft and publish a version when it is ready; earlier published versions can be restored.
 - Manage languages and translate page content.
 - Manage users, groups, roles, and access permissions.
