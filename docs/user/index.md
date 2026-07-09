@@ -12,6 +12,7 @@ This is a non-technical orientation for people who manage content and users in t
 
 - Create and edit CMS pages and the sections inside them.
 - Manage **CMS Apps** (team directory, news, …): import templates, scaffold pages, Manage content, Live preview — see [cms-apps.md](cms-apps.md).
+- Configure option fields with stable codes + translated labels — see [cms-option-labels.md](cms-option-labels.md).
 - Save changes as a draft and publish a version when it is ready; earlier published versions can be restored.
 - Manage languages and translate page content.
 - Manage users, groups, roles, and access permissions.

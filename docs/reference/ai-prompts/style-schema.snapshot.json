@@ -1445,12 +1445,69 @@
         "entry-list": {
             "renderTarget": "both",
             "canHaveChildren": true,
-            "fields": {}
+            "fields": {
+                "data_table": {
+                    "scope": "property",
+                    "type": "select-data_table",
+                    "default": ""
+                },
+                "own_entries_only": {
+                    "scope": "property",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "filter": {
+                    "scope": "property",
+                    "type": "code",
+                    "default": ""
+                },
+                "scope": {
+                    "scope": "property",
+                    "type": "text",
+                    "default": ""
+                },
+                "load_as_table": {
+                    "scope": "property",
+                    "type": "checkbox",
+                    "default": "0"
+                },
+                "selected_columns": {
+                    "scope": "property",
+                    "type": "select-data_table_columns",
+                    "default": ""
+                }
+            }
         },
         "entry-record": {
             "renderTarget": "both",
             "canHaveChildren": true,
-            "fields": {}
+            "fields": {
+                "data_table": {
+                    "scope": "property",
+                    "type": "select-data_table",
+                    "default": ""
+                },
+                "own_entries_only": {
+                    "scope": "property",
+                    "type": "checkbox",
+                    "default": "1"
+                },
+                "filter": {
+                    "scope": "property",
+                    "type": "code",
+                    "default": ""
+                },
+                "scope": {
+                    "scope": "property",
+                    "type": "text",
+                    "default": ""
+                },
+                "url_param": {
+                    "scope": "property",
+                    "type": "text",
+                    "default": "record_id"
+                }
+            }
         },
         "entry-record-delete": {
             "renderTarget": "both",

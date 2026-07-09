@@ -26,3 +26,4 @@ Modular, topic-focused developer guides for the frontend.
 - [16-condition-builder-space-handling-improvements.md](16-condition-builder-space-handling-improvements.md)
 - [17-data-access-management.md](17-data-access-management.md)
 - [18-cms-preferences-timezones.md](18-cms-preferences-timezones.md)
+- [19-cms-option-label-contract.md](19-cms-option-label-contract.md)

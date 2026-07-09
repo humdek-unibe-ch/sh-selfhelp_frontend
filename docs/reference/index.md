@@ -14,4 +14,5 @@ Exact contracts and lookups for the frontend.
 - [ssr-helpers.md](ssr-helpers.md) - SSR helper catalog.
 - [troubleshooting.md](troubleshooting.md) - Common issues and fixes.
 - [permission-quick-reference.md](permission-quick-reference.md) - Permission quick reference.
+- [cms-option-fields.md](cms-option-fields.md) - Option catalog and generated label fields.
 - [ai-prompts/index.md](ai-prompts/index.md) - AI prompt material and generated examples.
