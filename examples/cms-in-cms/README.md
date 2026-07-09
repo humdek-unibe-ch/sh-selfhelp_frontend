@@ -8,7 +8,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: developers / operators importing Host Admin templates  
 Status: active  
 Applies to: frontend `examples/cms-in-cms` + backend `tests/fixtures/examples` mirrors  
-Last verified: 2026-07-08  
+Last verified: 2026-07-09  
 Source of truth: runtime `PageExportImportService` + `/admin/cms-apps` APIs
 
 These bundles are **first-class CMS app** templates. There is **no dual format** and
@@ -62,6 +62,26 @@ Import **fails** (HTTP 400) if:
 Import from **Admin → CMS Apps → Import template** (examples gallery) or
 **Admin → Pages → Import / export**. Turn on **Import sample records** for demos.
 
+## Entry style binding in bundles
+
+`entry-list` and `entry-record` sections bind rows through **property fields** in
+`fields` — not through `global_fields.data_config`:
+
+```json
+"fields": {
+  "data_table": { "all": { "content": "@section:team-members-form" } },
+  "own_entries_only": { "all": { "content": "0" } },
+  "filter": { "all": { "content": "" } },
+  "scope": { "all": { "content": "" } }
+}
+```
+
+`entry-record` adds `url_param` (default `record_id`). A `data_config` block with
+`table` on an entry holder is **not** a row-binding mechanism at runtime; bundles
+must use `fields.data_table`. Authoritative style reference:
+`sh-selfhelp_backend/docs/reference/styles/composite.md` (`entry-list` /
+`entry-record` sections).
+
 ## Files
 
 | Bundle | Notes |
@@ -74,3 +94,14 @@ Import from **Admin → CMS Apps → Import template** (examples gallery) or
 | `testimonials.bundle.json` | Testimonials list |
 
 Backend mirrors live under `sh-selfhelp_backend/tests/fixtures/examples/`.
+
+## Tailwind CSS in bundles
+
+Section `global_fields.css` values use **web Tailwind** utilities (e.g. `grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8`). `css_mobile` uses **Uniwind** spacing tokens (`px-md`, `gap-sm`, …) for the native app — not raw Tailwind.
+
+The frontend registers these classes in `src/globals.css`:
+
+- `@source "../examples/**/*.json"` scans this folder at build time.
+- `@source inline(...)` brace patterns cover author-typed CMS classes.
+
+After changing Tailwind classes in any example bundle, run `npm run audit:cms-css` from the frontend repo root.
