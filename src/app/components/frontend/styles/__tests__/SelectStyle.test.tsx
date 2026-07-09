@@ -32,6 +32,25 @@ describe('SelectStyle', () => {
         expect(screen.getByPlaceholderText('Choose a fruit')).toBeInTheDocument();
     });
 
+    it('uses translatable option_labels and emits hidden form field', () => {
+        renderWithProviders(
+            <SelectStyle
+                style={makeStyle({
+                    name: { content: 'category' },
+                    value: { content: 'release' },
+                    placeholder: { content: 'Choose category' },
+                    options: { content: JSON.stringify([{ value: 'release' }]) },
+                    option_labels: { content: JSON.stringify({ release: 'Freigabe' }) },
+                })}
+                cssClass="section-1"
+            />,
+        );
+        expect(screen.getByText('Freigabe')).toBeInTheDocument();
+        const hidden = document.querySelector('input[name="category"]');
+        expect(hidden).not.toBeNull();
+        expect((hidden as HTMLInputElement).value).toBe('release');
+    });
+
     it('renders a multi-select with the configured placeholder', () => {
         renderWithProviders(
             <SelectStyle
