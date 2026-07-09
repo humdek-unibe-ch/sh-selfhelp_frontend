@@ -411,6 +411,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                 {bulkMode && (
                   <Checkbox
                     size="xs"
+                    color="orange"
                     checked={isBulkSelected}
                     onChange={(event) => {
                       const checked = event.currentTarget.checked;
@@ -418,7 +419,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                       onToggleSelect?.(section.id, checked);
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    aria-label={`Select ${section.section_name}`}
+                    aria-label={`Select ${section.section_name} for removal`}
                   />
                 )}
               </Group>

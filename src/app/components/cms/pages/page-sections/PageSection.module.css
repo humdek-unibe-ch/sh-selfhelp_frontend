@@ -82,8 +82,13 @@ SPDX-License-Identifier: MPL-2.0
 }
 
 .sectionItem.selected .sectionPaper {
-    background-color: var(--mantine-color-body) !important;
     border-radius: var(--mantine-radius-sm);
+}
+
+/* Nested selected rows get a plain body background; top-level (parent) rows keep
+   their tinted style header — selecting a parent must NOT wipe its tint. */
+.nestedRow.sectionItem.selected .sectionPaper {
+    background-color: var(--mantine-color-body) !important;
 }
 
 /* Selected: icon chip flips to the full saturated hue with a light glyph. */
@@ -93,9 +98,8 @@ SPDX-License-Identifier: MPL-2.0
     transform: scale(1.05);
 }
 
-.sectionItem.bulkSelected .sectionPaper {
-    background-color: var(--mantine-color-orange-light) !important;
-}
+/* Bulk-selected rows carry no background — the checkbox alone conveys selection,
+   so an orange fill would just be visual noise. */
 
 /* Focused state - amber, matches the search match-counter styling */
 .sectionItem.focused .sectionPaper {
