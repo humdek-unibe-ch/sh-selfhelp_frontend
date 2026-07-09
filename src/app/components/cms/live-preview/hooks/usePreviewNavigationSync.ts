@@ -36,6 +36,8 @@ export interface IUsePreviewNavigationSyncOptions {
     setCurrentKeyword: (keyword: string | null) => void;
     /** Live web-pane prefs, pushed to the frame on its READY announce. */
     currentPrefsRef: RefObject<IPreviewPreferences>;
+    /** Current public path for parameterized routes (optional). */
+    previewPathRef?: RefObject<string | null>;
     /** Push the shared theme to the frame (from `usePreviewPreferenceSync`). */
     sendPreferencesMobile: (prefs: IPreviewPreferences) => void;
     /**
@@ -49,8 +51,8 @@ export interface IUsePreviewNavigationSyncOptions {
 export interface IUsePreviewNavigationSyncResult {
     /** Handle an intercepted in-pane web navigation. */
     handleWebNavigate: (path: string) => void;
-    /** Push a soft "navigate to keyword" to the mobile frame (no reload). */
-    sendNavigateMobile: (keyword: string | null) => void;
+    /** Push a soft "navigate to keyword/path" to the mobile frame (no reload). */
+    sendNavigateMobile: (keyword: string | null, path?: string | null) => void;
 }
 
 export function usePreviewNavigationSync(
@@ -63,6 +65,7 @@ export function usePreviewNavigationSync(
         currentKeywordRef,
         setCurrentKeyword,
         currentPrefsRef,
+        previewPathRef,
         sendPreferencesMobile,
         resolveKeyword,
     } = opts;
@@ -75,13 +78,14 @@ export function usePreviewNavigationSync(
     // Push a soft "navigate to keyword" to the mobile frame (no reload) and record
     // it as expected so its echoed NAVIGATED isn't bounced back (loop guard).
     const sendNavigateMobile = useCallback(
-        (kw: string | null) => {
+        (kw: string | null, path?: string | null) => {
             const win = mobileIframeRef.current?.contentWindow;
             if (!win || !mobileMessageOrigin) return;
             expectedRef.current.mobile = kw;
             const message: TPreviewBridgeMessage = {
                 type: PREVIEW_BRIDGE_MESSAGE.NAVIGATE,
                 keyword: kw,
+                ...(path ? { path } : {}),
             };
             win.postMessage(message, mobileMessageOrigin);
         },
@@ -116,7 +120,7 @@ export function usePreviewNavigationSync(
             // is (web pane wins the initial sync). Language is already baked into the
             // frame's URL at mint, so it isn't pushed here.
             if (data.type === PREVIEW_BRIDGE_MESSAGE.READY) {
-                sendNavigateMobile(currentKeywordRef.current);
+                sendNavigateMobile(currentKeywordRef.current, previewPathRef?.current ?? null);
                 sendPreferencesMobile(currentPrefsRef.current);
                 return;
             }
@@ -146,6 +150,7 @@ export function usePreviewNavigationSync(
         currentKeywordRef,
         setCurrentKeyword,
         currentPrefsRef,
+        previewPathRef,
     ]);
 
     return { handleWebNavigate, sendNavigateMobile };

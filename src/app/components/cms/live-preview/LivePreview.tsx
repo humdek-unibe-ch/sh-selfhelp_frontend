@@ -272,6 +272,7 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         currentKeywordRef,
         setCurrentKeyword,
         currentPrefsRef,
+        previewPathRef,
         sendPreferencesMobile,
         resolveKeyword: resolvePreviewKeyword,
     });
@@ -288,7 +289,7 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
             setCurrentKeyword(match.keyword);
             setPreviewPath(match.path);
             setPreviewRouteParams(match.routeParams);
-            sendNavigateMobile(match.keyword);
+            sendNavigateMobile(match.keyword, match.path);
         },
         [navRoutes, sendNavigateMobile],
     );
