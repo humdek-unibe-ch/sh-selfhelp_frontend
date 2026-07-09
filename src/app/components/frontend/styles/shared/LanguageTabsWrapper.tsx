@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import React, { useMemo, useState } from 'react';
-import { Tabs, Text, Box, type BoxProps } from '@mantine/core';
+import { Box, Group, Input, SegmentedControl, Text, type BoxProps } from '@mantine/core';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { type ILanguage } from '../../../../../types/responses/admin/languages.types';
 
@@ -21,6 +21,12 @@ interface ILanguageTabsWrapperProps {
     onChange: (name: string, value: string | Array<{ language_id: number; value: string }> | null) => void;
     /** The child component to render for each language */
     children: (language: ILanguage, currentValue: string, onValueChange: (value: string) => void) => React.ReactNode;
+    /** Optional field label shown inline with the locale switcher */
+    label?: React.ReactNode;
+    /** Optional field description below the label row */
+    description?: React.ReactNode;
+    /** Whether the field is required (shown on the label) */
+    required?: boolean;
     /** Optional className for styling */
     className?: string;
     /** Optional style props for Mantine components */
@@ -32,7 +38,7 @@ type TLanguageEntry = { language_id: number; value: string };
 /**
  * LanguageTabsWrapper component provides multi-language tab interface for translatable fields
  * When translatable is false, renders the child component directly
- * When translatable is true, wraps children in language tabs and manages multi-language data
+ * When translatable is true, wraps children in a compact locale switcher on the label row
  *
  * ## Why this component is `useMemo`-only (no `useEffect`-state-sync)
  *
@@ -52,6 +58,9 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
     value,
     onChange,
     children,
+    label,
+    description,
+    required = false,
     className,
     styleProps
 }) => {
@@ -65,6 +74,8 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
     const [activeTab, setActiveTab] = useState<string>('');
 
     const resolvedActiveTab = activeTab || publicLanguages[0]?.locale || '';
+    const activeLanguage = publicLanguages.find((lang) => lang.locale === resolvedActiveTab)
+        ?? publicLanguages[0];
 
     const languageValues = useMemo<TLanguageEntry[]>(() => {
         if (!translatable) return [];
@@ -138,27 +149,42 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
         return <Text>No languages available</Text>;
     }
 
+    const localeSwitcher = (
+        <SegmentedControl
+            size="xs"
+            value={resolvedActiveTab}
+            onChange={(next) => setActiveTab(next)}
+            data={publicLanguages.map((lang) => ({
+                label: lang.locale.toUpperCase(),
+                value: lang.locale,
+            }))}
+            aria-label="Content language"
+        />
+    );
+
     return (
         <Box className={className} {...(styleProps || {})}>
-            <Tabs value={resolvedActiveTab} onChange={(v) => setActiveTab(v || publicLanguages[0].locale)}>
-                <Tabs.List>
-                    {publicLanguages.map((lang) => (
-                        <Tabs.Tab key={lang.id} value={lang.locale}>
-                            {lang.locale.toUpperCase()}
-                        </Tabs.Tab>
-                    ))}
-                </Tabs.List>
+            <Group justify="space-between" align="flex-start" gap="xs" mb={description ? 4 : 'xs'} wrap="nowrap">
+                {label ? (
+                    <Input.Label required={required} style={{ flex: 1, paddingTop: 2 }}>
+                        {label}
+                    </Input.Label>
+                ) : (
+                    <Box style={{ flex: 1 }} />
+                )}
+                {localeSwitcher}
+            </Group>
+            {description ? (
+                <Input.Description mb="xs">{description}</Input.Description>
+            ) : null}
 
-                {publicLanguages.map((lang) => (
-                    <Tabs.Panel key={lang.id} value={lang.locale} pt="md">
-                        {children(
-                            lang,
-                            getLanguageValue(lang.id),
-                            (newValue) => handleLanguageValueChange(lang.id, newValue)
-                        )}
-                    </Tabs.Panel>
-                ))}
-            </Tabs>
+            {activeLanguage ? (
+                children(
+                    activeLanguage,
+                    getLanguageValue(activeLanguage.id),
+                    (newValue) => handleLanguageValueChange(activeLanguage.id, newValue)
+                )
+            ) : null}
 
             <input
                 type="hidden"

@@ -41,13 +41,13 @@ describe('LanguageTabsWrapper', () => {
         const activeInput = () => screen.getByRole('textbox', { name: 'bio-input' });
         expect(activeInput()).toHaveValue('Shared seed');
 
-        fireEvent.click(screen.getByRole('tab', { name: 'EN-GB' }));
+        fireEvent.click(screen.getByRole('radio', { name: 'EN-GB' }));
         expect(activeInput()).toHaveValue('Shared seed');
 
         fireEvent.change(activeInput(), { target: { value: 'English bio' } });
         expect(onChange).toHaveBeenCalled();
 
-        fireEvent.click(screen.getByRole('tab', { name: 'DE-CH' }));
+        fireEvent.click(screen.getByRole('radio', { name: 'DE-CH' }));
         expect(activeInput()).toHaveValue('Shared seed');
     });
 
@@ -68,7 +68,24 @@ describe('LanguageTabsWrapper', () => {
             </LanguageTabsWrapper>,
         );
 
-        expect(screen.getByRole('tab', { name: 'DE-CH' })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: 'DE-CH' })).toBeInTheDocument();
         expect(screen.getByTestId('bio-German bio')).toBeInTheDocument();
+    });
+
+    it('renders the label inline with the locale switcher', () => {
+        renderWithProviders(
+            <LanguageTabsWrapper
+                translatable
+                name="department"
+                label="Abteilung"
+                value=""
+                onChange={vi.fn()}
+            >
+                {() => <input aria-label="department-input" />}
+            </LanguageTabsWrapper>,
+        );
+
+        expect(screen.getByText('Abteilung')).toBeInTheDocument();
+        expect(screen.getByRole('radiogroup', { name: 'Content language' })).toBeInTheDocument();
     });
 });

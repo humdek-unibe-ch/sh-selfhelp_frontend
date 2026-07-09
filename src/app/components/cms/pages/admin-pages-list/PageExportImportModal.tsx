@@ -23,7 +23,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module app/components/cms/pages/admin-pages-list/PageExportImportModal
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     Alert,
     Badge,
@@ -220,6 +220,16 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
             setIsLoadingExamples(false);
         }
     }
+
+    // Load shipped templates when the modal opens directly on the examples tab
+    // (`initialTab='examples'`) — `handleTabChange` alone misses that case.
+    useEffect(() => {
+        if (opened && activeTab === 'examples') {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot examples fetch when the tab is shown on open
+            void loadExamples();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- loadExamples is stable enough for this open/tab gate
+    }, [opened, activeTab]);
 
     function handleTabChange(value: string | null) {
         const next = value ?? 'export';

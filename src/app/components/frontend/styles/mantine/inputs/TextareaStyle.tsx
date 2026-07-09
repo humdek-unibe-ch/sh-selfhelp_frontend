@@ -86,8 +86,8 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
 
         return (
             <Input.Wrapper
-                label={DOMPurify.sanitize(label || '', { ALLOWED_TAGS: [] })}
-                description={parse(sanitizeHtmlForParsing(description))}
+                label={translatable ? undefined : DOMPurify.sanitize(label || '', { ALLOWED_TAGS: [] })}
+                description={translatable ? undefined : parse(sanitizeHtmlForParsing(description))}
                 required={required}
                 className={translatable ? undefined : cssClass}
                 {...(translatable ? undefined : { ...styleProps, ...spacingProps })}
@@ -123,6 +123,11 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
             name={name || ''}
             value={value}
             onChange={handleValueChange}
+            label={translatable ? DOMPurify.sanitize(label || '', { ALLOWED_TAGS: [] }) : undefined}
+            description={translatable && description
+                ? parse(sanitizeHtmlForParsing(description))
+                : undefined}
+            required={required}
             className={translatable ? cssClass : undefined}
             styleProps={translatable ? { ...styleProps, ...spacingProps } : styleProps}
         >

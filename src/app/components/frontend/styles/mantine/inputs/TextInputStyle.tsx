@@ -86,8 +86,8 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
                 placeholder={placeholder}
                 required={required}
                 value={currentValue}
-                label={parse(sanitizeHtmlForInline(DOMPurify.sanitize(label || '')))}
-                description={parse(sanitizeHtmlForInline(DOMPurify.sanitize(description || '')))}
+                label={translatable ? undefined : parse(sanitizeHtmlForInline(DOMPurify.sanitize(label || '')))}
+                description={translatable ? undefined : parse(sanitizeHtmlForInline(DOMPurify.sanitize(description || '')))}
                 name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
                 onChange={handleChange}
                 disabled={disabled}
@@ -113,6 +113,11 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
             name={name || ''}
             value={value}
             onChange={handleValueChange}
+            label={translatable ? parse(sanitizeHtmlForInline(DOMPurify.sanitize(label || ''))) : undefined}
+            description={translatable && description
+                ? parse(sanitizeHtmlForInline(DOMPurify.sanitize(description)))
+                : undefined}
+            required={required}
             className={translatable ? cssClass : undefined}
             styleProps={translatable ? { ...styleProps, ...spacingProps } : styleProps}
         >
