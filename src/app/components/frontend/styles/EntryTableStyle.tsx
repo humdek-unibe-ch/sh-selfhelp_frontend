@@ -4,15 +4,17 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-    Table, Text, TextInput, Pagination, Group, ActionIcon, Modal, Stack, Button, Alert, ScrollArea, Title
+    Table, Text, TextInput, Pagination, Group, ActionIcon, Button, Alert, ScrollArea, Title, Select
 } from '@mantine/core';
 import { IconTrash, IconSearch, IconAlertCircle, IconChevronUp, IconChevronDown, IconSelector, IconDownload, IconPlus, IconPencil } from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
 import { useDeleteFormMutation } from '../../../../hooks/useFormSubmission';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
+import { useLanguageContext } from '../../contexts/LanguageContext';
 import type { IEntryTableStyle, IEntryTableEntry } from '../../../../shared';
+import { useCmsAppAdminNav } from '../../cms/cms-apps/CmsAppAdminNavContext';
+import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
 
 
 interface IFieldMapping {
@@ -35,14 +37,28 @@ interface IEntryTableStyleProps {
 
 const PAGE_SIZE = 10;
 
+const CMS_ADMIN_HIDDEN_KEYS = new Set([
+    'user_name',
+    'user_code',
+    'id_actionTriggerTypes',
+    'id_action_trigger_types',
+    'triggerType',
+    'id_users_deleted',
+    'id_languages',
+    'language_locale',
+    'language_name',
+]);
+
 const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, cssClass }) => {
     const pageContent = usePageContentValue();
     const deleteMutation = useDeleteFormMutation();
-    const router = useRouter();
+    const cmsAppNav = useCmsAppAdminNav();
+    const { languages, currentLanguageId } = useLanguageContext();
 
     const heading = style.title?.content;
     const emptyText = style.empty_text?.content || 'No entries found.';
     const showTimestamp = style.show_timestamp?.content === '1';
+    const showLanguagePreview = style.show_language_preview?.content === '1' && Boolean(cmsAppNav);
 
     const sortable = style.dt_sortable?.content === '1';
     const searching = style.dt_searching?.content === '1';
@@ -58,7 +74,7 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
     // (NOT a backend {{...}} interpolation token).
     const addUrl = style.add_url?.content?.trim() || '';
     const editUrl = style.edit_url?.content?.trim() || '';
-    const hasRowActions = deleteEntry || editUrl !== '';
+    const hasRowActions = deleteEntry || editUrl !== '' || Boolean(cmsAppNav);
     const spacing = style.spacing?.content || 'md';
     const striped = style.web_table_striped?.content === '1';
     const highlightOnHover = style.web_table_highlight_on_hover?.content !== '0';
@@ -85,8 +101,12 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
     // data key by `field_key` first, then by current `display_name`, so a rename
     // never breaks an existing mapping.
     const fieldLabels: Record<string, string> = style.field_labels ?? {};
-    const dataKeys = Object.keys(rows[0] ?? {})
+    const rawDataKeys = Object.keys(rows[0] ?? {})
         .filter(k => k !== 'entry_date' && k !== 'record_id' && k !== '_can_delete' && k !== '_can_edit' && k !== 'id_users');
+
+    const dataKeys = cmsAppNav
+        ? rawDataKeys.filter((k) => !CMS_ADMIN_HIDDEN_KEYS.has(k))
+        : rawDataKeys;
 
     const mappedCols: IColumn[] = fieldMappings.length
         ? fieldMappings
@@ -111,6 +131,19 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [deleteTarget, setDeleteTarget] = useState<{ record_id: number } | null>(null);
+
+    const languageOptions = useMemo(
+        () => languages
+            .filter((lang) => lang.id !== 1)
+            .map((lang) => ({
+                value: String(lang.id),
+                label: lang.locale.toUpperCase(),
+            })),
+        [languages],
+    );
+
+    const previewLanguageId = cmsAppNav?.previewLanguageId ?? null;
+    const selectedPreviewLanguage = String(previewLanguageId ?? currentLanguageId);
 
     const handleSort = (key: string) => {
         if (!sortable) return;
@@ -217,15 +250,27 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
                         {hasRowActions && (
                             <Table.Td>
                                 <Group gap={4} wrap="nowrap">
-                                    {editUrl && row._can_edit !== false && (
-                                        <ActionIcon
-                                            variant="subtle"
-                                            size="sm"
-                                            aria-label={`Edit record ${row['record_id']}`}
-                                            onClick={() => router.push(editUrl.replace('{record_id}', String(row['record_id'])))}
-                                        >
-                                            <IconPencil size={14} />
-                                        </ActionIcon>
+                                    {(cmsAppNav || editUrl) && row._can_edit !== false && (
+                                        cmsAppNav ? (
+                                            <ActionIcon
+                                                variant="subtle"
+                                                size="sm"
+                                                aria-label={`Edit record ${row['record_id']}`}
+                                                onClick={() => cmsAppNav.openEditForm(String(row['record_id']))}
+                                            >
+                                                <IconPencil size={14} />
+                                            </ActionIcon>
+                                        ) : (
+                                            <ActionIcon
+                                                component="a"
+                                                href={editUrl.replace('{record_id}', String(row['record_id']))}
+                                                variant="subtle"
+                                                size="sm"
+                                                aria-label={`Edit record ${row['record_id']}`}
+                                            >
+                                                <IconPencil size={14} />
+                                            </ActionIcon>
+                                        )
                                     )}
                                     {deleteEntry && row._can_delete && (
                                         <ActionIcon
@@ -250,28 +295,59 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
     return (
         <div className={cssClass} {...styleProps}>
             {heading && <Title order={3} mb="sm">{heading}</Title>}
-            {(addUrl || csvExport) && (
-                <Group justify="space-between" mb="xs">
-                    {addUrl ? (
-                        <Button
-                            size="xs"
-                            leftSection={<IconPlus size={14} />}
-                            onClick={() => router.push(addUrl)}
-                        >
-                            Add new
-                        </Button>
-                    ) : <span />}
-                    {csvExport && (
-                        <Button
-                            variant="light"
-                            size="xs"
-                            leftSection={<IconDownload size={14} />}
-                            onClick={handleExportCsv}
-                            disabled={sorted.length === 0}
-                        >
-                            Export CSV
-                        </Button>
-                    )}
+            {(showLanguagePreview || cmsAppNav || addUrl || csvExport) && (
+                <Group justify="space-between" mb="xs" align="flex-end" wrap="wrap" gap="sm">
+                    <Group gap="xs" wrap="wrap">
+                        {(cmsAppNav || addUrl) ? (
+                            cmsAppNav ? (
+                                <Button
+                                    size="xs"
+                                    leftSection={<IconPlus size={14} />}
+                                    onClick={() => cmsAppNav.openCreateForm()}
+                                >
+                                    Add new
+                                </Button>
+                            ) : (
+                                <Button
+                                    component="a"
+                                    href={addUrl}
+                                    size="xs"
+                                    leftSection={<IconPlus size={14} />}
+                                >
+                                    Add new
+                                </Button>
+                            )
+                        ) : null}
+                    </Group>
+                    <Group gap="sm" wrap="wrap" align="flex-end">
+                        {showLanguagePreview && languageOptions.length > 1 && cmsAppNav && (
+                            <Select
+                                label="Content language"
+                                description="Preview translatable columns"
+                                data={languageOptions}
+                                value={selectedPreviewLanguage}
+                                onChange={(next) => {
+                                    if (next) {
+                                        cmsAppNav.setPreviewLanguageId(Number(next));
+                                    }
+                                }}
+                                w={160}
+                                size="xs"
+                                aria-label="Content language"
+                            />
+                        )}
+                        {csvExport && (
+                            <Button
+                                variant="light"
+                                size="xs"
+                                leftSection={<IconDownload size={14} />}
+                                onClick={handleExportCsv}
+                                disabled={sorted.length === 0}
+                            >
+                                Export CSV
+                            </Button>
+                        )}
+                    </Group>
                 </Group>
             )}
             {searching && (
@@ -336,29 +412,21 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
                 </Group>
             )}
 
-            <Modal
+            <ModalWrapper
                 opened={deleteTarget !== null}
                 onClose={() => setDeleteTarget(null)}
                 title={style.delete_modal_title?.content || 'Delete entry'}
-                centered
                 size="sm"
+                scrollAreaHeight="auto"
+                onCancel={() => setDeleteTarget(null)}
+                onDelete={handleDeleteConfirm}
+                deleteLabel="Delete"
+                isLoading={deleteMutation.isPending}
             >
-                <Stack gap="md">
-                    <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
-                        {style.delete_modal_body?.content || 'This action cannot be undone.'}
-                    </Alert>
-                    <Group justify="flex-end">
-                        <Button variant="default" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-                        <Button
-                            color="red"
-                            loading={deleteMutation.isPending}
-                            onClick={handleDeleteConfirm}
-                        >
-                            Delete
-                        </Button>
-                    </Group>
-                </Stack>
-            </Modal>
+                <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
+                    {style.delete_modal_body?.content || 'This action cannot be undone.'}
+                </Alert>
+            </ModalWrapper>
         </div>
     );
 };

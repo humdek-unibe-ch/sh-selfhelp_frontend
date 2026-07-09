@@ -67,17 +67,28 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
     const resolvedActiveTab = activeTab || publicLanguages[0]?.locale || '';
 
     const languageValues = useMemo<TLanguageEntry[]>(() => {
-        if (!value) return [];
+        if (!translatable) return [];
+        if (!value) {
+            return publicLanguages.map((lang) => ({ language_id: lang.id, value: '' }));
+        }
 
         if (typeof value === 'string') {
-            if (!translatable) return [];
             return publicLanguages.map((lang) => ({
                 language_id: lang.id,
                 value,
             }));
         }
 
-        return (value as TLanguageEntry[]).filter((lang) => lang.language_id !== 1);
+        const entries = Array.isArray(value) ? value : [];
+        const seedFromAll = entries.find((entry) => entry.language_id === 1)?.value ?? '';
+
+        return publicLanguages.map((lang) => {
+            const explicit = entries.find((entry) => entry.language_id === lang.id);
+            return {
+                language_id: lang.id,
+                value: explicit?.value ?? seedFromAll,
+            };
+        });
     }, [value, translatable, publicLanguages]);
 
     const handleLanguageValueChange = (languageId: number, newValue: string) => {

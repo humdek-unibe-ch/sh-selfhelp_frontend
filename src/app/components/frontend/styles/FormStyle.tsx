@@ -144,19 +144,31 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                 const isTranslatable = (childComponent as { translatable?: { content?: string } } | undefined)?.translatable?.content === '1';
 
                 if (isTranslatable) {
-                    // For translatable fields, collect values from all languages except 1
-                    if (languageId !== 1) {
+                    // Language id 1 = "all" / Independent — used by sample imports and
+                    // non-translated writes. LanguageTabsWrapper expands a plain
+                    // string across DE/EN tabs, so keep lang-1 as a string seed until
+                    // a real public-language value appears.
+                    if (languageId === 1) {
                         if (!recordGroups[recordId][fieldName]) {
-                            recordGroups[recordId][fieldName] = [];
+                            recordGroups[recordId][fieldName] = value;
                         }
-
-                        // Add or update the language-specific value
-                        const langValues = recordGroups[recordId][fieldName] as TFormTranslatedValue[];
-                        const existingIndex = langValues.findIndex((v) => v.language_id === languageId);
-                        if (existingIndex >= 0) {
-                            langValues[existingIndex] = { language_id: languageId as number, value };
+                    } else {
+                        const current = recordGroups[recordId][fieldName];
+                        if (typeof current === 'string' || !current) {
+                            // Promote seed string → per-language array; seed this locale
+                            // from the explicit value (seed remains available via string
+                            // promote only when no public rows existed yet).
+                            recordGroups[recordId][fieldName] = [
+                                { language_id: languageId as number, value },
+                            ];
                         } else {
-                            langValues.push({ language_id: languageId as number, value });
+                            const langValues = current as TFormTranslatedValue[];
+                            const existingIndex = langValues.findIndex((v) => v.language_id === languageId);
+                            if (existingIndex >= 0) {
+                                langValues[existingIndex] = { language_id: languageId as number, value };
+                            } else {
+                                langValues.push({ language_id: languageId as number, value });
+                            }
                         }
                     }
                 } else {
@@ -446,13 +458,16 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     ]);
 
     const handleCancel = useCallback(() => {
+        if (inModal) {
+            closeModal();
+            return;
+        }
         if (cancelUrl) {
             window.location.href = cancelUrl;
-        } else {
-            // Default cancel behavior - could go back or stay on page
-            window.history.back();
+            return;
         }
-    }, [cancelUrl]);
+        window.history.back();
+    }, [inModal, closeModal, cancelUrl]);
 
     // Helper function to render buttons in correct order
     const renderButtons = useCallback(() => {
