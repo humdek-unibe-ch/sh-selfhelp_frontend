@@ -1,0 +1,75 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+/* Floating companion preview — a draggable, resizable window that hovers OVER
+   the editor (position: fixed) so it never reflows the section tree. Position is
+   driven by inline `left`/`top`; size is user-resizable from the bottom-right. */
+.pane {
+    position: fixed;
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    min-width: 320px;
+    min-height: 240px;
+    max-width: 96vw;
+    max-height: 92vh;
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: var(--mantine-radius-md);
+    background: var(--mantine-color-body);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+    resize: both;
+}
+
+[data-mantine-color-scheme='dark'] .pane {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+}
+
+.paneHeader {
+    flex: 0 0 auto;
+    border-bottom: 1px solid var(--mantine-color-default-border);
+    background: var(--mantine-color-body);
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.paneHeader:active {
+    cursor: grabbing;
+}
+
+.dragLabel {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.dragIcon {
+    color: var(--mantine-color-dimmed);
+    flex: 0 0 auto;
+}
+
+.paneBody {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: 8px;
+}
+
+/* Highlight ring pulsed on the followed section's `#section-{id}` anchor. The
+   colour comes from `--section-preview-accent`, set inline per section to that
+   section's own style accent (theme-aware Mantine token) — so the panel
+   highlight matches the tree row's colour. */
+.highlight {
+    animation: sectionPreviewPulse 1.1s ease-in-out 2;
+    border-radius: var(--mantine-radius-sm);
+}
+
+@keyframes sectionPreviewPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 transparent;
+    }
+    50% {
+        box-shadow: 0 0 0 4px var(--section-preview-accent, var(--mantine-color-blue-5));
+    }
+}

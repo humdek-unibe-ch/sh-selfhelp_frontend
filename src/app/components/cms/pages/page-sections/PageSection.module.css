@@ -2,52 +2,104 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-/* Compact section item styling - now applied to SectionLink */
+/* Section row styling - applied to SectionLink. Rows are flat by default; the
+   enclosing top-level card (`.topLevelCard`) provides the outer border. */
 .sectionItem {
     display: block;
     text-decoration: none;
     color: inherit;
     transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 3px;
-    margin-bottom: 1px;
     cursor: pointer;
+
+    /* Per-style colour tokens, all derived from the ONE unique hue the row
+       publishes as `--section-hue` (set inline from `getStyleVisual().hue`).
+       Only the hue varies per style; saturation + lightness are fixed here so
+       every chip keeps consistent contrast and the palette looks designed. The
+       `--section-hue` fallback (220) keeps a sane blue if the var is missing. */
+    --section-tint: hsl(var(--section-hue, 220) 70% 93%);
+    --section-tint-hover: hsl(var(--section-hue, 220) 68% 88%);
+    --section-fg: hsl(var(--section-hue, 220) 55% 34%);
+    --section-accent: hsl(var(--section-hue, 220) 65% 48%);
 }
 
-/* Paper inside SectionLink */
+/* Dark theme: same hue, darker tint + lighter foreground for contrast. */
+[data-mantine-color-scheme='dark'] .sectionItem {
+    --section-tint: hsl(var(--section-hue, 220) 32% 20%);
+    --section-tint-hover: hsl(var(--section-hue, 220) 34% 26%);
+    --section-fg: hsl(var(--section-hue, 220) 60% 72%);
+    --section-accent: hsl(var(--section-hue, 220) 60% 60%);
+}
+
+/* Paper inside SectionLink - a flat row (no own border/shadow) */
 .sectionPaper {
-    border-radius: 3px;
-    border: 1px solid var(--mantine-color-default-border);
-    background: var(--mantine-color-body);
+    border: none;
+    border-radius: 0;
+    background: transparent;
     position: relative;
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    transition: background-color 0.15s ease;
 }
 
-.sectionItem:hover .sectionPaper {
-    border-color: var(--mantine-color-text);
+/* Top-level row is the card header — tinted with the section's OWN style accent
+   (theme-aware Mantine `-light` token), so each card reads in its style colour. */
+.topRow .sectionPaper {
+    background: var(--section-tint, var(--mantine-color-gray-light));
+}
+
+/* Nested rows are plain (no border, no colored bar) — the dashed tree guide
+   line conveys nesting. */
+.nestedRow .sectionPaper {
+    background: var(--mantine-color-body);
+}
+
+/* Hover deepens the accent tint on the header, and a neutral tint on children. */
+.topRow:hover .sectionPaper {
+    background-color: var(--section-tint-hover, var(--mantine-color-gray-light-hover));
+}
+
+.nestedRow:hover .sectionPaper {
+    background-color: var(--mantine-color-default-hover);
 }
 
 .sectionItem:hover .actionButtons {
     opacity: 1;
 }
 
-/* Selected state - Blue color */
+/* Selected — the row ELEVATES: a crisp solid background + a soft drop shadow so
+   it pops FORWARD off the flat tree. Depth carries the selection (reads instantly
+   even against the colourful rows); the icon chip then flips to a full saturated
+   hue fill to confirm. No full-row colour wash.
+
+   The shadow is on the SectionLink wrapper (`.sectionItem`), not the inner paper,
+   so it is not clipped by the enclosing card's `overflow: hidden`. */
+.sectionItem.selected {
+    position: relative;
+    z-index: 2;
+    border-radius: var(--mantine-radius-sm);
+    background: var(--mantine-color-body);
+    box-shadow: 0 3px 10px light-dark(rgba(15, 23, 42, 0.16), rgba(0, 0, 0, 0.5)),
+        0 0 0 1px var(--section-accent, var(--mantine-color-blue-5));
+}
+
 .sectionItem.selected .sectionPaper {
-    border-color: var(--mantine-color-blue-5);
-    background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9));
-    box-shadow: 0 2px 6px light-dark(rgba(37, 99, 235, 0.15), rgba(37, 99, 235, 0.3));
+    background-color: var(--mantine-color-body) !important;
+    border-radius: var(--mantine-radius-sm);
+}
+
+/* Selected: icon chip flips to the full saturated hue with a light glyph. */
+.sectionItem.selected .styleIcon {
+    background: var(--section-accent, var(--mantine-color-blue-6)) !important;
+    color: var(--mantine-color-white) !important;
+    transform: scale(1.05);
 }
 
 .sectionItem.bulkSelected .sectionPaper {
-    border-color: var(--mantine-color-orange-5);
-    background-color: light-dark(var(--mantine-color-orange-0), var(--mantine-color-orange-9));
+    background-color: var(--mantine-color-orange-light) !important;
 }
 
-/* Focused state - matches the `2/3` match-counter badge styling for consistency:
-   yellow-light background + yellow-light-color (orange/amber) border and accent. */
+/* Focused state - amber, matches the search match-counter styling */
 .sectionItem.focused .sectionPaper {
-    border-color: var(--mantine-color-yellow-light-color);
     background-color: var(--mantine-color-yellow-light);
-    box-shadow: 0 2px 6px light-dark(rgba(234, 179, 8, 0.25), rgba(234, 179, 8, 0.4));
     animation: focusPulse 1s ease-in-out 2;
 }
 
@@ -60,6 +112,7 @@ SPDX-License-Identifier: MPL-2.0
     }
 }
 
+
 /* Search-match highlight - mirrors Mantine `<Badge variant="light" color="yellow">`
    (the `N/M` match counter) so the inline highlights read as the same visual
    language: pale yellow background with the amber/red "light-color" foreground. */
@@ -69,11 +122,12 @@ SPDX-License-Identifier: MPL-2.0
     padding: 0 3px !important;
 }
 
-/* Ultra compact group spacing */
+/* Row group spacing (roomier, matches the mockup) */
 .compactGroup {
-    gap: 3px !important;
-    min-height: 22px;
-    padding: 2px 4px !important;
+    gap: 8px !important;
+    min-height: 40px;
+    padding: 6px 10px !important;
+    min-width: 0;
 }
 
 /* Drag handle styling */
@@ -107,42 +161,61 @@ SPDX-License-Identifier: MPL-2.0
 
 /* Section name truncation */
 .sectionName {
-    max-width: 140px;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 11px !important;
+    font-size: 13px !important;
     color: var(--mantine-color-text);
 }
 
-/* Badge styling */
+/* Style badge - uppercase pill like the mockup, coloured from the row's unique
+   hue (matches the icon chip: same tint bg + readable foreground). */
 .styleBadge {
-    font-size: 8px !important;
-    height: 12px !important;
-    font-weight: 500;
-    padding: 0 3px !important;
+    font-size: 9px !important;
+    height: 16px !important;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 0 6px !important;
+    text-transform: uppercase;
+    background-color: var(--section-tint) !important;
+    color: var(--section-fg) !important;
+}
+
+/* Selected: the style tag flips to the full saturated hue too, matching the icon
+   chip so the whole row's colour identity confirms the selection. */
+.sectionItem.selected .styleBadge {
+    background-color: var(--section-accent, var(--mantine-color-blue-6)) !important;
+    color: var(--mantine-color-white) !important;
 }
 
 .childCount {
-    font-size: 7px !important;
-    height: 10px !important;
-    min-width: 14px;
-    padding: 0 2px !important;
+    font-size: 9px !important;
+    height: 16px !important;
+    min-width: 18px;
+    padding: 0 5px !important;
 }
 
-/* Section metadata */
+
+/* Section metadata - id + position, kept on a single line at the row end */
 .sectionMeta {
-    font-size: 8px !important;
+    font-size: 11px !important;
     line-height: 1.2;
-    margin-top: 1px;
     color: var(--mantine-color-dimmed);
+    white-space: nowrap;
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    min-width: max-content;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
 }
 
 /* Action buttons - hidden by default, shown on hover */
 .actionButtons {
     opacity: 0;
     transition: opacity 0.15s ease;
-    gap: 1px !important;
+    gap: 2px !important;
+    flex: 0 0 auto;
 }
 
 .actionButton {
@@ -152,72 +225,64 @@ SPDX-License-Identifier: MPL-2.0
     transition: opacity 0.15s ease;
 }
 
+/* Tabler icons default to 24px; constrain them so they fit the compact button. */
+.actionButton svg {
+    width: 13px;
+    height: 13px;
+}
+
 .actionButton:hover {
     opacity: 0.8;
 }
 
-/* Level-based styling with distinct colors for hierarchy */
-.level0 { border-left: 3px solid var(--mantine-color-red-6); }
-.level1 { border-left: 3px solid var(--mantine-color-green-6); }
-.level2 { border-left: 3px solid var(--mantine-color-orange-6); }
-.level3 { border-left: 3px solid var(--mantine-color-violet-6); }
-.level4 { border-left: 3px solid var(--mantine-color-teal-6); }
-.level5 { border-left: 3px solid var(--mantine-color-pink-6); }
-.level6 { border-left: 3px solid var(--mantine-color-lime-6); }
-.level7 { border-left: 3px solid var(--mantine-color-indigo-6); }
-.level8 { border-left: 3px solid var(--mantine-color-yellow-6); }
-.level9 { border-left: 3px solid var(--mantine-color-cyan-6); }
-.level10 { border-left: 3px solid var(--mantine-color-grape-6); }
-.level11 { border-left: 3px solid var(--mantine-color-dark-6); }
+/* A condition / data-config trigger that already holds a value stays visible
+   even when the row is not hovered, so set global fields are always discoverable. */
+.actionButtonActive {
+    opacity: 1 !important;
+}
 
-/* Deeper levels with darker shades */
-.level12 { border-left: 3px solid var(--mantine-color-red-7); }
-.level13 { border-left: 3px solid var(--mantine-color-green-7); }
-.level14 { border-left: 3px solid var(--mantine-color-orange-7); }
-.level15 { border-left: 3px solid var(--mantine-color-violet-7); }
-.level16 { border-left: 3px solid var(--mantine-color-teal-7); }
-.level17 { border-left: 3px solid var(--mantine-color-pink-7); }
-.level18 { border-left: 3px solid var(--mantine-color-lime-7); }
-.level19 { border-left: 3px solid var(--mantine-color-indigo-7); }
-.level20 { border-left: 3px solid var(--mantine-color-yellow-7); }
-.level21 { border-left: 3px solid var(--mantine-color-cyan-7); }
-.level22 { border-left: 3px solid var(--mantine-color-grape-7); }
-.level23 { border-left: 3px solid var(--mantine-color-dark-7); }
-
-/* Even deeper levels with lighter shades */
-.level24 { border-left: 3px solid var(--mantine-color-red-4); }
-.level25 { border-left: 3px solid var(--mantine-color-green-4); }
-.level26 { border-left: 3px solid var(--mantine-color-orange-4); }
-.level27 { border-left: 3px solid var(--mantine-color-violet-4); }
-.level28 { border-left: 3px solid var(--mantine-color-teal-4); }
-.level29 { border-left: 3px solid var(--mantine-color-pink-4); }
+.actionButtons:has(.actionButtonActive) {
+    opacity: 1;
+}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .sectionName {
-        max-width: 100px;
+        max-width: 120px;
     }
-    
-    .styleBadge {
+
+    .sectionMeta {
         display: none;
     }
-    
+
     .actionButtons {
         opacity: 1;
     }
 }
 
-/* Indentation wrapper */
+/* Indentation wrapper — nesting indent is owned by the `.childrenContainer`
+   dashed guide line in SectionsList, so the row carries no per-level margin. */
 .indentationWrapper {
     position: relative;
-    margin-left: var(--section-indent, 0px);
 }
 
-/* Section icon styling */
-.sectionIcon {
-    display: flex;
+/* Per-style icon chip (colour + glyph bound to the style). A plain Box styled
+   as a rounded square, coloured from the row's unique `--section-hue` tokens. */
+.styleIcon {
+    flex: 0 0 auto;
+    display: inline-flex;
     align-items: center;
-    color: var(--section-icon-color, var(--mantine-color-dimmed));
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--mantine-radius-sm);
+    background: var(--section-tint, var(--mantine-color-gray-light));
+    color: var(--section-fg, var(--mantine-color-gray-light-color));
+    transition: transform 0.15s ease;
+}
+
+.sectionItem:hover .styleIcon {
+    transform: scale(1.08);
 }
 
 /* Section info container */

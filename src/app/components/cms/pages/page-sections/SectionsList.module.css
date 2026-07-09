@@ -4,14 +4,15 @@ SPDX-License-Identifier: MPL-2.0
 */
 /* SectionsList Component Styles */
 
-/* Container styles - main scrollable area for sections */
+/* Container styles - main scrollable area for sections. Transparent so the
+   gray sections panel shows behind the white section cards (mockup look). */
 .sectionsContainer {
-    padding: 4px 16px 16px 16px;
+    padding: 4px 4px 16px 4px;
     height: 100%;
     /* Take full height of parent */
     overflow-y: auto;
     overflow-x: hidden;
-    background: var(--mantine-color-body);
+    background: transparent;
     flex: 1;
     /* Allow it to grow and shrink */
 }
@@ -39,13 +40,42 @@ SPDX-License-Identifier: MPL-2.0
 .sectionsList {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
 /* Section item wrapper */
 .sectionItemWrapper {
     position: relative;
     transition: background-color 200ms ease;
+}
+
+/* Top-level section + its descendants form ONE enclosing rounded card.
+   The parent row is the tinted header; nested rows sit plainly inside.
+   `--card-accent` is derived from the section's unique `--section-hue` (set
+   inline in SectionsList.tsx) with fixed S/L, so the card border matches the
+   row colour and stays theme-aware. */
+.topLevelCard {
+    --card-accent: hsl(var(--section-hue, 220) 65% 55%);
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: 10px;
+    background: var(--mantine-color-body);
+    overflow: hidden;
+    box-shadow: 0 1px 3px light-dark(rgba(15, 23, 42, 0.04), rgba(0, 0, 0, 0.2));
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* On hover the whole enclosing card border adopts the section's style accent. */
+.topLevelCard:hover {
+    border-color: var(--card-accent, var(--mantine-color-blue-4));
+    box-shadow: 0 0 0 1px var(--card-accent, var(--mantine-color-blue-4)),
+        0 2px 8px light-dark(rgba(15, 23, 42, 0.06), rgba(0, 0, 0, 0.25));
+}
+
+/* Highlight the whole enclosing card when its top-level section is selected —
+   using the section's OWN style accent, not a fixed colour. */
+.topLevelCardSelected {
+    border-color: var(--card-accent, var(--mantine-color-blue-5));
+    box-shadow: 0 0 0 1px var(--card-accent, var(--mantine-color-blue-5));
 }
 
 /* Drag and drop states */
@@ -154,13 +184,28 @@ SPDX-License-Identifier: MPL-2.0
     color: light-dark(var(--mantine-color-red-8), var(--mantine-color-red-3));
 }
 
-/* Children container */
+/* Children container - a clean DASHED vertical tree guide line groups children
+   under their parent (matches the mockup). */
 .childrenContainer {
-    margin-top: 2px;
-    padding-left: 0;
     position: relative;
-    border-radius: 4px;
-    padding: 2px 0;
+    padding: 0 0 0 16px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.childrenContainer::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 0;
+    bottom: 14px;
+    width: 0;
+    border-left: 1.5px dashed var(--mantine-color-gray-4);
+}
+
+[data-mantine-color-scheme='dark'] .childrenContainer::before {
+    border-left-color: var(--mantine-color-dark-3);
 }
 
 /* Empty state */

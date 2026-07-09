@@ -1,0 +1,35 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+/* Sections management panel — outer gray surface (#F8F9FA in light mode =
+   Mantine gray-0; theme-aware dark equivalent). White cards sit on top. */
+.sectionsPanel {
+    background: var(--mantine-color-gray-0) !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+[data-mantine-color-scheme='dark'] .sectionsPanel {
+    background: var(--mantine-color-dark-8) !important;
+}
+
+/* Breadcrumb-style page header title */
+.pageTitle {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.titleSep {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--mantine-color-dimmed);
+    line-height: 1;
+}
+
+.titleSub {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--mantine-color-dimmed);
+    line-height: 1;
+}

@@ -18,6 +18,8 @@ import {
     Tooltip,
     Box,
     Stack,
+    Title,
+    Text,
     LoadingOverlay
 } from '@mantine/core';
 import {
@@ -32,7 +34,8 @@ import {
     IconTrash,
     IconRefresh,
     IconDeviceMobile,
-    IconExternalLink
+    IconExternalLink,
+    IconEye
 } from '@tabler/icons-react';
 import { usePageSections, usePageFields } from '../../../../../hooks/usePageDetails';
 import { useCanViewMobilePreview } from '../../../../../hooks/usePermissionChecks';
@@ -42,10 +45,11 @@ import { useSectionOperations } from '../../../../../hooks/useSectionOperations'
 import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
 import { type IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
+import { SectionPreviewPane } from './SectionPreviewPane';
 import { AddSectionModal } from './add-section-modal/AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
-import { PageHeader } from '../../../shared/common/PageHeader';
 import { BulkRemoveModal } from './BulkRemoveModal';
+import pageStyles from './PageSections.module.css';
 
 // Helper function to recursively sort sections and their children by position
 const sortSectionsByPosition = (sections: IPageSectionWithFields[]): IPageSectionWithFields[] => {
@@ -258,6 +262,12 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     const [specificPosition, setSpecificPosition] = useState<number | undefined>(undefined);
     const [bulkMode, setBulkMode] = useState(false);
 
+    // Floating companion preview: a draggable panel over the editor that reuses
+    // the public renderer and FOLLOWS the selected section (scroll-to + highlight
+    // in the section's own style accent). Toggled from the toolbar; off by default.
+    // It follows normal row selection, so no per-row trigger is needed.
+    const [previewDockOpen, setPreviewDockOpen] = useState(false);
+
 
     // Search functionality
     const [searchQuery, setSearchQuery] = useState('');
@@ -302,6 +312,12 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     const sectionLookup = useMemo(() => {
         return sections ? buildSectionLookup(sections) : null;
     }, [sections]);
+    // The section the floating preview pane follows — resolved from the tree so
+    // the pane can highlight in that section's own style accent.
+    const activePreviewSection = useMemo(() => {
+        if (activeSectionId == null || !sections) return null;
+        return findSectionById(activeSectionId, sections);
+    }, [activeSectionId, sections]);
 
     // Section operations hook
     const sectionOperations = useSectionOperations({
@@ -691,20 +707,33 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     }
 
    return (
-     <Paper p="md" radius="md">
+     <Paper p="lg" radius="md" className={pageStyles.sectionsPanel}>
        <Stack gap="md">
-         <PageHeader
-           title={pageName ? `${pageName} - Sections` : "Page Sections"}
-           subtitle="Manage page structure, sections, and their relationships"
-           badge={data?.sections?.length || 0}
-         >
+         {/* Page header — breadcrumb-style title + count, subtitle, wrapping toolbar */}
+         <Stack gap="sm">
+           <Box>
+             <Group gap={8} align="center" wrap="nowrap">
+               <Title order={2} className={pageStyles.pageTitle}>
+                 {pageName || "Page"}
+               </Title>
+               <Text span className={pageStyles.titleSep}>/</Text>
+               <Text span className={pageStyles.titleSub}>Sections</Text>
+               <Badge variant="light" color="gray" size="lg" radius="xl">
+                 {data?.sections?.length || 0}
+               </Badge>
+             </Group>
+             <Text size="sm" c="dimmed" mt={4}>
+               Manage page structure, sections, and their relationships.
+             </Text>
+           </Box>
+
            <Stack gap="xs">
-             {/* Top row */}
-             <Group gap="xs" wrap="nowrap">
+             {/* Toolbar (wraps instead of overflowing) */}
+             <Group gap="xs" wrap="wrap">
                <Button
-                 leftSection={<IconPlus size={14} />}
+                 leftSection={<IconPlus size={16} />}
                  size="sm"
-                 variant="light"
+                 variant="filled"
                  onClick={() => setAddSectionModalOpened(true)}
                >
                  Add Section
@@ -712,7 +741,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
                <Button
                  size="sm"
-                 variant="light"
+                 variant="default"
                  onClick={
                    visibleExpandedSections.size > 0
                      ? handleCollapseAll
@@ -733,8 +762,8 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
                <Button
                  size="sm"
-                 variant={bulkMode ? "filled" : "light"}
-                 color={bulkMode ? "orange" : ""}
+                 variant={bulkMode ? "filled" : "default"}
+                 color={bulkMode ? "orange" : undefined}
                  onClick={handleToggleBulkMode}
                  leftSection={<IconTrash size={16} />}
                >
@@ -743,12 +772,26 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
                <Button
                  size="sm"
-                 variant="light"
+                 variant="default"
                  component={Link}
                  href={`/admin/pages/${pageName}`}
                >
                  Edit Page
                </Button>
+
+               {/* Floating companion preview toggle — opens a draggable panel that
+                   follows the selected section without interrupting or reflowing
+                   the editor. */}
+               <Tooltip label={previewDockOpen ? 'Hide the section preview' : 'Show a floating preview that follows the selected section'}>
+                 <Button
+                   size="sm"
+                   variant={previewDockOpen ? 'filled' : 'default'}
+                   leftSection={<IconEye size={16} />}
+                   onClick={() => setPreviewDockOpen((v) => !v)}
+                 >
+                   {previewDockOpen ? 'Hide preview' : 'Preview'}
+                 </Button>
+               </Tooltip>
 
                {/* "Open web page" = the real public web page in a new tab
                    (lightweight, no iframe). Distinct from "Live preview", which
@@ -756,7 +799,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                <Tooltip label="Open the real public web page in a new tab">
                  <Button
                    size="sm"
-                   variant="light"
+                   variant="default"
                    leftSection={<IconExternalLink size={16} />}
                    component={Link}
                    href={`/${pageName}`}
@@ -771,7 +814,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                  <Tooltip label="Open the full-screen web + mobile live preview in a new tab">
                    <Button
                      size="sm"
-                     variant="light"
+                     variant="default"
                      leftSection={<IconDeviceMobile size={16} />}
                      component={Link}
                      href={`${ROUTES.LIVE_PREVIEW}/${encodeURIComponent(pageName)}`}
@@ -810,7 +853,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                </Group>
              )}
            </Stack>
-         </PageHeader>
+         </Stack>
 
          {/* 2. Advanced Search Bar with match counter + Prev/Next navigation */}
          <Group gap="xs" wrap="nowrap" align="center">
@@ -906,7 +949,8 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
            </Tooltip>
          </Group>
 
-         {/* 4. Main Content */}
+         {/* 4. Main Content — the section tree. The preview is a FLOATING panel
+             (see below), so the tree layout is never reflowed. */}
          <Box>
            <LoadingOverlay
              visible={isLoading}
@@ -934,6 +978,18 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
              bulkMode={bulkMode}
            />
          </Box>
+
+         {/* Floating companion preview — a draggable panel over the editor that
+             follows the selected section. It never reflows the tree. */}
+         {previewDockOpen && (
+           <SectionPreviewPane
+             keyword={pageName ?? null}
+             activeSectionId={activeSectionId}
+             activeSectionStyleName={activePreviewSection?.style_name ?? null}
+             activeSectionCanHaveChildren={!!activePreviewSection?.can_have_children}
+             onClose={() => setPreviewDockOpen(false)}
+           />
+         )}
 
          {/* Add Section Modal */}
          <AddSectionModal
