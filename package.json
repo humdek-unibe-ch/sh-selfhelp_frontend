@@ -1,6 +1,6 @@
 {
     "name": "selfhelp-frontend",
-    "version": "0.1.60",
+    "version": "0.1.61",
     "private": true,
     "license": "MPL-2.0",
     "scripts": {
@@ -29,7 +29,8 @@
         "headers:add": "license-check-and-add add -f license-check-and-add-config.json",
         "headers:remove": "license-check-and-add remove -f license-check-and-add-config.json",
         "plugins:sync": "node scripts/plugins-sync.mjs",
-        "validate:ai-examples": "node scripts/validate-ai-examples.mjs"
+        "validate:ai-examples": "node scripts/validate-ai-examples.mjs",
+        "audit:cms-css": "node scripts/audit-cms-css-classes.mjs"
     },
     "dependencies": {
         "@atlaskit/pragmatic-drag-and-drop": "^1.8.0",

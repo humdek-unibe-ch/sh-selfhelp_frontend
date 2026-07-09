@@ -14,12 +14,40 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+---
+
+## v0.1.61 — 2026-07-09
+
+Restore legacy **field-based** data binding for `entry-list` / `entry-record`
+(property fields instead of `data_config`). Pairs with core `0.1.35` (breaking;
+reimport CMS-in-CMS bundles).
+
+### Added
+- **Entry filter SQL builder** — section inspector renders `filter` with the
+  data-config SQL builder + Monaco editor on `entry-list` / `entry-record`.
+- **Selected columns picker** — `selected_columns` reloads options when
+  `data_table` changes (`select-data_table_columns` field type).
+- **`load_as_table` web renderer** — `EntryListStyle` wraps hydrated children
+  in `<table><tbody><tr><td>` when enabled.
+
+### Changed
+- **CMS-in-CMS example bundles** — six templates rewritten to use
+  `fields.data_table` / `own_entries_only` / `filter` / `scope` (+ `url_param`
+  on detail holders); `data_config` no longer binds entry rows.
+- **`@selfhelp/shared` types** — `IEntryListStyle` / `IEntryRecordStyle` carry
+  binding fields; `style-schema.snapshot.json` updated.
+
+---
+
 ## v0.1.60 — 2026-07-08
 
 First-class **CMS Apps** product unit. Pairs with core `0.1.34` (breaking
 admin API: `/admin/cms-apps*` replaces `POST /admin/pages/cms-app`).
 
 ### Added
+- **Multilingual option grid** — select, radio, combobox, and segmented-control
+  sections edit stable codes plus every public language's label in one table,
+  with precise validation, examples, and copy buttons.
 - **CMS Apps Host Admin** — `/admin/cms-apps` index and `/admin/cms-apps/[slug]`
   detail for app metadata, page assignment / roles, scaffold, live preview, and
   **Manage content** (opens the CMS list surface). Permissions:
@@ -30,6 +58,10 @@ admin API: `/admin/cms-apps*` replaces `POST /admin/pages/cms-app`).
   `POST /admin/cms-apps/{id}/scaffold` (separate from create).
 
 ### Changed
+- Web and mobile option renderers now share `@selfhelp/shared` parsing and
+  legacy `text`/`label` fallback behavior; form submissions remain code-only.
+- All six CMS-in-CMS templates now exercise stable enum codes and
+  `{{_field_label}}` output on their public surfaces.
 - Page list / navbar treat `cms_app_id` as the grouping axis for CMS-in-CMS apps.
 - Example CMS-in-CMS bundles carry `cms_app` + per-page `cms_app_role`
   (documented in `examples/cms-in-cms/README.md`); import of legacy
