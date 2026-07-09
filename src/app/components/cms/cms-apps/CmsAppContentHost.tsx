@@ -20,6 +20,8 @@ import Link from 'next/link';
 
 import { usePathname } from 'next/navigation';
 
+import { CmsAppPageEditorButton } from './CmsAppPageEditorButton';
+
 import { usePageContentByKeyword } from '../../../../hooks/usePageContentByKeyword';
 
 import { usePageContentByPath } from '../../../../hooks/usePageContentByPath';
@@ -61,6 +63,14 @@ interface ICmsAppContentHostProps {
     appName: string;
 
     listKeyword: string;
+
+    /** CMS list page keyword for the page-sections editor shortcut. */
+    listPageKeyword: string;
+
+    /** CMS form page keyword for the modal page-sections editor shortcut. */
+    formPageKeyword: string | null;
+
+    canOpenPageEditor?: boolean;
 
     /** Public create URL of the form page (for API resolve), e.g. `/demo-…/cms/team-members/form`. */
 
@@ -121,6 +131,12 @@ export function CmsAppContentHost({
     appName,
 
     listKeyword,
+
+    listPageKeyword,
+
+    formPageKeyword,
+
+    canOpenPageEditor = false,
 
     formCreatePublicUrl,
 
@@ -396,6 +412,11 @@ export function CmsAppContentHost({
 
                         <Group gap="xs" wrap="wrap">
 
+                            <CmsAppPageEditorButton
+                                pageKeyword={listPageKeyword}
+                                canOpen={canOpenPageEditor}
+                            />
+
                             {canExport && onExport && (
 
                                 <Button
@@ -490,7 +511,19 @@ export function CmsAppContentHost({
 
                             onClose={closeForm}
 
-                            title={formTitle}
+                            title={(
+                                <Group justify="space-between" wrap="nowrap" gap="sm" pr="md">
+                                    <Text fw={600} size="lg" lineClamp={1}>
+                                        {formTitle}
+                                    </Text>
+                                    <CmsAppPageEditorButton
+                                        pageKeyword={formPageKeyword}
+                                        canOpen={canOpenPageEditor}
+                                        size="xs"
+                                        compact
+                                    />
+                                </Group>
+                            )}
 
                             size="90%"
 

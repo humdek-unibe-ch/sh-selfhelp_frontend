@@ -66,6 +66,11 @@ export function cmsAppConfigPath(slug: string): string {
     return `/admin/cms-apps/${encodeURIComponent(slug)}`;
 }
 
+/** Admin page-sections editor for a CMS page keyword. */
+export function adminPageEditorPath(pageKeyword: string): string {
+    return `/admin/pages/${encodeURIComponent(pageKeyword.trim())}`;
+}
+
 /** One accordion section in the Content Pages list (ungrouped or per CMS app). */
 export interface ICmsAppPageGroup<T extends { cms_app_id?: number | null }> {
     appId: number | null;

@@ -21,6 +21,7 @@ export function CmsAppContentPage({
 }: ICmsAppContentPageProps) {
     const { permissionChecker } = useAuth();
     const canExport = permissionChecker?.canReadPages() ?? false;
+    const canOpenPageEditor = permissionChecker?.canReadPages() ?? false;
     const { data: app, isLoading, error } = useCmsAppBySlugQuery(slug);
     const [exportError, setExportError] = useState<string | null>(null);
     const [exporting, setExporting] = useState(false);
@@ -111,6 +112,9 @@ export function CmsAppContentPage({
                 slug={app.slug}
                 appName={app.name}
                 listKeyword={listPage.keyword}
+                listPageKeyword={listPage.keyword}
+                formPageKeyword={formPage?.keyword ?? null}
+                canOpenPageEditor={canOpenPageEditor}
                 formCreatePublicUrl={formCreatePublicUrl}
                 formEditPublicUrlTemplate={formEditPublicUrlTemplate}
                 canExport={canExport && !exporting}
