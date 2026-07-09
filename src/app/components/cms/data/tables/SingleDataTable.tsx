@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   flexRender,
   getCoreRowModel,
@@ -37,9 +37,17 @@ import {
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconSortAscending, IconSortDescending, IconArrowsUpDown, IconRefresh, IconDownload, IconFileTypeCsv, IconJson } from '@tabler/icons-react';
 import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable, useTableColumns } from '../../../../../hooks/useData';
+import { useDataTableOptionLabelMaps } from '../../../../../hooks/useDataTableOptionLabelMaps';
+import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import type { TDataExportFormat } from '../../../../../types/responses/admin/data.types';
 import { DataTableEditorModal } from '../modals/DataTableEditorModal';
 import { ConfirmDeleteTableModal } from '../modals/ConfirmDeleteTableModal';
+import {
+  getDataCellDisplayValue,
+  getDataCellStoredCode,
+  isRuntimeOptionLabelKey,
+} from './data-table-display.utils';
+import { alignOptionLabelMapsToFieldKeys } from './data-table-option-labels.utils';
 
 interface ISingleDataTableProps {
   formId: number;
@@ -81,6 +89,15 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
 
   const { data, isLoading, isFetching, refetch } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted, language_id: selectedLanguageId });
   const { data: columnsResp } = useTableColumns(tableName);
+  const { languages } = usePublicLanguages();
+  const { data: fetchedOptionLabelMaps = {} } = useDataTableOptionLabelMaps(tableName, selectedLanguageId, languages);
+  const optionLabelMaps = useMemo(
+    () => alignOptionLabelMapsToFieldKeys(
+      { ...fetchedOptionLabelMaps, ...data?.optionLabelMaps },
+      columnsResp?.columns ?? [],
+    ),
+    [fetchedOptionLabelMaps, data?.optionLabelMaps, columnsResp?.columns],
+  );
 
   // Map immutable field_key -> human display label (issue #56). Rows are keyed
   // by field_key; headers show the curated display_name when present.
@@ -97,12 +114,13 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
   const rows = useMemo(() => data?.rows || [], [data?.rows]);
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
     if (rows.length === 0) return [];
-    const allKeys = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
+    const allKeys = Array.from(new Set(rows.flatMap(r => Object.keys(r))))
+      .filter((key) => !isRuntimeOptionLabelKey(key));
     const baseCols = allKeys.map((key): ColumnDef<Record<string, unknown>> => ({
       // `id` + `accessorFn` (not `accessorKey`): a field_key may contain dots
       // and must be read as an opaque literal, never as a nested path.
       id: key,
-      accessorFn: (row) => row[key],
+      accessorFn: (row) => getDataCellDisplayValue(key, row, optionLabelMaps),
       header: ({ column }) => {
         const isSorted = column.getIsSorted();
         return (
@@ -122,7 +140,18 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
           </Button>
         );
       },
-      cell: ({ row }) => <Text size="sm">{(row.original[key] as ReactNode) ?? ''}</Text>,
+      cell: ({ row }) => {
+        const display = getDataCellDisplayValue(key, row.original, optionLabelMaps);
+        const storedCode = getDataCellStoredCode(key, row.original);
+        if (display !== storedCode && storedCode !== '') {
+          return (
+            <Tooltip label={`Stored code: ${storedCode}`}>
+              <Text size="sm">{display}</Text>
+            </Tooltip>
+          );
+        }
+        return <Text size="sm">{display}</Text>;
+      },
       enableSorting: true,
     }));
     return [
@@ -144,7 +173,7 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
         },
       },
     ];
-  }, [rows, displayName, labelByKey]);
+  }, [rows, displayName, labelByKey, optionLabelMaps]);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by design; React Compiler intentionally skips memoizing here
   const table = useReactTable({

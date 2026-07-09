@@ -40,6 +40,9 @@ vi.mock('../../../../../../hooks/useUsers', () => ({
 vi.mock('../../../../../../hooks/useLanguages', () => ({
     usePublicLanguages: () => ({ languages: [], refetch: vi.fn() }),
 }));
+vi.mock('../../../../../../hooks/usePreferences', () => ({
+    useCmsPreferences: () => ({ data: { default_language_id: 2 } }),
+}));
 // Keep the test focused on the alert/permission gate, not child chrome.
 vi.mock('../../tables/DataTablesViewer', () => ({ DataTablesViewer: () => <div data-testid="viewer" /> }));
 vi.mock('../../modals/BulkExportModal', () => ({ BulkExportModal: () => null }));
