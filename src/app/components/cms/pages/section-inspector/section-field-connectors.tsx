@@ -4,15 +4,24 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { FieldRenderer, type IFieldData } from '../../shared/field-renderer/FieldRenderer';
+import { OptionCatalogEditor } from '../../shared/field-components/OptionCatalogEditor';
+import type { ILocaleTabLanguage } from '../../shared/locale-tabs/LocaleTabBadges';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { type ISectionField } from '../../../../../types/responses/admin/admin.types';
 
+interface ISectionLanguage {
+    id: number;
+    language: string;
+    locale?: string;
+}
+
+const EMPTY_FIELD_VALUES: Record<number, string> = {};
+
 interface ISectionContentFieldProps {
     field: ISectionField;
-    languageId: number;
-    locale?: string;
+    languages: ISectionLanguage[];
     dataVariables?: Record<string, string>;
     className?: string;
 }
@@ -24,21 +33,44 @@ interface ISectionContentFieldProps {
  */
 export const SectionContentField = React.memo(function SectionContentField({
     field,
-    languageId,
-    locale,
+    languages,
     dataVariables,
-    className
+    className,
 }: ISectionContentFieldProps) {
-    // Granular selector - subscribes only to this specific field's value for this language
-    const value = useSectionFormStore(
-        (state) => state.fields[field.name]?.[languageId] ?? ''
+    const fieldValues = useSectionFormStore(
+        (state) => state.fields[field.name] ?? EMPTY_FIELD_VALUES,
     );
+    const languageKey = languages.map((language) => language.id).join(',');
+    const [activeLanguageId, setActiveLanguageId] = useState(
+        () => String(languages[0]?.id ?? ''),
+    );
+    const [prevLanguageKey, setPrevLanguageKey] = useState(languageKey);
+    if (prevLanguageKey !== languageKey && languages.length > 0) {
+        setPrevLanguageKey(languageKey);
+        const stillValid = languages.some((language) => String(language.id) === activeLanguageId);
+        if (!stillValid) {
+            setActiveLanguageId(String(languages[0].id));
+        }
+    }
+
+    const activeLanguage = languages.find((language) => String(language.id) === activeLanguageId)
+        ?? languages[0];
+    const languageId = activeLanguage?.id ?? languages[0]?.id ?? 1;
+
+    const value = fieldValues[languageId] ?? '';
 
     const setContentField = useSectionFormStore((state) => state.setContentField);
 
     const handleChange = useCallback((newValue: string | boolean) => {
         setContentField(field.name, languageId, String(newValue));
     }, [field.name, languageId, setContentField]);
+
+    const localeLanguages: ILocaleTabLanguage[] = languages.map((language) => ({
+        id: language.id,
+        language: language.language,
+        locale: language.locale,
+        hasTranslation: (fieldValues[language.id] ?? '').trim() !== '',
+    }));
 
     const fieldData: IFieldData = {
         id: field.id,
@@ -51,7 +83,7 @@ export const SectionContentField = React.memo(function SectionContentField({
         hidden: field.hidden,
         display: field.display,
         config: field.config,
-        translations: field.translations
+        translations: field.translations,
     };
 
     return (
@@ -60,7 +92,11 @@ export const SectionContentField = React.memo(function SectionContentField({
             field={fieldData}
             value={value}
             onChange={handleChange}
-            locale={locale}
+            languageId={languageId}
+            locale={activeLanguage?.locale}
+            languages={languages.length > 1 ? localeLanguages : undefined}
+            activeLanguageId={activeLanguageId}
+            onActiveLanguageChange={setActiveLanguageId}
             className={className}
             dataVariables={dataVariables}
         />
@@ -129,3 +165,41 @@ export const SectionPropertyField = React.memo(function SectionPropertyField({
     );
 });
 
+interface ISectionOptionCatalogEditorProps {
+    catalogField: string;
+    languages: ISectionLanguage[];
+}
+
+const EMPTY_LABEL_VALUES: Record<number, string> = {};
+
+export const SectionOptionCatalogEditor = React.memo(function SectionOptionCatalogEditor({
+    catalogField,
+    languages,
+}: ISectionOptionCatalogEditorProps) {
+    const catalogValue = useSectionFormStore(
+        (state) => String(state.properties[catalogField] ?? ''),
+    );
+    const labelValues = useSectionFormStore(
+        (state) => state.fields.option_labels ?? EMPTY_LABEL_VALUES,
+    );
+    const setPropertyField = useSectionFormStore((state) => state.setPropertyField);
+    const setContentField = useSectionFormStore((state) => state.setContentField);
+
+    const handleCatalogChange = useCallback((value: string) => {
+        setPropertyField(catalogField, value);
+    }, [catalogField, setPropertyField]);
+
+    const handleLabelChange = useCallback((languageId: number, value: string) => {
+        setContentField('option_labels', languageId, value);
+    }, [setContentField]);
+
+    return (
+        <OptionCatalogEditor
+            catalogValue={catalogValue}
+            labelValues={labelValues}
+            languages={languages}
+            onCatalogChange={handleCatalogChange}
+            onLabelChange={handleLabelChange}
+        />
+    );
+});

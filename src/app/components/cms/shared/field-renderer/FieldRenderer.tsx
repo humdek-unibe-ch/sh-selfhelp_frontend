@@ -22,12 +22,15 @@ import {
     UnknownField,
     ConditionBuilderField,
     DataConfigField,
+    EntryFilterField,
+    SelectedColumnsField,
     ColorPickerField,
     SpacingField,
-    MonacoEditorField
+    MonacoEditorField,
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 import { extractFieldHelpExample } from '../../../../../utils/field-help.utils';
+import type { ILocaleTabLanguage } from '../locale-tabs/LocaleTabBadges';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { usePluginFieldRenderer } from '../../../frontend/plugin-runtime';
@@ -71,6 +74,9 @@ interface IFieldRendererProps {
     value?: string | boolean; // Optional: use this value if provided, otherwise extract from field
     onChange: (value: string | boolean) => void;
     locale?: string;
+    languages?: ILocaleTabLanguage[];
+    activeLanguageId?: string;
+    onActiveLanguageChange?: (languageId: string) => void;
     className?: string;
     disabled?: boolean;
     dataVariables?: Record<string, string>;
@@ -178,7 +184,20 @@ function SelectTimezoneField({ fieldId, fieldValue, onChange, disabled }: ISelec
 }
 
 export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Record<string, string> }) {
-    const { field, languageId, value, onChange, locale, className, disabled = false, dataVariables, emailStyles = false } = props;
+    const {
+        field,
+        languageId,
+        value,
+        onChange,
+        locale,
+        languages,
+        activeLanguageId,
+        onActiveLanguageChange,
+        className,
+        disabled = false,
+        dataVariables,
+        emailStyles = false,
+    } = props;
 
     // Plugin-supplied editor renderers take priority over host built-ins so
     // plugin-owned field types (e.g. `select-survey-js`) stay inside the
@@ -269,7 +288,10 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                     <FieldLabelWithTooltip
                         label={getFieldLabel()}
                         tooltip={field.help || ''}
-                        locale={locale}
+                        locale={languages && languages.length > 0 ? undefined : locale}
+                        languages={languages}
+                        activeLanguageId={activeLanguageId}
+                        onActiveLanguageChange={onActiveLanguageChange}
                         example={helpExample?.code}
                         exampleLanguage={helpExample?.language}
                     />
@@ -352,6 +374,31 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
     
+    // SQL filter on entry-list / entry-record / loop — reuse the data-config builder.
+    if (field.name === 'filter') {
+        return renderFieldWithBadge(
+            <EntryFilterField
+                fieldId={field.id}
+                value={fieldValue}
+                onChange={onChange}
+                disabled={disabled}
+                dataVariables={dataVariables}
+                help={field.help}
+            />,
+        );
+    }
+
+    if (field.type === 'select-data_table_columns') {
+        return renderFieldWithBadge(
+            <SelectedColumnsField
+                value={fieldValue}
+                onChange={onChange}
+                disabled={disabled}
+                help={field.help}
+            />,
+        );
+    }
+
     // Code field - raw markup (e.g. html_tag_content) in a Monaco HTML editor with
     // `{{` variable completion. Hand-written HTML must NOT go through the WYSIWYG,
     // which would normalise/strip it (issue #56 field-type cleanup).

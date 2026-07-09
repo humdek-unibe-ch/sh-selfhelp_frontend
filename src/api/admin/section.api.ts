@@ -217,9 +217,13 @@ export const AdminSectionApi = {
      * @param {number[]} sectionIds - One or more section IDs
      */
     async getSectionPages(sectionIds: number[]): Promise<ISectionPage[]> {
+        const params = new URLSearchParams();
+        for (const id of sectionIds) {
+            params.append('ids[]', String(id));
+        }
         const response = await permissionAwareApiClient.get<IBaseApiResponse<ISectionPage[]>>(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_PAGES,
-            { params: { ids: sectionIds } }
+            { params },
         );
         return response.data.data ?? [];
     },

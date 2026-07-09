@@ -19,5 +19,7 @@ export { SegmentedControlField } from './SegmentedControlField';
 export { UnknownField } from './UnknownField';
 export { ConditionBuilderField } from './ConditionBuilderField';
 export { DataConfigField } from './DataConfigField';
+export { EntryFilterField } from './EntryFilterField';
+export { SelectedColumnsField } from './SelectedColumnsField';
 export { ColorPickerField } from './color-picker/ColorPickerField';
 export { SpacingField } from './spacing-field/SpacingField';
