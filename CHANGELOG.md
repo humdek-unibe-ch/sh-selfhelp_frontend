@@ -14,6 +14,45 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.60 — 2026-07-08
+
+First-class **CMS Apps** product unit. Pairs with core `0.1.34` (breaking
+admin API: `/admin/cms-apps*` replaces `POST /admin/pages/cms-app`).
+
+### Added
+- **CMS Apps Host Admin** — `/admin/cms-apps` index and `/admin/cms-apps/[slug]`
+  detail for app metadata, page assignment / roles, scaffold, live preview, and
+  **Manage content** (opens the CMS list surface). Permissions:
+  `admin.cms_app.read|create|update|delete`.
+- **CMS Apps navbar accordion** — apps listed under **CMS Apps**; assigned pages
+  are excluded from Content Pages.
+- **Empty shell + scaffold** — create an empty app, then scaffold pages via
+  `POST /admin/cms-apps/{id}/scaffold` (separate from create).
+
+### Changed
+- Page list / navbar treat `cms_app_id` as the grouping axis for CMS-in-CMS apps.
+- Example CMS-in-CMS bundles carry `cms_app` + per-page `cms_app_role`
+  (documented in `examples/cms-in-cms/README.md`); import of legacy
+  CMS-in-CMS page-only bundles is rejected by core.
+- CMS app response types (`ICmsApp`, `ICmsAppPage`, `TCmsAppRole`) come from
+  `@selfhelp/shared` (no parallel local contract).
+- CMS Apps navbar adds **Import template** (examples gallery); **Scaffold**
+  remains on the app detail page (needs app id).
+
+### Fixed
+- Example template imports no longer fail when keyword prefixes contain underscores
+  (e.g. `demo_team_members_`): CMS app slugs are sanitised to kebab-case, empty
+  shells are reused, and sample-record import is available in the Import dialog.
+- **Delete shell** is available from the CMS Apps list (with confirmation) as well
+  as the detail page; operator guide at `docs/user/cms-apps.md`.
+- Team Members example styling refreshed for a modern public directory look.
+
+### Removed
+- Legacy create-wizard call to `POST /admin/pages/cms-app` (and the old
+  `CmsAppWizardModal` on the pages list).
+
+---
+
 ## v0.1.59 — 2026-07-06
 
 Navigation overhaul — strict contract v2, no backward compatibility — plus the
