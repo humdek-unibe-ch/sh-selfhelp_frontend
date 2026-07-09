@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect, vi } from 'vitest';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { renderWithProviders } from '../../../../../test-utils/renderWithProviders';
 
@@ -17,6 +17,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 import ButtonStyle from '../ButtonStyle';
+import { PreviewNavigationProvider } from '../../../cms/live-preview/PreviewNavigationContext';
 
 type ButtonStyleField = ComponentProps<typeof ButtonStyle>['style'];
 
@@ -77,15 +78,44 @@ describe('ButtonStyle', () => {
         expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', 'https://example.com/docs');
     });
 
-    it('applies the cross-platform variant', () => {
+    it('ignores placeholder # page_keyword so the path url is used', () => {
         renderWithProviders(
             <ButtonStyle
-                style={makeStyle({ label: { content: 'Outline' }, variant: { content: 'outline' } })}
+                style={makeStyle({
+                    is_link: { content: '1' },
+                    label: { content: 'Back' },
+                    page_keyword: { content: '#' },
+                    url: { content: '/demo-team-members/team-members' },
+                })}
                 styleProps={{}}
-                cssClass="section-5"
+                cssClass="section-4b"
             />,
         );
-        // Mantine encodes the variant on the data-variant attribute.
-        expect(screen.getByRole('button', { name: 'Outline' })).toHaveAttribute('data-variant', 'outline');
+        expect(screen.getByRole('link', { name: 'Back' })).toHaveAttribute(
+            'href',
+            '/demo-team-members/team-members',
+        );
+    });
+
+    it('routes internal link clicks through preview navigation instead of using anchor href', () => {
+        const navigate = vi.fn();
+        renderWithProviders(
+            <PreviewNavigationProvider value={{ navigate }}>
+                <ButtonStyle
+                    style={makeStyle({
+                        is_link: { content: '1' },
+                        label: { content: 'View profile' },
+                        url: { content: '/team-members/5' },
+                    })}
+                    styleProps={{}}
+                    cssClass="section-preview"
+                />
+            </PreviewNavigationProvider>,
+        );
+
+        const control = screen.getByRole('button', { name: 'View profile' });
+        expect(control).not.toHaveAttribute('href');
+        fireEvent.click(control);
+        expect(navigate).toHaveBeenCalledWith('/team-members/5');
     });
 });
