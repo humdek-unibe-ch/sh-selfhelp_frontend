@@ -30,6 +30,7 @@ import {
     Box,
     Button,
     Card,
+    Code,
     Divider,
     FileInput,
     Group,
@@ -115,6 +116,7 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
     const [routePrefix, setRoutePrefix] = useState('');
     const [skipConflictingRoutes, setSkipConflictingRoutes] = useState(false);
     const [activateRoutes, setActivateRoutes] = useState(true);
+    const [importData, setImportData] = useState(false);
     const [accessGroups, setAccessGroups] = useState<string[]>([]);
     const [isValidating, setIsValidating] = useState(false);
     const [report, setReport] = useState<IPageImportValidationReport | null>(null);
@@ -149,12 +151,13 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
             routePrefix: routePrefix.trim() || undefined,
             skipConflictingRoutes,
             activateRoutes,
+            importData,
             // Never send admin here — createPage always grants full admin ACL.
             accessGroups: accessGroups.length > 0
                 ? accessGroups.map(Number).filter((id) => Number.isFinite(id) && id > 0)
                 : undefined,
         }),
-        [keywordPrefix, routePrefix, skipConflictingRoutes, activateRoutes, accessGroups]
+        [keywordPrefix, routePrefix, skipConflictingRoutes, activateRoutes, importData, accessGroups]
     );
 
     // Prefixes are sent verbatim (empty string = "no prefix") so the visible
@@ -195,6 +198,7 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
         setRoutePrefix('');
         setSkipConflictingRoutes(false);
         setActivateRoutes(true);
+        setImportData(false);
         setAccessGroups([]);
         setReport(null);
         setValidateError(null);
@@ -249,6 +253,11 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
             setKeywordPrefix(`demo_${example.id.replace(/-/g, '_')}_`);
             setRoutePrefix(`/demo-${example.id}`);
         }
+        // Example templates often ship sample people/posts; restore them by default.
+        const tags = Array.isArray((example.bundle as { tags?: unknown }).tags)
+            ? ((example.bundle as { tags?: string[] }).tags ?? [])
+            : [];
+        setImportData(tags.includes('cms-in-cms'));
         setUserSelectedTab('import');
     }
 
@@ -569,6 +578,23 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
                                 onChange={(event) => setActivateRoutes(event.currentTarget.checked)}
                             />
                         </SimpleGrid>
+
+                        <Switch
+                            label="Import sample records"
+                            description="Restore the template’s demo people/posts into the new data table (recommended for Team Members and other gallery demos)."
+                            checked={importData}
+                            onChange={(event) => setImportData(event.currentTarget.checked)}
+                        />
+
+                        <Alert color="gray" variant="light">
+                            <Text size="sm">
+                                CMS Apps: the import creates (or reuses an empty) app shell. Keyword prefixes
+                                such as <Code>demo_team_members_</Code> are normalised to a kebab-case app
+                                slug (e.g. <Code>demo-team-members-team-members</Code>). If that slug already
+                                has pages assigned, delete the shell under <strong>CMS Apps</strong> first —
+                                pages and records are kept.
+                            </Text>
+                        </Alert>
 
                         {validateError && (
                             <Alert color="red" icon={<IconX size="1rem" />} variant="light">

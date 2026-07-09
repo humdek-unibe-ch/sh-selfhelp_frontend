@@ -235,10 +235,46 @@ export const API_CONFIG = {
             route: '/admin/pages/import',
             permissions: [PERMISSIONS.ADMIN_PAGE_CREATE]
         },
-        // CMS-in-CMS "Create list + detail pages" wizard (issue #30, Phase 6)
-        ADMIN_PAGES_CMS_APP: {
-            route: '/admin/pages/cms-app',
-            permissions: [PERMISSIONS.ADMIN_PAGE_CREATE]
+        // First-class CMS apps (ID-stable API; slug resolve for Host Admin UI)
+        ADMIN_CMS_APPS_LIST: {
+            route: '/admin/cms-apps',
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_READ],
+        },
+        ADMIN_CMS_APPS_CREATE: {
+            route: '/admin/cms-apps',
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_CREATE],
+        },
+        ADMIN_CMS_APPS_BY_SLUG: {
+            route: (slug: string) => `/admin/cms-apps/by-slug/${encodeURIComponent(slug)}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_READ],
+        },
+        ADMIN_CMS_APPS_GET: {
+            route: (id: number) => `/admin/cms-apps/${id}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_READ],
+        },
+        ADMIN_CMS_APPS_UPDATE: {
+            route: (id: number) => `/admin/cms-apps/${id}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_UPDATE],
+        },
+        ADMIN_CMS_APPS_DELETE: {
+            route: (id: number) => `/admin/cms-apps/${id}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_DELETE],
+        },
+        ADMIN_CMS_APPS_ASSIGN_PAGE: {
+            route: (id: number) => `/admin/cms-apps/${id}/pages`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_UPDATE],
+        },
+        ADMIN_CMS_APPS_CHANGE_PAGE_ROLE: {
+            route: (id: number, pageId: number) => `/admin/cms-apps/${id}/pages/${pageId}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_UPDATE],
+        },
+        ADMIN_CMS_APPS_UNASSIGN_PAGE: {
+            route: (id: number, pageId: number) => `/admin/cms-apps/${id}/pages/${pageId}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_UPDATE],
+        },
+        ADMIN_CMS_APPS_SCAFFOLD: {
+            route: (id: number) => `/admin/cms-apps/${id}/scaffold`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_UPDATE],
         },
 
         ADMIN_NAVIGATION_GET: {

@@ -27,14 +27,20 @@ import {
     IconAlertCircle,
     IconFileText,
     IconWorld,
-    IconLayoutDashboard,
     IconTransfer,
-    IconWand
+    IconApps
 } from '@tabler/icons-react';
 import { PageExportImportModal } from './PageExportImportModal';
-import { CmsAppWizardModal } from './CmsAppWizardModal';
+import Link from 'next/link';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
+import { useCmsAppsQuery } from '../../../../../hooks/useCmsApps';
+import { useAuth } from '../../../../../hooks/useAuth';
 import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
+import {
+    groupRootPagesByCmsApp,
+    isCmsSurfaceAdminPage,
+    shouldShowCmsAppPageGroups,
+} from '../../cms-apps/cmsAppPages.utils';
 import {
     useSelectedKeyword,
     useSetSelectedKeyword,
@@ -55,11 +61,12 @@ interface PageTreeItem extends IAdminPage {
 
 export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
     const router = useRouter();
+    const { permissionChecker } = useAuth();
     const { pages, isLoading, error } = useAdminPages();
+    const { data: cmsApps = [] } = useCmsAppsQuery(permissionChecker?.canReadCmsApps() ?? false);
     const [searchQuery, setSearchQuery] = useState('');
     const [exportImportOpen, setExportImportOpen] = useState(false);
     const [exportImportTab, setExportImportTab] = useState<'export' | 'examples'>('export');
-    const [wizardOpen, setWizardOpen] = useState(false);
     
     // Only the selected *keyword* lives in the store; the matching page
     // object is derived from the React Query cache when needed so we don't
@@ -75,17 +82,19 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
         return pages.find((p) => p.keyword === selectedKeyword) ?? null;
     }, [selectedKeyword, pages]);
 
-    // Transform flat pages array into nested tree structure
+    // Transform flat pages array into nested tree structure.
+    // Admin CMS-surface pages live under CMS Apps; public CMS-app pages stay here.
     const pageTree = useMemo(() => {
         if (!pages || pages.length === 0) return [];
 
+        const contentOnly = pages.filter((page) => !isCmsSurfaceAdminPage(page));
 
         // Create a map for quick lookup
         const pageMap = new Map<number, PageTreeItem>();
         const rootPages: PageTreeItem[] = [];
 
         // First pass: create all page items
-        pages.forEach(page => {
+        contentOnly.forEach(page => {
             pageMap.set(page.id_pages, {
                 ...page,
                 children: [],
@@ -94,11 +103,11 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
         });
 
         // Second pass: build the tree structure
-        pages.forEach(page => {
+        contentOnly.forEach(page => {
             const pageItem = pageMap.get(page.id_pages)!;
             
-            if (page.id_parent_page === null) {
-                // Root level page
+            if (page.id_parent_page === null || !pageMap.has(page.id_parent_page)) {
+                // Root level page (or parent was a CMS-app page)
                 rootPages.push(pageItem);
             } else {
                 // Child page
@@ -146,22 +155,18 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
         return filterPages(pageTree);
     }, [pageTree, searchQuery]);
 
-    // CMS-in-CMS organization (issue #30): split top-level pages into the
-    // public website group and the CMS application group. Subtrees stay intact
-    // under their root. The CMS group only appears when such pages exist, so the
-    // common public-only install keeps the flat look.
-    const { publicPages, cmsPages } = useMemo(() => {
-        const publicList: PageTreeItem[] = [];
-        const cmsList: PageTreeItem[] = [];
-        filteredPages.forEach((page) => {
-            if (page.page_surface === 'cms') {
-                cmsList.push(page);
-            } else {
-                publicList.push(page);
-            }
-        });
-        return { publicPages: publicList, cmsPages: cmsList };
-    }, [filteredPages]);
+    const cmsAppNameById = useMemo(
+        () => new Map(cmsApps.map((app) => [app.id, app.name])),
+        [cmsApps],
+    );
+
+    // CMS-in-CMS: group Content Pages roots by cms_app_id (public_list/detail stay
+    // here for structure editing; cms-surface pages live under CMS Apps).
+    const pageGroups = useMemo(
+        () => groupRootPagesByCmsApp(filteredPages, cmsAppNameById),
+        [filteredPages, cmsAppNameById],
+    );
+    const showPageGroups = useMemo(() => shouldShowCmsAppPageGroups(pageGroups), [pageGroups]);
 
     const handlePageClick = (page: IAdminPage) => {
         setSelectedKeyword(page.keyword);
@@ -273,12 +278,13 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
             />
             <Group gap="xs" grow>
                 <Button
+                    component={Link}
+                    href="/admin/cms-apps"
                     variant="light"
                     size="xs"
-                    leftSection={<IconWand size="0.9rem" />}
-                    onClick={() => setWizardOpen(true)}
+                    leftSection={<IconApps size="0.9rem" />}
                 >
-                    New app
+                    CMS Apps
                 </Button>
                 <Button
                     variant="light"
@@ -292,16 +298,6 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
                     Export / Import
                 </Button>
             </Group>
-
-            <CmsAppWizardModal
-                opened={wizardOpen}
-                onClose={() => setWizardOpen(false)}
-                onBrowseTemplates={() => {
-                    setWizardOpen(false);
-                    setExportImportTab('examples');
-                    setExportImportOpen(true);
-                }}
-            />
 
             <PageExportImportModal
                 opened={exportImportOpen}
@@ -317,29 +313,28 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
             >
                 <Stack gap={2} pb="md">
                     {filteredPages.length > 0 ? (
-                        cmsPages.length > 0 ? (
-                            <>
-                                <Group gap={6} px="xs" pt={4} pb={2}>
-                                    <IconWorld size="0.85rem" color="var(--mantine-color-blue-6)" />
-                                    <Text size="xs" fw={700} c="dimmed" tt="uppercase">
-                                        Public website
-                                    </Text>
-                                </Group>
-                                {publicPages.length > 0 ? (
-                                    publicPages.map(page => renderPageItem(page))
-                                ) : (
-                                    <Text size="xs" c="dimmed" px="xs" py={4}>
-                                        No public pages.
-                                    </Text>
-                                )}
-                                <Group gap={6} px="xs" pt="sm" pb={2}>
-                                    <IconLayoutDashboard size="0.85rem" color="var(--mantine-color-grape-6)" />
-                                    <Text size="xs" fw={700} c="dimmed" tt="uppercase">
-                                        CMS application
-                                    </Text>
-                                </Group>
-                                {cmsPages.map(page => renderPageItem(page))}
-                            </>
+                        showPageGroups ? (
+                            pageGroups.map((group, index) => (
+                                <Box key={group.appId ?? 'ungrouped'}>
+                                    <Group gap={6} px="xs" pt={index === 0 ? 4 : 'sm'} pb={2}>
+                                        {group.appId == null ? (
+                                            <IconWorld size="0.85rem" color="var(--mantine-color-blue-6)" />
+                                        ) : (
+                                            <IconApps size="0.85rem" color="var(--mantine-color-grape-6)" />
+                                        )}
+                                        <Text size="xs" fw={700} c="dimmed" tt="uppercase">
+                                            {group.label}
+                                        </Text>
+                                    </Group>
+                                    {group.pages.length > 0 ? (
+                                        group.pages.map((page) => renderPageItem(page))
+                                    ) : (
+                                        <Text size="xs" c="dimmed" px="xs" py={4}>
+                                            No pages in this group.
+                                        </Text>
+                                    )}
+                                </Box>
+                            ))
                         ) : (
                             filteredPages.map(page => renderPageItem(page))
                         )

@@ -24,11 +24,6 @@ import {
     type IPageImportResult,
     type IPageExampleBundle
 } from '../../types/requests/admin/page-export-import.types';
-import {
-    type ICreateCmsAppRequest,
-    type ICreateCmsAppResult
-} from '../../types/requests/admin/cms-app-wizard.types';
-
 export const AdminPageApi = {
     /**
      * Fetches all admin pages.
@@ -199,20 +194,4 @@ export const AdminPageApi = {
         );
         return response.data.data;
     },
-
-    /**
-     * Runs the CMS-in-CMS "Create list + detail pages" wizard (issue #30, Phase 6).
-     * Atomically scaffolds the public and/or admin list+detail page pairs bound
-     * to a data table, with DB-driven routes and entry-list/entry-record holders.
-     * @param {ICreateCmsAppRequest} payload - The wizard configuration
-     * @returns {Promise<ICreateCmsAppResult>} The created pages
-     * @throws {Error} When API request fails
-     */
-    async createCmsApp(payload: ICreateCmsAppRequest): Promise<ICreateCmsAppResult> {
-        const response = await permissionAwareApiClient.post<IBaseApiResponse<ICreateCmsAppResult>>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_CMS_APP,
-            payload
-        );
-        return response.data.data;
-    }
 }; 

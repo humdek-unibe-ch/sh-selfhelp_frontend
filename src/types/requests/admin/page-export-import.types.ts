@@ -41,6 +41,11 @@ export interface IPageImportOptions {
      * read-only access on public pages and full CRUD on cms-app pages.
      */
     accessGroups?: number[];
+    /**
+     * When true, restore sample rows from `data_tables[].rows` into the new
+     * form-owned tables (Team Members demo people, etc.). Default false.
+     */
+    importData?: boolean;
 }
 
 export type TPageImportIssueLevel = 'error' | 'warning';

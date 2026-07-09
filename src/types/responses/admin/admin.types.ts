@@ -35,6 +35,10 @@ export interface IAdminPage {
      * tolerate cached responses; absent is treated as `public`.
      */
     page_surface?: 'public' | 'cms';
+    /** First-class CMS app assignment (null = ordinary content page). */
+    cms_app_id?: number | null;
+    cms_app_slug?: string | null;
+    cms_app_role?: string | null;
     /** Page title in the CMS default language (from the `title` page field). */
     title?: string | null;
     /** Page title per language, for language-aware pickers. */

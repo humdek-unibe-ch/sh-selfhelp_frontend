@@ -145,6 +145,11 @@ export const REACT_QUERY_CONFIG = {
         // ── Admin page list ───────────────────────────────────────────────
         ADMIN_PAGES: ['admin-pages'],
 
+        // ── First-class CMS apps ──────────────────────────────────────────
+        ADMIN_CMS_APPS: ['admin-cms-apps'],
+        ADMIN_CMS_APP: (id: number) => ['admin-cms-apps', id] as const,
+        ADMIN_CMS_APP_BY_SLUG: (slug: string) => ['admin-cms-apps', 'slug', slug] as const,
+
         // ── Admin dashboard analytics ──────────────────────────────────────
         ADMIN_ANALYTICS_SUMMARY: (from: string, to: string, granularity: string, platform: string) =>
             ['admin-analytics', 'summary', from, to, granularity, platform] as const,

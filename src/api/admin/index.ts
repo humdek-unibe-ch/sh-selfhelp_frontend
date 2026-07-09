@@ -20,6 +20,7 @@ export { AdminPermissionApi } from './permission.api';
 export { AdminScheduledJobsApi } from './scheduled-jobs.api';
 export { AdminDataAccessApi } from './data-access.api';
 export { AdminAnalyticsApi } from './analytics.api';
+export { AdminCmsAppApi } from './cms-app.api';
 
 // Aggregated admin API used by hooks that need multiple admin domains.
 import { AdminPageApi } from './page.api';
@@ -67,5 +68,5 @@ export const AdminApi = {
     ...AdminActionApi,
 
     // Data Access methods
-    ...AdminDataAccessApi
+    ...AdminDataAccessApi,
 }; 

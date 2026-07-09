@@ -350,6 +350,22 @@ export class PermissionChecker {
     return this.hasPermission(PERMISSIONS.ADMIN_ANALYTICS_READ);
   }
 
+  canReadCmsApps(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_CMS_APP_READ);
+  }
+
+  canCreateCmsApps(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_CMS_APP_CREATE);
+  }
+
+  canUpdateCmsApps(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_CMS_APP_UPDATE);
+  }
+
+  canDeleteCmsApps(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_CMS_APP_DELETE);
+  }
+
   canReadNavigation(): boolean {
     return this.hasPermission(PERMISSIONS.ADMIN_NAVIGATION_READ);
   }

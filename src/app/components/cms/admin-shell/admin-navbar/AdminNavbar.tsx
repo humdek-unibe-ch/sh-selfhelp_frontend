@@ -4,8 +4,8 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useMemo, useState } from 'react';
-import { ScrollArea, Group, Box, Accordion, ActionIcon, Tooltip } from '@mantine/core';
+import { useMemo, useState, useEffect } from 'react';
+import { ScrollArea, Group, Box, Accordion, ActionIcon, Tooltip, Text } from '@mantine/core';
 import {
     IconDashboard,
     IconSettingsAutomation,
@@ -16,7 +16,6 @@ import {
     IconFileText,
     IconPlus,
     IconPuzzle,
-    IconWand,
     IconTransfer,
     IconRoute,
     IconLayoutNavbar,
@@ -25,20 +24,37 @@ import {
     IconLayoutGrid,
     IconFiles,
     IconShieldLock,
+    IconApps,
 } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
+import { useCmsAppsQuery } from '../../../../../hooks/useCmsApps';
 import { useAdminNavigationPreview } from '../../../../../hooks/useAdminNavigationPreview';
 import { pageHasMenuMembership, buildMenuPreviewSectionLinks, type IAdminMenuPreviewLink } from '../../../../../utils/admin-navigation-membership';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { usePluginMenuItems } from '../../../frontend/plugin-runtime/PluginsProvider';
 import { LinksGroup, NavDirectLink } from './components/LinksGroup';
 import { CreatePageModal } from '../../pages/create-page/CreatePage';
-import { CmsAppWizardModal } from '../../pages/admin-pages-list/CmsAppWizardModal';
+import { CreateCmsAppModal } from '../../cms-apps/CreateCmsAppModal';
 import { PageExportImportModal } from '../../pages/admin-pages-list/PageExportImportModal';
+import {
+    cmsAppConfigPath,
+    cmsAppContentPath,
+    isCmsSurfaceAdminPage,
+} from '../../cms-apps/cmsAppPages.utils';
 import { SelfHelpLogo, PreviewModeToggle, AuthButton } from '../../../shared';
 import classes from './AdminNavbar.module.css';
 import { NavigationSearch } from './components';
+
+/** True only after the first client commit — keeps SSR and hydration markup aligned. */
+function useAdminNavMounted(): boolean {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- defer persisted nav chrome until after hydration
+        setMounted(true);
+    }, []);
+    return mounted;
+}
 
 /** One item inside an accordion group panel. */
 type TNavbarItem = {
@@ -61,29 +77,31 @@ type TNavbarGroup = {
 };
 
 const ACCORDION_STORAGE_KEY = 'admin-navbar-accordion-open';
-const DEFAULT_OPEN_GROUPS = ['pages', 'menus'];
+const DEFAULT_OPEN_GROUPS = ['cms-apps', 'pages', 'menus'];
 
-/** Accordion open state persisted across sessions (SSR-safe, applied post-hydration). */
+/** Accordion open state persisted across sessions (read after mount only). */
 function usePersistedAccordion(): readonly [string[], (value: string[]) => void] {
-    const [value, setValue] = useState<string[]>(() => {
-        if (typeof window === 'undefined') return DEFAULT_OPEN_GROUPS;
+    const navMounted = useAdminNavMounted();
+    const [value, setValue] = useState<string[]>(DEFAULT_OPEN_GROUPS);
+
+    useEffect(() => {
+        if (!navMounted) return;
         try {
             const stored = localStorage.getItem(ACCORDION_STORAGE_KEY);
             if (stored !== null) {
-                const parsed = JSON.parse(stored);
+                const parsed = JSON.parse(stored) as unknown;
                 if (Array.isArray(parsed) && parsed.every((v) => typeof v === 'string')) {
-                    return parsed;
+                    // eslint-disable-next-line react-hooks/set-state-in-effect -- restore persisted accordion after hydration
+                    setValue(parsed);
                 }
             }
         } catch {
             // Corrupt value — keep defaults.
         }
-        return DEFAULT_OPEN_GROUPS;
-    });
+    }, [navMounted]);
 
     const update = (next: string[]) => {
         setValue(next);
-        if (typeof window === 'undefined') return;
         try {
             localStorage.setItem(ACCORDION_STORAGE_KEY, JSON.stringify(next));
         } catch {
@@ -112,10 +130,15 @@ export function AdminNavbar() {
     const { data: mobileDrawerPreviewLinks = [] } = useAdminNavigationPreview('mobile_drawer');
     const { data: mobileTabsPreviewLinks = [] } = useAdminNavigationPreview('mobile_bottom_tabs');
 
+    const { data: cmsApps = [] } = useCmsAppsQuery(permissionChecker?.canReadCmsApps() ?? false);
+
     const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
-    const [isCmsAppWizardOpen, setIsCmsAppWizardOpen] = useState(false);
+    const [isCreateCmsAppOpen, setIsCreateCmsAppOpen] = useState(false);
     const [isExportImportOpen, setIsExportImportOpen] = useState(false);
+    const [isCmsAppsImportOpen, setIsCmsAppsImportOpen] = useState(false);
+    const [cmsAppsImportTab, setCmsAppsImportTab] = useState<'export' | 'import' | 'examples'>('examples');
     const [openGroups, setOpenGroups] = usePersistedAccordion();
+    const navMounted = useAdminNavMounted();
 
     // Search index: pages searchable by keyword AND by their titles in every
     // language (the menu shows titles, so search must match them too).
@@ -142,7 +165,11 @@ export function AdminNavbar() {
         if (isLoading || !permissionChecker) return [];
 
         const configurationKeywords = new Set(configurationPageLinks?.map(p => p.keyword) || []);
+        // Content Pages: public frontend pages only. Admin CMS-surface pages
+        // (cms_list / form / cms_detail) live under CMS Apps; public_list /
+        // public_detail stay here for structure editing.
         const contentPages = pages?.filter(page =>
+            !isCmsSurfaceAdminPage(page) &&
             !pageHasMenuMembership(page.navigationMembership, 'web_header') &&
             !pageHasMenuMembership(page.navigationMembership, 'web_footer') &&
             !pageHasMenuMembership(page.navigationMembership, 'mobile_drawer') &&
@@ -153,6 +180,69 @@ export function AdminNavbar() {
 
         const groups: TNavbarGroup[] = [];
 
+        // --- CMS Apps: content lists (editors) + App configs (structure) ------
+        if (permissionChecker.canReadCmsApps()) {
+            const cmsAppActions: TNavbarGroup['actions'] = [];
+            if (permissionChecker.canCreateCmsApps()) {
+                cmsAppActions.push({
+                    id: 'create-cms-app',
+                    label: 'Create CMS app',
+                    icon: <IconPlus size={15} />,
+                    onClick: () => setIsCreateCmsAppOpen(true),
+                });
+            }
+            if (permissionChecker.canCreatePages()) {
+                cmsAppActions.push({
+                    id: 'cms-apps-import-template',
+                    label: 'Import template',
+                    icon: <IconTransfer size={15} />,
+                    onClick: () => {
+                        setCmsAppsImportTab('examples');
+                        setIsCmsAppsImportOpen(true);
+                    },
+                });
+            }
+            groups.push({
+                id: 'cms-apps',
+                label: 'CMS Apps',
+                icon: <IconApps size={17} />,
+                actions: cmsAppActions,
+                items: [
+                    {
+                        label: 'All apps',
+                        link: '/admin/cms-apps',
+                        id: 'cms-apps:index',
+                        icon: <IconApps size={16} />,
+                    },
+                    ...cmsApps
+                        .filter((app) => Boolean(app.cms_list_keyword || app.id_cms_list_page))
+                        .map((app) => ({
+                            label: app.name,
+                            link: cmsAppContentPath(app.slug),
+                            id: `cms-app-content:${app.id}`,
+                        })),
+                ],
+            });
+            groups.push({
+                id: 'cms-app-configs',
+                label: 'App configs',
+                icon: <IconSettings size={17} />,
+                items: [
+                    {
+                        label: 'All apps',
+                        link: '/admin/cms-apps',
+                        id: 'cms-app-configs:index',
+                        icon: <IconApps size={16} />,
+                    },
+                    ...cmsApps.map((app) => ({
+                        label: app.name,
+                        link: cmsAppConfigPath(app.slug),
+                        id: `cms-app-config:${app.id}`,
+                    })),
+                ],
+            });
+        }
+
         // --- Pages -----------------------------------------------------------
         const pageItems: TNavbarItem[] = [];
         const pageActions: TNavbarGroup['actions'] = [];
@@ -162,14 +252,6 @@ export function AdminNavbar() {
                 label: 'Create page',
                 icon: <IconPlus size={15} />,
                 onClick: () => setIsCreatePageModalOpen(true),
-            });
-            // CMS app wizard — scaffolds list + detail pages, routes, sections
-            // and ACLs in one safe transaction (see CmsAppWizardModal).
-            pageActions.push({
-                id: 'new-cms-app',
-                label: 'New CMS app',
-                icon: <IconWand size={15} />,
-                onClick: () => setIsCmsAppWizardOpen(true),
             });
         }
         // Page bundle export / import; backend enforces per-action permissions.
@@ -366,7 +448,7 @@ export function AdminNavbar() {
         }
 
         return groups;
-    }, [pages, configurationPageLinks, categorizedSystemPages, isLoading, permissionChecker, pluginMenuItems, hasPermission, headerPreviewLinks, footerPreviewLinks, mobileDrawerPreviewLinks, mobileTabsPreviewLinks, router]);
+    }, [pages, configurationPageLinks, categorizedSystemPages, isLoading, permissionChecker, pluginMenuItems, hasPermission, headerPreviewLinks, footerPreviewLinks, mobileDrawerPreviewLinks, mobileTabsPreviewLinks, router, cmsApps]);
 
     const accordionItems = navbarGroups.map((group) => (
         <Accordion.Item key={group.id} value={group.id} className={classes.accordionItem}>
@@ -427,21 +509,27 @@ export function AdminNavbar() {
                         link="/admin"
                         active={pathname === '/admin'}
                     />
-                    <Accordion
-                        multiple
-                        value={openGroups}
-                        onChange={setOpenGroups}
-                        classNames={{
-                            root: classes.accordionRoot,
-                            item: classes.accordionItem,
-                            control: classes.accordionControl,
-                            label: classes.accordionLabel,
-                            chevron: classes.accordionChevron,
-                            content: classes.accordionContent,
-                        }}
-                    >
-                        {accordionItems}
-                    </Accordion>
+                    {navMounted ? (
+                        <Accordion
+                            multiple
+                            value={openGroups}
+                            onChange={setOpenGroups}
+                            classNames={{
+                                root: classes.accordionRoot,
+                                item: classes.accordionItem,
+                                control: classes.accordionControl,
+                                label: classes.accordionLabel,
+                                chevron: classes.accordionChevron,
+                                content: classes.accordionContent,
+                            }}
+                        >
+                            {accordionItems}
+                        </Accordion>
+                    ) : (
+                        <Box className={classes.accordionRoot} py="sm" px="xs" aria-busy="true">
+                            <Text size="xs" c="dimmed">Loading navigation…</Text>
+                        </Box>
+                    )}
                 </div>
             </ScrollArea>
 
@@ -454,15 +542,22 @@ export function AdminNavbar() {
                 onClose={() => setIsCreatePageModalOpen(false)}
             />
 
-            <CmsAppWizardModal
-                opened={isCmsAppWizardOpen}
-                onClose={() => setIsCmsAppWizardOpen(false)}
+            <CreateCmsAppModal
+                opened={isCreateCmsAppOpen}
+                onClose={() => setIsCreateCmsAppOpen(false)}
             />
 
             <PageExportImportModal
                 opened={isExportImportOpen}
                 onClose={() => setIsExportImportOpen(false)}
                 pages={pages ?? []}
+            />
+
+            <PageExportImportModal
+                opened={isCmsAppsImportOpen}
+                onClose={() => setIsCmsAppsImportOpen(false)}
+                pages={pages ?? []}
+                initialTab={cmsAppsImportTab}
             />
         </nav>
     );

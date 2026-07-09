@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Group,
   Box,
@@ -15,7 +15,16 @@ import {
 import { IconChevronRight } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
 import classes from './LinksGroup.module.css';
-import { useIsClient } from '../../../../../../hooks/useIsClient';
+
+/** True only after the first client commit — keeps SSR and hydration markup aligned. */
+function useAdminNavMounted(): boolean {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- defer persisted nav chrome until after hydration
+    setMounted(true);
+  }, []);
+  return mounted;
+}
 
 /** A single admin navbar link, optionally containing nested children. */
 interface INavLinkItem {
@@ -41,10 +50,8 @@ function checkForActiveChild(links: INavLinkItem[], pathname: string): boolean {
   });
 }
 
-const noopSubscribe = () => () => {};
 
-// Read the persisted open/closed boolean for a navbar group. Returns null when
-// there is no usable stored value (or on the server, via getServerSnapshot).
+// Read the persisted open/closed boolean for a navbar group.
 function readStoredOpened(storageKey: string): boolean | null {
   try {
     const stored = localStorage.getItem(storageKey);
@@ -72,32 +79,31 @@ function usePersistedDisclosure(
   defaultOpened: boolean,
   hasActiveChild: boolean,
 ): readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>] {
-  const [opened, setOpened] = useState<boolean>(defaultOpened);
-  const hydrated = useIsClient();
-  const persisted = useSyncExternalStore(
-    noopSubscribe,
-    () => readStoredOpened(storageKey),
-    () => null,
-  );
-  const [appliedPersisted, setAppliedPersisted] = useState(false);
-  if (!appliedPersisted && persisted !== null) {
-    setAppliedPersisted(true);
-    setOpened(persisted);
-  }
-  // Auto-open when a descendant route is active.
-  if (hasActiveChild && !opened) {
-    setOpened(true);
-  }
-  // Persist after the first client render, so the deterministic default cannot
-  // overwrite a previously-stored choice.
+  const navMounted = useAdminNavMounted();
+  const [opened, setOpened] = useState<boolean>(() => Boolean(defaultOpened || hasActiveChild));
+
   useEffect(() => {
-    if (!hydrated) return;
+    if (!navMounted) return;
+    if (hasActiveChild) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- active route branches stay expanded
+      setOpened(true);
+      return;
+    }
+    const persisted = readStoredOpened(storageKey);
+    if (persisted !== null) {
+      setOpened(persisted);
+    }
+  }, [navMounted, storageKey, hasActiveChild]);
+
+  useEffect(() => {
+    if (!navMounted) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify(opened));
     } catch {
       // Quota / private-mode — best-effort, don't throw.
     }
-  }, [opened, storageKey, hydrated]);
+  }, [opened, storageKey, navMounted]);
+
   return [opened, setOpened] as const;
 }
 
@@ -161,6 +167,8 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
     Boolean(initiallyOpened || hasActiveChild),
     hasActiveChild,
   );
+  const navMounted = useAdminNavMounted();
+  const collapseExpanded = navMounted ? opened : Boolean(initiallyOpened || hasActiveChild);
 
   const handleItemClick = (href: string, clickHandler?: () => void, e?: React.MouseEvent) => {
     // Support middle click and ctrl+click for new tab
@@ -299,7 +307,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
           )}
         </Group>
       </Box>
-      {hasLinks ? <Collapse expanded={opened}>{items}</Collapse> : null}
+      {hasLinks ? <Collapse expanded={collapseExpanded}>{items}</Collapse> : null}
     </>
   );
 }
@@ -329,6 +337,8 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
     Boolean(hasActiveChild),
     hasActiveChild,
   );
+  const navMounted = useAdminNavMounted();
+  const collapseExpanded = navMounted ? opened : hasActiveChild;
 
   const handleItemClick = (href: string, clickHandler?: () => void, e?: React.MouseEvent) => {
     // Support middle click and ctrl+click for new tab
@@ -461,7 +471,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
           </UnstyledButton>
         </Group>
       </Box>
-      <Collapse expanded={opened}>{items}</Collapse>
+      <Collapse expanded={collapseExpanded}>{items}</Collapse>
     </>
   );
 }

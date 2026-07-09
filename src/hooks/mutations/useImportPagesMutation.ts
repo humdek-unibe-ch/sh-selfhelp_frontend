@@ -53,6 +53,9 @@ export function useImportPagesMutation(options: IImportPagesMutationOptions = {}
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES,
                     type: 'active',
                 }),
+                queryClient.invalidateQueries({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_CMS_APPS,
+                }),
                 invalidateAdminNavigationQueries(queryClient),
             ]);
 
