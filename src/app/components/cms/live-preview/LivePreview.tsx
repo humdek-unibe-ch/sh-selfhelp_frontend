@@ -79,7 +79,7 @@ import { useMobilePreviewSession } from './hooks/useMobilePreviewSession';
 import { usePreviewPreferenceSync } from './hooks/usePreviewPreferenceSync';
 import { usePreviewNavigationSync } from './hooks/usePreviewNavigationSync';
 import { usePreviewUrlMirror } from './hooks/usePreviewUrlMirror';
-import { keywordFromPreviewPath } from './utils/previewKeyword';
+import { resolvePreviewRoute } from './utils/previewKeyword';
 import { previewDiagLog } from '../../../../utils/preview-diag';
 
 /**
@@ -170,9 +170,12 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     // sync navigation never remounts the frame.
     const [currentKeyword, setCurrentKeyword] = useState<string | null>(keyword);
     const [mobileLoadKeyword, setMobileLoadKeyword] = useState<string | null>(keyword);
+    const [previewPath, setPreviewPath] = useState<string | null>(null);
+    const [previewRouteParams, setPreviewRouteParams] = useState<Record<string, string>>({});
 
     const mobileIframeRef = useRef<HTMLIFrameElement>(null);
     const currentKeywordRef = useRef<string | null>(keyword);
+    const previewPathRef = useRef<string | null>(null);
 
     useEffect(() => {
         currentKeywordRef.current = currentKeyword;
@@ -255,13 +258,14 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         mobileMessageOrigin,
         mobileIframeRef,
     });
-    // Nested page URLs (`/demo/legal/imprint`) must map back to the page's real
-    // CMS keyword (`imprint`) so both panes address the SAME page.
+    // Nested page URLs (`/demo/legal/imprint`) and parameterized record routes
+    // (`/team-members/5`) must map back to the page's real CMS keyword plus
+    // optional route params so both panes address the SAME page.
     const resolvePreviewKeyword = useCallback(
-        (path: string) => keywordFromPreviewPath(path, navRoutes),
+        (path: string) => resolvePreviewRoute(path, navRoutes).keyword,
         [navRoutes],
     );
-    const { handleWebNavigate } = usePreviewNavigationSync({
+    const { sendNavigateMobile } = usePreviewNavigationSync({
         previewActive,
         mobileMessageOrigin,
         mobileIframeRef,
@@ -271,6 +275,23 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         sendPreferencesMobile,
         resolveKeyword: resolvePreviewKeyword,
     });
+    const handleWebNavigate = useCallback(
+        (path: string) => {
+            const match = resolvePreviewRoute(path, navRoutes);
+            const sameKeyword = match.keyword === currentKeywordRef.current;
+            const samePath = match.path === previewPathRef.current;
+            if (sameKeyword && samePath) {
+                return;
+            }
+            currentKeywordRef.current = match.keyword;
+            previewPathRef.current = match.path;
+            setCurrentKeyword(match.keyword);
+            setPreviewPath(match.path);
+            setPreviewRouteParams(match.routeParams);
+            sendNavigateMobile(match.keyword);
+        },
+        [navRoutes, sendNavigateMobile],
+    );
 
     // Mirror the canonical page into the shell's own address bar (history only).
     usePreviewUrlMirror(currentKeyword);
@@ -299,9 +320,12 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
 
     // The "open in new tab" link uses the CURRENT page on the real public site.
     const webOpenUrl = useMemo(() => {
+        if (previewPath && previewPath !== '/') {
+            return previewPath;
+        }
         const kw = currentKeyword?.trim() ? currentKeyword.trim().replace(/^\/+/, '') : '';
         return kw === '' ? '/' : `/${kw}`;
-    }, [currentKeyword]);
+    }, [currentKeyword, previewPath]);
 
     // Size the device frame to the stage's REAL inner slot so the bezel sits
     // inside the same 16px inset as the web pane (and never escapes its column):
@@ -396,7 +420,13 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
             />
             <LivePreviewStage
                 bodyRef={bodyRef}
-                web={{ webReloadKey, keyword: currentKeyword, onNavigate: handleWebNavigate }}
+                web={{
+                    webReloadKey,
+                    keyword: currentKeyword,
+                    path: previewPath,
+                    routeParams: previewRouteParams,
+                    onNavigate: handleWebNavigate,
+                }}
                 showMobile={showMobile}
                 mobile={{
                     availability,

@@ -45,11 +45,15 @@ const HOME_KEYWORD = 'home';
 interface ILivePreviewWebPaneProps {
     /** The synced preview keyword (`null` → home). */
     keyword: string | null;
+    /** Full public path for parameterized record pages. */
+    path?: string | null;
+    /** Route params from the matched URL (`record_id`, …). */
+    routeParams?: Record<string, string>;
     /** Called when an in-pane link/button navigates (origin-stripped path). */
     onNavigate: (path: string) => void;
 }
 
-export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneProps) {
+export function LivePreviewWebPane({ keyword, path, routeParams, onNavigate }: ILivePreviewWebPaneProps) {
     const { isPreviewMode } = usePreviewMode();
     const { routes, footerMenu, headerMenu, navigation, profilePages } = useAppNavigation();
 
@@ -120,7 +124,12 @@ export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneP
                     <div className={slugLayoutStyles.contentArea}>
                         {isPreviewMode && <PreviewModeIndicator />}
 
-                        <DynamicPageClient keyword={effectiveKeyword} initialPageId={pageId} />
+                        <DynamicPageClient
+                            keyword={effectiveKeyword}
+                            initialPageId={pageId}
+                            path={path ?? undefined}
+                            routeParams={routeParams}
+                        />
                     </div>
 
                     {!isHeadless && (footerMenu?.items?.length ?? 0) > 0 && (
