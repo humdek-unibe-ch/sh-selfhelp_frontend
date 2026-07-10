@@ -66,7 +66,9 @@ const SectionLink: React.FC<ISectionLinkProps> = ({
                               target.closest('[class*="actionButton"]');
         
         if (isActionButton) {
-            // Don't handle section navigation if clicking on action buttons
+            // The row is an `<a href>` — suppress its navigation too, or the browser
+            // follows the href and selects the section anyway.
+            e.preventDefault();
             return;
         }
 

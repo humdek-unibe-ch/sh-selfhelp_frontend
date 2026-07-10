@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { forwardRef, useMemo, useState, type ComponentPropsWithRef } from 'react';
-import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip, Checkbox } from '@mantine/core';
+import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip, Checkbox, Menu } from '@mantine/core';
 import {
     IconChevronRight,
     IconChevronDown,
@@ -13,7 +13,10 @@ import {
     IconTrash,
     IconGripVertical,
     IconFilter,
-    IconDatabase
+    IconDatabase,
+    IconCornerDownRight,
+    IconRowInsertTop,
+    IconRowInsertBottom
 } from '@tabler/icons-react';
 import { type IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { getStyleVisual } from '../../../../../utils/style-visuals';
@@ -85,6 +88,8 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     const [removeModalOpened, setRemoveModalOpened] = useState(false);
     const [conditionModalOpened, setConditionModalOpened] = useState(false);
     const [dataConfigModalOpened, setDataConfigModalOpened] = useState(false);
+    // Pins the hover-only action buttons visible while the add menu is open.
+    const [addMenuOpened, setAddMenuOpened] = useState(false);
     const [isBulkSelected, setIsBulkSelected] = useState(defaultBulkSelected);
     const [trackedSelectionVersion, setTrackedSelectionVersion] = useState(selectionVersion);
 
@@ -314,7 +319,10 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                 </Box>
 
                 {/* Action Buttons - Ultra compact and hover-based */}
-                <Group gap={1} className={styles.actionButtons}>
+                <Group
+                  gap={1}
+                  className={`${styles.actionButtons} ${addMenuOpened ? styles.actionButtonsPinned : ''}`}
+                >
                   {/* Condition + Data Config modal triggers (left of add/remove).
                       Highlighted when the section already carries a value. */}
                   <Tooltip label={hasCondition ? 'Edit visibility condition' : 'Add visibility condition'} position="top" withArrow>
@@ -345,46 +353,51 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                     </ActionIcon>
                   </Tooltip>
 
-                  {canHaveChildren && (
-                    <Tooltip label="Add child" position="top" withArrow>
+                  <Menu
+                    shadow="md"
+                    position="bottom-end"
+                    withArrow
+                    withinPortal
+                    opened={addMenuOpened}
+                    onChange={setAddMenuOpened}
+                  >
+                    <Menu.Target>
                       <ActionIcon
                         size="xs"
                         variant="subtle"
                         color="green"
-                        onClick={handleAddChild}
                         className={styles.actionButton}
                         data-action-button="true"
+                        aria-label={`Add a section near ${section.section_name}`}
                       >
                         <IconPlus />
                       </ActionIcon>
-                    </Tooltip>
-                  )}
+                    </Menu.Target>
 
-                  <Tooltip label="Add above" position="top" withArrow>
-                    <ActionIcon
-                      size="xs"
-                      variant="subtle"
-                      color="blue"
-                      onClick={handleAddSiblingAbove}
-                      className={styles.actionButton}
-                      data-action-button="true"
-                    >
-                      <IconPlus />
-                    </ActionIcon>
-                  </Tooltip>
-
-                  <Tooltip label="Add below" position="top" withArrow>
-                    <ActionIcon
-                      size="xs"
-                      variant="subtle"
-                      color="blue"
-                      onClick={handleAddSiblingBelow}
-                      className={styles.actionButton}
-                      data-action-button="true"
-                    >
-                      <IconPlus />
-                    </ActionIcon>
-                  </Tooltip>
+                    <Menu.Dropdown>
+                      <Menu.Label>Add section</Menu.Label>
+                      {canHaveChildren && (
+                        <Menu.Item
+                          leftSection={<IconCornerDownRight size={14} />}
+                          onClick={handleAddChild}
+                        >
+                          Add child
+                        </Menu.Item>
+                      )}
+                      <Menu.Item
+                        leftSection={<IconRowInsertTop size={14} />}
+                        onClick={handleAddSiblingAbove}
+                      >
+                        Add above
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={<IconRowInsertBottom size={14} />}
+                        onClick={handleAddSiblingBelow}
+                      >
+                        Add below
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
 
                   <Tooltip label="Remove" position="top" withArrow>
                     <ActionIcon

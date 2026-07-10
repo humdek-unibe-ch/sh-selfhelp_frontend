@@ -249,6 +249,11 @@ SPDX-License-Identifier: MPL-2.0
     opacity: 1;
 }
 
+/* Keep the toolbar visible while a row menu is open (the row loses :hover). */
+.actionButtonsPinned {
+    opacity: 1 !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .sectionName {
