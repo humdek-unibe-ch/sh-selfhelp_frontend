@@ -28,10 +28,10 @@ SPDX-License-Identifier: MPL-2.0
  *     bridge and reports its navigations. Either source updates the canonical
  *     keyword → the web pane re-renders + the mobile frame gets a SOFT navigate
  *     command (no reload), with a per-frame "expected keyword" loop guard;
- *   - the canonical keyword is mirrored into the shell's own address bar
- *     (`/admin/preview/<keyword>`, history API only) so the URL is shareable and
- *     a manual reload restarts at the page you navigated to — in BOTH directions
- *     (a mobile navigation updates the URL too);
+ *   - the canonical keyword + public path are mirrored into the shell address
+ *     bar (`/admin/preview/<keyword>?path=/…`, history API only) so a reload
+ *     keeps parameterized `route_params` (record_id, …) and the URL stays
+ *     shareable — in BOTH directions (web and mobile navigation);
  *   - the Draft toggle drives the shared `PreviewModeContext` (which the inline
  *     web reads) AND re-mints the mobile pane. Language is changed IN-APP from
  *     each pane's own controls (web header selector / mobile profile), not the
@@ -61,6 +61,7 @@ import { Box, useMantineColorScheme } from '@mantine/core';
 import { useElementSize } from '@mantine/hooks';
 import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { API_CONFIG } from '../../../../config/api.config';
+import { PageApi } from '../../../../api/page.api';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { usePublicLanguages } from '../../../../hooks/useLanguages';
 import { useLanguageContext } from '../../contexts/LanguageContext';
@@ -79,7 +80,7 @@ import { useMobilePreviewSession } from './hooks/useMobilePreviewSession';
 import { usePreviewPreferenceSync } from './hooks/usePreviewPreferenceSync';
 import { usePreviewNavigationSync } from './hooks/usePreviewNavigationSync';
 import { usePreviewUrlMirror } from './hooks/usePreviewUrlMirror';
-import { resolvePreviewRoute } from './utils/previewKeyword';
+import { normalizePreviewPath, pathForMobilePreviewSync } from './utils/previewPath';
 import { previewDiagLog } from '../../../../utils/preview-diag';
 
 /**
@@ -94,6 +95,11 @@ export interface ILivePreviewProps {
     /** Keyword of the page the preview is launched on (initial route). */
     keyword: string;
     /**
+     * Public CMS path from `?path=` (e.g. `/team-members/4`). Required to
+     * hydrate parameterized pages after reload — keyword alone has no record id.
+     */
+    initialPath?: string;
+    /**
      * Optional modal-presentation override forwarded to the mobile app. Omit for
      * the default (`auto` — off-menu pages open as a modal over home); pass `on`
      * / `off` to force. Surfaced via the route's `?modal=` query.
@@ -101,7 +107,7 @@ export interface ILivePreviewProps {
     modal?: TPreviewModalMode;
 }
 
-export function LivePreview({ keyword, modal }: ILivePreviewProps) {
+export function LivePreview({ keyword, initialPath, modal }: ILivePreviewProps) {
     const router = useRouter();
     const explicitOrigin = process.env.NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN ?? null;
     const isDev = process.env.NODE_ENV !== 'production';
@@ -170,16 +176,25 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     // sync navigation never remounts the frame.
     const [currentKeyword, setCurrentKeyword] = useState<string | null>(keyword);
     const [mobileLoadKeyword, setMobileLoadKeyword] = useState<string | null>(keyword);
-    const [previewPath, setPreviewPath] = useState<string | null>(null);
+    const [previewPath, setPreviewPath] = useState<string | null>(
+        initialPath ? normalizePreviewPath(initialPath) : null,
+    );
     const [previewRouteParams, setPreviewRouteParams] = useState<Record<string, string>>({});
 
     const mobileIframeRef = useRef<HTMLIFrameElement>(null);
     const currentKeywordRef = useRef<string | null>(keyword);
-    const previewPathRef = useRef<string | null>(null);
-
+    const previewPathRef = useRef<string | null>(
+        initialPath ? normalizePreviewPath(initialPath) : null,
+    );
+    const previewRouteParamsRef = useRef<Record<string, string>>({});
+    const initialPathHydratedRef = useRef(false);
     useEffect(() => {
         currentKeywordRef.current = currentKeyword;
     }, [currentKeyword]);
+
+    useEffect(() => {
+        previewRouteParamsRef.current = previewRouteParams;
+    }, [previewRouteParams]);
 
     // Default the preview to DRAFT the FIRST time it is ever opened (parity with
     // the old default), then RESPECT the user's saved choice. The `sh_preview`
@@ -258,44 +273,112 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         mobileMessageOrigin,
         mobileIframeRef,
     });
-    // Nested page URLs (`/demo/legal/imprint`) and parameterized record routes
-    // (`/team-members/5`) must map back to the page's real CMS keyword plus
-    // optional route params so both panes address the SAME page.
-    const resolvePreviewKeyword = useCallback(
-        (path: string) => resolvePreviewRoute(path, navRoutes).keyword,
-        [navRoutes],
+
+    /** Authoritative resolve: backend `/pages/resolve` owns keyword + route_params. */
+    const applyResolvedPreviewPath = useCallback(
+        async (
+            rawPath: string,
+        ): Promise<{
+            keyword: string;
+            path: string;
+            routeParams: Record<string, string>;
+        } | null> => {
+            const path = normalizePreviewPath(rawPath);
+            try {
+                const page = await PageApi.resolvePageByPath(path, currentLanguageId, draft);
+                const routeParams = page.route_params ?? {};
+                const sameKeyword = page.keyword === currentKeywordRef.current;
+                const samePath = path === previewPathRef.current;
+                if (sameKeyword && samePath) {
+                    return { keyword: page.keyword, path, routeParams };
+                }
+                currentKeywordRef.current = page.keyword;
+                previewPathRef.current = path;
+                previewRouteParamsRef.current = routeParams;
+                setCurrentKeyword(page.keyword);
+                setPreviewPath(path);
+                setPreviewRouteParams(routeParams);
+                return { keyword: page.keyword, path, routeParams };
+            } catch {
+                // Unresolved / forbidden paths stay on the current preview page.
+                return null;
+            }
+        },
+        [currentLanguageId, draft],
     );
+
+    /**
+     * Soft-sync path for the mobile frame. Only include a public path when the
+     * match carried route params — otherwise mobile must navigate by keyword
+     * (menu/modal rules). Sending every nested static URL as `path` forced
+     * `navigateToResolvedPath` and broke Live Preview sync.
+     */
+    const onMobileNavigated = useCallback(
+        async (kw: string | null, path?: string | null) => {
+            if (path) {
+                const resolved = await applyResolvedPreviewPath(path);
+                if (resolved) {
+                    return;
+                }
+                // Path was not a public CMS URL (Expo route, modal underlay, …)
+                // — fall through to keyword sync.
+            }
+            if (kw === currentKeywordRef.current) {
+                return;
+            }
+            currentKeywordRef.current = kw;
+            previewPathRef.current = null;
+            previewRouteParamsRef.current = {};
+            setCurrentKeyword(kw);
+            setPreviewPath(null);
+            setPreviewRouteParams({});
+        },
+        [applyResolvedPreviewPath],
+    );
+
     const { sendNavigateMobile } = usePreviewNavigationSync({
         previewActive,
         mobileMessageOrigin,
         mobileIframeRef,
         currentKeywordRef,
-        setCurrentKeyword,
         currentPrefsRef,
         previewPathRef,
         sendPreferencesMobile,
-        resolveKeyword: resolvePreviewKeyword,
+        onMobileNavigated,
     });
+
     const handleWebNavigate = useCallback(
         (path: string) => {
-            const match = resolvePreviewRoute(path, navRoutes);
-            const sameKeyword = match.keyword === currentKeywordRef.current;
-            const samePath = match.path === previewPathRef.current;
-            if (sameKeyword && samePath) {
-                return;
-            }
-            currentKeywordRef.current = match.keyword;
-            previewPathRef.current = match.path;
-            setCurrentKeyword(match.keyword);
-            setPreviewPath(match.path);
-            setPreviewRouteParams(match.routeParams);
-            sendNavigateMobile(match.keyword, match.path);
+            void (async () => {
+                const resolved = await applyResolvedPreviewPath(path);
+                if (!resolved) {
+                    return;
+                }
+                sendNavigateMobile(
+                    resolved.keyword,
+                    pathForMobilePreviewSync(resolved.path, resolved.routeParams),
+                );
+            })();
         },
-        [navRoutes, sendNavigateMobile],
+        [applyResolvedPreviewPath, sendNavigateMobile],
     );
 
-    // Mirror the canonical page into the shell's own address bar (history only).
-    usePreviewUrlMirror(currentKeyword);
+    // Hydrate parameterized pages from `?path=` so reload keeps record_id etc.
+    useEffect(() => {
+        if (!initialPath || initialPathHydratedRef.current) return;
+        initialPathHydratedRef.current = true;
+        void (async () => {
+            const resolved = await applyResolvedPreviewPath(initialPath);
+            if (!resolved) return;
+            sendNavigateMobile(
+                resolved.keyword,
+                pathForMobilePreviewSync(resolved.path, resolved.routeParams),
+            );
+        })();
+    }, [initialPath, applyResolvedPreviewPath, sendNavigateMobile]);
+
+    // Mirror keyword + public path into the shell address bar (history only).
+    usePreviewUrlMirror(currentKeyword, previewPath);
 
     // Device / orientation are NOT in the URL: the iframe is sized to the device
     // and the app renders responsively, so rotating/resizing never reloads it.

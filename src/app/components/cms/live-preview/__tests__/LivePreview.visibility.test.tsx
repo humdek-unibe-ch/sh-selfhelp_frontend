@@ -151,7 +151,7 @@ vi.mock('../hooks/usePreviewPreferenceSync', () => ({
 
 vi.mock('../hooks/usePreviewNavigationSync', () => ({
     usePreviewNavigationSync: () => ({
-        handleWebNavigate: vi.fn(),
+        sendNavigateMobile: vi.fn(),
     }),
 }));
 

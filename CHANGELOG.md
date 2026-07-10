@@ -19,10 +19,14 @@ No engineering diary, no implementation detail — that belongs in
 ## v0.1.63 — 2026-07-09
 
 ### Changed
+- **`@selfhelp/shared` `1.21.6`** — canonical `buildPagesResolvePath` for SSR +
+  browser resolve; shared form-record prefill; Live Preview uses backend
+  `/pages/resolve` (no local route matcher). Do not pin shared `2.x`/`3.x`
+  tags from the feature-branch staging history.
 - **`entry-record`** — uses **Load record from route parameter**
   (`load_record_from`) like `entry-record-form`; author SQL **Filter** removed
   from the style. CMS-in-CMS detail bundles updated. Requires core `>=0.1.36`
-  and `@selfhelp/shared` `1.21.5`.
+  and `@selfhelp/shared` `1.21.6`.
 - **Public hover prefetch** — warms `PAGE_BY_PATH` via `/pages/resolve` (same
   cache key as SSR / `DynamicPageClient`), not keyword-only slots.
 - **Column inspectors** — `SelectedColumnsField` is an alias of
