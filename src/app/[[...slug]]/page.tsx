@@ -152,9 +152,10 @@ export default async function SlugPage({
         notFound();
     }
 
-    // CMS-surface pages are admin-only snippets (entry-table / form). They must not
-    // render on the public slug route — Host Admin opens them under
-    // `/admin/cms-apps/.../content` instead.
+    // CMS-surface pages are Host Admin only. Backend public resolve already
+    // 404s them for non-admin callers; keep a defensive client guard so a
+    // stale cache cannot render them on the public slug route. Host Admin
+    // opens them under `/admin/cms-apps/.../content` instead.
     if ((page as IPageContent & { page_surface?: string }).page_surface === 'cms') {
         notFound();
     }

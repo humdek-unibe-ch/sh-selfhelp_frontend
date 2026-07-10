@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
  *
  * Browser entry points:
  *   - {@link resolvePageByPath} — public slug navigation + hover prefetch
- *     (`PAGE_BY_PATH` / `GET /pages/resolve`, issue #30)
+ *     (`PAGE_BY_PATH` / shared `buildPagesResolvePath`, issue #30)
  *   - {@link getPageByKeyword} — admin, maintenance, Live Preview, and other
  *     keyword-addressed consumers (`PAGE_BY_KEYWORD`)
  *
@@ -16,6 +16,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module api/page.api
  */
 
+import { buildPagesResolvePath } from '@selfhelp/shared';
 import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { type IBaseApiResponse, type IPageContent } from '../shared';
@@ -41,21 +42,16 @@ export const PageApi = {
     },
 
     /**
-     * Resolve a full public URL path to its page content via the DB-driven
-     * `page_routes` contract (issue #30). Unlike {@link getPageByKeyword} this
-     * carries the matched `route_params` (snake_case) on the returned page, so
-     * parameterized URLs (`/reset/42/abc`, `/team/7`) render the right record
-     * and the auth styles can read `page.route_params.user_id` / `.token`.
+     * Resolve a full public URL path to its page content via the shared
+     * `buildPagesResolvePath` contract (issue #30). Unlike
+     * {@link getPageByKeyword} this carries the matched `route_params`
+     * (snake_case) on the returned page.
      */
     async resolvePageByPath(path: string, languageId?: number, preview?: boolean): Promise<IPageContent> {
-        const queryParams: Record<string, string> = { path };
-        if (languageId) queryParams.language_id = languageId.toString();
-        if (preview) queryParams.preview = 'true';
-
-        const response = await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>(
-            API_CONFIG.ENDPOINTS.PAGES_RESOLVE,
-            { params: queryParams }
-        );
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>({
+            route: buildPagesResolvePath({ path, languageId, preview }),
+            permissions: [],
+        });
         return response.data.data.page;
     },
 };

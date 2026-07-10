@@ -8,6 +8,7 @@ import { Button, Alert, LoadingOverlay, Group, Modal, Stack, Text, Title } from 
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { parseFormRecordPrefill, type TFormRecordPrefillFieldValue } from '@selfhelp/shared';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
 import { usePageModal } from '../../contexts/PageModalContext';
@@ -17,12 +18,8 @@ import { type IFormLogStyle, type IFormRecordStyle, type IEntryRecordFormStyle }
 import { sanitizeHtmlForInline, stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 import parse from 'html-react-parser';
 
-/** A single translatable value entry for a record-form field. */
-type TFormTranslatedValue = { language_id: number; value: string };
-/** Value of a record-form field: a plain string or per-language entries. */
-type TFormFieldValue = string | TFormTranslatedValue[];
-/** All fields of a single form record keyed by field name. */
-type TFormRecordGroup = Record<string, TFormFieldValue>;
+/** All fields of a single form record keyed by field name (shared prefill shape). */
+type TFormRecordGroup = Record<string, TFormRecordPrefillFieldValue>;
 
 interface FormStyleProps {
     style: IFormLogStyle | IFormRecordStyle | IEntryRecordFormStyle;
@@ -112,82 +109,17 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const { existingRecordId, existingFormDataFromSection } = useMemo(() => {
         if (!isRecord) return { existingRecordId: null as number | null, existingFormDataFromSection: null as TFormRecordGroup | null };
 
-        // The record form's section_data lives on the parent form style (`style.section_data`)
-        // and contains records with translations for different languages.
-        const sectionDataArray = style.section_data as Array<Record<string, unknown>> | undefined;
-        if (!Array.isArray(sectionDataArray) || sectionDataArray.length === 0) {
+        const prefill = parseFormRecordPrefill({
+            section_data: style.section_data as unknown,
+            children: style.children as Parameters<typeof parseFormRecordPrefill>[0]['children'],
+        });
+        if (prefill.recordId === null) {
             return { existingRecordId: null, existingFormDataFromSection: null };
         }
-
-        // Group data by record_id
-        const recordGroups: Record<number, TFormRecordGroup> = {};
-
-        sectionDataArray.forEach((record) => {
-            const recordId = record.record_id as number | undefined;
-            if (!recordId) return;
-
-            if (!recordGroups[recordId]) {
-                recordGroups[recordId] = {};
-            }
-
-            // For each field in the record (excluding metadata fields)
-            Object.entries(record).forEach(([fieldName, fieldValue]) => {
-                // Skip metadata fields that are not form data
-                const skipFields = ['record_id', 'entry_date', 'id_users', 'user_name', 'user_code', 'id_actionTriggerTypes', 'triggerType', 'id_languages', 'language_locale', 'language_name'];
-                if (skipFields.includes(fieldName)) return;
-
-                const languageId = record.id_languages as number | undefined;
-                const value = fieldValue as string;
-
-                // Check if this field is translatable by looking at the child components
-                const childComponent = style.children?.find((child) => (child as { name?: { content?: string } }).name?.content === fieldName);
-                const isTranslatable = (childComponent as { translatable?: { content?: string } } | undefined)?.translatable?.content === '1';
-
-                if (isTranslatable) {
-                    // Language id 1 = "all" / Independent — used by sample imports and
-                    // non-translated writes. LanguageTabsWrapper expands a plain
-                    // string across DE/EN tabs, so keep lang-1 as a string seed until
-                    // a real public-language value appears.
-                    if (languageId === 1) {
-                        if (!recordGroups[recordId][fieldName]) {
-                            recordGroups[recordId][fieldName] = value;
-                        }
-                    } else {
-                        const current = recordGroups[recordId][fieldName];
-                        if (typeof current === 'string' || !current) {
-                            // Promote seed string → per-language array; seed this locale
-                            // from the explicit value (seed remains available via string
-                            // promote only when no public rows existed yet).
-                            recordGroups[recordId][fieldName] = [
-                                { language_id: languageId as number, value },
-                            ];
-                        } else {
-                            const langValues = current as TFormTranslatedValue[];
-                            const existingIndex = langValues.findIndex((v) => v.language_id === languageId);
-                            if (existingIndex >= 0) {
-                                langValues[existingIndex] = { language_id: languageId as number, value };
-                            } else {
-                                langValues.push({ language_id: languageId as number, value });
-                            }
-                        }
-                    }
-                } else {
-                    // For non-translatable fields, use value from language_id: 1 (or any language if 1 is not available)
-                    if (languageId === 1 || !recordGroups[recordId][fieldName]) {
-                        recordGroups[recordId][fieldName] = value;
-                    }
-                }
-            });
-        });
-
-        // Get the first record group (assuming single record forms)
-        const firstRecordId = Object.keys(recordGroups)[0];
-        if (!firstRecordId) return { existingRecordId: null, existingFormDataFromSection: null };
-
-        const recordId = parseInt(firstRecordId);
-        const formData = recordGroups[recordId];
-
-        return { existingRecordId: recordId, existingFormDataFromSection: formData };
+        return {
+            existingRecordId: prefill.recordId,
+            existingFormDataFromSection: prefill.values,
+        };
     }, [isRecord, style]);
 
     // Function to collect files from all FileInput components

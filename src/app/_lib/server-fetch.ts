@@ -57,6 +57,7 @@ import {
     transformNavigationPages,
 } from '../../utils/navigation.utils';
 import type { IPageItem, IGetPageResponse, IPageContent, ILanguage, INavigationPayload } from '../../shared';
+import { buildPagesResolvePath } from '@selfhelp/shared';
 
 /** SSR cache lifetime for `/languages` in seconds. */
 const LANGUAGES_REVALIDATE_SECONDS = 300;
@@ -497,9 +498,7 @@ export const getPageByKeywordSSRStatus = cache(
  */
 export const resolvePageByPathSSRCached = cache(
     async (path: string, languageId: number, preview = false): Promise<IGetPageResponse | null> => {
-        const params = new URLSearchParams({ path, language_id: String(languageId) });
-        if (preview) params.set('preview', '1');
-        return fetchJson(`/pages/resolve?${params.toString()}`);
+        return fetchJson(buildPagesResolvePath({ path, languageId, preview }));
     }
 );
 
@@ -514,9 +513,7 @@ export const resolvePageByPathSSRStatus = cache(
         languageId: number,
         preview = false
     ): Promise<{ status: number | null; data: IGetPageResponse | null }> => {
-        const params = new URLSearchParams({ path, language_id: String(languageId) });
-        if (preview) params.set('preview', '1');
-        return fetchJsonWithStatus(`/pages/resolve?${params.toString()}`);
+        return fetchJsonWithStatus(buildPagesResolvePath({ path, languageId, preview }));
     }
 );
 

@@ -43,6 +43,7 @@ export const SHARED_ROUTE_ALIGNMENT = {
     AUTH_SET_LANGUAGE: strip(SHARED_ENDPOINTS.AUTH.SET_LANGUAGE),
     AUTH_USER_DATA: strip(SHARED_ENDPOINTS.AUTH.USER_DATA),
     PAGES: strip(SHARED_ENDPOINTS.PAGES.LIST),
+    PAGES_RESOLVE_ROUTE: strip(SHARED_ENDPOINTS.PAGES.RESOLVE_ROUTE),
     LANGUAGES: strip(SHARED_ENDPOINTS.LANGUAGES),
 } as const;
 
@@ -148,14 +149,12 @@ export const API_CONFIG = {
             permissions: []
         },
         /**
-         * DB-driven public path resolution (issue #30). Maps a full public URL
-         * path (`/reset/42/abc`, `/team/7`) to page content + route params via
-         * the `page_routes` contract. Open-access API route; the resolved page
-         * still enforces full ACL. `path` + `language_id` + `preview` are sent
-         * as query params (axios `params`), so the route itself is static.
+         * DB-driven public path resolution (issue #30). Static route only —
+         * callers must use shared `buildPagesResolvePath({ path, languageId,
+         * preview })` so query encoding matches SSR and mobile.
          */
         PAGES_RESOLVE: {
-            route: '/pages/resolve',
+            route: SHARED_ROUTE_ALIGNMENT.PAGES_RESOLVE_ROUTE,
             permissions: []
         },
         NAVIGATION_GET: {
