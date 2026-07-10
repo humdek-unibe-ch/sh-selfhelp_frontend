@@ -51,7 +51,7 @@ describe('BasicStyle dispatcher map', () => {
     });
 
     it('does NOT dispatch the sixteen deferred expansion styles (kept out of milestone one)', () => {
-        // These 16 speculative styles were removed from the 90-style catalog; a
+        // These 16 speculative styles were removed from the established catalog; a
         // web renderer for them would silently reintroduce the catalog drift.
         for (const name of [
             'dialog', 'popover', 'menu', 'menu-item', 'bottom-sheet', 'skeleton',

@@ -22,7 +22,12 @@ No engineering diary, no implementation detail — that belongs in
 - **`entry-record`** — uses **Load record from route parameter**
   (`load_record_from`) like `entry-record-form`; author SQL **Filter** removed
   from the style. CMS-in-CMS detail bundles updated. Requires core `>=0.1.36`
-  and `@selfhelp/shared` `3.0.1`.
+  and `@selfhelp/shared` `1.21.5`.
+- **Public hover prefetch** — warms `PAGE_BY_PATH` via `/pages/resolve` (same
+  cache key as SSR / `DynamicPageClient`), not keyword-only slots.
+- **Column inspectors** — `SelectedColumnsField` is an alias of
+  `DataTableColumnSelectField` (`mode="multiple"`); ordered `fields_map` labels
+  stay on `FieldsMapField`.
 
 ---
 
