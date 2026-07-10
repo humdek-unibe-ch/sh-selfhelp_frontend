@@ -20,14 +20,15 @@ export interface ICmsAppPageEditorButtonProps {
 export function CmsAppPageEditorButton({
     pageKeyword,
     canOpen,
-    size = 'sm'
+    size = 'sm',
+    compact = false,
 }: ICmsAppPageEditorButtonProps) {
     const keyword = pageKeyword?.trim();
     if (!canOpen || !keyword) {
         return null;
     }
 
-    const label = 'Edit page';
+    const label = compact ? 'Page sections' : 'Edit page';
 
     return (
         <Tooltip label="Open page sections editor">
