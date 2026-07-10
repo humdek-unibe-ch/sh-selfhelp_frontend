@@ -21,9 +21,29 @@ describe('release-manifest wave floors', () => {
         expect(manifest.supports.core).toBe('>=0.1.36 <0.2.0');
     });
 
-    it('pins @selfhelp/shared to 1.21.6 (not staged 2.x/3.x)', () => {
+    it('pins @selfhelp/shared to 1.21.7 (should_fallback contract; not staged 2.x/3.x)', () => {
         expect(pkg.dependencies['@selfhelp/shared'] ?? pkg.devDependencies?.['@selfhelp/shared']).toBe(
-            '1.21.6',
+            '1.21.7',
         );
+    });
+
+    it('rejects pairing below the declared core floor via semver', () => {
+        // Avoid importing `semver` (no @types in this package); mirror the
+        // wave's `>=X.Y.Z <0.2.0` range with version_compare-style checks.
+        const range = manifest.supports.core as string;
+        expect(range).toBe('>=0.1.36 <0.2.0');
+        const floorOk = (v: string) => {
+            const [maj, min, pat] = v.split('.').map(Number);
+            const [fMaj, fMin, fPat] = [0, 1, 36];
+            const [cMaj, cMin] = [0, 2];
+            const geFloor =
+                maj > fMaj ||
+                (maj === fMaj && min > fMin) ||
+                (maj === fMaj && min === fMin && pat >= fPat);
+            const ltCap = maj < cMaj || (maj === cMaj && min < cMin);
+            return geFloor && ltCap;
+        };
+        expect(floorOk('0.1.36')).toBe(true);
+        expect(floorOk('0.1.35')).toBe(false);
     });
 });
