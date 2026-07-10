@@ -41,47 +41,48 @@ export const PageInfoPanel = React.memo(function PageInfoPanel({
     isConfigurationPage
 }: IPageInfoPanelProps) {
     return (
-        <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
+        <Paper withBorder radius="md" className={styles.pageInfoCard}>
             <Box p="md">
-                <Group gap="xs" mb="sm">
-                    <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
-                    <Text size="sm" fw={500} c="blue">Page Information</Text>
+                <Group gap="xs" mb="md">
+                    <IconInfoCircle size={18} style={{ color: 'var(--mantine-color-blue-6)' }} />
+                    <Text size="sm" fw={600}>Page Information</Text>
                 </Group>
 
-                <Stack gap="xs">
-                    <Group gap="md" wrap="wrap">
-                        <Box>
-                            <Text size="xs" fw={500} c="dimmed">Keyword</Text>
-                            <Text size="sm" style={{ fontFamily: 'monospace', color: 'var(--mantine-color-text)' }}>{page.keyword}</Text>
+                <Stack gap="md">
+                    {/* Keyword / URL / Page ID as three bordered sub-cells. */}
+                    <Group gap="xs" grow wrap="nowrap" align="stretch">
+                        <Box className={styles.infoCell}>
+                            <Text size="xs" c="dimmed">Keyword</Text>
+                            <Text size="sm" fw={600} truncate className={styles.infoCellMono}>{page.keyword}</Text>
                         </Box>
-                        <Box>
-                            <Text size="xs" fw={500} c="dimmed">URL</Text>
-                            <Text size="sm" style={{ fontFamily: 'monospace', color: 'var(--mantine-color-text)' }}>{page.url}</Text>
+                        <Box className={styles.infoCell}>
+                            <Text size="xs" c="dimmed">URL</Text>
+                            <Text size="sm" fw={600} truncate className={styles.infoCellMono}>{page.url}</Text>
                         </Box>
-                        <Box>
-                            <Text size="xs" fw={500} c="dimmed">Page ID</Text>
-                            <Text size="sm" style={{ color: 'var(--mantine-color-text)' }}>{pageId || page.id_pages}</Text>
+                        <Box className={styles.infoCell}>
+                            <Text size="xs" c="dimmed">Page ID</Text>
+                            <Text size="sm" fw={600}>{pageId || page.id_pages}</Text>
                         </Box>
                     </Group>
 
-                    <Group gap="xs" mt="xs">
+                    <Group gap="xs" wrap="wrap">
                         {isConfigurationPage && (
-                            <Badge color="purple" variant="light" size="sm">
+                            <Badge color="purple" variant="light" radius="sm" size="sm">
                                 Configuration Page
                             </Badge>
                         )}
                         {page.is_headless && (
-                            <Badge color="orange" variant="light" size="sm">
+                            <Badge color="orange" variant="light" radius="sm" size="sm">
                                 Headless
                             </Badge>
                         )}
                         {page.nav_position !== null && (
-                            <Badge color="blue" variant="light" size="sm">
+                            <Badge color="blue" variant="light" radius="sm" size="sm">
                                 Menu Position: {page.nav_position}
                             </Badge>
                         )}
                         {page.id_parent_page !== null && (
-                            <Badge color="green" variant="light" size="sm">
+                            <Badge color="green" variant="light" radius="sm" size="sm">
                                 Child Page
                             </Badge>
                         )}

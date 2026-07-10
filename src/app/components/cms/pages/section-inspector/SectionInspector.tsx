@@ -17,11 +17,6 @@ import {
     List,
     Loader,
 } from '@mantine/core';
-import {
-    IconDeviceFloppy,
-    IconTrash,
-    IconFileExport
-} from '@tabler/icons-react';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
@@ -37,7 +32,7 @@ import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
-import { InspectorHeader } from '../../shared/inspector-header/InspectorHeader';
+import { SectionInspectorHeader } from './SectionInspectorHeader';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { SectionInfoPanel } from './section-field-groups';
 import { SectionFieldPanels } from './SectionFieldPanels';
@@ -324,45 +319,22 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         }
     }, [sectionId, sectionDetailsData, pageId]);
 
+    // Style-descriptor badges shown on their own row (the section ID is a separate
+    // neutral pill next to the title, so it is intentionally not in this list).
     const headerBadges = useMemo(() => {
         if (!sectionDetailsData) return [];
         const { section } = sectionDetailsData;
         return [
-            { label: `ID: ${section.id}`, color: 'blue' as const },
-            { label: section.style.name, color: 'green' as const },
-            ...(section.style.canHaveChildren ? [{ label: 'Can Have Children', color: 'green' as const }] : []),
-            { label: `Type ID: ${section.style.typeId}`, color: 'gray' as const }
+            { label: section.style.name.toUpperCase(), color: 'blue' },
+            ...(section.style.canHaveChildren ? [{ label: 'CAN HAVE CHILDREN', color: 'green' }] : []),
+            { label: `TYPE ID · ${section.style.typeId ?? 'UNDEFINED'}`, color: 'gray' }
         ];
     }, [sectionDetailsData]);
 
-    const headerActions = useMemo(() => {
-        if (!sectionDetailsData) return [];
-        return [
-            {
-                label: 'Save',
-                icon: <IconDeviceFloppy size="1rem" />,
-                onClick: handleSave,
-                variant: 'filled' as const,
-                disabled: !sectionId || updateSectionMutation.isPending || deleteSectionMutation.isPending,
-                loading: updateSectionMutation.isPending
-            },
-            {
-                label: 'Export',
-                icon: <IconFileExport size="1rem" />,
-                onClick: handleExportSection,
-                variant: 'light' as const,
-                disabled: !sectionId || deleteSectionMutation.isPending
-            },
-            {
-                label: 'Delete',
-                icon: <IconTrash size="1rem" />,
-                onClick: () => setDeleteModalOpened(true),
-                variant: 'light' as const,
-                color: 'red',
-                disabled: !sectionId || deleteSectionMutation.isPending
-            }
-        ];
-    }, [sectionDetailsData, sectionId, updateSectionMutation.isPending, deleteSectionMutation.isPending, handleSave, handleExportSection]);
+    // All header actions share one disabled state: no section, or a save/delete in
+    // flight. (Export/Delete are now also blocked during a save, so an in-flight
+    // write can't race an export or a deletion.)
+    const actionsDisabled = !sectionId || updateSectionMutation.isPending || deleteSectionMutation.isPending;
 
     if (!sectionId) {
         return (
@@ -424,10 +396,15 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         <>
             <InspectorLayout
                 header={
-                    <InspectorHeader
+                    <SectionInspectorHeader
                         title={section.name}
+                        idLabel={`ID ${section.id}`}
                         badges={headerBadges}
-                        actions={headerActions}
+                        onSave={handleSave}
+                        onExport={handleExportSection}
+                        onDelete={() => setDeleteModalOpened(true)}
+                        saving={updateSectionMutation.isPending}
+                        disabled={actionsDisabled}
                     />
                 }
             >

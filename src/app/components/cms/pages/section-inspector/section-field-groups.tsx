@@ -167,21 +167,21 @@ export const SectionInfoPanel = React.memo(function SectionInfoPanel({
     const badge = PLATFORM_BADGE[platform];
 
     return (
-        <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
+        <Paper withBorder radius="md" className={styles.sectionInfoCard}>
             <Box p="md">
-                <Group gap="xs" mb="sm" justify="space-between">
+                <Group gap="xs" mb="md" justify="space-between">
                     <Group gap="xs">
-                        <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
-                        <Text size="sm" fw={500} c="blue">Section Information</Text>
+                        <IconInfoCircle size={18} style={{ color: 'var(--mantine-color-blue-6)' }} />
+                        <Text size="sm" fw={600}>Section Information</Text>
                     </Group>
-                    <Badge color={badge.color} variant="light" aria-label={`Platform: ${badge.label}`}>
+                    <Badge color={badge.color} variant="light" radius="sm" aria-label={`Platform: ${badge.label}`}>
                         {badge.label}
                     </Badge>
                 </Group>
 
-                <Stack gap="xs">
+                <Stack gap="md">
                     <Box>
-                        <Text size="xs" fw={500} c="dimmed" mb="xs">Section Name</Text>
+                        <Text size="xs" fw={500} c="dimmed" mb={6}>Section Name</Text>
                         <TextInput
                             value={sectionName}
                             onChange={(e) => setSectionName(e.currentTarget.value)}
@@ -190,18 +190,19 @@ export const SectionInfoPanel = React.memo(function SectionInfoPanel({
                         />
                     </Box>
 
-                    <Group gap="md" wrap="wrap">
-                        <Box>
-                            <Text size="xs" fw={500} c="dimmed">Style</Text>
-                            <Text size="sm">{section.style.name}</Text>
+                    {/* Style / Type / ID as three bordered sub-cells (mockup). */}
+                    <Group gap="xs" grow wrap="nowrap" align="stretch">
+                        <Box className={styles.infoCell}>
+                            <Text size="xs" c="dimmed">Style</Text>
+                            <Text size="sm" fw={600} truncate>{section.style.name}</Text>
                         </Box>
-                        <Box>
-                            <Text size="xs" fw={500} c="dimmed">Type</Text>
-                            <Text size="sm">{section.style.type}</Text>
+                        <Box className={styles.infoCell}>
+                            <Text size="xs" c="dimmed">Type</Text>
+                            <Text size="sm" fw={600} truncate>{section.style.type || '—'}</Text>
                         </Box>
-                        <Box>
-                            <Text size="xs" fw={500} c="dimmed">Section ID</Text>
-                            <Text size="sm">{section.id}</Text>
+                        <Box className={styles.infoCell}>
+                            <Text size="xs" c="dimmed">Section ID</Text>
+                            <Text size="sm" fw={600}>{section.id}</Text>
                         </Box>
                     </Group>
 
