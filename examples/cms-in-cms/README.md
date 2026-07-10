@@ -71,16 +71,28 @@ Import from **Admin → CMS Apps → Import template** (examples gallery) or
 "fields": {
   "data_table": { "all": { "content": "@section:team-members-form" } },
   "own_entries_only": { "all": { "content": "0" } },
-  "filter": { "all": { "content": "" } },
-  "scope": { "all": { "content": "" } }
+  "load_record_from": { "all": { "content": "record_id" } },
+  "scope": { "all": { "content": "team_member" } }
 }
 ```
 
-`entry-record` adds `url_param` (default `record_id`). A `data_config` block with
-`table` on an entry holder is **not** a row-binding mechanism at runtime; bundles
-must use `fields.data_table`. Authoritative style reference:
+(`entry-list` keeps optional `filter` instead of `load_record_from`.)
+
+`entry-record` loads one row through **Load record from route parameter**
+(`load_record_from`, usually `record_id`) — the same field as
+`entry-record-form`. A `data_config` block with `table` on an entry holder is
+**not** a row-binding mechanism at runtime; bundles must use `fields.data_table`.
+Authoritative style reference:
 `sh-selfhelp_backend/docs/reference/styles/composite.md` (`entry-list` /
 `entry-record` sections).
+
+## Page shell layout
+
+Public list, public detail, and CMS list pages wrap their content in a top-level
+`container` (`*-page`) with `size: lg` and portable `spacing` padding so imported
+templates are readable on web and native instead of edge-to-edge. Form pages stay
+unwrapped (they open in a modal). Entry lists keep `css_mobile` gap tokens for
+native card grids.
 
 ## Files
 
