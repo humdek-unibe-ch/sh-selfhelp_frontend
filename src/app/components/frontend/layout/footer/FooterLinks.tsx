@@ -14,7 +14,6 @@ import {
     footerGroupLinks,
     footerStandaloneItems,
     getNavigationItemHref,
-    getNavigationItemKeyword,
     getNavigationItemLabel,
     resolveWebFooterPreset,
 } from '../../../../../shared';
@@ -27,7 +26,7 @@ const MOBILE_FOOTER_QUERY = '(max-width: 48em)';
 
 interface IFooterLinkProps {
     item: INavigationMenuItem;
-    createHoverPrefetch: (keyword: string) => (() => void) | undefined;
+    createHoverPrefetch: (path: string) => (() => void) | undefined;
 }
 
 function FooterLink({ item, createHoverPrefetch }: IFooterLinkProps): React.ReactElement | null {
@@ -57,11 +56,11 @@ function FooterLink({ item, createHoverPrefetch }: IFooterLinkProps): React.Reac
         return null;
     }
 
-    const keyword = getNavigationItemKeyword(item);
+    const href = getNavigationItemHref(item);
     return (
         <InternalLink
-            href={getNavigationItemHref(item)}
-            onMouseEnter={keyword ? createHoverPrefetch(keyword) : undefined}
+            href={href}
+            onMouseEnter={href ? createHoverPrefetch(href) : undefined}
             aria-label={ariaLabel}
             className={classes.link}
         >
@@ -74,7 +73,7 @@ function FooterLink({ item, createHoverPrefetch }: IFooterLinkProps): React.Reac
 
 interface IFooterColumnProps {
     group: INavigationMenuItem;
-    createHoverPrefetch: (keyword: string) => (() => void) | undefined;
+    createHoverPrefetch: (path: string) => (() => void) | undefined;
 }
 
 function FooterColumn({ group, createHoverPrefetch }: IFooterColumnProps): React.ReactElement {
@@ -101,7 +100,7 @@ function FooterColumn({ group, createHoverPrefetch }: IFooterColumnProps): React
 
 interface IFooterMobileAccordionProps {
     columns: INavigationMenuItem[];
-    createHoverPrefetch: (keyword: string) => (() => void) | undefined;
+    createHoverPrefetch: (path: string) => (() => void) | undefined;
 }
 
 function FooterMobileAccordion({ columns, createHoverPrefetch }: IFooterMobileAccordionProps): React.ReactElement {
