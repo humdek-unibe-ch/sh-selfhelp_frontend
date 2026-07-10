@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-03.
+Last verified: 2026-07-10.
 Source of truth: Runtime code, configuration, and tests in this repository.
 
 ## Component Hierarchy
@@ -62,6 +62,14 @@ interface IFieldConfig {
 - **API integration**: Fetches options from `/frontend/css-classes`
 - **Searchable**: Real-time filtering of options
 - **Separator handling**: Configurable separator for multi-select values (default: space)
+
+The production Tailwind build compiles the exact dropdown catalogue from
+`src/config/cms-tailwind-classes.json` and literal classes found in
+`examples/**/*.json`. The snapshot is generated from the backend's
+`public/assets/tailwind-classes.json` with `npm run sync:cms-css`. Run
+`npm run audit:cms-css` afterward to verify the registered sources and example
+coverage. Arbitrary free-typed classes that are absent from the catalogue,
+examples, and frontend source are not guaranteed to exist in production CSS.
 
 **select-group**: Dynamic group selection with API integration
 - **Multi-select support**: Select multiple groups

@@ -29,6 +29,7 @@
         "headers:add": "license-check-and-add add -f license-check-and-add-config.json",
         "headers:remove": "license-check-and-add remove -f license-check-and-add-config.json",
         "plugins:sync": "node scripts/plugins-sync.mjs",
+        "sync:cms-css": "node scripts/sync-cms-css-catalog.mjs",
         "validate:ai-examples": "node scripts/validate-ai-examples.mjs",
         "audit:cms-css": "node scripts/audit-cms-css-classes.mjs"
     },

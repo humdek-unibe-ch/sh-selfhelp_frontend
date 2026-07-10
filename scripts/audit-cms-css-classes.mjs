@@ -26,6 +26,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(HERE, '..');
 const GLOBALS_CSS = join(REPO_ROOT, 'src', 'globals.css');
 const EXAMPLES_DIR = join(REPO_ROOT, 'examples');
+const CATALOG = join(REPO_ROOT, 'src', 'config', 'cms-tailwind-classes.json');
 
 const MOBILE_TOKEN = /^(px|py|p|m|mx|my|mt|mb|ml|mr|gap)-(xs|sm|md|lg|xl|2xl)$/;
 
@@ -62,8 +63,17 @@ export function parseGlobalsCss(cssText) {
     }
 
     const examplesSource = /@source\s+"\.\.\/examples\/\*\*\/\*\.json"/.test(cssText);
+    const catalogSource = /@source\s+"\.\/config\/cms-tailwind-classes\.json"/.test(cssText);
 
-    return { safelist, examplesSource };
+    return { safelist, examplesSource, catalogSource };
+}
+
+export function loadCmsCssCatalog(catalogPath = CATALOG) {
+    const values = JSON.parse(readFileSync(catalogPath, 'utf8'));
+    if (!Array.isArray(values) || values.some((value) => typeof value !== 'string')) {
+        throw new Error('CMS Tailwind catalogue must be an array of class strings');
+    }
+    return values;
 }
 
 function walkJsonFiles(dir) {
@@ -115,9 +125,12 @@ export function collectExampleCssTokens(examplesDir = EXAMPLES_DIR) {
 export function auditCmsCssClasses({
     globalsCssPath = GLOBALS_CSS,
     examplesDir = EXAMPLES_DIR,
+    catalogPath = CATALOG,
 } = {}) {
     const cssText = readFileSync(globalsCssPath, 'utf8');
-    const { safelist, examplesSource } = parseGlobalsCss(cssText);
+    const { safelist, examplesSource, catalogSource } = parseGlobalsCss(cssText);
+    const catalogValues = loadCmsCssCatalog(catalogPath);
+    const catalog = new Set(catalogValues);
     const tokens = collectExampleCssTokens(examplesDir);
 
     const mobileTokens = [];
@@ -129,7 +142,7 @@ export function auditCmsCssClasses({
             mobileTokens.push(token);
             continue;
         }
-        if (safelist.has(token)) {
+        if (catalog.has(token) || safelist.has(token)) {
             covered.push(token);
             continue;
         }
@@ -146,6 +159,9 @@ export function auditCmsCssClasses({
 
     return {
         examplesSource,
+        catalogSource,
+        catalogSize: catalog.size,
+        catalogSorted: catalogValues.every((value, index) => index === 0 || catalogValues[index - 1].localeCompare(value) < 0),
         safelistSize: safelist.size,
         totalTokens: tokens.size,
         mobileTokens,
@@ -157,12 +173,21 @@ export function auditCmsCssClasses({
 function main() {
     const result = auditCmsCssClasses();
 
+    console.log(`Backend dropdown snapshot contains ${result.catalogSize} classes`);
     console.log(`Safelist patterns expanded to ${result.safelistSize} classes`);
     console.log(`Found ${result.totalTokens} unique css/css_mobile tokens in examples/`);
     console.log(`Mobile Uniwind tokens (web Tailwind gate skipped): ${result.mobileTokens.join(', ') || '(none)'}`);
 
     if (!result.examplesSource) {
         console.error('Missing @source "../examples/**/*.json" in src/globals.css');
+        process.exitCode = 1;
+    }
+    if (!result.catalogSource) {
+        console.error('Missing @source "./config/cms-tailwind-classes.json" in src/globals.css');
+        process.exitCode = 1;
+    }
+    if (!result.catalogSorted) {
+        console.error('CMS Tailwind catalogue must be sorted and contain no duplicates');
         process.exitCode = 1;
     }
 
