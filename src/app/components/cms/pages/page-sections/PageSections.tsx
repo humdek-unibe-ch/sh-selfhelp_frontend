@@ -708,7 +708,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
    return (
      <Paper p="lg" radius="md" className={pageStyles.sectionsPanel}>
-       <Stack gap="md">
+       <Stack gap="md" className={pageStyles.panelStack}>
          {/* Page header — breadcrumb-style title + count, subtitle, wrapping toolbar */}
          <Stack gap="sm">
            <Box>
@@ -951,7 +951,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
          {/* 4. Main Content — the section tree. The preview is a FLOATING panel
              (see below), so the tree layout is never reflowed. */}
-         <Box>
+         <Box className={pageStyles.treeArea}>
            <LoadingOverlay
              visible={isLoading}
              overlayProps={{ blur: 0, backgroundOpacity: 0.35 }}

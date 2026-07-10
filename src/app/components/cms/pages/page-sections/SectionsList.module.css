@@ -7,7 +7,8 @@ SPDX-License-Identifier: MPL-2.0
 /* Container styles - main scrollable area for sections. Transparent so the
    gray sections panel shows behind the white section cards (mockup look). */
 .sectionsContainer {
-    padding: 4px 4px 16px 4px;
+    /* Extra right padding keeps the scrollbar clear of the section cards. */
+    padding: 4px 10px 16px 4px;
     height: 100%;
     /* Take full height of parent */
     overflow-y: auto;
@@ -15,25 +16,46 @@ SPDX-License-Identifier: MPL-2.0
     background: transparent;
     flex: 1;
     /* Allow it to grow and shrink */
+    scrollbar-gutter: stable;
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: var(--mantine-color-gray-4) transparent;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar — transparent track, thumb only. */
 .sectionsContainer::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .sectionsContainer::-webkit-scrollbar-track {
-    background: var(--mantine-color-default-border);
-    border-radius: 3px;
+    background: transparent;
 }
 
 .sectionsContainer::-webkit-scrollbar-thumb {
-    background: var(--mantine-color-dimmed);
-    border-radius: 3px;
+    background: var(--mantine-color-gray-4);
+    border-radius: 999px;
+    /* Inset the thumb from the edge via a transparent border. */
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 
 .sectionsContainer::-webkit-scrollbar-thumb:hover {
-    background: var(--mantine-color-text);
+    background: var(--mantine-color-gray-5);
+    background-clip: content-box;
+}
+
+[data-mantine-color-scheme='dark'] .sectionsContainer::-webkit-scrollbar-thumb {
+    background: var(--mantine-color-dark-3);
+    background-clip: content-box;
+}
+
+[data-mantine-color-scheme='dark'] .sectionsContainer::-webkit-scrollbar-thumb:hover {
+    background: var(--mantine-color-dark-2);
+    background-clip: content-box;
+}
+
+[data-mantine-color-scheme='dark'] .sectionsContainer {
+    scrollbar-color: var(--mantine-color-dark-3) transparent;
 }
 
 /* Sections list */
