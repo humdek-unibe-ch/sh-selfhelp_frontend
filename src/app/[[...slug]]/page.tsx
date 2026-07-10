@@ -39,25 +39,11 @@ import {
     resolvePreviewSSR,
     extractSsrPage,
 } from '../_lib/server-fetch';
-import type { IPageContent } from '../../shared';
 import { MaintenanceClient } from '../MaintenanceClient';
 import { MAINTENANCE_KEYWORD, hasRenderableMaintenancePage, isMaintenanceStatus } from '../maintenance';
 import DynamicPageClient from './DynamicPageClient';
+import { shouldStaticFallback } from './shouldStaticFallback';
 import { buildStaticFallbackPath, pathFromSlug } from './slug-routing';
-
-/**
- * Returns true when the page should fall back to its static route.
- *
- * Prefers the BE-computed `should_fallback` flag (set when the page is
- * missing its required functional section). Falls back to the old
- * zero-sections check when the flag is absent (older BE versions).
- */
-function shouldFallback(page: (IPageContent & { should_fallback?: boolean }) | null): boolean {
-    if (!page) return true;
-    if (typeof page.should_fallback === 'boolean') return page.should_fallback;
-    const sections = Array.isArray(page?.sections) ? page.sections : [];
-    return sections.length === 0;
-}
 
 export async function generateMetadata({
     params,
@@ -144,7 +130,7 @@ export default async function SlugPage({
     // Static fallback (resolved keyword + route params) when a system page is
     // missing its functional section — keeps operators out of a dead end.
     const fallbackPath = page ? buildStaticFallbackPath(page.keyword, page.route_params) : null;
-    if (fallbackPath && shouldFallback(page)) {
+    if (fallbackPath && shouldStaticFallback(page)) {
         redirect(fallbackPath);
     }
 
@@ -156,7 +142,7 @@ export default async function SlugPage({
     // 404s them for non-admin callers; keep a defensive client guard so a
     // stale cache cannot render them on the public slug route. Host Admin
     // opens them under `/admin/cms-apps/.../content` instead.
-    if ((page as IPageContent & { page_surface?: string }).page_surface === 'cms') {
+    if (page.page_surface === 'cms') {
         notFound();
     }
 
