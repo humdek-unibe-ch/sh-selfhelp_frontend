@@ -5,11 +5,12 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * Slug route page — Server Component.
  *
- * Uses the new `/pages/by-keyword/{keyword}` endpoint to fetch page content
- * in a single network round-trip. The same fetch backs both
- * `generateMetadata` (so the `<title>` is final at first paint and the tab
- * never flashes the default) and the initial React Query cache consumed by
- * the client child.
+ * Resolves the public URL path via `GET /pages/resolve` (DB-driven
+ * `page_routes`, issue #30) in a single network round-trip. The same fetch
+ * backs both `generateMetadata` (so the `<title>` is final at first paint and
+ * the tab never flashes the default) and the initial React Query cache
+ * consumed by the client child. Keyword fetch remains only for the hardcoded
+ * maintenance fallback.
  *
  * Title / description resolution priority (per language):
  *   1. `page.title` / `page.description` from the content payload — the

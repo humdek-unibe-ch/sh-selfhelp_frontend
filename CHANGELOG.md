@@ -28,6 +28,10 @@ No engineering diary, no implementation detail — that belongs in
 - **Column inspectors** — `SelectedColumnsField` is an alias of
   `DataTableColumnSelectField` (`mode="multiple"`); ordered `fields_map` labels
   stay on `FieldsMapField`.
+- **Live Preview path matching** — parameterized public URLs
+  (`/team-members/{record_id}`) resolve via page `url` patterns before any
+  last-segment keyword fallback, so record detail paths keep the correct CMS
+  keyword.
 
 ---
 
@@ -121,9 +125,9 @@ admin API: `/admin/cms-apps*` replaces `POST /admin/pages/cms-app`).
 
 Navigation overhaul — strict contract v2, no backward compatibility — plus the
 CMS-in-CMS polish wave (entry-table rename, record edit mode, template
-gallery). Pairs with core `0.1.33` and `@selfhelp/shared` `3.0.0` (breaking
-major: navigation contract v2 landed in `2.0.0`, the `show-user-input` →
-`entry-table` style rename in `3.0.0`).
+gallery). Pairs with core `0.1.33` and `@selfhelp/shared` `1.21.5` (breaking
+wave previously staged as shared `2.0.0`–`3.0.1`, then republished as `1.21.5`:
+navigation contract v2 plus the `show-user-input` → `entry-table` rename).
 
 ### Added
 - **Start from template gallery** — the Export/Import dialog's example tab
@@ -213,7 +217,7 @@ major: navigation contract v2 landed in `2.0.0`, the `show-user-input` →
 - Header/footer/burger rendering and active states now come from
   `@selfhelp/shared` (`isMenuItemActiveOnWeb`, footer helpers,
   `isDoubleWebHeaderPreset`); local duplicates were deleted.
-- **`show-user-input` renamed `entry-table`** (`@selfhelp/shared` `3.0.0`):
+- **`show-user-input` renamed `entry-table`** (`@selfhelp/shared` `1.21.5`):
   the renderer is `EntryTableStyle.tsx`, dispatched on `style_name:
   'entry-table'` with `IEntryTableStyle` / `IEntryTableEntry` types. No alias
   is kept — sections keep working because the backend renames the style row in

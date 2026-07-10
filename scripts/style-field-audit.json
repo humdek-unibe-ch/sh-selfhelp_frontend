@@ -1,7 +1,7 @@
 {
-    "generated_at": "2026-06-19T10:36:50+00:00",
+    "generated_at": "2026-07-10T11:20:53.093Z",
     "generator": "scripts/build-style-audit.php",
-    "note": "Source of truth = live DB catalog + cross-repo TS. Regenerate after schema/renderer changes.",
+    "note": "Source of truth = live DB catalog + cross-repo TS. Regenerate after schema/renderer changes. Key renamed show-user-input → entry-table to match catalog (2026-07-10).",
     "warnings": [],
     "totals": {
         "styles_db": 90,
@@ -1609,168 +1609,6 @@
                 "shared_buttons_variant"
             ],
             "drift_type_fields_missing_from_db": [],
-            "duplicate_candidates": []
-        },
-        "show-user-input": {
-            "id": 156,
-            "group": "Form",
-            "category_shared": "forms",
-            "render_target_db": "both",
-            "registry_platforms": null,
-            "can_have_children_db": 0,
-            "can_have_children_shared": false,
-            "in_shared_registry": true,
-            "has_shared_type": true,
-            "web_renderer": true,
-            "mobile_renderer": true,
-            "field_count": 22,
-            "scope_counts": {
-                "content": 3,
-                "common": 11,
-                "shared": 1,
-                "web": 7,
-                "mobile": 0
-            },
-            "fields": {
-                "delete_modal_body": {
-                    "type": "text",
-                    "scope": "content",
-                    "display": 1,
-                    "default": "Are you sure you want to delete this entry?"
-                },
-                "delete_modal_title": {
-                    "type": "text",
-                    "scope": "content",
-                    "display": 1,
-                    "default": "Delete entry"
-                },
-                "fields_map": {
-                    "type": "json",
-                    "scope": "content",
-                    "display": 1,
-                    "default": ""
-                },
-                "csv_export": {
-                    "type": "checkbox",
-                    "scope": "common",
-                    "display": 0,
-                    "default": "0"
-                },
-                "data_table": {
-                    "type": "select-data_table",
-                    "scope": "common",
-                    "display": 0,
-                    "default": ""
-                },
-                "delete_entry": {
-                    "type": "checkbox",
-                    "scope": "common",
-                    "display": 0,
-                    "default": "1"
-                },
-                "dt_default_order_column": {
-                    "type": "text",
-                    "scope": "common",
-                    "display": 0,
-                    "default": ""
-                },
-                "dt_default_order_dir": {
-                    "type": "select",
-                    "scope": "common",
-                    "display": 0,
-                    "default": "asc"
-                },
-                "dt_info": {
-                    "type": "checkbox",
-                    "scope": "common",
-                    "display": 0,
-                    "default": "0"
-                },
-                "dt_paginate": {
-                    "type": "checkbox",
-                    "scope": "common",
-                    "display": 0,
-                    "default": "0"
-                },
-                "dt_searching": {
-                    "type": "checkbox",
-                    "scope": "common",
-                    "display": 0,
-                    "default": "0"
-                },
-                "dt_sortable": {
-                    "type": "checkbox",
-                    "scope": "common",
-                    "display": 0,
-                    "default": "0"
-                },
-                "own_entries_only": {
-                    "type": "checkbox",
-                    "scope": "common",
-                    "display": 0,
-                    "default": "1"
-                },
-                "shared_spacing": {
-                    "type": "spacing",
-                    "scope": "shared",
-                    "display": 0,
-                    "default": ""
-                },
-                "show_timestamp": {
-                    "type": "checkbox",
-                    "scope": "common",
-                    "display": 0,
-                    "default": "0"
-                },
-                "web_table_caption_side": {
-                    "type": "segment",
-                    "scope": "web",
-                    "display": 0,
-                    "default": ""
-                },
-                "web_table_highlight_on_hover": {
-                    "type": "checkbox",
-                    "scope": "web",
-                    "display": 0,
-                    "default": "1"
-                },
-                "web_table_sticky_header": {
-                    "type": "checkbox",
-                    "scope": "web",
-                    "display": 0,
-                    "default": "0"
-                },
-                "web_table_striped": {
-                    "type": "checkbox",
-                    "scope": "web",
-                    "display": 0,
-                    "default": "0"
-                },
-                "web_table_with_column_borders": {
-                    "type": "checkbox",
-                    "scope": "web",
-                    "display": 0,
-                    "default": "1"
-                },
-                "web_table_with_row_borders": {
-                    "type": "checkbox",
-                    "scope": "web",
-                    "display": 0,
-                    "default": "0"
-                },
-                "web_table_with_table_border": {
-                    "type": "checkbox",
-                    "scope": "web",
-                    "display": 0,
-                    "default": "1"
-                }
-            },
-            "drift_db_fields_missing_from_type": [
-                "data_table"
-            ],
-            "drift_type_fields_missing_from_db": [
-                "entries"
-            ],
             "duplicate_candidates": []
         },
         "input": {
@@ -8138,6 +7976,168 @@
             "fields": [],
             "drift_db_fields_missing_from_type": [],
             "drift_type_fields_missing_from_db": [],
+            "duplicate_candidates": []
+        },
+        "entry-table": {
+            "id": 156,
+            "group": "Form",
+            "category_shared": "forms",
+            "render_target_db": "both",
+            "registry_platforms": null,
+            "can_have_children_db": 0,
+            "can_have_children_shared": false,
+            "in_shared_registry": true,
+            "has_shared_type": true,
+            "web_renderer": true,
+            "mobile_renderer": true,
+            "field_count": 22,
+            "scope_counts": {
+                "content": 3,
+                "common": 11,
+                "shared": 1,
+                "web": 7,
+                "mobile": 0
+            },
+            "fields": {
+                "delete_modal_body": {
+                    "type": "text",
+                    "scope": "content",
+                    "display": 1,
+                    "default": "Are you sure you want to delete this entry?"
+                },
+                "delete_modal_title": {
+                    "type": "text",
+                    "scope": "content",
+                    "display": 1,
+                    "default": "Delete entry"
+                },
+                "fields_map": {
+                    "type": "json",
+                    "scope": "content",
+                    "display": 1,
+                    "default": ""
+                },
+                "csv_export": {
+                    "type": "checkbox",
+                    "scope": "common",
+                    "display": 0,
+                    "default": "0"
+                },
+                "data_table": {
+                    "type": "select-data_table",
+                    "scope": "common",
+                    "display": 0,
+                    "default": ""
+                },
+                "delete_entry": {
+                    "type": "checkbox",
+                    "scope": "common",
+                    "display": 0,
+                    "default": "1"
+                },
+                "dt_default_order_column": {
+                    "type": "text",
+                    "scope": "common",
+                    "display": 0,
+                    "default": ""
+                },
+                "dt_default_order_dir": {
+                    "type": "select",
+                    "scope": "common",
+                    "display": 0,
+                    "default": "asc"
+                },
+                "dt_info": {
+                    "type": "checkbox",
+                    "scope": "common",
+                    "display": 0,
+                    "default": "0"
+                },
+                "dt_paginate": {
+                    "type": "checkbox",
+                    "scope": "common",
+                    "display": 0,
+                    "default": "0"
+                },
+                "dt_searching": {
+                    "type": "checkbox",
+                    "scope": "common",
+                    "display": 0,
+                    "default": "0"
+                },
+                "dt_sortable": {
+                    "type": "checkbox",
+                    "scope": "common",
+                    "display": 0,
+                    "default": "0"
+                },
+                "own_entries_only": {
+                    "type": "checkbox",
+                    "scope": "common",
+                    "display": 0,
+                    "default": "1"
+                },
+                "shared_spacing": {
+                    "type": "spacing",
+                    "scope": "shared",
+                    "display": 0,
+                    "default": ""
+                },
+                "show_timestamp": {
+                    "type": "checkbox",
+                    "scope": "common",
+                    "display": 0,
+                    "default": "0"
+                },
+                "web_table_caption_side": {
+                    "type": "segment",
+                    "scope": "web",
+                    "display": 0,
+                    "default": ""
+                },
+                "web_table_highlight_on_hover": {
+                    "type": "checkbox",
+                    "scope": "web",
+                    "display": 0,
+                    "default": "1"
+                },
+                "web_table_sticky_header": {
+                    "type": "checkbox",
+                    "scope": "web",
+                    "display": 0,
+                    "default": "0"
+                },
+                "web_table_striped": {
+                    "type": "checkbox",
+                    "scope": "web",
+                    "display": 0,
+                    "default": "0"
+                },
+                "web_table_with_column_borders": {
+                    "type": "checkbox",
+                    "scope": "web",
+                    "display": 0,
+                    "default": "1"
+                },
+                "web_table_with_row_borders": {
+                    "type": "checkbox",
+                    "scope": "web",
+                    "display": 0,
+                    "default": "0"
+                },
+                "web_table_with_table_border": {
+                    "type": "checkbox",
+                    "scope": "web",
+                    "display": 0,
+                    "default": "1"
+                }
+            },
+            "drift_db_fields_missing_from_type": [
+                "data_table"
+            ],
+            "drift_type_fields_missing_from_db": [
+                "entries"
+            ],
             "duplicate_candidates": []
         }
     }
