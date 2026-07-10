@@ -13,14 +13,10 @@ import { useDeleteFormMutation } from '../../../../hooks/useFormSubmission';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useLanguageContext } from '../../contexts/LanguageContext';
 import type { IEntryTableStyle, IEntryTableEntry } from '../../../../shared';
+import { parseFieldsMapCatalog, parseFieldsMapLabels } from '@selfhelp/shared';
 import { useCmsAppAdminNav } from '../../cms/cms-apps/CmsAppAdminNavContext';
 import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
 
-
-interface IFieldMapping {
-    field_name: string;
-    field_new_name: string;
-}
 
 interface IColumn {
     key: string;
@@ -84,13 +80,8 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
     const stickyHeader = style.web_table_sticky_header?.content === '1';
     const captionSide = (style.web_table_caption_side?.content || undefined) as 'top' | 'bottom' | undefined;
 
-    const fieldMappings: IFieldMapping[] = (() => {
-        try {
-            const raw = style.fields_map?.content;
-            if (raw) return JSON.parse(raw) as IFieldMapping[];
-        } catch { /* fall through */ }
-        return [];
-    })();
+    const mappedFieldKeys = parseFieldsMapCatalog(style.fields_map?.content);
+    const fieldsMapLabels = parseFieldsMapLabels(style.fields_map_labels?.content);
 
     const rows: IEntryTableEntry[] = style.entries ?? [];
 
@@ -108,17 +99,20 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
         ? rawDataKeys.filter((k) => !CMS_ADMIN_HIDDEN_KEYS.has(k))
         : rawDataKeys;
 
-    const mappedCols: IColumn[] = fieldMappings.length
-        ? fieldMappings
-            .map(m => {
-                const key = dataKeys.includes(m.field_name)
-                    ? m.field_name
-                    : dataKeys.find(k => fieldLabels[k] === m.field_name);
-                if (!key) return null;
-                return { key, label: m.field_new_name || fieldLabels[key] || key };
+    const mappedCols: IColumn[] = mappedFieldKeys.length
+        ? mappedFieldKeys
+            .map((fieldKey) => {
+                const key = dataKeys.includes(fieldKey)
+                    ? fieldKey
+                    : dataKeys.find((k) => fieldLabels[k] === fieldKey);
+                if (!key) {
+                    return null;
+                }
+                const label = fieldsMapLabels[key] || fieldLabels[key] || key;
+                return { key, label };
             })
             .filter((c): c is IColumn => c !== null)
-        : dataKeys.map(k => ({ key: k, label: fieldLabels[k] || k }));
+        : dataKeys.map((k) => ({ key: k, label: fieldsMapLabels[k] || fieldLabels[k] || k }));
 
     const leadingCol: IColumn = showTimestamp
         ? { key: 'entry_date', label: 'Date' }

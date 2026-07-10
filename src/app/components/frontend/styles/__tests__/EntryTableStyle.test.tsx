@@ -13,8 +13,8 @@ import { renderWithProviders } from '../../../../../test-utils/renderWithProvide
  * Rows now arrive keyed by the immutable data-column `field_key`, and the style
  * receives a `field_labels` map (`field_key => display_name`). Headers must
  * default to the human `display_name` (so renaming a column relabels the header
- * automatically), while `fields_map` stays an explicit override that resolves to
- * a real column by `field_key` first and by `display_name` second.
+ * automatically), while `fields_map` selects columns and `fields_map_labels`
+ * supplies per-locale header overrides.
  */
 vi.mock('../../../../hooks/usePageContentValue', () => ({
     usePageContentValue: () => ({ id: 1 }),
@@ -24,6 +24,13 @@ vi.mock('../../../../hooks/useFormSubmission', () => ({
 }));
 vi.mock('next/navigation', () => ({
     useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
+}));
+vi.mock('../../../contexts/LanguageContext', () => ({
+    useLanguageContext: () => ({
+        currentLanguageId: 2,
+        languages: [{ id: 2, locale: 'en-GB', language: 'English', csvSeparator: ',' }],
+        setCurrentLanguageId: vi.fn(),
+    }),
 }));
 
 import EntryTableStyle from '../EntryTableStyle';
@@ -57,13 +64,14 @@ describe('EntryTableStyle headers (issue #56 v2)', () => {
         expect(screen.getByText('Ada')).toBeInTheDocument();
     });
 
-    it('lets fields_map override a header, matched by the stable field_key', () => {
+    it('lets fields_map select columns and fields_map_labels override headers', () => {
         renderWithProviders(
             <EntryTableStyle
                 style={makeStyle({
                     entries: rows,
                     field_labels: { section_230: 'Full name', section_231: 'Email' },
-                    fields_map: { content: JSON.stringify([{ field_name: 'section_230', field_new_name: 'Name' }]) },
+                    fields_map: { content: JSON.stringify(['section_230']) },
+                    fields_map_labels: { content: JSON.stringify({ section_230: 'Name' }) },
                 })}
                 styleProps={{}}
                 cssClass=""
@@ -82,7 +90,8 @@ describe('EntryTableStyle headers (issue #56 v2)', () => {
                 style={makeStyle({
                     entries: rows,
                     field_labels: { section_230: 'Full name' },
-                    fields_map: { content: JSON.stringify([{ field_name: 'Full name', field_new_name: 'Name' }]) },
+                    fields_map: { content: JSON.stringify(['Full name']) },
+                    fields_map_labels: { content: JSON.stringify({ section_230: 'Name' }) },
                 })}
                 styleProps={{}}
                 cssClass=""

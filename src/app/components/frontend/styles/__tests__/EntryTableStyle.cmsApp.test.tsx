@@ -27,7 +27,8 @@ const baseStyle = {
         { record_id: 5, id_users: 1, name: 'Ada', bio: 'English bio', _can_edit: true, _can_delete: true },
     ],
     field_labels: { name: 'Name', bio: 'Bio' },
-    fields_map: { content: '[{"field_name":"name","field_new_name":"Name"},{"field_name":"bio","field_new_name":"Bio"}]' },
+    fields_map: { content: JSON.stringify(['name', 'bio']) },
+    fields_map_labels: { content: JSON.stringify({ name: 'Name', bio: 'Bio' }) },
     show_language_preview: { content: '1' },
 } as unknown as IEntryTableStyle;
 

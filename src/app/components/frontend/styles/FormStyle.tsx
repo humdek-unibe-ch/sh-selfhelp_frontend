@@ -13,7 +13,7 @@ import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/
 import { usePageModal } from '../../contexts/PageModalContext';
 import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { type IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
-import { type IFormLogStyle, type IFormRecordStyle } from '../../../../types/common/styles.types';
+import { type IFormLogStyle, type IFormRecordStyle, type IEntryRecordFormStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline, stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 import parse from 'html-react-parser';
 
@@ -25,7 +25,7 @@ type TFormFieldValue = string | TFormTranslatedValue[];
 type TFormRecordGroup = Record<string, TFormFieldValue>;
 
 interface FormStyleProps {
-    style: IFormLogStyle | IFormRecordStyle;
+    style: IFormLogStyle | IFormRecordStyle | IEntryRecordFormStyle;
     styleProps: Record<string, unknown>;
     cssClass: string;
 }
@@ -101,7 +101,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const pageId = pageContent?.id;
 
     // Determine form behavior based on style name
-    const isRecord = style.style_name === 'form-record';
+    const isRecord = style.style_name === 'form-record' || style.style_name === 'entry-record-form';
     const isLogType = style.style_name === 'form-log';
 
     // React Query hooks
@@ -519,6 +519,10 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
         return value !== null && value !== undefined ? value : null;
     }, [isRecord, existingFormDataFromSection]);
 
+    useEffect(() => {
+        hasInitializedForm.current = false;
+    }, [existingRecordId]);
+
     // Pre-populate form fields for record types with existing data from section_data
     // Note: Translatable fields are handled by LanguageTabsWrapper, so we skip them here
     useEffect(() => {
@@ -614,7 +618,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
               hydration checks. See React's documented escape-hatch:
               https://react.dev/reference/react-dom/client/hydrateRoot#suppressing-unavoidable-hydration-mismatch-errors
             */}
-            <form ref={formRef} key={formKey} onSubmit={handleSubmit} suppressHydrationWarning>
+            <form ref={formRef} key={`${formKey}-${existingRecordId ?? 'create'}`} onSubmit={handleSubmit} suppressHydrationWarning>
                 <input type="hidden" name="__id_sections" value={style.id} />
                 {isRecord && existingRecordId ? (
                     <input type="hidden" name="record_id" value={String(existingRecordId)} />

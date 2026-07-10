@@ -1458,7 +1458,7 @@
                 },
                 "filter": {
                     "scope": "property",
-                    "type": "code",
+                    "type": "entry-filter",
                     "default": ""
                 },
                 "scope": {
@@ -1492,20 +1492,15 @@
                     "type": "checkbox",
                     "default": "1"
                 },
-                "filter": {
+                "load_record_from": {
                     "scope": "property",
-                    "type": "code",
-                    "default": ""
+                    "type": "text",
+                    "default": "record_id"
                 },
                 "scope": {
                     "scope": "property",
                     "type": "text",
                     "default": ""
-                },
-                "url_param": {
-                    "scope": "property",
-                    "type": "text",
-                    "default": "record_id"
                 }
             }
         },
@@ -1551,7 +1546,7 @@
             "fields": {
                 "add_url": {
                     "scope": "common",
-                    "type": "text",
+                    "type": "select-page-keyword",
                     "default": ""
                 },
                 "csv_export": {
@@ -1581,7 +1576,7 @@
                 },
                 "dt_default_order_column": {
                     "scope": "common",
-                    "type": "text",
+                    "type": "select-data_table_column",
                     "default": ""
                 },
                 "dt_default_order_dir": {
@@ -1611,7 +1606,7 @@
                 },
                 "edit_url": {
                     "scope": "common",
-                    "type": "text",
+                    "type": "select-page-keyword",
                     "default": ""
                 },
                 "empty_text": {
@@ -1621,7 +1616,7 @@
                 },
                 "fields_map": {
                     "scope": "content",
-                    "type": "json",
+                    "type": "fields-map",
                     "default": ""
                 },
                 "own_entries_only": {
@@ -1974,10 +1969,10 @@
                     "type": "textarea",
                     "default": ""
                 },
-                "name": {
+                "data_table": {
                     "scope": "common",
-                    "type": "text",
-                    "default": null
+                    "type": "select-data_table",
+                    "default": ""
                 },
                 "redirect_at_end": {
                     "scope": "common",
@@ -1986,7 +1981,7 @@
                 },
                 "redirect_on_save": {
                     "scope": "common",
-                    "type": "text",
+                    "type": "select-page-keyword",
                     "default": ""
                 },
                 "spacing": {
@@ -2110,10 +2105,10 @@
                     "type": "text",
                     "default": ""
                 },
-                "name": {
+                "data_table": {
                     "scope": "common",
-                    "type": "text",
-                    "default": null
+                    "type": "select-data_table",
+                    "default": ""
                 },
                 "own_entries_only": {
                     "scope": "common",
@@ -2127,7 +2122,7 @@
                 },
                 "redirect_on_save": {
                     "scope": "common",
-                    "type": "text",
+                    "type": "select-page-keyword",
                     "default": ""
                 },
                 "spacing": {

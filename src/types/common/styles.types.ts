@@ -250,7 +250,7 @@ export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'reset-password' | 'two-factor-auth'
     | 'container' | 'alert' | 'ref-container' | 'data-container' | 'html-tag' | 'center' | 'box'
     | 'flex' | 'group' | 'stack' | 'simple-grid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
-    | 'form-log' | 'form-record' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
+    | 'form-log' | 'form-record' | 'entry-record-form' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
     | 'button' | 'link'
     | 'entry-list' | 'entry-record' | 'entry-record-delete'
@@ -372,6 +372,7 @@ export type {
     IFormStyle,
     IFormLogStyle,
     IFormRecordStyle,
+    IEntryRecordFormStyle,
     IInputStyle,
     ITextInputStyle,
     ITextareaStyle,
@@ -483,6 +484,7 @@ import type {
     INotificationStyle,
     IFormLogStyle,
     IFormRecordStyle,
+    IEntryRecordFormStyle,
     IInputStyle,
     ITextInputStyle,
     ITextareaStyle,
@@ -543,7 +545,7 @@ export type TStyle =
     | IBadgeStyle | IAvatarStyle | IChipStyle | IIndicatorStyle
     | IThemeIconStyle | INotificationStyle
     // forms
-    | IFormLogStyle | IFormRecordStyle | IInputStyle | ITextInputStyle
+    | IFormLogStyle | IFormRecordStyle | IEntryRecordFormStyle | IInputStyle | ITextInputStyle
     | ITextareaStyle | IRichTextEditorStyle | ISelectStyle | IRadioStyle
     | ICheckboxStyle | ISliderStyle | IRangeSliderStyle | IDatePickerStyle
     | ISwitchStyle | IComboboxStyle | IColorInputStyle | IColorPickerStyle

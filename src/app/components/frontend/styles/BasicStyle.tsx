@@ -306,6 +306,8 @@ const styleImpls: Record<string, TStyleRenderer> = {
         <FormStyle style={style as unknown as IFormStyle} styleProps={styleProps} cssClass={cssClass} />,
     'form-record': ({ style, styleProps, cssClass }) =>
         <FormStyle style={style as unknown as IFormStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'entry-record-form': ({ style, styleProps, cssClass }) =>
+        <FormStyle style={style as unknown as IFormStyle} styleProps={styleProps} cssClass={cssClass} />,
     textarea: ({ style, styleProps, cssClass }) =>
         <TextareaStyle style={style as ITextareaStyle} styleProps={styleProps} cssClass={cssClass} />,
     input: ({ style, cssClass }) =>

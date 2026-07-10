@@ -17,6 +17,11 @@ interface IUsePageContentByPathOptions {
     preview?: boolean;
     /** Gate the fetch. Defaults to true when path + languageId are ready. */
     enabled?: boolean;
+    /**
+     * When false, do not show the previous path's page while the next one loads.
+     * Use for CMS-in-CMS create/edit modals so edit data never bleeds into create.
+     */
+    keepPreviousData?: boolean;
 }
 
 /**
@@ -41,6 +46,7 @@ export function usePageContentByPath(path: string, options: IUsePageContentByPat
     const languageId = options.languageId ?? currentLanguageId;
     const preview = options.preview ?? false;
     const enabled = (options.enabled ?? true) && Boolean(path) && Boolean(languageId);
+    const keepPrevious = options.keepPreviousData ?? true;
 
     const query = useQuery<IPageContent>({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_PATH(path, languageId, preview),
@@ -51,7 +57,7 @@ export function usePageContentByPath(path: string, options: IUsePageContentByPat
         // mount; preview keeps refetch-on-mount so admins always see their draft.
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.staleTime,
         gcTime: preview ? 0 : REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.gcTime,
-        placeholderData: keepPreviousData,
+        placeholderData: keepPrevious ? keepPreviousData : undefined,
         refetchOnWindowFocus: preview,
         refetchOnMount: preview,
         retry: 1,
