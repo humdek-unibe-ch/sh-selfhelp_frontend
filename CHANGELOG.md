@@ -16,7 +16,33 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
-## v0.1.61 — 2026-07-09
+## v0.1.63 — 2026-07-09
+
+### Changed
+- **`entry-record`** — uses **Load record from route parameter**
+  (`load_record_from`) like `entry-record-form`; author SQL **Filter** removed
+  from the style. CMS-in-CMS detail bundles updated. Requires core `>=0.1.36`
+  and `@selfhelp/shared` `3.0.1`.
+
+---
+
+## v0.1.62 — 2026-07-09
+
+Entry-table / entry-holder / form field editors: proper URL pickers, column
+mapper, sort-column dropdown, and inline SQL filter builder.
+
+### Added
+- **`FieldsMapField`** — visual column + label mapper for `entry-table` (`fields-map` type).
+- **`DataTableColumnSelectField`** — clearable default sort column picker (`select-data_table_column`).
+- **`useResolvedDataTableName`** — shared hook resolving `data_table` id → table name for column-driven editors.
+- **Filter preview panel** — entry-filter builder shows normalized filter, stored procedure call, and SQL shape via `POST /admin/data/query-preview`.
+
+### Changed
+- **`EntryFilterField`** — loads columns from the bound data table, removes duplicate label + raw Monaco editor (entry-list filters).
+- **Field catalog** (core `0.1.36`) — `add_url` / `edit_url` / `redirect_on_save` → `select-page-keyword`; `fields_map` → `fields-map`; `filter` → `entry-filter`; `form-record` / `form-log` use `data_table` instead of legacy `name`.
+- **CMS-in-CMS bundles** — form sections bind `data_table` via `@section:<form>` tokens; public list/detail and CMS list pages wrap content in a padded `container` shell (`size: lg` + `css_mobile` spacing) for readable import previews on web and native.
+
+---
 
 Restore legacy **field-based** data binding for `entry-list` / `entry-record`
 (property fields instead of `data_config`). Pairs with core `0.1.35` (breaking;
@@ -32,8 +58,9 @@ reimport CMS-in-CMS bundles).
 
 ### Changed
 - **CMS-in-CMS example bundles** — six templates rewritten to use
-  `fields.data_table` / `own_entries_only` / `filter` / `scope` (+ `url_param`
-  on detail holders); `data_config` no longer binds entry rows.
+  `fields.data_table` / `own_entries_only` / `filter` / `scope`; detail holders
+  scope rows with `filter` + `{{route.record_id}}` only; `data_config` no longer
+  binds entry rows.
 - **`@selfhelp/shared` types** — `IEntryListStyle` / `IEntryRecordStyle` carry
   binding fields; `style-schema.snapshot.json` updated.
 
