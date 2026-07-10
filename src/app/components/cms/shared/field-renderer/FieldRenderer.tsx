@@ -24,7 +24,6 @@ import {
     DataConfigField,
     EntryFilterField,
     EntryRecordFormDataTableField,
-    SelectedColumnsField,
     DataTableColumnSelectField,
     ColorPickerField,
     SpacingField,
@@ -396,10 +395,11 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
 
     if (field.type === 'select-data_table_columns') {
         return renderFieldWithBadge(
-            <SelectedColumnsField
+            <DataTableColumnSelectField
                 value={fieldValue}
                 onChange={onChange}
                 disabled={disabled}
+                mode="multiple"
             />,
         );
     }
@@ -410,6 +410,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 value={fieldValue}
                 onChange={onChange}
                 disabled={disabled}
+                mode="single"
             />,
         );
     }

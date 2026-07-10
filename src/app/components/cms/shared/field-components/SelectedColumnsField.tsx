@@ -4,67 +4,9 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useMemo } from 'react';
-import { Loader, MultiSelect, Stack, Text } from '@mantine/core';
-import { useTableColumns } from '../../../../../hooks/useData';
-import { useResolvedDataTableName } from './useResolvedDataTableName';
-import { buildColumnSelectOptions, withMissingColumnOptions } from './column-option.utils';
+/**
+ * entry-list `selected_columns` editor — thin alias of the shared
+ * {@link DataTableColumnSelectField} in multiple mode.
+ */
 
-interface ISelectedColumnsFieldProps {
-    value: string;
-    onChange: (value: string) => void;
-    disabled?: boolean;
-    help?: string | null;
-}
-
-function parseSelectedColumns(raw: string): string[] {
-    return raw
-        .split(',')
-        .map((part) => part.trim())
-        .filter((part) => part !== '');
-}
-
-export function SelectedColumnsField({
-    value,
-    onChange,
-    disabled = false,
-}: ISelectedColumnsFieldProps) {
-    const { tableName, isLoading: isTablesLoading, needsDataTable } = useResolvedDataTableName();
-    const { data: columnsResp, isLoading: isColumnsLoading } = useTableColumns(tableName);
-    const selected = parseSelectedColumns(value);
-
-    const options = useMemo(() => {
-        const base = buildColumnSelectOptions(columnsResp?.columns ?? []);
-        return withMissingColumnOptions(base, selected);
-    }, [columnsResp?.columns, selected]);
-
-    const isLoading = isTablesLoading || (Boolean(tableName) && isColumnsLoading);
-
-    if (needsDataTable) {
-        return (
-            <Text size="sm" c="dimmed">
-                Select a data table first to choose columns.
-            </Text>
-        );
-    }
-
-    if (isLoading) {
-        return (
-            <Stack gap="xs">
-                <Loader size="sm" />
-            </Stack>
-        );
-    }
-
-    return (
-        <MultiSelect
-            data={options}
-            value={selected}
-            onChange={(next) => onChange(next.join(','))}
-            placeholder="All columns (default)"
-            searchable
-            clearable
-            disabled={disabled}
-        />
-    );
-}
+export { SelectedColumnsField } from './DataTableColumnSelectField';
