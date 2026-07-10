@@ -12,8 +12,12 @@ const routes = [
 ];
 
 describe('keywordFromPreviewPath', () => {
-    it('maps nested page URLs to their CMS keyword', () => {
+    it('maps nested page URLs to their CMS keyword via exact route match', () => {
         expect(keywordFromPreviewPath('/demo/legal/imprint', routes)).toBe('imprint');
+    });
+
+    it('maps parameterized record URLs via route patterns (not last segment)', () => {
+        expect(keywordFromPreviewPath('/team-members/5', routes)).toBe('team-members-record');
     });
 
     it('falls back to the last path segment when no route list is given', () => {
@@ -35,6 +39,18 @@ describe('resolvePreviewRoute', () => {
             keyword: 'team-members-record',
             path: '/team-members/5',
             routeParams: { record_id: '5' },
+        });
+    });
+
+    it('prefers longer parameterized patterns when several could match', () => {
+        const nested = [
+            { keyword: 'team', url: '/team/{id}' },
+            { keyword: 'team-edit', url: '/team/{id}/edit' },
+        ];
+        expect(resolvePreviewRoute('/team/9/edit', nested)).toEqual({
+            keyword: 'team-edit',
+            path: '/team/9/edit',
+            routeParams: { id: '9' },
         });
     });
 

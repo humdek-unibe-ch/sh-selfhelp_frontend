@@ -24,7 +24,7 @@ import {
     type IPreviewPreferences,
     type TPreviewBridgeMessage,
 } from '@selfhelp/shared';
-import { keywordFromPreviewPath } from '../utils/previewKeyword';
+import { resolvePreviewRoute } from '../utils/previewKeyword';
 
 export interface IUsePreviewNavigationSyncOptions {
     previewActive: boolean;
@@ -41,9 +41,10 @@ export interface IUsePreviewNavigationSyncOptions {
     /** Push the shared theme to the frame (from `usePreviewPreferenceSync`). */
     sendPreferencesMobile: (prefs: IPreviewPreferences) => void;
     /**
-     * Optional path→keyword resolver (defaults to `keywordFromPreviewPath`
-     * without a page list). The shell passes one backed by the navigation
-     * payload so nested page URLs map to their real CMS keyword.
+     * Optional path→keyword resolver. Defaults to {@link resolvePreviewRoute}
+     * without a page list (last-segment fallback only). The shell passes one
+     * backed by navigation page `url` patterns so nested and parameterized
+     * paths (`/team-members/5`) map to the real CMS keyword + route params.
      */
     resolveKeyword?: (path: string) => string | null;
 }
@@ -96,7 +97,7 @@ export function usePreviewNavigationSync(
     // page and drive the mobile frame to match.
     const handleWebNavigate = useCallback(
         (path: string) => {
-            const kw = resolveKeyword ? resolveKeyword(path) : keywordFromPreviewPath(path);
+            const kw = resolveKeyword ? resolveKeyword(path) : resolvePreviewRoute(path).keyword;
             if (kw === currentKeywordRef.current) return;
             currentKeywordRef.current = kw;
             setCurrentKeyword(kw);
