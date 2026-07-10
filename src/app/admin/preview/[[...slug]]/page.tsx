@@ -14,6 +14,8 @@ SPDX-License-Identifier: MPL-2.0
  *
  * The optional catch-all slug carries the page keyword to launch on
  * (`/admin/preview/<keyword>`); with no slug it defaults to `home`.
+ * `?path=` carries the public CMS URL for parameterized pages so a reload keeps
+ * `route_params` (e.g. `/admin/preview/team-members-record?path=/team-members/4`).
  */
 
 import { requireAdminPermission } from '../../../_lib/admin-guard';
@@ -30,18 +32,32 @@ function parseModal(value: string | string[] | undefined): TPreviewModalMode | u
     return v === 'on' || v === 'off' ? v : undefined;
 }
 
+function parsePath(value: string | string[] | undefined): string | undefined {
+    const v = Array.isArray(value) ? value[0] : value;
+    if (!v || typeof v !== 'string') return undefined;
+    const trimmed = v.trim();
+    if (!trimmed.startsWith('/')) return undefined;
+    return trimmed;
+}
+
 export default async function AdminLivePreviewPage({
     params,
     searchParams,
 }: {
     params: Promise<{ slug?: string[] }>;
-    searchParams: Promise<{ modal?: string | string[] }>;
+    searchParams: Promise<{ modal?: string | string[]; path?: string | string[] }>;
 }) {
     await requireAdminPermission(PERMISSIONS.ADMIN_MOBILE_PREVIEW_VIEW);
 
     const { slug } = await params;
-    const { modal } = await searchParams;
+    const { modal, path } = await searchParams;
     const keyword = slug?.[0]?.trim() || DEFAULT_PREVIEW_KEYWORD;
 
-    return <LivePreview keyword={keyword} modal={parseModal(modal)} />;
+    return (
+        <LivePreview
+            keyword={keyword}
+            initialPath={parsePath(path)}
+            modal={parseModal(modal)}
+        />
+    );
 }

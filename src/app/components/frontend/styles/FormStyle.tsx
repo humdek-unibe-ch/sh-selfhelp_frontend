@@ -6,22 +6,23 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import BasicStyle from './BasicStyle';
 import { Button, Alert, LoadingOverlay, Group, Modal, Stack, Text, Title } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
+import { parseFormRecordPrefill, type TFormRecordPrefillFieldValue } from '@selfhelp/shared';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
+import { usePageModal } from '../../contexts/PageModalContext';
+import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { type IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
-import { type IFormLogStyle, type IFormRecordStyle } from '../../../../types/common/styles.types';
+import { type IFormLogStyle, type IFormRecordStyle, type IEntryRecordFormStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline, stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
 import parse from 'html-react-parser';
 
-/** A single translatable value entry for a record-form field. */
-type TFormTranslatedValue = { language_id: number; value: string };
-/** Value of a record-form field: a plain string or per-language entries. */
-type TFormFieldValue = string | TFormTranslatedValue[];
-/** All fields of a single form record keyed by field name. */
-type TFormRecordGroup = Record<string, TFormFieldValue>;
+/** All fields of a single form record keyed by field name (shared prefill shape). */
+type TFormRecordGroup = Record<string, TFormRecordPrefillFieldValue>;
 
 interface FormStyleProps {
-    style: IFormLogStyle | IFormRecordStyle;
+    style: IFormLogStyle | IFormRecordStyle | IEntryRecordFormStyle;
     styleProps: Record<string, unknown>;
     cssClass: string;
 }
@@ -44,6 +45,9 @@ export { FileInputRegistrationContext, FormFieldValueContext };
 
 const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const pageContent = usePageContentValue();
+    const router = useRouter();
+    const queryClient = useQueryClient();
+    const { inModal, closeModal } = usePageModal();
     const [formKey, setFormKey] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -65,6 +69,10 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const alertErrorTitle = style.alert_error_title?.content || 'Error';
     const confirmSubmit = style.confirm_submit?.content === '1';
     const confirmMessage = style.confirm_message?.content || 'Are you sure you want to submit?';
+    // CMS-in-CMS modal flow (web-only): close the surrounding modal and/or
+    // redirect after a successful save. Both come from form section fields.
+    const closeModalOnSave = style.close_modal_on_save?.content === '1';
+    const redirectOnSave = style.redirect_on_save?.content?.trim() || '';
 
     // Extract button configuration (btn_update_label/btn_update_color are record-only)
     const saveLabel = style.btn_save_label?.content || 'Save';
@@ -90,7 +98,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const pageId = pageContent?.id;
 
     // Determine form behavior based on style name
-    const isRecord = style.style_name === 'form-record';
+    const isRecord = style.style_name === 'form-record' || style.style_name === 'entry-record-form';
     const isLogType = style.style_name === 'form-log';
 
     // React Query hooks
@@ -101,70 +109,17 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const { existingRecordId, existingFormDataFromSection } = useMemo(() => {
         if (!isRecord) return { existingRecordId: null as number | null, existingFormDataFromSection: null as TFormRecordGroup | null };
 
-        // The record form's section_data lives on the parent form style (`style.section_data`)
-        // and contains records with translations for different languages.
-        const sectionDataArray = style.section_data as Array<Record<string, unknown>> | undefined;
-        if (!Array.isArray(sectionDataArray) || sectionDataArray.length === 0) {
+        const prefill = parseFormRecordPrefill({
+            section_data: style.section_data as unknown,
+            children: style.children as Parameters<typeof parseFormRecordPrefill>[0]['children'],
+        });
+        if (prefill.recordId === null) {
             return { existingRecordId: null, existingFormDataFromSection: null };
         }
-
-        // Group data by record_id
-        const recordGroups: Record<number, TFormRecordGroup> = {};
-
-        sectionDataArray.forEach((record) => {
-            const recordId = record.record_id as number | undefined;
-            if (!recordId) return;
-
-            if (!recordGroups[recordId]) {
-                recordGroups[recordId] = {};
-            }
-
-            // For each field in the record (excluding metadata fields)
-            Object.entries(record).forEach(([fieldName, fieldValue]) => {
-                // Skip metadata fields that are not form data
-                const skipFields = ['record_id', 'entry_date', 'id_users', 'user_name', 'user_code', 'id_actionTriggerTypes', 'triggerType', 'id_languages', 'language_locale', 'language_name'];
-                if (skipFields.includes(fieldName)) return;
-
-                const languageId = record.id_languages as number | undefined;
-                const value = fieldValue as string;
-
-                // Check if this field is translatable by looking at the child components
-                const childComponent = style.children?.find((child) => (child as { name?: { content?: string } }).name?.content === fieldName);
-                const isTranslatable = (childComponent as { translatable?: { content?: string } } | undefined)?.translatable?.content === '1';
-
-                if (isTranslatable) {
-                    // For translatable fields, collect values from all languages except 1
-                    if (languageId !== 1) {
-                        if (!recordGroups[recordId][fieldName]) {
-                            recordGroups[recordId][fieldName] = [];
-                        }
-
-                        // Add or update the language-specific value
-                        const langValues = recordGroups[recordId][fieldName] as TFormTranslatedValue[];
-                        const existingIndex = langValues.findIndex((v) => v.language_id === languageId);
-                        if (existingIndex >= 0) {
-                            langValues[existingIndex] = { language_id: languageId as number, value };
-                        } else {
-                            langValues.push({ language_id: languageId as number, value });
-                        }
-                    }
-                } else {
-                    // For non-translatable fields, use value from language_id: 1 (or any language if 1 is not available)
-                    if (languageId === 1 || !recordGroups[recordId][fieldName]) {
-                        recordGroups[recordId][fieldName] = value;
-                    }
-                }
-            });
-        });
-
-        // Get the first record group (assuming single record forms)
-        const firstRecordId = Object.keys(recordGroups)[0];
-        if (!firstRecordId) return { existingRecordId: null, existingFormDataFromSection: null };
-
-        const recordId = parseInt(firstRecordId);
-        const formData = recordGroups[recordId];
-
-        return { existingRecordId: recordId, existingFormDataFromSection: formData };
+        return {
+            existingRecordId: prefill.recordId,
+            existingFormDataFromSection: prefill.values,
+        };
     }, [isRecord, style]);
 
     // Function to collect files from all FileInput components
@@ -334,10 +289,13 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             if (isRecord && existingRecordId) {
                 // Update existing record
                 if (hasFiles) {
-                    // Send as FormData for file uploads - add required fields to clean FormData
+                    // Send as FormData for file uploads - add required fields to clean FormData.
+                    // The backend multipart branch reads the target record from the
+                    // `update_based_on` JSON param (a bare `record_id` field would be
+                    // treated as form data and the update would create a new row).
                     cleanFormData.append('page_id', String(pageId));
                     cleanFormData.append('section_id', String(sectionId));
-                    cleanFormData.append('record_id', String(existingRecordId));
+                    cleanFormData.append('update_based_on', JSON.stringify({ record_id: existingRecordId }));
                     response = await updateFormMutation.mutateAsync(cleanFormData);
                 } else {
                     // Send as JSON for regular data
@@ -379,6 +337,21 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             // Handle success alert - prefer backend message over style message
             const _successMessage = response?.data?.message || alertSuccess;
 
+            // CMS-in-CMS modal flow: after a successful save, refresh the page
+            // content (so the underlying list shows the new/updated row) and
+            // either redirect or close the surrounding modal. No-op for normal
+            // standalone forms (neither field set / not in a modal).
+            if (redirectOnSave || (closeModalOnSave && inModal)) {
+                void queryClient.invalidateQueries({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL,
+                });
+                if (redirectOnSave) {
+                    router.push(redirectOnSave);
+                } else {
+                    closeModal();
+                }
+            }
+
         } catch (error) {
             // Extract error message from API response if available
             let errorMessage = alertError || 'Failed to submit form. Please try again.';
@@ -407,17 +380,26 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
         confirmSubmit,
         submitFormMutation,
         updateFormMutation,
-        collectFilesFromInputs
+        collectFilesFromInputs,
+        redirectOnSave,
+        closeModalOnSave,
+        inModal,
+        closeModal,
+        router,
+        queryClient
     ]);
 
     const handleCancel = useCallback(() => {
+        if (inModal) {
+            closeModal();
+            return;
+        }
         if (cancelUrl) {
             window.location.href = cancelUrl;
-        } else {
-            // Default cancel behavior - could go back or stay on page
-            window.history.back();
+            return;
         }
-    }, [cancelUrl]);
+        window.history.back();
+    }, [inModal, closeModal, cancelUrl]);
 
     // Helper function to render buttons in correct order
     const renderButtons = useCallback(() => {
@@ -468,6 +450,10 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
         const value = existingFormDataFromSection[fieldName];
         return value !== null && value !== undefined ? value : null;
     }, [isRecord, existingFormDataFromSection]);
+
+    useEffect(() => {
+        hasInitializedForm.current = false;
+    }, [existingRecordId]);
 
     // Pre-populate form fields for record types with existing data from section_data
     // Note: Translatable fields are handled by LanguageTabsWrapper, so we skip them here
@@ -564,7 +550,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
               hydration checks. See React's documented escape-hatch:
               https://react.dev/reference/react-dom/client/hydrateRoot#suppressing-unavoidable-hydration-mismatch-errors
             */}
-            <form ref={formRef} key={formKey} onSubmit={handleSubmit} suppressHydrationWarning>
+            <form ref={formRef} key={`${formKey}-${existingRecordId ?? 'create'}`} onSubmit={handleSubmit} suppressHydrationWarning>
                 <input type="hidden" name="__id_sections" value={style.id} />
                 {isRecord && existingRecordId ? (
                     <input type="hidden" name="record_id" value={String(existingRecordId)} />

@@ -15,13 +15,13 @@ import {
     Stack,
     CopyButton,
     Tooltip,
-    ScrollArea,
 } from '@mantine/core';
 import { IconInfoCircle, IconX, IconCopy, IconCheck } from '@tabler/icons-react';
 import {
     helpTextForDisplay,
     type TFieldHelpExampleLanguage,
 } from '../../../../../utils/field-help.utils';
+import { LocaleTabBadges, type ILocaleTabLanguage } from '../../shared/locale-tabs/LocaleTabBadges';
 import styles from './FieldLabelWithTooltip.module.css';
 
 interface FieldLabelWithTooltipProps {
@@ -31,12 +31,20 @@ interface FieldLabelWithTooltipProps {
     tooltip: string;
     /** Whether the field is required */
     required?: boolean;
-    /** The locale code to display on the right side */
+    /** Static locale badge (legacy single-language display) */
     locale?: string;
+    /** Interactive locale tabs — replaces the static locale badge when set */
+    languages?: ILocaleTabLanguage[];
+    activeLanguageId?: string;
+    onActiveLanguageChange?: (languageId: string) => void;
     /** Optional copy-able example (e.g. a JSON snippet) shown in the popover */
     example?: string | null;
     /** Language label/highlighting hint for the example block */
     exampleLanguage?: TFieldHelpExampleLanguage;
+    /** Show only the info icon (for section headers and compact toolbars) */
+    iconOnly?: boolean;
+    /** Popover heading when `iconOnly` is true */
+    helpTitle?: string;
 }
 
 /**
@@ -53,14 +61,112 @@ export function FieldLabelWithTooltip({
     tooltip,
     required = false,
     locale,
+    languages,
+    activeLanguageId = '',
+    onActiveLanguageChange,
     example,
     exampleLanguage = 'text',
+    iconOnly = false,
+    helpTitle,
 }: FieldLabelWithTooltipProps) {
     const [opened, setOpened] = useState(false);
 
     const displayHelp = helpTextForDisplay(tooltip);
     const hasExample = !!example && example.trim().length > 0;
     const hasHelp = displayHelp.length > 0 || hasExample;
+    const popoverTitle = helpTitle ?? label;
+
+    const helpPopover = hasHelp ? (
+        <Popover
+            opened={opened}
+            onChange={setOpened}
+            position={iconOnly ? 'left-start' : 'right-start'}
+            withArrow
+            shadow="md"
+            width={340}
+            withinPortal
+            zIndex={10002}
+            trapFocus
+            closeOnEscape
+            closeOnClickOutside
+            offset={8}
+        >
+            <Popover.Target>
+                <ActionIcon
+                    variant="subtle"
+                    size="xs"
+                    color="gray"
+                    aria-label={`Help for ${popoverTitle}`}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        setOpened((o) => !o);
+                    }}
+                >
+                    <IconInfoCircle size="0.85rem" />
+                </ActionIcon>
+            </Popover.Target>
+            <Popover.Dropdown p={0} className={styles.helpDropdown}>
+                <Group
+                    justify="space-between"
+                    gap="xs"
+                    wrap="nowrap"
+                    align="flex-start"
+                    className={styles.helpHeader}
+                >
+                    <Text fw={600} size="sm">{popoverTitle}</Text>
+                    <ActionIcon
+                        variant="subtle"
+                        size="xs"
+                        color="gray"
+                        aria-label="Close help"
+                        onClick={() => setOpened(false)}
+                    >
+                        <IconX size="0.8rem" />
+                    </ActionIcon>
+                </Group>
+
+                <Box className={styles.helpScroll}>
+                    <Stack gap={8} className={styles.helpBody}>
+                        {displayHelp ? (
+                            <Text size="xs" c="dimmed" className={styles.helpText}>
+                                {displayHelp}
+                            </Text>
+                        ) : null}
+
+                        {hasExample ? (
+                            <Box className={styles.exampleBlock}>
+                                <Group justify="space-between" gap="xs" wrap="nowrap" className={styles.exampleHeader}>
+                                    <Text size="10px" tt="uppercase" fw={600} c="dimmed">
+                                        {exampleLanguage} example
+                                    </Text>
+                                    <CopyButton value={example!} timeout={1500}>
+                                        {({ copied, copy }) => (
+                                            <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow>
+                                                <ActionIcon
+                                                    variant="subtle"
+                                                    size="xs"
+                                                    color={copied ? 'teal' : 'gray'}
+                                                    aria-label="Copy example"
+                                                    onClick={copy}
+                                                >
+                                                    {copied ? <IconCheck size="0.8rem" /> : <IconCopy size="0.8rem" />}
+                                                </ActionIcon>
+                                            </Tooltip>
+                                        )}
+                                    </CopyButton>
+                                </Group>
+                                <pre className={styles.exampleCode}>{example}</pre>
+                            </Box>
+                        ) : null}
+                    </Stack>
+                </Box>
+            </Popover.Dropdown>
+        </Popover>
+    ) : null;
+
+    if (iconOnly) {
+        return helpPopover;
+    }
 
     return (
         <Box className={styles.labelContainer}>
@@ -75,85 +181,15 @@ export function FieldLabelWithTooltip({
                         {label}
                         {required && <Text span c="red"> *</Text>}
                     </Text>
-                    {hasHelp && (
-                        <Popover
-                            opened={opened}
-                            onChange={setOpened}
-                            position="top-start"
-                            withArrow
-                            shadow="md"
-                            width={360}
-                            withinPortal
-                            zIndex={10002}
-                            trapFocus
-                            closeOnEscape
-                            closeOnClickOutside
-                        >
-                            <Popover.Target>
-                                <ActionIcon
-                                    variant="subtle"
-                                    size="xs"
-                                    color="gray"
-                                    aria-label={`Help for ${label}`}
-                                    onClick={() => setOpened((o) => !o)}
-                                >
-                                    <IconInfoCircle size="0.85rem" />
-                                </ActionIcon>
-                            </Popover.Target>
-                            <Popover.Dropdown p="xs">
-                                <Stack gap={8}>
-                                    <Group justify="space-between" gap="xs" wrap="nowrap" align="flex-start">
-                                        <Text fw={600} size="sm">{label}</Text>
-                                        <ActionIcon
-                                            variant="subtle"
-                                            size="xs"
-                                            color="gray"
-                                            aria-label="Close help"
-                                            onClick={() => setOpened(false)}
-                                        >
-                                            <IconX size="0.8rem" />
-                                        </ActionIcon>
-                                    </Group>
-
-                                    {displayHelp && (
-                                        <Text size="xs" c="dimmed" className={styles.helpText}>
-                                            {displayHelp}
-                                        </Text>
-                                    )}
-
-                                    {hasExample && (
-                                        <Box className={styles.exampleBlock}>
-                                            <Group justify="space-between" gap="xs" wrap="nowrap" className={styles.exampleHeader}>
-                                                <Text size="10px" tt="uppercase" fw={600} c="dimmed">
-                                                    {exampleLanguage} example
-                                                </Text>
-                                                <CopyButton value={example!} timeout={1500}>
-                                                    {({ copied, copy }) => (
-                                                        <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow>
-                                                            <ActionIcon
-                                                                variant="subtle"
-                                                                size="xs"
-                                                                color={copied ? 'teal' : 'gray'}
-                                                                aria-label="Copy example"
-                                                                onClick={copy}
-                                                            >
-                                                                {copied ? <IconCheck size="0.8rem" /> : <IconCopy size="0.8rem" />}
-                                                            </ActionIcon>
-                                                        </Tooltip>
-                                                    )}
-                                                </CopyButton>
-                                            </Group>
-                                            <ScrollArea.Autosize mah={200} type="auto">
-                                                <pre className={styles.exampleCode}>{example}</pre>
-                                            </ScrollArea.Autosize>
-                                        </Box>
-                                    )}
-                                </Stack>
-                            </Popover.Dropdown>
-                        </Popover>
-                    )}
+                    {hasHelp && helpPopover}
                 </Group>
-                {locale && (
+                {languages && languages.length > 0 && onActiveLanguageChange ? (
+                    <LocaleTabBadges
+                        languages={languages}
+                        activeLanguageId={activeLanguageId}
+                        onActiveLanguageChange={onActiveLanguageChange}
+                    />
+                ) : locale ? (
                     <Badge
                         variant="light"
                         color="gray"
@@ -162,7 +198,7 @@ export function FieldLabelWithTooltip({
                     >
                         {locale}
                     </Badge>
-                )}
+                ) : null}
             </Group>
         </Box>
     );

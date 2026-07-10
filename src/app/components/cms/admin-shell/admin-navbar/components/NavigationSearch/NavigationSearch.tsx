@@ -23,6 +23,8 @@ import styles from './NavigationSearch.module.css';
 import { useNavigationStore } from '../../../../../../store/navigation.store';
 import { useAuth } from '../../../../../../../hooks/useAuth';
 import { usePluginMenuItems } from '../../../../../frontend/plugin-runtime';
+import { pageHasMenuMembership } from '../../../../../../../utils/admin-navigation-membership';
+import type { INavigationMembershipBadge } from '../../../../../../../types/responses/admin/admin.types';
 
 interface ISearchableItem {
     id: string;
@@ -54,8 +56,9 @@ interface IAdminPageData {
     allPages?: Array<{
         keyword: string;
         title?: string;
-        nav_position?: number | null;
-        footer_position?: number | null;
+        /** Titles per language so search matches any translation. */
+        titles?: Array<{ language_id: number; title: string }>;
+        navigationMembership?: INavigationMembershipBadge[];
         is_system: boolean;
         children?: Array<{
             keyword: string;
@@ -236,10 +239,12 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                 keyword: string;
                 label: string;
                 title?: string;
+                extraTerms?: string[];
                 children?: Array<{
                     keyword: string;
                     label: string;
                     title?: string;
+                    extraTerms?: string[];
                     children?: unknown[];
                 }>;
             }>, categoryName: string) => {
@@ -247,10 +252,12 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                     keyword: string;
                     label: string;
                     title?: string;
+                    extraTerms?: string[];
                     children?: Array<{
                         keyword: string;
                         label: string;
                         title?: string;
+                        extraTerms?: string[];
                         children?: unknown[];
                     }>;
                 }, level: number = 0) => {
@@ -261,7 +268,10 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                         displayName.toLowerCase(),
                         page.keyword,
                         page.label.toLowerCase(),
-                        categoryName.toLowerCase()
+                        categoryName.toLowerCase(),
+                        // Titles in every CMS language, so a page titled
+                        // "Über uns" is found by its title, not just keyword.
+                        ...(page.extraTerms ?? []),
                     ];
 
                     // Only add level-specific keywords for actual submenus (level > 0)
@@ -310,10 +320,12 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                     keyword: string;
                     label: string;
                     title?: string;
+                    extraTerms?: string[];
                     children?: Array<{
                         keyword: string;
                         label: string;
                         title?: string;
+                        extraTerms?: string[];
                         children?: unknown[];
                     }>;
                 }> => {
@@ -322,6 +334,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                         keyword: page.keyword,
                         label: page.title || page.keyword, // Use title as label for display
                         title: page.title,
+                        extraTerms: (page.titles ?? []).map(t => t.title.toLowerCase()),
                         children: page.children ? convertAllPagesToRegularFormat(page.children as typeof adminPagesData.allPages) : undefined
                     }));
                 };
@@ -332,22 +345,22 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                 // Filter menu pages from raw data (preserves hierarchy)
                 const menuPages = convertAllPagesToRegularFormat(
                     adminPagesData.allPages.filter((page) =>
-                        page.nav_position !== null && page.nav_position !== undefined && !page.is_system &&
-                        !configurationKeywords.has(page.keyword) // Exclude configuration pages
+                        pageHasMenuMembership(page.navigationMembership, 'web_header') && !page.is_system &&
+                        !configurationKeywords.has(page.keyword)
                     )
                 );
                 const footerPages = convertAllPagesToRegularFormat(
                     adminPagesData.allPages.filter((page) =>
-                        page.footer_position !== null && page.footer_position !== undefined && !page.is_system &&
-                        !configurationKeywords.has(page.keyword) // Exclude configuration pages
+                        pageHasMenuMembership(page.navigationMembership, 'web_footer') && !page.is_system &&
+                        !configurationKeywords.has(page.keyword)
                     )
                 );
                 const otherPages = convertAllPagesToRegularFormat(
                     adminPagesData.allPages.filter((page) =>
-                        (page.nav_position === null || page.nav_position === undefined) &&
-                        (page.footer_position === null || page.footer_position === undefined) &&
+                        !pageHasMenuMembership(page.navigationMembership, 'web_header') &&
+                        !pageHasMenuMembership(page.navigationMembership, 'web_footer') &&
                         !page.is_system &&
-                        !configurationKeywords.has(page.keyword) // Exclude configuration pages
+                        !configurationKeywords.has(page.keyword)
                     )
                 );
 

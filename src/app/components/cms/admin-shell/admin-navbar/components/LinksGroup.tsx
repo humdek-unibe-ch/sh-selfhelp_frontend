@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Group,
   Box,
@@ -15,7 +15,16 @@ import {
 import { IconChevronRight } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
 import classes from './LinksGroup.module.css';
-import { useIsClient } from '../../../../../../hooks/useIsClient';
+
+/** True only after the first client commit — keeps SSR and hydration markup aligned. */
+function useAdminNavMounted(): boolean {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- defer persisted nav chrome until after hydration
+    setMounted(true);
+  }, []);
+  return mounted;
+}
 
 /** A single admin navbar link, optionally containing nested children. */
 interface INavLinkItem {
@@ -25,6 +34,9 @@ interface INavLinkItem {
   onClick?: () => void;
   id?: number | string;
   links?: INavLinkItem[];
+  menuBuilderLink?: string;
+  menuIcon?: string | null;
+  menuPlatform?: 'web' | 'mobile';
 }
 
 // Helper function to check if any nested link is active
@@ -38,10 +50,8 @@ function checkForActiveChild(links: INavLinkItem[], pathname: string): boolean {
   });
 }
 
-const noopSubscribe = () => () => {};
 
-// Read the persisted open/closed boolean for a navbar group. Returns null when
-// there is no usable stored value (or on the server, via getServerSnapshot).
+// Read the persisted open/closed boolean for a navbar group.
 function readStoredOpened(storageKey: string): boolean | null {
   try {
     const stored = localStorage.getItem(storageKey);
@@ -69,33 +79,63 @@ function usePersistedDisclosure(
   defaultOpened: boolean,
   hasActiveChild: boolean,
 ): readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>] {
-  const [opened, setOpened] = useState<boolean>(defaultOpened);
-  const hydrated = useIsClient();
-  const persisted = useSyncExternalStore(
-    noopSubscribe,
-    () => readStoredOpened(storageKey),
-    () => null,
-  );
-  const [appliedPersisted, setAppliedPersisted] = useState(false);
-  if (!appliedPersisted && persisted !== null) {
-    setAppliedPersisted(true);
-    setOpened(persisted);
-  }
-  // Auto-open when a descendant route is active.
-  if (hasActiveChild && !opened) {
-    setOpened(true);
-  }
-  // Persist after the first client render, so the deterministic default cannot
-  // overwrite a previously-stored choice.
+  const navMounted = useAdminNavMounted();
+  const [opened, setOpened] = useState<boolean>(() => Boolean(defaultOpened || hasActiveChild));
+
   useEffect(() => {
-    if (!hydrated) return;
+    if (!navMounted) return;
+    if (hasActiveChild) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- active route branches stay expanded
+      setOpened(true);
+      return;
+    }
+    const persisted = readStoredOpened(storageKey);
+    if (persisted !== null) {
+      setOpened(persisted);
+    }
+  }, [navMounted, storageKey, hasActiveChild]);
+
+  useEffect(() => {
+    if (!navMounted) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify(opened));
     } catch {
       // Quota / private-mode — best-effort, don't throw.
     }
-  }, [opened, storageKey, hydrated]);
+  }, [opened, storageKey, navMounted]);
+
   return [opened, setOpened] as const;
+}
+
+/**
+ * A standalone top-level navbar link (e.g. Dashboard) rendered outside the
+ * accordion, styled to align with the accordion controls.
+ */
+export function NavDirectLink({ label, icon, link, active }: {
+  label: string;
+  icon?: React.ReactNode;
+  link: string;
+  active?: boolean;
+}) {
+  const router = useRouter();
+  return (
+    <UnstyledButton
+      component="a"
+      href={link}
+      className={classes.directLink}
+      data-active={active || undefined}
+      onClick={(e: React.MouseEvent) => {
+        if (e.button === 1 || e.ctrlKey || e.metaKey) return;
+        e.preventDefault();
+        router.push(link);
+      }}
+    >
+      <Group gap={10} wrap="nowrap">
+        <Box className={classes.directLinkIcon}>{icon}</Box>
+        <span>{label}</span>
+      </Group>
+    </UnstyledButton>
+  );
 }
 
 interface ILinksGroupProps {
@@ -127,6 +167,8 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
     Boolean(initiallyOpened || hasActiveChild),
     hasActiveChild,
   );
+  const navMounted = useAdminNavMounted();
+  const collapseExpanded = navMounted ? opened : Boolean(initiallyOpened || hasActiveChild);
 
   const handleItemClick = (href: string, clickHandler?: () => void, e?: React.MouseEvent) => {
     // Support middle click and ctrl+click for new tab
@@ -134,13 +176,13 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
       window.open(href, '_blank');
       return;
     }
-    
+
     // If there's a custom click handler, use it
     if (clickHandler) {
       clickHandler();
       return;
     }
-    
+
     // Only navigate if it's not just a '#' placeholder
     if (href && href !== '#') {
       router.push(href);
@@ -183,23 +225,21 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
       return (
         <Text<'a'>
           component="a"
+          key={item.id || item.label}
           className={`${classes.link} ${getNestedLinkClass(level)}`}
           href={item.link}
-          key={item.id || item.label}
           data-active={isItemActive}
           onClick={(e) => {
             e.preventDefault();
             handleItemClick(item.link, item.onClick, e);
           }}
           onMouseDown={(e: React.MouseEvent) => {
-            // Handle middle click
             if (e.button === 1) {
               e.preventDefault();
               window.open(item.link, '_blank');
             }
           }}
           onContextMenu={(e: React.MouseEvent) => {
-            // Allow right-click context menu for "open in new tab"
             e.stopPropagation();
           }}
         >
@@ -218,11 +258,14 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
           {/* Main clickable area for navigation */}
           <UnstyledButton
             onClick={() => {
-              // Always handle navigation/selection for main area
+              // Groups without a real link toggle on the whole row —
+              // the chevron alone is a small hit target.
               if (link && link !== '#') {
                 handleItemClick(link, onClick);
               } else if (onClick) {
                 onClick();
+              } else if (hasLinks) {
+                setOpened((o: boolean) => !o);
               }
             }}
             onMouseDown={(e: React.MouseEvent) => {
@@ -241,11 +284,11 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
             className={classes.nestedLink}
           >
             <Box className={classes.iconContainer}>
-              <Box mr="md">{icon}</Box>
+              {icon ? <Box className={classes.groupIcon}>{icon}</Box> : null}
               <Box>{label}</Box>
             </Box>
           </UnstyledButton>
-          
+
           {/* Separate clickable area for expand/collapse */}
           {hasLinks && (
             <UnstyledButton
@@ -257,14 +300,14 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
             >
               <IconChevronRight
                 className={`${classes.chevron} ${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}
-                size="1rem"
+                size="0.9rem"
                 stroke={1.5}
               />
             </UnstyledButton>
           )}
         </Group>
       </Box>
-      {hasLinks ? <Collapse expanded={opened}>{items}</Collapse> : null}
+      {hasLinks ? <Collapse expanded={collapseExpanded}>{items}</Collapse> : null}
     </>
   );
 }
@@ -285,6 +328,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
   const router = useRouter();
   const storageKey = `navbar-nested-${label.replace(/\s+/g, '-').toLowerCase()}-${level}-opened`;
   const hasActiveChild = checkForActiveChild(links, pathname);
+  const isActive = link === pathname;
 
   // Deterministic initial state to keep SSR and first client render in sync.
   // See the matching comment in `LinksGroup` above.
@@ -293,6 +337,8 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
     Boolean(hasActiveChild),
     hasActiveChild,
   );
+  const navMounted = useAdminNavMounted();
+  const collapseExpanded = navMounted ? opened : hasActiveChild;
 
   const handleItemClick = (href: string, clickHandler?: () => void, e?: React.MouseEvent) => {
     // Support middle click and ctrl+click for new tab
@@ -300,13 +346,13 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
       window.open(href, '_blank');
       return;
     }
-    
+
     // If there's a custom click handler, use it
     if (clickHandler) {
       clickHandler();
       return;
     }
-    
+
     // Only navigate if it's not just a '#' placeholder
     if (href && href !== '#') {
       router.push(href);
@@ -358,15 +404,12 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
             handleItemClick(item.link, item.onClick, e);
           }}
           onMouseDown={(e: React.MouseEvent) => {
-            // Handle middle click
             if (e.button === 1) {
               e.preventDefault();
               window.open(item.link, '_blank');
             }
           }}
-
           onContextMenu={(e: React.MouseEvent) => {
-            // Allow right-click context menu for "open in new tab"
             e.stopPropagation();
           }}
         >
@@ -392,8 +435,9 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
     <>
       <Box
         className={`${classes.link} ${getNestedParentLinkClass(level)}`}
+        data-active={isActive}
       >
-        <Group justify="space-between" gap={0}>
+        <Group justify="space-between" gap={0} wrap="nowrap">
           {/* Main clickable area for navigation */}
           <UnstyledButton
             onClick={() => {
@@ -402,6 +446,8 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
                 handleItemClick(link, onClick, undefined);
               } else if (onClick) {
                 onClick();
+              } else {
+                setOpened((o: boolean) => !o);
               }
             }}
             className={classes.nestedLink}
@@ -419,13 +465,13 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
           >
             <IconChevronRight
               className={`${classes.chevron} ${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}
-              size="1rem"
+              size="0.9rem"
               stroke={1.5}
             />
           </UnstyledButton>
         </Group>
       </Box>
-      <Collapse expanded={opened}>{items}</Collapse>
+      <Collapse expanded={collapseExpanded}>{items}</Collapse>
     </>
   );
 }

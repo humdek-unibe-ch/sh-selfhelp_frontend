@@ -97,7 +97,7 @@ describe('page mutation cache keys', () => {
         expect(QK.SECTION_DETAILS(4, 9)).not.toEqual(['sectionDetails', 9]);
     });
 
-    it('create invalidates the admin-pages + frontend-pages keys, never the dead literals', async () => {
+    it('create invalidates the admin-pages + navigation keys, never the dead literals', async () => {
         createPage.mockResolvedValue({ id: 1, keyword: 'qa-page' });
         const queryClient = createTestQueryClient();
         const spy = vi.spyOn(queryClient, 'invalidateQueries');
@@ -110,6 +110,8 @@ describe('page mutation cache keys', () => {
 
         const keys = invalidatedKeys(spy.mock.calls);
         expect(keys).toContain(JSON.stringify(QK.ADMIN_PAGES));
+        expect(keys).toContain(JSON.stringify(QK.ADMIN_NAVIGATION_ALL));
+        expect(keys).toContain(JSON.stringify(QK.NAVIGATION_ALL));
         expect(keys).toContain(JSON.stringify(QK.FRONTEND_PAGES_ALL));
         expect(keys).not.toContain(JSON.stringify(['adminPages']));
         expect(keys).not.toContain(JSON.stringify(['pages']));
@@ -169,6 +171,6 @@ describe('page mutation cache keys', () => {
         expect(events).toContain(`remove:${JSON.stringify(QK.PAGE_FIELDS(9))}`);
         expect(events).toContain(`remove:${JSON.stringify(QK.PAGE_SECTIONS(9))}`);
         expect(events).toContain(`invalidate:${JSON.stringify(QK.ADMIN_PAGES)}`);
-        expect(events).toContain(`invalidate:${JSON.stringify(QK.FRONTEND_PAGES_ALL)}`);
+        expect(events).toContain(`invalidate:${JSON.stringify(QK.ADMIN_NAVIGATION_ALL)}`);
     });
 });

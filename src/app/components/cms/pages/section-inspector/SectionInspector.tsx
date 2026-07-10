@@ -35,12 +35,14 @@ import { downloadJsonFile, generateExportFilename } from '../../../../../utils/e
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
+import { OPTION_STYLE_CONFIGS, type TOptionStyleName } from '@selfhelp/shared';
 import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
 import { InspectorHeader } from '../../shared/inspector-header/InspectorHeader';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { SectionInfoPanel } from './section-field-groups';
 import { SectionFieldPanels } from './SectionFieldPanels';
+import { validateSerializedOptionConfiguration } from '../../shared/field-components/option-catalog-editor.utils';
 
 interface ISectionInspectorProps {
     pageId: number | null;
@@ -254,6 +256,32 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
             }
         }
 
+        const styleName = sectionDetailsData.section.style?.name;
+        const optionStyleConfig = styleName && styleName in OPTION_STYLE_CONFIGS
+            ? OPTION_STYLE_CONFIGS[styleName as TOptionStyleName]
+            : null;
+        if (optionStyleConfig !== null) {
+            const storeState = useSectionFormStore.getState();
+            const validationIssues = validateSerializedOptionConfiguration(
+                String(storeState.properties[optionStyleConfig.catalogField] ?? ''),
+                storeState.fields.option_labels ?? {},
+                languagesData,
+            );
+            if (validationIssues.length > 0) {
+                const visibleIssues = validationIssues.slice(0, 3).map((issue) => issue.message);
+                const remainingCount = validationIssues.length - visibleIssues.length;
+                notifications.show({
+                    title: 'Invalid option configuration',
+                    message: [
+                        ...visibleIssues,
+                        ...(remainingCount > 0 ? [`${remainingCount} more error${remainingCount === 1 ? '' : 's'}.`] : []),
+                    ].join(' '),
+                    color: 'red',
+                });
+                return;
+            }
+        }
+
         const submitData: IUpdateSectionRequest = {
             contentFields: [],
             propertyFields: [],
@@ -440,6 +468,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                     sectionId={sectionId}
                     fields={fields}
                     styleName={section.style.name}
+                    ownedDataTable={sectionDetailsData.data_table}
                     languagesData={languagesData}
                     activeLanguageTab={activeLanguageTab}
                     onLanguageTabChange={setActiveLanguageTab}

@@ -2,8 +2,11 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-/* Website Footer Styles */
+/* Website Footer Styles — use Mantine semantic tokens so the surface tracks
+   the in-app light/dark toggle (`data-mantine-color-scheme`), not OS
+   `prefers-color-scheme` via `light-dark()`. */
 .footer {
-  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-  border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  background-color: var(--mantine-color-body);
+  border-top: 1px solid var(--mantine-color-default-border);
+  color: var(--mantine-color-text);
 }

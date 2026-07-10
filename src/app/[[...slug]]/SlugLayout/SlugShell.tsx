@@ -14,9 +14,15 @@ import '@mantine/dates/styles.css';
 import '@mantine/carousel/styles.css';
 import '@mantine/tiptap/styles.css';
 import { AppShell } from '@mantine/core';
+import { isDoubleWebHeaderPreset, resolveWebHeaderPreset } from '@selfhelp/shared';
 import { DebugMenu } from '../../components/shared/common/debug';
+import { AdminEditCornerButton } from '../../components/shared/auth/AdminEditCornerButton';
 import { PreviewModeIndicator } from '../../components/shared/common/PreviewModeIndicator';
+import { WebStartupRedirect } from '../../components/frontend/navigation/WebStartupRedirect';
 import { usePreviewMode } from '../../components/contexts/PreviewModeContext';
+import { useAppNavigation } from '../../../hooks/useAppNavigation';
+import { resolveWebHeaderHeight } from '../../components/frontend/layout/header/headerLayout.utils';
+import type { INavigationBranding } from '../../../shared';
 import styles from './SlugLayout.module.css';
 
 interface ISlugShellProps {
@@ -26,6 +32,17 @@ interface ISlugShellProps {
      * fetch avoids the old "show header, then hide" flash on headless pages.
      */
     isHeadless: boolean;
+    /**
+     * Server-resolved `web_header` preset so the very first paint already
+     * reserves the correct header height (double presets need two rows).
+     * Live preset switches take over once the client navigation query lands.
+     */
+    initialHeaderPreset?: string | null;
+    /**
+     * Server-resolved branding so the first paint reserves enough header
+     * height for large logo sizes.
+     */
+    initialBranding?: INavigationBranding | null;
     /**
      * Server-rendered website header (`<WebsiteHeader />`). Passed as a
      * slot so the server-rendered menu HTML is part of the very first
@@ -52,11 +69,26 @@ interface ISlugShellProps {
  * Header + footer are passed as Server-Component slots so their HTML
  * (including the navigation menu) is already in the SSR response.
  */
-export default function SlugShell({ isHeadless, header, footer, children }: ISlugShellProps) {
+export default function SlugShell({
+    isHeadless,
+    initialHeaderPreset = null,
+    initialBranding = null,
+    header,
+    footer,
+    children,
+}: ISlugShellProps) {
     const { isPreviewMode } = usePreviewMode();
+    // Double header presets render two rows (top utility row + main nav), so
+    // the AppShell offset must grow with them or the page content hides the
+    // second row and the header links overlap the hero.
+    const { headerMenu, navigation } = useAppNavigation();
+    const preset = headerMenu?.preset ?? initialHeaderPreset;
+    const isDouble = isDoubleWebHeaderPreset(resolveWebHeaderPreset(preset));
+    const branding = navigation?.branding ?? initialBranding;
+    const headerHeight = resolveWebHeaderHeight(isDouble, branding);
 
     return (
-        <AppShell header={!isHeadless ? { height: 60 } : undefined}>
+        <AppShell header={!isHeadless ? { height: headerHeight } : undefined}>
             {!isHeadless && header && (
                 <AppShell.Header>
                     {header}
@@ -64,6 +96,7 @@ export default function SlugShell({ isHeadless, header, footer, children }: ISlu
             )}
 
             <AppShell.Main className={styles.mainLayout}>
+                <WebStartupRedirect />
                 {isPreviewMode && <PreviewModeIndicator />}
                 <div className={styles.contentArea}>{children}</div>
 
@@ -75,6 +108,7 @@ export default function SlugShell({ isHeadless, header, footer, children }: ISlu
             </AppShell.Main>
 
             <DebugMenu />
+            <AdminEditCornerButton />
         </AppShell>
     );
 }

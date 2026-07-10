@@ -1,0 +1,226 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/* Top-level nav trigger: padded pill with hover + active states. */
+.navTrigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-text);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 100ms ease, color 100ms ease;
+}
+
+.navTrigger:hover {
+    background-color: var(--mantine-color-default-hover);
+}
+
+.navTrigger[data-active='true'] {
+    background-color: var(--mantine-color-blue-light);
+    color: var(--mantine-color-blue-light-color);
+}
+
+/* Rows inside a dropdown panel. */
+.dropdownRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-text);
+    text-decoration: none;
+    transition: background-color 100ms ease;
+}
+
+.dropdownRow:hover {
+    background-color: var(--mantine-color-default-hover);
+}
+
+/* Indented grandchildren under a dropdown/mega entry (depth 3).
+   The horizontal indent is set inline (dropdown vs mega icon widths). */
+.subLinkList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 2px 0 4px;
+    padding-left: 10px;
+    border-left: 1px solid var(--mantine-color-default-border);
+}
+
+.subLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-dimmed);
+    font-size: var(--mantine-font-size-xs);
+    text-decoration: none;
+    transition: background-color 100ms ease, color 100ms ease;
+}
+
+.subLink:hover {
+    background-color: var(--mantine-color-default-hover);
+    color: var(--mantine-color-text);
+}
+
+/* Cells inside the mega menu grid. */
+.megaItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--mantine-radius-md);
+    color: var(--mantine-color-text);
+    text-decoration: none;
+    transition: background-color 100ms ease;
+}
+
+.megaItem:hover {
+    background-color: var(--mantine-color-default-hover);
+}
+
+/* Slim links in the top utility row of double presets. */
+.topRowLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-dimmed);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 100ms ease, color 100ms ease;
+}
+
+.topRowLink:hover {
+    background-color: var(--mantine-color-default-hover);
+    color: var(--mantine-color-text);
+}
+
+/* Width-aware overflow row: hidden measure pass + visible flex row. */
+.navOverflowRoot {
+    position: relative;
+    min-width: 0;
+    flex: 1 1 0;
+    width: 100%;
+}
+
+.navOverflowMeasure {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    width: max-content;
+    height: auto;
+    overflow: visible;
+    visibility: hidden;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.navOverflowVisible {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    min-width: 0;
+    width: 100%;
+}
+
+.navOverflowPending {
+    visibility: hidden;
+}
+
+.navOverflowVisible :global(.mantine-Tabs-root) {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.tabsOverflowSlot {
+    display: inline-flex;
+    align-items: flex-end;
+    align-self: stretch;
+    flex-shrink: 0;
+    margin-left: 2px;
+}
+
+.tabsOverflowTrigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: var(--mantine-radius-sm) var(--mantine-radius-sm) 0 0;
+    background: transparent;
+    color: var(--mantine-color-dimmed);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 100ms ease, color 100ms ease, border-color 100ms ease;
+}
+
+.tabsOverflowTrigger:hover {
+    background-color: var(--mantine-color-default-hover);
+    color: var(--mantine-color-text);
+}
+
+.tabsOverflowSlot .navOverflowIconTrigger {
+    width: 34px;
+    height: 34px;
+    margin-bottom: 1px;
+    border-radius: var(--mantine-radius-sm) var(--mantine-radius-sm) 0 0;
+    color: var(--mantine-color-dimmed);
+}
+
+.tabsOverflowSlot .navOverflowIconTrigger:hover {
+    background-color: var(--mantine-color-default-hover);
+    color: var(--mantine-color-text);
+}
+
+.navOverflowIconTrigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-dimmed);
+    cursor: pointer;
+    transition: background-color 100ms ease, color 100ms ease;
+}
+
+.navOverflowIconTrigger:hover {
+    background-color: var(--mantine-color-default-hover);
+    color: var(--mantine-color-text);
+}
+
+.topRowOverflow {
+    flex: 1;
+    min-width: 0;
+}
+
+.overflowPanelLink {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-text);
+    text-decoration: none;
+    transition: background-color 100ms ease;
+}
+
+.overflowPanelLink:hover {
+    background-color: var(--mantine-color-default-hover);
+}

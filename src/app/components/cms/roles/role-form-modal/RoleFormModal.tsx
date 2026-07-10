@@ -11,8 +11,8 @@ import {
   TextInput,
   Textarea,
   Group,
+  Grid,
   Text,
-  Divider,
   LoadingOverlay,
   MultiSelect,
 } from '@mantine/core';
@@ -161,31 +161,21 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
     >
       <LoadingOverlay visible={isLoading} />
       
+      {/* Two columns: identity left, permissions right — no inner scrollbar. */}
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
-          {/* Role Information Display for Edit Mode */}
-          {mode === 'edit' && roleDetails && (
-            <div>
-              <Text size="sm" fw={500} mb="xs">
-                Role Information
-              </Text>
-              <Group>
-                <Text size="sm" fw={500} c="dimmed" className="min-w-[80px]">
-                  Name:
-                </Text>
-                <Text size="sm">
-                  {roleDetails.name}
-                </Text>
-              </Group>
-            </div>
-          )}
-
-          {/* Basic Information */}
-          <div>
-            <Text size="sm" fw={500} mb="xs">
-              {mode === 'create' ? 'Basic Information' : 'Editable Information'}
-            </Text>
+        <Grid gap="xl">
+          <Grid.Col span={{ base: 12, sm: 6 }}>
             <Stack gap="sm">
+              {mode === 'edit' && roleDetails && (
+                <Group>
+                  <Text size="sm" fw={500} c="dimmed" className="min-w-[80px]">
+                    Name:
+                  </Text>
+                  <Text size="sm">
+                    {roleDetails.name}
+                  </Text>
+                </Group>
+              )}
               {mode === 'create' && (
                 <TextInput
                   label="Role Name"
@@ -205,33 +195,27 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
                 {...form.getInputProps('description')}
               />
             </Stack>
-          </div>
+          </Grid.Col>
 
-          <Divider />
-
-          {/* Permissions */}
-          <div>
-            <Text size="sm" fw={500} mb="xs">
-              Permissions
-            </Text>
-            
-            <MultiSelect
-              label="Role Permissions"
-              placeholder="Select permissions for this role"
-              data={permissionOptions}
-              searchable
-              clearable
-              maxDropdownHeight={300}
-              disabled={isLoading}
-              {...form.getInputProps('permission_ids')}
-            />
-            
-            <Text size="xs" c="dimmed" mt="xs">
-              Select the permissions that users with this role should have.
-            </Text>
-          </div>
-
-        </Stack>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <Stack gap="sm">
+              <MultiSelect
+                label="Role Permissions"
+                placeholder="Select permissions for this role"
+                data={permissionOptions}
+                searchable
+                clearable
+                maxDropdownHeight={300}
+                disabled={isLoading}
+                {...form.getInputProps('permission_ids')}
+              />
+              
+              <Text size="xs" c="dimmed">
+                Select the permissions that users with this role should have.
+              </Text>
+            </Stack>
+          </Grid.Col>
+        </Grid>
       </form>
     </ModalWrapper>
   );

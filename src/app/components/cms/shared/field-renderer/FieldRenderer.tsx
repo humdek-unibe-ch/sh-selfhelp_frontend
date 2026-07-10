@@ -15,17 +15,24 @@ import {
     CheckboxField,
     SelectField,
     SelectIconField,
+    SelectIconMobileField,
+    ModalSizeSelectField,
     SliderField,
     SegmentedControlField,
     UnknownField,
     ConditionBuilderField,
     DataConfigField,
+    EntryFilterField,
+    EntryRecordFormDataTableField,
+    DataTableColumnSelectField,
     ColorPickerField,
     SpacingField,
-    MonacoEditorField
+    MonacoEditorField,
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+import type { ISectionDataTableInfo } from '../../../../../types/responses/admin/admin.types';
 import { extractFieldHelpExample } from '../../../../../utils/field-help.utils';
+import type { ILocaleTabLanguage } from '../locale-tabs/LocaleTabBadges';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { usePluginFieldRenderer } from '../../../frontend/plugin-runtime';
@@ -42,7 +49,6 @@ export interface IGlobalFieldRendererProps {
     dataVariables?: Record<string, string>;
 }
 import { sanitizeName, validateName } from '../../../../../utils/name-validation.utils';
-
 // Use the actual field structure from API response
 export interface IFieldData {
     id: number;
@@ -69,6 +75,9 @@ interface IFieldRendererProps {
     value?: string | boolean; // Optional: use this value if provided, otherwise extract from field
     onChange: (value: string | boolean) => void;
     locale?: string;
+    languages?: ILocaleTabLanguage[];
+    activeLanguageId?: string;
+    onActiveLanguageChange?: (languageId: string) => void;
     className?: string;
     disabled?: boolean;
     dataVariables?: Record<string, string>;
@@ -78,6 +87,9 @@ interface IFieldRendererProps {
      * (issue #56 mail editor).
      */
     emailStyles?: boolean;
+    sectionId?: number | null;
+    styleName?: string;
+    ownedDataTable?: ISectionDataTableInfo | null;
 }
 
 /**
@@ -88,7 +100,7 @@ interface IFieldRendererProps {
  * `textarea` (rich text) and `markdown` / `json` / `css` / `code` types instead,
  * so the editor is driven purely by field TYPE (issue #56).
  */
-const PLAIN_IDENTIFIER_FIELD_NAMES = new Set(['name', 'value', 'title']);
+const PLAIN_IDENTIFIER_FIELD_NAMES = new Set(['name', 'value', 'title', 'scope', 'load_record_from']);
 
 // Props shared by the select-language / select-timezone branch components.
 // These are extracted into dedicated components so their data hooks are called
@@ -176,7 +188,23 @@ function SelectTimezoneField({ fieldId, fieldValue, onChange, disabled }: ISelec
 }
 
 export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Record<string, string> }) {
-    const { field, languageId, value, onChange, locale, className, disabled = false, dataVariables, emailStyles = false } = props;
+    const {
+        field,
+        languageId,
+        value,
+        onChange,
+        locale,
+        languages,
+        activeLanguageId,
+        onActiveLanguageChange,
+        className,
+        disabled = false,
+        dataVariables,
+        emailStyles = false,
+        sectionId,
+        styleName,
+        ownedDataTable,
+    } = props;
 
     // Plugin-supplied editor renderers take priority over host built-ins so
     // plugin-owned field types (e.g. `select-survey-js`) stay inside the
@@ -240,6 +268,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             case 'select-language': return 'green';
             case 'select-timezone': return 'purple';
             case 'select-icon': return 'violet';
+            case 'select-icon-mobile': return 'violet';
             case 'select-css': return 'violet';
             case 'select-group': return 'cyan';
             case 'select-data_table': return 'grape';
@@ -266,7 +295,10 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                     <FieldLabelWithTooltip
                         label={getFieldLabel()}
                         tooltip={field.help || ''}
-                        locale={locale}
+                        locale={languages && languages.length > 0 ? undefined : locale}
+                        languages={languages}
+                        activeLanguageId={activeLanguageId}
+                        onActiveLanguageChange={onActiveLanguageChange}
                         example={helpExample?.code}
                         exampleLanguage={helpExample?.language}
                     />
@@ -349,6 +381,51 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
     
+    // SQL filter on entry-list — visual builder keyed by field type or legacy name.
+    if (field.type === 'entry-filter' || field.name === 'filter') {
+        return renderFieldWithBadge(
+            <EntryFilterField
+                value={fieldValue}
+                onChange={onChange}
+                dataVariables={dataVariables}
+                sectionId={sectionId ?? undefined}
+            />,
+        );
+    }
+
+    if (field.type === 'select-data_table_columns') {
+        return renderFieldWithBadge(
+            <DataTableColumnSelectField
+                value={fieldValue}
+                onChange={onChange}
+                disabled={disabled}
+                mode="multiple"
+            />,
+        );
+    }
+
+    if (field.type === 'select-data_table_column') {
+        return renderFieldWithBadge(
+            <DataTableColumnSelectField
+                value={fieldValue}
+                onChange={onChange}
+                disabled={disabled}
+                mode="single"
+            />,
+        );
+    }
+
+    // fields-map is edited only in the section inspector Column mapping panel
+    // (FieldsMapField writes fields_map + fields_map_labels together). The generic
+    // field list must not mount a second editor for the same property.
+    if (field.type === 'fields-map') {
+        return renderFieldWithBadge(
+            <Text size="sm" c="dimmed">
+                Use the Column mapping panel to configure columns and header labels.
+            </Text>,
+        );
+    }
+
     // Code field - raw markup (e.g. html_tag_content) in a Monaco HTML editor with
     // `{{` variable completion. Hand-written HTML must NOT go through the WYSIWYG,
     // which would normalise/strip it (issue #56 field-type cleanup).
@@ -508,6 +585,19 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
 
     // Select Data Table field
     if (field.type === 'select-data_table') {
+        if (styleName === 'entry-record-form' && field.name === 'data_table') {
+            return renderFieldWithBadge(
+                <EntryRecordFormDataTableField
+                    field={field}
+                    value={fieldValue}
+                    onChange={onChange}
+                    disabled={disabled}
+                    dataVariables={dataVariables}
+                    ownedDataTable={ownedDataTable}
+                />,
+            );
+        }
+
         if (!field.config) {
             return renderFieldWithBadge(
                 <Box>
@@ -692,7 +782,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
 
-    // Select Icon field - dynamic Tabler icons
+    // Select Icon field - dynamic Tabler icons (web menu icon)
     if (field.type === 'select-icon') {
         return renderFieldWithBadge(
             <SelectIconField
@@ -701,6 +791,35 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Search and select icon..."
+                disabled={disabled}
+            />
+        );
+    }
+
+    // Select Icon field - curated lucide set (mobile menu icon)
+    if (field.type === 'select-icon-mobile') {
+        return renderFieldWithBadge(
+            <SelectIconMobileField
+                fieldId={field.id}
+                config={field.config || {}}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder="Search and select icon..."
+                disabled={disabled}
+            />
+        );
+    }
+
+    // Modal size selects (web modal width / height). A dropdown of size presets
+    // (auto, 50%..100%) + manual entry — the same creatable-select the section
+    // editor uses for CSS-like values. Options live in the component (web-only).
+    if (field.type === 'select-modal-size') {
+        return renderFieldWithBadge(
+            <ModalSizeSelectField
+                fieldId={field.id}
+                config={field.config || {}}
+                value={fieldValue}
+                onChange={onChange}
                 disabled={disabled}
             />
         );

@@ -43,6 +43,7 @@ export const SHARED_ROUTE_ALIGNMENT = {
     AUTH_SET_LANGUAGE: strip(SHARED_ENDPOINTS.AUTH.SET_LANGUAGE),
     AUTH_USER_DATA: strip(SHARED_ENDPOINTS.AUTH.USER_DATA),
     PAGES: strip(SHARED_ENDPOINTS.PAGES.LIST),
+    PAGES_RESOLVE_ROUTE: strip(SHARED_ENDPOINTS.PAGES.RESOLVE_ROUTE),
     LANGUAGES: strip(SHARED_ENDPOINTS.LANGUAGES),
 } as const;
 
@@ -147,6 +148,24 @@ export const API_CONFIG = {
             route: (keyword: string) => `/pages/by-keyword/${encodeURIComponent(keyword)}`,
             permissions: []
         },
+        /**
+         * DB-driven public path resolution (issue #30). Static route only —
+         * callers must use shared `buildPagesResolvePath({ path, languageId,
+         * preview })` so query encoding matches SSR and mobile.
+         */
+        PAGES_RESOLVE: {
+            route: SHARED_ROUTE_ALIGNMENT.PAGES_RESOLVE_ROUTE,
+            permissions: []
+        },
+        NAVIGATION_GET: {
+            route: (languageId?: number) =>
+                languageId ? `/navigation?language_id=${languageId}` : '/navigation',
+            permissions: []
+        },
+        NAVIGATION_LAST_VISITED: {
+            route: '/navigation/last-visited',
+            permissions: []
+        },
 
         // Public languages endpoint
         LANGUAGES: {
@@ -193,6 +212,132 @@ export const API_CONFIG = {
         ADMIN_PAGES_SECTIONS_GET: {
             route: (pageId: number) => `/admin/pages/${pageId}/sections`,
             permissions: [PERMISSIONS.ADMIN_PAGE_READ]
+        },
+        // Admin page export/import (issue #30, Phase 5) — portable page bundles
+        ADMIN_PAGES_EXPORT: {
+            route: '/admin/pages/export',
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
+        ADMIN_PAGES_EXAMPLES: {
+            route: '/admin/pages/examples',
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
+        ADMIN_PAGES_EXPORT_SUGGEST: {
+            route: (pageId: number) => `/admin/pages/${pageId}/export/suggest`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
+        ADMIN_PAGES_IMPORT_VALIDATE: {
+            route: '/admin/pages/import/validate',
+            permissions: [PERMISSIONS.ADMIN_PAGE_CREATE]
+        },
+        ADMIN_PAGES_IMPORT: {
+            route: '/admin/pages/import',
+            permissions: [PERMISSIONS.ADMIN_PAGE_CREATE]
+        },
+        // First-class CMS apps (ID-stable API; slug resolve for Host Admin UI)
+        ADMIN_CMS_APPS_LIST: {
+            route: '/admin/cms-apps',
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_READ],
+        },
+        ADMIN_CMS_APPS_CREATE: {
+            route: '/admin/cms-apps',
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_CREATE],
+        },
+        ADMIN_CMS_APPS_BY_SLUG: {
+            route: (slug: string) => `/admin/cms-apps/by-slug/${encodeURIComponent(slug)}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_READ],
+        },
+        ADMIN_CMS_APPS_GET: {
+            route: (id: number) => `/admin/cms-apps/${id}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_READ],
+        },
+        ADMIN_CMS_APPS_UPDATE: {
+            route: (id: number) => `/admin/cms-apps/${id}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_UPDATE],
+        },
+        ADMIN_CMS_APPS_DELETE: {
+            route: (id: number) => `/admin/cms-apps/${id}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_DELETE],
+        },
+        ADMIN_CMS_APPS_ASSIGN_PAGE: {
+            route: (id: number) => `/admin/cms-apps/${id}/pages`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_UPDATE],
+        },
+        ADMIN_CMS_APPS_CHANGE_PAGE_ROLE: {
+            route: (id: number, pageId: number) => `/admin/cms-apps/${id}/pages/${pageId}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_UPDATE],
+        },
+        ADMIN_CMS_APPS_UNASSIGN_PAGE: {
+            route: (id: number, pageId: number) => `/admin/cms-apps/${id}/pages/${pageId}`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_UPDATE],
+        },
+        ADMIN_CMS_APPS_SCAFFOLD: {
+            route: (id: number) => `/admin/cms-apps/${id}/scaffold`,
+            permissions: [PERMISSIONS.ADMIN_CMS_APP_UPDATE],
+        },
+
+        ADMIN_NAVIGATION_GET: {
+            route: '/admin/navigation',
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_READ],
+        },
+        ADMIN_NAVIGATION_MENU_PREVIEW: {
+            route: (menuKey: string, languageId?: number) =>
+                languageId
+                    ? `/admin/navigation/menus/${menuKey}/preview?language_id=${languageId}`
+                    : `/admin/navigation/menus/${menuKey}/preview`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_READ],
+        },
+        ADMIN_NAVIGATION_MENU_UPDATE: {
+            route: (menuKey: string) => `/admin/navigation/menus/${menuKey}`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_SETTINGS_UPDATE: {
+            route: '/admin/navigation/settings',
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_MENU_ITEM_CREATE: {
+            route: (menuKey: string) => `/admin/navigation/menus/${menuKey}/items`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_MENU_ITEM_UPDATE: {
+            route: (itemId: number) => `/admin/navigation/items/${itemId}`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_MENU_ITEM_DELETE: {
+            route: (itemId: number) => `/admin/navigation/items/${itemId}`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_MENU_REORDER: {
+            route: (menuKey: string) => `/admin/navigation/menus/${menuKey}/reorder`,
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_UPDATE],
+        },
+        ADMIN_NAVIGATION_EXPORT: {
+            route: '/admin/navigation/export',
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_EXPORT],
+        },
+        ADMIN_NAVIGATION_IMPORT_VALIDATE: {
+            route: '/admin/navigation/import/validate',
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_IMPORT],
+        },
+        ADMIN_NAVIGATION_IMPORT: {
+            route: '/admin/navigation/import',
+            permissions: [PERMISSIONS.ADMIN_NAVIGATION_IMPORT],
+        },
+        SEARCH_PAGES: {
+            route: (query: string, languageId?: number) => {
+                const params = new URLSearchParams({ query });
+                if (languageId) params.set('language_id', String(languageId));
+                return `/search/pages?${params.toString()}`;
+            },
+            permissions: [],
+        },
+        SEARCH_CONTENT: {
+            route: (query: string, languageId?: number) => {
+                const params = new URLSearchParams({ query });
+                if (languageId) params.set('language_id', String(languageId));
+                return `/search?${params.toString()}`;
+            },
+            permissions: [],
         },
 
         // Admin languages endpoints
@@ -610,6 +755,16 @@ export const API_CONFIG = {
             permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
         },
 
+        // Admin analytics endpoints (dashboard)
+        ADMIN_ANALYTICS_SUMMARY: {
+            route: '/admin/analytics/summary',
+            permissions: [PERMISSIONS.ADMIN_ANALYTICS_READ]
+        },
+        ADMIN_ANALYTICS_TODAY: {
+            route: '/admin/analytics/today',
+            permissions: [PERMISSIONS.ADMIN_ANALYTICS_READ]
+        },
+
         // Admin cache endpoints
         ADMIN_CACHE_STATS: {
             route: '/admin/cache/stats',
@@ -709,6 +864,10 @@ export const API_CONFIG = {
         },
         ADMIN_DATA_TABLES_EXPORT_BULK: {
             route: '/admin/data/tables/bulk-export',
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
+        ADMIN_DATA_QUERY_PREVIEW: {
+            route: '/admin/data/query-preview',
             permissions: [PERMISSIONS.ADMIN_DATA_READ]
         },
 

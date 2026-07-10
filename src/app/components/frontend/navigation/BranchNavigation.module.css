@@ -1,0 +1,86 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/* Sidebar entry: rounded row with hover + active accent. */
+.sideLink {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-text);
+    text-decoration: none;
+    transition: background-color 100ms ease, color 100ms ease;
+}
+
+.sideLink:hover {
+    background-color: var(--mantine-color-default-hover);
+}
+
+.sideLink[data-active='true'] {
+    background-color: var(--mantine-color-blue-light);
+    color: var(--mantine-color-blue-light-color);
+    font-weight: 600;
+}
+
+/* Horizontal pill (mobile fallback + pills mode). */
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background-color: var(--mantine-color-default-hover);
+    color: var(--mantine-color-text);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 100ms ease, color 100ms ease;
+}
+
+.pill:hover {
+    background-color: var(--mantine-color-gray-3);
+}
+
+:global([data-mantine-color-scheme='dark']) .pill:hover {
+    background-color: var(--mantine-color-dark-4);
+}
+
+.pill[data-active='true'] {
+    background-color: var(--mantine-color-blue-filled);
+    color: var(--mantine-color-white);
+    font-weight: 600;
+}
+
+/* Breadcrumb link. */
+.crumbLink {
+    color: var(--mantine-color-dimmed);
+    font-size: var(--mantine-font-size-sm);
+    text-decoration: none;
+    transition: color 100ms ease;
+}
+
+.crumbLink:hover {
+    color: var(--mantine-color-text);
+    text-decoration: underline;
+}
+
+/* Prev/next pager cards. */
+.pagerCard {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: var(--mantine-radius-md);
+    color: var(--mantine-color-text);
+    text-decoration: none;
+    max-width: 46%;
+    transition: background-color 100ms ease, border-color 100ms ease;
+}
+
+.pagerCard:hover {
+    background-color: var(--mantine-color-default-hover);
+    border-color: var(--mantine-color-blue-4);
+}

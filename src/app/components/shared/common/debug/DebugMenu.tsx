@@ -190,7 +190,7 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
     // user has actually opened the menu). On a public page where the menu
     // stays closed these queries never fire, so `/admin/pages` no longer
     // hits Symfony on every reload of a public route.
-    const { pages, menuPages, footerPages, routes, profilePages } = useAppNavigation();
+    const { pages, headerMenu, footerMenu, routes, profilePages } = useAppNavigation();
     const { systemPageLinks, categorizedSystemPages } = useAdminPages();
     const { currentLanguageId, languages, setCurrentLanguageId } = useLanguageContext();
     const pendingPageFetches = useIsFetching({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
@@ -364,8 +364,8 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
 
                             <Group>
                                 <Badge color="blue">Total Pages: {pages.length}</Badge>
-                                <Badge color="green">Menu Pages: {menuPages.length}</Badge>
-                                <Badge color="orange">Footer Pages: {footerPages.length}</Badge>
+                                <Badge color="green">Header items: {headerMenu?.items?.length ?? 0}</Badge>
+                                <Badge color="orange">Footer items: {footerMenu?.items?.length ?? 0}</Badge>
                                 <Badge color="purple">Flattened Routes: {routes.length}</Badge>
                             </Group>
 
@@ -376,21 +376,21 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
                                         keyword: p.keyword, 
                                         url: p.url, 
                                         parent: p.parent_page_id,
-                                        nav_position: p.navPosition,
                                         children: p.children?.length || 0
                                     })), null, 2)}
                                 </Code>
                             </div>
 
                             <div>
-                                <Text fw={500} mb="xs">Menu Pages (hierarchical):</Text>
+                                <Text fw={500} mb="xs">Header menu (web_header):</Text>
                                 <Code block style={{ maxHeight: 200, overflow: 'auto' }}>
-                                    {JSON.stringify(menuPages.map(p => ({ 
-                                        keyword: p.keyword, 
-                                        url: p.url, 
-                                        nav_position: p.navPosition,
-                                        children: p.children?.length || 0
-                                    })), null, 2)}
+                                    {JSON.stringify(headerMenu?.items?.map((item) => ({
+                                        id: item.id,
+                                        label: item.label,
+                                        keyword: item.page?.keyword,
+                                        url: item.page?.url,
+                                        children: item.children?.length ?? 0,
+                                    })) ?? [], null, 2)}
                                 </Code>
                             </div>
 

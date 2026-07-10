@@ -5,23 +5,18 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * API client for public page content.
  *
- * After the SSR + BFF refactor the only surviving browser-side entry point
- * is `getPageByKeyword`. Legacy helpers (`getPageContent`, `updatePageContent`,
- * `getPublicLanguages`) were replaced by:
- *   - `getPageByKeywordSSRCached` (server-fetch) for SSR prefetch + `generateMetadata`
- *   - `usePageContentByKeyword` / `usePageContentValue` hooks for client consumers
- *   - `usePublicLanguages` hook (and its SSR sibling `getPublicLanguagesSSR`) for languages
+ * Browser entry points:
+ *   - {@link resolvePageByPath} — public slug navigation + hover prefetch
+ *     (`PAGE_BY_PATH` / shared `buildPagesResolvePath`, issue #30)
+ *   - {@link getPageByKeyword} — admin, maintenance, Live Preview, and other
+ *     keyword-addressed consumers (`PAGE_BY_KEYWORD`)
  *
- * ## Why by-keyword, not by-id
- * Fetching by keyword collapses the old `nav → id → content` waterfall
- * into a single parallel request, keys the React Query cache by the same
- * string the URL carries, and makes `usePagePrefetch.createHoverPrefetch`
- * warm the exact entry the next navigation will render. See
- * `docs/architecture/ssr-bff-architecture.md` §5 for the full rationale.
+ * SSR uses the matching `*SSRCached` helpers in `server-fetch.ts`.
  *
  * @module api/page.api
  */
 
+import { buildPagesResolvePath } from '@selfhelp/shared';
 import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { type IBaseApiResponse, type IPageContent } from '../shared';
@@ -43,6 +38,20 @@ export const PageApi = {
             keyword,
             { params: queryParams }
         );
+        return response.data.data.page;
+    },
+
+    /**
+     * Resolve a full public URL path to its page content via the shared
+     * `buildPagesResolvePath` contract (issue #30). Unlike
+     * {@link getPageByKeyword} this carries the matched `route_params`
+     * (snake_case) on the returned page.
+     */
+    async resolvePageByPath(path: string, languageId?: number, preview?: boolean): Promise<IPageContent> {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>({
+            route: buildPagesResolvePath({ path, languageId, preview }),
+            permissions: [],
+        });
         return response.data.data.page;
     },
 };

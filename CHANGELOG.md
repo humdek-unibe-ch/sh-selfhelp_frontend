@@ -14,6 +14,365 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+---
+
+## v0.1.63 — 2026-07-09
+
+### Changed
+- **`@selfhelp/shared` `1.21.6`** — canonical `buildPagesResolvePath` for SSR +
+  browser resolve; shared form-record prefill; Live Preview uses backend
+  `/pages/resolve` (no local route matcher). Do not pin shared `2.x`/`3.x`
+  tags from the feature-branch staging history.
+- **`entry-record`** — uses **Load record from route parameter**
+  (`load_record_from`) like `entry-record-form`; author SQL **Filter** removed
+  from the style. CMS-in-CMS detail bundles updated. Requires core `>=0.1.36`
+  and `@selfhelp/shared` `1.21.6`.
+- **Public hover prefetch** — warms `PAGE_BY_PATH` via `/pages/resolve` (same
+  cache key as SSR / `DynamicPageClient`), not keyword-only slots.
+- **Column inspectors** — `SelectedColumnsField` is an alias of
+  `DataTableColumnSelectField` (`mode="multiple"`); ordered `fields_map` labels
+  stay on `FieldsMapField`.
+- **Live Preview path matching** — parameterized public URLs
+  (`/team-members/{record_id}`) resolve via page `url` patterns before any
+  last-segment keyword fallback, so record detail paths keep the correct CMS
+  keyword.
+
+---
+
+## v0.1.62 — 2026-07-09
+
+Entry-table / entry-holder / form field editors: proper URL pickers, column
+mapper, sort-column dropdown, and inline SQL filter builder.
+
+### Added
+- **`FieldsMapField`** — visual column + label mapper for `entry-table` (`fields-map` type).
+- **`DataTableColumnSelectField`** — clearable default sort column picker (`select-data_table_column`).
+- **`useResolvedDataTableName`** — shared hook resolving `data_table` id → table name for column-driven editors.
+- **Filter preview panel** — entry-filter builder shows normalized filter, stored procedure call, and SQL shape via `POST /admin/data/query-preview`.
+
+### Changed
+- **`EntryFilterField`** — loads columns from the bound data table, removes duplicate label + raw Monaco editor (entry-list filters).
+- **Field catalog** (core `0.1.36`) — `add_url` / `edit_url` / `redirect_on_save` → `select-page-keyword`; `fields_map` → `fields-map`; `filter` → `entry-filter`; `form-record` / `form-log` use `data_table` instead of legacy `name`.
+- **CMS-in-CMS bundles** — form sections bind `data_table` via `@section:<form>` tokens; public list/detail and CMS list pages wrap content in a padded `container` shell (`size: lg` + `css_mobile` spacing) for readable import previews on web and native.
+
+---
+
+Restore legacy **field-based** data binding for `entry-list` / `entry-record`
+(property fields instead of `data_config`). Pairs with core `0.1.35` (breaking;
+reimport CMS-in-CMS bundles).
+
+### Added
+- **Entry filter SQL builder** — section inspector renders `filter` with the
+  data-config SQL builder + Monaco editor on `entry-list` / `entry-record`.
+- **Selected columns picker** — `selected_columns` reloads options when
+  `data_table` changes (`select-data_table_columns` field type).
+- **`load_as_table` web renderer** — `EntryListStyle` wraps hydrated children
+  in `<table><tbody><tr><td>` when enabled.
+
+### Changed
+- **CMS-in-CMS example bundles** — six templates rewritten to use
+  `fields.data_table` / `own_entries_only` / `filter` / `scope`; detail holders
+  scope rows with `filter` + `{{route.record_id}}` only; `data_config` no longer
+  binds entry rows.
+- **`@selfhelp/shared` types** — `IEntryListStyle` / `IEntryRecordStyle` carry
+  binding fields; `style-schema.snapshot.json` updated.
+
+---
+
+## v0.1.60 — 2026-07-08
+
+First-class **CMS Apps** product unit. Pairs with core `0.1.34` (breaking
+admin API: `/admin/cms-apps*` replaces `POST /admin/pages/cms-app`).
+
+### Added
+- **Multilingual option grid** — select, radio, combobox, and segmented-control
+  sections edit stable codes plus every public language's label in one table,
+  with precise validation, examples, and copy buttons.
+- **CMS Apps Host Admin** — `/admin/cms-apps` index and `/admin/cms-apps/[slug]`
+  detail for app metadata, page assignment / roles, scaffold, live preview, and
+  **Manage content** (opens the CMS list surface). Permissions:
+  `admin.cms_app.read|create|update|delete`.
+- **CMS Apps navbar accordion** — apps listed under **CMS Apps**; assigned pages
+  are excluded from Content Pages.
+- **Empty shell + scaffold** — create an empty app, then scaffold pages via
+  `POST /admin/cms-apps/{id}/scaffold` (separate from create).
+
+### Changed
+- Web and mobile option renderers now share `@selfhelp/shared` parsing and
+  legacy `text`/`label` fallback behavior; form submissions remain code-only.
+- All six CMS-in-CMS templates now exercise stable enum codes and
+  `{{_field_label}}` output on their public surfaces.
+- Page list / navbar treat `cms_app_id` as the grouping axis for CMS-in-CMS apps.
+- Example CMS-in-CMS bundles carry `cms_app` + per-page `cms_app_role`
+  (documented in `examples/cms-in-cms/README.md`); import of legacy
+  CMS-in-CMS page-only bundles is rejected by core.
+- CMS app response types (`ICmsApp`, `ICmsAppPage`, `TCmsAppRole`) come from
+  `@selfhelp/shared` (no parallel local contract).
+- CMS Apps navbar adds **Import template** (examples gallery); **Scaffold**
+  remains on the app detail page (needs app id).
+
+### Fixed
+- Example template imports no longer fail when keyword prefixes contain underscores
+  (e.g. `demo_team_members_`): CMS app slugs are sanitised to kebab-case, empty
+  shells are reused, and sample-record import is available in the Import dialog.
+- **Delete shell** is available from the CMS Apps list (with confirmation) as well
+  as the detail page; operator guide at `docs/user/cms-apps.md`.
+- Team Members example styling refreshed for a modern public directory look.
+
+### Removed
+- Legacy create-wizard call to `POST /admin/pages/cms-app` (and the old
+  `CmsAppWizardModal` on the pages list).
+
+---
+
+## v0.1.59 — 2026-07-06
+
+Navigation overhaul — strict contract v2, no backward compatibility — plus the
+CMS-in-CMS polish wave (entry-table rename, record edit mode, template
+gallery). Pairs with core `0.1.33` and `@selfhelp/shared` `1.21.5` (breaking
+wave previously staged as shared `2.0.0`–`3.0.1`, then republished as `1.21.5`:
+navigation contract v2 plus the `show-user-input` → `entry-table` rename).
+
+### Added
+- **Start from template gallery** — the Export/Import dialog's example tab
+  becomes a template gallery: six curated CMS-in-CMS apps (team members, news,
+  FAQ accordion, events, contact directory, testimonials) with descriptions and
+  tag badges. **Use this template** pre-fills a demo keyword prefix AND route
+  prefix (the backend rewrites in-bundle links to match), so one click gives a
+  collision-free, fully clickable app with sample data. The CMS app wizard
+  cross-links to the gallery via a **Browse templates** panel.
+- **Record edit mode (`form-record`)** — forms configured with
+  `load_record_from` prefill the record addressed by the route param (all
+  languages, translatable inputs grouped in language tabs) and submit an
+  **update** with the explicit `record_id`; the wizard's admin detail page is
+  now that edit form in a modal instead of a read-only `entry-record`.
+- **`entry-table` per-row edit affordance** — rows expose a pencil action when
+  the server-computed `_can_edit` flag allows it (mirrors `_can_delete`).
+- **Header top row (double presets)** — `web_header` root items with
+  `layer: 'top'` render as the upper utility-row links on `double-dropdown` /
+  `double-mega-menu`; single presets merge both rows deterministically (main
+  first, then top) via shared `splitHeaderLayers` / `mergeHeaderLayers`.
+- **Builder layer sections** — the menu builder shows separate "Top row" /
+  "Main row" sections for double header presets with drag between rows and
+  "Move to top/main row" item actions; top-row items cannot have children.
+- **Footer preset picker** — `web_footer` layout (`columns` / `inline`) is a
+  typed preset with shared options/labels; `inline` flattens groups to one link
+  row via shared `flattenFooterItems`.
+- **Presentation fields** — item modals edit per-language `label`,
+  `description`, and `aria_label`; the public payload always carries them.
+- **Item-limit counter** — the bottom-tabs builder tab shows the root-item
+  count against the menu `item_limit`.
+- **Burger top-row section** — the mobile burger drawer renders main items,
+  then a divider and the top-row links.
+- **Branch navigation layout (sidebar / pills / breadcrumbs / pager)** — pages
+  inside a menu branch render with a sticky left sidebar (collapses to a pill
+  strip on small screens), an optional breadcrumb trail, and prev/next pager
+  cards with the neighbour pages' translated titles. Driven by the new
+  `children_nav` (menu default + per-item override) and `show_breadcrumbs`
+  contract via shared `resolveWebBranchNavContext`; configured in the menu
+  builder (web header tab + item edit modal).
+- **Corner admin edit button** — admins get a floating edit button stacked
+  under the debug button (top-left) on every public page that jumps straight
+  to `/admin/pages/{keyword}` for the page being viewed; hidden in preview and
+  on admin routes.
+- **Header search across languages** — search hits now come from all
+  languages (deduped per page, request-language title preferred) and render as
+  rich options (title + snippet + type badge) keyed by unique page keywords —
+  fixing the Mantine "Duplicate options" crash on same-title pages.
+- **Titled page pickers** — the add-existing-page picker, child checkboxes,
+  and start-page selectors label pages with their localized title (two-line
+  option: title + URL/keyword) instead of raw keywords.
+- **Landing templates in the example gallery** — the `hero-home` bundle is
+  rebuilt as a full headless landing page (hero split, stats, six feature
+  cards, how-it-works, quote, CTA; de-CH + en-GB, dark/light safe) and a new
+  `mobile-onboarding` guest onboarding bundle ships alongside it.
+- **Admin analytics dashboard** — `/admin` is a real dashboard: page-view
+  totals, unique visitors, and web/mobile split cards, a per-day traffic area
+  chart (views/visitors toggle), top pages, external referrers, and a
+  "Today's operations" panel (due/executed jobs, form submissions, visits).
+  Filters: platform (all/web/mobile) and range (7/30/90 days, 12 months, all
+  time). Powered by the new core `admin.analytics.read` endpoints
+  (`/admin/analytics/summary`, `/admin/analytics/today`); widgets hide for
+  users without the permission.
+- **Branding size + placement** — navigation settings let editors pick the
+  logo size (`sm`–`xl`) and variant (logo + name / logo only / name only);
+  the asset dropdown now refetches on open/focus so new uploads appear
+  without a full browser refresh (`useAssets` `fresh` option).
+
+### Changed
+- **Admin navbar accordion redesign** — the left admin menu is grouped into
+  persistent multi-open accordion sections (Pages / Menus / Users & Access /
+  Content / Automation / System / Admin) with inline quick actions (create
+  page, CMS app wizard, import/export, menu builder), a compact brand row
+  (small logo + wordmark), wider rail, no icons on nested page links, and a
+  soft left-border indent instead of the blue indicator line for submenus.
+- **Navbar search matches titles** — the admin quick search indexes every
+  language's page title alongside keywords/URLs.
+- **Consistent admin page padding** — all admin routes render inside
+  `AdminPageContainer` (uniform gutters for roles/groups/users/assets/data/
+  cache/languages/actions/scheduled-jobs/plugins/system/navigation/…).
+- **Wider two-column modals** — menu placement & icon, add-menu-item, user,
+  group, and role modals lay out in two columns (~860px) so they fit without
+  internal scrolling.
+- **Headless auth pages matched to login** — reset-password (request + set
+  forms, success screens) renders in the same centered `Paper` card as login
+  with `PasswordInput` fields and a back-to-sign-in link; core 0.1.33 flags
+  `reset-password` / `validate` / `maintenance` headless.
+- Header/footer/burger rendering and active states now come from
+  `@selfhelp/shared` (`isMenuItemActiveOnWeb`, footer helpers,
+  `isDoubleWebHeaderPreset`); local duplicates were deleted.
+- **`show-user-input` renamed `entry-table`** (`@selfhelp/shared` `1.21.5`):
+  the renderer is `EntryTableStyle.tsx`, dispatched on `style_name:
+  'entry-table'` with `IEntryTableStyle` / `IEntryTableEntry` types. No alias
+  is kept — sections keep working because the backend renames the style row in
+  the same release.
+- Navigation bundle export/import panel accepts only the strict
+  `selfhelp/navigation-bundle` **v2.0** (menus with `preset` / `max_depth` /
+  `item_limit`, items with `layer`, translations with `aria_label`).
+- Admin navigation API types are strict: menu definitions carry `key`,
+  `is_system`, `preset`, `max_depth`, `item_limit`; items carry `layer`,
+  `children_nav`.
+- **Mega menu + dropdown restyle** — hover-card panels with icon tiles,
+  two-line entries, proper spacing/radius, and active-state pills on the
+  top-level triggers (new `WebsiteHeaderRenderer.module.css`).
+- **Utility cluster grouping** — language, theme toggle, and profile now sit
+  together in the header (both single- and double-row presets); the standalone
+  admin header button is replaced by the corner edit button.
+- Live Preview web→mobile sync resolves nested page URLs to their real CMS
+  keyword via the navigation route list (off-menu pages open as modal pages on
+  mobile instead of failing to load by path).
+
+### Removed
+- `config` handling on menus (`config.footer_layout` replaced by the preset).
+- Child-source / auto-include UI assumptions and the legacy
+  `src/types/navigation/navigation.types.ts` vocabulary file.
+- v1.0 bundle import support and fixtures.
+- The pill-tab-only child-page navigation (now one of the `children_nav`
+  modes) and the old header `AdminButton`.
+
+## v0.1.58 — 2026-07-01
+
+### Added
+- **Menu builder admin UI** at `/admin/navigation`: edit web header, web footer,
+  mobile drawer, and mobile bottom tabs; drag reorder; child-source modes;
+  exclusions; convert auto-children; startup/search settings; and web header
+  preset selector.
+- **Navigation assignments on page create** — optional step to add a new page to
+  one or more menus in the same transaction (`navigationAssignments`).
+- **Page inspector navigation membership** — read-only badges (explicit vs
+  auto-included), add/remove/open-in-builder shortcuts.
+- **Search visibility** page property — inherit / show / hide in website search
+  (access rules still apply).
+- **Grouped footer columns** — `web_footer` menu groups, nested page links, and
+  external URLs render as footer columns.
+- **Header search** wired to backend search modes (`content_index`, searchable
+  pages, menu pages) with min-char threshold from navigation settings.
+- **Web startup redirect** — guest/logged-in landing pages and last-visited
+  fallback from `GET /navigation` startup payload.
+- **Example bundles catalogue** — hero home, mobile onboarding, and CMS-in-CMS
+  templates importable from the admin export/import dialog.
+- **Playwright visual spec** for the public navigation header (`e2e/visual/navigation-header.spec.ts`).
+
+### Changed
+- **Website header** now renders from `GET /navigation` via
+  `WebsiteHeaderRenderer` (six Mantine-inspired presets) instead of
+  page-level `web_nav_render` grouping.
+- **Admin sidebar** menu sections (web header, footer, mobile drawer, tabs) are
+  driven by resolved menu-builder preview trees.
+- **Public branch navigation** uses shared menu resolution instead of per-page
+  render modes.
+- Raised `supports.core` `>=0.1.31` → `>=0.1.32` for the menu-builder backend
+  wave. Pairs with `@selfhelp/shared` `1.21.0`.
+
+### Removed
+- Page-level **header/footer position** editors (`MenuPositionEditor`,
+  `DragDropMenuPositioner`).
+- **`GlobalDynamicNav` / `VirtualNavigation`** and page-level
+  `web_nav_render` / `mobile_nav_render` inspector fields.
+
+---
+
+## v0.1.57 — 2026-06-30
+
+### Added
+- **DB-driven public routing (host issue #30).** The catch-all route turns the
+  slug into a path and resolves the page server-side via the new open-access
+  endpoint `GET /cms-api/v1/pages/resolve`, replacing client-side keyword parsing.
+  Dynamic URL segments arrive as `route_params` and the response carries
+  `matched_url_pattern` / `canonical_url`.
+- **Page export / import.** The admin Pages list gains a dialog to export selected
+  pages as a portable bundle (with related-page suggestions) and to validate +
+  import a bundle (keyword/route prefixes, skip-conflicting, activate-routes).
+- **"Create list + detail pages" wizard.** A guided modal scaffolds a public
+  and/or admin list+detail page pair bound to a data table (DB routes + entry
+  styles), with a live URL preview and quick links to the generated pages.
+- **Navigation pages, nav rendering & page icons (host issue #30).** The page
+  inspector gains a mobile-icon picker (`select-icon-mobile`, lucide preview via
+  `lucide-react`) and two navigation-render selects (`web_nav_render` /
+  `mobile_nav_render`) with friendly labels + descriptions, plus hint banners
+  explaining the automatic navigation menu. Public pages with no body sections
+  but menu-visible children auto-render a **virtual navigation** block via the
+  web renderer registry (`header-dropdown` default, `tabs`, `sidebar-drawer`,
+  `hero-cards`).
+- **"Example bundles" import tab.** The page export/import dialog lists the
+  shipped example bundles (`GET /admin/pages/examples`) and loads one straight
+  into the import flow with a safe keyword/route prefix pre-filled.
+- **Sized, standardized page modals (`open_in_modal`).** Pages that open in a
+  modal now render through one shared `PageModal` — identical header (page title +
+  close), backdrop, and a scrollable body for every modal. Authors set the box
+  size with the new page properties **Modal width / Modal height** via a preset
+  dropdown (`auto`, `50%`…`100%`) that also accepts a typed custom CSS length;
+  empty falls back to the default **80%** of the viewport and every modal (incl.
+  `auto`) is capped at **90%**.
+- **Import viewer groups.** The page import dialog gains a **Viewer groups**
+  multiselect; the chosen groups are granted access to every imported page
+  (read-only on public pages, full access on CMS-app pages). Admins always have
+  access.
+
+### Changed
+- **Reset-password / Validate styles read route params.** They consume
+  `route_params.user_id` / `route_params.token` from the resolver instead of
+  parsing the URL; `ROUTES.RESET_PASSWORD` is `/reset`.
+- **Global header menu respects the navigation contract.** The website header
+  menu now renders through the same shared web nav-render registry as in-page
+  navigation, so it shows page **icons** + child **dropdowns** and links use each
+  page's real (DB-resolvable) `url`.
+- **Global menu is fully dynamic per page menu style.** Top-level menu pages are
+  grouped by their `web_nav_render` and the header loads **one menu per used
+  style** — only the styles the site actually uses appear (one style → one menu,
+  several styles → several menus). Inline-friendly styles (`header-dropdown`,
+  `tabs`) render directly in the bar; overflow styles (`sidebar-drawer`,
+  `hero-cards`) render inside a slide-over **Drawer** opened by a burger button.
+  The pure grouping helper `groupByWebNavRender` is unit-tested.
+- Raised `supports.core` `>=0.1.28` → `>=0.1.31`: every public page is now resolved
+  through `/pages/resolve`, which first ships in core `0.1.31` (backend
+  `supports.frontend` raised to `>=0.1.57` in lockstep). Pairs with
+  `@selfhelp/shared >=1.20.0` (the navigation module + page-icon/nav-render types
+  + the optional `IPageContent.modal_width`/`modal_height`; caret bumped
+  `^1.18.0` → `^1.20.0`).
+
+### Fixed
+- **Off-menu web pages no longer open in a modal.** Visiting a public page that is
+  not on the web header/footer (for example the legacy seeded `/home` page after a
+  navigation menu replace import) now renders as a normal full page. Web modals are
+  limited to pages with the explicit `open_in_modal` property. Closing a modal
+  with no browser history now returns to the configured web startup page instead
+  of always pushing `/`.
+- **Imported (and nested) pages are reachable again.** Removed the legacy
+  `/{keyword}` child-page URL rewrite that broke DB-driven routing — navigation
+  links now use each page's real route path, so an imported page no longer 404s.
+- **Modal pages close again.** The shared `PageModal` now closes on the header
+  close button, the backdrop, and `Escape` — it dismisses the modal immediately
+  and navigates back (falling back to the home page when there is no history), so
+  an `open_in_modal` page opened directly no longer gets stuck open.
+- **Menu pages with a non-default style no longer vanish.** Pages set to a menu
+  style the header doesn't render inline (e.g. **hero-cards** or sidebar-drawer)
+  used to show nothing in the global menu; they now load in the overflow Drawer.
+- **Modal header is clearly separated.** `PageModal` uses the same header
+  treatment as `ModalWrapper` (titled, divider, no footer) for a consistent look.
+
+---
+
 ## v0.1.56 — 2026-06-30
 
 ### Changed

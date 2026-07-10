@@ -63,28 +63,36 @@ export const PageContentField = React.memo(function PageContentField({
     );
 });
 
+/**
+ * Page PROPERTY fields (display=0) are NOT language-specific: the backend stores
+ * a single value under the "property" language (id 1) and reads it back from
+ * there (`PageFieldService` / `TranslationManagerTrait`). The editor MUST read
+ * and write that same id, otherwise an edit lands under a content language and
+ * the save (which only serialises id 1) silently drops it. So this component is
+ * pinned to the property language and never takes a `languageId`.
+ */
+const PROPERTY_LANGUAGE_ID = 1;
+
 interface IPagePropertyFieldProps {
     field: IPageField;
-    languageId: number;
     dataVariables?: Record<string, string>;
     className?: string;
 }
 
 export const PagePropertyField = React.memo(function PagePropertyField({
     field,
-    languageId,
     dataVariables,
     className
 }: IPagePropertyFieldProps) {
     const value = usePageFormStore(
-        (state) => state.fields[field.name]?.[languageId] ?? ''
+        (state) => state.fields[field.name]?.[PROPERTY_LANGUAGE_ID] ?? ''
     );
 
     const setContentField = usePageFormStore((state) => state.setContentField);
 
     const handleChange = useCallback((newValue: string | boolean) => {
-        setContentField(field.name, languageId, String(newValue));
-    }, [field.name, languageId, setContentField]);
+        setContentField(field.name, PROPERTY_LANGUAGE_ID, String(newValue));
+    }, [field.name, setContentField]);
 
     const fieldData: IFieldData = {
         id: field.id,

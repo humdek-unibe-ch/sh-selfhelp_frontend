@@ -44,7 +44,7 @@ vi.mock('@mantine/hooks', () => ({
 
 vi.mock('../../../../../hooks/useAppNavigation', () => ({
     useAppNavigation: () => ({
-        routes: [{ keyword: 'home', navPosition: 'header', is_headless: false }],
+        routes: [{ keyword: 'home', is_headless: false }],
         isLoading: false,
     }),
 }));
@@ -151,7 +151,7 @@ vi.mock('../hooks/usePreviewPreferenceSync', () => ({
 
 vi.mock('../hooks/usePreviewNavigationSync', () => ({
     usePreviewNavigationSync: () => ({
-        handleWebNavigate: vi.fn(),
+        sendNavigateMobile: vi.fn(),
     }),
 }));
 

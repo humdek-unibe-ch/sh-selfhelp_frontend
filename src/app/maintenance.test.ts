@@ -30,7 +30,7 @@ describe('maintenance helpers', () => {
             expect(hasRenderableMaintenancePage({ id: 9, should_fallback: true })).toBe(false);
         });
 
-        it('falls back to a zero-sections check for older BE payloads', () => {
+        it('uses sections when should_fallback is absent (maintenance is not a static-fallback keyword)', () => {
             expect(hasRenderableMaintenancePage({ id: 9, sections: [{}, {}] })).toBe(true);
             expect(hasRenderableMaintenancePage({ id: 9, sections: [] })).toBe(false);
         });

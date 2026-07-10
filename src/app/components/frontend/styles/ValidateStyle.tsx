@@ -2,14 +2,13 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Box, Card, Title, TextInput, Button, Group, Alert, Text, LoadingOverlay } from '@mantine/core';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { ROUTES } from '../../../../config/routes.config';
 import { type IValidateStyle } from '../../../../types/common/styles.types';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
-import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useValidateTokenMutation, useCompleteValidationMutation, useTokenValidation } from '../../../../hooks/mutations/useValidationMutations';
 
 /**
@@ -22,7 +21,6 @@ interface IValidateStyleProps {
 }
 
 const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssClass }) => {
-    const params = useParams();
     const router = useRouter();
     const pageContent = usePageContentValue();
     const [formKey, _setFormKey] = useState(0);
@@ -41,22 +39,11 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     const [passwordError, setPasswordError] = useState<string>('');
     const [redirectCountdown, setRedirectCountdown] = useState(3);
 
-    // Extract userId and token from URL path
-    // This works with any URL pattern as long as it contains /validate/{uid}/{token}
-    let userId = 0;
-    let token = '';
-
-    // Get the current pathname from params.slug (since we're using [[...slug]])
-    if (params.slug && Array.isArray(params.slug)) {
-        const pathParts = params.slug;
-        const validateIndex = pathParts.indexOf('validate');
-
-        if (validateIndex !== -1 && pathParts.length > validateIndex + 2) {
-            // Found validate in path, extract uid and token
-            userId = parseInt(pathParts[validateIndex + 1]) || 0;
-            token = pathParts[validateIndex + 2] || '';
-        }
-    }
+    // DB-driven routing (issue #30): userId + token come from the resolved
+    // page's snake_case `route_params` (`/validate/{user_id}/{token}`), not from
+    // re-parsing the URL. Works for any public path the CMS maps to this page.
+    const userId = Number.parseInt(pageContent?.route_params?.user_id ?? '', 10) || 0;
+    const token = pageContent?.route_params?.token ?? '';
 
     // Token validation hooks
     const { data: tokenValidation, isLoading: isValidatingToken, error: tokenValidationError } = useTokenValidation(userId, token);
@@ -93,7 +80,6 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     const alertSuccessConfig = style.alert_success?.content || alertSuccess;
     const cancelUrl = style.btn_cancel_url?.content;
     const saveLabel = style.label_save?.content || 'Save';
-    const updateLabel = style.label_update?.content || 'Update';
     const cancelLabel = style.label_cancel?.content || 'Cancel';
 
     // Button styling
@@ -116,12 +102,6 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
 
     // Get current page ID from context
     const pageId = pageContent?.id;
-    
-
-    // For validate style, these are always false (validate forms don't use record/log behavior)
-    const isRecord = false;
-    const _isLogType = false;
-
 
     // Pre-populate form data when token validation succeeds. Render-phase
     // update that runs the body only when `tokenValidation` changes (matching
@@ -138,25 +118,6 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
             }));
         }
     }
-
-    // React Query hooks
-    const _submitFormMutation = useSubmitFormMutation();
-    const _updateFormMutation = useUpdateFormMutation();
-
-    // For record types, derive existing data from section_data of this style
-    const { existingRecordId, existingFormDataFromSection } = useMemo(() => {
-        if (!isRecord) return { existingRecordId: null as number | null, existingFormDataFromSection: null as Record<string, unknown> | null };
-
-        // The record form's section_data lives on the parent form style (`style.section_data`)
-        // and contains key-value pairs where keys match input names inside the form.
-        const sectionDataArray = style.section_data as Array<Record<string, unknown>> | undefined;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
-
-        if (!firstRecord) return { existingRecordId: null, existingFormDataFromSection: null };
-
-        const { record_id, ...rest } = firstRecord as { record_id?: number } & Record<string, unknown>;
-        return { existingRecordId: record_id ?? null, existingFormDataFromSection: rest };
-    }, [isRecord, style]);
 
     const validateForm = useCallback((formElement: HTMLFormElement): string | null => {
         const requiredFields = formElement.querySelectorAll('[required]');
@@ -349,35 +310,6 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
         }
     }, [cancelUrl]);
 
-    // Pre-populate form fields for record types with existing data from section_data
-    useEffect(() => {
-        if (isRecord && existingFormDataFromSection) {
-            const form = formRef.current as HTMLFormElement | null;
-            if (form) {
-                Object.entries(existingFormDataFromSection).forEach(([fieldName, value]) => {
-                    const field = form.querySelector(`[name="${fieldName}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-                    if (field && value !== null && value !== undefined) {
-                        field.value = String(value);
-                        const event = new Event('change', { bubbles: true });
-                        field.dispatchEvent(event);
-                    }
-                });
-
-                // Inject hidden record_id if present so updates are based on it
-                if (existingRecordId) {
-                    let hidden = form.querySelector('input[name="record_id"]') as HTMLInputElement | null;
-                    if (!hidden) {
-                        hidden = document.createElement('input');
-                        hidden.type = 'hidden';
-                        hidden.name = 'record_id';
-                        form.appendChild(hidden);
-                    }
-                    hidden.value = String(existingRecordId);
-                }
-            }
-        }
-    }, [isRecord, existingFormDataFromSection, existingRecordId, formKey]);
-
     // Show loading while validating token
     if (isValidatingToken) {
         return (
@@ -464,9 +396,6 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
                     ) : (
                         <form ref={formRef} key={formKey} onSubmit={handleSubmit}>
                             <input type="hidden" name="__id_sections" value={style.id} />
-                            {isRecord && existingRecordId ? (
-                                <input type="hidden" name="record_id" value={String(existingRecordId)} />
-                            ) : null}
 
                             {submitError && (
                                 <Alert icon={<IconX size={16} />} color="red" title={alertFail} mb="md" onClose={() => setSubmitError(null)} withCloseButton>
@@ -545,7 +474,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
                                     variant={buttonVariant}
                                     ml={buttonOrder === 'cancel-save' && buttonPosition === 'space-between' ? 'auto' : undefined}
                                 >
-                                    {isRecord && existingRecordId ? updateLabel : (labelActivate || saveLabel)}
+                                    {labelActivate || saveLabel}
                                 </Button>
 
                                 {buttonOrder === 'save-cancel' && (cancelUrl || cancelLabel) && (

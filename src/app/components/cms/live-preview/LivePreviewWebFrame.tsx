@@ -21,14 +21,30 @@ export interface ILivePreviewWebFrameProps {
     webReloadKey: number;
     /** Canonical keyword the web pane renders. */
     keyword: string | null;
+    /** Origin-stripped public path for parameterized routes (`/team-members/5`). */
+    path?: string | null;
+    /** Route params extracted from the matched URL pattern. */
+    routeParams?: Record<string, string>;
     /** Called when an intercepted in-pane link/button navigates. */
     onNavigate: (path: string) => void;
 }
 
-export function LivePreviewWebFrame({ webReloadKey, keyword, onNavigate }: ILivePreviewWebFrameProps) {
+export function LivePreviewWebFrame({
+    webReloadKey,
+    keyword,
+    path,
+    routeParams,
+    onNavigate,
+}: ILivePreviewWebFrameProps) {
     return (
         <Box style={{ flex: 1, minWidth: 0 }}>
-            <LivePreviewWebPane key={`web-${webReloadKey}`} keyword={keyword} onNavigate={onNavigate} />
+            <LivePreviewWebPane
+                key={`web-${webReloadKey}`}
+                keyword={keyword}
+                path={path}
+                routeParams={routeParams}
+                onNavigate={onNavigate}
+            />
         </Box>
     );
 }

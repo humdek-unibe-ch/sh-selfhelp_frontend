@@ -23,11 +23,17 @@ import { useDataTables, DATA_QUERY_KEYS } from '../../../../../hooks/useData';
 import { useCanAccessDataBrowser } from '../../../../../hooks/usePermissionChecks';
 import { useUsers } from '../../../../../hooks/useUsers';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
+import { useCmsPreferences } from '../../../../../hooks/usePreferences';
 import type { IUserBasic } from '../../../../../types/responses/admin/users.types';
 import { DataTablesViewer } from '../tables/DataTablesViewer';
 import { BulkExportModal } from '../modals/BulkExportModal';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { PageHeader } from '../../../shared/common/PageHeader';
+import {
+  readLanguageIdFromSearchParams,
+  resolveDataAdminLanguageId,
+  shouldPersistLanguageIdInUrl,
+} from './data-admin-language.utils';
 
 const ALL_TABLES = -1;
 
@@ -54,6 +60,12 @@ export function DataAdminPage() {
   const searchParams = useSearchParams();
   const canAccessDataBrowser = useCanAccessDataBrowser();
   const queryClient = useQueryClient();
+  const urlLanguageId = useMemo(
+    () => readLanguageIdFromSearchParams(searchParams),
+    [searchParams],
+  );
+  const { data: cmsPreferences } = useCmsPreferences();
+  const cmsDefaultLanguageId = resolveDataAdminLanguageId(undefined, cmsPreferences?.default_language_id);
 
   // Filter form state (what user is currently selecting)
   const [selectedUserId, setSelectedUserId] = useState<number | null>(() => {
@@ -72,10 +84,7 @@ export function DataAdminPage() {
     searchParams.get('showDeleted') === 'true'
   );
 
-  const [selectedLanguageId, setSelectedLanguageId] = useState<number | null>(() => {
-    const languageId = searchParams.get('languageId');
-    return languageId ? parseInt(languageId, 10) : 1;
-  });
+  const [selectedLanguageId, setSelectedLanguageId] = useState<number | null>(urlLanguageId);
 
   const [bulkExportOpen, setBulkExportOpen] = useState(false);
 
@@ -86,11 +95,34 @@ export function DataAdminPage() {
     () => searchParams.get('userId') !== null
   );
 
-  // Active (applied) filters
-  const [activeSelectedUserId, setActiveSelectedUserId] = useState<number>(-1);
-  const [activeTableIds, setActiveTableIds] = useState<number[]>([]);
-  const [activeShowDeleted, setActiveShowDeleted] = useState<boolean>(false);
-  const [activeSelectedLanguageId, setActiveSelectedLanguageId] = useState<number>(1);
+  // Active (applied) filters — initialized from URL so deep links work without
+  // requiring an extra "Apply filters" click on first load.
+  const [activeSelectedUserId, setActiveSelectedUserId] = useState<number>(() => {
+    const userId = searchParams.get('userId');
+    return userId ? parseInt(userId, 10) : -1;
+  });
+  const [activeTableIds, setActiveTableIds] = useState<number[]>(() => {
+    const tableIds = searchParams.get('tableIds');
+    return tableIds
+      ? tableIds.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id))
+      : [];
+  });
+  const [activeShowDeleted, setActiveShowDeleted] = useState<boolean>(() =>
+    searchParams.get('showDeleted') === 'true'
+  );
+  const [activeSelectedLanguageId, setActiveSelectedLanguageId] = useState<number | null>(urlLanguageId);
+
+  // Pre-fill the Language dropdown with CMS default when no URL param (display only;
+  // bio/option labels resolve the same default via resolveDataAdminLanguageId).
+  const displayedLanguageId = useMemo(() => {
+    if (selectedLanguageId !== null) {
+      return selectedLanguageId;
+    }
+    if (urlLanguageId !== null) {
+      return urlLanguageId;
+    }
+    return cmsPreferences ? cmsDefaultLanguageId : null;
+  }, [selectedLanguageId, urlLanguageId, cmsPreferences, cmsDefaultLanguageId]);
 
   // Data fetching
   const { data: usersResp, refetch: refetchUsers } = useUsers(
@@ -128,7 +160,7 @@ export function DataAdminPage() {
   // Apply Filters (Search button)
   const handleApplyFilters = useCallback(() => {
     const userId = selectedUserId ?? -1;
-    const languageId = selectedLanguageId ?? 1;
+    const languageId = resolveDataAdminLanguageId(selectedLanguageId, cmsPreferences?.default_language_id);
     const tableIds = selectedTableIds.includes(-1) ? [-1] : [...selectedTableIds];
 
     setActiveSelectedUserId(userId);
@@ -149,27 +181,30 @@ export function DataAdminPage() {
     if (showDeleted) sp.set('showDeleted', 'true');
     else sp.delete('showDeleted');
 
-    if (languageId !== 1) sp.set('languageId', languageId.toString());
-    else sp.delete('languageId');
+    if (shouldPersistLanguageIdInUrl(languageId, cmsDefaultLanguageId)) {
+      sp.set('languageId', languageId.toString());
+    } else {
+      sp.delete('languageId');
+    }
 
     router.replace(`${url.pathname}?${sp.toString()}`, { scroll: false });
-  }, [selectedUserId, selectedTableIds, showDeleted, selectedLanguageId, router]);
+  }, [selectedUserId, selectedTableIds, showDeleted, selectedLanguageId, cmsPreferences?.default_language_id, cmsDefaultLanguageId, router]);
 
   // Reset Filters
   const handleResetFilters = useCallback(() => {
     setSelectedUserId(-1);
     setSelectedTableIds([]);
     setShowDeleted(false);
-    setSelectedLanguageId(1);
+    setSelectedLanguageId(cmsDefaultLanguageId);
 
     setActiveSelectedUserId(-1);
     setActiveTableIds([]);
     setActiveShowDeleted(false);
-    setActiveSelectedLanguageId(1);
+    setActiveSelectedLanguageId(cmsDefaultLanguageId);
 
     const currentPath = globalThis.location.pathname;
     router.replace(currentPath, { scroll: false });
-  }, [router]);
+  }, [router, cmsDefaultLanguageId]);
 
   // Refresh. The actual rows + column labels live in <SingleDataTable> under
   // DATA_QUERY_KEYS.all (one query per expanded table), so refetching only the
@@ -228,7 +263,7 @@ export function DataAdminPage() {
                 label="Language"
                 placeholder="Select language"
                 data={languageOptions}
-                value={selectedLanguageId !== null ? String(selectedLanguageId) : null}
+                value={displayedLanguageId !== null ? String(displayedLanguageId) : null}
                 onChange={(val) => setSelectedLanguageId(val ? parseInt(val, 10) : null)}
                 searchable
                 clearable
@@ -274,7 +309,7 @@ export function DataAdminPage() {
           activeTableIds={activeTableIds}
           selectedUserId={activeSelectedUserId}
           showDeleted={activeShowDeleted}
-          selectedLanguageId={activeSelectedLanguageId}
+          selectedLanguageId={resolveDataAdminLanguageId(activeSelectedLanguageId, cmsPreferences?.default_language_id)}
         />
       </Stack>
 

@@ -4,22 +4,154 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { Burger } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import type { ReactNode } from 'react';
+import { Burger, Divider, Drawer, NavLink, Stack } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+    type INavigationMenu,
+    type INavigationMenuItem,
+    getNavigationItemHref,
+    getNavigationItemLabel,
+    isMenuItemActiveOnWeb,
+    splitHeaderLayers,
+} from '@selfhelp/shared';
+import { useAppNavigation } from '../../../../hooks/useAppNavigation';
+import {
+    isPreviewInternalPath,
+    usePreviewNavigation,
+} from '../../cms/live-preview/PreviewNavigationContext';
+import IconComponent from './IconComponent';
+
+interface IBurgerMenuClientProps {
+    /** Server-resolved `web_header` menu for first paint. */
+    initialHeaderMenu?: INavigationMenu | null;
+}
+
+function BurgerNavTree({
+    items,
+    pathname,
+    depth = 0,
+    onNavigate,
+    onNavigateHref,
+}: {
+    items: INavigationMenuItem[];
+    pathname: string;
+    depth?: number;
+    onNavigate: () => void;
+    onNavigateHref: (href: string) => void;
+}): ReactNode {
+    return items.map((item) => {
+        const label = getNavigationItemLabel(item);
+        const href = getNavigationItemHref(item);
+        const children = (item.children ?? []).filter(
+            (child) => child.item_type === 'external_url' || child.page != null || child.item_type === 'group',
+        );
+        const iconName = item.icon ?? null;
+        const active = isMenuItemActiveOnWeb(item, pathname);
+        const handleNavigate = href
+            ? () => {
+                onNavigate();
+                onNavigateHref(href);
+            }
+            : undefined;
+
+        if (children.length > 0) {
+            return (
+                <NavLink
+                    key={String(item.id)}
+                    label={label}
+                    leftSection={iconName ? <IconComponent iconName={iconName} size={18} /> : undefined}
+                    active={active}
+                    defaultOpened={active}
+                    pl={depth * 12}
+                >
+                    <BurgerNavTree
+                        items={children}
+                        pathname={pathname}
+                        depth={depth + 1}
+                        onNavigate={onNavigate}
+                        onNavigateHref={onNavigateHref}
+                    />
+                </NavLink>
+            );
+        }
+
+        return (
+            <NavLink
+                key={String(item.id)}
+                label={label}
+                leftSection={iconName ? <IconComponent iconName={iconName} size={18} /> : undefined}
+                active={active}
+                pl={depth * 12}
+                onClick={handleNavigate}
+            />
+        );
+    });
+}
 
 /**
- * Client Component for Burger Menu
- * Handles interactive mobile menu toggle
+ * Small-viewport burger that opens a drawer with the resolved `web_header` menu tree.
  */
-export function BurgerMenuClient() {
-    const [opened, { toggle }] = useDisclosure(false);
+export function BurgerMenuClient({ initialHeaderMenu = null }: IBurgerMenuClientProps) {
+    const [opened, { toggle, close }] = useDisclosure(false);
+    const isSmallViewport = useMediaQuery('(max-width: 62em)') ?? false;
+    const pathname = usePathname();
+    const router = useRouter();
+    const { headerMenu } = useAppNavigation();
+    const previewNav = usePreviewNavigation();
+    const menu = headerMenu ?? initialHeaderMenu;
+    const items = menu?.items ?? [];
+
+    if (!isSmallViewport || items.length === 0) {
+        return null;
+    }
+
+    // Main navigation first; top-row utility links follow after a divider.
+    const { top, main } = splitHeaderLayers(items);
+
+    const handleNavigateHref = (href: string) => {
+        if (previewNav && isPreviewInternalPath(href)) {
+            previewNav.navigate(href);
+            return;
+        }
+        if (href.startsWith('http://') || href.startsWith('https://')) {
+            window.location.assign(href);
+            return;
+        }
+        router.push(href);
+    };
 
     return (
-        <Burger
-            opened={opened}
-            onClick={toggle}
-            size="sm"
-            hiddenFrom="sm"
-        />
+        <>
+            <Burger opened={opened} onClick={toggle} size="sm" hiddenFrom="md" aria-label="Open navigation menu" />
+            <Drawer
+                opened={opened}
+                onClose={close}
+                title="Menu"
+                position="right"
+                size="xs"
+            >
+                <Stack gap={4}>
+                    <BurgerNavTree
+                        items={main}
+                        pathname={pathname}
+                        onNavigate={close}
+                        onNavigateHref={handleNavigateHref}
+                    />
+                    {top.length > 0 ? (
+                        <>
+                            <Divider my={4} />
+                            <BurgerNavTree
+                                items={top}
+                                pathname={pathname}
+                                onNavigate={close}
+                                onNavigateHref={handleNavigateHref}
+                            />
+                        </>
+                    ) : null}
+                </Stack>
+            </Drawer>
+        </>
     );
 }

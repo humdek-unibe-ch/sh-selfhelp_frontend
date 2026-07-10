@@ -12,6 +12,7 @@ import {
   Textarea,
   Switch,
   Group,
+  Grid,
   Text,
   Divider,
   LoadingOverlay,
@@ -173,65 +174,56 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
     >
       <LoadingOverlay visible={isLoading} />
 
+      {/* Compact two-column header (identity | security), ACL panel full width
+          below — keeps the tall ACL table as the only vertical block. */}
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
-          {/* Group Information Display for Edit Mode */}
-          {mode === 'edit' && groupDetails && (
-            <div>
-              <Text size="sm" fw={500} mb="xs">
-                Group Information
-              </Text>
-              <Group>
-                <Text size="sm" fw={500} c="dimmed" className="min-w-[80px]">
-                  Name:
-                </Text>
-                <Text size="sm">
-                  {groupDetails.name}
-                </Text>
-              </Group>
-            </div>
-          )}
+          <Grid gap="xl">
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Stack gap="sm">
+                {mode === 'edit' && groupDetails && (
+                  <Group>
+                    <Text size="sm" fw={500} c="dimmed" className="min-w-[80px]">
+                      Name:
+                    </Text>
+                    <Text size="sm">
+                      {groupDetails.name}
+                    </Text>
+                  </Group>
+                )}
+                {mode === 'create' && (
+                  <TextInput
+                    label="Group Name"
+                    placeholder="Enter group name"
+                    required
+                    autoComplete="off"
+                    {...form.getInputProps('name')}
+                  />
+                )}
 
-          {/* Basic Information */}
-          <div>
-            <Text size="sm" fw={500} mb="xs">
-              {mode === 'create' ? 'Basic Information' : 'Editable Information'}
-            </Text>
-            <Stack gap="sm">
-              {mode === 'create' && (
-                <TextInput
-                  label="Group Name"
-                  placeholder="Enter group name"
-                  required
-                  autoComplete="off"
-                  {...form.getInputProps('name')}
+                <Textarea
+                  label="Description"
+                  placeholder="Enter group description"
+                  autosize
+                  minRows={2}
+                  maxRows={4}
+                  {...form.getInputProps('description')}
                 />
-              )}
-              
-              <Textarea
-                label="Description"
-                placeholder="Enter group description"
-                autosize
-                minRows={2}
-                maxRows={4}
-                {...form.getInputProps('description')}
-              />
-            </Stack>
-          </div>
-
-          <Divider />
-
-          {/* Settings */}
-          <div>
-            <Text size="sm" fw={500} mb="xs">
-              Security Settings
-            </Text>
-            <Switch
-              label="Require Two-Factor Authentication"
-              description="Members of this group must have 2FA enabled"
-              {...form.getInputProps('requires_2fa', { type: 'checkbox' })}
-            />
-          </div>
+              </Stack>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Stack gap="sm">
+                <Text size="sm" fw={500}>
+                  Security Settings
+                </Text>
+                <Switch
+                  label="Require Two-Factor Authentication"
+                  description="Members of this group must have 2FA enabled"
+                  {...form.getInputProps('requires_2fa', { type: 'checkbox' })}
+                />
+              </Stack>
+            </Grid.Col>
+          </Grid>
 
           <Divider />
 

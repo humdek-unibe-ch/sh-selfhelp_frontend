@@ -26,7 +26,7 @@ import {
     UnknownStyle,
     FormStyle,
     ProfileStyle,
-    ShowUserInputStyle
+    EntryTableStyle
 } from './SelfHelpStyles';
 import NoAccessStyle from './NoAccessStyle';
 import MissingStyle from './MissingStyle';
@@ -40,7 +40,7 @@ import LoopStyle from './LoopStyle';
 import VersionStyle from './VersionStyle';
 import DebugWrapper from './shared/debug-wrapper/DebugWrapper';
 import {
-    type ILoginStyle, type IProfileStyle, type IValidateStyle, type IRegisterStyle, type IResetPasswordStyle, type ITwoFactorAuthStyle, type IShowUserInputStyle,
+    type ILoginStyle, type IProfileStyle, type IValidateStyle, type IRegisterStyle, type IResetPasswordStyle, type ITwoFactorAuthStyle, type IEntryTableStyle,
     type IContainerStyle, type IRefContainerStyle, type ICenterStyle, type IDividerStyle, type IPaperStyle, type IAlertStyle, type IHtmlTagStyle,
     type IFormStyle, type IInputStyle, type ITextInputStyle, type ITextareaStyle, type IRichTextEditorStyle,
     type ISelectStyle, type IRadioStyle, type ISliderStyle, type ICheckboxStyle, type IDatePickerStyle,
@@ -306,6 +306,8 @@ const styleImpls: Record<string, TStyleRenderer> = {
         <FormStyle style={style as unknown as IFormStyle} styleProps={styleProps} cssClass={cssClass} />,
     'form-record': ({ style, styleProps, cssClass }) =>
         <FormStyle style={style as unknown as IFormStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'entry-record-form': ({ style, styleProps, cssClass }) =>
+        <FormStyle style={style as unknown as IFormStyle} styleProps={styleProps} cssClass={cssClass} />,
     textarea: ({ style, styleProps, cssClass }) =>
         <TextareaStyle style={style as ITextareaStyle} styleProps={styleProps} cssClass={cssClass} />,
     input: ({ style, cssClass }) =>
@@ -412,8 +414,8 @@ const styleImpls: Record<string, TStyleRenderer> = {
         <TypographyStyle style={style as ITypographyStyle} styleProps={styleProps} cssClass={cssClass} />,
 
     // ===== data display =====
-    'show-user-input': ({ style, styleProps, cssClass }) =>
-        <ShowUserInputStyle style={style as IShowUserInputStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'entry-table': ({ style, styleProps, cssClass }) =>
+        <EntryTableStyle style={style as IEntryTableStyle} styleProps={styleProps} cssClass={cssClass} />,
 
     // ===== system / diagnostic =====
     version: ({ style, cssClass }) =>

@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Button, Modal, Group } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import { type IButtonStyle } from '../../../../types/common/styles.types';
@@ -13,6 +13,7 @@ import {
 } from '../../cms/live-preview/PreviewNavigationContext';
 import parse from "html-react-parser";
 import DOMPurify from 'isomorphic-dompurify';
+import { resolveButtonHref } from '../../cms/cms-apps/cmsAppPages.utils';
 
 /**
  * Props interface for ButtonStyle component
@@ -40,8 +41,8 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass 
     // Non-null only inside the CMS Live Preview web pane.
     const previewNav = usePreviewNavigation();
     const label = style.label?.content;
-    // Internal page link takes precedence over the external URL.
-    const url = style.page_keyword?.content || style.url?.content;
+    // Internal page keyword wins when set; `#` / empty fall through to path URL.
+    const url = resolveButtonHref(style.page_keyword?.content, style.url?.content);
     const variant = style.variant?.content;
     const color = style.color?.content;
     const size = style.size?.content;
@@ -63,6 +64,20 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass 
 
     const leftSection = leftIconName ? <IconComponent iconName={leftIconName} size={16} /> : null;
     const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : null;
+
+    const resolvedInternalPath = useMemo(() => {
+        if (!url || url === '#') return null;
+        if (url.startsWith('/')) return url;
+        if (typeof window !== 'undefined' && url.startsWith(window.location.origin)) {
+            return url.replace(window.location.origin, '');
+        }
+        return null;
+    }, [url]);
+
+    const previewPath = resolvedInternalPath && isPreviewInternalPath(resolvedInternalPath)
+        ? resolvedInternalPath
+        : null;
+    const usePreviewLink = Boolean(previewNav && previewPath);
 
     // Execute the actual button action (navigation or URL opening)
     const executeAction = () => {
@@ -94,12 +109,24 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass 
     const handleClick = (e?: React.MouseEvent) => {
         // Check if confirmation is required
         if (confirmation_title && confirmation_message) {
-            // Prevent default if this is from an anchor tag
             if (e) {
                 e.preventDefault();
             }
             setConfirmationOpened(true);
             return;
+        }
+
+        if (url && url !== '#') {
+            const isInternal = url.startsWith('/') ||
+                (typeof window !== 'undefined' && url.startsWith(window.location.origin));
+            if (isInternal) {
+                const path = url.startsWith('/') ? url : url.replace(window.location.origin, '');
+                if (previewNav && isPreviewInternalPath(path)) {
+                    e?.preventDefault();
+                    previewNav.navigate(path);
+                    return;
+                }
+            }
         }
 
         // Execute action directly if no confirmation needed
@@ -121,10 +148,17 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass 
                 rightSection={rightSection}
                 disabled={disabled === '1'}
                 autoContrast={auto_contrast === '1'}
-                component={is_link === '1' ? 'a' : 'button'}
-                href={is_link === '1' ? url : undefined}
-                onClick={handleClick}
-                target={open_in_new_tab === '1' ? '_blank' : '_self'}
+                component={is_link === '1' && url && !usePreviewLink ? 'a' : 'button'}
+                href={is_link === '1' && url && !usePreviewLink ? url : undefined}
+                onClick={(e: React.MouseEvent) => {
+                    if (usePreviewLink && previewPath) {
+                        e.preventDefault();
+                        previewNav!.navigate(previewPath);
+                        return;
+                    }
+                    handleClick(e);
+                }}
+                target={open_in_new_tab === '1' ? '_blank' : undefined}
             >
                 {label}
             </Button>

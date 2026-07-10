@@ -209,11 +209,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
         // Prepare data - configuration pages don't need page properties
         const pageData: IUpdatePageData = {
-            // Keep existing values
             url: page.url,
             headless: pageFieldsData?.page.headless || false,
-            navPosition: page.nav_position,
-            footerPosition: page.footer_position,
             openAccess: pageFieldsData?.page.openAccess || false,
             pageAccessTypeCode: pageFieldsData?.page.pageAccessType?.lookupCode || '',
         };

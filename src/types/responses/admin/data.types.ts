@@ -21,6 +21,8 @@ export interface IDataTablesListResponse {
 
 export interface IDataRowsResponse {
   rows: Array<Record<string, unknown>>;
+  /** Optional server-side code-to-label maps for option-bearing form fields. */
+  optionLabelMaps?: Record<string, Record<string, string>>;
 }
 
 /**

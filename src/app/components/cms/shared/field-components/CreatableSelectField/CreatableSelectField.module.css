@@ -16,7 +16,11 @@ SPDX-License-Identifier: MPL-2.0
 }
 
 .pillsContainer:hover {
-  background-color: var(--mantine-color-gray-0);
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+}
+
+[data-mantine-color-scheme="dark"] .pillsContainer:hover {
+  background-color: var(--mantine-color-dark-6);
 }
 
 .pillsContainer:focus-within {
@@ -33,19 +37,19 @@ SPDX-License-Identifier: MPL-2.0
 
 .pill:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: light-dark(0 2px 4px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.45));
 }
 
 .predefinedPill {
-  background-color: var(--mantine-color-green-1) !important;
-  color: var(--mantine-color-green-9) !important;
-  border: 1px solid var(--mantine-color-green-4) !important;
+  background-color: light-dark(var(--mantine-color-green-1), var(--mantine-color-green-9)) !important;
+  color: light-dark(var(--mantine-color-green-9), var(--mantine-color-green-1)) !important;
+  border: 1px solid light-dark(var(--mantine-color-green-4), var(--mantine-color-green-7)) !important;
 }
 
 .customPill {
-  background-color: var(--mantine-color-blue-1) !important;
-  color: var(--mantine-color-blue-9) !important;
-  border: 1px solid var(--mantine-color-blue-4) !important;
+  background-color: light-dark(var(--mantine-color-blue-1), var(--mantine-color-blue-9)) !important;
+  color: light-dark(var(--mantine-color-blue-9), var(--mantine-color-blue-1)) !important;
+  border: 1px solid light-dark(var(--mantine-color-blue-4), var(--mantine-color-blue-7)) !important;
 }
 
 .placeholder {
@@ -60,7 +64,11 @@ SPDX-License-Identifier: MPL-2.0
 }
 
 .dropdownOption:hover {
-  background-color: var(--mantine-color-gray-0);
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+}
+
+[data-mantine-color-scheme="dark"] .dropdownOption:hover {
+  background-color: var(--mantine-color-dark-6);
 }
 
 .predefinedOption {

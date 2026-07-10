@@ -62,6 +62,37 @@ export interface IPageDetails extends IBasePageInfo {
      */
     pageAccessType?: IPageAccessTypeInfo;
     openAccess?: boolean;
+    /**
+     * CMS-in-CMS organization axis (issue #30) lookup code: `public` | `cms`
+     * (null/absent resolves to `public`). The full lookup object is in
+     * `pageSurface`; `surface` is the convenience code editors round-trip.
+     */
+    surface?: 'public' | 'cms' | null;
+    pageSurface?: {
+        id: number;
+        typeCode: string;
+        lookupCode: string;
+        lookupValue: string;
+        lookupDescription: string | null;
+    } | null;
+}
+
+/**
+ * One DB-driven public route for a page (issue #30). Round-trips between the
+ * admin page-fields GET response (`routes`) and the page update request
+ * (`pageData.routes`). Param names inside `path_pattern` and `requirements`
+ * keys are snake_case and are never remapped.
+ */
+export interface IPageRouteItem {
+    /** Existing `page_routes` id; absent/null for a new, unsaved route. */
+    id?: number | null;
+    /** Symfony route pattern, e.g. `/team` or `/team/{record_id}`. */
+    path_pattern: string;
+    /** Placeholder name -> regex requirement map (e.g. `{ record_id: '\\d+' }`). */
+    requirements?: Record<string, string> | null;
+    is_canonical: boolean;
+    is_active: boolean;
+    priority: number;
 }
 
 /**
@@ -117,6 +148,8 @@ export interface IApiSection {
 export interface IPageFieldsData {
     page: IPageDetails;
     fields: IPageField[];
+    /** DB-driven public routes for this page (issue #30); edited in the Routes panel. */
+    routes?: IPageRouteItem[];
 }
 
 export interface IPageFieldsResponse {

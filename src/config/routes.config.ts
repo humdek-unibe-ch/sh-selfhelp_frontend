@@ -16,7 +16,10 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   TWO_FACTOR_AUTH: '/two-factor-authentication',
-  RESET_PASSWORD: '/reset-password',
+  // Canonical public reset URL (DB routing, issue #30). The CMS `reset-password`
+  // page is resolved from `/reset`; `/reset/{user_id}/{token}` carries the
+  // emailed link. `/reset-password` stays a valid alias on the backend.
+  RESET_PASSWORD: '/reset',
   VALIDATE: '/validate', // Base path, actual URL includes parameters
   HOME: '/home',
   PROFILE: '/profile',

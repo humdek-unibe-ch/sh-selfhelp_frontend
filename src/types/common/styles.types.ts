@@ -250,7 +250,7 @@ export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'reset-password' | 'two-factor-auth'
     | 'container' | 'alert' | 'ref-container' | 'data-container' | 'html-tag' | 'center' | 'box'
     | 'flex' | 'group' | 'stack' | 'simple-grid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
-    | 'form-log' | 'form-record' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
+    | 'form-log' | 'form-record' | 'entry-record-form' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
     | 'button' | 'link'
     | 'entry-list' | 'entry-record' | 'entry-record-delete'
@@ -269,7 +269,7 @@ export type TStyleName =
     | 'list' | 'list-item'
     | 'datepicker'
     | 'typography'
-    | 'show-user-input'
+    | 'entry-table'
     | 'timeline-item'
     // system / error surfaces
     | 'no-access' | 'missing' | 'not-found';
@@ -372,6 +372,7 @@ export type {
     IFormStyle,
     IFormLogStyle,
     IFormRecordStyle,
+    IEntryRecordFormStyle,
     IInputStyle,
     ITextInputStyle,
     ITextareaStyle,
@@ -405,8 +406,8 @@ export type {
     IEntryRecordStyle,
     IEntryRecordDeleteStyle,
     ILoopStyle,
-    IShowUserInputStyle,
-    IShowUserInputEntry,
+    IEntryTableStyle,
+    IEntryTableEntry,
 } from '../../shared';
 
 // ===== Frontend-only legacy styles =====
@@ -426,7 +427,7 @@ export interface IVersionStyle extends IBaseStyle {
     style_name: 'version';
 }
 
-// `IShowUserInputStyle` / `IShowUserInputEntry` are owned by `@selfhelp/shared`
+// `IEntryTableStyle` / `IEntryTableEntry` are owned by `@selfhelp/shared`
 // (re-exported above) so the web + mobile renderers share one source of truth.
 
 // ===== Discriminated union of all styles =====
@@ -483,6 +484,7 @@ import type {
     INotificationStyle,
     IFormLogStyle,
     IFormRecordStyle,
+    IEntryRecordFormStyle,
     IInputStyle,
     ITextInputStyle,
     ITextareaStyle,
@@ -515,7 +517,7 @@ import type {
     IEntryRecordStyle,
     IEntryRecordDeleteStyle,
     ILoopStyle,
-    IShowUserInputStyle,
+    IEntryTableStyle,
     INoAccessStyle,
     IMissingStyle,
     INotFoundStyle,
@@ -543,7 +545,7 @@ export type TStyle =
     | IBadgeStyle | IAvatarStyle | IChipStyle | IIndicatorStyle
     | IThemeIconStyle | INotificationStyle
     // forms
-    | IFormLogStyle | IFormRecordStyle | IInputStyle | ITextInputStyle
+    | IFormLogStyle | IFormRecordStyle | IEntryRecordFormStyle | IInputStyle | ITextInputStyle
     | ITextareaStyle | IRichTextEditorStyle | ISelectStyle | IRadioStyle
     | ICheckboxStyle | ISliderStyle | IRangeSliderStyle | IDatePickerStyle
     | ISwitchStyle | IComboboxStyle | IColorInputStyle | IColorPickerStyle
@@ -553,7 +555,7 @@ export type TStyle =
     | IAccordionStyle | IAccordionItemStyle | ITabsStyle | ITabStyle
     | ITimelineStyle | ITimelineItemStyle | IListStyle | IListItemStyle
     | IEntryListStyle | IEntryRecordStyle | IEntryRecordDeleteStyle
-    | ILoopStyle | IVersionStyle | IShowUserInputStyle
+    | ILoopStyle | IVersionStyle | IEntryTableStyle
     // system / error surfaces
     | INoAccessStyle | IMissingStyle | INotFoundStyle;
 

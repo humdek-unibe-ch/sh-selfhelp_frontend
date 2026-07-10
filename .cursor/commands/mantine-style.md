@@ -153,7 +153,6 @@ The system has hundreds of pre-existing fields that should be reused when possib
 | 221 | color_text | 29 | Text color |
 | 222 | load_as_table | 3 | Table loading toggle |
 | 223 | scope | 1 | Scope definition |
-| 224 | url_param | 1 | URL parameter |
 | 225 | html_tag | 30 | HTML tag selector |
 | 226 | fields_map | 8 | Fields mapping |
 | 228 | height | 1 | Height value |

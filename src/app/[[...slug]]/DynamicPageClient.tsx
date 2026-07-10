@@ -4,27 +4,57 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
 import { useIsFetching } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { PageModal } from './PageModal';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import { useLanguageContext } from '../components/contexts/LanguageContext';
 import { usePreviewMode } from '../components/contexts/PreviewModeContext';
 import { usePageContentByKeyword } from '../../hooks/usePageContentByKeyword';
+import { usePageContentByPath } from '../../hooks/usePageContentByPath';
 import { useSyncDocumentMetadata } from '../../hooks/useSyncDocumentMetadata';
-import { PageContextProvider } from '../components/contexts/PageContext';
-import { PageContentRenderer } from '../components';
+import { useAppNavigation } from '../../hooks/useAppNavigation';
+import { useRecordLastVisitedPage } from '../../hooks/useRecordLastVisitedPage';
+import { useAuth } from '../../hooks/useAuth';
+import { shouldOpenPageInWebModal } from './pageModalPolicy';
+import { stripHtmlTags } from '../../utils/html-sanitizer.utils';
 import { type TStyle } from '../../types/common/styles.types';
+import { PageContextProvider } from '../components/contexts/PageContext';
+import { PageModalProvider } from '../components/contexts/PageModalContext';
+import { PageContentRenderer } from '../components';
+import { BranchNavigation } from '../components/frontend/navigation/BranchNavigation';
+import {
+    resolveHolderRedirectPath,
+    resolveWebStartupPath,
+    type INavigationPayload,
+} from '../../shared';
 
 interface IDynamicPageClientProps {
     keyword: string;
     /**
      * Page id resolved on the server. Used to seed the `PageContext` for
      * child style components that look up content via `usePageContentValue`.
-     * The canonical content still lives in the `['page-by-keyword', ...]`
-     * React Query cache that was hydrated by the slug layout.
+     * The canonical content still lives in the React Query cache that was
+     * hydrated by the slug layout.
      */
     initialPageId: number;
+    /**
+     * Full public URL path the page was resolved from (DB routing, issue #30).
+     * When present the content is read from the path-keyed cache so
+     * parameterized records (`/team/7`) never share another record's cache.
+     * Absent only for the hardcoded maintenance render, which is keyword-keyed.
+     */
+    path?: string;
+    /** Snake_case route params from the matched pattern (`{ user_id, token }`, `{ record_id }`). */
+    routeParams?: Record<string, string>;
+    /**
+     * Server-resolved navigation payload so branch sidebar/pills render on
+     * the first paint — same pattern as `WebsiteHeaderLayout`'s
+     * `initialNavigation` fallback while `useAppNavigation` hydrates.
+     */
+    initialNavigation?: INavigationPayload | null;
 }
 
 /**
@@ -36,33 +66,94 @@ interface IDynamicPageClientProps {
  * React Query cache + `keepPreviousData` so we never flash spinners between
  * transitions.
  */
-export default function DynamicPageClient({ keyword, initialPageId }: IDynamicPageClientProps) {
+export default function DynamicPageClient({
+    keyword,
+    initialPageId,
+    path,
+    routeParams,
+    initialNavigation = null,
+}: IDynamicPageClientProps) {
     const { currentLanguageId } = useLanguageContext();
     const { isPreviewMode } = usePreviewMode();
+    const router = useRouter();
+    const { isAuthenticated } = useAuth();
 
+    // Public slug pages resolve by PATH (DB routing); the keyword-keyed hook is
+    // kept only for the hardcoded maintenance render (no path). Both hooks read
+    // a cache slot under the `page-by-keyword` prefix, so a single
+    // `useIsFetching(PAGE_BY_KEYWORD_ALL)` still tracks either one.
+    const byPath = usePageContentByPath(path ?? '', { preview: isPreviewMode, enabled: Boolean(path) });
+    const byKeyword = usePageContentByKeyword(keyword, { preview: isPreviewMode, enabled: !path });
     const {
         content: pageContent,
         isLoading,
         isFetching,
         isPlaceholderData,
-    } = usePageContentByKeyword(keyword, { preview: isPreviewMode });
+    } = path ? byPath : byKeyword;
 
     // React Query is the single source of truth for "language change in
     // flight": a language switch invalidates `page-by-keyword`, which
-    // surfaces here as `useIsFetching` > 0.
-    const pendingLangFetches = useIsFetching({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
+    // surfaces here as `useIsFetching` > 0. Only OBSERVED queries count —
+    // hover prefetches (`usePagePrefetch` → `PAGE_BY_PATH`) share the same
+    // `page-by-keyword` key prefix but have no observers, and counting them
+    // toggled `data-language-changing` on every link hover, which applied the
+    // min-height guard and made the footer jump ("flash") while the prefetch
+    // was in flight.
+    const pendingLangFetches = useIsFetching({
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL,
+        predicate: (query) => query.getObserversCount() > 0,
+    });
     const isLanguageChanging = pendingLangFetches > 0;
 
     const pageId = pageContent?.id ?? initialPageId;
     const isHeadless = Boolean(pageContent?.is_headless);
+
+    // In-page branch navigation from the resolved public menu tree.
+    const { navigation: liveNavigation } = useAppNavigation();
+    const navigation = liveNavigation ?? initialNavigation;
+
+    // Web modals are opt-in via the `open_in_modal` page property (CMS-in-CMS
+    // create/edit/detail). Off-menu pages stay full pages on web; mobile handles
+    // off-menu presentation in the native shell.
+    const isModal = shouldOpenPageInWebModal(pageContent);
+    const closeModal = useCallback(() => {
+        if (typeof window !== 'undefined' && window.history.length > 1) {
+            router.back();
+            return;
+        }
+        const fallback = navigation
+            ? resolveWebStartupPath(navigation.startup, isAuthenticated)
+            : '/';
+        router.push(fallback || '/');
+    }, [router, navigation, isAuthenticated]);
     const isContentUpdating = isFetching || isLanguageChanging;
     const sections = useMemo(() => pageContent?.sections ?? [], [pageContent]);
+
+    const hasBranchNav = Boolean(navigation && pageId > 0);
+    const hasSections = sections.length > 0;
+
+    useEffect(() => {
+        if (!navigation || !pageContent || hasSections) {
+            return;
+        }
+        const target = resolveHolderRedirectPath(navigation, pageId, 'web', hasSections);
+        if (!target || target === path) {
+            return;
+        }
+        router.replace(target);
+    }, [navigation, pageContent, hasSections, pageId, path, router]);
 
     // SSR `generateMetadata()` paints the correct tab title on first load.
     // After that, language switches refresh the content via React Query but
     // leave the server-rendered `<title>` / description untouched — this
     // hook keeps them in sync without requiring a full reload.
     useSyncDocumentMetadata(pageContent?.title ?? null, pageContent?.description ?? null);
+    useRecordLastVisitedPage(
+        pageId,
+        keyword,
+        pageContent?.url ?? path ?? null,
+        Boolean(pageContent) && !isModal && !pageContent?.is_headless,
+    );
 
     if (isLoading && !pageContent && !isPlaceholderData) {
         return (
@@ -84,11 +175,53 @@ export default function DynamicPageClient({ keyword, initialPageId }: IDynamicPa
         );
     }
 
+    // Prefer the route params the resolver returned on the live content; fall
+    // back to the SSR-provided prop for the very first paint before hydration.
+    const effectiveRouteParams = pageContent?.route_params ?? routeParams;
+
+    const pageBody = <PageContentRenderer sections={sections as unknown as TStyle[]} />;
+
     const rendered = (
-        <PageContextProvider keyword={keyword} pageId={pageId} languageId={currentLanguageId}>
-            <PageContentRenderer sections={sections as unknown as TStyle[]} />
-        </PageContextProvider>
+        <PageModalProvider value={{ inModal: isModal, closeModal }}>
+            <PageContextProvider
+                keyword={keyword}
+                pageId={pageId}
+                languageId={currentLanguageId}
+                path={path ?? null}
+                routeParams={effectiveRouteParams}
+            >
+                {/* Branch layout (sidebar/pills/breadcrumbs/pager) wraps the content
+                    for pages inside a menu branch. Modals and headless landing pages
+                    render bare content. */}
+                {!isModal && !isHeadless && hasBranchNav ? (
+                    <BranchNavigation navigation={navigation} currentPageId={pageId}>
+                        {pageBody}
+                    </BranchNavigation>
+                ) : (
+                    pageBody
+                )}
+            </PageContextProvider>
+        </PageModalProvider>
     );
+
+    // `open_in_modal`: render the page content inside a STANDARDIZED modal
+    // overlay (same header for every page modal). The author controls only the
+    // box size via `modal_width` / `modal_height` (default 80%, capped at 90%
+    // of the viewport, `auto` fits content). The close button (and backdrop)
+    // return to the previous page. Web-only — mobile renders a normal screen.
+    if (isModal) {
+        return (
+            <PageModal
+                title={stripHtmlTags(pageContent.title ?? '')}
+                width={pageContent.modal_width}
+                height={pageContent.modal_height}
+                onClose={closeModal}
+                dataLanguageChanging={isLanguageChanging}
+            >
+                {rendered}
+            </PageModal>
+        );
+    }
 
     if (isHeadless) {
         return (

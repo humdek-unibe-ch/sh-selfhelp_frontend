@@ -9,8 +9,13 @@ SPDX-License-Identifier: MPL-2.0
 }
 
 .searchItem:hover {
-  background-color: var(--mantine-color-gray-0);
-  border-color: var(--mantine-color-blue-4);
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+  border-color: light-dark(var(--mantine-color-blue-4), var(--mantine-color-blue-7));
+}
+
+[data-mantine-color-scheme="dark"] .searchItem:hover {
+  background-color: var(--mantine-color-dark-6);
+  border-color: var(--mantine-color-blue-7);
 }
 
 .searchItemText {

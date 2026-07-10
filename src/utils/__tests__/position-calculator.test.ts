@@ -8,7 +8,6 @@ import {
     calculateContainerDropPosition,
     calculateSiblingBelowPosition,
     calculateSiblingAbovePosition,
-    calculateFinalMenuPosition,
     type IPositionItem,
 } from '../position-calculator';
 
@@ -48,13 +47,5 @@ describe('calculateSibling*Position', () => {
 
     it('places a sibling above the first item at -1', () => {
         expect(calculateSiblingAbovePosition({ id: 'a', position: 0 }, siblings).newPosition).toBe(-1);
-    });
-});
-
-describe('calculateFinalMenuPosition', () => {
-    it('returns -1 for the first slot and last.position + 5 for the end', () => {
-        expect(calculateFinalMenuPosition(siblings, 0)).toBe(-1);
-        expect(calculateFinalMenuPosition(siblings, siblings.length)).toBe(25);
-        expect(calculateFinalMenuPosition(siblings, 1)).toBe(5);
     });
 });

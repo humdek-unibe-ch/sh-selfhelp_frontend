@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { Modal, type ModalProps, Group, Button, ScrollArea, Text, CloseButton } from '@mantine/core';
+import { Modal, type ModalProps, Group, Button, ScrollArea, Text, CloseButton, Box } from '@mantine/core';
 import { type ReactNode } from 'react';
 import styles from './CustomModal.module.css';
 
@@ -67,6 +67,10 @@ interface ModalWrapperProps {
     closeOnEscape?: boolean;
     withCloseButton?: boolean;
     scrollAreaHeight?: number | string;
+    /** When true, body is not wrapped in ScrollArea (no inner scrollbar). */
+    disableScroll?: boolean;
+    /** Wizard pattern: Cancel on the left, primary actions on the right. */
+    cancelPosition?: 'left' | 'right';
     modalStyles?: ModalProps['styles'];
 }
 
@@ -94,6 +98,8 @@ export const ModalWrapper = ({
     closeOnEscape = false,
     withCloseButton = true,
     scrollAreaHeight = 'calc(100dvh - 10rem)',
+    disableScroll = false,
+    cancelPosition = 'right',
     modalStyles,
 }: ModalWrapperProps) => {
     // Determine which actions to show
@@ -132,18 +138,24 @@ export const ModalWrapper = ({
                 )}
             </Group>
 
-            {/* Scrollable Content */}
-            <ScrollArea.Autosize
-                className={styles.scrollArea}
-                mah={scrollAreaHeight}
-                type="auto"
-                scrollbars="y"
-                offsetScrollbars="present"
-                p="md"
-                scrollbarSize={!scrollAreaHeight ? 0 : undefined}
-            >
-                {children}
-            </ScrollArea.Autosize>
+            {/* Body */}
+            {disableScroll ? (
+                <Box className={styles.scrollArea} p="md">
+                    {children}
+                </Box>
+            ) : (
+                <ScrollArea.Autosize
+                    className={styles.scrollArea}
+                    mah={scrollAreaHeight}
+                    type="auto"
+                    scrollbars="y"
+                    offsetScrollbars="present"
+                    p="md"
+                    scrollbarSize={!scrollAreaHeight ? 0 : undefined}
+                >
+                    {children}
+                </ScrollArea.Autosize>
+            )}
 
             {/* Footer with Actions */}
             {(hasPrimaryAction || hasDeleteAction || hasCancelAction || customActions) && (
@@ -153,8 +165,18 @@ export const ModalWrapper = ({
                     p="md"
                     className={styles.modalFooter}
                 >
-                    {/* Left side - Delete action */}
+                    {/* Left side — Cancel (wizard) and delete */}
                     <Group>
+                        {cancelPosition === 'left' && hasCancelAction && (
+                            <Button
+                                variant="outline"
+                                onClick={onCancel || onClose}
+                                disabled={isLoading}
+                                size="sm"
+                            >
+                                {cancelLabel}
+                            </Button>
+                        )}
                         {hasDeleteAction && (
                             <Button
                                 variant={deleteVariant}
@@ -169,10 +191,10 @@ export const ModalWrapper = ({
                         )}
                     </Group>
 
-                    {/* Right side - Primary and cancel actions */}
+                    {/* Right side — Back / Next / primary */}
                     <Group>
                         {customActions}
-                        {hasCancelAction && (
+                        {cancelPosition === 'right' && hasCancelAction && (
                             <Button
                                 variant="outline"
                                 onClick={onCancel || onClose}

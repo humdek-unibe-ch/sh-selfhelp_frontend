@@ -27,6 +27,8 @@ interface ICollapsibleSectionProps {
     sectionName: string;
     defaultExpanded?: boolean;
     className?: string;
+    /** Optional control rendered beside the title (e.g. field help icon). */
+    headerAction?: ReactNode;
 }
 
 export function CollapsibleSection({
@@ -35,7 +37,8 @@ export function CollapsibleSection({
     inspectorType,
     sectionName,
     defaultExpanded = true,
-    className
+    className,
+    headerAction,
 }: ICollapsibleSectionProps) {
     const { isCollapsed, setCollapsed } = useInspectorStore();
 
@@ -50,7 +53,14 @@ export function CollapsibleSection({
         <Paper withBorder className={className}>
             <Box p="md">
                 <Group justify="space-between" mb="md" className="cursor-pointer" onClick={handleToggle}>
-                    <Text fw={500}>{title}</Text>
+                    <Group gap={6} wrap="nowrap">
+                        <Text fw={500}>{title}</Text>
+                        {headerAction ? (
+                            <Box onClick={(event) => event.stopPropagation()}>
+                                {headerAction}
+                            </Box>
+                        ) : null}
+                    </Group>
                     <ActionIcon variant="subtle">
                         {collapsed ? <IconChevronDown size={16} /> : <IconChevronUp size={16} />}
                     </ActionIcon>
