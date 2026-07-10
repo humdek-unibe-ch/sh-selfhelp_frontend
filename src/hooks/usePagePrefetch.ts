@@ -9,23 +9,18 @@ SPDX-License-Identifier: MPL-2.0
  *
  * Public pages resolve via `GET /pages/resolve` (issue #30). Prefetching by
  * keyword alone would warm a slot `DynamicPageClient` / SSR never read.
+ * Path normalization uses shared `normalizePagesResolvePath` so the cache key
+ * matches SSR, browser resolve, Live Preview, and mobile.
  *
  * @module hooks/usePagePrefetch
  */
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
+import { normalizePagesResolvePath } from '@selfhelp/shared';
 import { PageApi } from '../api/page.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLanguageContext } from '../app/components/contexts/LanguageContext';
-
-function normalizePublicPath(path: string): string {
-    const trimmed = path.trim();
-    if (trimmed === '' || trimmed === '/') {
-        return '/';
-    }
-    return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
-}
 
 export function usePagePrefetch() {
     const queryClient = useQueryClient();
@@ -38,7 +33,7 @@ export function usePagePrefetch() {
     const prefetchPageByPath = useCallback(async (path: string) => {
         if (!path || !currentLanguageId) return;
 
-        const normalized = normalizePublicPath(path);
+        const normalized = normalizePagesResolvePath(path);
         // Parameterized patterns (`/team/{record_id}`) are not resolvable until
         // a concrete segment is known — skip rather than 404 the preview cache.
         if (normalized.includes('{')) {
@@ -66,7 +61,7 @@ export function usePagePrefetch() {
     /** Batch-prefetch multiple public paths. */
     const prefetchPagesByPath = useCallback(async (paths: string[]) => {
         if (!currentLanguageId) return;
-        await Promise.all(paths.map((path) => prefetchPageByPath(path)));
+        await Promise.all(paths.map((p) => prefetchPageByPath(p)));
     }, [prefetchPageByPath, currentLanguageId]);
 
     /**
