@@ -57,8 +57,9 @@ import { isOnAnyMobileMenu } from '@selfhelp/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { Box, useMantineColorScheme } from '@mantine/core';
+import { Alert, Box, Text, useMantineColorScheme } from '@mantine/core';
 import { useElementSize } from '@mantine/hooks';
+import { IconAlertTriangle } from '@tabler/icons-react';
 import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { API_CONFIG } from '../../../../config/api.config';
 import { PageApi } from '../../../../api/page.api';
@@ -81,6 +82,12 @@ import { usePreviewPreferenceSync } from './hooks/usePreviewPreferenceSync';
 import { usePreviewNavigationSync } from './hooks/usePreviewNavigationSync';
 import { usePreviewUrlMirror } from './hooks/usePreviewUrlMirror';
 import { normalizePreviewPath, pathForMobilePreviewSync } from './utils/previewPath';
+import {
+    formatPreviewResolveFailure,
+    resolvePreviewPathWithRace,
+    shouldReportMobileSyncFailure,
+    type IPreviewResolveFailure,
+} from './utils/previewResolve';
 import { previewDiagLog } from '../../../../utils/preview-diag';
 
 /**
@@ -180,6 +187,10 @@ export function LivePreview({ keyword, initialPath, modal }: ILivePreviewProps) 
         initialPath ? normalizePreviewPath(initialPath) : null,
     );
     const [previewRouteParams, setPreviewRouteParams] = useState<Record<string, string>>({});
+    const [previewResolveError, setPreviewResolveError] = useState<IPreviewResolveFailure | null>(
+        null,
+    );
+    const [previewResolving, setPreviewResolving] = useState(false);
 
     const mobileIframeRef = useRef<HTMLIFrameElement>(null);
     const currentKeywordRef = useRef<string | null>(keyword);
@@ -188,6 +199,7 @@ export function LivePreview({ keyword, initialPath, modal }: ILivePreviewProps) 
     );
     const previewRouteParamsRef = useRef<Record<string, string>>({});
     const initialPathHydratedRef = useRef(false);
+    const resolveRequestIdRef = useRef(0);
     useEffect(() => {
         currentKeywordRef.current = currentKeyword;
     }, [currentKeyword]);
@@ -278,31 +290,63 @@ export function LivePreview({ keyword, initialPath, modal }: ILivePreviewProps) 
     const applyResolvedPreviewPath = useCallback(
         async (
             rawPath: string,
+            options?: { reportError?: boolean; softMobileSync?: boolean },
         ): Promise<{
             keyword: string;
             path: string;
             routeParams: Record<string, string>;
         } | null> => {
-            const path = normalizePreviewPath(rawPath);
-            try {
-                const page = await PageApi.resolvePageByPath(path, currentLanguageId, draft);
-                const routeParams = page.route_params ?? {};
-                const sameKeyword = page.keyword === currentKeywordRef.current;
-                const samePath = path === previewPathRef.current;
-                if (sameKeyword && samePath) {
-                    return { keyword: page.keyword, path, routeParams };
-                }
-                currentKeywordRef.current = page.keyword;
-                previewPathRef.current = path;
-                previewRouteParamsRef.current = routeParams;
-                setCurrentKeyword(page.keyword);
-                setPreviewPath(path);
-                setPreviewRouteParams(routeParams);
-                return { keyword: page.keyword, path, routeParams };
-            } catch {
-                // Unresolved / forbidden paths stay on the current preview page.
+            const reportError = options?.reportError !== false;
+            const softMobileSync = options?.softMobileSync === true;
+            const requestId = ++resolveRequestIdRef.current;
+            setPreviewResolving(true);
+            const outcome = await resolvePreviewPathWithRace({
+                path: rawPath,
+                languageId: currentLanguageId ?? undefined,
+                preview: draft,
+                requestId,
+                isCurrent: (id) => id === resolveRequestIdRef.current,
+                resolvePageByPath: PageApi.resolvePageByPath,
+            });
+
+            if (outcome.status === 'stale') {
                 return null;
             }
+
+            if (requestId === resolveRequestIdRef.current) {
+                setPreviewResolving(false);
+            }
+
+            if (outcome.status === 'error') {
+                // Soft mobile sync: suppress only proven-benign Expo underlay 404s.
+                // Real multi-segment CMS failures and non-404 errors are reported.
+                const shouldReport = softMobileSync
+                    ? shouldReportMobileSyncFailure(outcome.failure)
+                    : reportError;
+                if (shouldReport) {
+                    // Keep the last successful page visible, but surface the failure
+                    // so stale content is never presented as the newly requested path.
+                    setPreviewResolveError(outcome.failure);
+                }
+                return null;
+            }
+
+            const { keyword: nextKeyword, path, routeParams } = outcome.value;
+            setPreviewResolveError(null);
+            const sameKeyword = nextKeyword === currentKeywordRef.current;
+            const samePath = path === previewPathRef.current;
+            if (sameKeyword && samePath) {
+                previewRouteParamsRef.current = routeParams;
+                setPreviewRouteParams(routeParams);
+                return { keyword: nextKeyword, path, routeParams };
+            }
+            currentKeywordRef.current = nextKeyword;
+            previewPathRef.current = path;
+            previewRouteParamsRef.current = routeParams;
+            setCurrentKeyword(nextKeyword);
+            setPreviewPath(path);
+            setPreviewRouteParams(routeParams);
+            return { keyword: nextKeyword, path, routeParams };
         },
         [currentLanguageId, draft],
     );
@@ -316,12 +360,16 @@ export function LivePreview({ keyword, initialPath, modal }: ILivePreviewProps) 
     const onMobileNavigated = useCallback(
         async (kw: string | null, path?: string | null) => {
             if (path) {
-                const resolved = await applyResolvedPreviewPath(path);
+                // Soft mobile sync: Expo underlays can 404; multi-segment CMS
+                // paths and non-404 failures are still reported to the operator.
+                const resolved = await applyResolvedPreviewPath(path, {
+                    softMobileSync: true,
+                });
                 if (resolved) {
                     return;
                 }
                 // Path was not a public CMS URL (Expo route, modal underlay, …)
-                // — fall through to keyword sync.
+                // — fall through to keyword sync when the failure was suppressed.
             }
             if (kw === currentKeywordRef.current) {
                 return;
@@ -493,7 +541,7 @@ export function LivePreview({ keyword, initialPath, modal }: ILivePreviewProps) 
                 draft={draft}
                 onToggleDraft={() => togglePreviewMode()}
                 onRefresh={handleRefresh}
-                refreshing={mintPending}
+                refreshing={mintPending || previewResolving}
                 webOpenUrl={webOpenUrl}
                 availability={availability}
                 device={device}
@@ -502,6 +550,29 @@ export function LivePreview({ keyword, initialPath, modal }: ILivePreviewProps) 
                 onOrientationChange={setOrientation}
                 onReloadMobile={handleReloadMobile}
             />
+            {previewResolveError ? (
+                <Alert
+                    icon={<IconAlertTriangle size="1rem" />}
+                    color="orange"
+                    title="Preview path could not be resolved"
+                    withCloseButton
+                    onClose={() => setPreviewResolveError(null)}
+                    mx="md"
+                    mt="xs"
+                    role="alert"
+                >
+                    <Text size="sm">{formatPreviewResolveFailure(previewResolveError)}</Text>
+                    {currentKeyword ? (
+                        <Text size="xs" c="dimmed" mt={4}>
+                            Still showing last successful page:{' '}
+                            <Text span fw={600}>
+                                {currentKeyword}
+                            </Text>
+                            {previewPath ? ` (${previewPath})` : ''}.
+                        </Text>
+                    ) : null}
+                </Alert>
+            ) : null}
             <LivePreviewStage
                 bodyRef={bodyRef}
                 web={{
