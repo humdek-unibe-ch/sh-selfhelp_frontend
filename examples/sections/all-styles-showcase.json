@@ -207,8 +207,7 @@
             "style_name": "form-record",
             "fields": {
               "title": { "en-GB": { "content": "Contact us" }, "de-CH": { "content": "Kontaktieren Sie uns" } },
-              "description": { "en-GB": { "content": "We usually reply within a day." }, "de-CH": { "content": "Wir antworten in der Regel innerhalb eines Tages." } },
-              "name": { "all": { "content": "showcase_contact" } }
+              "description": { "en-GB": { "content": "We usually reply within a day." }, "de-CH": { "content": "Wir antworten in der Regel innerhalb eines Tages." } }
             },
             "children": [
               {

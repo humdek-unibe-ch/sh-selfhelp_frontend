@@ -212,46 +212,11 @@ describe('WebsiteHeaderRenderer', () => {
         expect(links.map((link) => link.textContent)).toEqual(['About', 'Support']);
     });
 
-    it('exposes a More control when many dropdown items exceed the nav width', () => {
+    it('keeps every dropdown item visible instead of auto-collapsing into More', () => {
+        // Automatic width-aware "More" collapsing was removed from HeaderNavOverflow;
+        // menu grouping stays fully manual in CMS configuration.
         const menu = menuWithPreset('dropdown');
         menu.items = Array.from({ length: 8 }, (_, index) => item(`Page ${index + 1}`, index + 1));
-
-        class NarrowResizeObserver {
-            private readonly callback: ResizeObserverCallback;
-
-            constructor(callback: ResizeObserverCallback) {
-                this.callback = callback;
-            }
-
-            observe(target: Element): void {
-                Object.defineProperty(target, 'clientWidth', {
-                    configurable: true,
-                    value: 260,
-                });
-                this.callback([], this as unknown as ResizeObserver);
-            }
-
-            unobserve(): void {}
-
-            disconnect(): void {}
-        }
-
-        globalThis.ResizeObserver = NarrowResizeObserver as unknown as typeof ResizeObserver;
-        vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockImplementation(function mockOffsetWidth(this: HTMLElement) {
-            if (this.hasAttribute('data-nav-measure-item')) {
-                return 96;
-            }
-            if (this.hasAttribute('data-nav-measure-more')) {
-                return 72;
-            }
-            if (this.hasAttribute('data-nav-overflow-root')) {
-                return 260;
-            }
-            if (this.hasAttribute('data-nav-overflow-container')) {
-                return 260;
-            }
-            return 0;
-        });
 
         renderWithProviders(
             <div style={{ width: 260 }}>
@@ -259,6 +224,9 @@ describe('WebsiteHeaderRenderer', () => {
             </div>,
         );
 
-        expect(screen.getByRole('button', { name: /More/i })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /More/i })).not.toBeInTheDocument();
+        for (let index = 1; index <= 8; index += 1) {
+            expect(screen.getByRole('link', { name: `Page ${index}` })).toBeInTheDocument();
+        }
     });
 });
