@@ -214,6 +214,8 @@ export function CmsAppContentHost({
 
         languageId: currentLanguageId,
 
+        keepPreviousData: false,
+
     });
 
 
@@ -568,6 +570,8 @@ export function CmsAppContentHost({
                             ) : (
 
                                 <PageContextProvider
+
+                                    key={formPublicPath}
 
                                     keyword={formContent.keyword}
 

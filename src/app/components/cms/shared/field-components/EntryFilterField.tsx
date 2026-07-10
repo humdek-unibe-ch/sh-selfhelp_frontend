@@ -4,70 +4,51 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useCallback, useState } from 'react';
-import { Button, Stack } from '@mantine/core';
-import { IconFilter } from '@tabler/icons-react';
-import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
+import { Text } from '@mantine/core';
 import { FilterBuilderInline } from '../data-config-modal/FilterBuilderInline';
-import { MonacoEditorField } from './MonacoEditorField';
+import { useResolvedDataTableName } from './useResolvedDataTableName';
+import { useSectionFormStore } from '../../../../store/sectionFormStore';
 
 interface IEntryFilterFieldProps {
-    fieldId: number;
     value: string;
     onChange: (value: string) => void;
-    disabled?: boolean;
     dataVariables?: Record<string, string>;
-    help?: string | null;
+    sectionId?: number;
 }
 
 export function EntryFilterField({
-    fieldId,
     value,
     onChange,
-    disabled = false,
     dataVariables,
-    help,
+    sectionId,
 }: IEntryFilterFieldProps) {
-    const [filterOpened, setFilterOpened] = useState(false);
+    const { tableName, needsDataTable } = useResolvedDataTableName();
+    const dataTableId = useSectionFormStore((state) => String(state.properties.data_table ?? ''));
+    const ownEntriesOnly = useSectionFormStore((state) => {
+        const raw = state.properties.own_entries_only;
+        if (raw === undefined || raw === '') {
+            return true;
+        }
+        return raw === true || raw === '1' || raw === 'true';
+    });
 
-    const handleSaveFilter = useCallback(
-        (payload: { sql: string }) => {
-            onChange(payload.sql);
-        },
-        [onChange],
-    );
+    if (needsDataTable) {
+        return (
+            <Text size="sm" c="dimmed">
+                Select a data table first to build a filter.
+            </Text>
+        );
+    }
 
     return (
-        <Stack gap="xs">
-            <FieldLabelWithTooltip
-                label="Filter"
-                tooltip={help ?? 'SQL WHERE fragment applied when loading data table rows. Route tokens like {{route.record_id}} are validated server-side.'}
-            />
-            <Button
-                variant="light"
-                size="xs"
-                leftSection={<IconFilter size={14} />}
-                onClick={() => setFilterOpened((open) => !open)}
-                disabled={disabled}
-            >
-                {filterOpened ? 'Hide' : 'Show'} SQL builder
-            </Button>
-            {filterOpened && (
-                <FilterBuilderInline
-                    initialSql={value}
-                    onSave={handleSaveFilter}
-                    dataVariables={dataVariables}
-                />
-            )}
-            <MonacoEditorField
-                fieldId={fieldId}
-                value={value}
-                onChange={onChange}
-                language="sql"
-                height={160}
-                disabled={disabled}
-                dataVariables={dataVariables}
-            />
-        </Stack>
+        <FilterBuilderInline
+            tableName={tableName}
+            initialSql={value}
+            onSave={(payload) => onChange(payload.sql)}
+            dataVariables={dataVariables}
+            sectionId={sectionId}
+            dataTableId={dataTableId}
+            ownEntriesOnly={ownEntriesOnly}
+        />
     );
 }

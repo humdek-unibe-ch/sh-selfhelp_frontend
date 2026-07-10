@@ -23,12 +23,15 @@ import {
     ConditionBuilderField,
     DataConfigField,
     EntryFilterField,
+    EntryRecordFormDataTableField,
     SelectedColumnsField,
+    DataTableColumnSelectField,
     ColorPickerField,
     SpacingField,
     MonacoEditorField,
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+import type { ISectionDataTableInfo } from '../../../../../types/responses/admin/admin.types';
 import { extractFieldHelpExample } from '../../../../../utils/field-help.utils';
 import type { ILocaleTabLanguage } from '../locale-tabs/LocaleTabBadges';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
@@ -47,7 +50,6 @@ export interface IGlobalFieldRendererProps {
     dataVariables?: Record<string, string>;
 }
 import { sanitizeName, validateName } from '../../../../../utils/name-validation.utils';
-
 // Use the actual field structure from API response
 export interface IFieldData {
     id: number;
@@ -86,6 +88,9 @@ interface IFieldRendererProps {
      * (issue #56 mail editor).
      */
     emailStyles?: boolean;
+    sectionId?: number | null;
+    styleName?: string;
+    ownedDataTable?: ISectionDataTableInfo | null;
 }
 
 /**
@@ -96,7 +101,7 @@ interface IFieldRendererProps {
  * `textarea` (rich text) and `markdown` / `json` / `css` / `code` types instead,
  * so the editor is driven purely by field TYPE (issue #56).
  */
-const PLAIN_IDENTIFIER_FIELD_NAMES = new Set(['name', 'value', 'title']);
+const PLAIN_IDENTIFIER_FIELD_NAMES = new Set(['name', 'value', 'title', 'scope', 'load_record_from']);
 
 // Props shared by the select-language / select-timezone branch components.
 // These are extracted into dedicated components so their data hooks are called
@@ -197,6 +202,9 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         disabled = false,
         dataVariables,
         emailStyles = false,
+        sectionId,
+        styleName,
+        ownedDataTable,
     } = props;
 
     // Plugin-supplied editor renderers take priority over host built-ins so
@@ -374,16 +382,14 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
     
-    // SQL filter on entry-list / entry-record / loop — reuse the data-config builder.
-    if (field.name === 'filter') {
+    // SQL filter on entry-list — visual builder keyed by field type or legacy name.
+    if (field.type === 'entry-filter' || field.name === 'filter') {
         return renderFieldWithBadge(
             <EntryFilterField
-                fieldId={field.id}
                 value={fieldValue}
                 onChange={onChange}
-                disabled={disabled}
                 dataVariables={dataVariables}
-                help={field.help}
+                sectionId={sectionId ?? undefined}
             />,
         );
     }
@@ -394,8 +400,28 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 value={fieldValue}
                 onChange={onChange}
                 disabled={disabled}
-                help={field.help}
             />,
+        );
+    }
+
+    if (field.type === 'select-data_table_column') {
+        return renderFieldWithBadge(
+            <DataTableColumnSelectField
+                value={fieldValue}
+                onChange={onChange}
+                disabled={disabled}
+            />,
+        );
+    }
+
+    // fields-map is edited only in the section inspector Column mapping panel
+    // (FieldsMapField writes fields_map + fields_map_labels together). The generic
+    // field list must not mount a second editor for the same property.
+    if (field.type === 'fields-map') {
+        return renderFieldWithBadge(
+            <Text size="sm" c="dimmed">
+                Use the Column mapping panel to configure columns and header labels.
+            </Text>,
         );
     }
 
@@ -558,6 +584,19 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
 
     // Select Data Table field
     if (field.type === 'select-data_table') {
+        if (styleName === 'entry-record-form' && field.name === 'data_table') {
+            return renderFieldWithBadge(
+                <EntryRecordFormDataTableField
+                    field={field}
+                    value={fieldValue}
+                    onChange={onChange}
+                    disabled={disabled}
+                    dataVariables={dataVariables}
+                    ownedDataTable={ownedDataTable}
+                />,
+            );
+        }
+
         if (!field.config) {
             return renderFieldWithBadge(
                 <Box>

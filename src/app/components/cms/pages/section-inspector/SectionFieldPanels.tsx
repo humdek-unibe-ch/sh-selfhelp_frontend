@@ -15,12 +15,12 @@ import {
     IconX,
 } from '@tabler/icons-react';
 import { useState } from 'react';
-import { OPTION_STYLE_CONFIGS, type TOptionStyleName } from '@selfhelp/shared';
+import { OPTION_STYLE_CONFIGS, FIELDS_MAP_STYLE_CONFIG, type TOptionStyleName } from '@selfhelp/shared';
 
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
-import { SectionContentField, SectionOptionCatalogEditor } from './section-field-connectors';
+import { SectionContentField, SectionOptionCatalogEditor, SectionFieldsMapEditor } from './section-field-connectors';
 import {
     SectionGlobalFields,
     SectionProperties,
@@ -30,7 +30,7 @@ import {
 } from './section-field-groups';
 import { classifySectionField, isPlatformCardVisible } from './section-field-classify';
 import { getStylePlatformByName } from '../../../../../utils/style-platform.utils';
-import { type ISectionField } from '../../../../../types/responses/admin/admin.types';
+import { type ISectionField, type ISectionDataTableInfo } from '../../../../../types/responses/admin/admin.types';
 import { extractFieldHelpExample } from '../../../../../utils/field-help.utils';
 import type { GlobalFieldType } from '../../shared';
 import styles from './SectionInspector.module.css';
@@ -47,6 +47,7 @@ interface ISectionFieldPanelsProps {
     fields: ISectionField[];
     /** Style name — drives the platform-aware Web / Mobile card visibility. */
     styleName?: string;
+    ownedDataTable?: ISectionDataTableInfo;
 
     languagesData: ILanguage[];
     activeLanguageTab: string;
@@ -56,9 +57,10 @@ interface ISectionFieldPanelsProps {
 }
 
 export function SectionFieldPanels({
-    sectionId: _sectionId,
+    sectionId,
     fields,
     styleName,
+    ownedDataTable,
     languagesData,
     activeLanguageTab: _activeLanguageTab,
     onLanguageTabChange: _onLanguageTabChange,
@@ -83,10 +85,18 @@ export function SectionFieldPanels({
             ? [optionStyleConfig.catalogField, 'option_labels']
             : [],
     );
+    const hasFieldsMapEditor = styleName === 'entry-table'
+        && fields.some((field) => field.name === FIELDS_MAP_STYLE_CONFIG.catalogField)
+        && fields.some((field) => field.name === FIELDS_MAP_STYLE_CONFIG.labelsField);
+    const combinedFieldsMapNames = new Set<string>(
+        hasFieldsMapEditor
+            ? [FIELDS_MAP_STYLE_CONFIG.catalogField, FIELDS_MAP_STYLE_CONFIG.labelsField]
+            : [],
+    );
     // Content fields have empty title in the API response — match on name instead.
     const filteredFields = query
-        ? fields.filter(f => matches(f.name) && !combinedOptionFieldNames.has(f.name))
-        : fields.filter((field) => !combinedOptionFieldNames.has(field.name));
+        ? fields.filter(f => matches(f.name) && !combinedOptionFieldNames.has(f.name) && !combinedFieldsMapNames.has(f.name))
+        : fields.filter((field) => !combinedOptionFieldNames.has(field.name) && !combinedFieldsMapNames.has(field.name));
     const filteredGlobalFieldTypes = query
         ? globalFieldTypes.filter(t => matches(t))
         : globalFieldTypes;
@@ -117,6 +127,18 @@ export function SectionFieldPanels({
         catalogFieldMeta?.default_value,
         optionHelpTooltip,
     );
+
+    const fieldsMapCatalogMeta = hasFieldsMapEditor
+        ? fields.find((field) => field.name === FIELDS_MAP_STYLE_CONFIG.catalogField)
+        : undefined;
+    const fieldsMapLabelsMeta = hasFieldsMapEditor
+        ? fields.find((field) => field.name === FIELDS_MAP_STYLE_CONFIG.labelsField)
+        : undefined;
+    const fieldsMapHelpTooltip = [fieldsMapCatalogMeta?.help, fieldsMapLabelsMeta?.help]
+        .filter((text): text is string => Boolean(text && text.trim()))
+        .join('\n\n');
+    const showFieldsMapEditor = hasFieldsMapEditor
+        && (!query || matches(FIELDS_MAP_STYLE_CONFIG.catalogField) || matches(FIELDS_MAP_STYLE_CONFIG.labelsField));
 
     return (
         <Stack gap="md">
@@ -162,8 +184,30 @@ export function SectionFieldPanels({
                     ) : null}
                 >
                     <SectionOptionCatalogEditor
-                        key={`${_sectionId ?? 'new'}-${optionStyleConfig.catalogField}`}
+                        key={`${sectionId ?? 'new'}-${optionStyleConfig.catalogField}`}
                         catalogField={optionStyleConfig.catalogField}
+                        languages={languagesData}
+                    />
+                </CollapsibleSection>
+            ) : null}
+
+            {showFieldsMapEditor ? (
+                <CollapsibleSection
+                    title="Column mapping"
+                    inspectorType={INSPECTOR_TYPES.SECTION}
+                    sectionName="fields-map"
+                    defaultExpanded={true}
+                    headerAction={fieldsMapHelpTooltip ? (
+                        <FieldLabelWithTooltip
+                            label="Column mapping"
+                            helpTitle="Column mapping"
+                            tooltip={fieldsMapHelpTooltip}
+                            iconOnly
+                        />
+                    ) : null}
+                >
+                    <SectionFieldsMapEditor
+                        key={`${sectionId ?? 'new'}-fields-map`}
                         languages={languagesData}
                     />
                 </CollapsibleSection>
@@ -214,7 +258,13 @@ export function SectionFieldPanels({
                     sectionName="properties"
                     defaultExpanded={true}
                 >
-                    <SectionProperties fields={filteredFields} dataVariables={dataVariables} />
+                    <SectionProperties
+                        fields={filteredFields}
+                        dataVariables={dataVariables}
+                        sectionId={sectionId}
+                        styleName={styleName}
+                        ownedDataTable={ownedDataTable}
+                    />
                 </CollapsibleSection>
             )}
 

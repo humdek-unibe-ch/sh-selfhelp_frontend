@@ -7,9 +7,10 @@ SPDX-License-Identifier: MPL-2.0
 import React, { useCallback, useState } from 'react';
 import { FieldRenderer, type IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { OptionCatalogEditor } from '../../shared/field-components/OptionCatalogEditor';
+import { FieldsMapField } from '../../shared/field-components/FieldsMapField';
 import type { ILocaleTabLanguage } from '../../shared/locale-tabs/LocaleTabBadges';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
-import { type ISectionField } from '../../../../../types/responses/admin/admin.types';
+import { type ISectionField, type ISectionDataTableInfo } from '../../../../../types/responses/admin/admin.types';
 
 interface ISectionLanguage {
     id: number;
@@ -107,6 +108,9 @@ interface ISectionPropertyFieldProps {
     field: ISectionField;
     dataVariables?: Record<string, string>;
     className?: string;
+    sectionId?: number | null;
+    styleName?: string;
+    ownedDataTable?: ISectionDataTableInfo;
 }
 
 /**
@@ -117,7 +121,10 @@ interface ISectionPropertyFieldProps {
 export const SectionPropertyField = React.memo(function SectionPropertyField({
     field,
     dataVariables,
-    className
+    className,
+    sectionId,
+    styleName,
+    ownedDataTable,
 }: ISectionPropertyFieldProps) {
     // Granular selector - subscribes only to this specific property's value
     const value = useSectionFormStore(
@@ -161,6 +168,9 @@ export const SectionPropertyField = React.memo(function SectionPropertyField({
             onChange={handleChange}
             className={className}
             dataVariables={dataVariables}
+            sectionId={sectionId}
+            styleName={styleName}
+            ownedDataTable={ownedDataTable}
         />
     );
 });
@@ -172,6 +182,38 @@ interface ISectionOptionCatalogEditorProps {
 
 const EMPTY_LABEL_VALUES: Record<number, string> = {};
 
+export const SectionFieldsMapEditor = React.memo(function SectionFieldsMapEditor({
+    languages,
+}: {
+    languages: ISectionLanguage[];
+}) {
+    const catalogValue = useSectionFormStore(
+        (state) => String(state.properties.fields_map ?? ''),
+    );
+    const labelValues = useSectionFormStore(
+        (state) => state.fields.fields_map_labels ?? EMPTY_LABEL_VALUES,
+    );
+    const setPropertyField = useSectionFormStore((state) => state.setPropertyField);
+    const setContentField = useSectionFormStore((state) => state.setContentField);
+
+    const handleCatalogChange = useCallback((value: string) => {
+        setPropertyField('fields_map', value);
+    }, [setPropertyField]);
+
+    const handleLabelChange = useCallback((languageId: number, value: string) => {
+        setContentField('fields_map_labels', languageId, value);
+    }, [setContentField]);
+
+    return (
+        <FieldsMapField
+            catalogValue={catalogValue}
+            labelValues={labelValues}
+            languages={languages}
+            onCatalogChange={handleCatalogChange}
+            onLabelChange={handleLabelChange}
+        />
+    );
+});
 export const SectionOptionCatalogEditor = React.memo(function SectionOptionCatalogEditor({
     catalogField,
     languages,

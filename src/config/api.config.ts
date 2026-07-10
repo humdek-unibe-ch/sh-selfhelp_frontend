@@ -867,6 +867,10 @@ export const API_CONFIG = {
             route: '/admin/data/tables/bulk-export',
             permissions: [PERMISSIONS.ADMIN_DATA_READ]
         },
+        ADMIN_DATA_QUERY_PREVIEW: {
+            route: '/admin/data/query-preview',
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
 
         // Form submission endpoints (public access)
         FORMS_SUBMIT: {

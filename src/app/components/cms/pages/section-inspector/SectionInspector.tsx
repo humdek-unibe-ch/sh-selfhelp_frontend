@@ -468,6 +468,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                     sectionId={sectionId}
                     fields={fields}
                     styleName={section.style.name}
+                    ownedDataTable={sectionDetailsData.data_table}
                     languagesData={languagesData}
                     activeLanguageTab={activeLanguageTab}
                     onLanguageTabChange={setActiveLanguageTab}

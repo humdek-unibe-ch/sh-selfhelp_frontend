@@ -219,5 +219,6 @@ export const REACT_QUERY_CONFIG = {
         LOOKUPS: ['lookups'],
         STYLE_GROUPS: ['style-groups'],
         USER_DATA: ['user-data'],
+        ADMIN_DATA_QUERY_PREVIEW: ['admin', 'data', 'query-preview'],
     },
 } as const;

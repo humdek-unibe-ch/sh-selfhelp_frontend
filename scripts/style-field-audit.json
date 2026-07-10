@@ -7918,10 +7918,10 @@
             "has_shared_type": true,
             "web_renderer": true,
             "mobile_renderer": true,
-            "field_count": 5,
+            "field_count": 4,
             "scope_counts": {
                 "content": 0,
-                "common": 5,
+                "common": 4,
                 "shared": 0,
                 "web": 0,
                 "mobile": 0
@@ -7933,11 +7933,11 @@
                     "display": 0,
                     "default": ""
                 },
-                "filter": {
-                    "type": "code",
+                "load_record_from": {
+                    "type": "text",
                     "scope": "common",
                     "display": 0,
-                    "default": null
+                    "default": "record_id"
                 },
                 "own_entries_only": {
                     "type": "checkbox",
@@ -7950,20 +7950,13 @@
                     "scope": "common",
                     "display": 0,
                     "default": ""
-                },
-                "url_param": {
-                    "type": "text",
-                    "scope": "common",
-                    "display": 0,
-                    "default": "record_id"
                 }
             },
             "drift_db_fields_missing_from_type": [
                 "data_table",
-                "filter",
+                "load_record_from",
                 "own_entries_only",
-                "scope",
-                "url_param"
+                "scope"
             ],
             "drift_type_fields_missing_from_db": [],
             "duplicate_candidates": []
