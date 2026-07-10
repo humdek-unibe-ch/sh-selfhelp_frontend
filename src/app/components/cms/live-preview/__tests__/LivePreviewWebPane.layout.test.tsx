@@ -1,6 +1,10 @@
 /*
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
+*/
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
  */
 import { describe, expect, it, vi } from 'vitest';
 import slugLayoutStyles from '../../../../[[...slug]]/SlugLayout/SlugLayout.module.css';
