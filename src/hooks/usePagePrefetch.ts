@@ -3,22 +3,21 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 /**
- * Prefetches page content into React Query so hovering over a nav link
- * warms the exact cache key that a subsequent navigation will read —
- * `['page-by-keyword', keyword, languageId, 'published']`.
+ * Prefetches public page content into React Query so hovering a nav link
+ * warms the exact cache key the next navigation reads —
+ * `PAGE_BY_PATH` (`['page-by-keyword', '__path__', path, ...]`).
  *
- * NOTE: prior versions keyed the prefetch by `pageId` and the old
- * `['page-content', pageId, languageId]` entry, which the page renderer
- * never consumed — so the "instant navigation" promise was silently broken.
- * This implementation shares the same key used by the SSR layout prefetch
- * and the client `usePageContentByKeyword` / `usePageContentValue` hooks,
- * guaranteeing the warmed entry is the one that actually gets rendered.
+ * Public pages resolve via `GET /pages/resolve` (issue #30). Prefetching by
+ * keyword alone would warm a slot `DynamicPageClient` / SSR never read.
+ * Path normalization uses shared `normalizePagesResolvePath` so the cache key
+ * matches SSR, browser resolve, Live Preview, and mobile.
  *
  * @module hooks/usePagePrefetch
  */
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
+import { normalizePagesResolvePath } from '@selfhelp/shared';
 import { PageApi } from '../api/page.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLanguageContext } from '../app/components/contexts/LanguageContext';
@@ -28,16 +27,23 @@ export function usePagePrefetch() {
     const { currentLanguageId } = useLanguageContext();
 
     /**
-     * Prefetches page content for a keyword at the current language.
-     * Skips the network call when the cache already holds (non-stale) data.
+     * Prefetches page content for a public URL path at the current language.
+     * Skips the network call when the cache already holds data.
      */
-    const prefetchPage = useCallback(async (keyword: string) => {
-        if (!keyword || !currentLanguageId) return;
+    const prefetchPageByPath = useCallback(async (path: string) => {
+        if (!path || !currentLanguageId) return;
 
-        const queryKey = REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(
-            keyword,
+        const normalized = normalizePagesResolvePath(path);
+        // Parameterized patterns (`/team/{record_id}`) are not resolvable until
+        // a concrete segment is known — skip rather than 404 the preview cache.
+        if (normalized.includes('{')) {
+            return;
+        }
+
+        const queryKey = REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_PATH(
+            normalized,
             currentLanguageId,
-            false
+            false,
         );
 
         if (queryClient.getQueryData(queryKey)) {
@@ -46,30 +52,36 @@ export function usePagePrefetch() {
 
         await queryClient.prefetchQuery({
             queryKey,
-            queryFn: () => PageApi.getPageByKeyword(keyword, currentLanguageId, false),
+            queryFn: () => PageApi.resolvePageByPath(normalized, currentLanguageId, false),
             staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.staleTime,
             gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.gcTime,
         });
     }, [queryClient, currentLanguageId]);
 
-    /** Batch-prefetch multiple pages by keyword. */
-    const prefetchPages = useCallback(async (keywords: string[]) => {
+    /** Batch-prefetch multiple public paths. */
+    const prefetchPagesByPath = useCallback(async (paths: string[]) => {
         if (!currentLanguageId) return;
-        await Promise.all(keywords.map((k) => prefetchPage(k)));
-    }, [prefetchPage, currentLanguageId]);
+        await Promise.all(paths.map((p) => prefetchPageByPath(p)));
+    }, [prefetchPageByPath, currentLanguageId]);
 
     /**
-     * Returns a zero-arg hover handler that prefetches the given keyword's
-     * page content. Memoised per keyword so attaching the handler doesn't
-     * re-create listeners on every render.
+     * Returns a zero-arg hover handler that prefetches the given public path.
+     * Memoised per path so attaching the handler does not recreate listeners
+     * on every render.
      */
-    const createHoverPrefetch = useCallback((keyword: string) => {
-        return () => prefetchPage(keyword);
-    }, [prefetchPage]);
+    const createHoverPrefetch = useCallback((path: string) => {
+        return () => {
+            void prefetchPageByPath(path);
+        };
+    }, [prefetchPageByPath]);
 
     return {
-        prefetchPage,
-        prefetchPages,
+        prefetchPageByPath,
+        prefetchPagesByPath,
         createHoverPrefetch,
+        /** @deprecated Use {@link prefetchPageByPath} — public cache is path-keyed. */
+        prefetchPage: prefetchPageByPath,
+        /** @deprecated Use {@link prefetchPagesByPath}. */
+        prefetchPages: prefetchPagesByPath,
     };
 }

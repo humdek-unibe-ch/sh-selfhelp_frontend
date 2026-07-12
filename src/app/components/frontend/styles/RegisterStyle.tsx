@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TextInput, Button, Paper, Title, Alert, Stack, Group } from '@mantine/core';
+import { TextInput, Button, Paper, Title, Alert, Stack, Group, Anchor } from '@mantine/core';
 import { IconCheck, IconExclamationCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { type IRegisterStyle } from '../../../../types/common/styles.types';
@@ -124,6 +124,8 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                         onChange={(e) => setEmail(e.target.value)}
                         required
                         size="md"
+                        disabled={register.isPending}
+                        autoComplete="email"
                     />
 
                     {codeRequired && (
@@ -134,9 +136,10 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                             onChange={(e) => setCode(e.target.value)}
                             required
                             size="md"
+                            disabled={register.isPending}
+                            autoComplete="off"
                         />
                     )}
-
 
                     <Button
                         type="submit"
@@ -148,6 +151,12 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                     >
                         {labelSubmit}
                     </Button>
+
+                    {/* Cross-link to login, mirroring the login page's link to
+                        this page (both auth pages are headless cards). */}
+                    <Anchor ta="center" size="sm" href={ROUTES.LOGIN}>
+                        {labelGoToLogin}
+                    </Anchor>
                 </Stack>
             </form>
         </Paper>

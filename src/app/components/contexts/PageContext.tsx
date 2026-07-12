@@ -27,6 +27,19 @@ export interface IPageContextValue {
     keyword: string;
     languageId: number;
     pageId: number;
+    /**
+     * The full public URL path this page was resolved from via the DB-driven
+     * `page_routes` resolver (issue #30), e.g. `/reset/42/abc` or `/team/7`.
+     * Present for slug pages resolved by path; `usePageContentValue` reads the
+     * path-keyed cache when set so parameterized records never cross-leak.
+     */
+    path?: string | null;
+    /**
+     * Snake_case route params extracted from the matched public URL pattern
+     * (`{ user_id, token }`, `{ record_id }`). Mirrors `page.route_params`;
+     * exposed on the context so styles can read them without re-parsing the URL.
+     */
+    routeParams?: Record<string, string>;
 }
 
 const PageContext = createContext<IPageContextValue | null>(null);
@@ -35,13 +48,25 @@ interface IPageContextProviderProps {
     keyword: string;
     languageId: number;
     pageId: number;
+    path?: string | null;
+    routeParams?: Record<string, string>;
     children: ReactNode;
 }
 
-export function PageContextProvider({ keyword, languageId, pageId, children }: IPageContextProviderProps) {
+export function PageContextProvider({
+    keyword,
+    languageId,
+    pageId,
+    path = null,
+    routeParams,
+    children,
+}: IPageContextProviderProps) {
+    const routeParamsKey = routeParams ? JSON.stringify(routeParams) : '';
     const value = useMemo<IPageContextValue>(
-        () => ({ keyword, languageId, pageId }),
-        [keyword, languageId, pageId]
+        () => ({ keyword, languageId, pageId, path, routeParams }),
+        // routeParams is a fresh object each render; key on its serialised form.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [keyword, languageId, pageId, path, routeParamsKey]
     );
     return <PageContext.Provider value={value}>{children}</PageContext.Provider>;
 }

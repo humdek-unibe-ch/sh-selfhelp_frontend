@@ -4,39 +4,41 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { describe, expect, it } from 'vitest';
 
-import { buildStaticFallbackPath, keywordFromSlug } from './slug-routing';
+import { buildStaticFallbackPath, pathFromSlug } from './slug-routing';
 
-describe('slug routing helpers', () => {
-    it('maps reset token URLs to the reset_password CMS keyword', () => {
-        expect(keywordFromSlug(['reset'])).toBe('reset_password');
-        expect(keywordFromSlug(['reset', '123', 'tok-abc'])).toBe('reset_password');
+describe('slug routing helpers (DB-driven routing, issue #30)', () => {
+    it('joins catch-all slug segments back into the public URL path', () => {
+        expect(pathFromSlug(undefined)).toBe('/');
+        expect(pathFromSlug([])).toBe('/');
+        expect(pathFromSlug(['home'])).toBe('/home');
+        expect(pathFromSlug(['reset'])).toBe('/reset');
+        expect(pathFromSlug(['reset', '123', 'tok-abc'])).toBe('/reset/123/tok-abc');
+        expect(pathFromSlug(['team', '7'])).toBe('/team/7');
     });
 
-    it('keeps validate token URLs on the validate CMS keyword', () => {
-        expect(keywordFromSlug(['validate', '123', 'tok-abc'])).toBe('validate');
+    it('encodes individual slug segments', () => {
+        expect(pathFromSlug(['a b', 'c/d'])).toBe('/a%20b/c%2Fd');
     });
 
-    // Regression: CMS error-page keywords are kebab-case (no-access, no-access-guest).
-    // Aliasing them to underscores (no_access) made the by-keyword lookup 404 and
-    // bounced /no-access -> /auth/no-access. The slug must resolve to the kebab
-    // keyword that actually exists in the CMS so the page renders in place.
-    it('resolves the no-access slugs to their kebab CMS keywords (no underscore alias)', () => {
-        expect(keywordFromSlug(['no-access'])).toBe('no-access');
-        expect(keywordFromSlug(['no-access-guest'])).toBe('no-access-guest');
-        expect(keywordFromSlug(['missing'])).toBe('missing');
+    it('maps resolved system-page keywords to their static fallback routes', () => {
+        expect(buildStaticFallbackPath('no-access')).toBe('/auth/no-access');
+        expect(buildStaticFallbackPath('no-access-guest')).toBe('/auth/no-access-guest');
+        expect(buildStaticFallbackPath('missing')).toBe('/auth/missing');
+        expect(buildStaticFallbackPath('reset-password')).toBe('/auth/reset-password');
     });
 
-    it('keeps the kebab no-access keywords as the static fallback targets', () => {
-        // The fallback only fires when the CMS page is genuinely missing; it must
-        // be keyed by the same kebab keyword keywordFromSlug now produces.
-        expect(buildStaticFallbackPath('no-access', ['no-access'])).toBe('/auth/no-access');
-        expect(buildStaticFallbackPath('no-access-guest', ['no-access-guest'])).toBe('/auth/no-access-guest');
+    it('returns null for keywords without a static fallback', () => {
+        expect(buildStaticFallbackPath('home')).toBeNull();
+        expect(buildStaticFallbackPath('team')).toBeNull();
         // The stale underscore keyword must no longer resolve to a fallback path.
-        expect(buildStaticFallbackPath('no_access', ['no-access'])).toBeNull();
+        expect(buildStaticFallbackPath('reset_password')).toBeNull();
     });
 
-    it('preserves reset tokens on the static fallback route', () => {
-        expect(buildStaticFallbackPath('reset_password', ['reset', '123', 'tok-abc'])).toBe('/auth/reset-password/123/tok-abc');
-        expect(buildStaticFallbackPath('reset_password', ['reset'])).toBe('/auth/reset-password');
+    it('appends snake_case reset route params to the static fallback route', () => {
+        expect(
+            buildStaticFallbackPath('reset-password', { user_id: '123', token: 'tok-abc' })
+        ).toBe('/auth/reset-password/123/tok-abc');
+        // Plain /reset (no params) keeps the bare fallback (request-a-link mode).
+        expect(buildStaticFallbackPath('reset-password', {})).toBe('/auth/reset-password');
     });
 });

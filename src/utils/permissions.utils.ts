@@ -344,6 +344,45 @@ export class PermissionChecker {
   }
 
   /**
+   * Check if user can read dashboard analytics
+   */
+  canReadAnalytics(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_ANALYTICS_READ);
+  }
+
+  canReadCmsApps(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_CMS_APP_READ);
+  }
+
+  canCreateCmsApps(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_CMS_APP_CREATE);
+  }
+
+  canUpdateCmsApps(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_CMS_APP_UPDATE);
+  }
+
+  canDeleteCmsApps(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_CMS_APP_DELETE);
+  }
+
+  canReadNavigation(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_NAVIGATION_READ);
+  }
+
+  canUpdateNavigation(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_NAVIGATION_UPDATE);
+  }
+
+  canExportNavigation(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_NAVIGATION_EXPORT);
+  }
+
+  canImportNavigation(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_NAVIGATION_IMPORT);
+  }
+
+  /**
    * Check if user can read the instance system version / update status.
    */
   canReadSystem(): boolean {

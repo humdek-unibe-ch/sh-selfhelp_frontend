@@ -23,6 +23,7 @@ import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForInline, sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 import DOMPurify from 'isomorphic-dompurify';
+import { resolveOptions } from '@selfhelp/shared';
 
 /**
  * Props interface for ComboboxStyle component
@@ -52,6 +53,7 @@ interface IComboboxStyleProps {
  * @returns {JSX.Element} Rendered configurable Combobox with styled configuration
  */
 const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssClass }) => {
+    const optionLabelsContent = style.option_labels?.content;
     // Extract field values using the new unified field structure
     const placeholder =
        DOMPurify.sanitize(style.placeholder?.content ?? "", {
@@ -79,39 +81,14 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
     // Handle CSS field - use direct property from API response
     
 
-    // Parse combobox options from JSON textarea
-    interface IComboboxOption {
-        value: string;
-        label?: string;
-        text?: string;
-    }
-
-    let predefinedOptions: Array<{ value: string; label: string }> = [];
-    try {
-        const dataJson = style.combobox_options?.content;
-
-        if (dataJson && dataJson.trim()) {
-            const parsed = JSON.parse(dataJson) as IComboboxOption[];
-            // Handle both formats: {value, label} and {value, text}
-            predefinedOptions = parsed.map((option) => ({
-                value: option.value,
-                label: option.label || option.text || option.value
-            }));
-        } else {
-            // Default data if none provided
-            predefinedOptions = [
-                { value: 'option1', label: 'Option 1' },
-                { value: 'option2', label: 'Option 2' }
-            ];
-        }
-    } catch (error) {
-        console.warn('Invalid JSON in combobox_options:', error);
-        // Fallback to default options
-        predefinedOptions = [
-            { value: 'option1', label: 'Option 1' },
-            { value: 'option2', label: 'Option 2' }
-        ];
-    }
+    const predefinedOptions: Array<{ value: string; label: string; disabled?: boolean }> = resolveOptions(
+        style.combobox_options?.content ?? null,
+        optionLabelsContent ?? null,
+    ).map((option) => ({
+        value: option.value,
+        label: option.label,
+        ...(option.disabled !== undefined ? { disabled: option.disabled } : {}),
+    }));
 
     // Create a set of predefined values for quick lookup
     const predefinedValues = new Set(predefinedOptions.map(option => option.value));
@@ -282,7 +259,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
     }, [currentValues]);
 
     // Create combined options including custom values
-    const allOptions = [
+    const allOptions: Array<{ value: string; label: string; disabled?: boolean }> = [
         ...predefinedOptions,
         // Add any custom values that aren't in predefined options
         ...currentValues
@@ -469,6 +446,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                                             value={option.value}
                                             key={option.value}
                                             active={option.value === selectedValue}
+                                            disabled={option.disabled}
                                         >
                                             <Group justify="space-between">
                                                 <Text
@@ -591,6 +569,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                                         value={option.value}
                                         key={option.value}
                                         active={currentValues.includes(option.value)}
+                                        disabled={option.disabled}
                                     >
                                         <Group justify="space-between">
                                             <Text

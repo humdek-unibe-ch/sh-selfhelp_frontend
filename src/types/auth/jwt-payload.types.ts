@@ -2,6 +2,8 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+import { PERMISSIONS as SharedPermissions } from '@selfhelp/shared';
+
 /**
  * User data response structure from /auth/user-data endpoint.
  *
@@ -140,9 +142,24 @@ export const PERMISSIONS = {
     ADMIN_CACHE_MANAGE: 'admin.cache.manage',
     ADMIN_CACHE_READ: 'admin.cache.read',
 
+    // Dashboard analytics (anonymous page-view aggregates)
+    ADMIN_ANALYTICS_READ: 'admin.analytics.read',
+
+    // Navigation menu builder
+    ADMIN_NAVIGATION_READ: 'admin.navigation.read',
+    ADMIN_NAVIGATION_UPDATE: 'admin.navigation.update',
+    ADMIN_NAVIGATION_EXPORT: 'admin.navigation.export',
+    ADMIN_NAVIGATION_IMPORT: 'admin.navigation.import',
+
     // CMS Preferences
     ADMIN_CMS_PREFERENCES_READ: 'admin.cms_preferences.read',
     ADMIN_CMS_PREFERENCES_UPDATE: 'admin.cms_preferences.update',
+
+    // First-class CMS apps (CMS-in-CMS product unit) — canonical strings in @selfhelp/shared
+    ADMIN_CMS_APP_READ: SharedPermissions.ADMIN_CMS_APP_READ,
+    ADMIN_CMS_APP_CREATE: SharedPermissions.ADMIN_CMS_APP_CREATE,
+    ADMIN_CMS_APP_UPDATE: SharedPermissions.ADMIN_CMS_APP_UPDATE,
+    ADMIN_CMS_APP_DELETE: SharedPermissions.ADMIN_CMS_APP_DELETE,
 
     // Data operations
     ADMIN_DATA_DELETE: 'admin.data.delete',

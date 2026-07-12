@@ -41,6 +41,36 @@ export interface IDataSource {
     }>;
 }
 
+export function createEmptyDataSource(): IDataSource {
+    return {
+        current_user: true,
+        all_fields: true,
+        scope: '',
+        table: '',
+        retrieve: 'first',
+        filter: '',
+        fields: [],
+        map_fields: [],
+    };
+}
+
+/** Entry-list and legacy configs often omit optional arrays; fill defaults before editing. */
+export function normalizeDataSource(source: Partial<IDataSource>): IDataSource {
+    const defaults = createEmptyDataSource();
+    return {
+        ...defaults,
+        ...source,
+        scope: source.scope ?? '',
+        table: source.table ?? '',
+        filter: source.filter ?? '',
+        retrieve: source.retrieve ?? defaults.retrieve,
+        current_user: source.current_user ?? defaults.current_user,
+        all_fields: source.all_fields ?? true,
+        fields: Array.isArray(source.fields) ? source.fields : [],
+        map_fields: Array.isArray(source.map_fields) ? source.map_fields : [],
+    };
+}
+
 interface IDataConfigModalProps {
     opened: boolean;
     onClose: () => void;
@@ -74,7 +104,7 @@ export function DataConfigModal({
             try {
                 const parsed = JSON.parse(initialValue);
                 if (Array.isArray(parsed)) {
-                    setDataSources(parsed);
+                    setDataSources(parsed.map((source) => normalizeDataSource(source as Partial<IDataSource>)));
                     if (parsed.length > 0) {
                         setActiveTab('0');
                     }
@@ -90,19 +120,8 @@ export function DataConfigModal({
         }
     }
 
-    const createNewDataSource = (): IDataSource => ({
-        current_user: true,
-        all_fields: true,
-        scope: '',
-        table: '',
-        retrieve: 'first',
-        filter: '',
-        fields: [],
-        map_fields: []
-    });
-
     const handleAddDataSource = () => {
-        const newDataSource = createNewDataSource();
+        const newDataSource = createEmptyDataSource();
         const updatedSources = [...dataSources, newDataSource];
         setDataSources(updatedSources);
         setActiveTab((updatedSources.length - 1).toString());
@@ -140,7 +159,7 @@ export function DataConfigModal({
                 if (!source.table.trim()) {
                     errors.push(`Data Source ${index + 1}: Table name is required`);
                 }
-                if (!source.all_fields && source.fields.length === 0) {
+                if (!source.all_fields && (source.fields?.length ?? 0) === 0) {
                     errors.push(`Data Source ${index + 1}: Fields are required when "All fields" is disabled`);
                 }
             });

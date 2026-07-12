@@ -107,6 +107,11 @@ export const PAGE_ACCESS_TYPES_MOBILE = 'mobile';
 export const PAGE_ACCESS_TYPES_WEB = 'web';
 export const PAGE_ACCESS_TYPES_MOBILE_AND_WEB = 'mobile_and_web';
 
+// pageSurface (CMS-in-CMS organization axis, issue #30)
+export const PAGE_SURFACE = 'pageSurface';
+export const PAGE_SURFACE_PUBLIC = 'public';
+export const PAGE_SURFACE_CMS = 'cms';
+
 // hookTypes
 export const HOOK_TYPES_HOOK_OVERWRITE_RETURN = 'hook_overwrite_return';
 export const HOOK_TYPES_HOOK_ON_FUNCTION_EXECUTE = 'hook_on_function_execute';

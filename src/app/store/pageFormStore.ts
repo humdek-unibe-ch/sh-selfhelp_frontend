@@ -3,17 +3,18 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { create } from 'zustand';
+import { type IPageRouteItem } from '../../types/common/pages.type';
 
 interface IPageFormState {
     keyword: string;
     url: string;
     headless: boolean;
-    navPosition: number | null;
-    footerPosition: number | null;
     openAccess: boolean;
     pageAccessType: string;
-    headerMenuEnabled: boolean;
-    footerMenuEnabled: boolean;
+    /** CMS-in-CMS organization axis (issue #30): `public` | `cms`. */
+    surface: 'public' | 'cms';
+    /** DB-driven public routes edited by the Routes panel (issue #30). */
+    routes: IPageRouteItem[];
     fields: Record<string, Record<number, string>>;
     isInitialized: boolean;
 }
@@ -22,12 +23,10 @@ interface IPageFormStore extends IPageFormState {
     setKeyword: (keyword: string) => void;
     setUrl: (url: string) => void;
     setHeadless: (headless: boolean) => void;
-    setNavPosition: (position: number | null) => void;
-    setFooterPosition: (position: number | null) => void;
     setOpenAccess: (openAccess: boolean) => void;
     setPageAccessType: (pageAccessType: string) => void;
-    setHeaderMenuEnabled: (enabled: boolean) => void;
-    setFooterMenuEnabled: (enabled: boolean) => void;
+    setSurface: (surface: 'public' | 'cms') => void;
+    setRoutes: (routes: IPageRouteItem[]) => void;
     setContentField: (fieldName: string, languageId: number, value: string) => void;
     setFormValues: (values: Omit<IPageFormState, 'isInitialized'>) => void;
     reset: () => void;
@@ -37,12 +36,10 @@ const defaultState: IPageFormState = {
     keyword: '',
     url: '',
     headless: false,
-    navPosition: null,
-    footerPosition: null,
     openAccess: false,
     pageAccessType: '',
-    headerMenuEnabled: false,
-    footerMenuEnabled: false,
+    surface: 'public',
+    routes: [],
     fields: {},
     isInitialized: false
 };
@@ -56,23 +53,13 @@ export const usePageFormStore = create<IPageFormStore>((set) => ({
 
     setHeadless: (headless: boolean) => set({ headless }),
 
-    setNavPosition: (position: number | null) => set({ navPosition: position }),
-
-    setFooterPosition: (position: number | null) => set({ footerPosition: position }),
-
     setOpenAccess: (openAccess: boolean) => set({ openAccess: openAccess }),
 
     setPageAccessType: (pageAccessType: string) => set({ pageAccessType }),
 
-    setHeaderMenuEnabled: (enabled: boolean) => set((state) => ({
-        headerMenuEnabled: enabled,
-        navPosition: enabled ? state.navPosition : null
-    })),
+    setSurface: (surface: 'public' | 'cms') => set({ surface }),
 
-    setFooterMenuEnabled: (enabled: boolean) => set((state) => ({
-        footerMenuEnabled: enabled,
-        footerPosition: enabled ? state.footerPosition : null
-    })),
+    setRoutes: (routes: IPageRouteItem[]) => set({ routes }),
 
     setContentField: (fieldName: string, languageId: number, value: string) => set((state) => ({
         fields: {

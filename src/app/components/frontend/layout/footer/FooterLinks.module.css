@@ -1,0 +1,83 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+.columnHeading {
+  color: var(--mantine-color-text);
+}
+
+.link {
+  color: var(--mantine-color-text);
+  text-decoration: none;
+  transition: color 100ms ease, opacity 100ms ease;
+  opacity: 0.85;
+}
+
+.link:hover {
+  opacity: 1;
+}
+
+.metaRow {
+  width: 100%;
+  padding-top: var(--mantine-spacing-md);
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+.columnsGrid {
+  width: 100%;
+}
+
+.column {
+  align-items: flex-start;
+}
+
+.columnLinks {
+  align-items: flex-start;
+}
+
+.inlineRow {
+  width: 100%;
+}
+
+@media (max-width: 48em) {
+  .inlineRow {
+    gap: var(--mantine-spacing-sm);
+    justify-content: flex-start;
+  }
+
+  .columnsLayout {
+    gap: var(--mantine-spacing-md);
+  }
+}
+
+.mobileAccordion {
+  width: 100%;
+}
+
+.mobileAccordionItem {
+  border-color: var(--mantine-color-default-border);
+}
+
+.mobileAccordionItem:first-of-type {
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+.mobileAccordionControl {
+  padding-inline: 0;
+}
+
+.mobileAccordionLabel {
+  font-weight: 600;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-text);
+}
+
+.mobileAccordionPanel {
+  padding-inline: 0;
+}
+
+.mobileAccordionContent {
+  padding-inline: 0;
+  padding-bottom: var(--mantine-spacing-sm);
+}

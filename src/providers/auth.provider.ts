@@ -28,6 +28,7 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { isTransientApiError } from '../utils/transient-error.utils';
 import { broadcastAuthChange } from '../utils/auth-broadcast';
 import { getQueryClient } from './query-client';
+import { NavigationApi } from '../api/navigation.api';
 
 const PENDING_2FA_KEY = 'pending_2fa_user_id';
 
@@ -78,12 +79,57 @@ export const authProvider: AuthProvider = {
             qc.removeQueries({
                 queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
             });
+            // Drop any guest (or prior-user) navigation before seeding the
+            // post-login scope. Must run before prefetch — removing after
+            // prefetch wipes the cache we just wrote.
+            qc.removeQueries({
+                queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL,
+            });
+            qc.removeQueries({
+                queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION_ALL,
+            });
             try {
-                await qc.fetchQuery({
+                const me = await qc.fetchQuery({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
                     queryFn: () => AuthApi.getUserData(),
                     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.staleTime,
                 });
+                const languageId = me?.data?.language?.id;
+                const userId = me?.data?.id;
+                if (typeof languageId === 'number' && languageId > 0) {
+                    const authScope = typeof userId === 'number' ? `user:${userId}` : 'guest';
+                    // Seed public navigation caches for the post-login route so
+                    // header/menu render immediately without waiting for a lazy
+                    // client refetch.
+                    await Promise.allSettled([
+                        qc.fetchQuery({
+                            queryKey: [...REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(languageId), authScope],
+                            queryFn: () => NavigationApi.getPagesWithLanguage(languageId),
+                            staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.staleTime,
+                            gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.gcTime,
+                        }),
+                        qc.fetchQuery({
+                            queryKey: [...REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION(languageId), authScope],
+                            queryFn: () => NavigationApi.getNavigation(languageId),
+                            staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.staleTime,
+                            gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.gcTime,
+                        }),
+                    ]);
+                    // `useAppNavigation` opts out of `refetchOnMount`; with a
+                    // prefilled fresh cache React Query otherwise won't do a
+                    // network round-trip. Force an immediate active refetch so
+                    // the post-login header/menu always reflects server-truth.
+                    await Promise.allSettled([
+                        qc.refetchQueries({
+                            queryKey: [...REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(languageId), authScope],
+                            type: 'active',
+                        }),
+                        qc.refetchQueries({
+                            queryKey: [...REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION(languageId), authScope],
+                            type: 'active',
+                        }),
+                    ]);
+                }
             } catch (fetchErr) {
                 warn('Post-login user-data prefetch failed', 'AuthProvider', fetchErr);
             }
@@ -115,7 +161,11 @@ export const authProvider: AuthProvider = {
         // Evict the cached envelope so the next `check()` resolves to
         // "not authenticated" immediately, without waiting for observers
         // to invalidate (avoids stale admin navbar after logout).
-        getQueryClient().removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+        const qc = getQueryClient();
+        qc.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+        // Permission-filtered menus must not leak across logout.
+        qc.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
+        qc.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION_ALL });
         // Tell sibling tabs of this browser to drop the session NOW (shared
         // cookies are already cleared) instead of discovering it on a later 401.
         broadcastAuthChange({ type: 'logged-out' });

@@ -5,11 +5,12 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * Slug route page — Server Component.
  *
- * Uses the new `/pages/by-keyword/{keyword}` endpoint to fetch page content
- * in a single network round-trip. The same fetch backs both
- * `generateMetadata` (so the `<title>` is final at first paint and the tab
- * never flashes the default) and the initial React Query cache consumed by
- * the client child.
+ * Resolves the public URL path via `GET /pages/resolve` (DB-driven
+ * `page_routes`, issue #30) in a single network round-trip. The same fetch
+ * backs both `generateMetadata` (so the `<title>` is final at first paint and
+ * the tab never flashes the default) and the initial React Query cache
+ * consumed by the client child. Keyword fetch remains only for the hardcoded
+ * maintenance fallback.
  *
  * Title / description resolution priority (per language):
  *   1. `page.title` / `page.description` from the content payload — the
@@ -30,31 +31,19 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import {
     getFrontendPageSeoSSR,
+    getNavigationSSR,
     getPageByKeywordSSRCached,
-    getPageByKeywordSSRStatus,
+    resolvePageByPathSSRCached,
+    resolvePageByPathSSRStatus,
     resolveLanguageSSR,
     resolvePreviewSSR,
     extractSsrPage,
 } from '../_lib/server-fetch';
-import type { IPageContent } from '../../shared';
 import { MaintenanceClient } from '../MaintenanceClient';
 import { MAINTENANCE_KEYWORD, hasRenderableMaintenancePage, isMaintenanceStatus } from '../maintenance';
 import DynamicPageClient from './DynamicPageClient';
-import { buildStaticFallbackPath, keywordFromSlug } from './slug-routing';
-
-/**
- * Returns true when the page should fall back to its static route.
- *
- * Prefers the BE-computed `should_fallback` flag (set when the page is
- * missing its required functional section). Falls back to the old
- * zero-sections check when the flag is absent (older BE versions).
- */
-function shouldFallback(page: (IPageContent & { should_fallback?: boolean }) | null): boolean {
-    if (!page) return true;
-    if (typeof page.should_fallback === 'boolean') return page.should_fallback;
-    const sections = Array.isArray(page?.sections) ? page.sections : [];
-    return sections.length === 0;
-}
+import { shouldStaticFallback } from './shouldStaticFallback';
+import { buildStaticFallbackPath, pathFromSlug } from './slug-routing';
 
 export async function generateMetadata({
     params,
@@ -62,18 +51,19 @@ export async function generateMetadata({
     params: Promise<{ slug?: string[] }>;
 }): Promise<Metadata> {
     const { slug } = await params;
-    const keyword = keywordFromSlug(slug);
+    const path = pathFromSlug(slug);
     const [{ id: languageId }, preview] = await Promise.all([
         resolveLanguageSSR(),
         resolvePreviewSSR(),
     ]);
 
-    const [envelope, navSeo] = await Promise.all([
-        getPageByKeywordSSRCached(keyword, languageId, preview),
-        getFrontendPageSeoSSR(keyword, languageId),
-    ]);
-
+    const envelope = await resolvePageByPathSSRCached(path, languageId, preview);
     const page = extractSsrPage(envelope);
+
+    // SEO fallback list is keyed by keyword; use the resolver-returned keyword.
+    const navSeo = page?.keyword
+        ? await getFrontendPageSeoSSR(page.keyword, languageId)
+        : { title: null, description: null };
 
     const payloadTitle =
         typeof page?.title === 'string' && page.title.trim() ? page.title.trim() : null;
@@ -105,13 +95,16 @@ export default async function SlugPage({
     params: Promise<{ slug?: string[] }>;
 }) {
     const { slug } = await params;
-    const keyword = keywordFromSlug(slug);
+    const path = pathFromSlug(slug);
     const [{ id: languageId }, preview] = await Promise.all([
         resolveLanguageSSR(),
         resolvePreviewSSR(),
     ]);
 
-    const { status, data: envelope } = await getPageByKeywordSSRStatus(keyword, languageId, preview);
+    const [{ status, data: envelope }, initialNavigation] = await Promise.all([
+        resolvePageByPathSSRStatus(path, languageId, preview),
+        getNavigationSSR(languageId),
+    ]);
 
     // Instance in maintenance: Symfony returns a clean 503 for normal page
     // traffic while keeping the `maintenance` page reachable. Render the styled
@@ -134,8 +127,10 @@ export default async function SlugPage({
 
     const page = extractSsrPage(envelope);
 
-    const fallbackPath = buildStaticFallbackPath(keyword, slug);
-    if (fallbackPath && shouldFallback(page)) {
+    // Static fallback (resolved keyword + route params) when a system page is
+    // missing its functional section — keeps operators out of a dead end.
+    const fallbackPath = page ? buildStaticFallbackPath(page.keyword, page.route_params) : null;
+    if (fallbackPath && shouldStaticFallback(page)) {
         redirect(fallbackPath);
     }
 
@@ -143,5 +138,21 @@ export default async function SlugPage({
         notFound();
     }
 
-    return <DynamicPageClient keyword={keyword} initialPageId={page.id} />;
+    // CMS-surface pages are Host Admin only. Backend public resolve already
+    // 404s them for non-admin callers; keep a defensive client guard so a
+    // stale cache cannot render them on the public slug route. Host Admin
+    // opens them under `/admin/cms-apps/.../content` instead.
+    if (page.page_surface === 'cms') {
+        notFound();
+    }
+
+    return (
+        <DynamicPageClient
+            keyword={page.keyword}
+            initialPageId={page.id}
+            path={path}
+            routeParams={page.route_params}
+            initialNavigation={initialNavigation}
+        />
+    );
 }

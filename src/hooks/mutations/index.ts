@@ -13,7 +13,8 @@ SPDX-License-Identifier: MPL-2.0
 export { useCreatePageMutation } from './useCreatePageMutation';
 export { useUpdatePageMutation } from './useUpdatePageMutation';
 export { useDeletePageMutation } from './useDeletePageMutation';
-
+export { useImportPagesMutation } from './useImportPagesMutation';
+export { useImportNavigationMutation } from './useImportNavigationMutation';
 // Section mutations
 export * from './sections';
 

@@ -14,6 +14,7 @@ import '@mantine/notifications/styles.css';
 import '@mantine/schedule/styles.css';
 import '@mantine/carousel/styles.css';
 import '@mantine/tiptap/styles.css';
+import '@mantine/charts/styles.css';
 import '../globals.css';
 
 import { ServerProviders } from '../providers/server-providers';

@@ -30,12 +30,13 @@ describe('BasicStyle dispatcher map', () => {
     it('dispatches the kebab-cased style names renamed from camelCase in @selfhelp/shared 1.8.0', () => {
         // The dispatcher key must match the backend style_name; these were
         // renamed to kebab-case in lockstep (shared + backend + frontend).
-        for (const name of ['reset-password', 'two-factor-auth', 'no-access', 'not-found', 'ref-container', 'show-user-input']) {
+        for (const name of ['reset-password', 'two-factor-auth', 'no-access', 'not-found', 'ref-container', 'entry-table']) {
             expect(typeof STYLE_IMPLS[name], name).toBe('function');
         }
-        // The legacy camelCase keys must no longer resolve, or a backend that
+        // The legacy camelCase keys (and the retired show-user-input name,
+        // renamed to entry-table) must no longer resolve, or a backend that
         // still served them would silently fall through to UnknownStyle.
-        for (const legacy of ['resetPassword', 'twoFactorAuth', 'noAccess', 'notFound', 'refContainer', 'showUserInput']) {
+        for (const legacy of ['resetPassword', 'twoFactorAuth', 'noAccess', 'notFound', 'refContainer', 'showUserInput', 'show-user-input']) {
             expect(STYLE_IMPLS[legacy], legacy).toBeUndefined();
         }
     });
@@ -43,14 +44,14 @@ describe('BasicStyle dispatcher map', () => {
     it('resolves the eight established system/data/reference styles (milestone-one catalog)', () => {
         for (const name of [
             'no-access', 'not-found', 'missing', 'timeline-item',
-            'ref-container', 'data-container', 'show-user-input',
+            'ref-container', 'data-container', 'entry-table',
         ]) {
             expect(typeof STYLE_IMPLS[name], name).toBe('function');
         }
     });
 
     it('does NOT dispatch the sixteen deferred expansion styles (kept out of milestone one)', () => {
-        // These 16 speculative styles were removed from the 90-style catalog; a
+        // These 16 speculative styles were removed from the established catalog; a
         // web renderer for them would silently reintroduce the catalog drift.
         for (const name of [
             'dialog', 'popover', 'menu', 'menu-item', 'bottom-sheet', 'skeleton',

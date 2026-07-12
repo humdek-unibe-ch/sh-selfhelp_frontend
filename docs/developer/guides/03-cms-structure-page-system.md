@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-03.
+Last verified: 2026-07-01.
 Source of truth: Runtime code, configuration, and tests in this repository.
 
 ## Page-Section Hierarchy
@@ -32,8 +32,7 @@ graph TD
 - `url`: URL pattern
 - `protocol`: HTTP methods allowed
 - `headless`: Layout control
-- `nav_position`: Header menu position
-- `footer_position`: Footer menu position
+- `navigationAssignments`: Optional menu-builder links when creating a page (web header, footer, mobile drawer, bottom tabs)
 - `page_access_type_code`: Access control
 - `open_access`: Public access flag
 

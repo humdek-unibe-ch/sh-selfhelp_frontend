@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import React, { useCallback, useRef, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import {
     Paper,
     Stack,
@@ -14,17 +14,26 @@ import {
     Checkbox,
     ActionIcon,
     Tooltip,
-    Badge
+    Badge,
+    SegmentedControl,
+    Alert,
+    Button,
+    Menu,
 } from '@mantine/core';
-import { IconInfoCircle } from '@tabler/icons-react';
+import { IconInfoCircle, IconWorld, IconLayoutDashboard, IconChevronDown } from '@tabler/icons-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { AdminNavigationApi } from '../../../../../api/admin/navigation.api';
+import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
+import { invalidateAdminNavigationQueries } from '../../../../../utils/admin-navigation-cache.utils';
+import type { IAdminPage, INavigationMembershipBadge } from '../../../../../types/responses/admin/admin.types';
 import { usePageFormStore } from '../../../../store/pageFormStore';
 import { LockedField } from '../../ui/locked-field/LockedField';
-import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
-import { MenuType } from './PageInspector';
-import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { PagePropertyField } from './page-field-connectors';
 import { type IPageField } from '../../../../../types/common/pages.type';
+import { usePageSections } from '../../../../../hooks/usePageDetails';
+import { useAdminPages } from '../../../../../hooks/useAdminPages';
+import { useCanUpdateNavigation } from '../../../../../hooks/usePermissionChecks';
 import styles from './PageInspector.module.css';
 
 // ==================== Page Info Panel ====================
@@ -74,11 +83,6 @@ export const PageInfoPanel = React.memo(function PageInfoPanel({
                         {page.is_headless && (
                             <Badge color="orange" variant="light" radius="sm" size="sm">
                                 Headless
-                            </Badge>
-                        )}
-                        {page.nav_position !== null && (
-                            <Badge color="blue" variant="light" radius="sm" size="sm">
-                                Menu Position: {page.nav_position}
                             </Badge>
                         )}
                         {page.id_parent_page !== null && (
@@ -182,113 +186,123 @@ export const PageAccessTypeGroup = React.memo(function PageAccessTypeGroup({
     );
 });
 
-// ==================== Menu Positions ====================
+// ==================== Navigation membership (read-only) ====================
 
-interface IPageMenuPositionsProps {
-    page: IAdminPage;
-    parentPage: IAdminPage | null;
+const MENU_LABELS: Record<string, string> = {
+    web_header: 'Web header',
+    web_footer: 'Web footer',
+    mobile_drawer: 'Mobile drawer',
+    mobile_bottom_tabs: 'Mobile tabs',
+};
+
+const ALL_MENU_KEYS = ['web_header', 'web_footer', 'mobile_drawer', 'mobile_bottom_tabs'] as const;
+
+interface IPageNavigationMembershipProps {
+    pageId: number;
 }
 
-export const PageMenuPositions = React.memo(function PageMenuPositions({
-    page,
-    parentPage
-}: IPageMenuPositionsProps) {
-    const headerMenuEnabled = usePageFormStore((state) => state.headerMenuEnabled);
-    const footerMenuEnabled = usePageFormStore((state) => state.footerMenuEnabled);
-    const navPosition = usePageFormStore((state) => state.navPosition);
-    const footerPosition = usePageFormStore((state) => state.footerPosition);
-    const setHeaderMenuEnabled = usePageFormStore((state) => state.setHeaderMenuEnabled);
-    const setFooterMenuEnabled = usePageFormStore((state) => state.setFooterMenuEnabled);
-    const setNavPosition = usePageFormStore((state) => state.setNavPosition);
-    const setFooterPosition = usePageFormStore((state) => state.setFooterPosition);
+export const PageNavigationMembership = React.memo(function PageNavigationMembership({
+    pageId,
+}: IPageNavigationMembershipProps) {
+    const queryClient = useQueryClient();
+    const { pages, isLoading } = useAdminPages();
+    const canUpdateNavigation = useCanUpdateNavigation();
 
-    const [activeDrag, setActiveDrag] = useState<MenuType | null>(null);
-    const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
-    const footerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
+    const memberships = useMemo(() => {
+        const page = pages?.find((entry) => entry.id_pages === pageId);
+        const badges = page?.navigationMembership ?? [];
+        return badges.map((badge: INavigationMembershipBadge) => ({
+            key: badge.menu_key,
+            label: MENU_LABELS[badge.menu_key as keyof typeof MENU_LABELS] ?? badge.menu_key,
+            explicit: badge.explicit !== false,
+            menuItemId: badge.menu_item_id,
+        }));
+    }, [pages, pageId]);
 
-    useEffect(() => {
-        if (headerMenuGetFinalPosition.current) {
-            const lastPosition = headerMenuGetFinalPosition.current();
-            if (lastPosition != null && navPosition == null) {
-                setNavPosition(lastPosition);
-            }
-        }
-    }, [headerMenuEnabled, navPosition, setNavPosition]);
-
-    useEffect(() => {
-        if (footerMenuGetFinalPosition.current) {
-            const lastPosition = footerMenuGetFinalPosition.current();
-            if (lastPosition != null && footerPosition == null) {
-                setFooterPosition(lastPosition);
-            }
-        }
-    }, [footerMenuEnabled, footerPosition, setFooterPosition]);
-
-    const handleHeaderPositionChange = useCallback((position: number | null) => {
-        setNavPosition(position);
-    }, [setNavPosition]);
-
-    const handleFooterPositionChange = useCallback((position: number | null) => {
-        setFooterPosition(position);
-    }, [setFooterPosition]);
-
-    // Stable reference so the positioner's drag monitor isn't torn down and
-    // re-registered mid-drag (onGlobalDragStart re-renders this component).
-    const handleGlobalDragEnd = useCallback(() => setActiveDrag(null), []);
+    const removeMutation = useMutation({
+        mutationFn: (menuItemId: number) => AdminNavigationApi.deleteMenuItem(menuItemId),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
+            await invalidateAdminNavigationQueries(queryClient);
+        },
+    });
 
     return (
         <Paper p="md" withBorder>
-            <Stack gap="md">
-                <Group gap="xs">
-                    <Text size="sm" fw={500} c="blue">Menu Positions</Text>
-                    <Tooltip
-                        label="Configure where this page appears in the website navigation menus. You can drag to reorder positions."
-                        multiline
-                        w={300}
-                    >
-                        <ActionIcon variant="subtle" size="xs" color="gray">
-                            <IconInfoCircle size="0.75rem" />
-                        </ActionIcon>
-                    </Tooltip>
+            <Stack gap="sm">
+                <Group gap="xs" justify="space-between">
+                    <Text size="sm" fw={500} c="blue">Navigation membership</Text>
+                    <Group gap="xs">
+                        {canUpdateNavigation ? (
+                        <Menu withinPortal position="bottom-end">
+                            <Menu.Target>
+                                <Button variant="default" size="xs" rightSection={<IconChevronDown size={14} />}>
+                                    Add to menu
+                                </Button>
+                            </Menu.Target>
+                            <Menu.Dropdown>
+                                {ALL_MENU_KEYS.map((menuKey) => (
+                                    <Menu.Item
+                                        key={menuKey}
+                                        component="a"
+                                        href={`/admin/navigation?menu=${encodeURIComponent(menuKey)}`}
+                                    >
+                                        {MENU_LABELS[menuKey]}
+                                    </Menu.Item>
+                                ))}
+                            </Menu.Dropdown>
+                        </Menu>
+                        ) : null}
+                        <Button component="a" href="/admin/navigation" variant="light" size="xs">
+                            Open menu builder
+                        </Button>
+                    </Group>
                 </Group>
-
-                <DragDropMenuPositioner
-                    currentPage={page}
-                    activeDrag={activeDrag}
-                    onGlobalDragStart={setActiveDrag}
-                    onGlobalDragEnd={handleGlobalDragEnd}
-                    menuType={MenuType.HEADER}
-                    title="Header Menu Position"
-                    enabled={headerMenuEnabled}
-                    position={navPosition}
-                    onEnabledChange={setHeaderMenuEnabled}
-                    onPositionChange={handleHeaderPositionChange}
-                    onGetFinalPosition={(getFinalPositionFn) => {
-                        headerMenuGetFinalPosition.current = getFinalPositionFn;
-                    }}
-                    parentPage={parentPage}
-                    checkboxLabel="Header Menu"
-                    showAlert={false}
-                />
-
-                <DragDropMenuPositioner
-                    currentPage={page}
-                    activeDrag={activeDrag}
-                    onGlobalDragStart={setActiveDrag}
-                    onGlobalDragEnd={handleGlobalDragEnd}
-                    menuType={MenuType.FOOTER}
-                    title="Footer Menu Position"
-                    enabled={footerMenuEnabled}
-                    position={footerPosition}
-                    onEnabledChange={setFooterMenuEnabled}
-                    onPositionChange={handleFooterPositionChange}
-                    onGetFinalPosition={(getFinalPositionFn) => {
-                        footerMenuGetFinalPosition.current = getFinalPositionFn;
-                    }}
-                    parentPage={parentPage}
-                    checkboxLabel="Footer Menu"
-                    showAlert={false}
-                />
+                {isLoading ? <Text size="sm" c="dimmed">Loading…</Text> : null}
+                {!isLoading && memberships.length === 0 ? (
+                    <Text size="sm" c="dimmed">This page is not in any public menu yet.</Text>
+                ) : null}
+                <Stack gap="xs">
+                    {memberships.map((entry) => (
+                        <Group key={`${entry.key}-${entry.menuItemId}`} gap="xs" justify="space-between" wrap="nowrap">
+                            <Group gap="xs">
+                                <Badge variant="light" color={entry.explicit ? 'blue' : 'gray'}>
+                                    {entry.label}
+                                </Badge>
+                                <Button
+                                    component="a"
+                                    href={`/admin/navigation?menu=${encodeURIComponent(entry.key)}&item=${entry.menuItemId}`}
+                                    variant="subtle"
+                                    size="xs"
+                                >
+                                    Open in builder
+                                </Button>
+                            </Group>
+                            {entry.explicit && canUpdateNavigation ? (
+                                <Button
+                                    variant="subtle"
+                                    color="red"
+                                    size="xs"
+                                    loading={removeMutation.isPending}
+                                    onClick={() => removeMutation.mutate(entry.menuItemId)}
+                                >
+                                    Remove
+                                </Button>
+                            ) : entry.explicit ? (
+                                <Text size="xs" c="dimmed">Read-only</Text>
+                            ) : (
+                                <Button
+                                    component="a"
+                                    href={`/admin/navigation?menu=${encodeURIComponent(entry.key)}&item=${entry.menuItemId}`}
+                                    variant="subtle"
+                                    size="xs"
+                                >
+                                    Open in builder
+                                </Button>
+                            )}
+                        </Group>
+                    ))}
+                </Stack>
             </Stack>
         </Paper>
     );
@@ -299,8 +313,10 @@ export const PageMenuPositions = React.memo(function PageMenuPositions({
 export const PageSettings = React.memo(function PageSettings() {
     const headless = usePageFormStore((state) => state.headless);
     const openAccess = usePageFormStore((state) => state.openAccess);
+    const surface = usePageFormStore((state) => state.surface);
     const setHeadless = usePageFormStore((state) => state.setHeadless);
     const setOpenAccess = usePageFormStore((state) => state.setOpenAccess);
+    const setSurface = usePageFormStore((state) => state.setSurface);
 
     return (
         <Paper p="md" withBorder>
@@ -317,6 +333,39 @@ export const PageSettings = React.memo(function PageSettings() {
                         </ActionIcon>
                     </Tooltip>
                 </Group>
+
+                <Box>
+                    <FieldLabelWithTooltip
+                        label="Surface"
+                        tooltip="Public website pages render on the public frontend under normal page ACL. CMS application pages are CMS-in-CMS tooling, grouped separately and ACL-gated to admins/editors."
+                    />
+                    <SegmentedControl
+                        mt={6}
+                        fullWidth
+                        value={surface}
+                        onChange={(value) => setSurface(value === 'cms' ? 'cms' : 'public')}
+                        data={[
+                            {
+                                value: 'public',
+                                label: (
+                                    <Group gap={6} justify="center" wrap="nowrap">
+                                        <IconWorld size="0.9rem" />
+                                        <span>Public website</span>
+                                    </Group>
+                                ),
+                            },
+                            {
+                                value: 'cms',
+                                label: (
+                                    <Group gap={6} justify="center" wrap="nowrap">
+                                        <IconLayoutDashboard size="0.9rem" />
+                                        <span>CMS application</span>
+                                    </Group>
+                                ),
+                            },
+                        ]}
+                    />
+                </Box>
 
                 <Group>
                     <Tooltip label="Page will not include header/footer layout - useful for popups, embeds, or standalone pages">
@@ -343,16 +392,16 @@ export const PageSettings = React.memo(function PageSettings() {
 
 interface IPageAdditionalPropertiesProps {
     fields: IPageField[];
-    defaultLanguageId: number;
 }
 
-// Property fields (url, nav/footer position, page-type settings) are returned
+// Property fields (url, search_visibility, page-type settings) are returned
 // verbatim by the backend and never interpolated at render, so they expose no
 // `{{ }}` picker (issue #56 v2 honest-picker rule). The picker lives on content
-// fields (mail-config templates) and sections instead.
+// fields (mail-config templates) and sections instead. Property fields are not
+// language-specific (stored under the property language), so no language id is
+// threaded here — `PagePropertyField` pins itself to that language.
 export const PageAdditionalProperties = React.memo(function PageAdditionalProperties({
-    fields,
-    defaultLanguageId
+    fields
 }: IPageAdditionalPropertiesProps) {
     if (fields.length === 0) return null;
 
@@ -376,12 +425,54 @@ export const PageAdditionalProperties = React.memo(function PageAdditionalProper
                     <Box key={field.id}>
                         <PagePropertyField
                             field={field}
-                            languageId={defaultLanguageId}
                             className={styles.fullWidthLabel}
                         />
                     </Box>
                 ))}
             </Stack>
         </Paper>
+    );
+});
+
+// ==================== Navigation Hints ====================
+
+interface IPageNavigationHintsProps {
+    page: IAdminPage;
+    adminPages: IAdminPage[];
+}
+
+/**
+ * Hints about branch navigation (resolved from menu builder + page tree).
+ */
+export const PageNavigationHints = React.memo(function PageNavigationHints({
+    page,
+    adminPages
+}: IPageNavigationHintsProps) {
+    const children = useMemo(
+        () => adminPages.filter((candidate) => candidate.id_parent_page === page.id_pages),
+        [adminPages, page.id_pages]
+    );
+
+    const { data: sectionsData } = usePageSections(page.id_pages, children.length > 0);
+    const sectionCount = sectionsData?.sections?.length ?? null;
+    const hasChildren = children.length > 0;
+
+    if (!hasChildren) {
+        return null;
+    }
+
+    return (
+        <Stack gap="xs">
+            {sectionCount === 0 && (
+                <Alert color="blue" variant="light" icon={<IconInfoCircle size="1rem" />}>
+                    This page has child pages but no content sections. When those children appear in a
+                    resolved menu branch, the frontend may auto-route to the first visible child.
+                </Alert>
+            )}
+            <Alert color="gray" variant="light" icon={<IconInfoCircle size="1rem" />}>
+                Menu placement is managed in the Navigation builder. Child/sibling tabs are derived from
+                resolved menus, not page-level render settings.
+            </Alert>
+        </Stack>
     );
 });

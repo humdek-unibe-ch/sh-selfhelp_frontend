@@ -28,10 +28,10 @@ SPDX-License-Identifier: MPL-2.0
  *     bridge and reports its navigations. Either source updates the canonical
  *     keyword → the web pane re-renders + the mobile frame gets a SOFT navigate
  *     command (no reload), with a per-frame "expected keyword" loop guard;
- *   - the canonical keyword is mirrored into the shell's own address bar
- *     (`/admin/preview/<keyword>`, history API only) so the URL is shareable and
- *     a manual reload restarts at the page you navigated to — in BOTH directions
- *     (a mobile navigation updates the URL too);
+ *   - the canonical keyword + public path are mirrored into the shell address
+ *     bar (`/admin/preview/<keyword>?path=/…`, history API only) so a reload
+ *     keeps parameterized `route_params` (record_id, …) and the URL stays
+ *     shareable — in BOTH directions (web and mobile navigation);
  *   - the Draft toggle drives the shared `PreviewModeContext` (which the inline
  *     web reads) AND re-mints the mobile pane. Language is changed IN-APP from
  *     each pane's own controls (web header selector / mobile profile), not the
@@ -53,13 +53,16 @@ SPDX-License-Identifier: MPL-2.0
  * @module components/cms/live-preview/LivePreview
  */
 
+import { isOnAnyMobileMenu } from '@selfhelp/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { Box, useMantineColorScheme } from '@mantine/core';
+import { Alert, Box, Text, useMantineColorScheme } from '@mantine/core';
 import { useElementSize } from '@mantine/hooks';
+import { IconAlertTriangle } from '@tabler/icons-react';
 import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { API_CONFIG } from '../../../../config/api.config';
+import { PageApi } from '../../../../api/page.api';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { usePublicLanguages } from '../../../../hooks/useLanguages';
 import { useLanguageContext } from '../../contexts/LanguageContext';
@@ -78,6 +81,13 @@ import { useMobilePreviewSession } from './hooks/useMobilePreviewSession';
 import { usePreviewPreferenceSync } from './hooks/usePreviewPreferenceSync';
 import { usePreviewNavigationSync } from './hooks/usePreviewNavigationSync';
 import { usePreviewUrlMirror } from './hooks/usePreviewUrlMirror';
+import { normalizePreviewPath, pathForMobilePreviewSync } from './utils/previewPath';
+import {
+    formatPreviewResolveFailure,
+    resolvePreviewPathWithRace,
+    shouldReportMobileSyncFailure,
+    type IPreviewResolveFailure,
+} from './utils/previewResolve';
 import { previewDiagLog } from '../../../../utils/preview-diag';
 
 /**
@@ -92,6 +102,11 @@ export interface ILivePreviewProps {
     /** Keyword of the page the preview is launched on (initial route). */
     keyword: string;
     /**
+     * Public CMS path from `?path=` (e.g. `/team-members/4`). Required to
+     * hydrate parameterized pages after reload — keyword alone has no record id.
+     */
+    initialPath?: string;
+    /**
      * Optional modal-presentation override forwarded to the mobile app. Omit for
      * the default (`auto` — off-menu pages open as a modal over home); pass `on`
      * / `off` to force. Surfaced via the route's `?modal=` query.
@@ -99,7 +114,7 @@ export interface ILivePreviewProps {
     modal?: TPreviewModalMode;
 }
 
-export function LivePreview({ keyword, modal }: ILivePreviewProps) {
+export function LivePreview({ keyword, initialPath, modal }: ILivePreviewProps) {
     const router = useRouter();
     const explicitOrigin = process.env.NEXT_PUBLIC_MOBILE_PREVIEW_ORIGIN ?? null;
     const isDev = process.env.NODE_ENV !== 'production';
@@ -130,14 +145,19 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     const { currentLanguageId, languages: ctxLanguages } = useLanguageContext();
     const queryClient = useQueryClient();
 
-    // The CMS knows every page's nav position, so it can decide on/off-menu
-    // RELIABLY and tell the mobile app how to present the page (`modal=on|off`).
-    const { routes: navRoutes, isLoading: navLoading } = useAppNavigation();
+    // Menu-builder membership drives on/off-menu modal presentation for mobile preview.
+    const { routes: navRoutes, navigation, isLoading: navLoading } = useAppNavigation();
     const isOnMenu = useMemo(() => {
         const page = navRoutes.find((p) => p.keyword === keyword);
-        if (!page) return false;
-        return page.navPosition !== null && page.navPosition !== undefined && !page.is_headless;
-    }, [navRoutes, keyword]);
+        if (!page || page.is_headless || !navigation) {
+            return false;
+        }
+        const pageId = page.id_pages ?? page.id;
+        if (pageId == null) {
+            return false;
+        }
+        return isOnAnyMobileMenu(navigation.menus, pageId);
+    }, [navRoutes, navigation, keyword]);
     const effectiveModal: TPreviewModalMode = useMemo(() => {
         if (modal) return modal; // explicit route override (?modal=) wins
         if (navLoading || navRoutes.length === 0) return 'auto'; // let the app fall back
@@ -163,13 +183,30 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
     // sync navigation never remounts the frame.
     const [currentKeyword, setCurrentKeyword] = useState<string | null>(keyword);
     const [mobileLoadKeyword, setMobileLoadKeyword] = useState<string | null>(keyword);
+    const [previewPath, setPreviewPath] = useState<string | null>(
+        initialPath ? normalizePreviewPath(initialPath) : null,
+    );
+    const [previewRouteParams, setPreviewRouteParams] = useState<Record<string, string>>({});
+    const [previewResolveError, setPreviewResolveError] = useState<IPreviewResolveFailure | null>(
+        null,
+    );
+    const [previewResolving, setPreviewResolving] = useState(false);
 
     const mobileIframeRef = useRef<HTMLIFrameElement>(null);
     const currentKeywordRef = useRef<string | null>(keyword);
-
+    const previewPathRef = useRef<string | null>(
+        initialPath ? normalizePreviewPath(initialPath) : null,
+    );
+    const previewRouteParamsRef = useRef<Record<string, string>>({});
+    const initialPathHydratedRef = useRef(false);
+    const resolveRequestIdRef = useRef(0);
     useEffect(() => {
         currentKeywordRef.current = currentKeyword;
     }, [currentKeyword]);
+
+    useEffect(() => {
+        previewRouteParamsRef.current = previewRouteParams;
+    }, [previewRouteParams]);
 
     // Default the preview to DRAFT the FIRST time it is ever opened (parity with
     // the old default), then RESPECT the user's saved choice. The `sh_preview`
@@ -248,18 +285,148 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
         mobileMessageOrigin,
         mobileIframeRef,
     });
-    const { handleWebNavigate } = usePreviewNavigationSync({
+
+    /** Authoritative resolve: backend `/pages/resolve` owns keyword + route_params. */
+    const applyResolvedPreviewPath = useCallback(
+        async (
+            rawPath: string,
+            options?: { reportError?: boolean; softMobileSync?: boolean },
+        ): Promise<{
+            keyword: string;
+            path: string;
+            routeParams: Record<string, string>;
+        } | null> => {
+            const reportError = options?.reportError !== false;
+            const softMobileSync = options?.softMobileSync === true;
+            const requestId = ++resolveRequestIdRef.current;
+            setPreviewResolving(true);
+            const outcome = await resolvePreviewPathWithRace({
+                path: rawPath,
+                languageId: currentLanguageId ?? undefined,
+                preview: draft,
+                requestId,
+                isCurrent: (id) => id === resolveRequestIdRef.current,
+                resolvePageByPath: PageApi.resolvePageByPath,
+            });
+
+            if (outcome.status === 'stale') {
+                return null;
+            }
+
+            if (requestId === resolveRequestIdRef.current) {
+                setPreviewResolving(false);
+            }
+
+            if (outcome.status === 'error') {
+                // Soft mobile sync: suppress only proven-benign Expo underlay 404s.
+                // Real multi-segment CMS failures and non-404 errors are reported.
+                const shouldReport = softMobileSync
+                    ? shouldReportMobileSyncFailure(outcome.failure)
+                    : reportError;
+                if (shouldReport) {
+                    // Keep the last successful page visible, but surface the failure
+                    // so stale content is never presented as the newly requested path.
+                    setPreviewResolveError(outcome.failure);
+                }
+                return null;
+            }
+
+            const { keyword: nextKeyword, path, routeParams } = outcome.value;
+            setPreviewResolveError(null);
+            const sameKeyword = nextKeyword === currentKeywordRef.current;
+            const samePath = path === previewPathRef.current;
+            if (sameKeyword && samePath) {
+                previewRouteParamsRef.current = routeParams;
+                setPreviewRouteParams(routeParams);
+                return { keyword: nextKeyword, path, routeParams };
+            }
+            currentKeywordRef.current = nextKeyword;
+            previewPathRef.current = path;
+            previewRouteParamsRef.current = routeParams;
+            setCurrentKeyword(nextKeyword);
+            setPreviewPath(path);
+            setPreviewRouteParams(routeParams);
+            return { keyword: nextKeyword, path, routeParams };
+        },
+        [currentLanguageId, draft],
+    );
+
+    /**
+     * Soft-sync path for the mobile frame. Only include a public path when the
+     * match carried route params — otherwise mobile must navigate by keyword
+     * (menu/modal rules). Sending every nested static URL as `path` forced
+     * `navigateToResolvedPath` and broke Live Preview sync.
+     */
+    const onMobileNavigated = useCallback(
+        async (kw: string | null, path?: string | null) => {
+            if (path) {
+                // Soft mobile sync: Expo underlays can 404; multi-segment CMS
+                // paths and non-404 failures are still reported to the operator.
+                const resolved = await applyResolvedPreviewPath(path, {
+                    softMobileSync: true,
+                });
+                if (resolved) {
+                    return;
+                }
+                // Path was not a public CMS URL (Expo route, modal underlay, …)
+                // — fall through to keyword sync when the failure was suppressed.
+            }
+            if (kw === currentKeywordRef.current) {
+                return;
+            }
+            currentKeywordRef.current = kw;
+            previewPathRef.current = null;
+            previewRouteParamsRef.current = {};
+            setCurrentKeyword(kw);
+            setPreviewPath(null);
+            setPreviewRouteParams({});
+        },
+        [applyResolvedPreviewPath],
+    );
+
+    const { sendNavigateMobile } = usePreviewNavigationSync({
         previewActive,
         mobileMessageOrigin,
         mobileIframeRef,
         currentKeywordRef,
-        setCurrentKeyword,
         currentPrefsRef,
+        previewPathRef,
         sendPreferencesMobile,
+        onMobileNavigated,
     });
 
-    // Mirror the canonical page into the shell's own address bar (history only).
-    usePreviewUrlMirror(currentKeyword);
+    const handleWebNavigate = useCallback(
+        (path: string) => {
+            void (async () => {
+                const resolved = await applyResolvedPreviewPath(path);
+                if (!resolved) {
+                    return;
+                }
+                sendNavigateMobile(
+                    resolved.keyword,
+                    pathForMobilePreviewSync(resolved.path, resolved.routeParams),
+                );
+            })();
+        },
+        [applyResolvedPreviewPath, sendNavigateMobile],
+    );
+
+    // Hydrate parameterized pages from `?path=` so reload keeps record_id etc.
+    useEffect(() => {
+        if (!initialPath || initialPathHydratedRef.current) return;
+        initialPathHydratedRef.current = true;
+        void (async () => {
+            const resolved = await applyResolvedPreviewPath(initialPath);
+            if (!resolved) return;
+            sendNavigateMobile(
+                resolved.keyword,
+                pathForMobilePreviewSync(resolved.path, resolved.routeParams),
+            );
+        })();
+    }, [initialPath, applyResolvedPreviewPath, sendNavigateMobile]);
+
+    // Mirror keyword + public path into the shell address bar (history only).
+    usePreviewUrlMirror(currentKeyword, previewPath);
 
     // Device / orientation are NOT in the URL: the iframe is sized to the device
     // and the app renders responsively, so rotating/resizing never reloads it.
@@ -285,9 +452,12 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
 
     // The "open in new tab" link uses the CURRENT page on the real public site.
     const webOpenUrl = useMemo(() => {
+        if (previewPath && previewPath !== '/') {
+            return previewPath;
+        }
         const kw = currentKeyword?.trim() ? currentKeyword.trim().replace(/^\/+/, '') : '';
         return kw === '' ? '/' : `/${kw}`;
-    }, [currentKeyword]);
+    }, [currentKeyword, previewPath]);
 
     // Size the device frame to the stage's REAL inner slot so the bezel sits
     // inside the same 16px inset as the web pane (and never escapes its column):
@@ -371,7 +541,7 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
                 draft={draft}
                 onToggleDraft={() => togglePreviewMode()}
                 onRefresh={handleRefresh}
-                refreshing={mintPending}
+                refreshing={mintPending || previewResolving}
                 webOpenUrl={webOpenUrl}
                 availability={availability}
                 device={device}
@@ -380,9 +550,38 @@ export function LivePreview({ keyword, modal }: ILivePreviewProps) {
                 onOrientationChange={setOrientation}
                 onReloadMobile={handleReloadMobile}
             />
+            {previewResolveError ? (
+                <Alert
+                    icon={<IconAlertTriangle size="1rem" />}
+                    color="orange"
+                    title="Preview path could not be resolved"
+                    withCloseButton
+                    onClose={() => setPreviewResolveError(null)}
+                    mx="md"
+                    mt="xs"
+                    role="alert"
+                >
+                    <Text size="sm">{formatPreviewResolveFailure(previewResolveError)}</Text>
+                    {currentKeyword ? (
+                        <Text size="xs" c="dimmed" mt={4}>
+                            Still showing last successful page:{' '}
+                            <Text span fw={600}>
+                                {currentKeyword}
+                            </Text>
+                            {previewPath ? ` (${previewPath})` : ''}.
+                        </Text>
+                    ) : null}
+                </Alert>
+            ) : null}
             <LivePreviewStage
                 bodyRef={bodyRef}
-                web={{ webReloadKey, keyword: currentKeyword, onNavigate: handleWebNavigate }}
+                web={{
+                    webReloadKey,
+                    keyword: currentKeyword,
+                    path: previewPath,
+                    routeParams: previewRouteParams,
+                    onNavigate: handleWebNavigate,
+                }}
                 showMobile={showMobile}
                 mobile={{
                     availability,

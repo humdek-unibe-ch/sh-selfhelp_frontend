@@ -35,10 +35,13 @@ export function isMaintenanceStatus(status: number | null | undefined): boolean 
 }
 
 /**
- * Whether the seeded maintenance CMS page has renderable content. Prefers the
- * BE-computed `should_fallback` flag (set when a page is missing its required
- * functional section) and falls back to a zero-sections check for older BE
- * payloads. When this is false the caller renders the hardcoded fallback.
+ * Whether the seeded maintenance CMS page has renderable content.
+ *
+ * When the backend includes `should_fallback`, that flag wins. Otherwise
+ * renderability is based on a numeric id plus at least one section — the
+ * maintenance keyword is not in the backend's static-fallback check set, so
+ * `should_fallback` is normally absent and sections remain the product signal
+ * (not an older-backend compatibility shim).
  */
 export function hasRenderableMaintenancePage(page: unknown): page is { id: number } {
     if (!page || typeof page !== 'object') return false;

@@ -15,13 +15,18 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 
 /**
  * Hook to fetch paginated assets
+ *
+ * `fresh: true` refetches on mount and window focus (staleTime 0) — used by
+ * asset pickers (e.g. navigation logo) so uploads made in another tab or page
+ * appear without a full browser refresh.
  */
-export function useAssets(params: IAssetsListParams = {}) {
+export function useAssets(params: IAssetsListParams = {}, options: { fresh?: boolean } = {}) {
   return useQuery<IAssetsListResponse>({
     queryKey: ['assets', params],
     queryFn: () => AdminAssetApi.getAssets(params),
-    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
-    refetchOnWindowFocus: false,
+    staleTime: options.fresh ? 0 : REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+    refetchOnMount: options.fresh ? 'always' : true,
+    refetchOnWindowFocus: options.fresh ? true : false,
   });
 }
 

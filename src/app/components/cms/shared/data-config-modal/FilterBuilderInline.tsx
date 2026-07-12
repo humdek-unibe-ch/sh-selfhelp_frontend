@@ -5,19 +5,23 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Stack, Text, Divider, Group, Select as MantineSelect, NumberInput, ActionIcon, Button } from '@mantine/core';
+import { Stack, Text, Divider, Group, Select as MantineSelect, NumberInput, ActionIcon, Button, Alert, Code } from '@mantine/core';
 import { QueryBuilder, type RuleGroupType, type RuleType, type ValueEditorProps, defaultValidator, formatQuery } from 'react-querybuilder';
 import { mantineControlElements } from '@react-querybuilder/mantine';
 import { useTableColumns } from '../../../../../hooks/useData';
 import { parseSQL } from 'react-querybuilder/parseSQL';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
 import { QUERY_BUILDER_CONTROL_CLASSNAMES } from '../../../../../constants/querybuilder.constants';
+import { useQueryPreview } from '../../../../../hooks/useQueryPreview';
 
 interface IProps {
   tableName?: string;
   initialSql?: string; // combined SQL possibly including ORDER BY / LIMIT
   onSave: (payload: { sql: string }) => void;
   dataVariables?: Record<string, string>;
+  sectionId?: number;
+  dataTableId?: string;
+  ownEntriesOnly?: boolean;
 }
 
 const initialQuery: RuleGroupType = { combinator: 'and', rules: [] };
@@ -85,7 +89,7 @@ function ensureIds(node: RuleGroupType | RuleType): RuleGroupType | RuleType {
 
 
 export function FilterBuilderInline(props: IProps & { dataVariables?: Record<string, string> }) {
-  const { tableName, initialSql, onSave, dataVariables } = props;
+  const { tableName, initialSql, onSave, dataVariables, sectionId, dataTableId, ownEntriesOnly } = props;
   const { data: columnsResp } = useTableColumns(tableName);
   const fields = useMemo(() => {
     // Field identifier is the immutable field_key (it goes into the WHERE SQL,
@@ -195,6 +199,38 @@ export function FilterBuilderInline(props: IProps & { dataVariables?: Record<str
 
   const lastSubmittedSqlRef = useRef<string>((initialSql || '').trim());
   const debounceRef = useRef<number | null>(null);
+  const [previewSql, setPreviewSql] = useState((initialSql || '').trim());
+
+  const routeParams = useMemo(() => {
+    const params: Record<string, string> = {};
+    for (const [token, label] of Object.entries(dataVariables ?? {})) {
+      if (!token.startsWith('route.')) {
+        continue;
+      }
+      const param = token.slice('route.'.length);
+      params[param] = param === 'record_id' || param.endsWith('_id') ? '1' : 'sample';
+      void label;
+    }
+    return params;
+  }, [dataVariables]);
+
+  const previewPayload = useMemo(() => {
+    if (!sectionId && !dataTableId) {
+      return null;
+    }
+    return {
+      section_id: sectionId,
+      draft: {
+        data_table: dataTableId,
+        filter: previewSql,
+        own_entries_only: ownEntriesOnly,
+        route_params: routeParams,
+      },
+      route_params: routeParams,
+    };
+  }, [sectionId, dataTableId, previewSql, ownEntriesOnly, routeParams]);
+
+  const previewQuery = useQueryPreview(previewPayload, Boolean(previewPayload && previewSql.trim() !== ''));
 
   // Auto-apply with debounce on any builder change (no blur needed)
   useEffect(() => {
@@ -204,6 +240,7 @@ export function FilterBuilderInline(props: IProps & { dataVariables?: Record<str
         lastSubmittedSqlRef.current = combinedSql;
         onSave({ sql: combinedSql });
       }
+      setPreviewSql(combinedSql);
     };
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
     debounceRef.current = window.setTimeout(handler, 500);
@@ -255,7 +292,7 @@ export function FilterBuilderInline(props: IProps & { dataVariables?: Record<str
                 onChange={(v) => updateOrderByDir(idx, (v as 'ASC' | 'DESC') || 'ASC')}
               />
             </div>
-            <ActionIcon color="red" variant="subtle" mt={22} onClick={() => removeOrderBy(idx)}>✕</ActionIcon>
+            <ActionIcon color="red" variant="subtle" mt={22} onClick={() => removeOrderBy(idx)} aria-label="Remove">x</ActionIcon>
           </Group>
         </Stack>
       ))}
@@ -270,7 +307,34 @@ export function FilterBuilderInline(props: IProps & { dataVariables?: Record<str
         min={1}
       />
 
-      {/* Auto-applied on change; no explicit apply button or preview */}
+      {(sectionId || dataTableId) && previewSql.trim() !== '' && (
+        <Stack gap="xs" mt="sm">
+          <Text size="sm" fw={500}>Filter preview</Text>
+          {previewQuery.isFetching && (
+            <Text size="xs" c="dimmed">Preparing preview...</Text>
+          )}
+          {previewQuery.data?.errors.map((message: string) => (
+            <Alert key={message} color="red" variant="light" title="Filter error">
+              {message}
+            </Alert>
+          ))}
+          {previewQuery.data?.warnings.map((message: string) => (
+            <Alert key={message} color="yellow" variant="light" title="Preview warning">
+              {message}
+            </Alert>
+          ))}
+          {previewQuery.data && (
+            <>
+              <Text size="xs" c="dimmed">Normalized filter</Text>
+              <Code block>{previewQuery.data.prepared_filter || '(empty - filter rejected or unresolved)'}</Code>
+              <Text size="xs" c="dimmed">Stored procedure</Text>
+              <Code block>{previewQuery.data.stored_procedure.call}</Code>
+              <Text size="xs" c="dimmed">SQL shape (read-only)</Text>
+              <Code block>{previewQuery.data.sql_shape}</Code>
+            </>
+          )}
+        </Stack>
+      )}
     </Stack>
   );
 }

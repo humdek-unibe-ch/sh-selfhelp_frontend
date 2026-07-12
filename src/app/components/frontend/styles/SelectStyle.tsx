@@ -7,6 +7,7 @@ import { type ISelectStyle } from '../../../../types/common/styles.types';
 import { FormFieldValueContext } from './FormStyle';
 import DOMPurify from 'isomorphic-dompurify';
 import { Select, MultiSelect } from '@mantine/core';
+import { resolveOptions } from '@selfhelp/shared';
 
 /**
  * Props interface for SelectStyle component
@@ -22,6 +23,7 @@ interface ISelectStyleProps {
  * Uses Mantine Select / MultiSelect for better UX and form handling
  */
 const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
+    const optionLabelsContent = style.option_labels?.content;
     // Extract field values using the new unified field structure
     const placeholder =
         DOMPurify.sanitize(style.placeholder?.content ?? '', {
@@ -43,21 +45,18 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
     // Convert options into Mantine format. Parsing happens inside the memo so the
     // derived `data` only changes when the raw options string changes (the
     // intermediate parsed array is no longer a separate render-phase value).
-    const data = useMemo(() => {
-        let optionsArray: Array<{ value: string; label: string; text: string }> = [];
-        try {
-            const optionsContent = style.options?.content;
-            if (optionsContent) {
-                optionsArray = JSON.parse(optionsContent);
-            }
-        } catch {
-            optionsArray = [];
-        }
-        return optionsArray.map((option) => ({
-            value: option.value,
-            label: option.label || option.text,
-        }));
-    }, [style.options]);
+    const data = useMemo(
+        () =>
+            resolveOptions(
+                style.options?.content ?? null,
+                optionLabelsContent ?? null,
+            ).map((option) => ({
+                value: option.value,
+                label: option.label,
+                ...(option.disabled !== undefined ? { disabled: option.disabled } : {}),
+            })),
+        [style.options?.content, optionLabelsContent],
+    );
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -87,33 +86,48 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
         setSelectedValue(val ?? (isMultiple ? [] : ''));
     };
 
-    return isMultiple ? (
-        <MultiSelect
-            className={cssClass}
-            label={label}
-            data={data}
-            value={selectedValue as string[]}
-            onChange={handleChange}
-            placeholder={placeholder}
-            disabled={disabled}
-            required={required}
-            searchable={searchable}
-            clearable={clearable}
-            maxValues={maxValues}
-        />
-    ) : (
-        <Select
-            className={cssClass}
-            label={label}
-            data={data}
-            value={selectedValue as string}
-            onChange={handleChange}
-            placeholder={placeholder}
-            disabled={disabled}
-            required={required}
-            searchable={searchable}
-            clearable={clearable}
-        />
+    return (
+        <>
+            {isMultiple ? (
+                <MultiSelect
+                    className={cssClass}
+                    label={label}
+                    data={data}
+                    value={selectedValue as string[]}
+                    onChange={handleChange}
+                    placeholder={placeholder}
+                    disabled={disabled}
+                    required={required}
+                    searchable={searchable}
+                    clearable={clearable}
+                    maxValues={maxValues}
+                />
+            ) : (
+                <Select
+                    className={cssClass}
+                    label={label}
+                    data={data}
+                    value={selectedValue as string}
+                    onChange={handleChange}
+                    placeholder={placeholder}
+                    disabled={disabled}
+                    required={required}
+                    searchable={searchable}
+                    clearable={clearable}
+                />
+            )}
+            {name ? (
+                <input
+                    type="hidden"
+                    name={name}
+                    value={
+                        isMultiple
+                            ? (selectedValue as string[]).join(',')
+                            : (selectedValue as string)
+                    }
+                />
+            ) : null}
+        </>
     );
 };
 

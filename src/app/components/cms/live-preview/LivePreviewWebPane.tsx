@@ -26,18 +26,18 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { useMemo } from 'react';
-import { Box, Container, Divider, Flex, Group, Stack, Text } from '@mantine/core';
+import { Box, Container } from '@mantine/core';
+import { isDoubleWebHeaderPreset, resolveWebHeaderPreset } from '@selfhelp/shared';
 import DynamicPageClient from '../../../[[...slug]]/DynamicPageClient';
-import { WebsiteHeaderMenu } from '../../frontend/layout/header/WebsiteHeaderMenu';
+import slugLayoutStyles from '../../../[[...slug]]/SlugLayout/SlugLayout.module.css';
+import { WebsiteHeaderLayout } from '../../frontend/layout/header/WebsiteHeaderLayout';
 import { FooterLinks } from '../../frontend/layout/footer/FooterLinks';
-import { AuthButton } from '../../shared/auth/AuthButton';
-import { ThemeToggle } from '../../shared/common/ThemeToggle';
-import { LanguageSelector } from '../../shared/common/LanguageSelector';
-import { BurgerMenuClient } from '../../shared/common/BurgerMenuClient';
+import footerStyles from '../../frontend/layout/footer/WebsiteFooter.module.css';
 import { PreviewModeIndicator } from '../../shared/common/PreviewModeIndicator';
 import { usePreviewMode } from '../../contexts/PreviewModeContext';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { PreviewNavigationProvider } from './PreviewNavigationContext';
+import { resolveWebHeaderHeight } from '../../frontend/layout/header/headerLayout.utils';
 
 /** Backend keyword used for the landing page (matches the public slug route). */
 const HOME_KEYWORD = 'home';
@@ -45,22 +45,33 @@ const HOME_KEYWORD = 'home';
 interface ILivePreviewWebPaneProps {
     /** The synced preview keyword (`null` → home). */
     keyword: string | null;
+    /** Full public path for parameterized record pages. */
+    path?: string | null;
+    /** Route params from the matched URL (`record_id`, …). */
+    routeParams?: Record<string, string>;
     /** Called when an in-pane link/button navigates (origin-stripped path). */
     onNavigate: (path: string) => void;
 }
 
-export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneProps) {
+export function LivePreviewWebPane({ keyword, path, routeParams, onNavigate }: ILivePreviewWebPaneProps) {
     const { isPreviewMode } = usePreviewMode();
-    const { routes, footerPages } = useAppNavigation();
+    const { routes, footerMenu, headerMenu, navigation, profilePages } = useAppNavigation();
 
     const effectiveKeyword = keyword && keyword.trim() ? keyword.trim().replace(/^\/+/, '') : HOME_KEYWORD;
 
-    // Resolve the page id from the already-cached nav list so child styles that
+    // Resolve the page from the already-cached nav list so child styles that
     // read content via `PageContext` have it immediately (no extra fetch).
-    const pageId = useMemo(() => {
-        const match = routes.find((p) => p.keyword === effectiveKeyword);
-        return match?.id_pages ?? 0;
-    }, [routes, effectiveKeyword]);
+    const previewPage = useMemo(
+        () => routes.find((p) => p.keyword === effectiveKeyword) ?? null,
+        [routes, effectiveKeyword],
+    );
+    const pageId = previewPage?.id_pages ?? 0;
+    // Headless pages hide the site chrome on the real site — mirror that here.
+    const isHeadless = Boolean(previewPage?.is_headless);
+
+    // Double presets render two header rows, exactly like `SlugShell`.
+    const isDouble = isDoubleWebHeaderPreset(resolveWebHeaderPreset(headerMenu?.preset));
+    const headerHeight = resolveWebHeaderHeight(isDouble, navigation?.branding);
 
     const navValue = useMemo(() => ({ navigate: onNavigate }), [onNavigate]);
 
@@ -77,60 +88,64 @@ export function LivePreviewWebPane({ keyword, onNavigate }: ILivePreviewWebPaneP
                     overflow: 'hidden',
                 }}
             >
-                {/* Website header (real chrome, client-composed) */}
+                {/* Website header — the REAL site header component, so the
+                    preview chrome matches production exactly (branding, single
+                    and double presets, utility cluster). Hidden on headless
+                    pages, mirroring `SlugShell`. */}
+                {!isHeadless && (
+                    <Box
+                        style={{
+                            flex: '0 0 auto',
+                            height: headerHeight,
+                            borderBottom: '1px solid var(--mantine-color-default-border)',
+                            background: 'var(--mantine-color-body)',
+                        }}
+                    >
+                        <WebsiteHeaderLayout
+                            initialHeaderMenu={headerMenu}
+                            initialNavigation={navigation}
+                            initialBranding={navigation?.branding ?? null}
+                            initialProfilePages={profilePages}
+                        />
+                    </Box>
+                )}
+
+                {/* Page body + sticky footer — mirrors `SlugShell` so short pages
+                    keep the footer at the bottom of the preview pane. */}
                 <Box
                     style={{
-                        flex: '0 0 auto',
-                        height: 60,
-                        borderBottom: '1px solid var(--mantine-color-default-border)',
-                        background: 'var(--mantine-color-body)',
+                        flex: 1,
+                        minHeight: 0,
+                        overflow: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
                     }}
                 >
-                    <Container size="xl" h="100%">
-                        <Flex justify="space-between" align="center" h="100%">
-                            <Text size="xl" fw={700} c="blue">
-                                Your Logo
-                            </Text>
+                    <div className={slugLayoutStyles.contentArea}>
+                        {isPreviewMode && <PreviewModeIndicator />}
 
-                            <WebsiteHeaderMenu />
+                        <DynamicPageClient
+                            keyword={effectiveKeyword}
+                            initialPageId={pageId}
+                            path={path ?? undefined}
+                            routeParams={routeParams}
+                        />
+                    </div>
 
-                            <Group gap="sm">
-                                <AuthButton />
-                                <ThemeToggle />
-                                <LanguageSelector />
-                                <BurgerMenuClient />
-                            </Group>
-                        </Flex>
-                    </Container>
-                </Box>
-
-                {/* Scrolling page body + footer (footer scrolls with content, as on
-                    the real site) */}
-                <Box style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
-                    {isPreviewMode && <PreviewModeIndicator />}
-
-                    <DynamicPageClient keyword={effectiveKeyword} initialPageId={pageId} />
-
-                    {footerPages.length > 0 && (
-                        <Box
-                            component="footer"
-                            w="100%"
-                            py="xl"
-                            mt="xl"
-                            style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
-                        >
-                            <Container size="xl">
-                                <Stack gap="lg">
-                                    <Group justify="center" gap="xl">
-                                        <FooterLinks footerPages={footerPages} />
-                                    </Group>
-                                    <Divider />
-                                    <Text size="sm" c="dimmed" ta="center">
-                                        © {new Date().getFullYear()} SelfHelp. All rights reserved.
-                                    </Text>
-                                </Stack>
-                            </Container>
-                        </Box>
+                    {!isHeadless && (footerMenu?.items?.length ?? 0) > 0 && (
+                        <div className={slugLayoutStyles.footerWrapper}>
+                            <Box
+                                component="footer"
+                                w="100%"
+                                py={{ base: 'lg', sm: 'xl' }}
+                                mt="xl"
+                                className={footerStyles.footer}
+                            >
+                                <Container size="xl">
+                                    <FooterLinks footerMenu={footerMenu} />
+                                </Container>
+                            </Box>
+                        </div>
                     )}
                 </Box>
             </Box>

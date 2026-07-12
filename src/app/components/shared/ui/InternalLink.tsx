@@ -22,7 +22,7 @@ import {
  * @property {string} [target] - Optional target attribute for the link
  * @property {string} [rel] - Optional rel attribute for the link
  */
-interface IInternalLinkProps {
+interface IInternalLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
     href: string;
     children: React.ReactNode;
     className?: string;
@@ -49,12 +49,12 @@ const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className,
 
     // Don't process URLs on server side to avoid hydration issues
     if (!isClient) {
-        return <Link href={href} className={className}>{children}</Link>;
+        return <Link href={href} className={className} {...props}>{children}</Link>;
     }
     
     // Wait for authentication check to complete before processing URLs
     if (isAuthLoading) {
-        return <Link href={href} className={className}>{children}</Link>;
+        return <Link href={href} className={className} {...props}>{children}</Link>;
     }
     
     const isInternal = href && (
@@ -75,6 +75,7 @@ const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className,
                     href={path}
                     className={className}
                     onMouseEnter={onMouseEnter}
+                    {...props}
                     onClick={(e) => {
                         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1) return;
                         e.preventDefault();
@@ -91,6 +92,7 @@ const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className,
                 href={path}
                 className={className}
                 onMouseEnter={onMouseEnter}
+                {...props}
             >
                 {children}
             </Link>
@@ -101,11 +103,11 @@ const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className,
     return (
         <a 
             href={href}
+            onMouseEnter={onMouseEnter}
+            {...props}
             target="_blank"
             rel="noopener noreferrer"
             className={className}
-            onMouseEnter={onMouseEnter}
-            {...props}
         >
             {children}
         </a>

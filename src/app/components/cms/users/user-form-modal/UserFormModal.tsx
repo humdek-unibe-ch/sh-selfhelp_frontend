@@ -11,6 +11,7 @@ import {
     TextInput,
     Switch,
     Group,
+    Grid,
     MultiSelect,
     Text,
     Divider,
@@ -190,6 +191,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
             onClose={onClose}
             title={mode === 'create' ? 'Create New User' : 'Edit User'}
             size="xl"
+            disableScroll
             onSave={handleSave}
             onCancel={onClose}
             isLoading={isSubmitting}
@@ -198,158 +200,157 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
         >
             <LoadingOverlay visible={isLoading} />
 
+            {/* Two columns: identity on the left, access + preferences on the
+                right — the whole form fits without an inner scrollbar. */}
             <form onSubmit={form.onSubmit(handleSubmit)} style={{ maxHeight: 'none', overflow: 'visible' }}>
-                <Stack gap="md">
-                    {/* User Information Display for Edit Mode */}
-                    {mode === 'edit' && userDetails && (
-                        <div>
-                            <Text size="sm" fw={500} mb="xs">
-                                User Information
-                            </Text>
-                            <Stack gap="xs">
-                                <Group>
-                                    <Text size="sm" fw={500} c="dimmed" className="min-w-[80px]">
-                                        Email:
+                <Grid gap="xl">
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                        <Stack gap="md">
+                            {mode === 'edit' && userDetails && (
+                                <div>
+                                    <Text size="sm" fw={500} mb="xs">
+                                        User Information
                                     </Text>
-                                    <Text size="sm">
-                                        {userDetails.email}
-                                    </Text>
-                                </Group>
-                                <Group>
-                                    <Text size="sm" fw={500} c="dimmed" className="min-w-[80px]">
-                                        Username:
-                                    </Text>
-                                    <Text size="sm">
-                                        {userDetails.user_name || '-'}
-                                    </Text>
-                                </Group>
-                            </Stack>
-                        </div>
-                    )}
+                                    <Stack gap="xs">
+                                        <Group>
+                                            <Text size="sm" fw={500} c="dimmed" className="min-w-[80px]">
+                                                Email:
+                                            </Text>
+                                            <Text size="sm">
+                                                {userDetails.email}
+                                            </Text>
+                                        </Group>
+                                        <Group>
+                                            <Text size="sm" fw={500} c="dimmed" className="min-w-[80px]">
+                                                Username:
+                                            </Text>
+                                            <Text size="sm">
+                                                {userDetails.user_name || '-'}
+                                            </Text>
+                                        </Group>
+                                    </Stack>
+                                </div>
+                            )}
 
-                    {/* Basic Information */}
-                    <div>
-                        <Text size="sm" fw={500} mb="xs">
-                            {mode === 'create' ? 'Basic Information' : 'Editable Information'}
-                        </Text>
-                        <Stack gap="sm">
-                            {mode === 'create' && (
-                                <>
-                                    <TextInput
-                                        label="Email"
-                                        placeholder="user@example.com"
-                                        required
-                                        autoComplete="off"
-                                        {...form.getInputProps('email')}
-                                    />
+                            <div>
+                                <Text size="sm" fw={500} mb="xs">
+                                    {mode === 'create' ? 'Basic Information' : 'Editable Information'}
+                                </Text>
+                                <Stack gap="sm">
+                                    {mode === 'create' && (
+                                        <>
+                                            <TextInput
+                                                label="Email"
+                                                placeholder="user@example.com"
+                                                required
+                                                autoComplete="off"
+                                                {...form.getInputProps('email')}
+                                            />
 
-                                    <Group grow align="flex-start">
+                                            <TextInput
+                                                label="Full Name"
+                                                placeholder="John Doe"
+                                                required
+                                                autoComplete="off"
+                                                {...form.getInputProps('name')}
+                                            />
+                                            <TextInput
+                                                label="Username"
+                                                placeholder="johndoe"
+                                                required
+                                                autoComplete="off"
+                                                description="Only letters, numbers, hyphens, and underscores allowed"
+                                                {...form.getInputProps('user_name')}
+                                            />
+
+                                            <TextInput
+                                                label="Validation Code"
+                                                placeholder="Enter validation code"
+                                                required
+                                                autoComplete="off"
+                                                description="Max 16 characters. Only letters, numbers, hyphens, and underscores allowed"
+                                                {...form.getInputProps('validation_code')}
+                                            />
+                                        </>
+                                    )}
+
+                                    {mode === 'edit' && (
                                         <TextInput
                                             label="Full Name"
                                             placeholder="John Doe"
                                             required
                                             autoComplete="off"
-                                            description="Only letters, numbers, hyphens, and underscores allowed"
-                                            descriptionProps={{ style: { visibility: 'hidden' } }}
                                             {...form.getInputProps('name')}
                                         />
-                                        <TextInput
-                                            label="Username"
-                                            placeholder="johndoe"
-                                            required
-                                            autoComplete="off"
-                                            description="Only letters, numbers, hyphens, and underscores allowed"
-                                            {...form.getInputProps('user_name')}
-                                        />
-                                    </Group>
+                                    )}
+                                </Stack>
+                            </div>
 
-                                    <TextInput
-                                        label="Validation Code"
-                                        placeholder="Enter validation code"
-                                        required
-                                        autoComplete="off"
-                                        description="Max 16 characters. Only letters, numbers, hyphens, and underscores allowed"
-                                        {...form.getInputProps('validation_code')}
-                                    />
-                                </>
-                            )}
+                            <Divider />
 
-                            {mode === 'edit' && (
-                                <TextInput
-                                    label="Full Name"
-                                    placeholder="John Doe"
-                                    required
-                                    autoComplete="off"
-                                    {...form.getInputProps('name')}
+                            <div>
+                                <Text size="sm" fw={500} mb="xs">
+                                    Status
+                                </Text>
+                                <Switch
+                                    label="Block User"
+                                    description="Blocked users cannot log in to the system"
+                                    {...form.getInputProps('blocked', { type: 'checkbox' })}
                                 />
-                            )}
+                            </div>
                         </Stack>
-                    </div>
+                    </Grid.Col>
 
-                    <Divider />
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                        <Stack gap="md">
+                            <div>
+                                <Text size="sm" fw={500} mb="xs">
+                                    Groups and Roles
+                                </Text>
+                                <Stack gap="sm">
+                                    <MultiSelect
+                                        label="User Groups"
+                                        placeholder="Select groups"
+                                        data={groupOptions}
+                                        searchable
+                                        clearable
+                                        {...form.getInputProps('groupIds')}
+                                    />
 
-                    {/* Groups and Roles */}
-                    <div>
-                        <Text size="sm" fw={500} mb="xs">
-                            Groups and Roles
-                        </Text>
-                        <Stack gap="sm">
-                            <MultiSelect
-                                label="User Groups"
-                                placeholder="Select groups"
-                                data={groupOptions}
-                                searchable
-                                clearable
-                                {...form.getInputProps('groupIds')}
-                            />
+                                    <MultiSelect
+                                        label="User Roles"
+                                        placeholder="Select roles"
+                                        data={roleOptions}
+                                        searchable
+                                        clearable
+                                        {...form.getInputProps('roleIds')}
+                                    />
+                                </Stack>
+                            </div>
 
-                            <MultiSelect
-                                label="User Roles"
-                                placeholder="Select roles"
-                                data={roleOptions}
-                                searchable
-                                clearable
-                                {...form.getInputProps('roleIds')}
-                            />
+                            <Divider />
+
+                            {/* Communication preferences (issue #29) */}
+                            <div>
+                                <Text size="sm" fw={500} mb="xs">
+                                    Communication Preferences
+                                </Text>
+                                <Stack gap="sm">
+                                    <Switch
+                                        label="Receives notifications"
+                                        description="Allow scheduled push notifications. Account/security messages are always delivered."
+                                        {...form.getInputProps('receivesNotifications', { type: 'checkbox' })}
+                                    />
+                                    <Switch
+                                        label="Receives emails"
+                                        description="Allow scheduled (non-essential) emails. Required system emails are always sent."
+                                        {...form.getInputProps('receivesEmails', { type: 'checkbox' })}
+                                    />
+                                </Stack>
+                            </div>
                         </Stack>
-                    </div>
-
-                    <Divider />
-
-                    {/* Status */}
-                    <div>
-                        <Text size="sm" fw={500} mb="xs">
-                            Status
-                        </Text>
-                        <Switch
-                            label="Block User"
-                            description="Blocked users cannot log in to the system"
-                            {...form.getInputProps('blocked', { type: 'checkbox' })}
-                        />
-                    </div>
-
-                    <Divider />
-
-                    {/* Communication preferences (issue #29) */}
-                    <div>
-                        <Text size="sm" fw={500} mb="xs">
-                            Communication Preferences
-                        </Text>
-                        <Stack gap="sm">
-                            <Switch
-                                label="Receives notifications"
-                                description="Allow scheduled push notifications. Account/security messages are always delivered."
-                                {...form.getInputProps('receivesNotifications', { type: 'checkbox' })}
-                            />
-                            <Switch
-                                label="Receives emails"
-                                description="Allow scheduled (non-essential) emails. Required system emails are always sent."
-                                {...form.getInputProps('receivesEmails', { type: 'checkbox' })}
-                            />
-                        </Stack>
-                    </div>
-
-                </Stack>
+                    </Grid.Col>
+                </Grid>
             </form>
         </ModalWrapper>
     );

@@ -10,14 +10,23 @@ import { renderWithProviders } from '../../../../../test-utils/renderWithProvide
 /**
  * The reset-password section renders two screens from the one style: the
  * "request a link" form at /reset, and the "set a new password" form at
- * /reset/{id}/{token} (the link in the recovery email). These tests pin that
- * the URL drives the mode and that each form calls the right Auth API.
+ * /reset/{user_id}/{token} (the link in the recovery email).
+ *
+ * DB-driven routing (issue #30): the mode is driven by the resolved page's
+ * snake_case `route_params` (surfaced via `usePageContentValue`), NOT by parsing
+ * the URL slug. Plain `/reset` resolves with no params -> "request a link"; the
+ * emailed link resolves with `{ user_id, token }` -> "set a new password". These
+ * tests pin that contract and that each form calls the right Auth API.
  */
-const { useParamsMock } = vi.hoisted(() => ({ useParamsMock: vi.fn() }));
+const { pageContentState } = vi.hoisted(() => ({
+    pageContentState: { value: undefined as unknown },
+}));
 
 vi.mock('next/navigation', () => ({
-    useParams: () => useParamsMock(),
     useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
+}));
+vi.mock('../../../../../hooks/usePageContentValue', () => ({
+    usePageContentValue: () => pageContentState.value,
 }));
 vi.mock('../../../../../api/auth.api', () => ({
     AuthApi: { requestPasswordReset: vi.fn(), resetPassword: vi.fn() },
@@ -28,15 +37,20 @@ import { AuthApi } from '../../../../../api/auth.api';
 
 type ResetPasswordField = ComponentProps<typeof ResetPasswordStyle>['style'];
 
+/** Set the resolved-page route_params the component reads to pick its mode. */
+function withRouteParams(params: Record<string, string> | undefined): void {
+    pageContentState.value = params === undefined ? {} : { id: 1, route_params: params };
+}
+
 describe('ResetPasswordStyle', () => {
     beforeEach(() => {
-        useParamsMock.mockReset();
+        withRouteParams(undefined);
         vi.mocked(AuthApi.requestPasswordReset).mockReset();
         vi.mocked(AuthApi.resetPassword).mockReset();
     });
 
-    it('requests a reset link from the email form on /reset', async () => {
-        useParamsMock.mockReturnValue({ slug: ['reset'] });
+    it('requests a reset link from the email form on /reset (no route params)', async () => {
+        withRouteParams(undefined);
         vi.mocked(AuthApi.requestPasswordReset).mockResolvedValue({ status: 200, message: 'OK' });
 
         renderWithProviders(
@@ -49,8 +63,8 @@ describe('ResetPasswordStyle', () => {
         await waitFor(() => expect(AuthApi.requestPasswordReset).toHaveBeenCalledWith('qa@example.test'));
     });
 
-    it('shows the set-new-password form when a user id and token are in the URL', () => {
-        useParamsMock.mockReturnValue({ slug: ['reset', '123', 'tok-abc'] });
+    it('shows the set-new-password form when route_params carry a user id and token', () => {
+        withRouteParams({ user_id: '123', token: 'tok-abc' });
 
         renderWithProviders(
             <ResetPasswordStyle style={{} as unknown as ResetPasswordField} styleProps={{}} cssClass="section-1" />,
@@ -61,19 +75,21 @@ describe('ResetPasswordStyle', () => {
         expect(screen.getByRole('button', { name: 'Set new password' })).toBeInTheDocument();
     });
 
-    it('also supports the static fallback slug shape without the reset prefix', () => {
-        useParamsMock.mockReturnValue({ slug: ['123', 'tok-abc'] });
+    it('falls back to request mode when the route_params are incomplete (token missing)', () => {
+        // `isSetMode` requires BOTH a positive user_id and a non-empty token, so a
+        // half-populated link must never expose the set-password form.
+        withRouteParams({ user_id: '123' });
 
         renderWithProviders(
             <ResetPasswordStyle style={{} as unknown as ResetPasswordField} styleProps={{}} cssClass="section-1" />,
         );
 
-        expect(screen.getByLabelText(/^New password/i)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Set new password' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Send reset link' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Set new password' })).not.toBeInTheDocument();
     });
 
-    it('submits the new password with the user id and token from the URL', async () => {
-        useParamsMock.mockReturnValue({ slug: ['reset', '123', 'tok-abc'] });
+    it('submits the new password with the user id and token from the route_params', async () => {
+        withRouteParams({ user_id: '123', token: 'tok-abc' });
         vi.mocked(AuthApi.resetPassword).mockResolvedValue({ status: 200, message: 'OK' });
 
         renderWithProviders(
@@ -88,7 +104,7 @@ describe('ResetPasswordStyle', () => {
     });
 
     it('rejects mismatched passwords without calling the API', async () => {
-        useParamsMock.mockReturnValue({ slug: ['reset', '123', 'tok-abc'] });
+        withRouteParams({ user_id: '123', token: 'tok-abc' });
 
         renderWithProviders(
             <ResetPasswordStyle style={{} as unknown as ResetPasswordField} styleProps={{}} cssClass="section-1" />,
@@ -103,7 +119,7 @@ describe('ResetPasswordStyle', () => {
     });
 
     it('renders the CMS-managed reset-mode labels and messages when provided', async () => {
-        useParamsMock.mockReturnValue({ slug: ['reset', '123', 'tok-abc'] });
+        withRouteParams({ user_id: '123', token: 'tok-abc' });
 
         renderWithProviders(
             <ResetPasswordStyle

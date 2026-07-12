@@ -48,6 +48,7 @@ import { SectionsList } from './SectionsList';
 import { SectionPreviewPane } from './SectionPreviewPane';
 import { AddSectionModal } from './add-section-modal/AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
+import { publicPageHref } from '../../../../../utils/public-page-href.utils';
 import { BulkRemoveModal } from './BulkRemoveModal';
 import pageStyles from './PageSections.module.css';
 
@@ -223,6 +224,11 @@ const getSectionsWithChildrenIds = (sections: IPageSectionWithFields[]): Set<num
 interface IPageSectionsProps {
     pageId: number | null;
     pageName?: string;
+    /**
+     * Canonical public URL (`pages.url` / active route). Required for
+     * "Open web page" — the public site resolves by path, not keyword.
+     */
+    pageUrl?: string | null;
     initialSelectedSectionId?: number | null;
 }
 
@@ -240,13 +246,20 @@ export interface IMoveData {
     oldParentSectionId: number | null; // Section ID if section was inside another section
 }
 
-function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSectionsProps) {
+function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSectionId }: IPageSectionsProps) {
     const { data, isLoading, isFetching, error, refetch } = usePageSections(pageId);
     // The page access target (web | mobile | mobile_and_web) is the single
     // page-level platform model; it drives which styles the add-section picker
     // offers. Sourced from the page-fields API; defaults to `both`.
+    // Also the authoritative source for the public URL / routes used by
+    // "Open web page" (the admin pages list `url` can lag after import).
     const { data: pageFieldsData } = usePageFields(pageId ?? null);
     const pagePlatform = toPagePlatform(pageFieldsData?.page?.pageAccessType?.lookupCode);
+    const openWebHref = publicPageHref(
+        pageFieldsData?.page?.url ?? pageUrl,
+        pageName,
+        pageFieldsData?.routes,
+    );
     const { data: styleGroups } = useStyleGroups();
     const sections = data?.sections;
 
@@ -794,15 +807,16 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                </Tooltip>
 
                {/* "Open web page" = the real public web page in a new tab
-                   (lightweight, no iframe). Distinct from "Live preview", which
-                   opens the device/web preview studio. */}
-               <Tooltip label="Open the real public web page in a new tab">
+                   (lightweight, no iframe). Prefer canonical DB routes / pages.url
+                   from page-fields — never the keyword. Live Preview loads by
+                   keyword, which is why it worked while `/${keyword}` 404'd. */}
+               <Tooltip label={`Open ${openWebHref} in a new tab`}>
                  <Button
                    size="sm"
                    variant="default"
                    leftSection={<IconExternalLink size={16} />}
                    component={Link}
-                   href={`/${pageName}`}
+                   href={openWebHref}
                    target="_blank"
                    rel="noopener noreferrer"
                  >
@@ -1030,6 +1044,7 @@ const PageSectionsMemo = memo(PageSections, (prevProps: IPageSectionsProps, next
     return (
         prevProps.pageId === nextProps.pageId &&
         prevProps.pageName === nextProps.pageName &&
+        prevProps.pageUrl === nextProps.pageUrl &&
         prevProps.initialSelectedSectionId === nextProps.initialSelectedSectionId
     );
 });

@@ -8,6 +8,7 @@ import { type ISegmentedControlStyle } from '../../../../../../types/common/styl
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
+import { resolveOptions } from '@selfhelp/shared';
 
 /**
  * Props interface for SegmentedControlStyle component
@@ -30,6 +31,7 @@ interface ISegmentedControlStyleProps {
  * @returns {JSX.Element} Rendered Mantine SegmentedControl with styled configuration
  */
 const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style, styleProps, cssClass }) => {
+    const optionLabelsContent = style.option_labels?.content;
     // Extract field values using the new unified field structure
     const orientation = style.orientation?.content || 'horizontal';
     const size = style.size?.content || 'sm';
@@ -75,24 +77,14 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style, s
     // Build style object
     const styleObj: React.CSSProperties = {};
 
-    // Parse segmented control data from JSON textarea
-    let controlData: Array<{ value: string; label: string }> = [];
-    try {
-        const dataJson = style.segmented_control_data?.content;
-        if (dataJson) {
-            controlData = JSON.parse(dataJson);
-        } else {
-            // Default data if none provided
-            controlData = [
-                { value: 'option1', label: 'Option 1' },
-                { value: 'option2', label: 'Option 2' },
-                { value: 'option3', label: 'Option 3' }
-            ];
-        }
-    } catch (error) {
-        console.warn('Invalid JSON in segmented_control_data:', error);
-        controlData = [];
-    }
+    const controlData: Array<{ value: string; label: string; disabled?: boolean }> = resolveOptions(
+        style.segmented_control_data?.content ?? null,
+        optionLabelsContent ?? null,
+    ).map((option) => ({
+        value: option.value,
+        label: option.label,
+        ...(option.disabled !== undefined ? { disabled: option.disabled } : {}),
+    }));
 
     // Create SegmentedControl component
     const segmentedControl = (

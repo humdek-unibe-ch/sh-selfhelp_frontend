@@ -123,6 +123,40 @@ export const AdminDataApi = {
     );
     return response.data;
   },
+
+  async previewQuery(body: {
+    section_id?: number;
+    draft?: {
+      data_table?: string;
+      filter?: string;
+      selected_columns?: string;
+      own_entries_only?: boolean;
+      route_params?: Record<string, string>;
+    };
+    route_params?: Record<string, string>;
+    route_requirements?: Record<string, string>;
+  }) {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<{
+      data_table: { id: number; name: string; displayName: string | null } | null;
+      columns: Array<{ fieldKey: string | null; displayName: string | null; standard: boolean }>;
+      route_params: Record<string, string>;
+      route_requirements: Record<string, string>;
+      raw_filter: string;
+      prepared_filter: string;
+      selected_columns: string;
+      own_entries_only: boolean;
+      language_id: number;
+      timezone_code: string;
+      errors: string[];
+      warnings: string[];
+      stored_procedure: { name: string; call: string; parameters: Record<string, unknown> };
+      sql_shape: string;
+    }>>(
+      API_CONFIG.ENDPOINTS.ADMIN_DATA_QUERY_PREVIEW,
+      body,
+    );
+    return response.data.data;
+  },
 };
 
 

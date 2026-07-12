@@ -191,6 +191,7 @@ function AdminPagesContent() {
         <PageSections 
           pageId={selectedPage.id_pages} 
           pageName={selectedPage.keyword}
+          pageUrl={selectedPage.url}
           initialSelectedSectionId={sectionId}
         />
       </Box>

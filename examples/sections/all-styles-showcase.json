@@ -1,0 +1,250 @@
+[
+  {
+    "section_name": "style-showcase",
+    "style_name": "container",
+    "global_fields": { "css": "px-4 py-12 max-w-4xl mx-auto" },
+    "children": [
+      {
+        "style_name": "stack",
+        "fields": { "gap": { "all": { "content": "lg" } } },
+        "children": [
+          {
+            "style_name": "title",
+            "fields": { "content": { "en-GB": { "content": "Style showcase" }, "de-CH": { "content": "Stil-Schaufenster" } } },
+            "global_fields": { "css": "text-3xl font-bold text-gray-900 dark:text-gray-50" }
+          },
+
+          { "style_name": "divider", "fields": { "divider_label": { "en-GB": { "content": "Typography" }, "de-CH": { "content": "Typografie" } } } },
+          {
+            "style_name": "title",
+            "fields": { "content": { "en-GB": { "content": "A section heading" }, "de-CH": { "content": "Eine Abschnittsüberschrift" } }, "title_order": { "all": { "content": "3" } } },
+            "global_fields": { "css": "text-gray-900 dark:text-gray-50" }
+          },
+          {
+            "style_name": "text",
+            "fields": { "text": { "en-GB": { "content": "Body copy renders as `text`, which maps to a paragraph on web and native alike." }, "de-CH": { "content": "Fliesstext wird als `text` dargestellt und entspricht einem Absatz – im Web wie auf nativen Geräten." } } },
+            "global_fields": { "css": "text-gray-700 dark:text-gray-300 break-words" }
+          },
+          {
+            "style_name": "highlight",
+            "fields": {
+              "text": { "en-GB": { "content": "The SelfHelp CMS renders everywhere from one import." }, "de-CH": { "content": "Das SelfHelp-CMS rendert überall aus einem einzigen Import." } },
+              "highlight_highlight": { "en-GB": { "content": "everywhere" }, "de-CH": { "content": "überall" } }
+            }
+          },
+          {
+            "style_name": "code",
+            "fields": {
+              "content": { "en-GB": { "content": "php bin/console app:prompt-template:build" }, "de-CH": { "content": "php bin/console app:prompt-template:build" } },
+              "code_block": { "all": { "content": "1" } }
+            }
+          },
+          {
+            "style_name": "blockquote",
+            "fields": {
+              "blockquote_content": { "en-GB": { "content": "Author content once, render it on web and native." }, "de-CH": { "content": "Inhalte einmal erfassen, im Web und nativ ausspielen." } },
+              "cite": { "en-GB": { "content": "SelfHelp docs" }, "de-CH": { "content": "SelfHelp-Dokumentation" } }
+            }
+          },
+
+          { "style_name": "divider", "fields": { "divider_label": { "en-GB": { "content": "Layout" }, "de-CH": { "content": "Layout" } } } },
+          {
+            "style_name": "simple-grid",
+            "fields": { "cols": { "all": { "content": "1" } }, "web_cols_sm": { "all": { "content": "2" } } },
+            "children": [
+              {
+                "style_name": "card",
+                "fields": { "border": { "all": { "content": "1" } }, "radius": { "all": { "content": "md" } } },
+                "global_fields": { "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900" },
+                "children": [
+                  {
+                    "style_name": "card-segment",
+                    "global_fields": { "css": "p-4" },
+                    "children": [
+                      { "style_name": "title", "fields": { "content": { "en-GB": { "content": "Card one" }, "de-CH": { "content": "Karte eins" } }, "title_order": { "all": { "content": "4" } }, "size": { "all": { "content": "md" } } } },
+                      { "style_name": "text", "fields": { "text": { "en-GB": { "content": "Cards collapse to one column on mobile." }, "de-CH": { "content": "Karten fallen auf dem Handy in eine Spalte zusammen." } } }, "global_fields": { "css": "text-sm text-gray-600 dark:text-gray-400 break-words" } }
+                    ]
+                  }
+                ]
+              },
+              {
+                "style_name": "card",
+                "fields": { "border": { "all": { "content": "1" } }, "radius": { "all": { "content": "md" } } },
+                "global_fields": { "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900" },
+                "children": [
+                  {
+                    "style_name": "card-segment",
+                    "global_fields": { "css": "p-4" },
+                    "children": [
+                      { "style_name": "title", "fields": { "content": { "en-GB": { "content": "Card two" }, "de-CH": { "content": "Karte zwei" } }, "title_order": { "all": { "content": "4" } }, "size": { "all": { "content": "md" } } } },
+                      { "style_name": "text", "fields": { "text": { "en-GB": { "content": "Two across from the sm breakpoint up." }, "de-CH": { "content": "Ab dem sm-Breakpoint zweispaltig." } } }, "global_fields": { "css": "text-sm text-gray-600 dark:text-gray-400 break-words" } }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "style_name": "group",
+            "fields": { "gap": { "all": { "content": "xs" } } },
+            "global_fields": { "css_mobile": "flex-wrap" },
+            "children": [
+              { "style_name": "badge", "fields": { "label": { "en-GB": { "content": "New" }, "de-CH": { "content": "Neu" } }, "color": { "all": { "content": "green" } } } },
+              { "style_name": "badge", "fields": { "label": { "en-GB": { "content": "Beta" }, "de-CH": { "content": "Beta" } }, "color": { "all": { "content": "orange" } } } },
+              { "style_name": "badge", "fields": { "label": { "en-GB": { "content": "Docs" }, "de-CH": { "content": "Doku" } }, "color": { "all": { "content": "grape" } } } }
+            ]
+          },
+
+          { "style_name": "divider", "fields": { "divider_label": { "en-GB": { "content": "Media" }, "de-CH": { "content": "Medien" } } } },
+          {
+            "style_name": "image",
+            "fields": {
+              "img_src": { "en-GB": { "content": "/assets/image-holder.png" }, "de-CH": { "content": "/assets/image-holder.png" } },
+              "alt": { "en-GB": { "content": "Placeholder illustration" }, "de-CH": { "content": "Platzhalter-Illustration" } },
+              "radius": { "all": { "content": "md" } }
+            }
+          },
+          {
+            "style_name": "figure",
+            "fields": {
+              "img_src": { "en-GB": { "content": "/assets/image-holder.png" }, "de-CH": { "content": "/assets/image-holder.png" } },
+              "alt": { "en-GB": { "content": "Annotated diagram" }, "de-CH": { "content": "Beschriftetes Diagramm" } },
+              "caption": { "en-GB": { "content": "Figures pair an image with a caption." }, "de-CH": { "content": "Abbildungen verbinden ein Bild mit einer Bildunterschrift." } }
+            }
+          },
+
+          { "style_name": "divider", "fields": { "divider_label": { "en-GB": { "content": "Feedback" }, "de-CH": { "content": "Rückmeldung" } } } },
+          {
+            "style_name": "alert",
+            "fields": {
+              "alert_title": { "en-GB": { "content": "Heads up" }, "de-CH": { "content": "Achtung" } },
+              "content": { "en-GB": { "content": "Alerts carry status meaning to every renderer." }, "de-CH": { "content": "Hinweise transportieren Statusbedeutung zu jedem Renderer." } },
+              "color": { "all": { "content": "green" } }
+            }
+          },
+          {
+            "style_name": "notification",
+            "fields": {
+              "title": { "en-GB": { "content": "Saved" }, "de-CH": { "content": "Gespeichert" } },
+              "content": { "en-GB": { "content": "Your changes were stored." }, "de-CH": { "content": "Ihre Änderungen wurden gespeichert." } },
+              "color": { "all": { "content": "grape" } }
+            }
+          },
+
+          { "style_name": "divider", "fields": { "divider_label": { "en-GB": { "content": "Disclosure" }, "de-CH": { "content": "Aufklappen" } } } },
+          {
+            "style_name": "accordion",
+            "fields": { "accordion_variant": { "all": { "content": "separated" } } },
+            "children": [
+              {
+                "style_name": "accordion-item",
+                "fields": { "label": { "en-GB": { "content": "What is a style?" }, "de-CH": { "content": "Was ist ein Stil?" } } },
+                "children": [
+                  { "style_name": "text", "fields": { "text": { "en-GB": { "content": "A reusable, themed component the CMS can place on a page." }, "de-CH": { "content": "Eine wiederverwendbare, thematisierte Komponente, die das CMS auf einer Seite platzieren kann." } } } }
+                ]
+              },
+              {
+                "style_name": "accordion-item",
+                "fields": { "label": { "en-GB": { "content": "Does it work offline?" }, "de-CH": { "content": "Funktioniert es offline?" } } },
+                "children": [
+                  { "style_name": "text", "fields": { "text": { "en-GB": { "content": "The native app caches content for offline reading." }, "de-CH": { "content": "Die native App speichert Inhalte für das Offline-Lesen zwischen." } } } }
+                ]
+              }
+            ]
+          },
+          {
+            "style_name": "tabs",
+            "children": [
+              {
+                "style_name": "tab",
+                "fields": { "label": { "en-GB": { "content": "Overview" }, "de-CH": { "content": "Übersicht" } } },
+                "children": [
+                  { "style_name": "text", "fields": { "text": { "en-GB": { "content": "Tabs group related content into panels." }, "de-CH": { "content": "Tabs gruppieren verwandte Inhalte in Panels." } } } }
+                ]
+              },
+              {
+                "style_name": "tab",
+                "fields": { "label": { "en-GB": { "content": "Details" }, "de-CH": { "content": "Details" } } },
+                "children": [
+                  { "style_name": "text", "fields": { "text": { "en-GB": { "content": "Each tab holds its own children." }, "de-CH": { "content": "Jeder Tab enthält seine eigenen Kinder." } } } }
+                ]
+              }
+            ]
+          },
+
+          { "style_name": "divider", "fields": { "divider_label": { "en-GB": { "content": "Lists & timeline" }, "de-CH": { "content": "Listen & Zeitleiste" } } } },
+          {
+            "style_name": "list",
+            "fields": { "size": { "all": { "content": "md" } } },
+            "children": [
+              { "style_name": "list-item", "fields": { "list_item_content": { "en-GB": { "content": "First point" }, "de-CH": { "content": "Erster Punkt" } } } },
+              { "style_name": "list-item", "fields": { "list_item_content": { "en-GB": { "content": "Second point" }, "de-CH": { "content": "Zweiter Punkt" } } } },
+              { "style_name": "list-item", "fields": { "list_item_content": { "en-GB": { "content": "Third point" }, "de-CH": { "content": "Dritter Punkt" } } } }
+            ]
+          },
+          {
+            "style_name": "timeline",
+            "children": [
+              {
+                "style_name": "timeline-item",
+                "fields": { "title": { "en-GB": { "content": "Drafted" }, "de-CH": { "content": "Entworfen" } } },
+                "children": [
+                  { "style_name": "text", "fields": { "text": { "en-GB": { "content": "The page is created as a draft." }, "de-CH": { "content": "Die Seite wird als Entwurf erstellt." } } } }
+                ]
+              },
+              {
+                "style_name": "timeline-item",
+                "fields": { "title": { "en-GB": { "content": "Published" }, "de-CH": { "content": "Veröffentlicht" } } },
+                "children": [
+                  { "style_name": "text", "fields": { "text": { "en-GB": { "content": "The draft is promoted to a published version." }, "de-CH": { "content": "Der Entwurf wird zu einer veröffentlichten Version." } } } }
+                ]
+              }
+            ]
+          },
+
+          { "style_name": "divider", "fields": { "divider_label": { "en-GB": { "content": "Form" }, "de-CH": { "content": "Formular" } } } },
+          {
+            "style_name": "form-record",
+            "fields": {
+              "title": { "en-GB": { "content": "Contact us" }, "de-CH": { "content": "Kontaktieren Sie uns" } },
+              "description": { "en-GB": { "content": "We usually reply within a day." }, "de-CH": { "content": "Wir antworten in der Regel innerhalb eines Tages." } }
+            },
+            "children": [
+              {
+                "style_name": "text-input",
+                "fields": {
+                  "label": { "en-GB": { "content": "Your name" }, "de-CH": { "content": "Ihr Name" } },
+                  "placeholder": { "en-GB": { "content": "Jane Doe" }, "de-CH": { "content": "Jane Doe" } },
+                  "name": { "all": { "content": "contact_name" } }
+                }
+              },
+              {
+                "style_name": "select",
+                "fields": {
+                  "label": { "en-GB": { "content": "Topic" }, "de-CH": { "content": "Thema" } },
+                  "placeholder": { "en-GB": { "content": "Choose a topic" }, "de-CH": { "content": "Thema auswählen" } },
+                  "name": { "all": { "content": "contact_topic" } }
+                }
+              },
+              {
+                "style_name": "textarea",
+                "fields": {
+                  "label": { "en-GB": { "content": "Message" }, "de-CH": { "content": "Nachricht" } },
+                  "placeholder": { "en-GB": { "content": "How can we help?" }, "de-CH": { "content": "Wie können wir helfen?" } },
+                  "name": { "all": { "content": "contact_message" } }
+                }
+              },
+              {
+                "style_name": "checkbox",
+                "fields": {
+                  "label": { "en-GB": { "content": "Subscribe to the newsletter" }, "de-CH": { "content": "Den Newsletter abonnieren" } },
+                  "name": { "all": { "content": "contact_subscribe" } }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

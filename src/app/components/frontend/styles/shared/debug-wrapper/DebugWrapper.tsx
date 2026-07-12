@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import React, { useState } from 'react';
-import { Indicator, Popover, Text, ScrollArea, Badge, Group, Box, useMantineColorScheme, ActionIcon, TextInput, Stack, Alert } from '@mantine/core';
+import { Indicator, Popover, Text, ScrollArea, Badge, Group, Box, useComputedColorScheme, ActionIcon, TextInput, Stack, Alert } from '@mantine/core';
 import { IconBug, IconSearch, IconX, IconChevronsDown, IconChevronsUp, IconAlertTriangle } from '@tabler/icons-react';
 import { JsonEditor, githubLightTheme, githubDarkTheme } from 'json-edit-react';
 import type { TStyle } from '../../../../../../types/common/styles.types';
@@ -23,7 +23,7 @@ interface IDebugWrapperProps {
  * Opens on hover, stays open until clicked outside
  */
 const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
-    const { colorScheme } = useMantineColorScheme();
+    const computedColorScheme = useComputedColorScheme('light');
     const [opened, setOpened] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [isExpanded, setIsExpanded] = useState(false);
@@ -222,8 +222,9 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                     className={`${styles.jsonEditor} ${styles.smallFont}`}
                                 >
                                     <JsonEditor
+                                        key={computedColorScheme}
                                         data={style}
-                                        theme={colorScheme === 'dark' ? githubDarkTheme : githubLightTheme}
+                                        theme={computedColorScheme === 'dark' ? githubDarkTheme : githubLightTheme}
                                         collapse={isExpanded ? false : 1}
                                         enableClipboard={true}
                                         showErrorMessages={false}

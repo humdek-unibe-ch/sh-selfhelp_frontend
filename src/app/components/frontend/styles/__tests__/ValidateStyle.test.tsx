@@ -23,11 +23,12 @@ const { tokenValidationState } = vi.hoisted(() => ({
 }));
 
 vi.mock('next/navigation', () => ({
-    useParams: () => ({ slug: ['validate', '1', 'tok'] }),
     useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
 }));
+// DB-driven routing (issue #30): the validate target now comes from the
+// resolved page's snake_case route_params, not from useParams()/the URL.
 vi.mock('../../../../../hooks/usePageContentValue', () => ({
-    usePageContentValue: () => ({ id: 1 }),
+    usePageContentValue: () => ({ id: 1, route_params: { user_id: '1', token: 'tok' } }),
 }));
 vi.mock('../../../../../hooks/useFormSubmission', () => ({
     useSubmitFormMutation: () => ({ mutateAsync: vi.fn() }),

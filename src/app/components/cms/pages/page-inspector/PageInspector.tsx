@@ -72,10 +72,12 @@ import {
     PageInfoPanel,
     PageBasicInfoFields,
     PageAccessTypeGroup,
-    PageMenuPositions,
     PageSettings,
-    PageAdditionalProperties
+    PageAdditionalProperties,
+    PageNavigationHints,
+    PageNavigationMembership,
 } from './page-field-groups';
+import { PageRoutesPanel } from './PageRoutesPanel';
 
 export enum MenuType {
     HEADER = 'header',
@@ -100,6 +102,8 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
     const setFormValues = usePageFormStore((state) => state.setFormValues);
     const resetStore = usePageFormStore((state) => state.reset);
     const isStoreInitialized = usePageFormStore((state) => state.isInitialized);
+    const routes = usePageFormStore((state) => state.routes);
+    const setRoutes = usePageFormStore((state) => state.setRoutes);
     const queryClient = useQueryClient();
 
     const {
@@ -132,11 +136,6 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
     const { languages: languagesData, isLoading: languagesLoading } = usePublicLanguages();
     const { pages: adminPages } = useAdminPages();
-
-    const parentPage = useMemo(() => {
-        if (!page?.id_parent_page || !adminPages.length) return null;
-        return adminPages.find(p => p.id_pages === page.id_parent_page) || null;
-    }, [page?.id_parent_page, adminPages]);
 
     useEffect(() => {
         if (languagesData.length > 0 && !activeLanguageTab) {
@@ -179,12 +178,10 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                 keyword: page.keyword,
                 url: pageDetails.url || '',
                 headless: pageDetails.headless || false,
-                navPosition: pageDetails.navPosition,
-                footerPosition: pageDetails.footerPosition,
                 openAccess: pageDetails.openAccess || false,
                 pageAccessType: pageDetails.pageAccessType?.lookupCode || '',
-                headerMenuEnabled: pageDetails.navPosition != null,
-                footerMenuEnabled: pageDetails.footerPosition !== null,
+                surface: pageDetails.surface === 'cms' ? 'cms' : 'public',
+                routes: pageFieldsData.routes ?? [],
                 fields: fieldsObject
             });
         } else if (!page) {
@@ -217,10 +214,10 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
             pageData: {
                 url: storeState.url,
                 headless: storeState.headless,
-                navPosition: storeState.navPosition,
-                footerPosition: storeState.footerPosition,
                 openAccess: storeState.openAccess,
                 pageAccessTypeCode: storeState.pageAccessType,
+                surface: storeState.surface,
+                routes: storeState.routes,
             },
             fields: processedFields.fieldEntries
         };
@@ -415,12 +412,26 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
               >
                 <PageBasicInfoFields />
                 <PageAccessTypeGroup options={pageAccessTypes} />
-                <PageMenuPositions page={page} parentPage={parentPage} />
+                <PageNavigationMembership pageId={page.id_pages} />
                 <PageSettings />
                 <PageAdditionalProperties
                   fields={propertyFields}
-                  defaultLanguageId={defaultLanguageId}
                 />
+                <PageNavigationHints page={page} adminPages={adminPages} />
+              </CollapsibleSection>
+            )}
+
+            {/* Public Routes Section (issue #30) — DB-driven, parameterized
+                public URLs for this page. Configuration pages have no public
+                URL, so the panel is hidden for them. */}
+            {!isConfigurationPage && (
+              <CollapsibleSection
+                title="Routes"
+                inspectorType={INSPECTOR_TYPES.PAGE}
+                sectionName="routes"
+                defaultExpanded={false}
+              >
+                <PageRoutesPanel routes={routes} onChange={setRoutes} />
               </CollapsibleSection>
             )}
 
@@ -436,7 +447,6 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                   <Box key={field.id}>
                     <PagePropertyField
                       field={field}
-                      languageId={defaultLanguageId}
                     />
                   </Box>
                 ))}

@@ -155,4 +155,21 @@ describe('requireAdminPermission', () => {
         ).resolves.toBeUndefined();
         expect(redirectMock).not.toHaveBeenCalled();
     });
+
+    it('redirects to no-access when admin.access is present but CMS app read is missing', async () => {
+        seed({ loggedIn: true, outcome: okWith([PERMISSIONS.ADMIN_ACCESS]) });
+        await expect(requireAdminPermission(PERMISSIONS.ADMIN_CMS_APP_READ)).rejects.toThrow(
+            `REDIRECT:${ROUTES.NO_ACCESS}`,
+        );
+        expect(redirectMock).toHaveBeenCalledWith(ROUTES.NO_ACCESS);
+    });
+
+    it('resolves when the user holds admin.access and CMS app read', async () => {
+        seed({
+            loggedIn: true,
+            outcome: okWith([PERMISSIONS.ADMIN_ACCESS, PERMISSIONS.ADMIN_CMS_APP_READ]),
+        });
+        await expect(requireAdminPermission(PERMISSIONS.ADMIN_CMS_APP_READ)).resolves.toBeUndefined();
+        expect(redirectMock).not.toHaveBeenCalled();
+    });
 });

@@ -13,6 +13,7 @@ const config: Config = {
         "./src/utils/**/*.{js,ts,jsx,tsx}",
         "./docs/**/*.{json,md}",
         "./src/**/*.{json}",
+        "./examples/**/*.json",
     ],
     theme: {
         extend: {

@@ -4,6 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { Suspense } from 'react';
 import { LoadingScreen } from '../../components/shared/common/LoadingScreen';
+import { AdminPageContainer } from '../../components/shared/common/AdminPageContainer';
 import { GroupsPage } from '../../components/cms/groups/groups-page/GroupsPage';
 import { AdminShell } from '../../components/cms/admin-shell/AdminShell';
 import { requireAdminPermission } from '../../_lib/admin-guard';
@@ -16,7 +17,9 @@ export default async function AdminGroupsPage() {
   return (
     <AdminShell>
       <Suspense fallback={<LoadingScreen />}>
-        <GroupsPage />
+        <AdminPageContainer>
+          <GroupsPage />
+        </AdminPageContainer>
       </Suspense>
     </AdminShell>
   );

@@ -10,6 +10,7 @@ import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing, sanitizeHtmlForInline } from '../../../../../../utils/html-sanitizer.utils';
 import { castMantineSize } from '../../../../../../utils/style-field-extractor';
+import { resolveOptions } from '@selfhelp/shared';
 
 /**
  * Props interface for RadioStyle component
@@ -20,11 +21,12 @@ interface IRadioStyleProps {
     cssClass: string;
 }
 
-/** Parsed radio option shape from the `radio_options` JSON field. */
+/** Parsed radio option shape from the option catalog fields. */
 interface IRadioOption {
     value: string;
     text: string;
     description?: string;
+    disabled?: boolean;
 }
 
 /** Loosely-typed prop bag passed to the Mantine `Radio` / `Radio.Card` element. */
@@ -53,6 +55,7 @@ type TRadioProps = { style?: React.CSSProperties;[key: string]: unknown };
  * @returns {JSX.Element} Rendered Mantine Radio component(s)
  */
 const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass }) => {
+    const optionLabelsContent = style.option_labels?.content;
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -103,23 +106,17 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
         }
     }
 
-    // Parse radio options from JSON textarea
-    let radioOptions: IRadioOption[] = [];
-    try {
-        const optionsJson = style.radio_options?.content;
-        if (optionsJson) {
-            const parsed = JSON.parse(optionsJson) as Array<{ value: string; text?: string; label?: string; description?: string }>;
-            // Handle both old format (label/text) and new format with description
-            radioOptions = parsed.map((option) => ({
-                value: option.value,
-                text: option.text || option.label || option.value,
-                description: option.description
-            }));
-        }
-    } catch (error) {
-        console.warn('Invalid JSON in radio_options:', error);
-        radioOptions = [];
-    }
+    const radioOptions: IRadioOption[] = resolveOptions(
+        style.radio_options?.content ?? null,
+        optionLabelsContent ?? null,
+    ).map((option) => ({
+        value: option.value,
+        text: option.label,
+        ...(typeof option.meta?.description === 'string'
+            ? { description: option.meta.description }
+            : {}),
+        ...(option.disabled !== undefined ? { disabled: option.disabled } : {}),
+    }));
 
     // Handle value change for form integration
     const handleChange = (newValue: string) => {
@@ -238,7 +235,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
                                     value: option.value,
                                     size,
                                     color,
-                                    disabled,
+                                    disabled: disabled || option.disabled,
                                     variant: !useRadioCard && variant === 'outline' ? 'outline' : undefined,
                                 }, option.text, useRadioCard, option)}
                             </div>

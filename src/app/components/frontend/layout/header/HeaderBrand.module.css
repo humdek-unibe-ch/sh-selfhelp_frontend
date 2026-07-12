@@ -1,0 +1,76 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+.brandLink {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: min(100%, 320px);
+    padding-block: 2px;
+    text-decoration: none;
+}
+
+.brandLinkSizexl {
+    max-width: min(100%, 380px);
+}
+
+.brandGroup {
+    align-items: center;
+    min-width: 0;
+    max-width: 100%;
+    gap: 8px;
+}
+
+.brandGroupSizexl {
+    gap: 12px;
+}
+
+.brandGroupSizelg {
+    gap: 10px;
+}
+
+.logoFrame {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    line-height: 0;
+}
+
+.logoImage {
+    display: block;
+    flex: 0 1 auto;
+    min-width: 0;
+    width: auto !important;
+    height: auto !important;
+    max-width: 100%;
+    object-fit: contain;
+    object-position: left center;
+}
+
+.brandName {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+.brandNameWithLogo {
+    color: var(--mantine-color-text);
+}
+
+.brandNameOnly {
+    line-height: 1.15;
+}
+
+.brandName[data-brand-size='xl'].brandNameWithLogo {
+    font-size: var(--mantine-font-size-lg);
+}
+
+.brandName[data-brand-size='lg'].brandNameWithLogo {
+    font-size: var(--mantine-font-size-md);
+}

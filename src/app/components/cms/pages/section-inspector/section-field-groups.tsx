@@ -53,10 +53,20 @@ export const SectionGlobalFields = React.memo(function SectionGlobalFields({
 interface IFieldGroupProps {
     fields: ISectionField[];
     dataVariables?: Record<string, string>;
+    sectionId?: number | null;
+    styleName?: string;
+    ownedDataTable?: ISectionDataTableInfo;
 }
 
 /** Render a flat list of store-connected property fields. */
-function PropertyFieldList({ fields, dataVariables, keySuffix }: IFieldGroupProps & { keySuffix: string }) {
+function PropertyFieldList({
+    fields,
+    dataVariables,
+    keySuffix,
+    sectionId,
+    styleName,
+    ownedDataTable,
+}: IFieldGroupProps & { keySuffix: string }) {
     return (
         <Stack gap="md">
             {fields.map((field) => (
@@ -65,6 +75,9 @@ function PropertyFieldList({ fields, dataVariables, keySuffix }: IFieldGroupProp
                     field={field}
                     className={styles.fullWidthLabel}
                     dataVariables={dataVariables}
+                    sectionId={sectionId}
+                    styleName={styleName}
+                    ownedDataTable={ownedDataTable}
                 />
             ))}
         </Stack>
@@ -79,10 +92,22 @@ function PropertyFieldList({ fields, dataVariables, keySuffix }: IFieldGroupProp
  */
 export const SectionProperties = React.memo(function SectionProperties({
     fields,
-    dataVariables
+    dataVariables,
+    sectionId,
+    styleName,
+    ownedDataTable,
 }: IFieldGroupProps) {
     const propertyFields = fields.filter((f) => classifySectionField(f) === 'property');
-    return <PropertyFieldList fields={propertyFields} dataVariables={dataVariables} keySuffix="property" />;
+    return (
+        <PropertyFieldList
+            fields={propertyFields}
+            dataVariables={dataVariables}
+            keySuffix="property"
+            sectionId={sectionId}
+            styleName={styleName}
+            ownedDataTable={ownedDataTable}
+        />
+    );
 });
 
 /**

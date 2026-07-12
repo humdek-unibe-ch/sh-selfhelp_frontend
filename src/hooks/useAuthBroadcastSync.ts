@@ -45,6 +45,12 @@ export function useAuthBroadcastSync(): void {
                 queryClient.removeQueries({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
                 });
+                queryClient.removeQueries({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL,
+                });
+                queryClient.removeQueries({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION_ALL,
+                });
                 if (
                     typeof window !== 'undefined' &&
                     shouldRedirectToLogin(window.location.pathname)
@@ -56,6 +62,13 @@ export function useAuthBroadcastSync(): void {
                 // logged-in elsewhere: refetch so this tab adopts the session.
                 void queryClient.invalidateQueries({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
+                });
+                // Also refresh permission-filtered navigation immediately.
+                void queryClient.invalidateQueries({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL,
+                });
+                void queryClient.invalidateQueries({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION_ALL,
                 });
             }
         });

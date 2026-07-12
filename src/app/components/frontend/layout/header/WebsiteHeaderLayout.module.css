@@ -1,0 +1,13 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+.brandSlot {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex-shrink: 1;
+    align-self: stretch;
+    height: 100%;
+}

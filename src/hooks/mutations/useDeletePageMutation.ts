@@ -17,6 +17,7 @@ import { parseApiError } from '../../utils/mutation-error-handler';
 import { useAdminPages } from '../useAdminPages';
 import { AdminApi } from '../../api/admin';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
+import { invalidateAdminNavigationQueries } from '../../utils/admin-navigation-cache.utils';
 
 interface IDeletePageMutationOptions {
     onSuccess?: (pageId: number) => void;
@@ -62,7 +63,7 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
 
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
-                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL }),
+                invalidateAdminNavigationQueries(queryClient),
             ]);
             
             if (showNotifications) {

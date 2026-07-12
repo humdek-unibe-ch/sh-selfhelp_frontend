@@ -5,12 +5,13 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Card, TextInput, Button, Alert, Text } from '@mantine/core';
-import { IconCheck, IconMail, IconLock, IconX } from '@tabler/icons-react';
-import { useParams, useRouter } from 'next/navigation';
+import { Anchor, Box, Paper, TextInput, PasswordInput, Button, Alert, Text, Title } from '@mantine/core';
+import { IconCheck, IconMail, IconX } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
 import { type IResetPasswordStyle } from '../../../../types/common/styles.types';
 import { ROUTES } from '../../../../config/routes.config';
 import { AuthApi } from '../../../../api/auth.api';
+import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import DOMPurify from 'isomorphic-dompurify';
 
 interface IResetPasswordStyleProps {
@@ -34,40 +35,15 @@ type TResetPasswordStyleFields = IResetPasswordStyle & {
     reset_error_pw_mismatch?: { content?: string };
 };
 
-/**
- * Pull `/reset/{userId}/{token}` out of the `[[...slug]]` catch-all. Returns
- * zero/empty when the URL is just the request page (`/reset`), which switches
- * the component to "request a reset link" mode.
- */
-function extractResetTarget(slug: string | string[] | undefined): { userId: number; token: string } {
-    if (!Array.isArray(slug)) {
-        return { userId: 0, token: '' };
-    }
-
-    // Static fallback route (`/auth/reset-password/[...slug]`) receives only
-    // the trailing `[userId, token]` segments, not the public `reset` prefix.
-    if (slug.length >= 2 && slug[0] !== 'reset') {
-        return {
-            userId: parseInt(slug[0], 10) || 0,
-            token: slug[1] || '',
-        };
-    }
-
-    const idx = slug.indexOf('reset');
-    if (idx === -1 || slug.length <= idx + 2) {
-        return { userId: 0, token: '' };
-    }
-    return {
-        userId: parseInt(slug[idx + 1], 10) || 0,
-        token: slug[idx + 2] || '',
-    };
-}
-
 const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, styleProps, cssClass }) => {
     const resetStyle = style as TResetPasswordStyleFields;
-    const params = useParams();
     const router = useRouter();
-    const { userId, token } = extractResetTarget(params?.slug as string | string[] | undefined);
+    // DB-driven routing (issue #30): the reset target comes from the resolved
+    // page's snake_case `route_params` (`/reset/{user_id}/{token}`), not from
+    // parsing the URL. Plain `/reset` has no params -> "request a link" mode.
+    const pageContent = usePageContentValue();
+    const userId = Number.parseInt(pageContent?.route_params?.user_id ?? '', 10) || 0;
+    const token = pageContent?.route_params?.token ?? '';
     const isSetMode = userId > 0 && token !== '';
 
     const mantineColor = ((style as { color?: { content?: string } }).color?.content as string | undefined) || 'blue';
@@ -151,110 +127,119 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
         }
     };
 
+    // Shared card shell so /reset visually matches the login page (headless,
+    // centered, same Paper elevation and width).
+    const cardShell = (content: React.ReactNode) => (
+        <Box {...styleProps} className={cssClass}>
+            <Paper shadow="md" p="xl" radius="md" style={{ maxWidth: 400, margin: '0 auto' }}>
+                {content}
+            </Paper>
+        </Box>
+    );
+
     // Set-password success screen
     if (isSetMode && resetDone) {
-        return (
-            <Box {...styleProps} className={cssClass}>
-                <Card shadow="sm" padding="lg" radius="md" withBorder>
-                    <Alert icon={<IconCheck size={16} />} color="green" title={resetSuccessTitle}>
-                        {resetAlertSuccess}
-                        <Text size="sm" mt="xs">
-                            {resetRedirectText.replace('{seconds}', String(redirectCountdown))}
-                        </Text>
-                    </Alert>
-                </Card>
-            </Box>
+        return cardShell(
+            <Alert icon={<IconCheck size={16} />} color="green" title={resetSuccessTitle}>
+                {resetAlertSuccess}
+                <Text size="sm" mt="xs">
+                    {resetRedirectText.replace('{seconds}', String(redirectCountdown))}
+                </Text>
+            </Alert>,
         );
     }
 
     // Set-password form (came from the emailed /reset/{id}/{token} link)
     if (isSetMode) {
-        return (
-            <Box {...styleProps} className={cssClass}>
-                <Card shadow="sm" padding="lg" radius="md" withBorder>
-                    <form onSubmit={handleSetSubmit}>
-                        <Text size="lg" fw={600} mb="md">
-                            {resetTitle}
-                        </Text>
+        return cardShell(
+            <form onSubmit={handleSetSubmit}>
+                <Title order={2} ta="center" mb="lg">
+                    {resetTitle}
+                </Title>
 
-                        {error && (
-                            <Alert icon={<IconX size={16} />} color="red" mb="md" withCloseButton onClose={() => setError('')}>
-                                {error}
-                            </Alert>
-                        )}
+                {error && (
+                    <Alert icon={<IconX size={16} />} color="red" mb="md" withCloseButton onClose={() => setError('')}>
+                        {error}
+                    </Alert>
+                )}
 
-                        <TextInput
-                            label={resetLabelPw}
-                            placeholder={resetPwPlaceholder}
-                            leftSection={<IconLock size={16} />}
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            mb="md"
-                        />
+                <PasswordInput
+                    label={resetLabelPw}
+                    placeholder={resetPwPlaceholder}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    size="md"
+                    mb="md"
+                />
 
-                        <TextInput
-                            label={resetLabelPwConfirm}
-                            placeholder={resetPwConfirmPlaceholder}
-                            leftSection={<IconLock size={16} />}
-                            type="password"
-                            value={passwordConfirm}
-                            onChange={(e) => setPasswordConfirm(e.target.value)}
-                            required
-                            mb="md"
-                        />
+                <PasswordInput
+                    label={resetLabelPwConfirm}
+                    placeholder={resetPwConfirmPlaceholder}
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    required
+                    size="md"
+                    mb="md"
+                />
 
-                        <Button type="submit" fullWidth color={mantineColor} variant="filled" loading={submitting}>
-                            {resetLabelSubmit}
-                        </Button>
-                    </form>
-                </Card>
-            </Box>
+                <Button type="submit" fullWidth size="md" color={mantineColor} variant="filled" loading={submitting}>
+                    {resetLabelSubmit}
+                </Button>
+            </form>,
         );
     }
 
     // Request success screen
     if (isSubmitted) {
-        return (
-            <Box {...styleProps} className={cssClass}>
-                <Card shadow="sm" padding="lg" radius="md" withBorder>
-                    <Alert icon={<IconCheck size={16} />} color="green" title="Email Sent">
-                        {alertSuccess}
-                    </Alert>
-                </Card>
-            </Box>
+        return cardShell(
+            <>
+                <Alert icon={<IconCheck size={16} />} color="green" title="Email Sent">
+                    {alertSuccess}
+                </Alert>
+                <Anchor ta="center" display="block" size="sm" mt="md" c={mantineColor} href={ROUTES.LOGIN}>
+                    Back to sign in
+                </Anchor>
+            </>,
         );
     }
 
     // Request form (default /reset)
-    return (
-        <Box {...styleProps} className={cssClass}>
-            <Card shadow="sm" padding="lg" radius="md" withBorder>
-                <form onSubmit={handleRequestSubmit}>
-                    {error && (
-                        <Alert color="red" mb="md">
-                            {error}
-                        </Alert>
-                    )}
+    return cardShell(
+        <form onSubmit={handleRequestSubmit}>
+            <Title order={2} ta="center" mb="xs">
+                Reset password
+            </Title>
+            <Text c="dimmed" ta="center" size="sm" mb="lg">
+                Enter your email address and we will send you a reset link.
+            </Text>
 
-                    <TextInput
-                        label="Email Address"
-                        placeholder={placeholder}
-                        leftSection={<IconMail size={16} />}
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        mb="md"
-                    />
+            {error && (
+                <Alert color="red" mb="md">
+                    {error}
+                </Alert>
+            )}
 
-                    <Button type="submit" fullWidth color={mantineColor} variant="filled" loading={submitting}>
-                        {labelPwReset}
-                    </Button>
-                </form>
-            </Card>
-        </Box>
+            <TextInput
+                label="Email Address"
+                placeholder={placeholder}
+                leftSection={<IconMail size={16} />}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                size="md"
+                mb="md"
+            />
+
+            <Button type="submit" fullWidth size="md" color={mantineColor} variant="filled" loading={submitting}>
+                {labelPwReset}
+            </Button>
+
+            <Anchor ta="center" display="block" size="sm" mt="md" c={mantineColor} href={ROUTES.LOGIN}>
+                Back to sign in
+            </Anchor>
+        </form>,
     );
 };
 
