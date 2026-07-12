@@ -3,38 +3,77 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 .navbar {
-  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
+  background-color: var(--mantine-color-body);
   height: 100%;
   width: 300px;
-  padding: var(--mantine-spacing-md);
-  padding-bottom: 0;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-right: 1px solid var(--mantine-color-default-border);
 }
 
+/* Header — logo lockup, preview toggle, search. Does not scroll.
+   Sits above `.links` so the search results panel overlays the nav list. */
 .header {
+  position: relative;
+  z-index: 1;
   padding: var(--mantine-spacing-md);
-  padding-top: 0;
-  margin-left: calc(var(--mantine-spacing-md) * -1);
-  margin-right: calc(var(--mantine-spacing-md) * -1);
-  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px;
+}
+
+/* App-icon tile. Holds a placeholder glyph until the real SelfHelp mark
+   replaces it. */
+.brandMark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background-color: var(--mantine-color-blue-6);
+  color: var(--mantine-color-white);
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.brandName {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  color: var(--mantine-color-text);
+}
+
+.brandTagline {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
 }
 
 .links {
   flex: 1;
-  margin-left: calc(var(--mantine-spacing-md) * -1);
-  margin-right: calc(var(--mantine-spacing-md) * -1);
+  min-height: 0;
 }
 
 .linksInner {
-  padding-top: var(--mantine-spacing-xl);
-  padding-bottom: var(--mantine-spacing-xl);
+  padding: 0 var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .footer {
-  margin-left: calc(var(--mantine-spacing-md) * -1);
-  margin-right: calc(var(--mantine-spacing-md) * -1);
-  border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-top: 1px solid var(--mantine-color-default-border);
 }

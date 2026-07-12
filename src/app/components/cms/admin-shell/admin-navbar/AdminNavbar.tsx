@@ -5,17 +5,14 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { useMemo, useState } from 'react';
-import { ScrollArea, Group, Box } from '@mantine/core';
+import { ScrollArea, Box } from '@mantine/core';
 import {
+    IconBox,
     IconDashboard,
     IconUsers,
-    IconFiles,
-    IconSettingsAutomation,
     IconPhoto,
-    IconSettings,
     IconDatabase,
     IconPlayerPlay,
-    IconFileText,
     IconPlus,
     IconPuzzle,
 } from '@tabler/icons-react';
@@ -24,7 +21,7 @@ import { useAuth } from '../../../../../hooks/useAuth';
 import { usePluginMenuItems } from '../../../frontend/plugin-runtime/PluginsProvider';
 import { LinksGroup } from './components/LinksGroup';
 import { CreatePageModal } from '../../pages/create-page/CreatePage';
-import { SelfHelpLogo, PreviewModeToggle, AuthButton } from '../../../shared';
+import { PreviewModeToggle, AuthButton } from '../../../shared';
 import classes from './AdminNavbar.module.css';
 import { NavigationSearch } from './components';
 
@@ -180,7 +177,7 @@ export function AdminNavbar() {
         if (permissionChecker.canReadPages() && menuPages.length > 0) {
             menuItems.push({
                 label: 'Menu Pages',
-                icon: <IconFiles size={16} />,
+                variant: 'section' as const,
                 initiallyOpened: true,
                 links: transformPagesToNavigation(menuPages),
                 id: 'menu-pages'
@@ -191,7 +188,7 @@ export function AdminNavbar() {
         if (permissionChecker.canReadPages() && footerPages.length > 0) {
             menuItems.push({
                 label: 'Footer Pages',
-                icon: <IconFiles size={16} />,
+                variant: 'section' as const,
                 links: footerPages.map(page => ({
                     label: page.keyword, // Use keyword since title field no longer exists
                     link: `/admin/pages/${page.keyword}`,
@@ -205,7 +202,7 @@ export function AdminNavbar() {
         if (permissionChecker.canReadPages() && contentPages.length > 0) {
             menuItems.push({
                 label: 'Content Pages',
-                icon: <IconFileText size={16} />,
+                variant: 'section' as const,
                 links: contentPages.map(page => ({
                     label: page.keyword, // Use keyword since title field no longer exists
                     link: `/admin/pages/${page.keyword}`,
@@ -253,7 +250,7 @@ export function AdminNavbar() {
             if (systemPageLinks.length > 0) {
                 menuItems.push({
                     label: 'System Pages',
-                    icon: <IconSettingsAutomation size={16} />,
+                    variant: 'section' as const,
                     links: systemPageLinks,
                     id: 'system-pages'
                 });
@@ -264,7 +261,7 @@ export function AdminNavbar() {
         if (permissionChecker.canReadPages() && configurationPageLinks && configurationPageLinks.length > 0) {
             menuItems.push({
                 label: 'Configuration',
-                icon: <IconSettings size={16} />,
+                variant: 'section' as const,
                 links: configurationPageLinks.map(page => ({
                     label: page.label,
                     link: `/admin/pages/${page.keyword}`,
@@ -349,15 +346,20 @@ export function AdminNavbar() {
 
     return (
         <nav className={classes.navbar}>
-            {/* Navigation Header */}
-            <Box p="md" className="border-b border-gray-3">
-                <Group gap="md" align="center" mb="md">
-                    <SelfHelpLogo size={30} />
-                </Group>
-
-                <Box mb="md">
-                    <PreviewModeToggle showLabel={false} />
+            <Box className={classes.header}>
+                <Box className={classes.brand}>
+                    {/* Blue app-icon tile. The mark inside is a placeholder for
+                        the real SelfHelp logo. */}
+                    <Box className={classes.brandMark}>
+                        <IconBox size={22} stroke={1.8} />
+                    </Box>
+                    <Box className={classes.brandText}>
+                        <span className={classes.brandName}>SelfHelp</span>
+                        <span className={classes.brandTagline}>Content Manager</span>
+                    </Box>
                 </Box>
+
+                <PreviewModeToggle />
 
                 <NavigationSearch
                     adminPagesData={adminPagesData}
@@ -365,7 +367,7 @@ export function AdminNavbar() {
                 />
             </Box>
 
-            <ScrollArea className={classes.links} scrollbars="y">
+            <ScrollArea className={classes.links} scrollbars="y" type="hover">
                 <div className={classes.linksInner}>{links}</div>
             </ScrollArea>
 

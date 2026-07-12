@@ -12,10 +12,18 @@ import {
   Text,
   UnstyledButton,
 } from '@mantine/core';
-import { IconChevronRight } from '@tabler/icons-react';
+import { IconChevronRight, IconFile } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
 import classes from './LinksGroup.module.css';
 import { useIsClient } from '../../../../../../hooks/useIsClient';
+
+/**
+ * `group`   — a functional area (Dashboard, User Management, Automation…):
+ *             an icon + label row that expands into an indented child list.
+ * `section` — a list of CMS pages (Menu Pages, Footer Pages, Configuration…):
+ *             a quiet uppercase heading whose children are page pills.
+ */
+type TLinksGroupVariant = 'group' | 'section';
 
 /** A single admin navbar link, optionally containing nested children. */
 interface INavLinkItem {
@@ -106,13 +114,15 @@ interface ILinksGroupProps {
   links?: INavLinkItem[];
   link?: string;
   selectable?: boolean;
+  variant?: TLinksGroupVariant;
   onClick?: () => void;
 }
 
-export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick }: ILinksGroupProps) {
+export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick, variant = 'group' }: ILinksGroupProps) {
   const router = useRouter();
   const pathname = usePathname();
   const hasLinks = Array.isArray(links);
+  const isSection = variant === 'section';
   const storageKey = `navbar-${label.replace(/\s+/g, '-').toLowerCase()}-opened`;
 
   // Check if this item or any nested item is active
@@ -180,10 +190,18 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
         );
       }
 
+      // Under a section heading a leaf is a CMS page: full-width pill with a
+      // file glyph. Under a functional group it hangs off the indent rail.
+      const isPagePill = isSection && level === 0;
+
       return (
         <Text<'a'>
           component="a"
-          className={`${classes.link} ${getNestedLinkClass(level)}`}
+          className={
+            isPagePill
+              ? `${classes.link} ${classes.pageLink}`
+              : `${classes.link} ${getNestedLinkClass(level)}`
+          }
           href={item.link}
           key={item.id || item.label}
           data-active={isItemActive}
@@ -203,7 +221,14 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
             e.stopPropagation();
           }}
         >
-          {item.label}
+          {isPagePill ? (
+            <span className={classes.pageLinkBody}>
+              <IconFile size={16} stroke={1.5} className={classes.pageLinkIcon} />
+              <span className={classes.pageLinkLabel}>{item.label}</span>
+            </span>
+          ) : (
+            item.label
+          )}
         </Text>
       );
     });
@@ -211,10 +236,32 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
 
   const items = renderNestedLinks(links || []);
 
+  if (isSection) {
+    return (
+      <>
+        <Box className={classes.sectionControl}>
+          <UnstyledButton
+            onClick={() => setOpened((o: boolean) => !o)}
+            className={classes.sectionLabelButton}
+            aria-expanded={opened}
+          >
+            {label}
+          </UnstyledButton>
+          <IconChevronRight
+            className={`${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}
+            size="0.85rem"
+            stroke={2}
+          />
+        </Box>
+        <Collapse expanded={opened}>{items}</Collapse>
+      </>
+    );
+  }
+
   return (
     <>
       <Box className={classes.control} data-active={isActive}>
-        <Group justify="space-between" gap={0}>
+        <Group justify="space-between" gap={0} wrap="nowrap">
           {/* Main clickable area for navigation */}
           <UnstyledButton
             onClick={() => {
@@ -241,11 +288,11 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
             className={classes.nestedLink}
           >
             <Box className={classes.iconContainer}>
-              <Box mr="md">{icon}</Box>
-              <Box>{label}</Box>
+              <Box className={classes.groupIcon}>{icon}</Box>
+              <Box className={classes.groupLabel}>{label}</Box>
             </Box>
           </UnstyledButton>
-          
+
           {/* Separate clickable area for expand/collapse */}
           {hasLinks && (
             <UnstyledButton
@@ -254,6 +301,8 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
                 setOpened((o: boolean) => !o);
               }}
               className={classes.chevronButton}
+              aria-label={`${opened ? 'Collapse' : 'Expand'} ${label}`}
+              aria-expanded={opened}
             >
               <IconChevronRight
                 className={`${classes.chevron} ${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}
@@ -416,6 +465,8 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
               setOpened((o: boolean) => !o);
             }}
             className={classes.chevronButton}
+            aria-label={`${opened ? 'Collapse' : 'Expand'} ${label}`}
+            aria-expanded={opened}
           >
             <IconChevronRight
               className={`${classes.chevron} ${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}

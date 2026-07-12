@@ -8,12 +8,11 @@ import { Switch, Text, Group, Box } from '@mantine/core';
 import { IconEye, IconEyeOff } from '@tabler/icons-react';
 import { usePreviewMode } from '../../contexts/PreviewModeContext';
 import { useIsClient } from '../../../../hooks/useIsClient';
+import classes from './PreviewModeToggle.module.css';
 
 interface IPreviewModeToggleProps {
     /** Custom label for the toggle */
     label?: string;
-    /** Whether to show the label */
-    showLabel?: boolean;
 }
 
 /**
@@ -35,45 +34,42 @@ interface IPreviewModeToggleProps {
  */
 export function PreviewModeToggle({
     label = 'Preview Mode',
-    showLabel = true,
 }: IPreviewModeToggleProps) {
     const { isPreviewMode, togglePreviewMode } = usePreviewMode();
     const mounted = useIsClient();
 
+    // The status line replaces the label rather than appearing below it, so
+    // enabling preview mode never reflows the surrounding layout.
+    const statusText = mounted && isPreviewMode ? 'Showing draft content' : 'Showing published content';
+
     return (
-        <Box>
-            <Group gap="xs" align="center">
-                {showLabel && (
-                    <Text size="sm" fw={500}>
-                        {label}
-                    </Text>
-                )}
-                {mounted ? (
-                    <Switch
-                        checked={isPreviewMode}
-                        onChange={togglePreviewMode}
-                        size="md"
-                        onLabel={<IconEye size={16} />}
-                        offLabel={<IconEyeOff size={16} />}
-                        color="orange"
-                        styles={{
-                            track: {
-                                backgroundColor: isPreviewMode ? '#ff6b35' : undefined,
-                            },
-                        }}
-                    />
-                ) : (
-                    // Reserve the Switch's footprint so the layout doesn't
-                    // jump on the first client render. Mantine's `md`
-                    // Switch ≈ 44 × 26 px.
-                    <Box style={{ width: 44, height: 26 }} aria-hidden />
-                )}
-            </Group>
-            {mounted && isPreviewMode && (
-                <Text size="xs" c="orange" mt={4}>
-                    Preview mode active - showing draft content
+        <Group gap="sm" wrap="nowrap" className={classes.root} data-active={mounted && isPreviewMode}>
+            <Box className={classes.icon} aria-hidden>
+                {mounted && isPreviewMode ? <IconEye size={18} stroke={1.6} /> : <IconEyeOff size={18} stroke={1.6} />}
+            </Box>
+
+            <Box className={classes.text}>
+                <Text size="sm" fw={600} className={classes.label}>
+                    {label}
                 </Text>
+                <Text size="xs" className={classes.status}>
+                    {statusText}
+                </Text>
+            </Box>
+
+            {mounted ? (
+                <Switch
+                    checked={isPreviewMode}
+                    onChange={togglePreviewMode}
+                    size="sm"
+                    color="orange"
+                    aria-label={label}
+                />
+            ) : (
+                // Reserve the Switch's footprint so the layout doesn't jump on
+                // the first client render. Mantine's `sm` Switch ≈ 38 × 20 px.
+                <Box style={{ width: 38, height: 20 }} aria-hidden />
             )}
-        </Box>
+        </Group>
     );
 }

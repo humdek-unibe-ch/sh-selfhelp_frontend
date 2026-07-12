@@ -14,7 +14,6 @@ import {
     Box,
     ScrollArea,
     Highlight,
-    Badge,
     UnstyledButton
 } from '@mantine/core';
 import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, IconPhoto, IconPlayerPlay, IconFileText, IconLanguage, IconPuzzle } from '@tabler/icons-react';
@@ -439,26 +438,28 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
     };
 
     return (
-        <Box>
+        <Box className={styles.root}>
             <TextInput
-                placeholder="Search functions and pages..."
+                placeholder="Search functions & pages"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                leftSection={<IconSearch size={14} />}
+                leftSection={<IconSearch size={16} stroke={1.6} />}
                 rightSection={
                     searchQuery && (
                         <ActionIcon
                             variant="subtle"
                             color="gray"
-                            size="xs"
+                            size="sm"
                             onClick={clearSearch}
+                            aria-label="Clear search"
                         >
-                            <IconX size={12} />
+                            <IconX size={14} />
                         </ActionIcon>
                     )
                 }
-                size="xs"
-                mb="xs"
+                size="sm"
+                radius="md"
+                classNames={{ input: styles.input }}
                 // Autofill / form-helper extensions (SharkID, 1Password,
                 // Bitwarden, Dashlane, …) decorate <input> elements with
                 // custom data-* attributes (e.g. `data-sharkid`) before
@@ -468,57 +469,69 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                 suppressHydrationWarning
             />
 
-            {/* Search Results */}
+            {/* Results panel — an elevated surface anchored under the input, so
+                it reads as a search popover instead of pushing the nav down. */}
             {searchQuery && (
-                <Box mb="xs">
+                <Box className={styles.panel} role="listbox" aria-label="Search results">
                     {filteredItems.length > 0 ? (
-                        <ScrollArea.Autosize mah={200}>
-                            <Stack gap={1}>
-                                <Text size="xs" c="dimmed" fw={500} tt="uppercase" px="xs" mb={2}>
-                                    Search Results ({filteredItems.length})
+                        <>
+                            <Box className={styles.panelHeader}>
+                                <Text component="span" className={styles.panelHeaderLabel}>
+                                    Results
                                 </Text>
-                                {filteredItems.map((item) => (
-                                    <UnstyledButton
-                                        key={item.id}
-                                        onClick={(e) => handleItemClick(item, e)}
-                                        onMouseDown={(e: React.MouseEvent) => {
-                                            // Handle middle click
-                                            if (e.button === 1) {
-                                                e.preventDefault();
-                                                window.open(item.href, '_blank');
-                                                setSearchQuery('');
-                                                onItemSelect?.();
-                                            }
-                                        }}
-                                        onContextMenu={(e: React.MouseEvent) => {
-                                            // Allow right-click context menu for "open in new tab"
-                                            e.stopPropagation();
-                                        }}
-                                        className={styles.searchItem}
-                                        px="xs"
-                                        py={4}
-                                    >
-                                        <Group gap="xs" wrap="nowrap">
-                                            {item.icon}
-                                            <Box className={styles.searchItemText}>
-                                                <Text size="xs" fw={500} truncate>
-                                                    <Highlight highlight={searchQuery} component="span">
-                                                        {item.label}
-                                                    </Highlight>
-                                                </Text>
-                                                <Badge size="xs" variant="light" color="gray" mt={1}>
-                                                    {item.category}
-                                                </Badge>
-                                            </Box>
-                                        </Group>
-                                    </UnstyledButton>
-                                ))}
-                            </Stack>
-                        </ScrollArea.Autosize>
+                                <Text component="span" className={styles.panelHeaderCount}>
+                                    {filteredItems.length}
+                                </Text>
+                            </Box>
+
+                            <ScrollArea.Autosize mah={280} type="hover">
+                                <Stack gap={2} className={styles.panelList}>
+                                    {filteredItems.map((item) => (
+                                        <UnstyledButton
+                                            key={item.id}
+                                            role="option"
+                                            onClick={(e) => handleItemClick(item, e)}
+                                            onMouseDown={(e: React.MouseEvent) => {
+                                                // Handle middle click
+                                                if (e.button === 1) {
+                                                    e.preventDefault();
+                                                    window.open(item.href, '_blank');
+                                                    setSearchQuery('');
+                                                    onItemSelect?.();
+                                                }
+                                            }}
+                                            onContextMenu={(e: React.MouseEvent) => {
+                                                // Allow right-click context menu for "open in new tab"
+                                                e.stopPropagation();
+                                            }}
+                                            className={styles.searchItem}
+                                        >
+                                            <Group gap="sm" wrap="nowrap">
+                                                <Box className={styles.searchItemIcon}>{item.icon}</Box>
+                                                <Box className={styles.searchItemText}>
+                                                    <Text size="sm" fw={500} truncate>
+                                                        <Highlight highlight={searchQuery} component="span">
+                                                            {item.label}
+                                                        </Highlight>
+                                                    </Text>
+                                                    <Text size="xs" truncate className={styles.searchItemCategory}>
+                                                        {item.category}
+                                                    </Text>
+                                                </Box>
+                                            </Group>
+                                        </UnstyledButton>
+                                    ))}
+                                </Stack>
+                            </ScrollArea.Autosize>
+                        </>
                     ) : (
-                        <Box p="xs" ta="center">
-                            <Text size="xs" c="dimmed">
-                                No results found for &quot;{searchQuery}&quot;
+                        <Box className={styles.emptyState}>
+                            <IconSearch size={20} stroke={1.5} className={styles.emptyStateIcon} />
+                            <Text size="sm" fw={500}>
+                                No results
+                            </Text>
+                            <Text size="xs" c="dimmed" truncate>
+                                Nothing matches &quot;{searchQuery}&quot;
                             </Text>
                         </Box>
                     )}

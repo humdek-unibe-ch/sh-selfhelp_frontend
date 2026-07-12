@@ -2,137 +2,202 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+
+/* Top-level group row (Dashboard, User Management, Content, Create Page…). */
 .control {
-  font-weight: 500;
   display: block;
   width: 100%;
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
-  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+  padding: 8px 10px;
+  border-radius: var(--mantine-radius-md);
   font-size: var(--mantine-font-size-sm);
-  border-radius: var(--mantine-radius-sm);
-
-  &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-  }
-
-  &[data-active="true"] {
-    background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-6));
-    color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-2));
-    font-weight: 600;
-  }
+  font-weight: 500;
+  color: var(--mantine-color-text);
+  transition: background-color 120ms ease, color 120ms ease;
 }
 
+.control:hover {
+  background-color: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='dark'] .control:hover {
+  background-color: var(--mantine-color-dark-6);
+}
+
+.control[data-active='true'] {
+  background-color: var(--mantine-color-blue-light);
+  color: var(--mantine-color-blue-light-color);
+  font-weight: 600;
+}
+
+/* A quiet uppercase divider that introduces a list of pages (Menu Pages,
+   Footer Pages, Content Pages, System Pages, Configuration). It is still the
+   group's disclosure control — the whole label toggles it — but it reads as a
+   section heading instead of competing with the functional rows above. */
+.sectionControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: var(--mantine-spacing-md);
+  padding: 6px 10px 4px;
+  border-top: 1px solid var(--mantine-color-default-border);
+  border-radius: 0;
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color 120ms ease;
+}
+
+.sectionControl:hover {
+  color: var(--mantine-color-text);
+}
+
+/* The divider belongs above the *first* section label only as a separator from
+   the functional rows; consecutive section labels already read as separate. */
+.sectionControl + .sectionControl {
+  margin-top: var(--mantine-spacing-xs);
+}
+
+.sectionLabelButton {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+}
+
+/* Child link. The `border-left` is the indent rail that visually ties children
+   to their parent; the active child brightens it. */
 .link {
-  font-weight: 400;
   display: block;
   text-decoration: none;
-  padding: 5px var(--mantine-spacing-md);
-  padding-left: 31px;
-  margin-left: var(--mantine-spacing-md);
+  padding: 7px 10px;
+  padding-left: 22px;
+  margin-left: 18px;
   font-size: var(--mantine-font-size-sm);
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
-  border-left: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-radius: var(--mantine-radius-sm);
-
-  &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-  }
-
-  &[data-active="true"] {
-    background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-6));
-    color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-2));
-    font-weight: 500;
-    border-left-color: var(--mantine-color-blue-6);
-  }
+  font-weight: 400;
+  color: var(--mantine-color-dimmed);
+  border-left: 1px solid var(--mantine-color-default-border);
+  border-radius: 0 var(--mantine-radius-md) var(--mantine-radius-md) 0;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
-.chevron {
-  transition: transform 200ms ease;
+.link:hover {
+  background-color: var(--mantine-color-gray-0);
+  color: var(--mantine-color-text);
 }
 
-/* Additional styles for inline style conversion */
+[data-mantine-color-scheme='dark'] .link:hover {
+  background-color: var(--mantine-color-dark-6);
+}
+
+.link[data-active='true'] {
+  background-color: var(--mantine-color-blue-light);
+  color: var(--mantine-color-blue-light-color);
+  font-weight: 500;
+  border-left-color: var(--mantine-color-blue-filled);
+}
+
+/* Page links under a section label have no parent row to hang off, so they get
+   a full rounded pill and no rail. */
+.pageLink {
+  margin-left: 0;
+  padding-left: 10px;
+  border-left: none;
+  border-radius: var(--mantine-radius-md);
+}
+
+.pageLinkBody {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pageLinkIcon {
+  flex-shrink: 0;
+  color: var(--mantine-color-dimmed);
+}
+
+.pageLink[data-active='true'] .pageLinkIcon {
+  color: inherit;
+}
+
+.pageLinkLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Main clickable area of a group row. */
 .nestedLink {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   padding: 0;
   background-color: transparent;
   border: none;
+  color: inherit;
+  font: inherit;
 }
 
 .iconContainer {
   display: flex;
   align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 
-.expandIcon {
-  transition: transform 200ms ease;
-}
-
-.actionIcon {
-  opacity: 0.7;
-  transition: opacity 200ms ease;
-}
-
-.actionIcon:hover {
-  opacity: 1;
-}
-
-.linkContainer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.linkText {
-  flex: 1;
-}
-
-.linkIcon {
-  margin-left: auto;
-}
-
-.chevronButton {
-  padding: 4px;
-  background-color: transparent;
-  border: none;
-  border-radius: 4px;
+.groupIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 200ms ease;
+  color: var(--mantine-color-dimmed);
+  flex-shrink: 0;
+}
+
+.control[data-active='true'] .groupIcon {
+  color: inherit;
+}
+
+.groupLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevronButton {
+  flex-shrink: 0;
+  padding: 2px;
+  background-color: transparent;
+  border: none;
+  border-radius: var(--mantine-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mantine-color-dimmed);
+  transition: background-color 120ms ease, color 120ms ease;
 }
 
 .chevronButton:hover {
-  background-color: var(--mantine-color-gray-1);
+  background-color: var(--mantine-color-default-hover);
+  color: var(--mantine-color-text);
 }
 
+.chevron,
 .chevronIcon {
   transition: transform 200ms ease;
 }
 
-/* Dynamic styles for nested links */
-.nestedLinkLevel1 {
-  padding-left: calc(16px + var(--mantine-spacing-md));
-}
-
-.nestedLinkLevel2 {
-  padding-left: calc(32px + var(--mantine-spacing-md));
-}
-
-.nestedLinkLevel3 {
-  padding-left: calc(48px + var(--mantine-spacing-md));
-}
-
-.nestedLinkLevel4 {
-  padding-left: calc(64px + var(--mantine-spacing-md));
-}
-
-/* Chevron rotation states */
 .chevronRotated {
   transform: rotate(90deg);
 }
@@ -141,23 +206,49 @@ SPDX-License-Identifier: MPL-2.0
   transform: none;
 }
 
-/* Nested parent link styles */
+/* Nested indent levels. Each level adds one rail's worth of inset. */
+.nestedLinkLevel1 {
+  padding-left: 22px;
+}
+
+.nestedLinkLevel2 {
+  padding-left: 38px;
+}
+
+.nestedLinkLevel3 {
+  padding-left: 54px;
+}
+
+.nestedLinkLevel4 {
+  padding-left: 70px;
+}
+
 .nestedParentLink {
-  padding-left: calc(16px + var(--mantine-spacing-md));
+  padding-left: 22px;
   font-weight: 500;
 }
 
 .nestedParentLinkLevel2 {
-  padding-left: calc(32px + var(--mantine-spacing-md));
+  padding-left: 38px;
   font-weight: 500;
 }
 
 .nestedParentLinkLevel3 {
-  padding-left: calc(48px + var(--mantine-spacing-md));
+  padding-left: 54px;
   font-weight: 500;
 }
 
 .nestedParentLinkLevel4 {
-  padding-left: calc(64px + var(--mantine-spacing-md));
+  padding-left: 70px;
   font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .control,
+  .link,
+  .chevron,
+  .chevronIcon,
+  .chevronButton {
+    transition: none;
+  }
 }
