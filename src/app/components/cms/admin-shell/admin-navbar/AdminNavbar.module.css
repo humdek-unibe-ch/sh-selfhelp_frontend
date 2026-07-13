@@ -8,7 +8,6 @@ SPDX-License-Identifier: MPL-2.0
   width: 100%;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--mantine-color-default-border);
   overflow: hidden;
 }
 
