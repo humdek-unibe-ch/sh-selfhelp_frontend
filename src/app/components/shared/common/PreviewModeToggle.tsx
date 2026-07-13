@@ -13,8 +13,6 @@ import classes from './PreviewModeToggle.module.css';
 interface IPreviewModeToggleProps {
     /** Custom label for the toggle */
     label?: string;
-    /** Hide the text label — the compact navbar header shows icon + switch only. */
-    showLabel?: boolean;
 }
 
 /**
@@ -36,7 +34,6 @@ interface IPreviewModeToggleProps {
  */
 export function PreviewModeToggle({
     label = 'Preview Mode',
-    showLabel = true,
 }: Readonly<IPreviewModeToggleProps>) {
     const { isPreviewMode, togglePreviewMode } = usePreviewMode();
     const mounted = useIsClient();
@@ -46,27 +43,19 @@ export function PreviewModeToggle({
     const statusText = mounted && isPreviewMode ? 'Showing draft content' : 'Showing published content';
 
     return (
-        <Group
-            gap={showLabel ? 'sm' : 'xs'}
-            wrap="nowrap"
-            className={classes.root}
-            data-compact={!showLabel || undefined}
-            data-active={mounted && isPreviewMode}
-        >
+        <Group gap="sm" wrap="nowrap" className={classes.root} data-active={mounted && isPreviewMode}>
             <Box className={classes.icon} aria-hidden>
                 {mounted && isPreviewMode ? <IconEye size={18} stroke={1.6} /> : <IconEyeOff size={18} stroke={1.6} />}
             </Box>
 
-            {showLabel && (
-                <Box className={classes.text}>
-                    <Text size="sm" fw={600} className={classes.label}>
-                        {label}
-                    </Text>
-                    <Text size="xs" className={classes.status}>
-                        {statusText}
-                    </Text>
-                </Box>
-            )}
+            <Box className={classes.text}>
+                <Text size="sm" fw={600} className={classes.label}>
+                    {label}
+                </Text>
+                <Text size="xs" className={classes.status}>
+                    {statusText}
+                </Text>
+            </Box>
 
             {mounted ? (
                 <Switch

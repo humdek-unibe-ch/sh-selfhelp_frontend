@@ -17,18 +17,6 @@ SPDX-License-Identifier: MPL-2.0
   background-color: var(--mantine-color-dark-6);
 }
 
-/* Compact: icon + switch only (the one-row navbar header). No surface — it
-   sits inline next to the logo. */
-.root[data-compact] {
-  padding: 0;
-  background-color: transparent;
-  border-color: transparent;
-}
-
-[data-mantine-color-scheme='dark'] .root[data-compact] {
-  background-color: transparent;
-}
-
 .root[data-active='true'] {
   background-color: var(--mantine-color-orange-light);
   border-color: var(--mantine-color-orange-light-hover);

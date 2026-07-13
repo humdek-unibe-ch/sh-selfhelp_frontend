@@ -8,15 +8,20 @@ SPDX-License-Identifier: MPL-2.0
   width: 100%;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-right: 1px solid var(--mantine-color-default-border);
   overflow: hidden;
 }
 
-/* Header — brand + preview toggle on one row, search below. Does not scroll. */
+/* Header — brand + preview toggle on one row, search below. Does not scroll.
+   Sits above `.links` so the search results panel overlays the nav list. */
 .header {
-  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
-  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-  border-bottom: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  position: relative;
+  z-index: 1;
+  padding: var(--mantine-spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-default-border);
 }
 
 .links {
@@ -26,9 +31,14 @@ SPDX-License-Identifier: MPL-2.0
 
 .linksInner {
   padding: var(--mantine-spacing-sm) var(--mantine-spacing-sm) var(--mantine-spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-/* --- Accordion group styling (multiple open, quiet & compact) ------------- */
+/* --- Accordion group styling (multiple open, quiet & compact) -------------
+   Restyled to match the flat-list look: soft pill hover on the whole control
+   row, quiet uppercase group labels, no heavy backgrounds. */
 .accordionRoot {
   --accordion-radius: var(--mantine-radius-md);
 }
@@ -46,10 +56,15 @@ SPDX-License-Identifier: MPL-2.0
   display: flex;
   align-items: center;
   border-radius: var(--mantine-radius-md);
+  transition: background-color 120ms ease;
+}
 
-  &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
-  }
+.accordionControlRow:hover {
+  background-color: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='dark'] .accordionControlRow:hover {
+  background-color: var(--mantine-color-dark-6);
 }
 
 .accordionControl {
@@ -64,23 +79,23 @@ SPDX-License-Identifier: MPL-2.0
 }
 
 .accordionLabel {
-  font-size: 12px;
+  font-size: var(--mantine-font-size-xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   padding-top: 8px;
   padding-bottom: 8px;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+  color: var(--mantine-color-dimmed);
 }
 
 .accordionIcon {
   display: inline-flex;
   align-items: center;
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
+  color: var(--mantine-color-dimmed);
 }
 
 .accordionChevron {
-  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
+  color: var(--mantine-color-dimmed);
 }
 
 .accordionActions {
@@ -97,5 +112,11 @@ SPDX-License-Identifier: MPL-2.0
 }
 
 .footer {
-  border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .accordionControlRow {
+    transition: none;
+  }
 }
