@@ -2,67 +2,74 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-.container {
-  position: relative;
-  min-height: 400px;
-}
 
-.emailCell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.tableContainer {
-  position: relative;
-  min-height: 300px;
-  border-radius: var(--mantine-radius-md);
-  overflow: hidden;
-  border: 1px solid var(--mantine-color-gray-3);
-}
-
-.emptyState {
-  padding: 3rem 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-  background: var(--mantine-color-gray-0);
-  border-radius: var(--mantine-radius-md);
-}
-
-/* Dark theme support */
-[data-theme="dark"] .tableContainer {
-  border-color: var(--mantine-color-dark-4);
-}
-
-[data-theme="dark"] .emptyState {
-  background: var(--mantine-color-dark-7);
-}
-
-/* Search input styles */
-.searchInput {
-  flex: 1;
-}
-
-/* Table wrapper styles */
+/* ── Table shell ────────────────────────────────────────────────────────── */
 .tableWrapper {
   position: relative;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  overflow: hidden;
 }
 
 .tableScrollContainer {
   overflow-x: auto;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .container {
-    margin: 0 -1rem;
-  }
-  
-  .tableContainer {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-  }
-} 
+/* ── Header row ─────────────────────────────────────────────────────────── */
+/* Quiet uppercase column labels (matches the mock). Applied to every <th>. */
+.tableHeader :global(*),
+.colHeader,
+.sortHeader {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+}
+
+.tableHeader {
+  background-color: var(--mantine-color-gray-0);
+  white-space: nowrap;
+}
+
+[data-mantine-color-scheme='dark'] .tableHeader {
+  background-color: var(--mantine-color-dark-6);
+}
+
+/* ── Body rows ──────────────────────────────────────────────────────────── */
+.tableCell {
+  vertical-align: middle;
+}
+
+/* User identity cell: name over email. */
+.userText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.userName {
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userEmail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.regCode {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+/* Actions stay on one line while the table scrolls horizontally. */
+.actionsCell {
+  white-space: nowrap;
+}

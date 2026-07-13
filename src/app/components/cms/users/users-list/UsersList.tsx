@@ -58,6 +58,40 @@ import { PageHeader } from '../../../shared/common/PageHeader';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { FilterActions } from '../../../shared/common/FilterControls';
 
+/** Sortable column header: label + a single sort-direction toggle. */
+function SortHeader({
+  label,
+  column,
+}: {
+  label: string;
+  column: {
+    getIsSorted: () => false | 'asc' | 'desc';
+    toggleSorting: (desc?: boolean) => void;
+  };
+}) {
+  const sorted = column.getIsSorted();
+  return (
+    <Group gap={4} wrap="nowrap" className={classes.sortHeader}>
+      <Text span inherit>{label}</Text>
+      <ActionIcon
+        variant="transparent"
+        color="gray"
+        size="xs"
+        aria-label={`Sort by ${label}`}
+        onClick={() => column.toggleSorting(sorted === 'asc')}
+      >
+        {sorted === 'asc' ? (
+          <IconSortAscending size={14} />
+        ) : sorted === 'desc' ? (
+          <IconSortDescending size={14} />
+        ) : (
+          <IconSortAscending size={14} opacity={0.35} />
+        )}
+      </ActionIcon>
+    </Group>
+  );
+}
+
 interface IUsersListProps {
   onCreateUser?: () => void;
   onEditUser?: (userId: number) => void;
@@ -184,28 +218,9 @@ export function UsersList({
     () => [
       {
         accessorKey: "id",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>ID</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="ID" column={column} />,
         cell: ({ row }) => (
-          <Text size="sm" fw={500}>
+          <Text size="sm" c="dimmed">
             {row.original.id}
           </Text>
         ),
@@ -213,85 +228,49 @@ export function UsersList({
       },
       {
         accessorKey: "email",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Email</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
-        cell: ({ row }) => (
-          <div className={classes.emailCell}>
-            <Text size="sm" fw={500}>
-              {row.original.email}
-            </Text>
-            {row.original.name && (
-              <Text size="xs" c="dimmed">
-                {row.original.name}
+        header: ({ column }) => <SortHeader label="User" column={column} />,
+        cell: ({ row }) => {
+          const u = row.original;
+          return (
+            <div className={classes.userText}>
+              <Text size="sm" fw={600} className={classes.userName}>
+                {u.name || u.user_name || u.email}
               </Text>
-            )}
-          </div>
-        ),
+              <Text size="xs" c="dimmed" className={classes.userEmail}>
+                {u.email}
+              </Text>
+            </div>
+          );
+        },
         enableSorting: true,
       },
       {
         accessorKey: "user_name",
-        header: "Username",
+        header: () => <span className={classes.colHeader}>Username</span>,
         cell: ({ row }) => (
-          <Text size="sm">{row.original.user_name || "-"}</Text>
+          <Text size="sm">{row.original.user_name || "—"}</Text>
         ),
-        enableSorting: true,
       },
       {
         accessorKey: "code",
-        header: "User Code",
-        cell: ({ row }) => (
-          <Text size="xs" ff="monospace" c="dimmed">
-            {row.original.code || "-"}
-          </Text>
-        ),
+        header: () => <span className={classes.colHeader}>User Code</span>,
+        cell: ({ row }) =>
+          row.original.code ? (
+            <span className={classes.regCode}>{row.original.code}</span>
+          ) : (
+            <Text size="xs" c="dimmed">—</Text>
+          ),
       },
-
       {
         accessorKey: "user_type",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Type</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Type" column={column} />,
         cell: ({ row }) => (
           <Badge
             variant="light"
             color={row.original.user_type_code === "admin" ? "red" : "blue"}
             size="sm"
+            radius="sm"
+            styles={{ label: { textTransform: "capitalize" } }}
           >
             {row.original.user_type}
           </Badge>
@@ -300,30 +279,17 @@ export function UsersList({
       },
       {
         accessorKey: "status",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Status</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Status" column={column} />,
         cell: ({ row }) => {
           const status = row.original.blocked ? "blocked" : row.original.status;
           return (
-            <Badge variant="light" color={getUserStatusColor(status)} size="sm">
+            <Badge
+              variant="light"
+              color={getUserStatusColor(status)}
+              size="sm"
+              radius="sm"
+              styles={{ label: { textTransform: "capitalize" } }}
+            >
               {row.original.blocked ? "Blocked" : row.original.status}
             </Badge>
           );
@@ -332,44 +298,41 @@ export function UsersList({
       },
       {
         accessorKey: "groups",
-        header: "Groups",
-        cell: ({ row }) => (
-          <Text size="xs" c="dimmed" lineClamp={2}>
-            {row.original.groups || "No groups"}
-          </Text>
-        ),
+        header: () => <span className={classes.colHeader}>Groups</span>,
+        cell: ({ row }) => {
+          const groups = row.original.groups?.split(/[,;]/).map((g) => g.trim()).filter(Boolean) ?? [];
+          if (groups.length === 0) return <Text size="xs" c="dimmed">—</Text>;
+          return (
+            <Group gap={4} wrap="wrap">
+              {groups.map((g) => (
+                <Badge key={g} variant="light" color="gray" size="sm" radius="sm">
+                  {g}
+                </Badge>
+              ))}
+            </Group>
+          );
+        },
       },
       {
         accessorKey: "roles",
-        header: "Roles",
-        cell: ({ row }) => (
-          <Text size="xs" c="dimmed" lineClamp={2}>
-            {row.original.roles || "No roles"}
-          </Text>
-        ),
+        header: () => <span className={classes.colHeader}>Roles</span>,
+        cell: ({ row }) => {
+          const roles = row.original.roles?.split(/[,;]/).map((r) => r.trim()).filter(Boolean) ?? [];
+          if (roles.length === 0) return <Text size="xs" c="dimmed">—</Text>;
+          return (
+            <Group gap={4} wrap="wrap">
+              {roles.map((r) => (
+                <Badge key={r} variant="light" color="blue" size="sm" radius="sm">
+                  {r}
+                </Badge>
+              ))}
+            </Group>
+          );
+        },
       },
       {
         accessorKey: "last_login",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Last Login</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Last Login" column={column} />,
         cell: ({ row }) => (
           <Text size="xs" c="dimmed">
             {row.original.last_login || "Never"}
@@ -379,7 +342,7 @@ export function UsersList({
       },
       {
         accessorKey: "user_activity",
-        header: "Activity",
+        header: () => <span className={classes.colHeader}>Activity</span>,
         cell: ({ row }) => (
           <Text size="xs" c="dimmed">
             {row.original.user_activity}
@@ -388,13 +351,15 @@ export function UsersList({
       },
       {
         id: "actions",
-        header: "Actions",
+        header: () => <span className={classes.colHeader}>Actions</span>,
         cell: ({ row }) => (
-          <Group gap="xs">
-            <Tooltip label="Edit User">
+          <Group gap={2} wrap="nowrap" className={classes.actionsCell}>
+            <Tooltip label="Edit user" withArrow>
               <ActionIcon
                 variant="subtle"
+                color="gray"
                 size="sm"
+                aria-label="Edit user"
                 onClick={() => onEditUser?.(row.original.id)}
                 disabled={!permissions.canUpdate}
               >
@@ -402,13 +367,12 @@ export function UsersList({
               </ActionIcon>
             </Tooltip>
 
-            <Tooltip
-              label={row.original.blocked ? "Unblock User" : "Block User"}
-            >
+            <Tooltip label={row.original.blocked ? "Unblock user" : "Block user"} withArrow>
               <ActionIcon
                 variant="subtle"
                 size="sm"
                 color={row.original.blocked ? "green" : "red"}
+                aria-label={row.original.blocked ? "Unblock user" : "Block user"}
                 onClick={() =>
                   onToggleBlock?.(row.original.id, !row.original.blocked)
                 }
@@ -426,9 +390,9 @@ export function UsersList({
               </ActionIcon>
             </Tooltip>
 
-            <Menu shadow="md" width={200}>
+            <Menu shadow="md" width={200} position="bottom-end" withArrow>
               <Menu.Target>
-                <ActionIcon variant="subtle" size="sm">
+                <ActionIcon variant="subtle" color="gray" size="sm" aria-label="More actions">
                   <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
@@ -439,14 +403,14 @@ export function UsersList({
                   onClick={() => onSendActivationMail?.(row.original.id)}
                   disabled={!permissions.canUpdate}
                 >
-                  Send Activation Mail
+                  Send activation mail
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<IconUserCheck size={14} />}
                   onClick={() => onImpersonateUser?.(row.original.id)}
                   disabled={!permissions.canImpersonate}
                 >
-                  Impersonate User
+                  Impersonate user
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item
@@ -457,7 +421,7 @@ export function UsersList({
                   }
                   disabled={!permissions.canDelete}
                 >
-                  Delete User
+                  Delete user
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
@@ -511,6 +475,7 @@ export function UsersList({
         <PageHeader
           title="Users Management"
           subtitle="Manage user accounts, permissions, and settings"
+          badge={usersData?.pagination.totalCount ?? 0}
         >
           <Group gap="xs">
             <Button
@@ -578,7 +543,7 @@ export function UsersList({
           <LoadingOverlay visible={isFetching} />
 
           <Box className={classes.tableScrollContainer}>
-            <Table striped highlightOnHover className={classes.table}>
+            <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
               <TableThead>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableTr key={headerGroup.id}>
@@ -597,7 +562,7 @@ export function UsersList({
               </TableThead>
               <TableTbody>
                 {table.getRowModel().rows.map((row) => (
-                  <TableTr key={row.id} className={classes.tableRow}>
+                  <TableTr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <TableTd key={cell.id} className={classes.tableCell}>
                         {flexRender(
@@ -626,25 +591,24 @@ export function UsersList({
             )}
         </div>
 
-        {/* Pagination */}
-        {usersData?.pagination && usersData.pagination.totalPages > 1 && (
+        {/* Pagination — always visible when data is loaded. */}
+        {usersData?.pagination && (
           <Group justify="space-between">
             <Text size="sm" c="dimmed">
-              Showing{" "}
-              {(usersData.pagination.page - 1) * usersData.pagination.pageSize +
-                1}{" "}
-              to{" "}
-              {Math.min(
-                usersData.pagination.page * usersData.pagination.pageSize,
-                usersData.pagination.totalCount,
-              )}{" "}
-              of {usersData.pagination.totalCount} users
+              {usersData.pagination.totalCount === 0
+                ? "No users"
+                : `Showing ${
+                    (usersData.pagination.page - 1) * usersData.pagination.pageSize + 1
+                  } to ${Math.min(
+                    usersData.pagination.page * usersData.pagination.pageSize,
+                    usersData.pagination.totalCount,
+                  )} of ${usersData.pagination.totalCount} users`}
             </Text>
 
             <Pagination
               value={usersData.pagination.page}
               onChange={handlePageChange}
-              total={usersData.pagination.totalPages}
+              total={Math.max(usersData.pagination.totalPages, 1)}
               size="sm"
             />
           </Group>
