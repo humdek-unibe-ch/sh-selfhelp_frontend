@@ -9,6 +9,7 @@ import { ScrollArea, Group, Box, Accordion, ActionIcon, Tooltip, Text } from '@m
 import {
     IconDashboard,
     IconSettings,
+    IconSettingsAutomation,
     IconFileText,
     IconPhoto,
     IconDatabase,
@@ -64,8 +65,6 @@ type TNavbarItem = {
     onClick?: () => void;
     initiallyOpened?: boolean;
     id: string;
-    /** 'section' renders a quiet uppercase page-list heading (System Pages, Configuration). */
-    variant?: 'group' | 'section';
 };
 
 /** One accordion group with optional quick actions rendered in the control row. */
@@ -317,7 +316,7 @@ export function AdminNavbar() {
             if (systemPageLinks.length > 0) {
                 pageItems.push({
                     label: 'System Pages',
-                    variant: 'section',
+                    icon: <IconSettingsAutomation size={16} />,
                     links: systemPageLinks,
                     id: 'system-pages',
                 });
@@ -327,7 +326,7 @@ export function AdminNavbar() {
         if (permissionChecker.canReadPages() && configurationPageLinks && configurationPageLinks.length > 0) {
             pageItems.push({
                 label: 'Configuration',
-                variant: 'section',
+                icon: <IconSettings size={16} />,
                 links: configurationPageLinks.map(page => ({
                     label: page.label,
                     link: `/admin/pages/${page.keyword}`,

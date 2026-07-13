@@ -22,45 +22,7 @@ describe('admin navbar LinksGroup', () => {
         localStorage.clear();
     });
 
-    it('renders a page category as a plain section heading, with no icon row control', () => {
-        renderWithProviders(
-            <LinksGroup
-                label="Menu Pages"
-                variant="section"
-                initiallyOpened
-                links={[{ label: 'teste', link: '/admin/pages/teste' }]}
-            />,
-        );
-
-        // The heading itself is the disclosure control...
-        const heading = screen.getByRole('button', { name: 'Menu Pages' });
-        expect(heading).toHaveAttribute('aria-expanded', 'true');
-
-        // ...and unlike a functional group there is no separate labelled chevron.
-        expect(screen.queryByRole('button', { name: /Collapse Menu Pages/ })).toBeNull();
-        expect(screen.queryByRole('button', { name: /Expand Menu Pages/ })).toBeNull();
-
-        expect(screen.getByRole('link', { name: 'teste' })).toBeInTheDocument();
-    });
-
-    it('marks the page matching the current route as active', () => {
-        renderWithProviders(
-            <LinksGroup
-                label="Menu Pages"
-                variant="section"
-                initiallyOpened
-                links={[
-                    { label: 'teste', link: '/admin/pages/teste' },
-                    { label: 'impressum', link: '/admin/pages/impressum' },
-                ]}
-            />,
-        );
-
-        expect(screen.getByRole('link', { name: 'teste' })).toHaveAttribute('data-active', 'true');
-        expect(screen.getByRole('link', { name: 'impressum' })).toHaveAttribute('data-active', 'false');
-    });
-
-    it('keeps the functional group as an icon row with its own labelled chevron', () => {
+    it('renders an expandable group with an icon and a labelled chevron', () => {
         renderWithProviders(
             <LinksGroup
                 label="User Management"
@@ -73,31 +35,50 @@ describe('admin navbar LinksGroup', () => {
         expect(chevron).toHaveAttribute('aria-expanded', 'false');
     });
 
-    it('collapses an open section when its heading is clicked', async () => {
+    it('marks the page matching the current route as active', () => {
+        renderWithProviders(
+            <LinksGroup
+                label="Content Pages"
+                icon={<IconDashboard size={16} />}
+                initiallyOpened
+                links={[
+                    { label: 'teste', link: '/admin/pages/teste' },
+                    { label: 'impressum', link: '/admin/pages/impressum' },
+                ]}
+            />,
+        );
+
+        expect(screen.getByRole('link', { name: 'teste' })).toHaveAttribute('data-active', 'true');
+        expect(screen.getByRole('link', { name: 'impressum' })).toHaveAttribute('data-active', 'false');
+    });
+
+    it('collapses an open group when its chevron is clicked', async () => {
         // Seed the persisted value: `usePersistedDisclosure` swallows the very
         // first toggle of a group that has no stored value yet.
-        localStorage.setItem('navbar-footer-pages-opened', 'true');
+        localStorage.setItem('navbar-content-pages-opened', 'true');
 
         renderWithProviders(
             <LinksGroup
-                label="Footer Pages"
-                variant="section"
+                label="Content Pages"
+                icon={<IconDashboard size={16} />}
                 links={[{ label: 'impressum', link: '/admin/pages/impressum' }]}
             />,
         );
 
-        const heading = screen.getByRole('button', { name: 'Footer Pages' });
-        expect(heading).toHaveAttribute('aria-expanded', 'true');
+        const collapse = screen.getByRole('button', { name: 'Collapse Content Pages' });
+        expect(collapse).toHaveAttribute('aria-expanded', 'true');
 
-        await userEvent.click(heading);
-        expect(heading).toHaveAttribute('aria-expanded', 'false');
+        await userEvent.click(collapse);
+        expect(
+            screen.getByRole('button', { name: 'Expand Content Pages' }),
+        ).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('navigates when a page link is clicked', async () => {
         renderWithProviders(
             <LinksGroup
-                label="Footer Pages"
-                variant="section"
+                label="Content Pages"
+                icon={<IconDashboard size={16} />}
                 initiallyOpened
                 links={[{ label: 'impressum', link: '/admin/pages/impressum' }]}
             />,

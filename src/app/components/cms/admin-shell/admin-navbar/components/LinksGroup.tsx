@@ -12,7 +12,7 @@ import {
   Text,
   UnstyledButton,
 } from '@mantine/core';
-import { IconChevronRight, IconFile } from '@tabler/icons-react';
+import { IconChevronRight } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
 import classes from './LinksGroup.module.css';
 
@@ -25,14 +25,6 @@ function useAdminNavMounted(): boolean {
   }, []);
   return mounted;
 }
-
-/**
- * `group`   — a functional area (Dashboard, User Management, Automation…):
- *             an icon + label row that expands into an indented child list.
- * `section` — a list of CMS pages (Menu Pages, Footer Pages, Configuration…):
- *             a quiet uppercase heading whose children are page pills.
- */
-type TLinksGroupVariant = 'group' | 'section';
 
 /** A single admin navbar link, optionally containing nested children. */
 interface INavLinkItem {
@@ -154,15 +146,13 @@ interface ILinksGroupProps {
   links?: INavLinkItem[];
   link?: string;
   selectable?: boolean;
-  variant?: TLinksGroupVariant;
   onClick?: () => void;
 }
 
-export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick, variant = 'group' }: ILinksGroupProps) {
+export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick }: ILinksGroupProps) {
   const router = useRouter();
   const pathname = usePathname();
   const hasLinks = Array.isArray(links);
-  const isSection = variant === 'section';
   const storageKey = `navbar-${label.replace(/\s+/g, '-').toLowerCase()}-opened`;
 
   // Check if this item or any nested item is active
@@ -232,19 +222,11 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick,
         );
       }
 
-      // Under a section heading a leaf is a CMS page: full-width pill with a
-      // file glyph. Under a functional group it hangs off the indent rail.
-      const isPagePill = isSection && level === 0;
-
       return (
         <Text<'a'>
           component="a"
           key={item.id || item.label}
-          className={
-            isPagePill
-              ? `${classes.link} ${classes.pageLink}`
-              : `${classes.link} ${getNestedLinkClass(level)}`
-          }
+          className={`${classes.link} ${getNestedLinkClass(level)}`}
           href={item.link}
           data-active={isItemActive}
           onClick={(e) => {
@@ -261,42 +243,13 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick,
             e.stopPropagation();
           }}
         >
-          {isPagePill ? (
-            <span className={classes.pageLinkBody}>
-              <IconFile size={16} stroke={1.5} className={classes.pageLinkIcon} />
-              <span className={classes.pageLinkLabel}>{item.label}</span>
-            </span>
-          ) : (
-            item.label
-          )}
+          {item.label}
         </Text>
       );
     });
   };
 
   const items = renderNestedLinks(links || []);
-
-  if (isSection) {
-    return (
-      <>
-        <Box className={classes.sectionControl}>
-          <UnstyledButton
-            onClick={() => setOpened((o: boolean) => !o)}
-            className={classes.sectionLabelButton}
-            aria-expanded={opened}
-          >
-            {label}
-          </UnstyledButton>
-          <IconChevronRight
-            className={`${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}
-            size="0.85rem"
-            stroke={2}
-          />
-        </Box>
-        <Collapse expanded={opened}>{items}</Collapse>
-      </>
-    );
-  }
 
   return (
     <>
