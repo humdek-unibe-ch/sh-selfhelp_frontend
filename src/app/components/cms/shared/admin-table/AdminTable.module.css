@@ -1,0 +1,60 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/* Shared admin list-table styling: the bordered shell, the quiet uppercase
+   header row, and generic cell helpers. Used by the Users, Groups, Roles and
+   Registration Codes lists so the four pages stay visually identical. Each page
+   keeps only its own domain-specific cell classes locally. */
+
+/* ── Table shell ────────────────────────────────────────────────────────── */
+.tableWrapper {
+  position: relative;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  overflow: hidden;
+}
+
+.tableScrollContainer {
+  overflow-x: auto;
+}
+
+/* ── Header row ─────────────────────────────────────────────────────────── */
+/* Quiet uppercase column labels. Applied to every <th>. */
+.tableHeader :global(*),
+.colHeader,
+.sortHeader {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+}
+
+.tableHeader {
+  background-color: var(--mantine-color-gray-0);
+  white-space: nowrap;
+}
+
+[data-mantine-color-scheme='dark'] .tableHeader {
+  background-color: var(--mantine-color-dark-6);
+}
+
+/* ── Body cells ─────────────────────────────────────────────────────────── */
+.tableCell {
+  vertical-align: middle;
+}
+
+/* Actions stay on one line while the table scrolls horizontally. */
+.actionsCell {
+  white-space: nowrap;
+}
+
+/* Monospace identifier / code cell. */
+.monoCell {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}

@@ -46,8 +46,6 @@ import {
   IconUserCheck,
   IconDots,
   IconPlus,
-  IconSortAscending,
-  IconSortDescending,
   IconX,
 } from '@tabler/icons-react';
 import { useUsers } from '../../../../../hooks/useUsers';
@@ -57,40 +55,7 @@ import classes from './UsersList.module.css';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { FilterActions } from '../../../shared/common/FilterControls';
-
-/** Sortable column header: label + a single sort-direction toggle. */
-function SortHeader({
-  label,
-  column,
-}: {
-  label: string;
-  column: {
-    getIsSorted: () => false | 'asc' | 'desc';
-    toggleSorting: (desc?: boolean) => void;
-  };
-}) {
-  const sorted = column.getIsSorted();
-  return (
-    <Group gap={4} wrap="nowrap" className={classes.sortHeader}>
-      <Text span inherit>{label}</Text>
-      <ActionIcon
-        variant="transparent"
-        color="gray"
-        size="xs"
-        aria-label={`Sort by ${label}`}
-        onClick={() => column.toggleSorting(sorted === 'asc')}
-      >
-        {sorted === 'asc' ? (
-          <IconSortAscending size={14} />
-        ) : sorted === 'desc' ? (
-          <IconSortDescending size={14} />
-        ) : (
-          <IconSortAscending size={14} opacity={0.35} />
-        )}
-      </ActionIcon>
-    </Group>
-  );
-}
+import { SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
 
 interface IUsersListProps {
   onCreateUser?: () => void;
@@ -246,17 +211,17 @@ export function UsersList({
       },
       {
         accessorKey: "user_name",
-        header: () => <span className={classes.colHeader}>Username</span>,
+        header: () => <span className={tableStyles.colHeader}>Username</span>,
         cell: ({ row }) => (
           <Text size="sm">{row.original.user_name || "—"}</Text>
         ),
       },
       {
         accessorKey: "code",
-        header: () => <span className={classes.colHeader}>User Code</span>,
+        header: () => <span className={tableStyles.colHeader}>User Code</span>,
         cell: ({ row }) =>
           row.original.code ? (
-            <span className={classes.regCode}>{row.original.code}</span>
+            <span className={tableStyles.monoCell}>{row.original.code}</span>
           ) : (
             <Text size="xs" c="dimmed">—</Text>
           ),
@@ -298,7 +263,7 @@ export function UsersList({
       },
       {
         accessorKey: "groups",
-        header: () => <span className={classes.colHeader}>Groups</span>,
+        header: () => <span className={tableStyles.colHeader}>Groups</span>,
         cell: ({ row }) => {
           const groups = row.original.groups?.split(/[,;]/).map((g) => g.trim()).filter(Boolean) ?? [];
           if (groups.length === 0) return <Text size="xs" c="dimmed">—</Text>;
@@ -315,7 +280,7 @@ export function UsersList({
       },
       {
         accessorKey: "roles",
-        header: () => <span className={classes.colHeader}>Roles</span>,
+        header: () => <span className={tableStyles.colHeader}>Roles</span>,
         cell: ({ row }) => {
           const roles = row.original.roles?.split(/[,;]/).map((r) => r.trim()).filter(Boolean) ?? [];
           if (roles.length === 0) return <Text size="xs" c="dimmed">—</Text>;
@@ -342,7 +307,7 @@ export function UsersList({
       },
       {
         accessorKey: "user_activity",
-        header: () => <span className={classes.colHeader}>Activity</span>,
+        header: () => <span className={tableStyles.colHeader}>Activity</span>,
         cell: ({ row }) => (
           <Text size="xs" c="dimmed">
             {row.original.user_activity}
@@ -351,9 +316,9 @@ export function UsersList({
       },
       {
         id: "actions",
-        header: () => <span className={classes.colHeader}>Actions</span>,
+        header: () => <span className={tableStyles.colHeader}>Actions</span>,
         cell: ({ row }) => (
-          <Group gap={2} wrap="nowrap" className={classes.actionsCell}>
+          <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
             <Tooltip label="Edit user" withArrow>
               <ActionIcon
                 variant="subtle"
@@ -539,16 +504,16 @@ export function UsersList({
         </Card>
 
         {/* Table */}
-        <div className={classes.tableWrapper}>
+        <div className={tableStyles.tableWrapper}>
           <LoadingOverlay visible={isFetching} />
 
-          <Box className={classes.tableScrollContainer}>
+          <Box className={tableStyles.tableScrollContainer}>
             <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
               <TableThead>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableTr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableTh key={header.id} className={classes.tableHeader}>
+                      <TableTh key={header.id} className={tableStyles.tableHeader}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -564,7 +529,7 @@ export function UsersList({
                 {table.getRowModel().rows.map((row) => (
                   <TableTr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableTd key={cell.id} className={classes.tableCell}>
+                      <TableTd key={cell.id} className={tableStyles.tableCell}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
