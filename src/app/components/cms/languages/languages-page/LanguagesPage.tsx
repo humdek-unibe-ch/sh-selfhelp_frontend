@@ -88,7 +88,7 @@ export function LanguagesPage() {
     };
 
     return (
-      <Paper p="md" radius="md">
+      <Paper radius="md">
         <Stack gap="md">
           {/* Standardized Header */}
           <Group justify="space-between" align="center" wrap="wrap" gap="xs">
