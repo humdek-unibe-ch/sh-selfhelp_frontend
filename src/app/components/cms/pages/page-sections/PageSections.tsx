@@ -731,7 +731,7 @@ function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSection
                </Title>
                <Text span className={pageStyles.titleSep}>/</Text>
                <Text span className={pageStyles.titleSub}>Sections</Text>
-               <Badge variant="light" color="gray" size="lg" radius="xl">
+               <Badge variant="light" color="blue" size="lg" radius="xl">
                  {data?.sections?.length || 0}
                </Badge>
              </Group>
