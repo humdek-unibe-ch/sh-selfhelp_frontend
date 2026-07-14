@@ -42,8 +42,6 @@ import {
   IconTrash,
   IconDots,
   IconPlus,
-  IconSortAscending,
-  IconSortDescending,
   IconUsers,
   IconX,
   IconFileText,
@@ -55,6 +53,8 @@ import type { IRoleDetails, IRolesListParams } from '../../../../../types/respon
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
+import { SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import classes from './RolesList.module.css';
 
 interface IRolesListProps {
   onCreateRole?: () => void;
@@ -175,72 +175,33 @@ export function RolesList({
     () => [
       {
         accessorKey: "id",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>ID</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: () => <span className={tableStyles.colHeader}>ID</span>,
         cell: ({ row }) => (
-          <Text size="sm" fw={500}>
+          <Text size="sm" c="dimmed">
             {row.original.id}
           </Text>
         ),
-        enableSorting: true,
       },
       {
         accessorKey: "name",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Name</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Name" column={column} />,
         cell: ({ row }) => {
           const adminRole = isAdminRole(row.original.name);
 
           return (
-            <div>
-              <Group gap="xs" align="center">
-                <Text size="sm" fw={500}>
+            <div className={classes.nameText}>
+              <Group gap="xs" align="center" wrap="nowrap">
+                <Text size="sm" fw={600} className={classes.roleName}>
                   {row.original.name}
                 </Text>
                 {adminRole && (
-                  <Badge size="xs" color="red" variant="light">
+                  <Badge size="xs" color="red" variant="light" radius="sm">
                     Admin
                   </Badge>
                 )}
               </Group>
               {row.original.description && (
-                <Text size="xs" c="dimmed">
+                <Text size="xs" c="dimmed" className={classes.roleDescription}>
                   {row.original.description}
                 </Text>
               )}
@@ -251,28 +212,9 @@ export function RolesList({
       },
       {
         accessorKey: "permissions_count",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Permissions</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Permissions" column={column} />,
         cell: ({ row }) => (
-          <Badge size="sm" variant="light" color="blue">
+          <Badge size="sm" variant="light" color="blue" radius="sm">
             {row.original.permissions_count}
           </Badge>
         ),
@@ -280,28 +222,9 @@ export function RolesList({
       },
       {
         accessorKey: "users_count",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Users</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Users" column={column} />,
         cell: ({ row }) => (
-          <Badge size="sm" variant="light" color="blue">
+          <Badge size="sm" variant="light" color="blue" radius="sm">
             {row.original.users_count}
           </Badge>
         ),
@@ -309,20 +232,23 @@ export function RolesList({
       },
       {
         id: "actions",
-        header: "Actions",
+        header: () => <span className={tableStyles.colHeader}>Actions</span>,
         cell: ({ row }) => {
           const adminRole = isAdminRole(row.original.name);
 
           return (
-            <Group gap="xs">
+            <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
               <Tooltip
+                withArrow
                 label={
-                  adminRole ? "Admin role cannot be modified" : "Edit Role"
+                  adminRole ? "Admin role cannot be modified" : "Edit role"
                 }
               >
                 <ActionIcon
                   variant="subtle"
+                  color="gray"
                   size="sm"
+                  aria-label="Edit role"
                   disabled={adminRole}
                   onClick={() => !adminRole && onEditRole?.(row.original.id)}
                 >
@@ -403,9 +329,9 @@ export function RolesList({
                 </ActionIcon>
               </Tooltip>
 
-              <Menu shadow="md" width={200}>
+              <Menu shadow="md" width={200} position="bottom-end" withArrow>
                 <Menu.Target>
-                  <ActionIcon variant="subtle" size="sm">
+                  <ActionIcon variant="subtle" color="gray" size="sm" aria-label="More actions">
                     <IconDots size={16} />
                   </ActionIcon>
                 </Menu.Target>
@@ -479,16 +405,17 @@ export function RolesList({
         <PageHeader
           title="Roles Management"
           subtitle="Manage user roles and their permissions"
+          badge={rolesData?.pagination.totalCount ?? 0}
         >
           <Button leftSection={<IconPlus size={16} />} onClick={onCreateRole}>
             Create Role
           </Button>
         </PageHeader>
 
-        {/* Filters Card */}
+        {/* Filters Card — search + page size on the same row as the actions. */}
         <Card withBorder p="md">
-          <Stack gap="md">
-            <Group gap="md" align="flex-end">
+          <Group gap="md" align="flex-end" justify="space-between">
+            <Group gap="md" style={{ flex: 1 }}>
               <TextInput
                 placeholder="Search roles..."
                 leftSection={<IconSearch size={16} />}
@@ -523,7 +450,6 @@ export function RolesList({
               />
             </Group>
 
-            {/* Filter Actions - Right aligned under the form */}
             <Group justify="flex-end">
               <FilterActions
                 onApply={handleApplyFilters}
@@ -533,20 +459,20 @@ export function RolesList({
                 isApplyDisabled={filterParams === params}
               />
             </Group>
-          </Stack>
+          </Group>
         </Card>
 
         {/* Table */}
-        <div style={{ position: "relative" }}>
+        <div className={tableStyles.tableWrapper}>
           <LoadingOverlay visible={isFetching} />
 
-          <Box style={{ overflowX: "auto" }}>
-            <Table striped highlightOnHover>
+          <Box className={tableStyles.tableScrollContainer}>
+            <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
               <TableThead>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableTr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableTh key={header.id}>
+                      <TableTh key={header.id} className={tableStyles.tableHeader}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -562,7 +488,7 @@ export function RolesList({
                 {table.getRowModel().rows.map((row) => (
                   <TableTr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableTd key={cell.id}>
+                      <TableTd key={cell.id} className={tableStyles.tableCell}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
@@ -588,25 +514,24 @@ export function RolesList({
           )}
         </div>
 
-        {/* Pagination */}
-        {rolesData?.pagination && rolesData.pagination.totalPages > 1 && (
+        {/* Pagination — always visible when data is loaded. */}
+        {rolesData?.pagination && (
           <Group justify="space-between">
             <Text size="sm" c="dimmed">
-              Showing{" "}
-              {(rolesData.pagination.page - 1) * rolesData.pagination.pageSize +
-                1}{" "}
-              to{" "}
-              {Math.min(
-                rolesData.pagination.page * rolesData.pagination.pageSize,
-                rolesData.pagination.totalCount,
-              )}{" "}
-              of {rolesData.pagination.totalCount} roles
+              {rolesData.pagination.totalCount === 0
+                ? "No roles"
+                : `Showing ${
+                    (rolesData.pagination.page - 1) * rolesData.pagination.pageSize + 1
+                  } to ${Math.min(
+                    rolesData.pagination.page * rolesData.pagination.pageSize,
+                    rolesData.pagination.totalCount,
+                  )} of ${rolesData.pagination.totalCount} roles`}
             </Text>
 
             <Pagination
               value={rolesData.pagination.page}
               onChange={handlePageChange}
-              total={rolesData.pagination.totalPages}
+              total={Math.max(rolesData.pagination.totalPages, 1)}
               size="sm"
             />
           </Group>
