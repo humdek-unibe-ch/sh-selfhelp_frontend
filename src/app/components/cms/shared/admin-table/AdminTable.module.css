@@ -21,7 +21,10 @@ SPDX-License-Identifier: MPL-2.0
 }
 
 /* ── Header row ─────────────────────────────────────────────────────────── */
-/* Quiet uppercase column labels. Applied to every <th>. */
+/* Quiet uppercase column labels. The typography sits on `.tableHeader` itself
+   so bare-text `<th>` labels get it too, and on `.colHeader`/`.sortHeader` for
+   the wrapper-based headers used by the TanStack lists. */
+.tableHeader,
 .tableHeader :global(*),
 .colHeader,
 .sortHeader {
@@ -35,7 +38,6 @@ SPDX-License-Identifier: MPL-2.0
 
 .tableHeader {
   background-color: var(--mantine-color-gray-0);
-  white-space: nowrap;
 }
 
 [data-mantine-color-scheme='dark'] .tableHeader {
