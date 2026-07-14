@@ -13,8 +13,10 @@ import {
 import { LanguagesList } from '../languages-list/LanguagesList';
 import { LanguageFormModal } from '../language-form-modal/LanguageFormModal';
 import { DeleteLanguageModal } from '../delete-language-modal/DeleteLanguageModal';
-import { Group, Container, Button, Text, Paper, Stack } from '@mantine/core';
+import { Button, Paper, Stack } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
+import { useAdminLanguages } from '../../../../../hooks/useLanguages';
+import { PageHeader } from '../../../shared/common/PageHeader';
 
 export function LanguagesPage() {
     const [languageFormModal, setLanguageFormModal] = useState<{
@@ -38,6 +40,8 @@ export function LanguagesPage() {
         languageName: undefined,
         languageLocale: undefined,
     });
+
+    const { languages } = useAdminLanguages();
 
     // Mutations
     const _createLanguageMutation = useCreateLanguageMutation();
@@ -91,28 +95,18 @@ export function LanguagesPage() {
       <Paper radius="md">
         <Stack gap="md">
           {/* Standardized Header */}
-          <Group justify="space-between" align="center" wrap="wrap" gap="xs">
-            <Group justify="space-between">
-              <Container pl={0}>
-                <Group gap={8} align="center">
-                  <Text size="lg" fw={600}>
-                    Languages
-                  </Text>
-                  {/* Optional: You can show total count here if you fetch it */}
-                </Group>
-                <Text size="sm" c="dimmed">
-                  Manage available languages and locales
-                </Text>
-              </Container>
-            </Group>
-
+          <PageHeader
+            title="Languages"
+            subtitle="Manage available languages and locales"
+            badge={languages?.length ?? 0}
+          >
             <Button
               leftSection={<IconPlus size={16} />}
               onClick={handleCreateLanguage}
             >
               Add Language
             </Button>
-          </Group>
+          </PageHeader>
           <LanguagesList
             onCreateLanguage={handleCreateLanguage}
             onEditLanguage={handleEditLanguage}
