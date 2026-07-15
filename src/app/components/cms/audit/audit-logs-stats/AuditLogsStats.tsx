@@ -26,6 +26,7 @@ import { useAuditStats, useAuditLogs } from '../../../../../hooks/useAuditLogs';
 import { DatePickerInput } from '@mantine/dates';
 import type { IAuditStatsParams } from '../../../../../types/responses/admin/audit.types';
 import { FilterActions } from '../../../shared/common/FilterControls';
+import { adminTableClasses as tableStyles } from '../../shared/admin-table';
 
 export function AuditLogsStats() {
   const [dateRange, setDateRange] = useState<IAuditStatsParams>({
@@ -263,62 +264,64 @@ export function AuditLogsStats() {
           <Card withBorder mt="md">
             <Text fw={600} mb="md">Recent Audit Activity</Text>
             <LoadingOverlay visible={logsFetching} />
-            <div className="overflow-x-auto">
-              <Table striped highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>User</Table.Th>
-                    <Table.Th>Action</Table.Th>
-                    <Table.Th>Resource</Table.Th>
-                    <Table.Th>Result</Table.Th>
-                    <Table.Th>Time</Table.Th>
-                    <Table.Th>Notes</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {logsData.logs.map((log) => (
-                    <Table.Tr key={log.id}>
-                      <Table.Td>
-                        <div>
-                          <Text size="sm" fw={500}>{log.user.username}</Text>
-                          <Text size="xs" c="dimmed">{log.user.email}</Text>
-                        </div>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge variant="light" color="blue">
-                          {log.action.lookupValue}
-                        </Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        <div>
-                          <Text size="sm" fw={500}>{log.resourceType.lookupValue}</Text>
-                          {log.resourceId !== 0 && (
-                            <Text size="xs" c="dimmed">ID: {log.resourceId}</Text>
-                          )}
-                        </div>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge
-                          variant="light"
-                          color={log.permissionResult.lookupCode === 'granted' ? 'green' : 'red'}
-                        >
-                          {log.permissionResult.lookupValue}
-                        </Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size="sm">
-                          {new Date(log.createdAt).toLocaleString()}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size="sm" c="dimmed">
-                          {log.notes || '-'}
-                        </Text>
-                      </Table.Td>
+            <div className={tableStyles.tableWrapper}>
+              <Box className={tableStyles.tableScrollContainer}>
+                <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th className={tableStyles.tableHeader}>User</Table.Th>
+                      <Table.Th className={tableStyles.tableHeader}>Action</Table.Th>
+                      <Table.Th className={tableStyles.tableHeader}>Resource</Table.Th>
+                      <Table.Th className={tableStyles.tableHeader}>Result</Table.Th>
+                      <Table.Th className={tableStyles.tableHeader}>Time</Table.Th>
+                      <Table.Th className={tableStyles.tableHeader}>Notes</Table.Th>
                     </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {logsData.logs.map((log) => (
+                      <Table.Tr key={log.id}>
+                        <Table.Td className={tableStyles.tableCell}>
+                          <div>
+                            <Text size="sm" fw={500}>{log.user.username}</Text>
+                            <Text size="xs" c="dimmed">{log.user.email}</Text>
+                          </div>
+                        </Table.Td>
+                        <Table.Td className={tableStyles.tableCell}>
+                          <Badge variant="light" color="blue">
+                            {log.action.lookupValue}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td className={tableStyles.tableCell}>
+                          <div>
+                            <Text size="sm" fw={500}>{log.resourceType.lookupValue}</Text>
+                            {log.resourceId !== 0 && (
+                              <Text size="xs" c="dimmed">ID: {log.resourceId}</Text>
+                            )}
+                          </div>
+                        </Table.Td>
+                        <Table.Td className={tableStyles.tableCell}>
+                          <Badge
+                            variant="light"
+                            color={log.permissionResult.lookupCode === 'granted' ? 'green' : 'red'}
+                          >
+                            {log.permissionResult.lookupValue}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td className={tableStyles.tableCell}>
+                          <Text size="sm">
+                            {new Date(log.createdAt).toLocaleString()}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td className={tableStyles.tableCell}>
+                          <Text size="sm" c="dimmed">
+                            {log.notes || '-'}
+                          </Text>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </Box>
             </div>
           </Card>
         )}
