@@ -41,7 +41,7 @@ import {
     Group,
     Loader,
     Paper,
-    ScrollArea,
+    Box,
     Stack,
     Table,
     Tabs,
@@ -74,6 +74,8 @@ import { AvailablePluginsPanel } from '../available-plugins-panel/AvailablePlugi
 import { PluginVersionMismatchBanner } from '../plugin-version-mismatch-banner/PluginVersionMismatchBanner';
 import { ActivePluginOperationsPanel } from '../plugin-operation-progress/PluginOperationProgress';
 import { isTransientApiError } from '../../../../../utils/transient-error.utils';
+import { EmptyState } from '../../../shared/common/EmptyState';
+import { adminTableClasses as tableStyles } from '../../shared/admin-table';
 import type { IAdminPluginAvailableUpdate } from '../../../../../types/responses/admin/plugins.types';
 
 type TPluginsTab = 'installed' | 'available' | 'sources';
@@ -497,152 +499,155 @@ export function PluginsPage() {
                 </Tabs.List>
 
                 <Tabs.Panel value="installed" pt="md">
-                    <ScrollArea>
-                        <Table withTableBorder striped highlightOnHover stickyHeader>
-                            <Table.Thead>
-                                <Table.Tr>
-                                    <Table.Th>Plugin</Table.Th>
-                                    <Table.Th>Version</Table.Th>
-                                    <Table.Th>Trust</Table.Th>
-                                    <Table.Th>Mode</Table.Th>
-                                    <Table.Th>Status</Table.Th>
-                                    <Table.Th>Compatibility</Table.Th>
-                                    <Table.Th>Actions</Table.Th>
-                                </Table.Tr>
-                            </Table.Thead>
-                            <Table.Tbody>
-                                {rows.map((p) => (
-                                    <Table.Tr
-                                        key={p.pluginId}
-                                        onClick={() => router.push(`/admin/plugins/${encodeURIComponent(p.pluginId)}`)}
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <Table.Td>
-                                            <Stack gap={0}>
-                                                <Anchor component={Link} href={`/admin/plugins/${encodeURIComponent(p.pluginId)}`} fw={600} onClick={(e) => e.stopPropagation()}>
-                                                    {p.name}
-                                                </Anchor>
-                                                <Text size="xs" c="dimmed">{p.pluginId}</Text>
-                                            </Stack>
-                                        </Table.Td>
-                                        <Table.Td>
-                                            <Stack gap={2}>
-                                                <Text size="sm">{p.version}</Text>
-                                                {p.availableUpdate && (
-                                                    <Tooltip
-                                                        label={`v${p.availableUpdate.availableVersion} available from ${p.availableUpdate.sourceName} (${p.availableUpdate.diffKind} update)`}
-                                                        position="right"
-                                                    >
-                                                        <Badge
-                                                            size="xs"
-                                                            variant="light"
-                                                            color={UPDATE_DIFF_COLORS[p.availableUpdate.diffKind] ?? 'gray'}
-                                                            leftSection={<IconArrowUp size={10} />}
+                    <div className={tableStyles.tableWrapper}>
+                        <Box className={tableStyles.tableScrollContainer}>
+                            <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md" stickyHeader>
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th className={tableStyles.tableHeader}>Plugin</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Version</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Trust</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Mode</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Status</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Compatibility</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Actions</Table.Th>
+                                    </Table.Tr>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                    {rows.map((p) => (
+                                        <Table.Tr
+                                            key={p.pluginId}
+                                            onClick={() => router.push(`/admin/plugins/${encodeURIComponent(p.pluginId)}`)}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <Table.Td className={tableStyles.tableCell}>
+                                                <Stack gap={0}>
+                                                    <Anchor component={Link} href={`/admin/plugins/${encodeURIComponent(p.pluginId)}`} fw={600} onClick={(e) => e.stopPropagation()}>
+                                                        {p.name}
+                                                    </Anchor>
+                                                    <Text size="xs" c="dimmed">{p.pluginId}</Text>
+                                                </Stack>
+                                            </Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>
+                                                <Stack gap={2}>
+                                                    <Text size="sm">{p.version}</Text>
+                                                    {p.availableUpdate && (
+                                                        <Tooltip
+                                                            label={`v${p.availableUpdate.availableVersion} available from ${p.availableUpdate.sourceName} (${p.availableUpdate.diffKind} update)`}
+                                                            position="right"
                                                         >
-                                                            v{p.availableUpdate.availableVersion}
-                                                        </Badge>
-                                                    </Tooltip>
-                                                )}
-                                            </Stack>
-                                        </Table.Td>
-                                        <Table.Td>
-                                            <Badge color={p.trustLevel === 'official' ? 'green' : p.trustLevel === 'reviewed' ? 'blue' : 'gray'}>
-                                                {p.trustLevel}
-                                            </Badge>
-                                        </Table.Td>
-                                        <Table.Td>{p.installMode}</Table.Td>
-                                        <Table.Td>
-                                            <Badge color={p.enabled ? 'green' : 'gray'}>
-                                                {p.enabled ? 'enabled' : 'disabled'}
-                                            </Badge>
-                                        </Table.Td>
-                                        <Table.Td>
-                                            <Badge color={
-                                                p.compatibility?.severity === 'ok'
-                                                    ? 'green'
-                                                    : p.compatibility?.severity === 'warning'
-                                                        ? 'yellow'
-                                                        : 'red'
-                                            }>
-                                                {p.compatibility?.severity ?? 'unknown'}
-                                            </Badge>
-                                        </Table.Td>
-                                        <Table.Td>
-                                            {(() => {
-                                                const activeOp = activePluginOperationFor(operations, p.pluginId);
-                                                const busy = Boolean(activeOp) || busyPluginId === p.pluginId;
-                                                // While an operation runs (backend-driven, survives reloads /
-                                                // restarts) collapse the row's actions into one disabled,
-                                                // labelled progress button so nothing can be clicked twice.
-                                                if (busy) {
-                                                    return (
-                                                        <Button
-                                                            size="xs"
-                                                            variant="light"
-                                                            color="blue"
-                                                            loading
-                                                            disabled
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            {activeOp ? pluginOperationBusyLabel(activeOp.type) : 'Working…'}
-                                                        </Button>
-                                                    );
-                                                }
-                                                return (
-                                                    <Group gap="xs" onClick={(e) => e.stopPropagation()}>
-                                                        {p.availableUpdate && (
-                                                            <Tooltip
-                                                                label={
-                                                                    p.availableUpdate.diffKind === 'major'
-                                                                        ? 'Major upgrade — review breaking changes in the changelog before applying.'
-                                                                        : `Update to v${p.availableUpdate.availableVersion}`
-                                                                }
+                                                            <Badge
+                                                                size="xs"
+                                                                variant="light"
+                                                                color={UPDATE_DIFF_COLORS[p.availableUpdate.diffKind] ?? 'gray'}
+                                                                leftSection={<IconArrowUp size={10} />}
                                                             >
-                                                                <Button
-                                                                    size="xs"
-                                                                    color={p.availableUpdate.diffKind === 'major' ? 'red' : 'blue'}
-                                                                    leftSection={<IconArrowUp size={12} />}
-                                                                    onClick={() => setUpdateFor(p.availableUpdate ?? null)}
+                                                                v{p.availableUpdate.availableVersion}
+                                                            </Badge>
+                                                        </Tooltip>
+                                                    )}
+                                                </Stack>
+                                            </Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>
+                                                <Badge color={p.trustLevel === 'official' ? 'green' : p.trustLevel === 'reviewed' ? 'blue' : 'gray'}>
+                                                    {p.trustLevel}
+                                                </Badge>
+                                            </Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{p.installMode}</Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>
+                                                <Badge color={p.enabled ? 'green' : 'gray'}>
+                                                    {p.enabled ? 'enabled' : 'disabled'}
+                                                </Badge>
+                                            </Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>
+                                                <Badge color={
+                                                    p.compatibility?.severity === 'ok'
+                                                        ? 'green'
+                                                        : p.compatibility?.severity === 'warning'
+                                                            ? 'yellow'
+                                                            : 'red'
+                                                }>
+                                                    {p.compatibility?.severity ?? 'unknown'}
+                                                </Badge>
+                                            </Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>
+                                                {(() => {
+                                                    const activeOp = activePluginOperationFor(operations, p.pluginId);
+                                                    const busy = Boolean(activeOp) || busyPluginId === p.pluginId;
+                                                    // While an operation runs (backend-driven, survives reloads /
+                                                    // restarts) collapse the row's actions into one disabled,
+                                                    // labelled progress button so nothing can be clicked twice.
+                                                    if (busy) {
+                                                        return (
+                                                            <Button
+                                                                size="xs"
+                                                                variant="light"
+                                                                color="blue"
+                                                                loading
+                                                                disabled
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                {activeOp ? pluginOperationBusyLabel(activeOp.type) : 'Working…'}
+                                                            </Button>
+                                                        );
+                                                    }
+                                                    return (
+                                                        <Group gap="xs" wrap="nowrap" onClick={(e) => e.stopPropagation()} className={tableStyles.actionsCell}>
+                                                            {p.availableUpdate && (
+                                                                <Tooltip
+                                                                    label={
+                                                                        p.availableUpdate.diffKind === 'major'
+                                                                            ? 'Major upgrade — review breaking changes in the changelog before applying.'
+                                                                            : `Update to v${p.availableUpdate.availableVersion}`
+                                                                    }
                                                                 >
-                                                                    Update
+                                                                    <Button
+                                                                        size="xs"
+                                                                        color={p.availableUpdate.diffKind === 'major' ? 'red' : 'blue'}
+                                                                        leftSection={<IconArrowUp size={12} />}
+                                                                        onClick={() => setUpdateFor(p.availableUpdate ?? null)}
+                                                                    >
+                                                                        Update
+                                                                    </Button>
+                                                                </Tooltip>
+                                                            )}
+                                                            {p.enabled ? (
+                                                                <Button size="xs" variant="default" onClick={() => onDisable(p.pluginId)}>
+                                                                    Disable
+                                                                </Button>
+                                                            ) : (
+                                                                <Button size="xs" onClick={() => onEnable(p.pluginId)}>
+                                                                    Enable
+                                                                </Button>
+                                                            )}
+                                                            <Tooltip label="Removes packages; preserves data">
+                                                                <Button size="xs" variant="light" color="yellow" onClick={() => onUninstall(p.pluginId)}>
+                                                                    Uninstall
                                                                 </Button>
                                                             </Tooltip>
-                                                        )}
-                                                        {p.enabled ? (
-                                                            <Button size="xs" variant="default" onClick={() => onDisable(p.pluginId)}>
-                                                                Disable
-                                                            </Button>
-                                                        ) : (
-                                                            <Button size="xs" onClick={() => onEnable(p.pluginId)}>
-                                                                Enable
-                                                            </Button>
-                                                        )}
-                                                        <Tooltip label="Removes packages; preserves data">
-                                                            <Button size="xs" variant="light" color="yellow" onClick={() => onUninstall(p.pluginId)}>
-                                                                Uninstall
-                                                            </Button>
-                                                        </Tooltip>
-                                                        <Tooltip label="Destructive: drops tables and tagged rows">
-                                                            <Button size="xs" variant="light" color="red" onClick={() => setPurgeFor(p.pluginId)}>
-                                                                Purge…
-                                                            </Button>
-                                                        </Tooltip>
-                                                    </Group>
-                                                );
-                                            })()}
-                                        </Table.Td>
-                                    </Table.Tr>
-                                ))}
-                                {rows.length === 0 && (
-                                    <Table.Tr>
-                                        <Table.Td colSpan={7}>
-                                            <Text c="dimmed" ta="center" py="md">No plugins installed. Click <strong>Install plugin</strong> above to add one.</Text>
-                                        </Table.Td>
-                                    </Table.Tr>
-                                )}
-                            </Table.Tbody>
-                        </Table>
-                    </ScrollArea>
+                                                            <Tooltip label="Destructive: drops tables and tagged rows">
+                                                                <Button size="xs" variant="light" color="red" onClick={() => setPurgeFor(p.pluginId)}>
+                                                                    Purge…
+                                                                </Button>
+                                                            </Tooltip>
+                                                        </Group>
+                                                    );
+                                                })()}
+                                            </Table.Td>
+                                        </Table.Tr>
+                                    ))}
+                                </Table.Tbody>
+                            </Table>
+                        </Box>
+
+                        {/* Empty state — inside the shell, below the header row. */}
+                        {rows.length === 0 && (
+                            <EmptyState
+                                title="No plugins installed"
+                                description="Click “Install plugin” above to add one."
+                            />
+                        )}
+                    </div>
                 </Tabs.Panel>
 
                 <Tabs.Panel value="available" pt="md">
