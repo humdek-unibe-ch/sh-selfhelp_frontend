@@ -19,6 +19,7 @@ import {
     ActionIcon,
     Alert,
     Badge,
+    Box,
     Button,
     Group,
     Loader,
@@ -33,6 +34,8 @@ import {
 import { notifications } from '@mantine/notifications';
 import { IconEdit, IconLock, IconTrash } from '@tabler/icons-react';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
+import { EmptyState } from '../../../shared/common/EmptyState';
+import { adminTableClasses as tableStyles } from '../../shared/admin-table';
 import {
     useAdminPluginSourceCreate,
     useAdminPluginSourceDelete,
@@ -184,86 +187,93 @@ export function PluginSourcesPanel() {
                 <Button onClick={openCreate}>Add source</Button>
             </Group>
 
-            <Table withTableBorder striped>
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Name</Table.Th>
-                        <Table.Th>Kind</Table.Th>
-                        <Table.Th>URL</Table.Th>
-                        <Table.Th>Channel</Table.Th>
-                        <Table.Th>Trust</Table.Th>
-                        <Table.Th>Auth</Table.Th>
-                        <Table.Th>Status</Table.Th>
-                        <Table.Th>Actions</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    {(sources ?? []).map((source) => (
-                        <Table.Tr key={source.id}>
-                            <Table.Td>
-                                <Group gap="xs" wrap="nowrap">
-                                    {source.isSystem && (
-                                        <Tooltip label="Host-managed (read-only)"><IconLock size={14} /></Tooltip>
-                                    )}
-                                    <Text fw={600}>{source.name}</Text>
-                                </Group>
-                            </Table.Td>
-                            <Table.Td><Badge>{source.kind}</Badge></Table.Td>
-                            <Table.Td>
-                                <Text size="xs" style={{ wordBreak: 'break-all' }}>{source.url}</Text>
-                            </Table.Td>
-                            <Table.Td>{source.channel ?? 'stable'}</Table.Td>
-                            <Table.Td>
-                                <Badge variant="light" color={
-                                    source.trustLevel === 'official'
-                                        ? 'green'
-                                        : source.trustLevel === 'reviewed'
-                                            ? 'blue'
-                                            : 'gray'
-                                }>
-                                    {source.trustLevel ?? 'untrusted'}
-                                </Badge>
-                            </Table.Td>
-                            <Table.Td>
-                                {source.authHeaderName
-                                    ? `${source.authHeaderName} via ${source.authSecretEnvVar ?? 'env'}`
-                                    : 'none'}
-                            </Table.Td>
-                            <Table.Td>
-                                <Badge color={source.enabled ? 'green' : 'gray'}>
-                                    {source.enabled ? 'enabled' : 'disabled'}
-                                </Badge>
-                            </Table.Td>
-                            <Table.Td>
-                                <Group gap="xs">
-                                    <Tooltip label={source.isSystem ? 'Edit (toggle enabled only)' : 'Edit source'}>
-                                        <ActionIcon variant="light" onClick={() => openEdit(source)}>
-                                            <IconEdit size={16} />
-                                        </ActionIcon>
-                                    </Tooltip>
-                                    <Tooltip label={source.isSystem ? 'System source cannot be deleted' : 'Delete source'}>
-                                        <ActionIcon
-                                            variant="light"
-                                            color="red"
-                                            disabled={source.isSystem}
-                                            onClick={() => onDelete(source)}
-                                        >
-                                            <IconTrash size={16} />
-                                        </ActionIcon>
-                                    </Tooltip>
-                                </Group>
-                            </Table.Td>
-                        </Table.Tr>
-                    ))}
-                    {(sources ?? []).length === 0 && (
+            <div className={tableStyles.tableWrapper}>
+                <Box className={tableStyles.tableScrollContainer}>
+                <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
+                    <Table.Thead>
                         <Table.Tr>
-                            <Table.Td colSpan={8}>
-                                <Text c="dimmed" ta="center" py="md">No plugin sources configured.</Text>
-                            </Table.Td>
+                            <Table.Th className={tableStyles.tableHeader}>Name</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>Kind</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>URL</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>Channel</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>Trust</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>Auth</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>Status</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>Actions</Table.Th>
                         </Table.Tr>
-                    )}
-                </Table.Tbody>
-            </Table>
+                    </Table.Thead>
+                    <Table.Tbody>
+                        {(sources ?? []).map((source) => (
+                            <Table.Tr key={source.id}>
+                                <Table.Td className={tableStyles.tableCell}>
+                                    <Group gap="xs" wrap="nowrap">
+                                        {source.isSystem && (
+                                            <Tooltip label="Host-managed (read-only)"><IconLock size={14} /></Tooltip>
+                                        )}
+                                        <Text fw={600}>{source.name}</Text>
+                                    </Group>
+                                </Table.Td>
+                                <Table.Td className={tableStyles.tableCell}><Badge>{source.kind}</Badge></Table.Td>
+                                <Table.Td className={tableStyles.tableCell}>
+                                    <Text size="xs" style={{ wordBreak: 'break-all' }}>{source.url}</Text>
+                                </Table.Td>
+                                <Table.Td className={tableStyles.tableCell}>{source.channel ?? 'stable'}</Table.Td>
+                                <Table.Td className={tableStyles.tableCell}>
+                                    <Badge variant="light" color={
+                                        source.trustLevel === 'official'
+                                            ? 'green'
+                                            : source.trustLevel === 'reviewed'
+                                                ? 'blue'
+                                                : 'gray'
+                                    }>
+                                        {source.trustLevel ?? 'untrusted'}
+                                    </Badge>
+                                </Table.Td>
+                                <Table.Td className={tableStyles.tableCell}>
+                                    {source.authHeaderName
+                                        ? `${source.authHeaderName} via ${source.authSecretEnvVar ?? 'env'}`
+                                        : 'none'}
+                                </Table.Td>
+                                <Table.Td className={tableStyles.tableCell}>
+                                    <Badge color={source.enabled ? 'green' : 'gray'}>
+                                        {source.enabled ? 'enabled' : 'disabled'}
+                                    </Badge>
+                                </Table.Td>
+                                <Table.Td className={tableStyles.tableCell}>
+                                    <Group gap={2} wrap="nowrap" justify="flex-end" className={tableStyles.actionsCell}>
+                                        <Tooltip label={source.isSystem ? 'Edit (toggle enabled only)' : 'Edit source'}>
+                                            <ActionIcon variant="subtle" color="gray" size="sm" aria-label="Edit source" onClick={() => openEdit(source)}>
+                                                <IconEdit size={16} />
+                                            </ActionIcon>
+                                        </Tooltip>
+                                        <Tooltip label={source.isSystem ? 'System source cannot be deleted' : 'Delete source'}>
+                                            <ActionIcon
+                                                variant="subtle"
+                                                color="red"
+                                                size="sm"
+                                                aria-label="Delete source"
+                                                disabled={source.isSystem}
+                                                onClick={() => onDelete(source)}
+                                            >
+                                                <IconTrash size={16} />
+                                            </ActionIcon>
+                                        </Tooltip>
+                                    </Group>
+                                </Table.Td>
+                            </Table.Tr>
+                        ))}
+                    </Table.Tbody>
+                </Table>
+                </Box>
+
+                {/* Empty state — inside the shell, below the header row. */}
+                {(sources ?? []).length === 0 && (
+                    <EmptyState
+                        title="No plugin sources configured"
+                        description="Click “Add source” to configure a registry."
+                    />
+                )}
+            </div>
 
             <ModalWrapper
                 opened={modalOpen}

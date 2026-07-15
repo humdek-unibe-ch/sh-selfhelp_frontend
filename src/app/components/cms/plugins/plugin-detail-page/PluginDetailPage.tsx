@@ -98,6 +98,7 @@ import {
     useAdminPluginUninstall,
     useAdminPluginUpdate,
 } from '../hooks/useAdminPlugins';
+import { adminTableClasses as tableStyles } from '../../shared/admin-table';
 import type {
     IAdminPluginCompatibility,
     IAdminPluginFeatureFlag,
@@ -488,22 +489,26 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                     {dependencies.length === 0 ? (
                         <EmptyTab message="Plugin does not declare any dependencies." />
                     ) : (
-                        <Table withTableBorder striped>
-                            <Table.Thead>
-                                <Table.Tr>
-                                    <Table.Th>Plugin / Package</Table.Th>
-                                    <Table.Th>Version range</Table.Th>
-                                </Table.Tr>
-                            </Table.Thead>
-                            <Table.Tbody>
-                                {dependencies.map(([name, range]) => (
-                                    <Table.Tr key={name}>
-                                        <Table.Td><Code>{name}</Code></Table.Td>
-                                        <Table.Td>{range}</Table.Td>
+                        <div className={tableStyles.tableWrapper}>
+                          <Box className={tableStyles.tableScrollContainer}>
+                            <Table verticalSpacing="sm" horizontalSpacing="md">
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th className={tableStyles.tableHeader}>Plugin / Package</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Version range</Table.Th>
                                     </Table.Tr>
-                                ))}
-                            </Table.Tbody>
-                        </Table>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                    {dependencies.map(([name, range]) => (
+                                        <Table.Tr key={name}>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{name}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{range}</Table.Td>
+                                        </Table.Tr>
+                                    ))}
+                                </Table.Tbody>
+                            </Table>
+                          </Box>
+                        </div>
                     )}
                 </Tabs.Panel>
 
@@ -512,24 +517,28 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                     {conflicts.length === 0 ? (
                         <EmptyTab message="No conflicts declared." />
                     ) : (
-                        <Table withTableBorder striped>
-                            <Table.Thead>
-                                <Table.Tr>
-                                    <Table.Th>Plugin</Table.Th>
-                                    <Table.Th>Version</Table.Th>
-                                    <Table.Th>Reason</Table.Th>
-                                </Table.Tr>
-                            </Table.Thead>
-                            <Table.Tbody>
-                                {conflicts.map((c, idx) => (
-                                    <Table.Tr key={`${c.pluginId ?? 'conflict'}-${idx}`}>
-                                        <Table.Td><Code>{c.pluginId ?? '—'}</Code></Table.Td>
-                                        <Table.Td>{c.version ?? '—'}</Table.Td>
-                                        <Table.Td>{c.reason ?? '—'}</Table.Td>
+                        <div className={tableStyles.tableWrapper}>
+                          <Box className={tableStyles.tableScrollContainer}>
+                            <Table verticalSpacing="sm" horizontalSpacing="md">
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th className={tableStyles.tableHeader}>Plugin</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Version</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Reason</Table.Th>
                                     </Table.Tr>
-                                ))}
-                            </Table.Tbody>
-                        </Table>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                    {conflicts.map((c, idx) => (
+                                        <Table.Tr key={`${c.pluginId ?? 'conflict'}-${idx}`}>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{c.pluginId ?? '—'}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{c.version ?? '—'}</Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{c.reason ?? '—'}</Table.Td>
+                                        </Table.Tr>
+                                    ))}
+                                </Table.Tbody>
+                            </Table>
+                          </Box>
+                        </div>
                     )}
                 </Tabs.Panel>
 
@@ -570,24 +579,28 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                     {stylesContributed.length === 0 ? (
                         <EmptyTab message="Plugin does not contribute any styles." />
                     ) : (
-                        <Table withTableBorder striped>
-                            <Table.Thead>
-                                <Table.Tr>
-                                    <Table.Th>Style name</Table.Th>
-                                    <Table.Th>Type</Table.Th>
-                                    <Table.Th>Group</Table.Th>
-                                </Table.Tr>
-                            </Table.Thead>
-                            <Table.Tbody>
-                                {stylesContributed.map((s, idx) => (
-                                    <Table.Tr key={`${s.name ?? 'style'}-${idx}`}>
-                                        <Table.Td><Code>{s.name ?? '—'}</Code></Table.Td>
-                                        <Table.Td>{s.type ?? '—'}</Table.Td>
-                                        <Table.Td>{s.group ?? '—'}</Table.Td>
+                        <div className={tableStyles.tableWrapper}>
+                          <Box className={tableStyles.tableScrollContainer}>
+                            <Table verticalSpacing="sm" horizontalSpacing="md">
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th className={tableStyles.tableHeader}>Style name</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Type</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Group</Table.Th>
                                     </Table.Tr>
-                                ))}
-                            </Table.Tbody>
-                        </Table>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                    {stylesContributed.map((s, idx) => (
+                                        <Table.Tr key={`${s.name ?? 'style'}-${idx}`}>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{s.name ?? '—'}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{s.type ?? '—'}</Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{s.group ?? '—'}</Table.Td>
+                                        </Table.Tr>
+                                    ))}
+                                </Table.Tbody>
+                            </Table>
+                          </Box>
+                        </div>
                     )}
                 </Tabs.Panel>
 
@@ -596,26 +609,30 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                     {apiRoutes.length === 0 ? (
                         <EmptyTab message="Plugin does not contribute any API routes." />
                     ) : (
-                        <Table withTableBorder striped>
-                            <Table.Thead>
-                                <Table.Tr>
-                                    <Table.Th>Route name</Table.Th>
-                                    <Table.Th>Method</Table.Th>
-                                    <Table.Th>Path</Table.Th>
-                                    <Table.Th>Controller</Table.Th>
-                                </Table.Tr>
-                            </Table.Thead>
-                            <Table.Tbody>
-                                {apiRoutes.map((r, idx) => (
-                                    <Table.Tr key={`${r.name ?? 'route'}-${idx}`}>
-                                        <Table.Td><Code>{r.name ?? '—'}</Code></Table.Td>
-                                        <Table.Td><Badge variant="light">{r.method ?? '—'}</Badge></Table.Td>
-                                        <Table.Td><Code>{r.path ?? '—'}</Code></Table.Td>
-                                        <Table.Td><Text size="xs" c="dimmed">{r.controller ?? '—'}</Text></Table.Td>
+                        <div className={tableStyles.tableWrapper}>
+                          <Box className={tableStyles.tableScrollContainer}>
+                            <Table verticalSpacing="sm" horizontalSpacing="md">
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th className={tableStyles.tableHeader}>Route name</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Method</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Path</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Controller</Table.Th>
                                     </Table.Tr>
-                                ))}
-                            </Table.Tbody>
-                        </Table>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                    {apiRoutes.map((r, idx) => (
+                                        <Table.Tr key={`${r.name ?? 'route'}-${idx}`}>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{r.name ?? '—'}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}><Badge variant="light">{r.method ?? '—'}</Badge></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{r.path ?? '—'}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}><Text size="xs" c="dimmed">{r.controller ?? '—'}</Text></Table.Td>
+                                        </Table.Tr>
+                                    ))}
+                                </Table.Tbody>
+                            </Table>
+                          </Box>
+                        </div>
                     )}
                 </Tabs.Panel>
 
@@ -624,22 +641,26 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                     {migrations.length === 0 ? (
                         <EmptyTab message="Plugin does not ship any database migrations." />
                     ) : (
-                        <Table withTableBorder striped>
-                            <Table.Thead>
-                                <Table.Tr>
-                                    <Table.Th>Version</Table.Th>
-                                    <Table.Th>Description</Table.Th>
-                                </Table.Tr>
-                            </Table.Thead>
-                            <Table.Tbody>
-                                {migrations.map((m, idx) => (
-                                    <Table.Tr key={`${m.version ?? 'migration'}-${idx}`}>
-                                        <Table.Td><Code>{m.version ?? '—'}</Code></Table.Td>
-                                        <Table.Td>{m.description ?? '—'}</Table.Td>
+                        <div className={tableStyles.tableWrapper}>
+                          <Box className={tableStyles.tableScrollContainer}>
+                            <Table verticalSpacing="sm" horizontalSpacing="md">
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th className={tableStyles.tableHeader}>Version</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Description</Table.Th>
                                     </Table.Tr>
-                                ))}
-                            </Table.Tbody>
-                        </Table>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                    {migrations.map((m, idx) => (
+                                        <Table.Tr key={`${m.version ?? 'migration'}-${idx}`}>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{m.version ?? '—'}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{m.description ?? '—'}</Table.Td>
+                                        </Table.Tr>
+                                    ))}
+                                </Table.Tbody>
+                            </Table>
+                          </Box>
+                        </div>
                     )}
                 </Tabs.Panel>
 
@@ -699,24 +720,28 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                     {lookups.length === 0 ? (
                         <EmptyTab message="Plugin does not contribute any lookup rows." />
                     ) : (
-                        <Table withTableBorder striped>
-                            <Table.Thead>
-                                <Table.Tr>
-                                    <Table.Th>Type code</Table.Th>
-                                    <Table.Th>Lookup code</Table.Th>
-                                    <Table.Th>Value</Table.Th>
-                                </Table.Tr>
-                            </Table.Thead>
-                            <Table.Tbody>
-                                {lookups.map((l, idx) => (
-                                    <Table.Tr key={`${l.typeCode ?? 'lookup'}-${idx}`}>
-                                        <Table.Td><Code>{l.typeCode ?? '—'}</Code></Table.Td>
-                                        <Table.Td>{l.lookupCode ?? '—'}</Table.Td>
-                                        <Table.Td>{l.lookupValue ?? '—'}</Table.Td>
+                        <div className={tableStyles.tableWrapper}>
+                          <Box className={tableStyles.tableScrollContainer}>
+                            <Table verticalSpacing="sm" horizontalSpacing="md">
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th className={tableStyles.tableHeader}>Type code</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Lookup code</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Value</Table.Th>
                                     </Table.Tr>
-                                ))}
-                            </Table.Tbody>
-                        </Table>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                    {lookups.map((l, idx) => (
+                                        <Table.Tr key={`${l.typeCode ?? 'lookup'}-${idx}`}>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{l.typeCode ?? '—'}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{l.lookupCode ?? '—'}</Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{l.lookupValue ?? '—'}</Table.Td>
+                                        </Table.Tr>
+                                    ))}
+                                </Table.Tbody>
+                            </Table>
+                          </Box>
+                        </div>
                     )}
                 </Tabs.Panel>
 
@@ -769,42 +794,46 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                     ) : (operations.data ?? []).length === 0 ? (
                         <EmptyTab message="No operations recorded for this plugin." />
                     ) : (
-                        <Table withTableBorder striped>
-                            <Table.Thead>
-                                <Table.Tr>
-                                    <Table.Th>#</Table.Th>
-                                    <Table.Th>Type</Table.Th>
-                                    <Table.Th>Status</Table.Th>
-                                    <Table.Th>From → To</Table.Th>
-                                    <Table.Th>Created</Table.Th>
-                                    <Table.Th>Finished</Table.Th>
-                                    <Table.Th>Actions</Table.Th>
-                                </Table.Tr>
-                            </Table.Thead>
-                            <Table.Tbody>
-                                {(operations.data ?? []).map((op) => (
-                                    <Table.Tr key={op.id}>
-                                        <Table.Td>{op.id}</Table.Td>
-                                        <Table.Td><Badge variant="light">{op.type}</Badge></Table.Td>
-                                        <Table.Td>
-                                            <Badge color={op.status === 'succeeded' ? 'green' : op.status === 'failed' ? 'red' : op.status === 'running' ? 'blue' : 'gray'}>
-                                                {op.status}
-                                            </Badge>
-                                        </Table.Td>
-                                        <Table.Td>{op.fromVersion ?? '—'} → {op.toVersion ?? '—'}</Table.Td>
-                                        <Table.Td>{op.createdAt}</Table.Td>
-                                        <Table.Td>{op.finishedAt ?? '—'}</Table.Td>
-                                        <Table.Td>
-                                            {op.status === 'succeeded' && op.type !== 'rollback' && (
-                                                <Button size="xs" variant="light" color="yellow" leftSection={<IconHistory size={12} />} loading={rollbackMutation.isPending} onClick={() => onRollbackOperation(op)}>
-                                                    Rollback
-                                                </Button>
-                                            )}
-                                        </Table.Td>
+                        <div className={tableStyles.tableWrapper}>
+                          <Box className={tableStyles.tableScrollContainer}>
+                            <Table verticalSpacing="sm" horizontalSpacing="md">
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th className={tableStyles.tableHeader}>#</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Type</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Status</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>From → To</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Created</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Finished</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Actions</Table.Th>
                                     </Table.Tr>
-                                ))}
-                            </Table.Tbody>
-                        </Table>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                    {(operations.data ?? []).map((op) => (
+                                        <Table.Tr key={op.id}>
+                                            <Table.Td className={tableStyles.tableCell}>{op.id}</Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}><Badge variant="light">{op.type}</Badge></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>
+                                                <Badge color={op.status === 'succeeded' ? 'green' : op.status === 'failed' ? 'red' : op.status === 'running' ? 'blue' : 'gray'}>
+                                                    {op.status}
+                                                </Badge>
+                                            </Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{op.fromVersion ?? '—'} → {op.toVersion ?? '—'}</Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{op.createdAt}</Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{op.finishedAt ?? '—'}</Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>
+                                                {op.status === 'succeeded' && op.type !== 'rollback' && (
+                                                    <Button size="xs" variant="light" color="yellow" leftSection={<IconHistory size={12} />} loading={rollbackMutation.isPending} onClick={() => onRollbackOperation(op)}>
+                                                        Rollback
+                                                    </Button>
+                                                )}
+                                            </Table.Td>
+                                        </Table.Tr>
+                                    ))}
+                                </Table.Tbody>
+                            </Table>
+                          </Box>
+                        </div>
                     )}
                 </Tabs.Panel>
 

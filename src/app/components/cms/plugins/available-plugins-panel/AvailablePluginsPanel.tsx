@@ -35,10 +35,10 @@ import {
     Alert,
     Anchor,
     Badge,
+    Box,
     Button,
     Group,
     Loader,
-    ScrollArea,
     Select,
     Stack,
     Switch,
@@ -58,6 +58,8 @@ import {
     hasActivePluginOperation,
     pluginOperationBusyLabel,
 } from '../hooks/plugin-operation-polling';
+import { EmptyState } from '../../../shared/common/EmptyState';
+import { adminTableClasses as tableStyles } from '../../shared/admin-table';
 import type {
     IAdminPluginAvailable,
     IAdminPluginAvailableVersion,
@@ -256,15 +258,16 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
                 </Button>
             </Group>
 
-            <ScrollArea>
-                <Table withTableBorder striped highlightOnHover stickyHeader>
+            <div className={tableStyles.tableWrapper}>
+                <Box className={tableStyles.tableScrollContainer}>
+                <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md" stickyHeader>
                     <Table.Thead>
                         <Table.Tr>
-                            <Table.Th>Plugin</Table.Th>
-                            <Table.Th>Version</Table.Th>
-                            <Table.Th>Trust</Table.Th>
-                            <Table.Th>Source</Table.Th>
-                            <Table.Th>Action</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>Plugin</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>Version</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>Trust</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>Source</Table.Th>
+                            <Table.Th className={tableStyles.tableHeader}>Action</Table.Th>
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
@@ -284,7 +287,7 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
 
                             return (
                                 <Table.Tr key={key}>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         <Stack gap={0}>
                                             <Text fw={600}>{entry.name}</Text>
                                             <Text size="xs" c="dimmed">{entry.pluginId}</Text>
@@ -303,7 +306,7 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
                                             )}
                                         </Stack>
                                     </Table.Td>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         <Stack gap={4}>
                                             <Select
                                                 size="xs"
@@ -350,17 +353,17 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
                                             )}
                                         </Stack>
                                     </Table.Td>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         <Badge color={trustColor(trustForRow)} tt="none">
                                             {formatTrustLabel(trustForRow)}
                                         </Badge>
                                     </Table.Td>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         <Text size="sm" fw={500}>
                                             {entry.sourceName}
                                         </Text>
                                     </Table.Td>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         <Tooltip
                                             label={
                                                 installable
@@ -387,20 +390,18 @@ export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePlugins
                                 </Table.Tr>
                             );
                         })}
-                        {items.length === 0 && (
-                            <Table.Tr>
-                                <Table.Td colSpan={5}>
-                                    <Text c="dimmed" ta="center" py="md">
-                                        No new plugins advertised by the configured registries. Configure another
-                                        source in the <strong>Sources</strong> tab or check that your existing
-                                        registry index is reachable.
-                                    </Text>
-                                </Table.Td>
-                            </Table.Tr>
-                        )}
                     </Table.Tbody>
                 </Table>
-            </ScrollArea>
+                </Box>
+
+                {/* Empty state — inside the shell, below the header row. */}
+                {items.length === 0 && (
+                    <EmptyState
+                        title="No plugins available"
+                        description="No new plugins advertised by the configured registries. Configure another source in the Sources tab, or check that your registry index is reachable."
+                    />
+                )}
+            </div>
         </Stack>
     );
 }
