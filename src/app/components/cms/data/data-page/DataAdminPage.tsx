@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -157,6 +157,47 @@ export function DataAdminPage() {
 
   const hasTables = tableOptions.length > 0;
 
+  // Drop selected table ids that no longer exist (e.g. the table was deleted, or
+  // a `?tableIds=` deep link points at a since-deleted table) so the picker
+  // doesn't keep a phantom chip. Render-phase reconcile — same pattern as
+  // DataTablesViewer — keyed on the fetched id list; runs once the tables query
+  // has settled (null sentinel) and again whenever that list changes, including
+  // when it becomes empty. `-1` ("all") is always kept.
+  const validTableIdsKey = useMemo(
+    () => (tablesResp ? (tablesResp.dataTables || []).map((t) => t.id).join(',') : null),
+    [tablesResp],
+  );
+  const [prevValidTableIdsKey, setPrevValidTableIdsKey] = useState<string | null>(null);
+  if (validTableIdsKey !== null && prevValidTableIdsKey !== validTableIdsKey) {
+    setPrevValidTableIdsKey(validTableIdsKey);
+    const validIds = new Set((tablesResp?.dataTables || []).map((t) => t.id));
+    const prune = (ids: number[]) => ids.filter((id) => id === ALL_TABLES || validIds.has(id));
+    setSelectedTableIds((prev) => {
+      const next = prune(prev);
+      return next.length === prev.length ? prev : next;
+    });
+    setActiveTableIds((prev) => {
+      const next = prune(prev);
+      return next.length === prev.length ? prev : next;
+    });
+  }
+
+  // Also strip since-deleted ids from the `?tableIds=` URL param so a reload
+  // doesn't reintroduce the phantom chip. Runs once the tables query settles.
+  useEffect(() => {
+    if (!tablesResp) return;
+    const raw = searchParams.get('tableIds');
+    if (!raw) return;
+    const validIds = new Set((tablesResp.dataTables || []).map((t) => t.id));
+    const current = raw.split(',').map((id) => parseInt(id, 10)).filter((id) => !isNaN(id));
+    const kept = current.filter((id) => id === ALL_TABLES || validIds.has(id));
+    if (kept.length === current.length) return; // nothing stale
+    const url = new URL(window.location.href);
+    if (kept.length > 0 && !kept.includes(ALL_TABLES)) url.searchParams.set('tableIds', kept.join(','));
+    else url.searchParams.delete('tableIds');
+    router.replace(`${url.pathname}${url.search}`, { scroll: false });
+  }, [tablesResp, searchParams, router]);
+
   // Apply Filters (Search button)
   const handleApplyFilters = useCallback(() => {
     const userId = selectedUserId ?? -1;
@@ -272,7 +313,7 @@ export function DataAdminPage() {
 
               <MultiSelect
                 label="Data tables"
-                placeholder="Select one or more data tables"
+                placeholder={hasTables ? 'Select one or more data tables' : 'No data tables yet'}
                 data={hasTables ? [{ value: String(-1), label: 'All data tables' }, ...tableOptions] : []}
                 value={selectedTableIds.map(String)}
                 onChange={(vals) => {

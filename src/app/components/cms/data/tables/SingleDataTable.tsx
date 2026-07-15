@@ -31,11 +31,12 @@ import {
   TableTr,
   Text,
   Title,
-  Button,
   Tooltip,
 } from '@mantine/core';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
-import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconSortAscending, IconSortDescending, IconArrowsUpDown, IconRefresh, IconDownload, IconFileTypeCsv, IconJson } from '@tabler/icons-react';
+import { EmptyState } from '../../../shared/common/EmptyState';
+import { SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconRefresh, IconDownload, IconFileTypeCsv, IconJson } from '@tabler/icons-react';
 import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable, useTableColumns } from '../../../../../hooks/useData';
 import { useDataTableOptionLabelMaps } from '../../../../../hooks/useDataTableOptionLabelMaps';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
@@ -113,33 +114,21 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
 
   const rows = useMemo(() => data?.rows || [], [data?.rows]);
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
-    if (rows.length === 0) return [];
-    const allKeys = Array.from(new Set(rows.flatMap(r => Object.keys(r))))
+    // Prefer the table's declared columns so the header row renders even with
+    // zero rows; fall back to keys present on the rows for legacy/extra fields.
+    const declaredKeys = (columnsResp?.columns ?? [])
+      .map((col) => col.fieldKey)
+      .filter((key): key is string => !!key);
+    const rowKeys = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
+    const allKeys = Array.from(new Set([...declaredKeys, ...rowKeys]))
       .filter((key) => !isRuntimeOptionLabelKey(key));
+    if (allKeys.length === 0) return [];
     const baseCols = allKeys.map((key): ColumnDef<Record<string, unknown>> => ({
       // `id` + `accessorFn` (not `accessorKey`): a field_key may contain dots
       // and must be read as an opaque literal, never as a nested path.
       id: key,
       accessorFn: (row) => getDataCellDisplayValue(key, row, optionLabelMaps),
-      header: ({ column }) => {
-        const isSorted = column.getIsSorted();
-        return (
-          <Button
-            variant="subtle"
-            size="xs"
-            px="xs"
-            rightSection={
-              isSorted === 'asc' ? <IconSortAscending size={14} /> :
-              isSorted === 'desc' ? <IconSortDescending size={14} /> :
-              <IconArrowsUpDown size={14} />
-            }
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            style={{ fontWeight: 'normal', justifyContent: 'space-between' }}
-          >
-            {labelByKey[key] ?? key}
-          </Button>
-        );
-      },
+      header: ({ column }) => <SortHeader label={labelByKey[key] ?? key} column={column} />,
       cell: ({ row }) => {
         const display = getDataCellDisplayValue(key, row.original, optionLabelMaps);
         const storedCode = getDataCellStoredCode(key, row.original);
@@ -166,14 +155,18 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
           const recordId = Number(row.original.record_id ?? 0);
           if (!recordId || isDeleted) return null;
           return (
-            <Group gap="xs">
-              <Button size="xs" color="red" variant="light" leftSection={<IconTrash size={14} />} onClick={() => setIsDeleteRowOpen({ id: recordId, label: `${displayName} #${recordId}` })}>Delete</Button>
+            <Group gap={2} wrap="nowrap" justify="flex-end" className={tableStyles.actionsCell}>
+              <Tooltip label="Delete row" withArrow>
+                <ActionIcon variant="subtle" color="red" size="sm" aria-label="Delete row" onClick={() => setIsDeleteRowOpen({ id: recordId, label: `${displayName} #${recordId}` })}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Tooltip>
             </Group>
           );
         },
       },
     ];
-  }, [rows, displayName, labelByKey, optionLabelMaps]);
+  }, [rows, displayName, labelByKey, optionLabelMaps, columnsResp?.columns]);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by design; React Compiler intentionally skips memoizing here
   const table = useReactTable({
@@ -251,32 +244,43 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
         onChange={(event) => setGlobalFilter(event.currentTarget.value)}
         w={300}
         size="sm"
+        mb="sm"
       />
 
-      <Box style={{ overflowX: 'auto', minHeight: 60 }}>
-        <Table striped highlightOnHover>
-          <TableThead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableTr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableTh key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableTh>
-                ))}
-              </TableTr>
-            ))}
-          </TableThead>
-          <TableTbody>
-            {table.getRowModel().rows.map((row) => (
-              <TableTr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableTd key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableTd>
-                ))}
-              </TableTr>
-            ))}
-          </TableTbody>
-        </Table>
-      </Box>
+      <div className={tableStyles.tableWrapper}>
+        <Box className={tableStyles.tableScrollContainer}>
+          <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
+            <TableThead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableTr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableTh key={header.id} className={tableStyles.tableHeader}>
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableTh>
+                  ))}
+                </TableTr>
+              ))}
+            </TableThead>
+            <TableTbody>
+              {table.getRowModel().rows.map((row) => (
+                <TableTr key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableTd key={cell.id} className={tableStyles.tableCell}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableTd>
+                  ))}
+                </TableTr>
+              ))}
+            </TableTbody>
+          </Table>
+        </Box>
+
+        {/* Empty state — inside the shell, below the header row (matches the other admin lists). */}
+        {!isLoading && rows.length === 0 && (
+          <EmptyState
+            title={globalFilter ? 'No matching records' : 'No records found'}
+            description={globalFilter ? 'Try adjusting your search.' : 'This table has no records yet.'}
+          />
+        )}
+      </div>
 
       <DataTableEditorModal open={isEditorOpen} onClose={() => setIsEditorOpen(false)} formId={formId} tableName={tableName} displayName={displayName} locked={locked} />
 
