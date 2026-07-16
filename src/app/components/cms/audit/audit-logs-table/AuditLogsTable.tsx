@@ -18,7 +18,6 @@ import {
   TableThead,
   TableTh,
   TableTr,
-  Pagination,
   Text,
   Badge,
   Group,
@@ -32,7 +31,7 @@ import {
   IconAlertCircle,
 } from '@tabler/icons-react';
 import { EmptyState } from '../../../shared/common/EmptyState';
-import { adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, adminTableClasses as tableStyles } from '../../shared/admin-table';
 import type { IAuditLogDetails } from '../../../../../types/responses/admin/audit.types';
 
 interface AuditLogsTableProps {
@@ -272,22 +271,21 @@ export function AuditLogsTable({
             description="Try adjusting your filters."
           />
         )}
-      </div>
 
-      {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
-        <Group justify="center">
-          <Pagination
-            total={pagination.totalPages}
-            value={pagination.page}
-            onChange={onPageChange}
-            size="sm"
+        {/* Footer — always visible when data is loaded. */}
+        {pagination && (
+          <AdminTableFooter
+            totalCount={pagination.total}
+            itemLabel="audit logs"
+            pagination={{
+              page: pagination.page,
+              pageSize: pagination.pageSize,
+              totalPages: pagination.totalPages,
+              onPageChange,
+            }}
           />
-          <Text size="sm" c="dimmed">
-            Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
-          </Text>
-        </Group>
-      )}
+        )}
+      </div>
     </div>
   );
 }

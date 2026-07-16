@@ -44,6 +44,19 @@ SPDX-License-Identifier: MPL-2.0
   background-color: var(--mantine-color-dark-6);
 }
 
+/* ── Footer bar ─────────────────────────────────────────────────────────── */
+/* Range summary + rows-per-page + pager. Lives inside `.tableWrapper` under the
+   table, so it reads as part of the table shell rather than a floating row. */
+.tableFooter {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  border-top: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='dark'] .tableFooter {
+  background-color: var(--mantine-color-dark-6);
+}
+
 /* ── Body cells ─────────────────────────────────────────────────────────── */
 .tableCell {
   vertical-align: middle;

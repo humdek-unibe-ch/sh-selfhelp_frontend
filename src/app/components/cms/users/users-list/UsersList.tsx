@@ -25,7 +25,6 @@ import {
   Group,
   TextInput,
   Select,
-  Pagination,
   Badge,
   ActionIcon,
   Tooltip,
@@ -55,7 +54,7 @@ import classes from './UsersList.module.css';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { FilterActions } from '../../../shared/common/FilterControls';
-import { SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
 
 interface IUsersListProps {
   onCreateUser?: () => void;
@@ -476,9 +475,11 @@ export function UsersList({
                 onChange={(e) => handleSearch(e.currentTarget.value)}
                 style={{ flex: 1 }}
               />
+            </Group>
 
+             <Group justify="flex-end" gap="md" align="flex-end">
               <Select
-                placeholder="Per page"
+                label="Rows per page"
                 value={filterParams.pageSize?.toString()}
                 onChange={handlePageSizeChange}
                 data={[
@@ -487,11 +488,11 @@ export function UsersList({
                   { value: "50", label: "50" },
                   { value: "100", label: "100" },
                 ]}
-                w={100}
+                withCheckIcon={false}
+                allowDeselect={false}
+                w={110}
               />
-            </Group>
 
-             <Group justify="flex-end">
               <FilterActions
                 onApply={handleApplyFilters}
                 onReset={handleResetFilters}
@@ -554,30 +555,21 @@ export function UsersList({
                 }
               />
             )}
-        </div>
 
-        {/* Pagination — always visible when data is loaded. */}
-        {usersData?.pagination && (
-          <Group justify="space-between">
-            <Text size="sm" c="dimmed">
-              {usersData.pagination.totalCount === 0
-                ? "No users"
-                : `Showing ${
-                    (usersData.pagination.page - 1) * usersData.pagination.pageSize + 1
-                  } to ${Math.min(
-                    usersData.pagination.page * usersData.pagination.pageSize,
-                    usersData.pagination.totalCount,
-                  )} of ${usersData.pagination.totalCount} users`}
-            </Text>
-
-            <Pagination
-              value={usersData.pagination.page}
-              onChange={handlePageChange}
-              total={Math.max(usersData.pagination.totalPages, 1)}
-              size="sm"
+          {/* Footer — always visible when data is loaded. */}
+          {usersData?.pagination && (
+            <AdminTableFooter
+              totalCount={usersData.pagination.totalCount}
+              itemLabel="users"
+              pagination={{
+                page: usersData.pagination.page,
+                pageSize: usersData.pagination.pageSize,
+                totalPages: usersData.pagination.totalPages,
+                onPageChange: handlePageChange,
+              }}
             />
-          </Group>
-        )}
+          )}
+        </div>
       </Stack>
     </Card>
   );

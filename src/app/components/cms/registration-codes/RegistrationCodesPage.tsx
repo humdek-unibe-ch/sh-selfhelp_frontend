@@ -34,7 +34,6 @@ import {
     NumberInput,
     Select,
     MultiSelect,
-    Pagination,
     Box} from '@mantine/core';
 
 import {
@@ -54,7 +53,7 @@ import { PageHeader } from '../../shared/common/PageHeader';
 import { EmptyState } from '../../shared/common/EmptyState';
 import { FilterActions } from '../../shared/common/FilterControls';
 import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
-import { SortHeader, adminTableClasses as tableStyles } from '../shared/admin-table';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../shared/admin-table';
 import type { IRegistrationCode, IRegistrationCodesListParams } from '../../../../types/responses/admin/registration-codes.types';
 
 /**
@@ -360,8 +359,10 @@ export function RegistrationCodesPage() {
                                     clearable
                                     w={150}
                                 />
+                            </Group>
+                            <Group justify="flex-end" gap="md" align="flex-end">
                                 <Select
-                                    placeholder="Per page"
+                                    label="Rows per page"
                                     value={filterParams.pageSize?.toString() ?? '20'}
                                     onChange={handlePageSizeChange}
                                     data={[
@@ -370,10 +371,11 @@ export function RegistrationCodesPage() {
                                         { value: '50', label: '50' },
                                         { value: '100', label: '100' },
                                     ]}
-                                    w={100}
+                                    withCheckIcon={false}
+                                    allowDeselect={false}
+                                    w={110}
                                 />
-                            </Group>
-                            <Group justify="flex-end">
+
                                 <FilterActions
                                     onApply={handleApplyFilters}
                                     onReset={handleResetFilters}
@@ -426,29 +428,21 @@ export function RegistrationCodesPage() {
                                 }
                             />
                         )}
-                    </div>
 
-                    {/* Pagination — always visible when data is loaded. */}
-                    {data?.pagination && (
-                        <Group justify="space-between">
-                            <Text size="sm" c="dimmed">
-                                {data.pagination.totalCount === 0
-                                    ? 'No codes'
-                                    : `Showing ${
-                                        (data.pagination.page - 1) * data.pagination.pageSize + 1
-                                    } to ${Math.min(
-                                        data.pagination.page * data.pagination.pageSize,
-                                        data.pagination.totalCount,
-                                    )} of ${data.pagination.totalCount} codes`}
-                            </Text>
-                            <Pagination
-                                value={data.pagination.page}
-                                onChange={handlePageChange}
-                                total={Math.max(data.pagination.totalPages, 1)}
-                                size="sm"
+                        {/* Footer — always visible when data is loaded. */}
+                        {data?.pagination && (
+                            <AdminTableFooter
+                                totalCount={data.pagination.totalCount}
+                                itemLabel="codes"
+                                pagination={{
+                                    page: data.pagination.page,
+                                    pageSize: data.pagination.pageSize,
+                                    totalPages: data.pagination.totalPages,
+                                    onPageChange: handlePageChange,
+                                }}
                             />
-                        </Group>
-                    )}
+                        )}
+                    </div>
                 </Stack>
             </Card>
 

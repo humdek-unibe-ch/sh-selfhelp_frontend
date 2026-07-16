@@ -25,7 +25,6 @@ import {
   Group,
   TextInput,
   Select,
-  Pagination,
   Badge,
   ActionIcon,
   Tooltip,
@@ -51,7 +50,7 @@ import type { IGroupDetails, IGroupsListParams } from '../../../../../types/resp
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
-import { SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
 import classes from './GroupsList.module.css';
 
 interface IGroupsListProps {
@@ -334,9 +333,11 @@ export function GroupsList({
                 onChange={(e) => handleSearch(e.currentTarget.value)}
                 style={{ flex: 1 }}
               />
+            </Group>
 
+            <Group justify="flex-end" gap="md" align="flex-end">
               <Select
-                placeholder="Per page"
+                label="Rows per page"
                 value={filterParams.pageSize?.toString() || "20"}
                 onChange={handlePageSizeChange}
                 data={[
@@ -345,11 +346,11 @@ export function GroupsList({
                   { value: "50", label: "50" },
                   { value: "100", label: "100" },
                 ]}
-                w={100}
+                withCheckIcon={false}
+                allowDeselect={false}
+                w={110}
               />
-            </Group>
 
-            <Group justify="flex-end">
               <FilterActions
                 onApply={handleApplyFilters}
                 onReset={handleResetFilters}
@@ -411,30 +412,21 @@ export function GroupsList({
               }
             />
           )}
-        </div>
 
-        {/* Pagination — always visible when data is loaded. */}
-        {groupsData?.pagination && (
-          <Group justify="space-between">
-            <Text size="sm" c="dimmed">
-              {groupsData.pagination.totalCount === 0
-                ? "No groups"
-                : `Showing ${
-                    (groupsData.pagination.page - 1) * groupsData.pagination.pageSize + 1
-                  } to ${Math.min(
-                    groupsData.pagination.page * groupsData.pagination.pageSize,
-                    groupsData.pagination.totalCount,
-                  )} of ${groupsData.pagination.totalCount} groups`}
-            </Text>
-
-            <Pagination
-              value={groupsData.pagination.page}
-              onChange={handlePageChange}
-              total={Math.max(groupsData.pagination.totalPages, 1)}
-              size="sm"
+          {/* Footer — always visible when data is loaded. */}
+          {groupsData?.pagination && (
+            <AdminTableFooter
+              totalCount={groupsData.pagination.totalCount}
+              itemLabel="groups"
+              pagination={{
+                page: groupsData.pagination.page,
+                pageSize: groupsData.pagination.pageSize,
+                totalPages: groupsData.pagination.totalPages,
+                onPageChange: handlePageChange,
+              }}
             />
-          </Group>
-        )}
+          )}
+        </div>
       </Stack>
     </Card>
   );

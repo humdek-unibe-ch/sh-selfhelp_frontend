@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { useCallback, useMemo, useState } from 'react';
-import { Button, Group, Stack, TextInput, ActionIcon, Card, Table, Pagination, Paper, Select, LoadingOverlay, Tooltip, Box, Text } from '@mantine/core';
+import { Button, Group, Stack, TextInput, ActionIcon, Card, Table, Paper, Select, LoadingOverlay, Tooltip, Box } from '@mantine/core';
 import { IconPlus, IconX, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useActions, useDeleteAction } from '../../../../../hooks/useActions';
 import type { IActionsListParams, IActionDetails } from '../../../../../types/responses/admin/actions.types';
@@ -16,7 +16,7 @@ import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { PageHeader } from '../../../shared/common/PageHeader';
-import { adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, adminTableClasses as tableStyles } from '../../shared/admin-table';
 
 export function ActionsPage() {
   const [filterParams, setFilterParams] = useState<IActionsListParams>({
@@ -228,29 +228,21 @@ const dataTableOptions = useMemo(() => {
               </Table.Tbody>
             </Table>
           </Box>
-        </div>
 
-        {/* Pagination — always visible when data is loaded. */}
-        {data?.pagination && (
-          <Group justify="space-between">
-            <Text size="sm" c="dimmed">
-              {data.pagination.totalCount === 0
-                ? "No actions"
-                : `Showing ${
-                    ((params.page ?? 1) - 1) * (params.pageSize ?? 20) + 1
-                  } to ${Math.min(
-                    (params.page ?? 1) * (params.pageSize ?? 20),
-                    data.pagination.totalCount,
-                  )} of ${data.pagination.totalCount} actions`}
-            </Text>
-            <Pagination
-              value={params.page || 1}
-              total={Math.max(data.pagination.totalPages, 1)}
-              onChange={(page) => setParams((prev) => ({ ...prev, page }))}
-              size="sm"
+          {/* Footer — always visible when data is loaded. */}
+          {data?.pagination && (
+            <AdminTableFooter
+              totalCount={data.pagination.totalCount}
+              itemLabel="actions"
+              pagination={{
+                page: params.page ?? 1,
+                pageSize: params.pageSize ?? 20,
+                totalPages: data.pagination.totalPages,
+                onPageChange: (page) => setParams((prev) => ({ ...prev, page })),
+              }}
             />
-          </Group>
-        )}
+          )}
+        </div>
 
         {/* Modals */}
         <ActionFormModal

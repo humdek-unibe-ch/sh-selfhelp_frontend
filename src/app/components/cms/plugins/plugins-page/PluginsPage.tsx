@@ -75,7 +75,7 @@ import { PluginVersionMismatchBanner } from '../plugin-version-mismatch-banner/P
 import { ActivePluginOperationsPanel } from '../plugin-operation-progress/PluginOperationProgress';
 import { isTransientApiError } from '../../../../../utils/transient-error.utils';
 import { EmptyState } from '../../../shared/common/EmptyState';
-import { adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, adminTableClasses as tableStyles } from '../../shared/admin-table';
 import type { IAdminPluginAvailableUpdate } from '../../../../../types/responses/admin/plugins.types';
 
 type TPluginsTab = 'installed' | 'available' | 'sources';
@@ -647,6 +647,10 @@ export function PluginsPage() {
                                 description="Click “Install plugin” above to add one."
                             />
                         )}
+
+                        {/* Footer — the installed list is not paginated, so this
+                            is a count summary with no pager. */}
+                        <AdminTableFooter totalCount={rows.length} itemLabel="plugins" />
                     </div>
                 </Tabs.Panel>
 

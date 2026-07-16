@@ -25,7 +25,6 @@ import {
   Group,
   TextInput,
   Select,
-  Pagination,
   Badge,
   ActionIcon,
   Tooltip,
@@ -53,7 +52,7 @@ import type { IRoleDetails, IRolesListParams } from '../../../../../types/respon
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
-import { SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
 import classes from './RolesList.module.css';
 
 interface IRolesListProps {
@@ -435,9 +434,11 @@ export function RolesList({
                 onChange={(e) => handleSearch(e.currentTarget.value)}
                 style={{ flex: 1 }}
               />
+            </Group>
 
+            <Group justify="flex-end" gap="md" align="flex-end">
               <Select
-                placeholder="Per page"
+                label="Rows per page"
                 value={filterParams.pageSize?.toString() || "20"}
                 onChange={handlePageSizeChange}
                 data={[
@@ -446,11 +447,11 @@ export function RolesList({
                   { value: "50", label: "50" },
                   { value: "100", label: "100" },
                 ]}
-                w={100}
+                withCheckIcon={false}
+                allowDeselect={false}
+                w={110}
               />
-            </Group>
 
-            <Group justify="flex-end">
               <FilterActions
                 onApply={handleApplyFilters}
                 onReset={handleResetFilters}
@@ -512,30 +513,21 @@ export function RolesList({
               }
             />
           )}
-        </div>
 
-        {/* Pagination — always visible when data is loaded. */}
-        {rolesData?.pagination && (
-          <Group justify="space-between">
-            <Text size="sm" c="dimmed">
-              {rolesData.pagination.totalCount === 0
-                ? "No roles"
-                : `Showing ${
-                    (rolesData.pagination.page - 1) * rolesData.pagination.pageSize + 1
-                  } to ${Math.min(
-                    rolesData.pagination.page * rolesData.pagination.pageSize,
-                    rolesData.pagination.totalCount,
-                  )} of ${rolesData.pagination.totalCount} roles`}
-            </Text>
-
-            <Pagination
-              value={rolesData.pagination.page}
-              onChange={handlePageChange}
-              total={Math.max(rolesData.pagination.totalPages, 1)}
-              size="sm"
+          {/* Footer — always visible when data is loaded. */}
+          {rolesData?.pagination && (
+            <AdminTableFooter
+              totalCount={rolesData.pagination.totalCount}
+              itemLabel="roles"
+              pagination={{
+                page: rolesData.pagination.page,
+                pageSize: rolesData.pagination.pageSize,
+                totalPages: rolesData.pagination.totalPages,
+                onPageChange: handlePageChange,
+              }}
             />
-          </Group>
-        )}
+          )}
+        </div>
       </Stack>
     </Card>
   );

@@ -24,7 +24,6 @@ import {
   Group,
   TextInput,
   Select,
-  Pagination,
   Badge,
   ActionIcon,
   LoadingOverlay,
@@ -56,7 +55,7 @@ import { ScheduledJobActionsMenuItems } from '../utils/ScheduledJobActionsMenuIt
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { PageHeader } from '../../../shared/common/PageHeader';
-import { SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
 interface IScheduledJobsListProps {
     onViewJob?: (jobId: number) => void;
     onExecuteJob?: (jobId: number) => void;
@@ -710,11 +709,13 @@ export function ScheduledJobsList({
                   value={filterParams.pageSize?.toString() || "20"}
                   onChange={handlePageSizeChange}
                   data={[
-                    { value: "10", label: "10 per page" },
-                    { value: "20", label: "20 per page" },
-                    { value: "50", label: "50 per page" },
-                    { value: "100", label: "100 per page" },
+                    { value: "10", label: "10" },
+                    { value: "20", label: "20" },
+                    { value: "50", label: "50" },
+                    { value: "100", label: "100" },
                   ]}
+                  withCheckIcon={false}
+                  allowDeselect={false}
                   className={classes.pageSizeSelect}
                 />
               </Group>
@@ -802,25 +803,19 @@ export function ScheduledJobsList({
                 }
               />
             )}
-          </div>
 
-          {/* Pagination — always visible. */}
-          <Group justify="space-between">
-            <Text size="sm" c="dimmed">
-              {pagination.totalCount === 0
-                ? "No scheduled jobs"
-                : `Showing ${(pagination.page - 1) * pagination.pageSize + 1} to ${Math.min(
-                    pagination.page * pagination.pageSize,
-                    pagination.totalCount,
-                  )} of ${pagination.totalCount} jobs`}
-            </Text>
-            <Pagination
-              total={Math.max(pagination.totalPages, 1)}
-              value={pagination.page}
-              onChange={handlePageChange}
-              size="sm"
+            {/* Footer — always visible. */}
+            <AdminTableFooter
+              totalCount={pagination.totalCount}
+              itemLabel="jobs"
+              pagination={{
+                page: pagination.page,
+                pageSize: pagination.pageSize,
+                totalPages: pagination.totalPages,
+                onPageChange: handlePageChange,
+              }}
             />
-          </Group>
+          </div>
         </Stack>
       </Card>
     );
