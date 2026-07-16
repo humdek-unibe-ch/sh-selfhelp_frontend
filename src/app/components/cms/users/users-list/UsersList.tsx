@@ -440,6 +440,7 @@ export function UsersList({
           title="Users Management"
           subtitle="Manage user accounts, permissions, and settings"
           badge={usersData?.pagination.totalCount ?? 0}
+          badgeAriaLabel="users"
         >
           <Group gap="xs">
             <Button

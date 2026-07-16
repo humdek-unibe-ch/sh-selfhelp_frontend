@@ -405,6 +405,7 @@ export function RolesList({
           title="Roles Management"
           subtitle="Manage user roles and their permissions"
           badge={rolesData?.pagination.totalCount ?? 0}
+          badgeAriaLabel="roles"
         >
           <Button leftSection={<IconPlus size={16} />} onClick={onCreateRole}>
             Create Role

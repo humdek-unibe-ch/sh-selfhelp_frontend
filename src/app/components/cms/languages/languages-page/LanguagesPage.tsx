@@ -99,6 +99,7 @@ export function LanguagesPage() {
             title="Languages"
             subtitle="Manage available languages and locales"
             badge={languages?.length ?? 0}
+            badgeAriaLabel="languages"
           >
             <Button
               leftSection={<IconPlus size={16} />}

@@ -109,6 +109,7 @@ const dataTableOptions = useMemo(() => {
           title="Actions"
           subtitle="Manage and monitor actions"
           badge={data?.pagination?.totalCount ?? 0}
+          badgeAriaLabel="actions"
         >
           <Button
             leftSection={<IconPlus size={16} />}

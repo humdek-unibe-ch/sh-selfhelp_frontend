@@ -586,7 +586,8 @@ export function ScheduledJobsList({
             <PageHeader
             title="Scheduled Jobs"
             subtitle="Manage and monitor scheduled jobs"
-            badge={pagination.totalCount > 0 ? pagination.totalCount : undefined}
+            badge={pagination.totalCount}
+            badgeAriaLabel="jobs"
             >
             {selectedJobs.size > 0 && (
                 <Button

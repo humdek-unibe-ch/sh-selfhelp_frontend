@@ -731,8 +731,14 @@ function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSection
                </Title>
                <Text span className={pageStyles.titleSep}>/</Text>
                <Text span className={pageStyles.titleSub}>Sections</Text>
-               <Badge variant="light" color="blue" size="lg" radius="xl">
-                 {data?.sections?.length || 0}
+               <Badge
+                 variant="light"
+                 color="blue"
+                 size="lg"
+                 radius="xl"
+                 aria-label={`${data?.sections?.length ?? 0} sections`}
+               >
+                 {data?.sections?.length ?? 0}
                </Badge>
              </Group>
              <Text size="sm" c="dimmed" mt={4}>

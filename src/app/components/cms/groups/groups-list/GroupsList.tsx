@@ -306,6 +306,7 @@ export function GroupsList({
           title="Groups Management"
           subtitle="Manage user groups and their permissions"
           badge={groupsData?.pagination.totalCount ?? 0}
+          badgeAriaLabel="groups"
         >
           <Button
             leftSection={<IconPlus size={16} />}

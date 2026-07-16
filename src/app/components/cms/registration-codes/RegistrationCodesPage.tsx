@@ -300,6 +300,7 @@ export function RegistrationCodesPage() {
                         title="Registration Codes"
                         subtitle="Manage invitation codes required for user registration when open registration is disabled"
                         badge={data?.pagination.totalCount ?? 0}
+                        badgeAriaLabel="codes"
                     >
                         {canReadRegistrationCodes && (
                             <Button
