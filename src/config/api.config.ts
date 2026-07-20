@@ -521,6 +521,10 @@ export const API_CONFIG = {
             route: (groupId: number) => `/admin/groups/${groupId}`,
             permissions: [PERMISSIONS.ADMIN_GROUP_DELETE]
         },
+        ADMIN_GROUPS_MEMBERS_GET: {
+            route: (groupId: number) => `/admin/groups/${groupId}/users`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_READ]
+        },
         ADMIN_GROUPS_ACLS_GET: {
             route: (groupId: number) => `/admin/groups/${groupId}/acls`,
             permissions: [PERMISSIONS.ADMIN_GROUP_READ]

@@ -51,6 +51,7 @@ import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { GroupMembersModal } from './GroupMembersModal';
 import classes from './GroupsList.module.css';
 
 interface IGroupsListProps {
@@ -77,6 +78,9 @@ export function GroupsList({
 
   // Applied params (what is sent to the API)
   const [params, setParams] = useState<IGroupsListParams>(filterParams);
+
+  // The group whose members are being viewed, or null when the modal is closed.
+  const [membersOf, setMembersOf] = useState<{ id: number; name: string } | null>(null);
 
   // Fetch groups data
   const { data: groupsData, isFetching, refetch, error } = useGroups(params);
@@ -248,9 +252,9 @@ export function GroupsList({
               <Menu.Dropdown>
                 <Menu.Item
                   leftSection={<IconUsers size={14} />}
-                  onClick={() => {
-                    /* Handle view members */
-                  }}
+                  onClick={() =>
+                    setMembersOf({ id: row.original.id, name: row.original.name })
+                  }
                 >
                   View members
                 </Menu.Item>
@@ -429,6 +433,12 @@ export function GroupsList({
           )}
         </div>
       </Stack>
+
+      <GroupMembersModal
+        opened={membersOf !== null}
+        onClose={() => setMembersOf(null)}
+        group={membersOf}
+      />
     </Card>
   );
-} 
+}
