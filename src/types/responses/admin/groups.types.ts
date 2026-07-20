@@ -47,14 +47,6 @@ export interface IGroupsListParams {
   sortDirection?: 'asc' | 'desc';
 }
 
-/** A user who belongs to a group, as listed by "View members". */
-export interface IGroupMember {
-  id: number;
-  /** The DB column is NOT NULL, but the entity getter is `?string`, so the
-   *  contract honestly allows null. The modal renders it as-is. */
-  email: string | null;
-  name: string | null;
-  user_name: string | null;
-  status: string;
-  blocked: boolean;
-}
+/** A user who belongs to a group, as listed by "View members". Shared with
+ *  roles via `IMemberUser` — same shape from every `.../users` endpoint. */
+export type { IMemberUser as IGroupMember } from './admin.types';

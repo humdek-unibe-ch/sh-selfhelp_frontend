@@ -11,6 +11,22 @@ export interface IAdminPageSectionsData {
     sections: IPageField[];
 }
 
+/**
+ * A user who belongs to a group or a role, as listed by the "View members"
+ * modals. Both memberships return the same shape from `.../users` endpoints.
+ *
+ * `email` is nullable to match the backend: the DB column is NOT NULL but the
+ * entity getter is `?string`, so the contract honestly allows null.
+ */
+export interface IMemberUser {
+    id: number;
+    email: string | null;
+    name: string | null;
+    user_name: string | null;
+    status: string;
+    blocked: boolean;
+}
+
 export interface INavigationMembershipBadge {
     menu_key: string;
     menu_item_id: number;

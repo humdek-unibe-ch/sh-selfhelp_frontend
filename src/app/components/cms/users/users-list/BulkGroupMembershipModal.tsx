@@ -47,15 +47,22 @@ export function BulkGroupMembershipModal({
   const { data: groupsData, isLoading: isLoadingGroups } = useGroups({ pageSize: 100 });
   const copy = COPY[mode];
 
-  const handleClose = () => {
+  // Reset the selection when the modal opens or the mode flips, not on close: a
+  // successful submit closes the modal from the parent (setGroupMode(null))
+  // without routing through onClose, so resetting there would let the previous
+  // selection reappear on the next open. Resetting during render on the
+  // open/mode transition (React's documented alternative to a state-syncing
+  // effect) clears both paths without an extra render.
+  const [resetKey, setResetKey] = useState(`${opened}-${mode}`);
+  if (resetKey !== `${opened}-${mode}`) {
+    setResetKey(`${opened}-${mode}`);
     setGroupIds([]);
-    onClose();
-  };
+  }
 
   return (
     <ModalWrapper
       opened={opened}
-      onClose={handleClose}
+      onClose={onClose}
       title={copy.title}
       size="md"
       onSave={() => onConfirm(groupIds.map(Number))}

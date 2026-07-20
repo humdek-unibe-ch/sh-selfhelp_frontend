@@ -543,6 +543,10 @@ export const API_CONFIG = {
             route: (roleId: number) => `/admin/roles/${roleId}`,
             permissions: [PERMISSIONS.ADMIN_ROLE_READ]
         },
+        ADMIN_ROLES_MEMBERS_GET: {
+            route: (roleId: number) => `/admin/roles/${roleId}/users`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
+        },
         ADMIN_ROLES_CREATE: {
             route: '/admin/roles',
             permissions: [PERMISSIONS.ADMIN_ROLE_CREATE]

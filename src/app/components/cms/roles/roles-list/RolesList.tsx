@@ -53,6 +53,7 @@ import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { RoleMembersModal } from './RoleMembersModal';
 import classes from './RolesList.module.css';
 
 interface IRolesListProps {
@@ -87,6 +88,9 @@ export function RolesList({
 
   // Applied params (what is sent to the API)
   const [params, setParams] = useState<IRolesListParams>(filterParams);
+
+  // The role whose users are being viewed, or null when the modal is closed.
+  const [membersOf, setMembersOf] = useState<{ id: number; name: string } | null>(null);
 
   // Fetch roles data
   const { data: rolesData, refetch, isFetching, error } = useRoles(params);
@@ -338,9 +342,9 @@ export function RolesList({
                 <Menu.Dropdown>
                   <Menu.Item
                     leftSection={<IconUsers size={14} />}
-                    onClick={() => {
-                      /* Handle view users */
-                    }}
+                    onClick={() =>
+                      setMembersOf({ id: row.original.id, name: row.original.name })
+                    }
                   >
                     View Users
                   </Menu.Item>
@@ -530,6 +534,12 @@ export function RolesList({
           )}
         </div>
       </Stack>
+
+      <RoleMembersModal
+        opened={membersOf !== null}
+        onClose={() => setMembersOf(null)}
+        role={membersOf}
+      />
     </Card>
   );
-} 
+}
