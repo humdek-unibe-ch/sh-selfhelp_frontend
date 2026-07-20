@@ -409,6 +409,34 @@ export const API_CONFIG = {
             route: (userId: number) => `/admin/users/${userId}`,
             permissions: [PERMISSIONS.ADMIN_USER_READ]
         },
+        ADMIN_USERS_STATS: {
+            route: '/admin/users/stats',
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_BULK_DELETE: {
+            route: '/admin/users/bulk-delete',
+            permissions: [PERMISSIONS.ADMIN_USER_DELETE]
+        },
+        ADMIN_USERS_BULK_ADD_TO_GROUP: {
+            route: '/admin/users/bulk-add-to-group',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_BULK_REMOVE_FROM_GROUP: {
+            route: '/admin/users/bulk-remove-from-group',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_BULK_SEND_ACTIVATION: {
+            route: '/admin/users/bulk-send-activation',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_EXPORT_CSV: {
+            route: '/admin/users/export',
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_IMPORT_CSV: {
+            route: '/admin/users/import',
+            permissions: [PERMISSIONS.ADMIN_USER_CREATE]
+        },
         ADMIN_USERS_CREATE: {
             route: '/admin/users',
             permissions: [PERMISSIONS.ADMIN_USER_CREATE]

@@ -22,6 +22,7 @@ import {
   TableTr,
 
   Card,
+  Checkbox,
   Group,
   TextInput,
   Select,
@@ -45,16 +46,37 @@ import {
   IconUserCheck,
   IconDots,
   IconPlus,
+  IconFileExport,
+  IconFileImport,
   IconX,
 } from '@tabler/icons-react';
-import { useUsers } from '../../../../../hooks/useUsers';
-import type { IUserBasic, IUsersListParams } from '../../../../../types/responses/admin/users.types';
+import {
+  useUsers,
+  useUsersStats,
+  useBulkAddUsersToGroup,
+  useBulkRemoveUsersFromGroup,
+  useBulkSendActivation,
+  useBulkDeleteUsers,
+  useExportUsersCsv,
+  useImportUsersCsv,
+} from '../../../../../hooks/useUsers';
+import { useGroups } from '../../../../../hooks/useGroups';
+import type {
+  IUserBasic,
+  IUsersListParams,
+  TUserStatusFilter,
+} from '../../../../../types/responses/admin/users.types';
 import { getUserStatusColor } from '../../../../../utils/status-color.utils';
 import classes from './UsersList.module.css';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { UsersStatsTiles } from './UsersStatsTiles';
+import { UsersBulkActionsBar } from './UsersBulkActionsBar';
+import { BulkGroupMembershipModal } from './BulkGroupMembershipModal';
+import { BulkDeleteUsersModal } from './BulkDeleteUsersModal';
+import { ImportUsersCsvModal } from './ImportUsersCsvModal';
 
 interface IUsersListProps {
   onCreateUser?: () => void;
@@ -94,8 +116,38 @@ export function UsersList({
   // Applied params (what is sent to the API)
   const [params, setParams] = useState<IUsersListParams>(filterParams);
 
+  // Row selection for the bulk actions, keyed by user id.
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  // Bulk / CSV modals. `groupMode` doubles as the open flag for the group
+  // membership modal: null closed, otherwise the direction it operates in.
+  const [groupMode, setGroupMode] = useState<'add' | 'remove' | null>(null);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+
   // Fetch users data
   const { data: usersData, isFetching, error, refetch } = useUsers(params);
+  const {
+    data: statsData,
+    isLoading: isLoadingStats,
+    isError: isStatsError,
+  } = useUsersStats();
+
+  // Groups drive the Group filter dropdown.
+  const { data: groupsData } = useGroups({ pageSize: 100 });
+
+  const bulkAddToGroup = useBulkAddUsersToGroup();
+  const bulkRemoveFromGroup = useBulkRemoveUsersFromGroup();
+  const bulkSendActivation = useBulkSendActivation();
+  const bulkDelete = useBulkDeleteUsers();
+  const exportCsv = useExportUsersCsv();
+  const importCsv = useImportUsersCsv();
+
+  const isBulkBusy =
+    bulkAddToGroup.isPending ||
+    bulkRemoveFromGroup.isPending ||
+    bulkSendActivation.isPending ||
+    bulkDelete.isPending;
 
   // Table sorting state
   const [sorting, setSorting] = useState<SortingState>([
@@ -143,8 +195,10 @@ export function UsersList({
     }));
   }, []);
 
-  // Handle page change
+  // Handle page change. Selection is per-page, so leaving the page drops it —
+  // acting on ids that are no longer on screen is not what the count implies.
   const handlePageChange = useCallback((page: number) => {
+    setSelectedIds(new Set());
     setParams((prev) => ({ ...prev, page }));
   }, []);
 
@@ -174,12 +228,95 @@ export function UsersList({
 
   // Apply filters
   const handleApplyFilters = useCallback(() => {
+    setSelectedIds(new Set());
     setParams({ ...filterParams, page: 1 });
   }, [filterParams]);
+
+  const handleSelectAll = useCallback((checked: boolean) => {
+    setSelectedIds(checked ? new Set((usersData?.users ?? []).map((u) => u.id)) : new Set());
+  }, [usersData]);
+
+  const handleToggleRow = useCallback((userId: number, checked: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(userId);
+      } else {
+        next.delete(userId);
+      }
+      return next;
+    });
+  }, []);
+
+  const selectedUsers = useMemo(
+    () => (usersData?.users ?? []).filter((u) => selectedIds.has(u.id)),
+    [usersData, selectedIds],
+  );
+
+  const handleBulkGroupMembership = useCallback(
+    (groupIds: number[]) => {
+      const mutation = groupMode === 'remove' ? bulkRemoveFromGroup : bulkAddToGroup;
+      mutation.mutate(
+        { userIds: [...selectedIds], groupIds },
+        {
+          onSuccess: () => {
+            setGroupMode(null);
+            setSelectedIds(new Set());
+          },
+        },
+      );
+    },
+    [groupMode, bulkAddToGroup, bulkRemoveFromGroup, selectedIds],
+  );
+
+  const handleBulkSendActivation = useCallback(() => {
+    bulkSendActivation.mutate([...selectedIds], {
+      onSuccess: () => setSelectedIds(new Set()),
+    });
+  }, [bulkSendActivation, selectedIds]);
+
+  const handleBulkDelete = useCallback(() => {
+    bulkDelete.mutate([...selectedIds], {
+      onSuccess: () => {
+        setBulkDeleteOpen(false);
+        setSelectedIds(new Set());
+      },
+    });
+  }, [bulkDelete, selectedIds]);
+
+  const handleImportCsv = useCallback(
+    (file: File) => {
+      importCsv.mutate(file, { onSuccess: () => setImportOpen(false) });
+    },
+    [importCsv],
+  );
+
+  const rows = usersData?.users ?? [];
+  const allSelected = rows.length > 0 && rows.every((u) => selectedIds.has(u.id));
+  const someSelected = rows.some((u) => selectedIds.has(u.id));
 
   // Define table columns
   const columns = useMemo<ColumnDef<IUserBasic>[]>(
     () => [
+      {
+        id: "select",
+        header: () => (
+          <Checkbox
+            aria-label="Select all users on this page"
+            checked={allSelected}
+            indeterminate={someSelected && !allSelected}
+            onChange={(e) => handleSelectAll(e.currentTarget.checked)}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            aria-label={`Select ${row.original.email}`}
+            checked={selectedIds.has(row.original.id)}
+            onChange={(e) => handleToggleRow(row.original.id, e.currentTarget.checked)}
+          />
+        ),
+        enableSorting: false,
+      },
       {
         accessorKey: "id",
         header: ({ column }) => <SortHeader label="ID" column={column} />,
@@ -394,6 +531,11 @@ export function UsersList({
       },
     ],
     [
+      allSelected,
+      someSelected,
+      selectedIds,
+      handleSelectAll,
+      handleToggleRow,
       onEditUser,
       onDeleteUser,
       onToggleBlock,
@@ -448,51 +590,121 @@ export function UsersList({
               onClick={onCreateUser}
               disabled={!permissions.canCreate}
             >
-              Create User
+              Add User
+            </Button>
+            <Button
+              variant="default"
+              leftSection={<IconFileImport size={16} />}
+              onClick={() => setImportOpen(true)}
+              disabled={!permissions.canCreate}
+            >
+              Import CSV
+            </Button>
+            <Button
+              variant="default"
+              leftSection={<IconFileExport size={16} />}
+              onClick={() => exportCsv.mutate(params)}
+              loading={exportCsv.isPending}
+            >
+              Export
             </Button>
           </Group>
         </PageHeader>
 
-        {/* Filters Card with FilterActions */}
-        <Card withBorder p="md">
-          <Group gap="md" align="flex-end" justify="space-between">
-            <Group gap="md" style={{ flex: 1 }}>
-              <TextInput
-                placeholder="Search users by email, name, or code..."
-                leftSection={<IconSearch size={16} />}
-                rightSection={
-                  filterParams.search ? (
-                    <ActionIcon
-                      variant="subtle"
-                      color="gray"
-                      size="sm"
-                      onClick={handleClearSearch}
-                    >
-                      <IconX size={14} />
-                    </ActionIcon>
-                  ) : null
-                }
-                value={filterParams.search}
-                onChange={(e) => handleSearch(e.currentTarget.value)}
-                style={{ flex: 1 }}
-              />
-            </Group>
+        <UsersStatsTiles
+          stats={statsData}
+          isLoading={isLoadingStats}
+          isError={isStatsError}
+          activeStatus={params.status ?? 'all'}
+        />
 
-             <Group justify="flex-end" gap="md" align="flex-end">
-              <Select
-                label="Rows per page"
-                value={filterParams.pageSize?.toString()}
-                onChange={handlePageSizeChange}
-                data={[
-                  { value: "10", label: "10" },
-                  { value: "20", label: "20" },
-                  { value: "50", label: "50" },
-                  { value: "100", label: "100" },
-                ]}
-                withCheckIcon={false}
-                allowDeselect={false}
-                w={110}
-              />
+        {/* Filters. Search gets its own full-width row so the long placeholder
+            is never squeezed by the fixed-width selects beside it; the selects
+            wrap onto as many rows as they need on narrow viewports. */}
+        <Card withBorder p="md">
+          <Stack gap="md">
+            <TextInput
+              aria-label="Search users"
+              placeholder="Search users by email, name, or code..."
+              leftSection={<IconSearch size={16} />}
+              rightSection={
+                filterParams.search ? (
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    aria-label="Clear search"
+                    onClick={handleClearSearch}
+                  >
+                    <IconX size={14} />
+                  </ActionIcon>
+                ) : null
+              }
+              value={filterParams.search}
+              onChange={(e) => handleSearch(e.currentTarget.value)}
+            />
+
+            <Group gap="md" align="flex-end" justify="space-between" wrap="wrap">
+              <Group gap="md" align="flex-end" wrap="wrap">
+                <Select
+                  label="Status"
+                  value={filterParams.status ?? 'all'}
+                  onChange={(value) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      status:
+                        value && value !== 'all'
+                          ? (value as Exclude<TUserStatusFilter, 'all'>)
+                          : undefined,
+                      page: 1,
+                    }))
+                  }
+                  data={[
+                    { value: 'all', label: 'All' },
+                    { value: 'active', label: 'Active' },
+                    { value: 'invited', label: 'Invited' },
+                    { value: 'blocked', label: 'Blocked' },
+                  ]}
+                  withCheckIcon={false}
+                  allowDeselect={false}
+                  w={160}
+                />
+
+                <Select
+                  label="Group"
+                  placeholder="All"
+                  value={filterParams.id_groups?.toString() ?? null}
+                  onChange={(value) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      id_groups: value ? Number(value) : undefined,
+                      page: 1,
+                    }))
+                  }
+                  data={(groupsData?.groups ?? []).map((group) => ({
+                    value: group.id.toString(),
+                    label: group.name,
+                  }))}
+                  searchable
+                  clearable
+                  w={160}
+                />
+
+                <Select
+                  label="Rows per page"
+                  value={filterParams.pageSize?.toString()}
+                  onChange={handlePageSizeChange}
+                  data={[
+                    { value: "10", label: "10" },
+                    { value: "20", label: "20" },
+                    { value: "50", label: "50" },
+                    { value: "100", label: "100" },
+                  ]}
+                  withCheckIcon={false}
+                  allowDeselect={false}
+                  w={110}
+                />
+              </Group>
 
               <FilterActions
                 onApply={handleApplyFilters}
@@ -502,12 +714,24 @@ export function UsersList({
                 isApplyDisabled={filterParams === params}
               />
             </Group>
-          </Group>
+          </Stack>
         </Card>
 
         {/* Table */}
         <div className={tableStyles.tableWrapper}>
           <LoadingOverlay visible={isFetching} />
+
+          {selectedIds.size > 0 && (
+            <UsersBulkActionsBar
+              selectedCount={selectedIds.size}
+              onAddToGroup={() => setGroupMode('add')}
+              onRemoveFromGroup={() => setGroupMode('remove')}
+              onSendActivation={handleBulkSendActivation}
+              onDelete={() => setBulkDeleteOpen(true)}
+              isBusy={isBulkBusy}
+              permissions={permissions}
+            />
+          )}
 
           <Box className={tableStyles.tableScrollContainer}>
             <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
@@ -550,8 +774,8 @@ export function UsersList({
               <EmptyState
                 title="No users found"
                 description={
-                  params.search
-                    ? "Try adjusting your search criteria"
+                  params.search || params.status || params.id_groups
+                    ? "Try adjusting your search or filters"
                     : "Get started by creating your first user"
                 }
               />
@@ -572,6 +796,30 @@ export function UsersList({
           )}
         </div>
       </Stack>
+
+      <BulkGroupMembershipModal
+        opened={groupMode !== null}
+        onClose={() => setGroupMode(null)}
+        mode={groupMode ?? 'add'}
+        selectedCount={selectedIds.size}
+        onConfirm={handleBulkGroupMembership}
+        isLoading={bulkAddToGroup.isPending || bulkRemoveFromGroup.isPending}
+      />
+
+      <BulkDeleteUsersModal
+        opened={bulkDeleteOpen}
+        onClose={() => setBulkDeleteOpen(false)}
+        users={selectedUsers}
+        onConfirm={handleBulkDelete}
+        isLoading={bulkDelete.isPending}
+      />
+
+      <ImportUsersCsvModal
+        opened={importOpen}
+        onClose={() => setImportOpen(false)}
+        onConfirm={handleImportCsv}
+        isLoading={importCsv.isPending}
+      />
     </Card>
   );
-} 
+}

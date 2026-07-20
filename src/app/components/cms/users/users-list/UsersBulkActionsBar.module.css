@@ -1,0 +1,16 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/* Sits inside the table shell, directly above the header row, so the selection
+   context stays visually attached to the rows it applies to. */
+.bar {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-blue-0);
+}
+
+[data-mantine-color-scheme='dark'] .bar {
+  background-color: var(--mantine-color-dark-6);
+}

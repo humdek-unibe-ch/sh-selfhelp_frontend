@@ -5,8 +5,9 @@ SPDX-License-Identifier: MPL-2.0
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminUserApi } from '../api/admin/user.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import type { 
-  IUsersListParams, 
+import type {
+  IUsersListParams,
+  IBulkOperationResult,
 } from '../types/responses/admin/users.types';
 import type {
   ICreateUserRequest,
@@ -26,6 +27,7 @@ export const USER_QUERY_KEYS = {
   all: ['users'] as const,
   lists: () => [...USER_QUERY_KEYS.all, 'list'] as const,
   list: (params: IUsersListParams) => [...USER_QUERY_KEYS.lists(), params] as const,
+  stats: () => [...USER_QUERY_KEYS.all, 'stats'] as const,
   details: () => [...USER_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: number) => [...USER_QUERY_KEYS.details(), id] as const,
   groups: (id: number) => [...USER_QUERY_KEYS.all, 'groups', id] as const,
@@ -46,6 +48,40 @@ const handleMutationError = (error: unknown) => {
 };
 
 /**
+ * Report a bulk outcome honestly: a partial failure is not a success. The
+ * backend reports per-user results, so a run where some users were rejected
+ * (permissions, already-deleted, bad state) says so and names the count.
+ */
+const notifyBulkResult = (result: IBulkOperationResult, pastTenseAction: string) => {
+  const okCount = result.succeeded.length;
+  const failCount = result.failed.length;
+
+  if (failCount === 0) {
+    notifications.show({
+      title: 'Done',
+      message: `${okCount} user(s) ${pastTenseAction}.`,
+      icon: React.createElement(IconCheck, { size: '1rem' }),
+      color: 'green',
+      autoClose: 5000,
+      position: 'top-center',
+    });
+    return;
+  }
+
+  notifications.show({
+    title: okCount > 0 ? 'Partially Completed' : 'Failed',
+    message:
+      okCount > 0
+        ? `${okCount} user(s) ${pastTenseAction}; ${failCount} failed: ${result.failed[0]?.reason ?? 'unknown error'}`
+        : `No users were ${pastTenseAction}. ${result.failed[0]?.reason ?? 'unknown error'}`,
+    icon: React.createElement(IconX, { size: '1rem' }),
+    color: okCount > 0 ? 'orange' : 'red',
+    autoClose: 10000,
+    position: 'top-center',
+  });
+};
+
+/**
  * Hook to fetch paginated users list with search and sorting.
  *
  * `options.enabled` lets callers defer the request (default `true`). Screens
@@ -58,6 +94,148 @@ export function useUsers(params: IUsersListParams = {}, options?: { enabled?: bo
     queryFn: () => AdminUserApi.getUsers(params),
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.staleTime,
     enabled: options?.enabled ?? true,
+  });
+}
+
+/**
+ * Hook to fetch the user counts for the stat tiles.
+ *
+ * Intentionally takes no params: the backend scopes them to the users the
+ * caller can see, and they describe that whole visible set rather than the
+ * filtered result, so they must not refetch as filters change.
+ */
+export function useUsersStats() {
+  return useQuery({
+    queryKey: USER_QUERY_KEYS.stats(),
+    queryFn: () => AdminUserApi.getUsersStats(),
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.staleTime,
+  });
+}
+
+/**
+ * Delete one or more users. Single deletes pass a one-element array so there
+ * is one code path for both.
+ */
+export function useBulkDeleteUsers() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userIds: number[]) => AdminUserApi.bulkDeleteUsers({ user_ids: userIds }),
+    onSuccess: (result, userIds) => {
+      userIds.forEach((id) =>
+        queryClient.removeQueries({ queryKey: USER_QUERY_KEYS.detail(id) }),
+      );
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.stats() });
+
+      notifyBulkResult(result, 'deleted');
+    },
+    onError: handleMutationError,
+  });
+}
+
+/**
+ * Add one or more users to one or more groups.
+ */
+export function useBulkAddUsersToGroup() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userIds, groupIds }: { userIds: number[]; groupIds: number[] }) =>
+      AdminUserApi.bulkAddUsersToGroup({ user_ids: userIds, group_ids: groupIds }),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+
+      notifyBulkResult(result, 'added to the group');
+    },
+    onError: handleMutationError,
+  });
+}
+
+/**
+ * Remove one or more users from one or more groups.
+ */
+export function useBulkRemoveUsersFromGroup() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userIds, groupIds }: { userIds: number[]; groupIds: number[] }) =>
+      AdminUserApi.bulkRemoveUsersFromGroup({ user_ids: userIds, group_ids: groupIds }),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+
+      notifyBulkResult(result, 'removed from the group');
+    },
+    onError: handleMutationError,
+  });
+}
+
+/**
+ * Send activation mail to one or more users.
+ */
+export function useBulkSendActivation() {
+  return useMutation({
+    mutationFn: (userIds: number[]) => AdminUserApi.bulkSendActivation({ user_ids: userIds }),
+    onSuccess: (result) => {
+      notifyBulkResult(result, 'sent an activation mail');
+    },
+    onError: handleMutationError,
+  });
+}
+
+/**
+ * Export the current filtered users list as a CSV download.
+ */
+export function useExportUsersCsv() {
+  return useMutation({
+    mutationFn: (params: IUsersListParams) => AdminUserApi.exportUsersCsv(params),
+    onSuccess: ({ blob, filename }) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      // The server names the file; only fall back if the header is missing.
+      if (filename) link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      notifications.show({
+        title: 'Export Ready',
+        message: 'The users CSV has been downloaded.',
+        icon: React.createElement(IconCheck, { size: '1rem' }),
+        color: 'green',
+        autoClose: 5000,
+        position: 'top-center',
+      });
+    },
+    onError: handleMutationError,
+  });
+}
+
+/**
+ * Import users from a CSV file.
+ */
+export function useImportUsersCsv() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => AdminUserApi.importUsersCsv(file),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.stats() });
+
+      const hasErrors = result.errors.length > 0;
+      notifications.show({
+        title: hasErrors ? 'Import Finished With Errors' : 'Import Complete',
+        message: hasErrors
+          ? `Imported ${result.imported}, skipped ${result.skipped}. ${result.errors.length} row(s) failed.`
+          : `Imported ${result.imported} user(s).`,
+        icon: React.createElement(hasErrors ? IconX : IconCheck, { size: '1rem' }),
+        color: hasErrors ? 'orange' : 'green',
+        autoClose: hasErrors ? 10000 : 5000,
+        position: 'top-center',
+      });
+    },
+    onError: handleMutationError,
   });
 }
 
@@ -105,7 +283,8 @@ export function useCreateUser() {
     onSuccess: (data) => {
       // Invalidate users list to refresh data
       void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
-      
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.stats() });
+
       notifications.show({
         title: 'User Created',
         message: `User ${data.email} was created successfully!`,
@@ -160,7 +339,8 @@ export function useDeleteUser() {
       queryClient.removeQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
       // Invalidate users list to refresh data
       void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
-      
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.stats() });
+
       notifications.show({
         title: 'User Deleted',
         message: 'User was deleted successfully!',
@@ -188,7 +368,9 @@ export function useToggleUserBlock() {
       queryClient.setQueryData(USER_QUERY_KEYS.detail(userId), data);
       // Invalidate users list to refresh data
       void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
-      
+      // Blocking moves a user between the Active and Blocked tiles.
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.stats() });
+
       notifications.show({
         title: blockData.blocked ? 'User Blocked' : 'User Unblocked',
         message: `User ${data.email} was ${blockData.blocked ? 'blocked' : 'unblocked'} successfully!`,
