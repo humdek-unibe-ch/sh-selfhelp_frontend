@@ -1018,6 +1018,10 @@ export const API_CONFIG = {
             route: '/admin/registration-codes/export',
             permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]
         },
+        ADMIN_REGISTRATION_CODES_STATS: {
+            route: '/admin/registration-codes/stats',
+            permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]
+        },
         // Admin audit management endpoints
         ADMIN_AUDIT_DATA_ACCESS_LIST: {
             route: '/admin/audit/data-access',

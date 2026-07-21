@@ -8,6 +8,7 @@ import type { IBaseApiResponse } from '../../types/responses/common/response-env
 import type {
     IRegistrationCodesListResponse,
     IRegistrationCodesListParams,
+    IRegistrationCodesStats,
     IGenerateRegistrationCodesResponse,
 } from '../../types/responses/admin/registration-codes.types';
 import type { IGenerateRegistrationCodesRequest } from '../../types/requests/admin/registration-codes.types';
@@ -41,6 +42,20 @@ export const AdminRegistrationCodesApi = {
             { params: q, responseType: 'blob' }
         );
         return response.data;
+    },
+
+    /**
+     * Get the registration-code counts backing the stat tiles.
+     *
+     * Scoped server-side to the codes the caller can see, and deliberately
+     * unfiltered: they describe that whole visible set, not the current
+     * search/filter result, so the tiles stay stable while filtering.
+     */
+    async getStats(): Promise<IRegistrationCodesStats> {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IRegistrationCodesStats>>(
+            API_CONFIG.ENDPOINTS.ADMIN_REGISTRATION_CODES_STATS
+        );
+        return response.data.data;
     },
 
     async generate(data: IGenerateRegistrationCodesRequest): Promise<IGenerateRegistrationCodesResponse> {

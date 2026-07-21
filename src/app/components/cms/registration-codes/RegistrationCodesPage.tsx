@@ -44,7 +44,7 @@ import {
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { downloadBlobFile, generateExportFilename } from '../../../../utils/export-import.utils';
-import { useRegistrationCodes, useExportRegistrationCodes, useGenerateRegistrationCodes } from '../../../../hooks/useRegistrationCodes';
+import { useRegistrationCodes, useRegistrationCodesStats, useExportRegistrationCodes, useGenerateRegistrationCodes } from '../../../../hooks/useRegistrationCodes';
 import { useGroups } from '../../../../hooks/useGroups';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCanReadRegistrationCodes, useCanCreateRegistrationCodes } from '../../../../hooks/usePermissionChecks';
@@ -54,6 +54,7 @@ import { EmptyState } from '../../shared/common/EmptyState';
 import { FilterActions } from '../../shared/common/FilterControls';
 import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
 import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../shared/admin-table';
+import { RegistrationCodesStatsTiles } from './RegistrationCodesStatsTiles';
 import type { IRegistrationCode, IRegistrationCodesListParams } from '../../../../types/responses/admin/registration-codes.types';
 
 /**
@@ -104,6 +105,7 @@ export function RegistrationCodesPage() {
     const [params, setParams] = useState<IRegistrationCodesListParams>(DEFAULT_PARAMS);
 
     const { data, isFetching, error, refetch } = useRegistrationCodes(params);
+    const { data: statsData, isLoading: isLoadingStats, isError: isStatsError } = useRegistrationCodesStats();
 
     const generateMin = data?.config?.generate_min ?? 1;
     const generateMax = data?.config?.generate_max ?? 10000;
@@ -321,6 +323,13 @@ export function RegistrationCodesPage() {
                             </Button>
                         )}
                     </PageHeader>
+
+                    <RegistrationCodesStatsTiles
+                        stats={statsData}
+                        isLoading={isLoadingStats}
+                        isError={isStatsError}
+                        activeStatus={params.status ?? 'all'}
+                    />
 
                     {/* Filters */}
                     <Card withBorder p="md">

@@ -22,6 +22,21 @@ export interface IRegistrationCode {
     user_email: string | null;
 }
 
+/**
+ * Counts backing the stat tiles. Scoped server-side to the codes the caller
+ * can see and deliberately unfiltered, so the tiles stay stable while the
+ * table is filtered. `available` + `used` sum to `total` (a code is exactly
+ * one or the other), so these are safe to present as parts of a whole.
+ */
+export interface IRegistrationCodesStats {
+    total: number;
+    available: number;
+    used: number;
+}
+
+/** The status axis shared by the stat tiles and the Status filter select. */
+export type TRegistrationCodeStatusFilter = 'all' | 'available' | 'used';
+
 export interface IRegistrationCodesListParams {
     page?: number;
     pageSize?: number;

@@ -14,12 +14,28 @@ import type { IRegistrationCodesListParams } from '../types/responses/admin/regi
 const QUERY_KEYS = {
     all: ['registration-codes'] as const,
     list: (params: IRegistrationCodesListParams) => ['registration-codes', 'list', params] as const,
+    stats: () => ['registration-codes', 'stats'] as const,
 };
 
 export function useRegistrationCodes(params: IRegistrationCodesListParams = {}) {
     return useQuery({
         queryKey: QUERY_KEYS.list(params),
         queryFn: () => AdminRegistrationCodesApi.getAll(params),
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+    });
+}
+
+/**
+ * Fetch the registration-code counts for the stat tiles.
+ *
+ * Intentionally takes no params: the backend scopes them to the codes the
+ * caller can see, and they describe that whole visible set rather than the
+ * filtered result, so they must not refetch as filters change.
+ */
+export function useRegistrationCodesStats() {
+    return useQuery({
+        queryKey: QUERY_KEYS.stats(),
+        queryFn: () => AdminRegistrationCodesApi.getStats(),
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
     });
 }
