@@ -8,59 +8,61 @@ import { Alert, Card, Group, SimpleGrid, Skeleton, Stack, Text, ThemeIcon } from
 import {
   IconAlertTriangle,
   IconCircleCheck,
-  IconCircleDashed,
-  IconTicket,
+  IconCircleX,
+  IconClock,
+  IconListDetails,
+  IconTrash,
   type IconProps,
 } from '@tabler/icons-react';
 import type { ComponentType } from 'react';
-import type {
-  IRegistrationCodesStats,
-  TRegistrationCodeStatusFilter,
-} from '../../../../types/responses/admin/registration-codes.types';
-import classes from './RegistrationCodesStatsTiles.module.css';
+import type { IScheduledJobsStats } from '../../../../../types/responses/admin/scheduled-jobs.types';
+import classes from './ScheduledJobsStatsTiles.module.css';
 
-interface IRegistrationCodesStatsTilesProps {
-  stats?: IRegistrationCodesStats;
+/** Tile status keys. `all` is the total tile; the rest match the status lookup
+ *  codes (`queued`/`done`/`failed`/`deleted`) the Status filter emits. */
+type TScheduledJobsStatTile = 'all' | 'queued' | 'done' | 'failed' | 'deleted';
+
+interface IScheduledJobsStatsTilesProps {
+  stats?: IScheduledJobsStats;
   isLoading: boolean;
-  /** True when the counts could not be loaded. Tiles then show "—", never 0:
-   *  a confident zero is indistinguishable from "you have no codes". */
   isError?: boolean;
-  /** Applied status filter — the matching tile is outlined so the tiles read
-   *  as a display of the current filter, which the Status select owns. */
-  activeStatus: TRegistrationCodeStatusFilter;
+  activeStatus?: string;
 }
 
 interface ITile {
-  status: TRegistrationCodeStatusFilter;
+  status: TScheduledJobsStatTile;
   label: string;
   color: string;
   icon: ComponentType<IconProps>;
 }
 
 const TILES: ITile[] = [
-  { status: 'all', label: 'Total codes', color: 'blue', icon: IconTicket },
-  { status: 'available', label: 'Available', color: 'green', icon: IconCircleCheck },
-  { status: 'used', label: 'Used', color: 'gray', icon: IconCircleDashed },
+  { status: 'all', label: 'Total jobs', color: 'blue', icon: IconListDetails },
+  { status: 'queued', label: 'Queued', color: 'blue', icon: IconClock },
+  { status: 'done', label: 'Done', color: 'green', icon: IconCircleCheck },
+  { status: 'failed', label: 'Failed', color: 'red', icon: IconCircleX },
+  { status: 'deleted', label: 'Deleted', color: 'gray', icon: IconTrash },
 ];
 
 /**
- * The three count tiles above the registration-codes table. Read-only:
- * filtering is the Status select's job (it goes through Apply Filters like
- * every other backend query param), and the tiles highlight whichever status
- * is applied.
+ * The count tiles above the scheduled-jobs table. Read-only: filtering is the
+ * Status select's job (it goes through Apply Filters like every other backend
+ * query param), and the tiles highlight whichever status is applied.
  *
- * `available` + `used` sum to `total` (a code is exactly one or the other),
- * so these are a genuine breakdown of the whole set.
+ * These are independent status counts, not a breakdown of `total`: a `deleted`
+ * job still counts toward `total`, so never render these as parts of a whole
+ * (stacked bar, % of total). `Failed` is the operationally important one and is
+ * intentionally red.
  */
-export function RegistrationCodesStatsTiles({
+export function ScheduledJobsStatsTiles({
   stats,
   isLoading,
   isError = false,
   activeStatus,
-}: IRegistrationCodesStatsTilesProps) {
+}: IScheduledJobsStatsTilesProps) {
   // Never fall back to 0 when the counts are missing — an admin cannot tell a
   // failed request from a genuinely empty system, and 0 reads as fact.
-  const valueFor = (status: TRegistrationCodeStatusFilter) => {
+  const valueFor = (status: TScheduledJobsStatTile) => {
     if (!stats) return '—';
     if (status === 'all') return stats.total;
     return stats[status];
@@ -70,14 +72,15 @@ export function RegistrationCodesStatsTiles({
     <Stack gap="xs">
       {isError && (
         <Alert color="orange" icon={<IconAlertTriangle size={16} />} py="xs">
-          Could not load the code counts. The numbers below are unavailable — the
+          Could not load the job counts. The numbers below are unavailable — the
           table itself is unaffected.
         </Alert>
       )}
 
-      <SimpleGrid cols={{ base: 1, xs: 3 }} spacing="md">
+      <SimpleGrid cols={{ base: 1, xs: 2, md: 5 }} spacing="md">
         {TILES.map((tile) => {
-          const isActive = activeStatus === tile.status;
+          const isActive =
+            tile.status === 'all' ? !activeStatus : activeStatus === tile.status;
           return (
             <Card
               key={tile.status}
@@ -109,7 +112,7 @@ export function RegistrationCodesStatsTiles({
       </SimpleGrid>
 
       <Text size="xs" c="dimmed">
-        Across all codes — not affected by the filters below.
+        Across all jobs — not affected by the filters below.
       </Text>
     </Stack>
   );

@@ -619,6 +619,10 @@ export const API_CONFIG = {
             route: '/admin/scheduled-jobs',
             permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
         },
+        ADMIN_SCHEDULED_JOBS_STATS: {
+            route: '/admin/scheduled-jobs/stats',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
         ADMIN_SCHEDULED_JOBS_GET_ONE: {
             route: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
             permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]

@@ -106,6 +106,10 @@ export function UsersStatsTiles({
           );
         })}
       </SimpleGrid>
+
+      <Text size="xs" c="dimmed">
+        Across all users you can see — not affected by the filters below.
+      </Text>
     </Stack>
   );
 }

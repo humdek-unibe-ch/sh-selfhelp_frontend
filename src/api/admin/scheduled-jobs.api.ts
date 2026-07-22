@@ -12,6 +12,8 @@ import {
     type TRunnerStatusResponse,
     type TRunnerRunNowResponse,
     type TScheduledJobTypesResponse,
+    type TScheduledJobsStatsResponse,
+    type IScheduledJobsStats,
     type IUpdateRunnerSettingsRequest
 } from '../../types/responses/admin/scheduled-jobs.types';
 
@@ -43,6 +45,20 @@ export class AdminScheduledJobsApi {
             { params: Object.fromEntries(params) }
         );
         return response.data;
+    }
+
+    /**
+     * Get the scheduled-job counts backing the stat tiles.
+     *
+     * Scoped server-side to the jobs the caller can see and deliberately
+     * unfiltered: they describe that whole visible set, not the current
+     * search/date/status result, so the tiles stay stable while filtering.
+     */
+    static async getScheduledJobsStats(): Promise<IScheduledJobsStats> {
+        const response = await permissionAwareApiClient.get<TScheduledJobsStatsResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_STATS
+        );
+        return response.data.data;
     }
 
     /**

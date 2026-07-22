@@ -45,7 +45,8 @@ import {
   IconPlus,
   IconMinus,
 } from '@tabler/icons-react';
-import { useScheduledJobs } from '../../../../../hooks/useScheduledJobs';
+import { useScheduledJobs, useScheduledJobsStats } from '../../../../../hooks/useScheduledJobs';
+import { ScheduledJobsStatsTiles } from '../scheduled-jobs-stats-tiles/ScheduledJobsStatsTiles';
 import { useLookups } from '../../../../../hooks/useLookups';
 import { getScheduledJobStatuses, getScheduledJobTypes, getScheduledJobSearchDateTypes } from '../../../../../utils/lookup-filters.utils';
 import { type IScheduledJobFilters, type IScheduledJob, type IScheduledJobTransaction } from '../../../../../types/responses/admin/scheduled-jobs.types';
@@ -168,6 +169,7 @@ export function ScheduledJobsList({
 
     // Real API calls
     const { data: scheduledJobsData, isFetching, error, refetch } = useScheduledJobs(params);
+    const { data: statsData, isLoading: isStatsLoading, isError: isStatsError } = useScheduledJobsStats();
     const { data: lookupsData } = useLookups();
 
     // Process lookups for filters
@@ -599,6 +601,15 @@ export function ScheduledJobsList({
                 </Button>
             )}
             </PageHeader>
+
+          {/* Status count tiles. Filter-independent: they describe the whole
+              visible set and reflect (not drive) the applied Status filter. */}
+          <ScheduledJobsStatsTiles
+            stats={statsData}
+            isLoading={isStatsLoading}
+            isError={isStatsError}
+            activeStatus={params.status}
+          />
 
           {/* Advanced Filters */}
           <Paper p="md" withBorder>
