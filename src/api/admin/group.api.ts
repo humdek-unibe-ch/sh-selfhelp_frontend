@@ -10,12 +10,14 @@ import type {
   IGroupsListParams,
   IGroupDetails,
   IGroupPageAcl,
-  IGroupMember
+  IGroupMember,
+  IGroupAssetAclsResponse
 } from '../../types/responses/admin/groups.types';
 import type {
   ICreateGroupRequest,
   IUpdateGroupRequest,
-  IUpdateGroupAclsRequest
+  IUpdateGroupAclsRequest,
+  IUpdateGroupAssetAclsRequest
 } from '../../types/requests/admin/groups.types';
 
 export const AdminGroupApi = {
@@ -111,6 +113,30 @@ export const AdminGroupApi = {
   async updateGroupAcls(groupId: number, data: IUpdateGroupAclsRequest): Promise<IGroupPageAcl[]> {
     const response = await permissionAwareApiClient.put<IBaseApiResponse<IGroupPageAcl[]>>(
       API_CONFIG.ENDPOINTS.ADMIN_GROUPS_ACLS_UPDATE,
+      data,
+      groupId
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get a group's asset-folder ACLs (which folders it may read/manage).
+   */
+  async getGroupAssetAcls(groupId: number): Promise<IGroupAssetAclsResponse> {
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IGroupAssetAclsResponse>>(
+      API_CONFIG.ENDPOINTS.ADMIN_GROUPS_ASSET_ACLS_GET,
+      groupId
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Full-replace a group's asset-folder ACLs. An empty `acls` array clears all
+   * of the group's folder access.
+   */
+  async updateGroupAssetAcls(groupId: number, data: IUpdateGroupAssetAclsRequest): Promise<IGroupAssetAclsResponse> {
+    const response = await permissionAwareApiClient.put<IBaseApiResponse<IGroupAssetAclsResponse>>(
+      API_CONFIG.ENDPOINTS.ADMIN_GROUPS_ASSET_ACLS_UPDATE,
       data,
       groupId
     );

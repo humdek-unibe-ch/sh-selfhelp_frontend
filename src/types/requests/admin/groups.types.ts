@@ -28,4 +28,16 @@ export interface IAclRequest {
   acl_insert?: boolean;
   acl_update?: boolean;
   acl_delete?: boolean;
+}
+
+/** One folder grant sent when replacing a group's asset-folder ACLs. */
+export interface IGroupAssetAclRequest {
+  folder: string;
+  access_level: 'read' | 'manage';
+}
+
+/** PUT /admin/groups/{id}/asset-acls body — full replacement of the group's folder grants. */
+export interface IUpdateGroupAssetAclsRequest {
+  /** Empty array clears all asset-folder access for the group. */
+  acls: IGroupAssetAclRequest[];
 } 

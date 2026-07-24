@@ -29,6 +29,7 @@ import {
   IconCloudUpload, 
 } from '@tabler/icons-react';
 import { useCreateAsset, useCreateMultipleAssets } from '../../../../../hooks/useAssets';
+import { parseApiError } from '../../../../../utils/mutation-error-handler';
 
 interface IUploadAssetModalProps {
   opened: boolean;
@@ -208,10 +209,10 @@ export function UploadAssetModal({ opened, onClose }: IUploadAssetModalProps) {
     } catch (error) {
       setUploadProgress(0);
       setIsUploading(false);
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const { errorTitle, errorMessage } = parseApiError(error);
       notifications.show({
-        title: 'Error',
-        message: message || 'Failed to upload assets',
+        title: errorTitle,
+        message: errorMessage,
         color: 'red',
       });
     }

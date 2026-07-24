@@ -25,6 +25,20 @@ export interface IGroupPageAcl {
   acl_delete: boolean;
 }
 
+/** Access level a group holds on an asset folder. `manage` implies `read`. */
+export type TAssetFolderAccessLevel = 'read' | 'manage';
+
+/** One folder grant held by a group (as returned by GET group asset-acls). */
+export interface IGroupAssetAcl {
+  folder: string;
+  access_level: TAssetFolderAccessLevel;
+}
+
+/** GET /admin/groups/{id}/asset-acls response `data`. */
+export interface IGroupAssetAclsResponse {
+  acls: IGroupAssetAcl[];
+}
+
 export interface IGroupsPagination {
   page: number;
   pageSize: number;

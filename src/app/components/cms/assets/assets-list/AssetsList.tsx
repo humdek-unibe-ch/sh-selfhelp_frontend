@@ -46,6 +46,9 @@ import { DeleteAssetModal } from '../delete-asset-modal';
 import type { IAsset } from '../../../../../api/admin/asset.api';
 import { getAssetUrl } from '../../../../../utils/asset-url.utils';
 import { adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
+import { parseApiError } from '../../../../../utils/mutation-error-handler';
 
 interface IAssetsListProps {
   onAssetSelect?: (asset: IAsset) => void;
@@ -74,6 +77,8 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
   const [deleteModal, setDeleteModal] = useState<IDeleteModalState>({ opened: false, asset: null });
 
   const deleteAssetMutation = useDeleteAsset();
+  const { permissionChecker } = useAuthUser();
+  const canDelete = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_DELETE) ?? false;
 
   // Prepare query parameters
   const queryParams = useMemo(() => ({
@@ -102,10 +107,10 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
       });
       setDeleteModal({ opened: false, asset: null });
     } catch (error) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const { errorTitle, errorMessage } = parseApiError(error);
       notifications.show({
-        title: 'Error',
-        message: message || 'Failed to delete asset',
+        title: errorTitle,
+        message: errorMessage,
         color: 'red',
       });
     }
@@ -377,6 +382,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                                     component="a"
                                     href={correctedPath}
                                     target="_blank"
+                                    aria-label={`View ${asset.file_name}`}
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     <IconEye size={16} />
@@ -389,24 +395,28 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                                     component="a"
                                     href={correctedPath}
                                     download={asset.original_name || asset.file_name}
+                                    aria-label={`Download ${asset.file_name}`}
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     <IconDownload size={16} />
                                   </ActionIcon>
                                 </Tooltip>
-                                <Tooltip label="Delete">
-                                  <ActionIcon
-                                    variant="subtle"
-                                    color="red"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteAsset(asset);
-                                    }}
-                                    loading={deleteAssetMutation.isPending && deleteModal.asset?.id === asset.id}
-                                  >
-                                    <IconTrash size={16} />
-                                  </ActionIcon>
-                                </Tooltip>
+                                {canDelete && (
+                                  <Tooltip label="Delete">
+                                    <ActionIcon
+                                      variant="subtle"
+                                      color="red"
+                                      aria-label={`Delete ${asset.file_name}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteAsset(asset);
+                                      }}
+                                      loading={deleteAssetMutation.isPending && deleteModal.asset?.id === asset.id}
+                                    >
+                                      <IconTrash size={16} />
+                                    </ActionIcon>
+                                  </Tooltip>
+                                )}
                               </Group>
                             </Table.Td>
                           </Table.Tr>

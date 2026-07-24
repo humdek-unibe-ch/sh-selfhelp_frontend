@@ -399,6 +399,28 @@ export const API_CONFIG = {
             route: (assetId: number) => `/admin/assets/${assetId}`,
             permissions: [PERMISSIONS.ADMIN_ASSET_DELETE]
         },
+        // Export assets as a downloadable zip bundle (binary files +
+        // manifest.json). POST with body { folders?: string[] } (empty/omitted
+        // = all readable folders); returns an `application/zip` blob.
+        ADMIN_ASSETS_EXPORT: {
+            route: '/admin/assets/export',
+            permissions: [PERMISSIONS.ADMIN_ASSET_READ]
+        },
+        // Import an asset zip bundle previously produced by the export endpoint.
+        ADMIN_ASSETS_IMPORT: {
+            route: '/admin/assets/import',
+            permissions: [PERMISSIONS.ADMIN_ASSET_CREATE]
+        },
+        ADMIN_GROUPS_ASSET_ACLS_GET: {
+            route: (groupId: number) => `/admin/groups/${groupId}/asset-acls`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_ACL]
+        },
+        ADMIN_GROUPS_ASSET_ACLS_UPDATE: {
+            route: (groupId: number) => `/admin/groups/${groupId}/asset-acls`,
+            // Gated on the group-ACL write permission (same as the sibling page-ACL
+            // write), matching backend enforcement for the group asset-ACL editor.
+            permissions: [PERMISSIONS.ADMIN_GROUP_ACL]
+        },
 
         // Admin users endpoints
         ADMIN_USERS_GET_ALL: {

@@ -12,7 +12,8 @@ import type {
 import type {
   ICreateGroupRequest,
   IUpdateGroupRequest,
-  IUpdateGroupAclsRequest
+  IUpdateGroupAclsRequest,
+  IUpdateGroupAssetAclsRequest
 } from '../types/requests/admin/groups.types';
 
 // Query keys
@@ -23,6 +24,7 @@ const GROUPS_QUERY_KEYS = {
   details: () => [...GROUPS_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: number) => [...GROUPS_QUERY_KEYS.details(), id] as const,
   acls: (id: number) => [...GROUPS_QUERY_KEYS.all, 'acls', id] as const,
+  assetAcls: (id: number) => [...GROUPS_QUERY_KEYS.all, 'asset-acls', id] as const,
   members: (id: number) => [...GROUPS_QUERY_KEYS.all, 'members', id] as const,
 };
 
@@ -134,6 +136,42 @@ export function useDeleteGroup() {
       notifications.show({
         title: 'Error',
         message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to delete group',
+        color: 'red',
+      });
+    },
+  });
+}
+
+// Get a group's asset-folder ACLs. Enabled only when a group is selected so
+// the group ACL modal fetches lazily on open.
+export function useGroupAssetAcls(groupId: number | null) {
+  return useQuery({
+    queryKey: GROUPS_QUERY_KEYS.assetAcls(groupId ?? 0),
+    queryFn: () => AdminGroupApi.getGroupAssetAcls(groupId as number),
+    enabled: !!groupId,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+  });
+}
+
+// Update a group's asset-folder ACLs (full replacement).
+export function useUpdateGroupAssetAcls() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ groupId, data }: { groupId: number; data: IUpdateGroupAssetAclsRequest }) =>
+      AdminGroupApi.updateGroupAssetAcls(groupId, data),
+    onSuccess: (_, { groupId }) => {
+      void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.assetAcls(groupId) });
+      notifications.show({
+        title: 'Success',
+        message: 'Group asset access updated successfully',
+        color: 'green',
+      });
+    },
+    onError: (error: unknown) => {
+      notifications.show({
+        title: 'Error',
+        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update group asset access',
         color: 'red',
       });
     },

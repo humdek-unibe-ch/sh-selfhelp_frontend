@@ -60,6 +60,21 @@ interface IMultipleAssetsUploadResponse {
   }[];
 }
 
+/**
+ * Body for exporting assets as a zip bundle. Omitting/empty `folders` exports
+ * all readable folders. Response is a binary zip blob, not the JSON envelope.
+ */
+export interface IExportAssetsRequest {
+  folders?: string[];
+}
+
+/** Result of importing an asset zip bundle (per-file errors don't fail the request). */
+export interface IImportAssetsResponse {
+  imported: number;
+  skipped: number;
+  errors: { file: string; error: string }[];
+}
+
 export const AdminAssetApi = {
   /**
    * Get paginated list of assets with search and sorting
@@ -162,5 +177,41 @@ export const AdminAssetApi = {
   async deleteAsset(assetId: number): Promise<{ success: boolean }> {
     const response = await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_ASSETS_DELETE, assetId);
     return { success: response.status === 204 || response.status === 200 };
+  },
+
+  /**
+   * Export assets as a downloadable zip bundle (binary files + manifest.json).
+   * Omitting/empty `folders` exports every folder the caller can read.
+   * Returns the raw zip blob for the caller to trigger a browser download.
+   */
+  async exportAssets(request: IExportAssetsRequest = {}): Promise<Blob> {
+    const body = request.folders && request.folders.length > 0 ? { folders: request.folders } : {};
+    const response = await permissionAwareApiClient.post<Blob>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_EXPORT,
+      body,
+      { responseType: 'blob' }
+    );
+    return response.data;
+  },
+
+  /**
+   * Import an asset zip bundle previously produced by `exportAssets`.
+   * Per-file failures come back in `errors[]`; the request still succeeds.
+   */
+  async importAssets(file: File, overwrite = false): Promise<IImportAssetsResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('overwrite', overwrite.toString());
+
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<IImportAssetsResponse>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_IMPORT,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data.data;
   },
 }; 

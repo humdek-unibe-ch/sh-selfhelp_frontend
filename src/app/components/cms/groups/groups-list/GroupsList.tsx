@@ -46,6 +46,8 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { useGroups } from '../../../../../hooks/useGroups';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import type { IGroupDetails, IGroupsListParams } from '../../../../../types/responses/admin/groups.types';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
@@ -81,6 +83,9 @@ export function GroupsList({
 
   // The group whose members are being viewed, or null when the modal is closed.
   const [membersOf, setMembersOf] = useState<{ id: number; name: string } | null>(null);
+
+  const { permissionChecker } = useAuthUser();
+  const canManageAcls = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_GROUP_ACL) ?? false;
 
   // Fetch groups data
   const { data: groupsData, isFetching, refetch, error } = useGroups(params);
@@ -228,19 +233,21 @@ export function GroupsList({
               </ActionIcon>
             </Tooltip>
 
-            <Tooltip label="Manage ACLs" withArrow>
-              <ActionIcon
-                variant="subtle"
-                size="sm"
-                color="blue"
-                aria-label="Manage ACLs"
-                onClick={() =>
-                  onManageAcls?.(row.original.id, row.original.name)
-                }
-              >
-                <IconShield size={16} />
-              </ActionIcon>
-            </Tooltip>
+            {canManageAcls && (
+              <Tooltip label="Manage ACLs" withArrow>
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  color="blue"
+                  aria-label="Manage ACLs"
+                  onClick={() =>
+                    onManageAcls?.(row.original.id, row.original.name)
+                  }
+                >
+                  <IconShield size={16} />
+                </ActionIcon>
+              </Tooltip>
+            )}
 
             <Menu shadow="md" width={200} position="bottom-end" withArrow>
               <Menu.Target>
@@ -274,7 +281,7 @@ export function GroupsList({
         ),
       },
     ],
-    [onEditGroup, onDeleteGroup, onManageAcls],
+    [onEditGroup, onDeleteGroup, onManageAcls, canManageAcls],
   );
 
   // Initialize table
