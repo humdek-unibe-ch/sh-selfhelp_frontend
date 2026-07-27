@@ -4,14 +4,13 @@ SPDX-License-Identifier: MPL-2.0
 */
 /* Sections management panel — outer gray surface (#F8F9FA in light mode =
    Mantine gray-0; theme-aware dark equivalent). White cards sit on top.
-   Owns the viewport height and is a flex column, so the section tree scrolls
-   internally instead of scrolling the page (which gave a second scrollbar next
-   to the inspector's own). */
+   Fills its splitter pane (`100%`, not `100vh`) as a flex column, so the
+   section tree scrolls internally instead of scrolling the page. */
 .sectionsPanel {
     background: var(--mantine-color-gray-0) !important;
     border: none !important;
     box-shadow: none !important;
-    height: 100vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
