@@ -42,6 +42,8 @@ export function getUserStatusColor(status: string): string {
     case 'pending':
     case 'invited':
       return 'yellow';
+    case 'imported':
+      return 'grape';
     case 'interested':
       return 'blue';
     case 'auto_created':

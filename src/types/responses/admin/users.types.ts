@@ -73,7 +73,7 @@ export interface IUsersListResponse {
  * `blocked` is the `blocked` boolean, not a `userStatus` code; the schema has
  * no auth-lockout state, so blocking is the only lockout mechanism.
  */
-export type TUserStatusFilter = 'all' | 'active' | 'invited' | 'blocked';
+export type TUserStatusFilter = 'all' | 'active' | 'invited' | 'imported' | 'blocked';
 
 export interface IUsersListParams {
   page?: number;
@@ -95,7 +95,7 @@ export interface IUsersListParams {
  * `pagination.totalCount` for that admin. They ignore the active
  * search/status/group filters.
  *
- * These are four independent counts, NOT a breakdown that sums to `total`. The
+ * These are five independent counts, NOT a breakdown that sums to `total`. The
  * `interested` and `auto_created` statuses count toward `total` but have no
  * tile; they are unused today, so the numbers happen to add up, but do not
  * present them as parts of a whole (stacked bar, % of total) — that would
@@ -105,6 +105,7 @@ export interface IUsersStats {
   total: number;
   active: number;
   invited: number;
+  imported: number;
   blocked: number;
 }
 

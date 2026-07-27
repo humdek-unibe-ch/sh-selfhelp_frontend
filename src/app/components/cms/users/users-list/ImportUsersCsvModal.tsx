@@ -59,6 +59,17 @@ export function ImportUsersCsvModal({
             </Text>{' '}
             is an optional list of group names separated by semicolons.
           </Text>
+          <Text size="sm" mt={8}>
+            Imported users get the{' '}
+            <Text span fw={600} inherit>
+              Imported
+            </Text>{' '}
+            status and no activation e-mail. Use{' '}
+            <Text span fw={600} inherit>
+              Send activation
+            </Text>{' '}
+            to invite them.
+          </Text>
         </Alert>
 
         <FileInput

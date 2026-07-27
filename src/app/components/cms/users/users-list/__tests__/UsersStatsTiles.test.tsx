@@ -7,7 +7,7 @@ import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 import { UsersStatsTiles } from '../UsersStatsTiles';
 
-const STATS = { total: 248, active: 214, invited: 26, blocked: 8 };
+const STATS = { total: 248, active: 214, invited: 26, imported: 14, blocked: 8 };
 
 function setup(overrides: Partial<Parameters<typeof UsersStatsTiles>[0]> = {}) {
     const { container } = renderWithProviders(
@@ -24,6 +24,18 @@ describe('UsersStatsTiles', () => {
         expect(screen.getByText('214')).toBeInTheDocument();
         expect(screen.getByText('26')).toBeInTheDocument();
         expect(screen.getByText('8')).toBeInTheDocument();
+    });
+
+    it('counts CSV-imported users in their own tile', () => {
+        setup();
+        expect(screen.getByText('Imported')).toBeInTheDocument();
+        expect(screen.getByText('14')).toBeInTheDocument();
+    });
+
+    it('outlines only the Imported tile when that status is applied', () => {
+        const { outlined } = setup({ activeStatus: 'imported' });
+        expect(outlined()).toBe(1);
+        expect(screen.getByText('Imported')).toBeInTheDocument();
     });
 
     it('reports counts rather than offering controls — the Status select filters', () => {
@@ -56,7 +68,7 @@ describe('UsersStatsTiles', () => {
         it('shows no count rather than a 0 that reads as "no users"', () => {
             setup({ stats: undefined, isLoading: false, isError: true });
             expect(screen.queryByText('0')).not.toBeInTheDocument();
-            expect(screen.getAllByText('—')).toHaveLength(4);
+            expect(screen.getAllByText('—')).toHaveLength(5);
         });
     });
 });

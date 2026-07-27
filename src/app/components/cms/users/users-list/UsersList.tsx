@@ -663,6 +663,7 @@ export function UsersList({
                     { value: 'all', label: 'All' },
                     { value: 'active', label: 'Active' },
                     { value: 'invited', label: 'Invited' },
+                    { value: 'imported', label: 'Imported' },
                     { value: 'blocked', label: 'Blocked' },
                   ]}
                   withCheckIcon={false}

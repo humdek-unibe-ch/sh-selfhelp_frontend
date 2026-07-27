@@ -10,6 +10,7 @@ import {
   IconBan,
   IconCircleCheck,
   IconClock,
+  IconFileImport,
   IconUsers,
   type IconProps,
 } from '@tabler/icons-react';
@@ -39,15 +40,16 @@ const TILES: ITile[] = [
   { status: 'all', label: 'Total users', color: 'blue', icon: IconUsers },
   { status: 'active', label: 'Active', color: 'green', icon: IconCircleCheck },
   { status: 'invited', label: 'Invited', color: 'orange', icon: IconClock },
+  { status: 'imported', label: 'Imported', color: 'grape', icon: IconFileImport },
   { status: 'blocked', label: 'Blocked', color: 'red', icon: IconBan },
 ];
 
 /**
- * The four count tiles above the users table. Read-only: filtering is the
+ * The count tiles above the users table. Read-only: filtering is the
  * Status select's job (it goes through Apply Filters like every other backend
  * query param), and the tiles highlight whichever status is applied.
  *
- * These are four independent counts, not a breakdown of `total`: the unused
+ * These are independent counts, not a breakdown of `total`: the unused
  * `interested`/`auto_created` statuses count toward `total` but have no tile,
  * so never render these as parts of a whole (stacked bar, % of total).
  */
@@ -74,7 +76,7 @@ export function UsersStatsTiles({
         </Alert>
       )}
 
-      <SimpleGrid cols={{ base: 1, xs: 2, md: 4 }} spacing="md">
+      <SimpleGrid cols={{ base: 1, xs: 2, md: 3, lg: 5 }} spacing="md">
         {TILES.map((tile) => {
           const isActive = activeStatus === tile.status;
           return (
