@@ -15,7 +15,6 @@ import {
     useMemo
 } from 'react';
 import { Box, Text, Paper } from '@mantine/core';
-import { IconPlus } from '@tabler/icons-react';
 import {
     draggable,
     dropTargetForElements,
@@ -641,8 +640,9 @@ const SectionItem = memo(function SectionItem({
         if (isDragging) classes.push(styles.isDragging);
         if (dropState.isDropTarget) classes.push(styles.isDropTarget);
         if (dropState.isContainerTarget) classes.push(styles.isContainerDropTarget);
-        if (dropState.isDropZoneHover) classes.push(styles.isContainerDropTarget); // Show container styling for drop zone hover
-        if (dropState.isInvalidDropTarget) classes.push(styles.isInvalidDropTarget);
+        // Empty-container drop feedback is carried by the inline "add as first
+        // child" pill (see PageSection), so no full-row ring on drop-zone hover.
+        if (dropState.isInvalidDropTarget && !dropState.isDropZoneHover) classes.push(styles.isInvalidDropTarget);
         if (isBeingDragged) classes.push(styles.isBeingDragged);
         if (dragContext.isDragActive && (isBeingDragged || isDescendantOfDragged())) {
             classes.push(styles.isDraggedOrChild);
@@ -700,7 +700,12 @@ const SectionItem = memo(function SectionItem({
                     className: `${styles.dragHandle} ${isDragging ? styles.isDragging : ''}`
                 }}
 
-                showInsideDropZone={dropState.isContainerTarget || dropState.isDropZoneHover}
+                showInsideDropZone={dragContext.isDragActive && canHaveChildren && !hasChildren && !isBeingDragged}
+                dropZoneEmphasis={
+                    dropState.isDropZoneHover
+                        ? (dropState.isInvalidDropTarget ? 'invalid' : 'active')
+                        : null
+                }
                 onSectionSelect={onSectionSelect}
                 selectedSectionId={selectedSectionId}
                 focusedSectionId={focusedSectionId}
@@ -711,17 +716,11 @@ const SectionItem = memo(function SectionItem({
                 bulkMode={bulkMode}
             />
 
-            {/* Drop zone area for sections that can have children but don't have any */}
+            {/* Invisible drop target for empty containers — the visible "add as
+                first child" hint is rendered inline inside PageSection via the
+                showInsideDropZone prop. */}
             {dragContext.isDragActive && canHaveChildren && !hasChildren && !isBeingDragged && (
-                <Box
-                    ref={dropZoneRef}
-                    className={`${styles.dropZoneArea} ${styles.visible} ${dropState.isDropZoneHover ? (dropState.isInvalidDropTarget ? styles.invalid : styles.active) : ''}`}
-                >
-                    <IconPlus size={16} className={styles.dropZoneIcon} />
-                    <Text className={styles.dropZoneText}>
-                        Add as first Child
-                    </Text>
-                </Box>
+                <Box ref={dropZoneRef} className={styles.dropZoneTarget} />
             )}
 
             {/* Bottom drop indicator - show only when in bottom 50% threshold */}

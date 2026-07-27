@@ -50,6 +50,8 @@ interface IPageSectionProps {
     isDragging?: boolean;
 
     showInsideDropZone?: boolean;
+    /** Hover emphasis for the inline "add as first child" hint. */
+    dropZoneEmphasis?: 'active' | 'invalid' | null;
 
     defaultBulkSelected?: boolean;
     onToggleSelect?: (sectionId: number, selected: boolean) => void;
@@ -78,7 +80,8 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     dragHandleProps,
     isDragging = false,
 
-    showInsideDropZone: _showInsideDropZone = false,
+    showInsideDropZone = false,
+    dropZoneEmphasis = null,
 
     defaultBulkSelected = false,
     onToggleSelect,
@@ -278,7 +281,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
 
                 {/* Section Info - name + style badge + inline indicators */}
                 <Box className={styles.sectionInfo}>
-                  <Group gap={6} wrap="nowrap" align="center">
+                  <Group gap={6} wrap="nowrap" align="center" style={{ flex: 1 }}>
                     <Text
                       size="sm"
                       fw={600}
@@ -314,6 +317,28 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                       >
                         {section.children?.length}
                       </Badge>
+                    )}
+                    {/* Inline "add as first child" hint — fills the space after
+                        the badges while dragging over an empty container. In-flow
+                        so it never overlaps the row and leaves the action buttons
+                        + id/pos meta exactly where they normally sit. */}
+                    {showInsideDropZone && (
+                      <Group
+                        gap={6}
+                        wrap="nowrap"
+                        align="center"
+                        justify="center"
+                        className={`${styles.firstChildHint} ${
+                          dropZoneEmphasis === 'active'
+                            ? styles.firstChildHintActive
+                            : dropZoneEmphasis === 'invalid'
+                              ? styles.firstChildHintInvalid
+                              : ''
+                        }`}
+                      >
+                        <IconPlus size={14} stroke={2.5} />
+                        <Text size="xs" fw={600} lh={1}>Add as first child</Text>
+                      </Group>
                     )}
                   </Group>
                 </Box>

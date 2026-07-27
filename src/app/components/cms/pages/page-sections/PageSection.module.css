@@ -166,6 +166,7 @@ SPDX-License-Identifier: MPL-2.0
 /* Section name truncation */
 .sectionName {
     max-width: 100%;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -212,6 +213,37 @@ SPDX-License-Identifier: MPL-2.0
     min-width: max-content;
     font-variant-numeric: tabular-nums;
     text-align: right;
+}
+
+/* Inline "add as first child" drag hint — a green insertion pill that fills the
+   gap between the style badge and the id/pos meta while a drag is active. Dashed
+   at rest; its border goes solid on the row currently targeted for the drop. */
+.firstChildHint {
+    flex: 1;
+    min-width: 40px;
+    height: 22px;
+    justify-content: center;
+    white-space: nowrap;
+    padding: 0 10px;
+    margin: 0 10px;
+    border-radius: 999px;
+    color: light-dark(var(--mantine-color-green-7), var(--mantine-color-green-3));
+    border: 1.5px dashed var(--mantine-color-green-5);
+    background: light-dark(var(--mantine-color-green-0), var(--mantine-color-green-9));
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+/* Actively dropping here — border goes SOLID. */
+.firstChildHintActive {
+    border-style: solid;
+    background: light-dark(var(--mantine-color-green-1), var(--mantine-color-green-8));
+}
+
+/* Invalid drop target — solid red. */
+.firstChildHintInvalid {
+    color: light-dark(var(--mantine-color-red-7), var(--mantine-color-red-3));
+    border: 1.5px solid var(--mantine-color-red-5);
+    background: light-dark(var(--mantine-color-red-1), var(--mantine-color-red-8));
 }
 
 /* Action buttons - hidden by default, shown on hover */
