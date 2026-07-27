@@ -808,7 +808,7 @@ function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSection
                    leftSection={<IconEye size={16} />}
                    onClick={() => setPreviewDockOpen((v) => !v)}
                  >
-                   {previewDockOpen ? 'Hide preview' : 'Preview'}
+                   {previewDockOpen ? 'Hide float preview' : 'Float Preview'}
                  </Button>
                </Tooltip>
 
