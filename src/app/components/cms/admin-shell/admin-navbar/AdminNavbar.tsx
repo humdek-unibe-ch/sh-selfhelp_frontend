@@ -29,8 +29,7 @@ import {
 import { useRouter, usePathname } from 'next/navigation';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useCmsAppsQuery } from '../../../../../hooks/useCmsApps';
-import { useAdminNavigationPreview } from '../../../../../hooks/useAdminNavigationPreview';
-import { pageHasMenuMembership, buildMenuPreviewSectionLinks, type IAdminMenuPreviewLink } from '../../../../../utils/admin-navigation-membership';
+import { type IAdminMenuPreviewLink } from '../../../../../utils/admin-navigation-membership';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { usePluginMenuItems } from '../../../frontend/plugin-runtime/PluginsProvider';
 import { LinksGroup, NavDirectLink } from './components/LinksGroup';
@@ -125,11 +124,6 @@ export function AdminNavbar() {
     const pluginMenuItems = usePluginMenuItems();
     const router = useRouter();
     const pathname = usePathname();
-    const { data: headerPreviewLinks = [] } = useAdminNavigationPreview('web_header');
-    const { data: footerPreviewLinks = [] } = useAdminNavigationPreview('web_footer');
-    const { data: mobileDrawerPreviewLinks = [] } = useAdminNavigationPreview('mobile_drawer');
-    const { data: mobileTabsPreviewLinks = [] } = useAdminNavigationPreview('mobile_bottom_tabs');
-
     const { data: cmsApps = [] } = useCmsAppsQuery(permissionChecker?.canReadCmsApps() ?? false);
 
     const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
@@ -165,15 +159,10 @@ export function AdminNavbar() {
         if (isLoading || !permissionChecker) return [];
 
         const configurationKeywords = new Set(configurationPageLinks?.map(p => p.keyword) || []);
-        // Content Pages: public frontend pages only. Admin CMS-surface pages
-        // (cms_list / form / cms_detail) live under CMS Apps; public_list /
-        // public_detail stay here for structure editing.
+        // Content Pages: all public frontend pages, menu members included.
+        // Admin CMS-surface pages (cms_list / form / cms_detail) live under CMS Apps.
         const contentPages = pages?.filter(page =>
             !isCmsSurfaceAdminPage(page) &&
-            !pageHasMenuMembership(page.navigationMembership, 'web_header') &&
-            !pageHasMenuMembership(page.navigationMembership, 'web_footer') &&
-            !pageHasMenuMembership(page.navigationMembership, 'mobile_drawer') &&
-            !pageHasMenuMembership(page.navigationMembership, 'mobile_bottom_tabs') &&
             !Boolean(page.is_system) &&
             !configurationKeywords.has(page.keyword)
         ) || [];
@@ -358,26 +347,27 @@ export function AdminNavbar() {
                     icon: <IconRoute size={15} />,
                     onClick: () => router.push('/admin/navigation'),
                 }],
+                // Each menu links straight to its builder tab; pages are listed
+                // under Content Pages.
                 items: [{
                     label: 'Web header',
                     icon: <IconLayoutNavbar size={16} />,
-                    initiallyOpened: true,
-                    links: buildMenuPreviewSectionLinks(headerPreviewLinks, 'web_header'),
+                    link: '/admin/navigation?menu=web_header',
                     id: 'menu-pages',
                 }, {
                     label: 'Web footer',
                     icon: <IconLayoutBottombar size={16} />,
-                    links: buildMenuPreviewSectionLinks(footerPreviewLinks, 'web_footer'),
+                    link: '/admin/navigation?menu=web_footer',
                     id: 'footer-pages',
                 }, {
                     label: 'Mobile drawer',
                     icon: <IconMenu2 size={16} />,
-                    links: buildMenuPreviewSectionLinks(mobileDrawerPreviewLinks, 'mobile_drawer'),
+                    link: '/admin/navigation?menu=mobile_drawer',
                     id: 'mobile-drawer-pages',
                 }, {
                     label: 'Mobile bottom tabs',
                     icon: <IconLayoutGrid size={16} />,
-                    links: buildMenuPreviewSectionLinks(mobileTabsPreviewLinks, 'mobile_bottom_tabs'),
+                    link: '/admin/navigation?menu=mobile_bottom_tabs',
                     id: 'mobile-tabs-pages',
                 }],
             });
@@ -448,7 +438,7 @@ export function AdminNavbar() {
         }
 
         return groups;
-    }, [pages, configurationPageLinks, categorizedSystemPages, isLoading, permissionChecker, pluginMenuItems, hasPermission, headerPreviewLinks, footerPreviewLinks, mobileDrawerPreviewLinks, mobileTabsPreviewLinks, router, cmsApps]);
+    }, [pages, configurationPageLinks, categorizedSystemPages, isLoading, permissionChecker, pluginMenuItems, hasPermission, router, cmsApps]);
 
     const accordionItems = navbarGroups.map((group) => (
         <Accordion.Item key={group.id} value={group.id} className={classes.accordionItem}>
