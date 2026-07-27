@@ -36,7 +36,14 @@ describe('RoleMembersModal', () => {
     it('names the role it is showing', async () => {
         vi.spyOn(AdminRoleApi, 'getRoleMembers').mockResolvedValue([member(1)]);
         setup({ id: 5, name: 'Admin' });
-        expect(await screen.findByText('Users with role Admin')).toBeInTheDocument();
+        expect(await screen.findByText('Members of Admin')).toBeInTheDocument();
+    });
+
+    it('lets a wide member table scroll instead of clipping it', async () => {
+        vi.spyOn(AdminRoleApi, 'getRoleMembers').mockResolvedValue([member(1)]);
+        setup();
+        const table = await screen.findByRole('table');
+        expect(table.parentElement?.className).toContain('tableScrollContainer');
     });
 
     it('shows an empty state for a role with no users', async () => {

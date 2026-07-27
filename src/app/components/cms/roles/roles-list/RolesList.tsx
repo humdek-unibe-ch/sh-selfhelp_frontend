@@ -346,7 +346,7 @@ export function RolesList({
                       setMembersOf({ id: row.original.id, name: row.original.name })
                     }
                   >
-                    View Users
+                    View members
                   </Menu.Item>
                   <Menu.Divider />
                   <Menu.Item

@@ -14,7 +14,7 @@ interface IRoleMembersModalProps {
   role: { id: number; name: string } | null;
 }
 
-/** "View users" for a role. Fetches lazily when a role is set, then hands the
+/** "View members" for a role. Fetches lazily when a role is set, then hands the
  *  result to the shared member-list renderer. */
 export function RoleMembersModal({ opened, onClose, role }: IRoleMembersModalProps) {
   const { data: members, isLoading, isError } = useRoleMembers(role?.id ?? null);
@@ -23,7 +23,7 @@ export function RoleMembersModal({ opened, onClose, role }: IRoleMembersModalPro
     <MemberListModal
       opened={opened}
       onClose={onClose}
-      title={role ? `Users with role ${role.name}` : 'Users'}
+      title={role ? `Members of ${role.name}` : 'Members'}
       members={members}
       isLoading={isLoading}
       isError={isError}
