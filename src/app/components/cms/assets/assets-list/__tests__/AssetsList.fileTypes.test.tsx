@@ -44,8 +44,9 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
                 asset(8, 'bundle.zip', 'asset'),
                 asset(9, 'notes.txt', 'asset'),
                 asset(10, 'mystery.xyz', 'asset'),
+                asset(11, 'README', 'asset'),
             ],
-            pagination: { page: 1, pageSize: 100, total: 10, totalPages: 1 },
+            pagination: { page: 1, pageSize: 100, total: 11, totalPages: 1 },
         },
         isLoading: false,
         error: null,
@@ -62,28 +63,42 @@ describe('AssetsList file type column', () => {
         hasPermission.mockImplementation((p: string) => p === PERMISSIONS.ADMIN_ASSET_READ);
     });
 
-    it('labels each file by its extension despite asset_type being "asset"', () => {
+    it('shows the concrete extension rather than the broad category', () => {
         renderWithProviders(<AssetsList />);
 
-        expect(screen.getByText('Image')).toBeInTheDocument();
-        expect(screen.getByText('Video')).toBeInTheDocument();
+        // `WEBP`/`MP4` carry information `Image`/`Video` do not — the icon
+        // already conveys the category.
+        expect(screen.getByText('WEBP')).toBeInTheDocument();
+        expect(screen.getByText('MP4')).toBeInTheDocument();
         expect(screen.getByText('PDF')).toBeInTheDocument();
-        expect(screen.getByText('Spreadsheet')).toBeInTheDocument();
-        expect(screen.getByText('Audio')).toBeInTheDocument();
-        expect(screen.getByText('Font')).toBeInTheDocument();
-        expect(screen.getByText('Archive')).toBeInTheDocument();
-        expect(screen.getByText('Text')).toBeInTheDocument();
+        expect(screen.getByText('CSV')).toBeInTheDocument();
+        expect(screen.getByText('MP3')).toBeInTheDocument();
+        expect(screen.getByText('WOFF2')).toBeInTheDocument();
+        expect(screen.getByText('ZIP')).toBeInTheDocument();
+        expect(screen.getByText('TXT')).toBeInTheDocument();
+
+        expect(screen.queryByText('Image')).not.toBeInTheDocument();
+        expect(screen.queryByText('Video')).not.toBeInTheDocument();
     });
 
-    it('does not collapse recognised files into "Other"', () => {
+    it('shows the extension even for files it cannot categorise', () => {
         renderWithProviders(<AssetsList />);
-        // Only the genuinely unknown .xyz file may be "Other".
+        // The unknown .xyz file is still more usefully labelled than "Other";
+        // only the extensionless README falls back to the category label.
+        expect(screen.getByText('XYZ')).toBeInTheDocument();
         expect(screen.getAllByText('Other')).toHaveLength(1);
     });
 
     it('still honours asset_type "css", which an extension alone cannot convey', () => {
         renderWithProviders(<AssetsList />);
+        // The CSS category drives the icon; the label shows the extension.
         expect(screen.getByText('CSS')).toBeInTheDocument();
+    });
+
+    it('falls back to the category label when the file has no extension', () => {
+        renderWithProviders(<AssetsList />);
+        // `README` has no extension, so the cell must not render empty.
+        expect(screen.getByText('Other')).toBeInTheDocument();
     });
 
     it('renders a thumbnail only for previewable images', () => {

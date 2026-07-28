@@ -107,6 +107,7 @@ describe('AssetsList folder tree', () => {
         // One table per folder, hence a Type header per group and no Folder one.
         expect(screen.getAllByRole('columnheader', { name: /type/i })).toHaveLength(3);
         expect(screen.queryByRole('columnheader', { name: /folder/i })).not.toBeInTheDocument();
-        expect(screen.getByText('Video')).toBeInTheDocument();
+        // The Type column shows the concrete extension, not the category.
+        expect(screen.getByText('MP4')).toBeInTheDocument();
     });
 });

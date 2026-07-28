@@ -150,6 +150,12 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
   // Determine asset type info from asset_type or file extension. Grouping is by
   // folder now, so this drives the PER-ROW type icon (the only place file type
   // is still surfaced) rather than a group header.
+  //
+  // The row shows the concrete EXTENSION (`WEBP`, `MP4`) rather than the broad
+  // category, because "Image" repeats what the icon already says while hiding
+  // the one detail that matters when picking or debugging an asset. The
+  // category still drives the icon/colour, and its label is the fallback for
+  // extensionless files so the cell is never blank.
   const getAssetTypeInfo = useCallback((asset: IAsset) => {
     // Derive the category from the FILE EXTENSION, not `asset_type`.
     //
@@ -192,6 +198,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     }
 
     // Labels are SINGULAR: this describes one row's file, not a group.
+    const categoryInfo = ((): { label: string; icon: React.ReactNode; color: string } => {
     switch (typeCategory) {
       case 'image':
         return { label: 'Image', icon: <IconPhoto size={18} />, color: 'green' };
@@ -218,6 +225,14 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
       default:
         return { label: 'Other', icon: <IconFile size={18} />, color: 'gray' };
     }
+    })();
+
+    return {
+      ...categoryInfo,
+      // `WEBP` beats `Image`; fall back to the category when there is no
+      // extension to show.
+      label: extension ? extension.toUpperCase() : categoryInfo.label,
+    };
   }, []);
 
   // Check if file is an image based on extension
