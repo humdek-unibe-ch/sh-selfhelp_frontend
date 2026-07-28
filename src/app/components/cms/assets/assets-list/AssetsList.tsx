@@ -229,8 +229,6 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
 
     return {
       ...categoryInfo,
-      // `WEBP` beats `Image`; fall back to the category when there is no
-      // extension to show.
       label: extension ? extension.toUpperCase() : categoryInfo.label,
     };
   }, []);
