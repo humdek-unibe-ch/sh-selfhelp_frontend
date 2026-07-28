@@ -2,76 +2,78 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { getAssetUrl } from '../asset-url.utils';
 
 /**
- * `getAssetUrl` depends on `API_CONFIG.BACKEND_URL`, which is frozen from
- * `process.env.NEXT_PUBLIC_API_URL` at module import. We reset modules per
- * test so we can exercise both wirings:
- *   - production Docker/BFF mode: `NEXT_PUBLIC_API_URL=/api` (same-origin),
- *   - dev mode: an absolute Symfony origin.
+ * Since core 0.1.41 asset bytes are served only by the ACL-enforced delivery
+ * route `GET /cms-api/v1/assets/{folder}/{filename}`; the old static
+ * `/uploads/assets/...` paths 404 because the files moved out of the document
+ * root.
+ *
+ * Crucially, the browser must reach that route through the BFF (`/api/...`).
+ * Symfony authorizes from the `Authorization: Bearer` header, and the ONLY
+ * thing that sets it is the `/api/*` catch-all proxy, which reads the httpOnly
+ * auth cookie server-side. Emitting the backend path directly sent the request
+ * ANONYMOUS, so admins (whose bypass comes from the JWT role) and users with
+ * read grants both saw nothing, while denied folders merely *looked* correct.
  */
-async function loadGetAssetUrl(apiUrl: string | undefined) {
-    vi.resetModules();
-    if (apiUrl === undefined) {
-        delete process.env.NEXT_PUBLIC_API_URL;
-    } else {
-        process.env.NEXT_PUBLIC_API_URL = apiUrl;
-    }
-    const mod = await import('../asset-url.utils');
-    return mod.getAssetUrl;
-}
-
-const ORIGINAL = process.env.NEXT_PUBLIC_API_URL;
-
-afterEach(() => {
-    if (ORIGINAL === undefined) delete process.env.NEXT_PUBLIC_API_URL;
-    else process.env.NEXT_PUBLIC_API_URL = ORIGINAL;
-});
-
-describe('getAssetUrl — production BFF mode (NEXT_PUBLIC_API_URL=/api)', () => {
-    let getAssetUrl: (p: string) => string;
-    beforeEach(async () => {
-        getAssetUrl = await loadGetAssetUrl('/api');
+describe('getAssetUrl — delivery route', () => {
+    it('re-addresses the backend `url` onto the BFF so the bearer token is attached', () => {
+        // Regression: emitting `/cms-api/v1/...` reached Symfony anonymous.
+        expect(getAssetUrl('/cms-api/v1/assets/champ/lamine-yamal-young.webp'))
+            .toBe('/api/assets/champ/lamine-yamal-young.webp');
     });
 
-    it('emits a same-origin /uploads path the frontend can proxy to the private backend', () => {
-        // Browser must never hit the internal backend directly; the next.config
-        // /uploads rewrite forwards this to SYMFONY_INTERNAL_URL.
-        expect(getAssetUrl('uploads/avatar.png')).toBe('/uploads/avatar.png');
+    it('never emits the backend path directly (that request carries no identity)', () => {
+        expect(getAssetUrl('/cms-api/v1/assets/champ/x.webp')).not.toMatch(/^\/cms-api\//);
+        expect(getAssetUrl('uploads/assets/champ/x.webp')).not.toMatch(/^\/cms-api\//);
     });
 
-    it('defaults bare relative paths under uploads/, same-origin', () => {
-        expect(getAssetUrl('avatar.png')).toBe('/uploads/avatar.png');
+    it('is idempotent for an already-BFF path', () => {
+        expect(getAssetUrl('/api/assets/champ/x.webp')).toBe('/api/assets/champ/x.webp');
     });
 
-    it('keeps frontend-served assets/ paths same-origin (Next public/)', () => {
-        expect(getAssetUrl('assets/logo.svg')).toBe('/assets/logo.svg');
+    it('never emits an absolute origin, so the request stays same-origin', () => {
+        const url = getAssetUrl('/cms-api/v1/assets/champ/x.webp');
+        expect(url.startsWith('/')).toBe(true);
+        expect(url).not.toContain('http');
     });
 
-    it('never bakes the internal backend host into a browser URL', () => {
-        expect(getAssetUrl('uploads/x.png')).not.toContain('backend');
-        expect(getAssetUrl('uploads/x.png')).not.toContain('http');
-    });
-});
-
-describe('getAssetUrl — dev mode (absolute Symfony origin)', () => {
-    let getAssetUrl: (p: string) => string;
-    beforeEach(async () => {
-        getAssetUrl = await loadGetAssetUrl('http://localhost/symfony');
+    it('maps a legacy uploads/assets logical key onto the delivery route', () => {
+        // `file_path` is an identity key, not fetchable — if a straggler hands
+        // us one it must still resolve to bytes rather than 404.
+        expect(getAssetUrl('uploads/assets/champ/x.webp'))
+            .toBe('/api/assets/champ/x.webp');
     });
 
-    it('points relative uploads at the absolute dev backend', () => {
-        expect(getAssetUrl('uploads/avatar.png')).toBe('http://localhost/symfony/uploads/avatar.png');
+    it('never emits a bare /uploads path (those 404 since core 0.1.41)', () => {
+        expect(getAssetUrl('uploads/assets/champ/x.webp')).not.toMatch(/^\/uploads\//);
+        expect(getAssetUrl('avatar.png')).not.toMatch(/^\/uploads\//);
+    });
+
+    it('routes other legacy relative forms through delivery too', () => {
+        expect(getAssetUrl('uploads/avatar.png')).toBe('/api/assets/avatar.png');
+        expect(getAssetUrl('avatar.png')).toBe('/api/assets/avatar.png');
+    });
+
+    it('normalises legacy admin/ prefixes onto the delivery route', () => {
+        expect(getAssetUrl('admin/uploads/assets/champ/x.png'))
+            .toBe('/api/assets/champ/x.png');
     });
 });
 
-describe('getAssetUrl — shared behaviour', () => {
-    let getAssetUrl: (p: string) => string;
-    beforeEach(async () => {
-        getAssetUrl = await loadGetAssetUrl('/api');
+describe('getAssetUrl — static public/assets are NOT ACL assets', () => {
+    it('keeps public/assets artwork served by Next, off the delivery route', () => {
+        // `public/assets/` (no `uploads/`) is frontend-owned static artwork in
+        // this repo — the app logos — not backend uploads. Routing it through
+        // delivery would search for a folder named `images` and 404.
+        expect(getAssetUrl('assets/images/logo.svg')).toBe('/assets/images/logo.svg');
+        expect(getAssetUrl('/assets/images/logo_negative.svg')).toBe('/assets/images/logo_negative.svg');
     });
+});
 
+describe('getAssetUrl — pass-through', () => {
     it('returns empty string for empty/invalid input', () => {
         expect(getAssetUrl('')).toBe('');
         // @ts-expect-error exercising the runtime guard
@@ -81,10 +83,5 @@ describe('getAssetUrl — shared behaviour', () => {
     it('passes through absolute http(s) and data URLs untouched', () => {
         expect(getAssetUrl('https://cdn.example.com/a.png')).toBe('https://cdn.example.com/a.png');
         expect(getAssetUrl('data:image/png;base64,AAAA')).toBe('data:image/png;base64,AAAA');
-    });
-
-    it('normalises legacy admin/uploads/ and admin/ prefixes', () => {
-        expect(getAssetUrl('admin/uploads/x.png')).toBe('/uploads/x.png');
-        expect(getAssetUrl('admin/css/x.css')).toBe('/uploads/css/x.css');
     });
 });

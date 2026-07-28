@@ -41,8 +41,8 @@ describe('AdvancedAclModal — Asset Folders tab', () => {
         // Folder catalog derived from the asset list.
         vi.spyOn(AdminAssetApi, 'getAssets').mockResolvedValue({
             assets: [
-                { id: 1, file_name: 'a.png', file_path: '/a.png', folder: 'champ' },
-                { id: 2, file_name: 'b.png', file_path: '/b.png', folder: 'goalkeeper' },
+                { id: 1, file_name: 'a.png', file_path: 'uploads/assets/champ/a.png', url: '/cms-api/v1/assets/champ/a.png', folder: 'champ' },
+                { id: 2, file_name: 'b.png', file_path: 'uploads/assets/goalkeeper/b.png', url: '/cms-api/v1/assets/goalkeeper/b.png', folder: 'goalkeeper' },
             ],
             pagination: { page: 1, pageSize: 1000, total: 2, totalPages: 1 },
         });

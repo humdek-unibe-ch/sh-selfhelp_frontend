@@ -411,6 +411,20 @@ export const API_CONFIG = {
             route: '/admin/assets/import',
             permissions: [PERMISSIONS.ADMIN_ASSET_CREATE]
         },
+        // List every asset folder with its open-access flag. Folder-scoped —
+        // the sibling group-scoped grants live on ADMIN_GROUPS_ASSET_ACLS_*.
+        ADMIN_ASSETS_FOLDERS_GET: {
+            route: '/admin/assets/folders',
+            permissions: [PERMISSIONS.ADMIN_ASSET_READ]
+        },
+        // Toggle a folder's open-access (public read) flag. Gated on the
+        // group-ACL write permission, NOT an asset permission: making a folder
+        // world-readable is an access-control decision, so it matches backend
+        // enforcement and the permission that reveals the group-ACL editor.
+        ADMIN_ASSETS_FOLDER_OPEN_ACCESS_UPDATE: {
+            route: (folder: string) => `/admin/assets/folders/${encodeURIComponent(folder)}/open-access`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_ACL]
+        },
         ADMIN_GROUPS_ASSET_ACLS_GET: {
             route: (groupId: number) => `/admin/groups/${groupId}/asset-acls`,
             permissions: [PERMISSIONS.ADMIN_GROUP_ACL]

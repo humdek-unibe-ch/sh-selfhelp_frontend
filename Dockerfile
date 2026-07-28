@@ -41,8 +41,10 @@ WORKDIR /build
 ARG SYMFONY_INTERNAL_URL=http://backend:8080
 ENV SYMFONY_INTERNAL_URL=${SYMFONY_INTERNAL_URL}
 # Browser API base (BFF). NEXT_PUBLIC_* is inlined at build time, so the
-# same-origin `/api` prefix must be baked here, not supplied at runtime. This
-# also makes `getAssetUrl` emit same-origin `/uploads` + `/assets` paths.
+# same-origin `/api` prefix must be baked here, not supplied at runtime.
+# Asset bytes ride the same BFF: `getAssetUrl` emits `/api/assets/...` so the
+# proxy attaches the bearer token to the ACL-enforced delivery route, plus
+# `/assets/...` for static placeholders served by Next itself.
 ARG NEXT_PUBLIC_API_URL=/api
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_TELEMETRY_DISABLED=1

@@ -248,7 +248,8 @@ function NavigationSettingsForm({
 
             .map((asset) => ({
 
-                value: asset.file_path,
+                // Persist the delivery URL, not the (unfetchable) file_path key.
+                value: asset.url,
 
                 label: asset.original_name && asset.original_name.trim() !== '' ? asset.original_name : asset.file_name,
 

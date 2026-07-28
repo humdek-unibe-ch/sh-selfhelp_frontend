@@ -10,9 +10,29 @@ export interface IAsset {
   id: number;
   file_name: string;
   original_name?: string;
+  /**
+   * Logical key only (`uploads/assets/<folder>/<name>`) — NOT fetchable since
+   * core 0.1.41 moved files out of the document root. Use it for display,
+   * identity and dedupe; use `url` to fetch bytes.
+   */
   file_path: string;
+  /**
+   * The ACL-enforced delivery route (`/cms-api/v1/assets/<folder>/<name>`) and
+   * the only way to fetch the bytes. Pass through `getAssetUrl`.
+   */
+  url: string;
   asset_type?: string;
-  folder: string | null;    
+  folder: string | null;
+}
+
+/** A folder and whether everyone (incl. anonymous callers) may read it. */
+export interface IAssetFolder {
+  folder: string;
+  is_open_access: boolean;
+}
+
+export interface IAssetFoldersResponse {
+  folders: IAssetFolder[];
 }
 
 export interface IAssetsListResponse {
@@ -177,6 +197,30 @@ export const AdminAssetApi = {
   async deleteAsset(assetId: number): Promise<{ success: boolean }> {
     const response = await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_ASSETS_DELETE, assetId);
     return { success: response.status === 204 || response.status === 200 };
+  },
+
+  /**
+   * List every asset folder with its open-access flag.
+   */
+  async getFolders(): Promise<IAssetFoldersResponse> {
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IAssetFoldersResponse>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_FOLDERS_GET
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Toggle a folder's open-access (public read) flag. Grants read only — it
+   * never grants `manage`; uploading and deleting still follow group ACLs.
+   * 404s if the folder does not exist (folders are created by the first upload).
+   */
+  async setFolderOpenAccess(folder: string, isOpenAccess: boolean): Promise<IAssetFolder> {
+    const response = await permissionAwareApiClient.put<IBaseApiResponse<IAssetFolder>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_FOLDER_OPEN_ACCESS_UPDATE,
+      { is_open_access: isOpenAccess },
+      folder
+    );
+    return response.data.data;
   },
 
   /**

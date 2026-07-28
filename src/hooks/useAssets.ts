@@ -10,7 +10,8 @@ import {
   type IAsset,
   type ICreateAssetRequest,
   type ICreateMultipleAssetsRequest,
-  type IExportAssetsRequest
+  type IExportAssetsRequest,
+  type IAssetFoldersResponse
 } from '../api/admin/asset.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 
@@ -84,6 +85,36 @@ export function useDeleteAsset() {
     mutationFn: (assetId: number) => AdminAssetApi.deleteAsset(assetId),
     onSuccess: () => {
       // Invalidate and refetch assets list
+      void queryClient.invalidateQueries({ queryKey: ['assets'] });
+    },
+  });
+}
+
+/**
+ * Hook to fetch the asset folders and their open-access flags.
+ */
+export function useAssetFolders() {
+  return useQuery<IAssetFoldersResponse>({
+    queryKey: ['assets', 'folders'],
+    queryFn: () => AdminAssetApi.getFolders(),
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+    refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * Hook to toggle a folder's open-access flag.
+ *
+ * Invalidates the whole `assets` tree: flipping the flag changes which folders
+ * (and therefore assets) other callers can read, so the list must refetch too.
+ */
+export function useSetFolderOpenAccess() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ folder, isOpenAccess }: { folder: string; isOpenAccess: boolean }) =>
+      AdminAssetApi.setFolderOpenAccess(folder, isOpenAccess),
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['assets'] });
     },
   });

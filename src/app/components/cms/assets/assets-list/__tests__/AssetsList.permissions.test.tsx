@@ -20,13 +20,20 @@ vi.mock('../../../../../../hooks/useUserData', () => ({
 vi.mock('../../../../../../hooks/useAssets', () => ({
     useAssets: () => ({
         data: {
-            assets: [{ id: 1, file_name: 'logo.png', file_path: '/logo.png', folder: 'champ' }],
+            assets: [{
+                id: 1,
+                file_name: 'logo.png',
+                file_path: 'uploads/assets/champ/logo.png',
+                url: '/cms-api/v1/assets/champ/logo.png',
+                folder: 'champ',
+            }],
             pagination: { page: 1, pageSize: 100, total: 1, totalPages: 1 },
         },
         isLoading: false,
         error: null,
     }),
     useDeleteAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useAssetFolders: () => ({ data: { folders: [{ folder: 'champ', is_open_access: false }] } }),
 }));
 
 import { AssetsList } from '../AssetsList';

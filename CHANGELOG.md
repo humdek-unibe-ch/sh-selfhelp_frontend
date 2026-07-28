@@ -16,6 +16,43 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.67 — 2026-07-28
+
+Requires core **>=0.1.41**. Both sides must land: the backend pins
+`supports.frontend >=0.1.67`, and the registry resolver refuses an
+incompatible pair.
+
+### Changed
+- **Asset bytes are fetched from `url`, never `file_path` (breaking).** Core
+  0.1.41 moved asset files out of the backend document root, so the old static
+  `/uploads/assets/...` URLs now 404. Every image, video, preview, download and
+  link is built from the asset's `url` (`/cms-api/v1/assets/<folder>/<name>`),
+  which authorizes each request against the folder ACLs. `file_path` remains a
+  logical key for display and identity only. The bytes ride the existing BFF
+  (`/api/assets/...`) so the proxy attaches the caller's token; addressing the
+  backend route directly would send the request anonymously, hiding every
+  image from admins and from users who have been granted the folder.
+- Asset pickers (navigation logo, action config) now persist the delivery URL.
+- `getAssetUrl` maps legacy `uploads/assets/...` paths onto the delivery route
+  so previously stored references still render. The frontend's own static
+  artwork under `public/assets/` (the app logos) is a different directory
+  from the backend's `uploads/assets/` and is unaffected — it stays served
+  by Next.
+
+### Added
+- **Per-folder "Public — anyone can view" toggle** on the Assets page. Public
+  folders are readable by everyone, including logged-out visitors, which keeps
+  logos and public-page imagery working. Enabling asks for confirmation and
+  names the folder; disabling does not. Open access grants view access only —
+  uploading and deleting still follow group permissions.
+  This is folder-scoped and separate from the group-scoped folder-ACL editor in
+  the Groups page; both are needed.
+- The toggle is gated on `admin.group.acl` because it is an access-control
+  decision. Users without it see the current state read-only rather than hidden.
+- **"No access" placeholder** in the asset manager. A `403` on an image is an
+  expected state now, so a lock placeholder is shown instead of a broken image,
+  with no error toast.
+
 ## v0.1.63 — 2026-07-09
 
 ### Changed

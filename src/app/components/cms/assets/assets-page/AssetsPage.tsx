@@ -10,6 +10,7 @@ import { IconUpload, IconPhoto, IconTransferIn } from '@tabler/icons-react';
 import { AssetsList } from '../assets-list/AssetsList';
 import { UploadAssetModal } from '../upload-asset-modal/UploadAssetModal';
 import { ExportImportAssetsModal } from '../export-import-assets-modal/ExportImportAssetsModal';
+import { FolderAccessPanel } from '../folder-access/FolderAccessPanel';
 import { useAuthUser } from '../../../../../hooks/useUserData';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 
@@ -56,6 +57,11 @@ export function AssetsPage() {
           )}
         </Group>
       </Group>
+
+      {/* Per-folder public visibility (folder-scoped; the group-scoped folder
+          ACLs live in the Groups page Advanced ACL modal). Self-gates on
+          admin.group.acl and renders nothing without it. */}
+      <FolderAccessPanel />
 
       {/* Assets List */}
       <AssetsList />
