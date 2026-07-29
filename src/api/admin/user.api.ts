@@ -13,7 +13,8 @@ import type {
   IUserRole,
   IUsersStats,
   IBulkOperationResult,
-  IUsersImportResult
+  IUsersImportResult,
+  ICleanUserDataResult
 } from '../../types/responses/admin/users.types';
 import type {
   ICreateUserRequest,
@@ -294,15 +295,20 @@ export const AdminUserApi = {
   },
 
   /**
-   * Clean user data
+   * Erase everything a user produced, keeping the account itself.
+   *
+   * Core >=0.1.42 returns per-entity `removed` counts; anything older answered
+   * a bare `{ cleaned: true }` from a stub that deleted nothing, which is why
+   * `supports.core` is pinned to 0.1.42. The counts are optional here so a
+   * missing body degrades to a generic success rather than a crash.
    */
-  async cleanUserData(userId: number): Promise<{ success: boolean }> {
-    const response = await permissionAwareApiClient.post(
+  async cleanUserData(userId: number): Promise<ICleanUserDataResult> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<ICleanUserDataResult>>(
       API_CONFIG.ENDPOINTS.ADMIN_USERS_CLEAN_DATA,
       undefined,
       userId
     );
-    return { success: response.status === 204 || response.status === 200 };
+    return { cleaned: true, removed: response.data?.data?.removed };
   },
 
   /**

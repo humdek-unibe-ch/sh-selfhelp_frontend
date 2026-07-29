@@ -494,7 +494,7 @@ export const API_CONFIG = {
             permissions: []
         },
         // NOTE: the user-management mutations below (group/role assignment,
-        // activation mail, clean-data) are enforced by the backend
+        // activation mail) are enforced by the backend
         // (admin.user.* on Symfony). Their client `permissions` arrays are
         // empty pending a backend-confirmed client mapping — do not assume a
         // permission here without coordination (see the "every mutating
@@ -523,9 +523,12 @@ export const API_CONFIG = {
             route: (userId: number) => `/admin/users/${userId}/send-activation-mail`,
             permissions: []
         },
+        // Destructive, but gated on `admin.user.update` to match the backend
+        // route permission for `admin_users_clean_data_v1` — a stricter client
+        // gate would hide the action from admins the backend still allows.
         ADMIN_USERS_CLEAN_DATA: {
             route: (userId: number) => `/admin/users/${userId}/clean-data`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
         },
         ADMIN_USERS_IMPERSONATE: {
             route: (userId: number) => `/admin/users/${userId}/impersonate`,

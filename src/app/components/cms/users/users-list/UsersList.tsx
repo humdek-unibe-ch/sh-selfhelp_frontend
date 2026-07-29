@@ -40,6 +40,7 @@ import {
   IconSearch,
   IconEdit,
   IconTrash,
+  IconEraser,
   IconLock,
   IconLockOpen,
   IconMail,
@@ -85,6 +86,7 @@ interface IUsersListProps {
   onToggleBlock?: (userId: number, blocked: boolean) => void;
   onSendActivationMail?: (userId: number) => void;
   onImpersonateUser?: (userId: number) => void;
+  onCleanUserData?: (userId: number, email: string) => void;
   permissions?: {
     canCreate?: boolean;
     canUpdate?: boolean;
@@ -102,6 +104,7 @@ export function UsersList({
   onToggleBlock,
   onSendActivationMail,
   onImpersonateUser,
+  onCleanUserData,
   permissions = {},
 }: IUsersListProps) {
   // Filter form state (what user is editing)
@@ -515,6 +518,16 @@ export function UsersList({
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item
+                  leftSection={<IconEraser size={14} />}
+                  color="red"
+                  onClick={() =>
+                    onCleanUserData?.(row.original.id, row.original.email)
+                  }
+                  disabled={!permissions.canUpdate}
+                >
+                  Clean user data
+                </Menu.Item>
+                <Menu.Item
                   leftSection={<IconTrash size={14} />}
                   color="red"
                   onClick={() =>
@@ -541,6 +554,7 @@ export function UsersList({
       onToggleBlock,
       onSendActivationMail,
       onImpersonateUser,
+      onCleanUserData,
       permissions.canBlock,
       permissions.canDelete,
       permissions.canImpersonate,

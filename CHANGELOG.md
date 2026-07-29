@@ -16,6 +16,39 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.68 — 2026-07-29
+
+Requires core **>=0.1.42**. Both sides must land: the backend pins
+`supports.frontend >=0.1.68`, and the registry resolver refuses an
+incompatible pair.
+
+### Added
+- **Clean user data (restored from SelfHelp v1).** Users Management gains a
+  "Clean user data" row action that removes everything a user produced —
+  activity logs, submitted input data, and scheduled actions — while keeping
+  the user account itself. It is the erasure path for a GDPR request, as
+  distinct from deleting the account. Because the row stays in the list
+  afterwards, the confirmation modal names what will be destroyed and requires
+  typing the user's email address.
+- Cleaning reports what was removed; the admin Users list "Activity" column
+  drops to 0 for the cleaned user.
+
+### Changed
+- The `clean-data` endpoint's client-side permission gate moves from unset to
+  `admin.user.update`, matching the backend route permission. The backend
+  additionally requires delete-level access to the specific user, which is a
+  resource-side check the client gate deliberately does not mirror.
+
+### Fixed
+- **Cleaning user data now actually erases it.** Core versions before 0.1.42
+  answered `200 {"cleaned": true}` from a stub that deleted nothing. The action
+  was unreachable from the UI until this release, so no erasure was ever
+  silently lost — but the `supports.core` floor is raised to 0.1.42 so this
+  release cannot pair with a core where confirming an irreversible erasure
+  reports a success that did not happen.
+
+---
+
 ## v0.1.67 — 2026-07-28
 
 Requires core **>=0.1.41**. Both sides must land: the backend pins

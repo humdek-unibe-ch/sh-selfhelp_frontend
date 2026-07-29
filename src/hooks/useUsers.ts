@@ -8,6 +8,7 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type {
   IUsersListParams,
   IBulkOperationResult,
+  ICleanUserDataResult,
 } from '../types/responses/admin/users.types';
 import type {
   ICreateUserRequest,
@@ -519,18 +520,58 @@ export function useSendActivationMail() {
 }
 
 /**
- * Hook to clean user data
+ * Report what an erasure actually removed, so the admin can check it against
+ * what they expected rather than trusting a bare "success".
+ *
+ * The backend omits entities it deliberately keeps (the security audit trail)
+ * instead of sending a zero, so a missing key means "not in scope" and is not
+ * listed. Zero-valued keys are dropped too — "0 data rows" is noise. When
+ * nothing at all was removed we say so plainly, because a cheerful "cleaned
+ * successfully" on an already-empty user invites a second, doubtful attempt.
+ */
+const CLEANED_ENTITY_LABELS: Record<string, [singular: string, plural: string]> = {
+  transactions: ['activity entry', 'activity entries'],
+  data_rows: ['data record', 'data records'],
+  data_cells: ['data field', 'data fields'],
+  scheduled_jobs: ['scheduled action', 'scheduled actions'],
+  scheduled_job_recipients: ['scheduled recipient', 'scheduled recipients'],
+};
+
+function summarizeCleanedData(removed: ICleanUserDataResult['removed']): string {
+  const parts = Object.entries(removed ?? {})
+    .filter(([key, count]) => count > 0 && key in CLEANED_ENTITY_LABELS)
+    .map(([key, count]) => {
+      const [singular, plural] = CLEANED_ENTITY_LABELS[key];
+      return `${count} ${count === 1 ? singular : plural}`;
+    });
+
+  if (parts.length === 0) {
+    return 'This user had no data to remove. The account is unchanged.';
+  }
+
+  return `Removed ${parts.join(', ')}. The user account was kept.`;
+}
+
+/**
+ * Wipe a user's activity, submitted data, and scheduled actions while keeping
+ * the account itself. The list shows an activity count per user, so the lists
+ * and the cleaned user's detail are refetched once the backend confirms.
  */
 export function useCleanUserData() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (userId: number) => AdminUserApi.cleanUserData(userId),
-    onSuccess: () => {
+    onSuccess: (result, userId) => {
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
+
       notifications.show({
         title: 'User Data Cleaned',
-        message: 'User data was cleaned successfully!',
+        message: summarizeCleanedData(result.removed),
         icon: React.createElement(IconCheck, { size: '1rem' }),
         color: 'green',
-        autoClose: 5000,
+        autoClose: 8000,
         position: 'top-center',
       });
     },
