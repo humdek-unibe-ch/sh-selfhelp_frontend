@@ -24,17 +24,29 @@ SPDX-License-Identifier: MPL-2.0
   border-color: var(--mantine-color-blue-filled);
 }
 
-/* Floating results surface. Overlaying rather than pushing keeps the nav
-   from jumping on every keystroke. */
+/* While the results are docked underneath, flatten the input's bottom edge so
+   the seam between input and panel disappears. */
+.input[data-panel-open] {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: transparent;
+}
+
+/* Results surface, docked flush to the bottom edge of the input: no gap, and
+   only the bottom corners are rounded, so input + panel read as one control.
+   Overlaying rather than pushing keeps the nav from jumping on every
+   keystroke. The -1px pulls the panel up onto the input's bottom border so the
+   two never show a double 1px line. */
 .panel {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% - 1px);
   left: 0;
   right: 0;
   z-index: 10;
   overflow: hidden;
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-md);
+  border: 1px solid var(--mantine-color-blue-filled);
+  border-top-color: var(--mantine-color-default-border);
+  border-radius: 0 0 var(--mantine-radius-md) var(--mantine-radius-md);
   background-color: var(--mantine-color-body);
   box-shadow: var(--mantine-shadow-md);
 }
@@ -46,6 +58,13 @@ SPDX-License-Identifier: MPL-2.0
   gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--mantine-color-default-border);
+  /* Sits directly against the input's bottom edge — a tinted strip reads as a
+     continuation of the field rather than a separate card header. */
+  background-color: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='dark'] .panelHeader {
+  background-color: var(--mantine-color-dark-6);
 }
 
 .panelHeaderLabel {

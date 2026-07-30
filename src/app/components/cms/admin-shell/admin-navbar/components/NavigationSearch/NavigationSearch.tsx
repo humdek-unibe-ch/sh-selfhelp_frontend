@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
     TextInput,
     Stack,
@@ -16,6 +16,7 @@ import {
     Highlight,
     UnstyledButton
 } from '@mantine/core';
+import { useClickOutside } from '@mantine/hooks';
 import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, IconPhoto, IconPlayerPlay, IconFileText, IconLanguage, IconPuzzle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import styles from './NavigationSearch.module.css';
@@ -74,6 +75,12 @@ interface INavigationSearchProps {
 
 export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSearchProps) {
     const [searchQuery, setSearchQuery] = useState('');
+    // Dismissal is tracked separately from the query so clicking away or
+    // pressing Escape closes the panel without wiping what was typed —
+    // focusing or clicking the input opens it again.
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const clickOutsideRef = useClickOutside(() => setIsPanelOpen(false));
     const router = useRouter();
     const { setActiveItem } = useNavigationStore();
     const { permissionChecker, hasPermission } = useAuth();
@@ -436,6 +443,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
         if (e && (e.button === 1 || e.ctrlKey || e.metaKey)) {
             window.open(item.href, '_blank');
             setSearchQuery('');
+            setIsPanelOpen(false);
             onItemSelect?.();
             return;
         }
@@ -443,19 +451,43 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
         setActiveItem(item.href);
         router.push(item.href);
         setSearchQuery('');
+        setIsPanelOpen(false);
         onItemSelect?.();
     };
 
     const clearSearch = () => {
         setSearchQuery('');
+        setIsPanelOpen(false);
+        inputRef.current?.focus();
     };
 
+    const isPanelVisible = Boolean(searchQuery) && isPanelOpen;
+
     return (
-        <Box className={styles.root}>
+        <Box className={styles.root} ref={clickOutsideRef}>
             <TextInput
+                ref={inputRef}
                 placeholder="Search functions & pages"
                 value={searchQuery}
-                onChange={(event) => setSearchQuery(event.currentTarget.value)}
+                onChange={(event) => {
+                    setSearchQuery(event.currentTarget.value);
+                    setIsPanelOpen(true);
+                }}
+                onFocus={() => setIsPanelOpen(true)}
+                // Escape leaves focus on the input, so a plain click (which
+                // fires no new focus event) must reopen the results too.
+                onClick={() => setIsPanelOpen(true)}
+                onKeyDown={(event) => {
+                    if (event.key === 'Escape' && isPanelVisible) {
+                        // Stop the admin shell / any parent overlay from also
+                        // reacting; Escape here means "close the results".
+                        event.stopPropagation();
+                        setIsPanelOpen(false);
+                    }
+                }}
+                // Squares off the bottom corners while the panel is docked
+                // underneath, so input + results read as one surface.
+                data-panel-open={isPanelVisible || undefined}
                 leftSection={<IconSearch size={16} stroke={1.6} />}
                 rightSection={
                     searchQuery && (
@@ -482,9 +514,10 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                 suppressHydrationWarning
             />
 
-            {/* Results panel — an elevated surface anchored under the input, so
-                it reads as a search popover instead of pushing the nav down. */}
-            {searchQuery && (
+            {/* Results panel — an elevated surface docked flush to the bottom
+                edge of the input, so the two read as one connected control
+                instead of a detached floating card. */}
+            {isPanelVisible && (
                 <Box className={styles.panel} role="listbox" aria-label="Search results">
                     {filteredItems.length > 0 ? (
                         <>

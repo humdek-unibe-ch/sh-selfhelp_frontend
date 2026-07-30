@@ -4,27 +4,28 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { ActionIcon, Tooltip } from '@mantine/core';
+import { Button } from '@mantine/core';
 import { IconEdit } from '@tabler/icons-react';
-import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
-import { flattenMenuItems } from '@selfhelp/shared';
+import { flattenMenuItems, isDoubleWebHeaderPreset, resolveWebHeaderPreset } from '@selfhelp/shared';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
+import { resolveWebHeaderHeight } from '../../frontend/layout/header/headerLayout.utils';
 import { usePreviewNavigation } from '../../cms/live-preview/PreviewNavigationContext';
 
 /**
- * Floating admin shortcut stacked next to the debug button in the top-left
- * corner. Jumps straight into the admin editor of the page currently being
- * viewed (`/admin/pages/{keyword}`); falls back to the admin dashboard when
- * the keyword cannot be resolved. Hidden for non-admins and inside the CMS
- * Live Preview pane (the preview has its own editing chrome).
+ * Floating admin shortcut pinned to the bottom-right corner. Jumps straight
+ * into the admin editor of the page currently being viewed
+ * (`/admin/pages/{keyword}`); falls back to the admin dashboard when the
+ * keyword cannot be resolved. Hidden for non-admins and inside the CMS Live
+ * Preview pane (the preview has its own editing chrome).
  */
 export function AdminEditCornerButton() {
     const { hasAdminAccess } = useAuth();
     const pathname = usePathname();
-    const router = useRouter();
-    const { navigation } = useAppNavigation();
+    const { navigation, headerMenu } = useAppNavigation();
     const previewNav = usePreviewNavigation();
 
     // Resolve the CMS keyword of the current URL: exact page-url match in the
@@ -51,25 +52,32 @@ export function AdminEditCornerButton() {
 
     const href = keyword ? `/admin/pages/${keyword}` : '/admin';
 
+    // Sit just below the site header rather than on top of it. The header height
+    // is preset/branding dependent (60-104px), so mirror the same resolution the
+    // slug shell uses instead of guessing a fixed offset.
+    const isDouble = isDoubleWebHeaderPreset(resolveWebHeaderPreset(headerMenu?.preset ?? null));
+    const top = resolveWebHeaderHeight(isDouble, navigation?.branding ?? null) + 16;
+
     return (
-        <Tooltip label="Edit this page in Admin" position="right">
-            <ActionIcon
-                onClick={() => router.push(href)}
-                variant="subtle"
-                size="lg"
-                aria-label="Edit this page in Admin"
-                style={{
-                    // Stacked directly under the debug bug button (top-left corner).
-                    position: 'fixed',
-                    top: 60,
-                    left: 16,
-                    zIndex: 1000,
-                    backgroundColor: 'var(--mantine-color-grape-6)',
-                    color: 'white',
-                }}
-            >
-                <IconEdit size={20} />
-            </ActionIcon>
-        </Tooltip>
+        <Button
+            component={Link}
+            href={href}
+            variant="default"
+            size="compact-sm"
+            radius="xl"
+            leftSection={<IconEdit size={16} />}
+            aria-label="Edit this page in Admin"
+            style={{
+                // Pinned to the top-right, just below the site header, and well
+                // clear of the debug button's top-left corner.
+                position: 'fixed',
+                top,
+                right: 16,
+                zIndex: 1000,
+                boxShadow: 'var(--mantine-shadow-md)',
+            }}
+        >
+            Edit page
+        </Button>
     );
 }
