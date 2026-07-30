@@ -4,13 +4,14 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TextInput, PasswordInput, Button, Paper, Title, Text, Anchor, Stack } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type ILoginStyle } from '../../../../types/common/styles.types';
 import { AuthApi } from '../../../../api/auth.api';
 import { ROUTES } from '../../../../config/routes.config';
+import { useAuth } from '../../../../hooks/useAuth';
 
 interface ILoginStyleProps {
     style: ILoginStyle;
@@ -24,6 +25,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
     const labelUser = style.label_user?.content || 'Email/Username';
     const labelPassword = style.label_pw?.content || 'Password';
@@ -66,6 +68,22 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
             setIsLoading(false);
         }
     };
+
+    // An already-signed-in visitor must never see the login form: rendering it
+    // on top of a live session reads as a silent logout. Reachable by typing
+    // /login, a stale bookmark, or a flow that redirects here (e.g. finishing
+    // another account's activation link). Mirrors the RegisterStyle guard;
+    // `replace` keeps the login URL out of history, and `isAuthLoading` gates
+    // it so the form is not bounced before auth resolves.
+    useEffect(() => {
+        if (!isAuthLoading && isAuthenticated) {
+            router.replace(searchParams.get('redirectTo') || ROUTES.HOME);
+        }
+    }, [isAuthLoading, isAuthenticated, router, searchParams]);
+
+    if (!isAuthLoading && isAuthenticated) {
+        return null;
+    }
 
     return (
         <Paper

@@ -223,7 +223,18 @@ export function useTwoFactorAuth(options: UseTwoFactorAuthOptions = {}) {
         });
     }, [timer, submitCode]);
 
-    const goToLogin = useCallback(() => router.push(ROUTES.LOGIN), [router]);
+    // Abandoning the challenge must clear the pending-2FA state it owns.
+    // Leaving `USER_ID_KEY` behind resumes the *previous* user's challenge on a
+    // later visit, and a stale timer makes the next attempt start part-expired.
+    const goToLogin = useCallback(() => {
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem(USER_ID_KEY);
+            sessionStorage.removeItem(TIMER_KEY);
+            sessionStorage.removeItem(TIMER_LAST_UPDATE_KEY);
+            sessionStorage.removeItem(TIMER_FRESH_LOGIN_KEY);
+        }
+        router.push(ROUTES.LOGIN);
+    }, [router]);
 
     return {
         code,
