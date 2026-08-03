@@ -46,6 +46,12 @@ export interface IAdminPage {
     is_system: boolean;
     crud: number;
     /**
+     * May this page ever be added to a public menu? Page type only — headless
+     * pages stay eligible because the flag is fixable. Absent on cores older
+     * than 0.1.43, which is treated as eligible.
+     */
+    menu_eligible?: boolean;
+    /**
      * CMS-in-CMS organization axis (issue #30): `public` website pages vs `cms`
      * application pages. The admin pages list groups by this value. Optional to
      * tolerate cached responses; absent is treated as `public`.

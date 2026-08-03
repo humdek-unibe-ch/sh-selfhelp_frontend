@@ -331,11 +331,23 @@ function AddMenuItemModalContent({
         return ids;
     }, [menuItems]);
 
+    // Page types that can never appear in a public menu are dropped outright —
+    // unlike headless, an author cannot fix that from the CMS. `menu_eligible`
+    // is absent on cores < 0.1.43, where every page stays listed.
+    const ineligiblePageCount = useMemo(
+        () => (pages ?? []).filter((page) => page.menu_eligible === false).length,
+        [pages],
+    );
     const availablePages = useMemo(
-        () => (pages ?? []).filter((page) => !usedPageIds.has(page.id_pages)),
+        () => (pages ?? []).filter(
+            (page) => !usedPageIds.has(page.id_pages) && page.menu_eligible !== false,
+        ),
         [pages, usedPageIds],
     );
-    const hiddenPageCount = (pages?.length ?? 0) - availablePages.length;
+    const usedPageCount = (pages ?? []).filter(
+        (page) => usedPageIds.has(page.id_pages) && page.menu_eligible !== false,
+    ).length;
+    const hiddenPageCount = usedPageCount + ineligiblePageCount;
 
     // Options carry the localized title so authors can pick by what users see;
     // the label keeps the keyword so search matches both title and keyword.
@@ -487,13 +499,19 @@ function AddMenuItemModalContent({
                         onChange={handlePageChange}
                         nothingFoundMessage={
                             hiddenPageCount > 0 && pageOptions.length === 0
-                                ? 'All pages are already in this menu'
+                                ? 'No pages left to add to this menu'
                                 : 'No matching page'
                         }
                     />
                     {hiddenPageCount > 0 ? (
                         <Text size="xs" c="dimmed">
-                            {hiddenPageCount} page(s) already in this menu are not listed.
+                            {usedPageCount > 0
+                                ? `${usedPageCount} page(s) already in this menu are not listed.`
+                                : null}
+                            {usedPageCount > 0 && ineligiblePageCount > 0 ? ' ' : null}
+                            {ineligiblePageCount > 0
+                                ? `${ineligiblePageCount} system page(s) cannot appear in a public menu.`
+                                : null}
                         </Text>
                     ) : null}
                 </Stack>

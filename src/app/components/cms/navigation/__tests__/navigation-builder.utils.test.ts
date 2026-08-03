@@ -214,7 +214,7 @@ describe('getPublicMenuExclusionReason', () => {
             getPublicMenuExclusionReason(
                 makeItem({ id: 3, page_id: 9, public_visibility: { rendered: false, reason: 'page_not_accessible' } }),
             ),
-        ).toMatch(/restricted|cannot reach/i);
+        ).toMatch(/without access/i);
     });
 
     it('stays silent when the backend says the item renders', () => {
@@ -289,5 +289,28 @@ describe('getPresetGaps', () => {
 
     it('ignores external links and separators', () => {
         expect(getPresetGaps(makeItem({ id: 9, item_type: 'external_url' }), 'mega-menu', 0)).toEqual([]);
+    });
+});
+
+describe('menu_eligible page filtering', () => {
+    const page = (over: Partial<IAdminPage> & { id_pages: number }): IAdminPage => ({
+        keyword: 'p', url: 'p', id_parent_page: null, is_headless: false,
+        is_open_access: false, id_page_access_types: 1, id_page_types: 2,
+        is_system: false, crud: 15, ...over,
+    });
+    // Mirrors the picker predicate in NavigationItemModals.
+    const eligible = (p: IAdminPage) => p.menu_eligible !== false;
+
+    it('drops pages the backend marks ineligible', () => {
+        expect(eligible(page({ id_pages: 1, menu_eligible: false }))).toBe(false);
+        expect(eligible(page({ id_pages: 2, menu_eligible: true }))).toBe(true);
+    });
+
+    it('keeps headless pages, whose flag an author can still untick', () => {
+        expect(eligible(page({ id_pages: 3, is_headless: true, menu_eligible: true }))).toBe(true);
+    });
+
+    it('keeps every page when the field is absent (core < 0.1.43)', () => {
+        expect(eligible(page({ id_pages: 4 }))).toBe(true);
     });
 });

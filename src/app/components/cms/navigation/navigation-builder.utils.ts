@@ -195,7 +195,7 @@ function hasItemDescription(item: IAdminNavigationMenuItem, languageId?: number 
 const PUBLIC_EXCLUSION_MESSAGES: Record<TPublicVisibilityReason, string> = {
     headless: 'This page is headless, so the public menu never renders it.',
     page_type_excluded: 'Only core and experiment pages appear in the public menu.',
-    page_not_accessible: 'The public menu cannot reach this page — it is restricted or excluded by page type.',
+    page_not_accessible: 'Visitors without access to this page will not see this entry.',
 };
 
 /**
