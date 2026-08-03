@@ -68,11 +68,10 @@ export function AdminEditCornerButton() {
             leftSection={<IconEdit size={16} />}
             aria-label="Edit this page in Admin"
             style={{
-                // Pinned to the top-right, just below the site header, and well
-                // clear of the debug button's top-left corner.
+                // Pinned to the top-left, just below the site header.
                 position: 'fixed',
                 top,
-                right: 16,
+                left: 16,
                 zIndex: 1000,
                 boxShadow: 'var(--mantine-shadow-md)',
             }}
