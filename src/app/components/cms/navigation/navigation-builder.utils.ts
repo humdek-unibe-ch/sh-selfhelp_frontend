@@ -153,30 +153,29 @@ export function getPresetGaps(
         });
     }
 
-    // Mega cells are icon tile + label + description; without either they
-    // collapse to a dot and a label, which reads like a plain dropdown row.
-    if (!isRoot && (preset === 'mega-menu' || preset === 'double-mega-menu')) {
+    // Panel entries render icon + label + description in both presets; the mega
+    // menu just shows them larger (tinted tile vs inline icon). Missing either
+    // one degrades the entry to a dot and a label.
+    const isMega = preset === 'mega-menu' || preset === 'double-mega-menu';
+    const isPanelPreset = isMega || preset === 'dropdown' || preset === 'double-dropdown';
+
+    if (!isRoot && isPanelPreset) {
         if (!item.icon) {
             gaps.push({
                 label: 'No icon',
-                reason: 'The mega menu shows an icon tile for each entry. Without one it falls back to a plain dot.',
+                reason: isMega
+                    ? 'The mega menu shows an icon tile for each entry. Without one it falls back to a plain dot.'
+                    : 'Dropdown rows show an icon beside the label. Without one they fall back to a plain dot.',
             });
         }
         if (!hasItemDescription(item, languageId)) {
             gaps.push({
                 label: 'No description',
-                reason: 'The mega menu shows a description under each entry. Without one the cell is just a label, which looks like a normal dropdown row.',
+                reason: isMega
+                    ? 'The mega menu shows a description under each entry. Without one the cell is just a label, which looks like a normal dropdown row.'
+                    : 'Dropdown rows show a description under the label when one is set.',
             });
         }
-    }
-
-    // Dropdown rows show the description too, but only as a bonus line.
-    if (!isRoot && (preset === 'dropdown' || preset === 'double-dropdown')
-        && !hasItemDescription(item, languageId)) {
-        gaps.push({
-            label: 'No description',
-            reason: 'Dropdown rows show a description under the label when one is set.',
-        });
     }
 
     return gaps;

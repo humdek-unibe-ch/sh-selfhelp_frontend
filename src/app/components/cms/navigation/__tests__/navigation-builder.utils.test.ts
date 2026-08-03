@@ -266,9 +266,11 @@ describe('getPresetGaps', () => {
         expect(labels).toEqual(expect.arrayContaining(['No icon', 'No description']));
     });
 
-    it('flags only the description on dropdown rows, which show no icon tile', () => {
-        const labels = getPresetGaps(child(), 'dropdown', 0).map((g) => g.label);
-        expect(labels).toEqual(['No description']);
+    it('flags icon and description on dropdown rows, which render both', () => {
+        for (const preset of ['dropdown', 'double-dropdown']) {
+            const labels = getPresetGaps(child(), preset, 0).map((g) => g.label);
+            expect(labels).toEqual(expect.arrayContaining(['No icon', 'No description']));
+        }
     });
 
     it('clears once the item supplies icon and description', () => {
