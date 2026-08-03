@@ -9,14 +9,13 @@ import { IconEdit } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
-import { flattenMenuItems, isDoubleWebHeaderPreset, resolveWebHeaderPreset } from '@selfhelp/shared';
+import { flattenMenuItems } from '@selfhelp/shared';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
-import { resolveWebHeaderHeight } from '../../frontend/layout/header/headerLayout.utils';
 import { usePreviewNavigation } from '../../cms/live-preview/PreviewNavigationContext';
 
 /**
- * Floating admin shortcut pinned to the bottom-right corner. Jumps straight
+ * Floating admin shortcut pinned to the right edge. Jumps straight
  * into the admin editor of the page currently being viewed
  * (`/admin/pages/{keyword}`); falls back to the admin dashboard when the
  * keyword cannot be resolved. Hidden for non-admins and inside the CMS Live
@@ -25,7 +24,7 @@ import { usePreviewNavigation } from '../../cms/live-preview/PreviewNavigationCo
 export function AdminEditCornerButton() {
     const { hasAdminAccess } = useAuth();
     const pathname = usePathname();
-    const { navigation, headerMenu } = useAppNavigation();
+    const { navigation } = useAppNavigation();
     const previewNav = usePreviewNavigation();
 
     // Resolve the CMS keyword of the current URL: exact page-url match in the
@@ -52,12 +51,6 @@ export function AdminEditCornerButton() {
 
     const href = keyword ? `/admin/pages/${keyword}` : '/admin';
 
-    // Sit just below the site header rather than on top of it. The header height
-    // is preset/branding dependent (60-104px), so mirror the same resolution the
-    // slug shell uses instead of guessing a fixed offset.
-    const isDouble = isDoubleWebHeaderPreset(resolveWebHeaderPreset(headerMenu?.preset ?? null));
-    const top = resolveWebHeaderHeight(isDouble, navigation?.branding ?? null) + 16;
-
     return (
         <Button
             component={Link}
@@ -68,10 +61,10 @@ export function AdminEditCornerButton() {
             leftSection={<IconEdit size={16} />}
             aria-label="Edit this page in Admin"
             style={{
-                // Pinned to the top-left, just below the site header.
+                // Up from the bottom, clear of footers and cookie banners.
                 position: 'fixed',
-                top,
-                left: 16,
+                bottom: '3vh',
+                right: 16,
                 zIndex: 1000,
                 boxShadow: 'var(--mantine-shadow-md)',
             }}

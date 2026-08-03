@@ -71,13 +71,16 @@ function BranchPager({ pager }: { pager: IBranchNavContext['pager'] }) {
         return null;
     }
     return (
-        <Group justify="space-between" mt="xl" wrap="nowrap" gap="md">
+        <Group justify="space-between" mt="xl" wrap="nowrap" gap="md" className={classes.pagerRow}>
             {pager.prev ? (
                 <InternalLink href={segmentHref(pager.prev)} className={classes.pagerCard} aria-label={`Previous: ${pager.prev.label}`}>
                     <IconArrowLeft size={18} stroke={1.75} style={{ flexShrink: 0, opacity: 0.7 }} />
-                    <Text size="sm" fw={500} lineClamp={1}>
-                        {pager.prev.label}
-                    </Text>
+                    <Stack gap={1} style={{ minWidth: 0 }}>
+                        <Text size="xs" c="dimmed">Previous</Text>
+                        <Text size="sm" fw={500} lineClamp={1}>
+                            {pager.prev.label}
+                        </Text>
+                    </Stack>
                 </InternalLink>
             ) : (
                 <span />
@@ -87,11 +90,14 @@ function BranchPager({ pager }: { pager: IBranchNavContext['pager'] }) {
                     href={segmentHref(pager.next)}
                     className={classes.pagerCard}
                     aria-label={`Next: ${pager.next.label}`}
-                    style={{ marginLeft: 'auto', textAlign: 'right' }}
+                    style={{ marginLeft: 'auto', justifyContent: 'flex-end' }}
                 >
-                    <Text size="sm" fw={500} lineClamp={1}>
-                        {pager.next.label}
-                    </Text>
+                    <Stack gap={1} align="flex-end" style={{ minWidth: 0 }}>
+                        <Text size="xs" c="dimmed">Next</Text>
+                        <Text size="sm" fw={500} lineClamp={1}>
+                            {pager.next.label}
+                        </Text>
+                    </Stack>
                     <IconArrowRight size={18} stroke={1.75} style={{ flexShrink: 0, opacity: 0.7 }} />
                 </InternalLink>
             ) : (
@@ -125,25 +131,31 @@ function PillStrip({ segments, currentPageId }: { segments: IBranchNavSegment[];
 
 function SidebarNav({ context, currentPageId }: { context: IBranchNavContext; currentPageId: number }) {
     return (
-        <Stack gap={2}>
+        <Stack gap={4} className={classes.sidebar}>
             {context.heading ? (
-                <Text size="xs" fw={700} tt="uppercase" c="dimmed" px={12} pb={6} lts={0.5}>
+                <Text size="xs" fw={700} tt="uppercase" c="dimmed" px={10} pb={4} lts="0.06em">
                     {context.heading}
                 </Text>
             ) : null}
-            {context.segments.map((segment) => (
-                <InternalLink
-                    key={segment.pageId}
-                    href={segmentHref(segment)}
-                    className={classes.sideLink}
-                    data-active={segment.pageId === currentPageId || undefined}
-                >
-                    {segment.icon ? <IconComponent iconName={segment.icon} size={16} /> : null}
-                    <Text size="sm" span fw="inherit" lineClamp={1}>
-                        {segment.label}
-                    </Text>
-                </InternalLink>
-            ))}
+            {context.segments.map((segment) => {
+                const href = segmentHref(segment);
+                return (
+                    <InternalLink
+                        key={segment.pageId}
+                        href={href}
+                        className={classes.sideLink}
+                        data-active={segment.pageId === currentPageId || undefined}
+                    >
+                        <Group gap={8} wrap="nowrap">
+                            {segment.icon ? <IconComponent iconName={segment.icon} size={16} /> : null}
+                            <Text size="sm" span fw="inherit" lineClamp={1} className={classes.sideLinkLabel}>
+                                {segment.label}
+                            </Text>
+                        </Group>
+                        <span className={classes.sideLinkPath}>{href}</span>
+                    </InternalLink>
+                );
+            })}
         </Stack>
     );
 }
@@ -208,10 +220,10 @@ export function BranchNavigation({ navigation, currentPageId, children }: IBranc
             <Box hiddenFrom="md" mb="sm">
                 <PillStrip segments={context.segments} currentPageId={currentPageId} />
             </Box>
-            <Flex gap="xl" align="flex-start">
+            <Flex gap="lg" align="flex-start">
                 <Box
                     component="aside"
-                    w={240}
+                    w={250}
                     visibleFrom="md"
                     style={{
                         flexShrink: 0,

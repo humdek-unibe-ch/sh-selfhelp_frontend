@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import type { IAdminNavigationMenuItem } from '../../../../api/admin/navigation.api';
+import type { IAdminNavigationMenuItem, TPublicVisibilityReason } from '../../../../api/admin/navigation.api';
 import type { IAdminPage } from '../../../../types/responses/admin/admin.types';
 import { isMobileMenuKey, type TMenuKey } from './navigation-builder.constants';
 
@@ -117,6 +117,100 @@ export function buildResolvedLabelByItemId(
         }
     }
     return labels;
+}
+
+export interface IPresetGap {
+    /** Chip text, e.g. "No description". */
+    label: string;
+    /** Tooltip explaining what the active preset does with it. */
+    reason: string;
+}
+
+/**
+ * Ways this item under-delivers for the active header preset — the fields the
+ * preset renders but the item leaves empty, so a preset switch looks like a
+ * no-op. Empty array when the item gives the preset everything it can use.
+ */
+export function getPresetGaps(
+    item: IAdminNavigationMenuItem,
+    preset: string,
+    childCount: number,
+    languageId?: number | null,
+): IPresetGap[] {
+    if (item.item_type !== 'page' && item.item_type !== 'group') {
+        return [];
+    }
+
+    const isRoot = item.parent_item_id === null;
+    const gaps: IPresetGap[] = [];
+
+    // Panel presets only differ from `simple` on root items that open a panel.
+    if (isRoot && childCount === 0 && (preset === 'dropdown' || preset === 'mega-menu'
+        || preset === 'double-dropdown' || preset === 'double-mega-menu')) {
+        gaps.push({
+            label: 'No children',
+            reason: 'This item opens no panel, so it renders exactly as it would in the Simple preset. Nest pages under it to see the dropdown or mega menu.',
+        });
+    }
+
+    // Mega cells are icon tile + label + description; without either they
+    // collapse to a dot and a label, which reads like a plain dropdown row.
+    if (!isRoot && (preset === 'mega-menu' || preset === 'double-mega-menu')) {
+        if (!item.icon) {
+            gaps.push({
+                label: 'No icon',
+                reason: 'The mega menu shows an icon tile for each entry. Without one it falls back to a plain dot.',
+            });
+        }
+        if (!hasItemDescription(item, languageId)) {
+            gaps.push({
+                label: 'No description',
+                reason: 'The mega menu shows a description under each entry. Without one the cell is just a label, which looks like a normal dropdown row.',
+            });
+        }
+    }
+
+    // Dropdown rows show the description too, but only as a bonus line.
+    if (!isRoot && (preset === 'dropdown' || preset === 'double-dropdown')
+        && !hasItemDescription(item, languageId)) {
+        gaps.push({
+            label: 'No description',
+            reason: 'Dropdown rows show a description under the label when one is set.',
+        });
+    }
+
+    return gaps;
+}
+
+/** True when the item has a non-empty description in any language. */
+function hasItemDescription(item: IAdminNavigationMenuItem, languageId?: number | null): boolean {
+    const rows = item.translations ?? [];
+    const scoped = languageId != null
+        ? rows.filter((row) => row.language_id === languageId)
+        : rows;
+    return scoped.some((row) => (row.description ?? '').trim() !== '');
+}
+
+/** Builder wording for each backend public-visibility reason code. */
+const PUBLIC_EXCLUSION_MESSAGES: Record<TPublicVisibilityReason, string> = {
+    headless: 'This page is headless, so the public menu never renders it.',
+    page_type_excluded: 'Only core and experiment pages appear in the public menu.',
+    page_not_accessible: 'The public menu cannot reach this page — it is restricted or excluded by page type.',
+};
+
+/**
+ * Why the public menu will drop this item, or `null` when it renders (or when
+ * the backend sends no verdict — absent is not the same as excluded).
+ */
+export function getPublicMenuExclusionReason(
+    item: IAdminNavigationMenuItem,
+): string | null {
+    const visibility = item.public_visibility;
+    if (!visibility || visibility.rendered || !visibility.reason) {
+        return null;
+    }
+
+    return PUBLIC_EXCLUSION_MESSAGES[visibility.reason] ?? null;
 }
 
 export function getMenuItemDisplay(

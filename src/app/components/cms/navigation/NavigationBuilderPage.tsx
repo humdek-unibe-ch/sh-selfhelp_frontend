@@ -491,6 +491,8 @@ export function NavigationBuilderPage(): React.ReactElement {
                                         items={tabItems}
                                         nestedItems={tabNestedItems}
                                         layerMode={headerLayerMode}
+                                        preset={headerPreset}
+                                        languageId={currentLanguageId}
                                         pageById={pageById}
                                         resolvedLabelByItemId={isActiveMenuTab ? resolvedLabelByItemId : new Map()}
                                         highlightedItemId={isActiveMenuTab ? highlightedItemId : null}

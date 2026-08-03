@@ -22,6 +22,7 @@ import {
     IconArrowUp,
     IconDotsVertical,
     IconExternalLink,
+    IconEyeOff,
     IconFolder,
     IconGripVertical,
     IconLink,
@@ -48,8 +49,11 @@ import {
     buildSiblingStepPayload,
     getMenuItemDisplay,
     getPageEditorPath,
+    getPresetGaps,
+    getPublicMenuExclusionReason,
     isMenuItemDescendant,
     menuIconForItem,
+    type IPresetGap,
 } from './navigation-builder.utils';
 import { MenuItemIcon } from './MenuItemIcon';
 import styles from './NavigationMenuItemsList.module.css';
@@ -61,6 +65,10 @@ interface INavigationMenuItemsListProps {
     nestedItems: Array<IAdminNavigationMenuItem & { depth: number; orphaned?: boolean }>;
     /** Web header double preset: split root items into top/main row sections. */
     layerMode?: boolean;
+    /** Active menu preset, for the per-item preset-gap chips. */
+    preset?: string | null;
+    /** Admin UI language, for scoping description lookups. */
+    languageId?: number | null;
     pageById: Map<number, IAdminPage>;
     resolvedLabelByItemId: Map<number, string>;
     highlightedItemId: number | null;
@@ -83,6 +91,7 @@ interface IMenuItemRowProps {
     pageById: Map<number, IAdminPage>;
     allItems: IAdminNavigationMenuItem[];
     layerMode: boolean;
+    presetGaps: IPresetGap[];
     onSetLayer: (item: IAdminNavigationMenuItem, layer: 'top' | null) => void;
     childCount: number;
     display: { primary: string; secondary?: string };
@@ -111,6 +120,7 @@ function MenuItemRow({
     pageById,
     allItems,
     layerMode,
+    presetGaps,
     onSetLayer,
     childCount,
     display,
@@ -145,6 +155,7 @@ function MenuItemRow({
     const pageEditorPath = item.item_type === 'page' && item.page_id !== null
         ? getPageEditorPath(pageById, item.page_id)
         : null;
+    const publicExclusionReason = getPublicMenuExclusionReason(item);
     const isInvalidChildTarget = draggedId !== null
         && (draggedId === item.id || isMenuItemDescendant(allItems, draggedId, item.id));
 
@@ -361,6 +372,25 @@ function MenuItemRow({
                                 Orphaned
                             </Badge>
                         ) : null}
+                        {presetGaps.map((gap) => (
+                            <Tooltip key={gap.label} label={gap.reason} multiline w={280}>
+                                <Badge variant="outline" color="gray" size="sm" style={{ cursor: 'help' }}>
+                                    {gap.label}
+                                </Badge>
+                            </Tooltip>
+                        ))}
+                        {publicExclusionReason ? (
+                            <Tooltip label={publicExclusionReason} multiline w={260}>
+                                <Badge
+                                    variant="outline"
+                                    color="gray"
+                                    size="sm"
+                                    leftSection={<IconEyeOff size={12} />}
+                                >
+                                    Not in public menu
+                                </Badge>
+                            </Tooltip>
+                        ) : null}
                         {canUpdate ? (
                             <Menu withinPortal position="bottom-end">
                                 <Menu.Target>
@@ -434,6 +464,8 @@ export function NavigationMenuItemsList({
     items,
     nestedItems,
     layerMode = false,
+    preset = null,
+    languageId = null,
     pageById,
     resolvedLabelByItemId,
     highlightedItemId,
@@ -619,6 +651,7 @@ export function NavigationMenuItemsList({
                 pageById={pageById}
                 allItems={items}
                 layerMode={layerMode}
+                presetGaps={getPresetGaps(item, preset ?? '', childCountByItemId.get(item.id) ?? 0, languageId)}
                 onSetLayer={handleSetLayer}
                 childCount={childCountByItemId.get(item.id) ?? 0}
                 display={display}

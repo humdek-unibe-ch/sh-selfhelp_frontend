@@ -16,6 +16,39 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.69 — 2026-08-03
+
+Requires core **>=0.1.43** for the navigation warning tags. The rest of the
+release works against any core in range.
+
+### Added
+- **Warning tags in the navigation builder.** Menu items now show, per row,
+  why they will not appear the way you expect. A "Not in public menu" tag
+  marks items the public menu drops — a headless page, a page type that is
+  not core/experiment, or a page the visitor cannot access — each with the
+  reason in a tooltip. Separate tags flag what the selected header preset
+  renders but the item leaves empty: a root item with no children (which
+  makes Dropdown and Mega menu look identical to Simple), and a missing icon
+  or description on entries shown in mega-menu panels and dropdown rows.
+  Previously a preset change could appear to do nothing with no explanation.
+- Description tags respect the language you are editing, so a description
+  that exists only in another language no longer hides an empty panel entry.
+
+### Changed
+- **Child-page navigation styling.** The left sidebar gains a divider on its
+  right edge matching the admin navbar, and each entry shows its route path
+  under the label. The previous/next pager uses equal-width cards with
+  "Previous"/"Next" labels and a divider separating it from page content.
+  Keyboard focus outlines were added to sidebar entries, pills, and pager
+  cards, which previously had no visible focus state.
+- The floating "Edit page" admin shortcut moves from below the site header to
+  the bottom-right of the viewport.
+- The public-menu exclusion rule is now read from the backend rather than
+  reproduced in the frontend, so the builder's verdict cannot drift from what
+  the public menu actually renders.
+
+---
+
 ## v0.1.68 — 2026-07-29
 
 Requires core **>=0.1.42**. Both sides must land: the backend pins

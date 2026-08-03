@@ -22,6 +22,8 @@ import {
     getMenuItemDisplay,
     getPageEditorPath,
     getPageKeyword,
+    getPresetGaps,
+    getPublicMenuExclusionReason,
     menuIconForItem,
     nestStoredMenuItems,
 } from '../navigation-builder.utils';
@@ -191,5 +193,101 @@ describe('navigation-builder.utils', () => {
             position: 10,
             parent_item_id: 1,
         });
+    });
+});
+
+describe('getPublicMenuExclusionReason', () => {
+    it('renders the wording for each backend reason code', () => {
+        expect(
+            getPublicMenuExclusionReason(
+                makeItem({ id: 1, page_id: 7, public_visibility: { rendered: false, reason: 'headless' } }),
+            ),
+        ).toMatch(/headless/i);
+
+        expect(
+            getPublicMenuExclusionReason(
+                makeItem({ id: 2, page_id: 8, public_visibility: { rendered: false, reason: 'page_type_excluded' } }),
+            ),
+        ).toMatch(/core and experiment/i);
+
+        expect(
+            getPublicMenuExclusionReason(
+                makeItem({ id: 3, page_id: 9, public_visibility: { rendered: false, reason: 'page_not_accessible' } }),
+            ),
+        ).toMatch(/restricted|cannot reach/i);
+    });
+
+    it('stays silent when the backend says the item renders', () => {
+        expect(
+            getPublicMenuExclusionReason(
+                makeItem({ id: 4, page_id: 10, public_visibility: { rendered: true, reason: null } }),
+            ),
+        ).toBeNull();
+    });
+
+    it('stays silent when the backend omits public_visibility', () => {
+        expect(getPublicMenuExclusionReason(makeItem({ id: 5, page_id: 11 }))).toBeNull();
+        expect(getPublicMenuExclusionReason(makeItem({ id: 6, item_type: 'group' }))).toBeNull();
+    });
+
+    it('ignores an unrecognised reason code rather than rendering a blank badge', () => {
+        // Simulates a newer backend adding a code this build does not know.
+        const forwardCompatible = {
+            ...makeItem({ id: 7, page_id: 12 }),
+            public_visibility: { rendered: false, reason: 'some_future_code' },
+        } as unknown as Parameters<typeof getPublicMenuExclusionReason>[0];
+
+        expect(getPublicMenuExclusionReason(forwardCompatible)).toBeNull();
+    });
+});
+
+describe('getPresetGaps', () => {
+    const root = (over = {}) => makeItem({ id: 1, page_id: 5, parent_item_id: null, ...over });
+    const child = (over = {}) => makeItem({ id: 2, page_id: 6, parent_item_id: 1, ...over });
+
+    it('flags a childless root under panel presets, since it renders as Simple', () => {
+        for (const preset of ['dropdown', 'mega-menu', 'double-dropdown', 'double-mega-menu']) {
+            const labels = getPresetGaps(root(), preset, 0).map((g) => g.label);
+            expect(labels).toContain('No children');
+        }
+    });
+
+    it('stays quiet about children for simple and tabs, which open no panel', () => {
+        expect(getPresetGaps(root(), 'simple', 0)).toEqual([]);
+        expect(getPresetGaps(root(), 'tabs', 0)).toEqual([]);
+    });
+
+    it('does not flag a root that already has children', () => {
+        expect(getPresetGaps(root(), 'dropdown', 3).map((g) => g.label)).not.toContain('No children');
+    });
+
+    it('flags missing icon and description on mega-menu cells', () => {
+        const labels = getPresetGaps(child(), 'mega-menu', 0).map((g) => g.label);
+        expect(labels).toEqual(expect.arrayContaining(['No icon', 'No description']));
+    });
+
+    it('flags only the description on dropdown rows, which show no icon tile', () => {
+        const labels = getPresetGaps(child(), 'dropdown', 0).map((g) => g.label);
+        expect(labels).toEqual(['No description']);
+    });
+
+    it('clears once the item supplies icon and description', () => {
+        const filled = child({
+            icon: 'users',
+            translations: [{ language_id: 1, label: 'Team', description: 'Meet the team' }],
+        });
+        expect(getPresetGaps(filled, 'mega-menu', 0, 1)).toEqual([]);
+    });
+
+    it('scopes descriptions to the active language', () => {
+        const deOnly = child({
+            icon: 'users',
+            translations: [{ language_id: 2, label: 'Team', description: 'Das Team' }],
+        });
+        expect(getPresetGaps(deOnly, 'mega-menu', 0, 1).map((g) => g.label)).toEqual(['No description']);
+    });
+
+    it('ignores external links and separators', () => {
+        expect(getPresetGaps(makeItem({ id: 9, item_type: 'external_url' }), 'mega-menu', 0)).toEqual([]);
     });
 });

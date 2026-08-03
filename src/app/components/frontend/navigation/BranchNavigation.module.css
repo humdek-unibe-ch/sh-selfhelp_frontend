@@ -3,54 +3,88 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 
-/* Sidebar entry: rounded row with hover + active accent. */
+/* Divider on the right edge, like the CMS navbar — no card, no shadow. */
+.sidebar {
+    padding: 0 var(--mantine-spacing-md) var(--mantine-spacing-md) 0;
+    border-right: 1px solid var(--mantine-color-default-border);
+}
+
+/* Row: title over its path, active row tinted with a blue bar on the left. */
 .sideLink {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-radius: var(--mantine-radius-sm);
+    flex-direction: column;
+    gap: 1px;
+    padding: 7px 10px;
+    border-radius: var(--mantine-radius-md);
     color: var(--mantine-color-text);
     text-decoration: none;
-    transition: background-color 100ms ease, color 100ms ease;
+    transition: background-color 120ms ease;
 }
 
 .sideLink:hover {
-    background-color: var(--mantine-color-default-hover);
+    background-color: var(--mantine-color-gray-0);
+}
+
+:global([data-mantine-color-scheme='dark']) .sideLink:hover {
+    background-color: var(--mantine-color-dark-6);
 }
 
 .sideLink[data-active='true'] {
     background-color: var(--mantine-color-blue-light);
-    color: var(--mantine-color-blue-light-color);
     font-weight: 600;
 }
 
-/* Horizontal pill (mobile fallback + pills mode). */
+.sideLink[data-active='true'] .sideLinkLabel {
+    color: var(--mantine-color-blue-light-color);
+}
+
+/* Route path under the label, monospace so it reads as a URL. */
+.sideLinkPath {
+    font-family: var(--mantine-font-family-monospace);
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--mantine-color-dimmed);
+}
+
+.sideLink:focus-visible {
+    outline: 2px solid var(--mantine-color-blue-filled);
+    outline-offset: 2px;
+}
+
+/* Horizontal pill (mobile fallback + pills mode): outlined, fills when active. */
 .pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 14px;
+    padding: 5px 13px;
+    border: 1px solid var(--mantine-color-default-border);
     border-radius: 999px;
-    background-color: var(--mantine-color-default-hover);
-    color: var(--mantine-color-text);
+    background-color: transparent;
+    color: var(--mantine-color-dimmed);
     text-decoration: none;
     white-space: nowrap;
-    transition: background-color 100ms ease, color 100ms ease;
+    transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
 .pill:hover {
-    background-color: var(--mantine-color-gray-3);
+    border-color: var(--mantine-color-gray-5);
+    color: var(--mantine-color-text);
 }
 
 :global([data-mantine-color-scheme='dark']) .pill:hover {
-    background-color: var(--mantine-color-dark-4);
+    border-color: var(--mantine-color-dark-3);
 }
 
 .pill[data-active='true'] {
     background-color: var(--mantine-color-blue-filled);
+    border-color: var(--mantine-color-blue-filled);
     color: var(--mantine-color-white);
     font-weight: 600;
+}
+
+.pill:focus-visible {
+    outline: 2px solid var(--mantine-color-blue-filled);
+    outline-offset: 2px;
 }
 
 /* Breadcrumb link. */
@@ -66,7 +100,7 @@ SPDX-License-Identifier: MPL-2.0
     text-decoration: underline;
 }
 
-/* Prev/next pager cards. */
+/* Prev/next pager cards: equal halves so the pair reads as one unit. */
 .pagerCard {
     display: flex;
     align-items: center;
@@ -76,11 +110,23 @@ SPDX-License-Identifier: MPL-2.0
     border-radius: var(--mantine-radius-md);
     color: var(--mantine-color-text);
     text-decoration: none;
-    max-width: 46%;
-    transition: background-color 100ms ease, border-color 100ms ease;
+    flex: 0 1 clamp(0px, 100%, 320px);
+    min-width: 0;
+    transition: background-color 120ms ease, border-color 120ms ease;
 }
 
 .pagerCard:hover {
     background-color: var(--mantine-color-default-hover);
     border-color: var(--mantine-color-blue-4);
+}
+
+.pagerCard:focus-visible {
+    outline: 2px solid var(--mantine-color-blue-filled);
+    outline-offset: 2px;
+}
+
+/* Divider above the pager, separating it from page content. */
+.pagerRow {
+    border-top: 1px solid var(--mantine-color-default-border);
+    padding-top: var(--mantine-spacing-lg);
 }
