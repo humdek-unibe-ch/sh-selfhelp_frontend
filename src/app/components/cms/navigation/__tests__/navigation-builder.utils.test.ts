@@ -376,11 +376,20 @@ describe('getPresetGaps across menus', () => {
             expect(labels(withDesc, '', 0, 1, 'mobile_drawer')).toEqual(['Description not shown']);
         });
 
-        it('warns that bottom tabs cannot reach nested pages', () => {
-            expect(labels(root({ mobile_icon: 'House' }), '', 3, 1, 'mobile_bottom_tabs'))
-                .toContain('Children not shown');
+        it('tells the author that bottom-tab children become a top tab strip', () => {
+            const gaps = getPresetGaps(root({ mobile_icon: 'House' }), '', 3, 1, 'mobile_bottom_tabs');
+            expect(gaps.map((g) => g.label)).toContain('Children as top tabs');
+            // The children are not lost, so the tag must not claim they are —
+            // the mobile app renders them above the page content.
+            expect(gaps.map((g) => g.label)).not.toContain('Children not shown');
+            expect(gaps.find((g) => g.label === 'Children as top tabs')?.reason)
+                .toMatch(/top of the screen/);
             // The drawer renders a tree, so nesting there is fine.
             expect(labels(root({ mobile_icon: 'House' }), '', 3, 1, 'mobile_drawer')).toEqual([]);
+        });
+
+        it('leaves a childless bottom tab untagged', () => {
+            expect(labels(root({ mobile_icon: 'House' }), '', 0, 1, 'mobile_bottom_tabs')).toEqual([]);
         });
     });
 });

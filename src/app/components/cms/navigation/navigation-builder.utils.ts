@@ -240,11 +240,13 @@ export function getPresetGaps(
         });
     }
 
-    // Bottom tabs are a flat bar: nested pages are never reachable from them.
+    // The tab bar itself is flat, but children are not lost: opening the tab
+    // renders them as a top tab strip above the page content
+    // (`resolveMobileSegmentGroup` in @selfhelp/shared).
     if (menuKey === 'mobile_bottom_tabs' && isRoot && childCount > 0) {
         gaps.push({
-            label: 'Children not shown',
-            reason: 'Bottom tabs render root items only. Nested pages are not reachable from the tab bar — put them in the drawer instead.',
+            label: 'Children as top tabs',
+            reason: 'The tab bar shows root items only. Opening this tab renders its child pages as a tab strip along the top of the screen, so the app shows two tab rows at once — keep the child list short, or move these pages to the drawer.',
         });
     }
 

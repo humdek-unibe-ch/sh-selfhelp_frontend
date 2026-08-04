@@ -186,7 +186,11 @@ export function NavigationStructuralPreview({
         const limit = itemLimit ?? roots.length;
         const shown = roots.slice(0, limit);
         const hidden = roots.slice(limit);
-        body = (
+        // Opening a tab that has children shows them as a strip along the TOP of
+        // the screen, so the app displays two tab rows at once. Preview both,
+        // otherwise the flat row implies the children are simply dropped.
+        const tabsWithChildren = shown.filter((item) => (childrenOf.get(item.id) ?? []).length > 0);
+        const tabRow = (
             <Group gap={6} wrap="wrap">
                 {shown.map((item) => {
                     const firstChild = (childrenOf.get(item.id) ?? [])[0];
@@ -210,6 +214,32 @@ export function NavigationStructuralPreview({
                     />
                 ))}
             </Group>
+        );
+        body = tabsWithChildren.length === 0 ? tabRow : (
+            <Stack gap={6}>
+                {tabsWithChildren.map((item) => (
+                    <Group key={item.id} gap={6} wrap="nowrap" align="flex-start">
+                        <Text size="xs" c="dimmed" w={92} style={{ flexShrink: 0 }}>
+                            Top tabs
+                        </Text>
+                        <Group gap={6} wrap="wrap">
+                            {(childrenOf.get(item.id) ?? []).map((child) => (
+                                <Pill
+                                    key={child.id}
+                                    label={labelOf(child)}
+                                    title={`Shown at the top of the screen while the "${labelOf(item)}" tab is open`}
+                                />
+                            ))}
+                        </Group>
+                    </Group>
+                ))}
+                <Group gap={6} wrap="nowrap" align="flex-start">
+                    <Text size="xs" c="dimmed" w={92} style={{ flexShrink: 0 }}>
+                        Tab bar
+                    </Text>
+                    {tabRow}
+                </Group>
+            </Stack>
         );
     } else {
         // mobile_drawer: nested list.
