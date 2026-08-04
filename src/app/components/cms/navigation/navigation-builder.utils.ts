@@ -480,3 +480,36 @@ export function parentItemOptions(
             };
         });
 }
+
+/** Root-item capacity of a menu, from the backend's `item_limit`. */
+export interface IRootItemLimitState {
+    count: number;
+    limit: number | null;
+    atLimit: boolean;
+    overLimit: boolean;
+    blockedReason: string | null;
+}
+
+/**
+ * Root-item capacity for a menu. `item_limit` caps ROOT items only, so a menu
+ * at its limit still accepts children — nesting is the supported way to keep
+ * going. Adding a root past the cap creates an entry the app silently drops,
+ * so the builder blocks it rather than letting it be discovered in the app.
+ */
+export function getRootItemLimitState(
+    items: IAdminNavigationMenuItem[],
+    itemLimit: number | null | undefined,
+): IRootItemLimitState {
+    const limit = itemLimit ?? null;
+    const count = items.filter((item) => item.parent_item_id === null).length;
+    const atLimit = limit !== null && count >= limit;
+    return {
+        count,
+        limit,
+        atLimit,
+        overLimit: limit !== null && count > limit,
+        blockedReason: atLimit
+            ? `This menu renders at most ${limit} root items and already has ${count}. Remove one, or add the page under an existing item instead.`
+            : null,
+    };
+}

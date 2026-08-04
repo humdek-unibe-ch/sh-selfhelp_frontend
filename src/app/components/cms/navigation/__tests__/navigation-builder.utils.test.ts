@@ -24,6 +24,7 @@ import {
     getPageKeyword,
     getPresetGaps,
     getPublicMenuExclusionReason,
+    getRootItemLimitState,
     menuIconForItem,
     nestStoredMenuItems,
 } from '../navigation-builder.utils';
@@ -391,5 +392,51 @@ describe('getPresetGaps across menus', () => {
         it('leaves a childless bottom tab untagged', () => {
             expect(labels(root({ mobile_icon: 'House' }), '', 0, 1, 'mobile_bottom_tabs')).toEqual([]);
         });
+    });
+});
+
+describe('getRootItemLimitState', () => {
+    const roots = (n: number) => Array.from({ length: n }, (_, i) => makeItem({ id: i + 1 }));
+
+    it('treats an uncapped menu as always addable', () => {
+        const state = getRootItemLimitState(roots(20), null);
+        expect(state.limit).toBeNull();
+        expect(state.atLimit).toBe(false);
+        expect(state.overLimit).toBe(false);
+        expect(state.blockedReason).toBeNull();
+    });
+
+    it('allows adding below the limit', () => {
+        const state = getRootItemLimitState(roots(4), 5);
+        expect(state.count).toBe(4);
+        expect(state.atLimit).toBe(false);
+        expect(state.blockedReason).toBeNull();
+    });
+
+    it('blocks a new root item once the limit is reached', () => {
+        const state = getRootItemLimitState(roots(5), 5);
+        expect(state.atLimit).toBe(true);
+        // Exactly at the cap is "full", not "over" — the app still renders
+        // every item, so the copy must not claim anything is being dropped.
+        expect(state.overLimit).toBe(false);
+        expect(state.blockedReason).toContain('at most 5 root items');
+        expect(state.blockedReason).toContain('under an existing item');
+    });
+
+    it('still reports over-limit when the menu is past the cap', () => {
+        const state = getRootItemLimitState(roots(7), 5);
+        expect(state.atLimit).toBe(true);
+        expect(state.overLimit).toBe(true);
+    });
+
+    it('counts only root items, so nesting is the way past a full menu', () => {
+        const items = [
+            ...roots(5),
+            makeItem({ id: 90, parent_item_id: 1 }),
+            makeItem({ id: 91, parent_item_id: 1 }),
+        ];
+        const state = getRootItemLimitState(items, 5);
+        expect(state.count).toBe(5);
+        expect(state.overLimit).toBe(false);
     });
 });

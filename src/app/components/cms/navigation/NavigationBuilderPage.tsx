@@ -19,6 +19,7 @@ import {
     Switch,
     Tabs,
     Text,
+    Tooltip,
 } from '@mantine/core';
 import {
     AdminNavigationApi,
@@ -52,6 +53,7 @@ import {
     buildResolvedLabelByItemId,
     flattenPreviewItems,
     getMenuItemDisplay,
+    getRootItemLimitState,
     nestStoredMenuItems,
 } from './navigation-builder.utils';
 import { NavigationSettingsPanel } from './NavigationSettingsPanel';
@@ -269,6 +271,10 @@ export function NavigationBuilderPage(): React.ReactElement {
 
     const menu = data.menus[activeMenu];
     const items = menu?.items ?? [];
+    const { atLimit: atRootItemLimit, blockedReason: rootAddBlockedReason } = getRootItemLimitState(
+        items,
+        menu?.item_limit,
+    );
     const previewItems = flattenPreviewItems(
         (previewQuery.data?.resolved?.items as Array<Record<string, unknown>> | undefined) ?? [],
     );
@@ -305,18 +311,48 @@ export function NavigationBuilderPage(): React.ReactElement {
                 subtitle="Manage public menus, preview resolved trees, and configure startup/search behaviour."
             >
                 {canUpdateNavigation ? (
-                    <>
-                        <Button onClick={() => {
-                            setAddParentItemId(null);
-                            setAddParentItemLabel(null);
-                            setAddOpen(true);
-                        }}>
-                            Add existing page
-                        </Button>
-                        <Button variant="light" onClick={() => openCreatePageHere()}>
-                            Create page here
-                        </Button>
-                    </>
+                    <Tooltip
+                        label={rootAddBlockedReason}
+                        multiline
+                        w={280}
+                        disabled={rootAddBlockedReason === null}
+                        events={{ hover: true, focus: true, touch: true }}
+                    >
+                        {/* `data-disabled` rather than `disabled`: the buttons stay
+                            hoverable and focusable, so the tooltip explaining the
+                            limit is reachable by pointer and keyboard alike. */}
+                        <Group gap="sm">
+                            <Button
+                                data-disabled={atRootItemLimit || undefined}
+                                aria-disabled={atRootItemLimit}
+                                onClick={(event) => {
+                                    if (atRootItemLimit) {
+                                        event.preventDefault();
+                                        return;
+                                    }
+                                    setAddParentItemId(null);
+                                    setAddParentItemLabel(null);
+                                    setAddOpen(true);
+                                }}
+                            >
+                                Add existing page
+                            </Button>
+                            <Button
+                                variant="light"
+                                data-disabled={atRootItemLimit || undefined}
+                                aria-disabled={atRootItemLimit}
+                                onClick={(event) => {
+                                    if (atRootItemLimit) {
+                                        event.preventDefault();
+                                        return;
+                                    }
+                                    openCreatePageHere();
+                                }}
+                            >
+                                Create page here
+                            </Button>
+                        </Group>
+                    </Tooltip>
                 ) : (
                     <Text size="sm" c="dimmed">Read-only — you can preview menus but cannot edit them.</Text>
                 )}
@@ -338,9 +374,12 @@ export function NavigationBuilderPage(): React.ReactElement {
                     const tabItems = tabMenu?.items ?? [];
                     const tabNestedItems = nestStoredMenuItems(tabItems);
                     const isActiveMenuTab = activeTab === tab.key;
-                    const rootItemCount = tabItems.filter((item) => item.parent_item_id === null).length;
-                    const itemLimit = tabMenu?.item_limit ?? null;
-                    const overItemLimit = itemLimit !== null && rootItemCount > itemLimit;
+                    const {
+                        count: rootItemCount,
+                        limit: itemLimit,
+                        atLimit: atItemLimit,
+                        overLimit: overItemLimit,
+                    } = getRootItemLimitState(tabItems, tabMenu?.item_limit);
                     const headerPreset = tab.key === 'web_header' ? resolveWebHeaderPreset(tabMenu?.preset) : null;
                     const headerLayerMode = tab.key === 'web_header' && isDoubleWebHeaderPreset(headerPreset);
                     const topLayerCount = tab.key === 'web_header'
@@ -362,10 +401,12 @@ export function NavigationBuilderPage(): React.ReactElement {
                                                 {itemLimit !== null ? (
                                                     <Badge
                                                         variant="light"
-                                                        color={overItemLimit ? 'orange' : 'gray'}
+                                                        color={atItemLimit ? 'orange' : 'gray'}
                                                         title={overItemLimit
                                                             ? 'Extra root items are not shown; only the first ones up to the limit render.'
-                                                            : 'Root items rendered by this menu.'}
+                                                            : atItemLimit
+                                                                ? 'This menu is full — remove a root item, or nest new pages under an existing one.'
+                                                                : 'Root items rendered by this menu.'}
                                                     >
                                                         {rootItemCount} / {itemLimit} root items
                                                     </Badge>
