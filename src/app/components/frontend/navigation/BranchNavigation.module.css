@@ -3,10 +3,13 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 
-/* Divider on the right edge, like the CMS navbar — no card, no shadow. */
+/* Full-height divider, like the CMS navbar — no card, no shadow. */
+.sidebarRail {
+    border-right: 1px solid var(--mantine-color-default-border);
+}
+
 .sidebar {
     padding: 0 var(--mantine-spacing-md) var(--mantine-spacing-md) 0;
-    border-right: 1px solid var(--mantine-color-default-border);
 }
 
 /* Row: title over its path, active row tinted with a blue bar on the left. */

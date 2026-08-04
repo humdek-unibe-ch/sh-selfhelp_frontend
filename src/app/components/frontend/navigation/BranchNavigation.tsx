@@ -220,18 +220,24 @@ export function BranchNavigation({ navigation, currentPageId, children }: IBranc
             <Box hiddenFrom="md" mb="sm">
                 <PillStrip segments={context.segments} currentPageId={currentPageId} />
             </Box>
-            <Flex gap="lg" align="flex-start">
+            <Flex gap="lg" align="stretch">
+                {/* The rail lives on the column so it spans the full content
+                    height; the nav itself stays sticky inside it. */}
                 <Box
                     component="aside"
                     w={250}
                     visibleFrom="md"
-                    style={{
-                        flexShrink: 0,
-                        position: 'sticky',
-                        top: 'calc(var(--app-shell-header-height, 60px) + 16px)',
-                    }}
+                    className={classes.sidebarRail}
+                    style={{ flexShrink: 0 }}
                 >
-                    <SidebarNav context={context} currentPageId={currentPageId} />
+                    <Box
+                        style={{
+                            position: 'sticky',
+                            top: 'calc(var(--app-shell-header-height, 60px) + 16px)',
+                        }}
+                    >
+                        <SidebarNav context={context} currentPageId={currentPageId} />
+                    </Box>
                 </Box>
                 <Box style={{ flex: 1, minWidth: 0 }}>
                     {crumbs}
