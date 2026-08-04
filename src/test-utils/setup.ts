@@ -32,6 +32,18 @@ class ResizeObserverStub {
 }
 globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObserver;
 
+// Mantine's autosize Textarea subscribes to `document.fonts` to re-measure
+// after webfonts load; jsdom ships no FontFaceSet, so it would throw on mount.
+if (typeof document !== 'undefined' && !document.fonts) {
+    Object.defineProperty(document, 'fonts', {
+        configurable: true,
+        value: {
+            addEventListener: () => {},
+            removeEventListener: () => {},
+        },
+    });
+}
+
 // --- MSW: enforce "no real outbound" (canonical Testing Rule 30) -----------
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => server.resetHandlers());
