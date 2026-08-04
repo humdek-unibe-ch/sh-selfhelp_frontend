@@ -19,6 +19,7 @@ import {
 } from '../../../../../shared';
 import { usePagePrefetch } from '../../../../../hooks/usePagePrefetch';
 import { InternalLink } from '../../../shared';
+import { IconComponent } from '../../../shared/common';
 import classes from './FooterLinks.module.css';
 
 /** Below Mantine `sm` — stack meta links and collapse column groups. */
@@ -37,6 +38,31 @@ function FooterLink({ item, createHoverPrefetch }: IFooterLinkProps): React.Reac
     const label = getNavigationItemLabel(item);
     const ariaLabel = item.aria_label?.trim() || label;
 
+    // Icon and description are optional: a link without either keeps the
+    // compact single-line shape a footer relies on.
+    const body = (
+        <>
+            {item.icon ? (
+                <span className={classes.linkIcon}>
+                    <IconComponent iconName={item.icon} size={15} />
+                </span>
+            ) : (
+                // Keeps icon-less labels aligned with their icon-bearing siblings.
+                <span className={classes.linkIconSpacer} aria-hidden="true" />
+            )}
+            <span className={classes.linkBody}>
+                <Text size="sm" component="span" c="inherit" className={classes.linkLabel}>
+                    {label}
+                </Text>
+                {item.description ? (
+                    <Text size="xs" c="dimmed" className={classes.linkDescription}>
+                        {item.description}
+                    </Text>
+                ) : null}
+            </span>
+        </>
+    );
+
     if (item.item_type === 'external_url' && item.external_url) {
         return (
             <Anchor
@@ -47,7 +73,7 @@ function FooterLink({ item, createHoverPrefetch }: IFooterLinkProps): React.Reac
                 aria-label={ariaLabel}
                 className={classes.link}
             >
-                {label}
+                {body}
             </Anchor>
         );
     }
@@ -64,9 +90,7 @@ function FooterLink({ item, createHoverPrefetch }: IFooterLinkProps): React.Reac
             aria-label={ariaLabel}
             className={classes.link}
         >
-            <Text size="sm" component="span" c="inherit">
-                {label}
-            </Text>
+            {body}
         </InternalLink>
     );
 }
@@ -80,6 +104,11 @@ function FooterColumn({ group, createHoverPrefetch }: IFooterColumnProps): React
     return (
         <Stack gap="xs" align="flex-start" className={classes.column}>
             <Text fw={600} size="sm" className={classes.columnHeading} aria-label={group.aria_label?.trim() || getNavigationItemLabel(group)}>
+                {group.icon ? (
+                    <span className={classes.linkIcon}>
+                        <IconComponent iconName={group.icon} size={15} />
+                    </span>
+                ) : null}
                 {getNavigationItemLabel(group)}
             </Text>
             {group.description ? (

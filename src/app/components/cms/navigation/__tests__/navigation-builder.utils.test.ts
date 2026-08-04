@@ -316,3 +316,71 @@ describe('menu_eligible page filtering', () => {
         expect(eligible(page({ id_pages: 4 }))).toBe(true);
     });
 });
+
+describe('getPresetGaps across menus', () => {
+    const root = (over = {}) => makeItem({ id: 1, page_id: 5, parent_item_id: null, ...over });
+    const child = (over = {}) => makeItem({ id: 2, page_id: 6, parent_item_id: 1, ...over });
+    const labels = (...args: Parameters<typeof getPresetGaps>) =>
+        getPresetGaps(...args).map((g) => g.label);
+
+    describe('web_footer', () => {
+        const withDesc = { translations: [{ language_id: 1, label: 'x', description: 'd' }] };
+
+        it('stays silent when a columns link supplies both fields', () => {
+            expect(labels(child({ icon: 'home', ...withDesc }), 'columns', 0, 1, 'web_footer')).toEqual([]);
+        });
+
+        it('flags empty fields in columns, matching the header wording', () => {
+            expect(labels(child(), 'columns', 0, 1, 'web_footer'))
+                .toEqual(['No icon', 'No description']);
+        });
+
+        it('flags a filled description the inline preset will not render', () => {
+            expect(labels(child(withDesc), 'inline', 0, 1, 'web_footer')).toEqual(['Description not shown']);
+            // Icons render inline, so an empty one is not worth flagging there.
+            expect(labels(child({ icon: 'home' }), 'inline', 0, 1, 'web_footer')).toEqual([]);
+        });
+
+        it('flags children nested under a page, which build no column', () => {
+            expect(labels(root({ icon: 'i', ...withDesc }), 'columns', 2, 1, 'web_footer'))
+                .toEqual(['Children not shown']);
+            // A group heading is exactly what does build a column.
+            expect(labels(makeItem({ id: 3, item_type: 'group', parent_item_id: null }), 'columns', 2, 1, 'web_footer'))
+                .not.toContain('Children not shown');
+        });
+    });
+
+    describe('mobile menus', () => {
+        it('flags a missing mobile icon in both mobile menus', () => {
+            for (const key of ['mobile_drawer', 'mobile_bottom_tabs'] as const) {
+                expect(labels(root(), '', 0, 1, key)).toContain('No mobile icon');
+            }
+        });
+
+        it('flags an icon name outside the mobile icon set', () => {
+            const gaps = getPresetGaps(root({ mobile_icon: 'Icon123' }), '', 0, 1, 'mobile_drawer');
+            expect(gaps.map((g) => g.label)).toContain('Unknown mobile icon');
+            // The tooltip names the offending value so it can be corrected.
+            expect(gaps[0].reason).toContain('Icon123');
+        });
+
+        it('accepts a valid mobile icon', () => {
+            expect(labels(root({ mobile_icon: 'House' }), '', 0, 1, 'mobile_drawer')).not.toContain('No mobile icon');
+        });
+
+        it('flags descriptions, which mobile never renders', () => {
+            const withDesc = root({
+                mobile_icon: 'House',
+                translations: [{ language_id: 1, label: 'x', description: 'd' }],
+            });
+            expect(labels(withDesc, '', 0, 1, 'mobile_drawer')).toEqual(['Description not shown']);
+        });
+
+        it('warns that bottom tabs cannot reach nested pages', () => {
+            expect(labels(root({ mobile_icon: 'House' }), '', 3, 1, 'mobile_bottom_tabs'))
+                .toContain('Children not shown');
+            // The drawer renders a tree, so nesting there is fine.
+            expect(labels(root({ mobile_icon: 'House' }), '', 3, 1, 'mobile_drawer')).toEqual([]);
+        });
+    });
+});

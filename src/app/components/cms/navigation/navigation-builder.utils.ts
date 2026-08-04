@@ -2,6 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+import { isMobileIconName } from '@selfhelp/shared';
 import type { IAdminNavigationMenuItem, TPublicVisibilityReason } from '../../../../api/admin/navigation.api';
 import type { IAdminPage } from '../../../../types/responses/admin/admin.types';
 import { isMobileMenuKey, type TMenuKey } from './navigation-builder.constants';
@@ -136,46 +137,115 @@ export function getPresetGaps(
     preset: string,
     childCount: number,
     languageId?: number | null,
+    menuKey: TMenuKey = 'web_header',
 ): IPresetGap[] {
     if (item.item_type !== 'page' && item.item_type !== 'group') {
         return [];
     }
 
     const isRoot = item.parent_item_id === null;
+    const hasDescription = hasItemDescription(item, languageId);
     const gaps: IPresetGap[] = [];
 
-    // Panel presets only differ from `simple` on root items that open a panel.
-    if (isRoot && childCount === 0 && (preset === 'dropdown' || preset === 'mega-menu'
-        || preset === 'double-dropdown' || preset === 'double-mega-menu')) {
-        gaps.push({
-            label: 'No children',
-            reason: 'This item opens no panel, so it renders exactly as it would in the Simple preset. Nest pages under it to see the dropdown or mega menu.',
-        });
+    if (menuKey === 'web_header') {
+        // Panel presets only differ from `simple` on root items that open a panel.
+        const isMega = preset === 'mega-menu' || preset === 'double-mega-menu';
+        const isPanel = isMega || preset === 'dropdown' || preset === 'double-dropdown';
+
+        if (isRoot && childCount === 0 && isPanel) {
+            gaps.push({
+                label: 'No children',
+                reason: 'This item opens no panel, so it renders exactly as it would in the Simple preset. Nest pages under it to see the dropdown or mega menu.',
+            });
+        }
+
+        // Panel entries render icon + label + description in both presets; the
+        // mega menu just shows them larger (tinted tile vs inline icon).
+        if (!isRoot && isPanel) {
+            if (!item.icon) {
+                gaps.push({
+                    label: 'No icon',
+                    reason: isMega
+                        ? 'The mega menu shows an icon tile for each entry. Without one it falls back to a plain dot.'
+                        : 'Dropdown rows show an icon beside the label. Without one they fall back to a plain dot.',
+                });
+            }
+            if (!hasDescription) {
+                gaps.push({
+                    label: 'No description',
+                    reason: isMega
+                        ? 'The mega menu shows a description under each entry. Without one the cell is just a label, which looks like a normal dropdown row.'
+                        : 'Dropdown rows show a description under the label when one is set.',
+                });
+            }
+        }
+        return gaps;
     }
 
-    // Panel entries render icon + label + description in both presets; the mega
-    // menu just shows them larger (tinted tile vs inline icon). Missing either
-    // one degrades the entry to a dot and a label.
-    const isMega = preset === 'mega-menu' || preset === 'double-mega-menu';
-    const isPanelPreset = isMega || preset === 'dropdown' || preset === 'double-dropdown';
+    if (menuKey === 'web_footer') {
+        // Only a group heading becomes a column, so children nested under a
+        // page item are dropped entirely (footerColumnItems in @selfhelp/shared).
+        if (item.item_type !== 'group' && childCount > 0) {
+            gaps.push({
+                label: 'Children not shown',
+                reason: 'The footer only builds a column under a group heading. Children nested under a page link are not rendered — change this item to a group heading, or move them to one.',
+            });
+        }
 
-    if (!isRoot && isPanelPreset) {
+        if (preset === 'inline') {
+            if (hasDescription) {
+                gaps.push({
+                    label: 'Description not shown',
+                    reason: 'The inline footer is a single row of links — descriptions only show in the Columns preset.',
+                });
+            }
+            return gaps;
+        }
+
+        // Columns preset renders both, so an empty field is a missing field.
         if (!item.icon) {
             gaps.push({
                 label: 'No icon',
-                reason: isMega
-                    ? 'The mega menu shows an icon tile for each entry. Without one it falls back to a plain dot.'
-                    : 'Dropdown rows show an icon beside the label. Without one they fall back to a plain dot.',
+                reason: 'Footer links show an icon beside the label when one is set.',
             });
         }
-        if (!hasItemDescription(item, languageId)) {
+        if (!hasDescription) {
             gaps.push({
                 label: 'No description',
-                reason: isMega
-                    ? 'The mega menu shows a description under each entry. Without one the cell is just a label, which looks like a normal dropdown row.'
-                    : 'Dropdown rows show a description under the label when one is set.',
+                reason: 'Footer links show a description under the label when one is set.',
             });
         }
+        return gaps;
+    }
+
+    // Mobile drawer and bottom tabs draw `mobile_icon` and no description.
+    if (!item.mobile_icon) {
+        gaps.push({
+            label: 'No mobile icon',
+            reason: menuKey === 'mobile_bottom_tabs'
+                ? 'Bottom tabs are icon-first; without one the tab falls back to a letter glyph.'
+                : 'Drawer rows show an icon beside the label; without one they fall back to a letter glyph.',
+        });
+    } else if (!isMobileIconName(item.mobile_icon)) {
+        gaps.push({
+            label: 'Unknown mobile icon',
+            reason: `"${item.mobile_icon}" is not part of the mobile icon set, so it silently falls back to a letter glyph. Pick an icon from the list.`,
+        });
+    }
+
+    if (hasDescription) {
+        gaps.push({
+            label: 'Description not shown',
+            reason: 'Mobile menus render labels and icons only — this description will not appear.',
+        });
+    }
+
+    // Bottom tabs are a flat bar: nested pages are never reachable from them.
+    if (menuKey === 'mobile_bottom_tabs' && isRoot && childCount > 0) {
+        gaps.push({
+            label: 'Children not shown',
+            reason: 'Bottom tabs render root items only. Nested pages are not reachable from the tab bar — put them in the drawer instead.',
+        });
     }
 
     return gaps;

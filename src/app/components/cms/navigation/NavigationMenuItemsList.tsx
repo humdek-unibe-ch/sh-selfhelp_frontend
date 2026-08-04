@@ -651,7 +651,7 @@ export function NavigationMenuItemsList({
                 pageById={pageById}
                 allItems={items}
                 layerMode={layerMode}
-                presetGaps={getPresetGaps(item, preset ?? '', childCountByItemId.get(item.id) ?? 0, languageId)}
+                presetGaps={getPresetGaps(item, preset ?? '', childCountByItemId.get(item.id) ?? 0, languageId, menuKey)}
                 onSetLayer={handleSetLayer}
                 childCount={childCountByItemId.get(item.id) ?? 0}
                 display={display}
