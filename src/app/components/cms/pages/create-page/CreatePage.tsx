@@ -75,7 +75,7 @@ const MENU_LABELS: Record<TCreatePageMenuKey, string> = {
     web_header: 'Web header',
     web_footer: 'Web footer',
     mobile_drawer: 'Mobile drawer',
-    mobile_bottom_tabs: 'Mobile bottom tabs',
+    mobile_bottom_tabs: 'Mobile tabs',
 };
 
 const WIZARD_LAST_STEP = 3;

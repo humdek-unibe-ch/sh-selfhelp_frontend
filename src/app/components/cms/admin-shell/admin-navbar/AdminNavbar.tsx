@@ -365,7 +365,7 @@ export function AdminNavbar() {
                     link: '/admin/navigation?menu=mobile_drawer',
                     id: 'mobile-drawer-pages',
                 }, {
-                    label: 'Mobile bottom tabs',
+                    label: 'Mobile tabs',
                     icon: <IconLayoutGrid size={16} />,
                     link: '/admin/navigation?menu=mobile_bottom_tabs',
                     id: 'mobile-tabs-pages',
