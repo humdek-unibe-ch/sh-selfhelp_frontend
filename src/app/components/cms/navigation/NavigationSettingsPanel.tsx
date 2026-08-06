@@ -291,17 +291,67 @@ function NavigationSettingsForm({
 
         <Stack gap="md">
 
-            <div>
+            <Group justify="space-between" align="flex-start">
 
-                <Title order={4}>Navigation settings</Title>
+                <div>
 
-                <Text size="sm" c="dimmed" mt={4}>
+                    <Title order={4}>Navigation settings</Title>
 
-                    Changes on this tab are not saved automatically. Review your updates, then click Save settings.
+                    <Text size="sm" c="dimmed" mt={4}>
 
-                </Text>
+                        Changes on this tab are not saved automatically. Review your updates, then click Save settings.
 
-            </div>
+                    </Text>
+
+                </div>
+
+                {!readOnly ? (
+
+                    <Group gap="sm" align="center">
+
+                        {isDirty ? (
+
+                            <Text size="sm" c="yellow.4">
+
+                                Unsaved changes
+
+                            </Text>
+
+                        ) : null}
+
+                        <Button
+
+                            variant="default"
+
+                            disabled={!isDirty || isSaving}
+
+                            onClick={() => setFormState(savedState)}
+
+                        >
+
+                            Discard
+
+                        </Button>
+
+                        <Button
+
+                            loading={isSaving}
+
+                            disabled={!isDirty}
+
+                            onClick={() => onSave(formStateToPayload(formState))}
+
+                        >
+
+                            Save settings
+
+                        </Button>
+
+                    </Group>
+
+                ) : null}
+
+            </Group>
 
 
 
@@ -748,68 +798,6 @@ function NavigationSettingsForm({
                         disabled={readOnly}
 
                     />
-
-
-
-                    {!readOnly ? (
-
-                        <Group
-
-                            justify="flex-end"
-
-                            align="center"
-
-                            gap="sm"
-
-                            pt="md"
-
-                            mt="xs"
-
-                            style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
-
-                        >
-
-                            {isDirty ? (
-
-                                <Text size="sm" c="yellow.4" mr="auto">
-
-                                    Unsaved changes
-
-                                </Text>
-
-                            ) : null}
-
-                            <Button
-
-                                variant="default"
-
-                                disabled={!isDirty || isSaving}
-
-                                onClick={() => setFormState(savedState)}
-
-                            >
-
-                                Discard
-
-                            </Button>
-
-                            <Button
-
-                                loading={isSaving}
-
-                                disabled={!isDirty}
-
-                                onClick={() => onSave(formStateToPayload(formState))}
-
-                            >
-
-                                Save settings
-
-                            </Button>
-
-                        </Group>
-
-                    ) : null}
 
                 </Stack>
 

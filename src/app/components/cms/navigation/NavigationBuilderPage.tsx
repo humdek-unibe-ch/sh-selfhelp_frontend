@@ -243,7 +243,12 @@ export function NavigationBuilderPage(): React.ReactElement {
 
     const settingsMutation = useMutation({
         mutationFn: (payload: Record<string, unknown>) => AdminNavigationApi.updateSettings(payload),
-        onSuccess: () => refreshBuilderFully({ publicNav: true }),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({
+                queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_NAVIGATION_OVERVIEW,
+            });
+            schedulePublicNavigationRefresh(queryClient);
+        },
     });
 
     const pageById = useMemo(() => buildPageLookup(pages), [pages]);
