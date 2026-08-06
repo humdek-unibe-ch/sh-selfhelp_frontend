@@ -43,7 +43,7 @@ export function WebsiteHeaderLayout({
                 h="100%"
                 gap="xs"
             >
-                <Box className={classes.brandSlot}>
+                <Box className={classes.brandSlot} data-double={isDouble || undefined}>
                     <HeaderBrand initialBranding={initialBranding} />
                 </Box>
 

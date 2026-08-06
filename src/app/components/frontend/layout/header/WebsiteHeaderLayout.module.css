@@ -11,3 +11,13 @@ SPDX-License-Identifier: MPL-2.0
     align-self: stretch;
     height: 100%;
 }
+
+/* Double presets: the brand becomes its own full-height column, separated
+   from the stacked utility/navigation rows by a vertical rule. Centring it
+   over the whole header (rather than one row) is what keeps the logo optically
+   anchored between the two rows. */
+.brandSlot[data-double] {
+    padding-right: var(--mantine-spacing-lg);
+    margin-right: var(--mantine-spacing-md);
+    border-right: 1px solid var(--mantine-color-default-border);
+}
