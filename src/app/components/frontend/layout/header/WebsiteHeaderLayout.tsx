@@ -77,6 +77,7 @@ export function WebsiteHeaderLayout({
                         <HeaderUtilityCluster
                             initialProfilePages={initialProfilePages}
                             initialNavigation={initialNavigation}
+                            searchSurface="mobile"
                         />
                     </Group>
                     <BurgerMenuClient initialHeaderMenu={menu} />

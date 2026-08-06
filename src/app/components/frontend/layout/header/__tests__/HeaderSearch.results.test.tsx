@@ -12,7 +12,7 @@ SPDX-License-Identifier: MPL-2.0
  * mock, which is what let a mismatch here go unnoticed.
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 import { HeaderSearch } from '../HeaderSearch';
@@ -101,7 +101,11 @@ describe('HeaderSearch results rendering', () => {
             expect(mockGet).toHaveBeenCalled();
         });
 
-        expect(await screen.findByText('About us')).toBeInTheDocument();
+        // `Highlight` splits the label around the match, so assert on the
+        // row's text content rather than a single text node.
+        const option = await screen.findByRole('option');
+        expect(option).toHaveTextContent('About us');
+        expect(option).toHaveTextContent('/about-us');
     });
 
     it('stops showing the loading spinner once the request settles', async () => {
@@ -119,5 +123,66 @@ describe('HeaderSearch results rendering', () => {
         await waitFor(() => {
             expect(container.querySelector('.mantine-Loader-root')).toBeNull();
         });
+    });
+
+    // The panel below mirrors the admin `NavigationSearch` UX.
+    it('shows the Results header with a match count, like the CMS panel', async () => {
+        mockGet.mockResolvedValue(
+            envelopeResponse([
+                { page_id: 7, keyword: 'about-us', url: '/about-us', title: 'About us' },
+                { page_id: 8, keyword: 'about-team', url: '/about-team', title: 'About the team' },
+            ]),
+        );
+
+        const user = userEvent.setup();
+        renderWithProviders(<HeaderSearch />);
+
+        await user.type(screen.getByPlaceholderText('Search'), 'abo');
+
+        const panel = await screen.findByRole('listbox', { name: 'Search results' });
+        expect(await within(panel).findByText('Results')).toBeInTheDocument();
+        expect(within(panel).getByText('2')).toBeInTheDocument();
+        expect(within(panel).getAllByRole('option')).toHaveLength(2);
+    });
+
+    it('shows the CMS-style empty state when nothing matches', async () => {
+        mockGet.mockResolvedValue(envelopeResponse([]));
+
+        const user = userEvent.setup();
+        renderWithProviders(<HeaderSearch />);
+
+        await user.type(screen.getByPlaceholderText('Search'), 'zzz');
+
+        expect(await screen.findByText('No results')).toBeInTheDocument();
+        expect(screen.getByText(/Nothing matches "zzz"/)).toBeInTheDocument();
+    });
+
+    it('keeps the panel closed until min_chars is reached', async () => {
+        mockNavigationState.search = { mode: 'content_index', min_chars: 3, result_limit: 8 };
+        mockGet.mockResolvedValue(envelopeResponse([]));
+
+        const user = userEvent.setup();
+        renderWithProviders(<HeaderSearch />);
+
+        await user.type(screen.getByPlaceholderText('Search'), 'ab');
+
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        expect(screen.queryByText('No results')).not.toBeInTheDocument();
+    });
+
+    it('clears the query from the clear button', async () => {
+        mockGet.mockResolvedValue(envelopeResponse([]));
+
+        const user = userEvent.setup();
+        renderWithProviders(<HeaderSearch />);
+
+        const input = screen.getByPlaceholderText('Search');
+        await user.type(input, 'abo');
+        await waitFor(() => expect(mockGet).toHaveBeenCalled());
+
+        await user.click(await screen.findByRole('button', { name: 'Clear search' }));
+
+        expect(input).toHaveValue('');
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 });
