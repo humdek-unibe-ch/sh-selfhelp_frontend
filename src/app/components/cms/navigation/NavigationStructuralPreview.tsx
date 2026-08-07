@@ -217,22 +217,25 @@ export function NavigationStructuralPreview({
         );
         body = tabsWithChildren.length === 0 ? tabRow : (
             <Stack gap={6}>
-                {tabsWithChildren.map((item) => (
-                    <Group key={item.id} gap={6} wrap="nowrap" align="flex-start">
-                        <Text size="xs" c="dimmed" w={92} style={{ flexShrink: 0 }}>
-                            Top tabs
-                        </Text>
-                        <Group gap={6} wrap="wrap">
-                            {(childrenOf.get(item.id) ?? []).map((child) => (
+                {/* One combined "Top tabs" line: every child of every tab, in tab
+                    order then child order, so the row reads as a single strip
+                    rather than one labelled row per parent tab. */}
+                <Group gap={6} wrap="nowrap" align="flex-start">
+                    <Text size="xs" c="dimmed" w={92} style={{ flexShrink: 0 }}>
+                        Top tabs
+                    </Text>
+                    <Group gap={6} wrap="wrap">
+                        {tabsWithChildren.flatMap((item) =>
+                            (childrenOf.get(item.id) ?? []).map((child) => (
                                 <Pill
                                     key={child.id}
                                     label={labelOf(child)}
                                     title={`Shown at the top of the screen while the "${labelOf(item)}" tab is open`}
                                 />
-                            ))}
-                        </Group>
+                            )),
+                        )}
                     </Group>
-                ))}
+                </Group>
                 <Group gap={6} wrap="nowrap" align="flex-start">
                     <Text size="xs" c="dimmed" w={92} style={{ flexShrink: 0 }}>
                         Tab bar
