@@ -12,7 +12,9 @@ SPDX-License-Identifier: MPL-2.0
     height: 100%;
     /* Take full height of parent */
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
+    /* Narrow-panel rules query this panel's width, not the viewport. */
+    container: sections-tree / inline-size;
     background: transparent;
     flex: 1;
     /* Allow it to grow and shrink */
@@ -25,6 +27,7 @@ SPDX-License-Identifier: MPL-2.0
 /* Custom scrollbar — transparent track, thumb only. */
 .sectionsContainer::-webkit-scrollbar {
     width: 8px;
+    height: 8px;
 }
 
 .sectionsContainer::-webkit-scrollbar-track {
@@ -63,6 +66,9 @@ SPDX-License-Identifier: MPL-2.0
     display: flex;
     flex-direction: column;
     gap: 6px;
+    /* Fill the panel; scroll sideways only when rows can't shrink further. */
+    width: min-content;
+    min-width: 100%;
 }
 
 /* Section item wrapper */
@@ -170,6 +176,17 @@ SPDX-License-Identifier: MPL-2.0
 
 [data-mantine-color-scheme='dark'] .childrenContainer::before {
     border-left-color: var(--mantine-color-dark-3);
+}
+
+/* Narrow panel: tighter indent per level. */
+@container sections-tree (max-width: 460px) {
+    .childrenContainer {
+        padding-left: 10px;
+    }
+
+    .childrenContainer::before {
+        left: 8px;
+    }
 }
 
 /* Empty state */

@@ -165,8 +165,12 @@ SPDX-License-Identifier: MPL-2.0
 
 /* Section name truncation */
 .sectionName {
-    max-width: 100%;
+    /* 10ch stub sets the row's min-content (tree scrolls below it); grows to
+       full text first, before the drop hint. */
+    width: 10ch;
+    max-width: max-content;
     min-width: 0;
+    flex: 999 1 auto;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -302,6 +306,41 @@ SPDX-License-Identifier: MPL-2.0
 
     .actionButtons {
         opacity: 1;
+    }
+}
+
+/* Narrow tree panel: hide id/pos and float the actions over the row end
+   (hover, focus, selected or menu open) instead of reserving their width. */
+@container sections-tree (max-width: 460px) {
+    .sectionMeta {
+        display: none;
+    }
+
+    .compactGroup {
+        position: relative;
+    }
+
+    .actionButtons,
+    .actionButtons:has(.actionButtonActive) {
+        position: absolute;
+        top: 50%;
+        right: 6px;
+        z-index: 1;
+        transform: translateY(-50%);
+        padding: 2px;
+        border-radius: var(--mantine-radius-sm);
+        background: var(--mantine-color-body);
+        box-shadow: 0 1px 4px light-dark(rgba(15, 23, 42, 0.18), rgba(0, 0, 0, 0.5));
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .sectionItem:hover .actionButtons,
+    .sectionItem:focus-within .actionButtons,
+    .sectionItem.selected .actionButtons,
+    .actionButtonsPinned {
+        opacity: 1;
+        pointer-events: auto;
     }
 }
 
