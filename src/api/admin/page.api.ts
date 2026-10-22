@@ -118,6 +118,7 @@ export const AdminPageApi = {
     async restoreFromVersion(pageId: number, versionId: number): Promise<IRestoreFromVersionResponse> {
         const response = await permissionAwareApiClient.post<IRestoreFromVersionResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGE_VERSIONS_RESTORE_FROM_VERSION,
+            {},
             pageId,
             versionId
         );
