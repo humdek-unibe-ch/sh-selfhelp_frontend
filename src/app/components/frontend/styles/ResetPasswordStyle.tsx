@@ -6,7 +6,8 @@ SPDX-License-Identifier: MPL-2.0
 
 import React, { useEffect, useState } from 'react';
 import { Anchor, Box, Paper, TextInput, PasswordInput, Button, Alert, Text, Title } from '@mantine/core';
-import { IconCheck, IconMail, IconX } from '@tabler/icons-react';
+import { IconCheck, IconLock, IconMail, IconX } from '@tabler/icons-react';
+import { formatRateLimitMessage, getRateLimitRetryAfter } from '@selfhelp/shared';
 import { useRouter } from 'next/navigation';
 import { type IResetPasswordStyle } from '../../../../types/common/styles.types';
 import { ROUTES } from '../../../../config/routes.config';
@@ -102,6 +103,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
 
     // "set a new password" mode (reached from the emailed link)
     const [password, setPassword] = useState('');
@@ -132,15 +134,22 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     const handleRequestSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setLockoutMessage(null);
         setSubmitting(true);
         try {
             await AuthApi.requestPasswordReset(email);
-        } catch {
-            // Intentionally ignored: the response is always generic so the form
-            // can never reveal whether the email belongs to a known account.
+            setIsSubmitted(true);
+        } catch (err) {
+            // A 429 is counted per address whether or not the account exists,
+            // so showing it reveals nothing; any other error stays generic.
+            const retryAfter = getRateLimitRetryAfter(err);
+            if (retryAfter !== null) {
+                setLockoutMessage(formatRateLimitMessage(style.alert_rate_limited?.content, retryAfter));
+            } else {
+                setIsSubmitted(true);
+            }
         } finally {
             setSubmitting(false);
-            setIsSubmitted(true);
         }
     };
 
@@ -263,6 +272,12 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
                     {error}
                 </Alert>
             )}
+
+            {lockoutMessage ? (
+                <Alert color="orange" icon={<IconLock size={18} />} mb="md" role="alert">
+                    {lockoutMessage}
+                </Alert>
+            ) : null}
 
             <TextInput
                 label={requestLabelEmail}

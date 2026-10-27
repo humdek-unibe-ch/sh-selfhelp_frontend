@@ -5,8 +5,10 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useEffect, useState } from 'react';
-import { TextInput, PasswordInput, Button, Paper, Title, Text, Anchor, Stack } from '@mantine/core';
+import { TextInput, PasswordInput, Button, Paper, Title, Text, Anchor, Stack, Alert } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { IconLock } from '@tabler/icons-react';
+import { formatRateLimitMessage, getRateLimitRetryAfter } from '@selfhelp/shared';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type ILoginStyle } from '../../../../types/common/styles.types';
 import { AuthApi } from '../../../../api/auth.api';
@@ -23,6 +25,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
     const router = useRouter();
     const searchParams = useSearchParams();
     const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
@@ -33,6 +36,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const labelPasswordReset = style.label_pw_reset?.content || 'Forgot password?';
     const labelRegister = style.label_register?.content ?? (style.fields?.label_register?.content as string | undefined) ?? 'Create account';
     const alertFail = style.alert_fail?.content || 'Invalid email or password.';
+    const alertRateLimited = style.alert_rate_limited?.content;
     const loginTitle = style.login_title?.content || 'Welcome back!';
     const subtitle = style.subtitle?.content?.trim();
     const mantineColor = style.color?.content || 'blue';
@@ -45,6 +49,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const handleSubmit = async (e: { preventDefault(): void }) => {
         e.preventDefault();
         setIsLoading(true);
+        setLockoutMessage(null);
 
         try {
             const response = await AuthApi.login({ email, password });
@@ -63,6 +68,11 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
             const redirectTo = searchParams.get('redirectTo') || ROUTES.HOME;
             router.push(redirectTo);
         } catch (err) {
+            const retryAfter = getRateLimitRetryAfter(err);
+            if (retryAfter !== null) {
+                setLockoutMessage(formatRateLimitMessage(alertRateLimited, retryAfter));
+                return;
+            }
             notifications.show({ title: 'Error', message: (err as { message?: string })?.message || alertFail, color: 'red' });
         } finally {
             setIsLoading(false);
@@ -129,6 +139,12 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                         autoComplete="current-password"
                         suppressHydrationWarning
                     />
+
+                    {lockoutMessage ? (
+                        <Alert color="orange" icon={<IconLock size={18} />} role="alert">
+                            {lockoutMessage}
+                        </Alert>
+                    ) : null}
 
                     <Button
                         type="submit"

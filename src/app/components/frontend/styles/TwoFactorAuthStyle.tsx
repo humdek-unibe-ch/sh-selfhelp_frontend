@@ -28,7 +28,7 @@ const TwoFactorAuthStyle: React.FC<ITwoFactorAuthStyleProps> = ({ style, stylePr
     const {
         code, timer, isLoading, errorMessage, inputsRef,
         handleInputChange, handleKeyDown, handlePaste, submitCode, goToLogin,
-    } = useTwoFactorAuth({ fallbackErrorMessage: alertFail });
+    } = useTwoFactorAuth({ fallbackErrorMessage: alertFail, rateLimitMessage: style.alert_rate_limited?.content });
 
     const allFilled = code.every(d => d);
 

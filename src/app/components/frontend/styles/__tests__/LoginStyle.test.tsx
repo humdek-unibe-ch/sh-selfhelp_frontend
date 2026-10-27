@@ -4,6 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
 import { renderWithProviders } from '../../../../../test-utils/renderWithProviders';
 
@@ -36,6 +37,8 @@ vi.mock('../../../../../api/auth.api', () => ({
 }));
 
 import LoginStyle from '../LoginStyle';
+import { AuthApi } from '../../../../../api/auth.api';
+import { notifications } from '@mantine/notifications';
 
 type LoginStyleField = ComponentProps<typeof LoginStyle>['style'];
 
@@ -159,5 +162,43 @@ describe('LoginStyle', () => {
             expect(replaceMock).not.toHaveBeenCalled();
             expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
         });
+    });
+
+    it('warns inline how long to wait when the backend rate-limits the login (429)', async () => {
+        vi.mocked(AuthApi.login).mockRejectedValueOnce({
+            response: { status: 429, data: { data: { retry_after: 896 } } },
+        });
+        const user = userEvent.setup();
+        renderWithProviders(
+            <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+        );
+
+        await user.type(screen.getByLabelText(/Email\/Username/), 'qa.guest@selfhelp.test');
+        await user.type(screen.getByLabelText(/^Password/), 'qa-wrong-password');
+        await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+        const alert = await screen.findByRole('alert');
+        expect(alert).toHaveTextContent('Too many failed attempts. Please try again in 15 min.');
+        expect(vi.mocked(notifications.show)).not.toHaveBeenCalled();
+    });
+
+    it('shows the CMS alert_rate_limited text with the wait filled in', async () => {
+        vi.mocked(AuthApi.login).mockRejectedValueOnce({
+            response: { status: 429, data: { data: { retry_after: 120 } } },
+        });
+        const user = userEvent.setup();
+        renderWithProviders(
+            <LoginStyle
+                style={{ alert_rate_limited: { content: 'Zu viele Versuche. Bitte in {minutes} Min. erneut versuchen.' } } as unknown as LoginStyleField}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+
+        await user.type(screen.getByLabelText(/Email\/Username/), 'qa.guest@selfhelp.test');
+        await user.type(screen.getByLabelText(/^Password/), 'qa-wrong-password');
+        await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+        expect(await screen.findByRole('alert')).toHaveTextContent('Zu viele Versuche. Bitte in 2 Min. erneut versuchen.');
     });
 });

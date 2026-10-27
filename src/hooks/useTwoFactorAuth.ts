@@ -10,6 +10,7 @@ import { notifications } from '@mantine/notifications';
 import { AuthApi } from '../api/auth.api';
 import { ROUTES } from '../config/routes.config';
 import { broadcastAuthChange } from '../utils/auth-broadcast';
+import { formatRateLimitMessage, getRateLimitRetryAfter } from '@selfhelp/shared';
 import { type ITwoFactorVerifyRequest } from '../types/requests/auth/auth.types';
 
 export const TWO_FACTOR_CONSTANTS = {
@@ -32,6 +33,8 @@ export const formatTime = (seconds: number) =>
 interface UseTwoFactorAuthOptions {
     /** Fallback message used when a thrown error has no `.message` */
     fallbackErrorMessage?: string;
+    /** CMS `alert_rate_limited` text for a 429; `{minutes}` = remaining wait */
+    rateLimitMessage?: string;
 }
 
 /**
@@ -45,7 +48,7 @@ interface UseTwoFactorAuthOptions {
  * the client boundary.
  */
 export function useTwoFactorAuth(options: UseTwoFactorAuthOptions = {}) {
-    const { fallbackErrorMessage = 'The verification code is incorrect. Please try again.' } = options;
+    const { fallbackErrorMessage = 'The verification code is incorrect. Please try again.', rateLimitMessage } = options;
 
     const [code, setCode] = useState<string[]>(EMPTY_CODE);
     const [isLoading, setIsLoading] = useState(false);
@@ -147,13 +150,14 @@ export function useTwoFactorAuth(options: UseTwoFactorAuthOptions = {}) {
             broadcastAuthChange({ type: 'logged-in' });
             router.push(redirectTo);
         } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : fallbackErrorMessage;
+            const retryAfter = getRateLimitRetryAfter(error);
+            const errorMsg = retryAfter !== null
+                ? formatRateLimitMessage(rateLimitMessage, retryAfter)
+                : error instanceof Error ? error.message : fallbackErrorMessage;
 
-            notifications.show({
-                title: 'Invalid code',
-                message: errorMsg,
-                color: 'red',
-            });
+            notifications.show(retryAfter !== null
+                ? { message: errorMsg, color: 'orange' }
+                : { title: 'Invalid code', message: errorMsg, color: 'red' });
 
             setErrorMessage(errorMsg);
             setCode(EMPTY_CODE);
@@ -162,7 +166,7 @@ export function useTwoFactorAuth(options: UseTwoFactorAuthOptions = {}) {
         } finally {
             setIsLoading(false);
         }
-    }, [timer, userId, redirectTo, router, fallbackErrorMessage]);
+    }, [timer, userId, redirectTo, router, fallbackErrorMessage, rateLimitMessage]);
 
     const handleInputChange = useCallback((index: number, value: string) => {
         if (!/^[0-9]?$/.test(value)) return;
