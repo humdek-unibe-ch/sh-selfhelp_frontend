@@ -150,10 +150,18 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
         const missingFields: string[] = [];
 
         requiredFields.forEach((field) => {
+            // FileInput's button has no value; checked via refs below.
+            if (field instanceof HTMLButtonElement) return;
             const input = field as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
             if (!input.value.trim()) {
                 const label = input.getAttribute('placeholder') || input.name || 'Field';
                 missingFields.push(label);
+            }
+        });
+
+        fileInputRefs.current.forEach((fileInputRef) => {
+            if (fileInputRef.isRequired() && fileInputRef.getSelectedFiles().length === 0) {
+                missingFields.push(fileInputRef.getLabel());
             }
         });
 

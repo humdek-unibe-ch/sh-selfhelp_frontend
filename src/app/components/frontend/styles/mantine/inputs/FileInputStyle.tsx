@@ -30,6 +30,9 @@ export interface IFileInputStyleRef {
     getSelectedFiles: () => File[];
     getFieldName: () => string;
     clearFiles: () => void;
+    /** For the form's required check. */
+    isRequired: () => boolean;
+    getLabel: () => string;
 }
 
 /**
@@ -217,8 +220,10 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
     useImperativeHandle(ref, () => ({
         getSelectedFiles: () => selectedFiles,
         getFieldName: () => name,
-        clearFiles: clearAllFiles
-    }), [selectedFiles, name, clearAllFiles]);
+        clearFiles: clearAllFiles,
+        isRequired: () => isRequired,
+        getLabel: () => label || name
+    }), [selectedFiles, name, clearAllFiles, isRequired, label]);
 
     // Register with form context when component mounts
     useEffect(() => {
@@ -227,7 +232,9 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
             const fileInputRef: IFileInputStyleRef = {
                 getSelectedFiles: () => selectedFiles,
                 getFieldName: () => name,
-                clearFiles: clearAllFiles
+                clearFiles: clearAllFiles,
+                isRequired: () => isRequired,
+                getLabel: () => label || name
             };
             
             fileInputRegistrationContext.registerFileInputRef(fieldName, fileInputRef);
@@ -238,7 +245,7 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
             };
         }
         return undefined;
-    }, [fileInputRegistrationContext, name, selectedFiles, clearAllFiles]);
+    }, [fileInputRegistrationContext, name, selectedFiles, clearAllFiles, isRequired, label]);
 
     // Format file size helper
     const formatFileSize = useCallback((bytes: number): string => {
