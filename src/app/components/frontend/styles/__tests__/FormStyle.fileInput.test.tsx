@@ -72,7 +72,7 @@ describe('FormStyle with a required file input', () => {
         const file = new File(['<svg/>'], 'pic.svg', { type: 'image/svg+xml' });
 
         fireEvent.change(fileInput, { target: { files: [file] } });
-        await screen.findByText('pic.svg');
+        await screen.findAllByText('pic.svg');
         submit();
 
         await waitFor(() => expect(submitFormMock).toHaveBeenCalledTimes(1));

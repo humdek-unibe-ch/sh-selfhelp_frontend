@@ -36,7 +36,7 @@ import {
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
-import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconRefresh, IconDownload, IconFileTypeCsv, IconJson } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconRefresh, IconDownload, IconFileTypeCsv, IconJson, IconFileZip } from '@tabler/icons-react';
 import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable, useTableColumns } from '../../../../../hooks/useData';
 import { useDataTableOptionLabelMaps } from '../../../../../hooks/useDataTableOptionLabelMaps';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
@@ -49,6 +49,8 @@ import {
   isRuntimeOptionLabelKey,
 } from './data-table-display.utils';
 import { alignOptionLabelMapsToFieldKeys } from './data-table-option-labels.utils';
+import { FormFileCell, getFormFilePaths, getRecordIdsWithFiles } from './FormFileCell';
+import { API_CONFIG } from '../../../../../config/api.config';
 
 interface ISingleDataTableProps {
   formId: number;
@@ -130,6 +132,10 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
       accessorFn: (row) => getDataCellDisplayValue(key, row, optionLabelMaps),
       header: ({ column }) => <SortHeader label={labelByKey[key] ?? key} column={column} />,
       cell: ({ row }) => {
+        const filePaths = getFormFilePaths(row.original[key]);
+        if (filePaths.length > 0) {
+          return <FormFileCell recordId={Number(row.original.record_id)} fieldKey={key} paths={filePaths} />;
+        }
         const display = getDataCellDisplayValue(key, row.original, optionLabelMaps);
         const storedCode = getDataCellStoredCode(key, row.original);
         if (display !== storedCode && storedCode !== '') {
@@ -182,6 +188,8 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
       globalFilter,
     },
   });
+  // Rows the admin currently sees (after search) that hold uploads.
+  const shownRecordIdsWithFiles = getRecordIdsWithFiles(table.getFilteredRowModel().rows.map((row) => row.original));
 
   return (
     <Card withBorder style={{ position: 'relative' }}>
@@ -217,6 +225,18 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
               <Menu.Item leftSection={<IconJson size={16} />} onClick={() => handleExport('json')}>
                 JSON
               </Menu.Item>
+              {shownRecordIdsWithFiles.length > 0 && (
+                <>
+                  <Menu.Divider />
+                  <Menu.Item
+                    component="a"
+                    href={`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ADMIN_DATA_TABLE_FILES_ZIP.route(tableName, shownRecordIdsWithFiles)}`}
+                    leftSection={<IconFileZip size={16} />}
+                  >
+                    All files (zip)
+                  </Menu.Item>
+                </>
+              )}
             </Menu.Dropdown>
           </Menu>
           <Tooltip label="Refresh table data">

@@ -22,6 +22,10 @@ Requires core **>=0.1.43** for the navigation warning tags. The rest of the
 release works against any core in range.
 
 ### Added
+- **Form uploads in Admin → Data.** File cells show the file name with View
+  and Download buttons instead of the raw storage path. A cell with several
+  files opens a list with "Download all (zip)", and the export menu downloads
+  the files of the shown rows as one zip. Requires core **>=0.1.43**.
 - **Warning tags in the navigation builder.** Menu items now show, per row,
   why they will not appear the way you expect. A "Not in public menu" tag
   marks items the public menu drops — a headless page, a page type that is

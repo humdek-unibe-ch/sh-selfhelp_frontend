@@ -945,6 +945,12 @@ export const API_CONFIG = {
             route: '/admin/data/tables/bulk-export',
             permissions: [PERMISSIONS.ADMIN_DATA_READ]
         },
+        // Zip of the uploaded files of the given (shown) records (core 0.1.43).
+        ADMIN_DATA_TABLE_FILES_ZIP: {
+            route: (tableName: string, recordIds: number[]) =>
+                `/admin/data/tables/${encodeURIComponent(tableName)}/files?record_ids=${recordIds.join(',')}`,
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
         ADMIN_DATA_QUERY_PREVIEW: {
             route: '/admin/data/query-preview',
             permissions: [PERMISSIONS.ADMIN_DATA_READ]
@@ -961,6 +967,16 @@ export const API_CONFIG = {
         },
         FORMS_DELETE: {
             route: '/forms/delete',
+            permissions: []
+        },
+        // Read-only; the backend checks owner / data-table READ per record (core 0.1.43).
+        FORMS_FILE: {
+            route: (recordId: number, field: string) => `/forms/files/${recordId}/${encodeURIComponent(field)}`,
+            permissions: []
+        },
+        // Every file of a multi-file field as one zip; same per-record check.
+        FORMS_FILE_ZIP: {
+            route: (recordId: number, field: string) => `/forms/files/${recordId}/${encodeURIComponent(field)}/zip`,
             permissions: []
         },
 
