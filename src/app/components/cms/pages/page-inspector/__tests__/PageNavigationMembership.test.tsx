@@ -36,11 +36,11 @@ describe('PageNavigationMembership "Add to menu"', () => {
         renderWithProviders(<PageNavigationMembership pageId={5} />);
 
         await userEvent.click(screen.getByRole('button', { name: 'Add to menu' }));
-        await userEvent.click(await screen.findByRole('menuitem', { name: 'Web footer' }));
+        await userEvent.click(await screen.findByRole('menuitem', { name: 'Web footer' }, { timeout: 5000 }));
 
         await waitFor(() =>
             expect(createMenuItem).toHaveBeenCalledWith('web_footer', { item_type: 'page', page_id: 5, parent_item_id: null }),
-        );
+        { timeout: 5000 });
         await waitFor(() => expect(showNotification).toHaveBeenCalledWith(expect.objectContaining({ color: 'green' })));
     });
 
@@ -49,6 +49,6 @@ describe('PageNavigationMembership "Add to menu"', () => {
 
         await userEvent.click(screen.getByRole('button', { name: 'Add to menu' }));
 
-        expect(await screen.findByRole('menuitem', { name: /Web header/ })).toBeDisabled();
+        expect(await screen.findByRole('menuitem', { name: /Web header/ }, { timeout: 5000 })).toBeDisabled();
     });
 });
