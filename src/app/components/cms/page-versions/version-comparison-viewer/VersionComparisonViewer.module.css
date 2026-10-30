@@ -26,6 +26,15 @@ SPDX-License-Identifier: MPL-2.0
     vertical-align: top;
 }
 
+/* Whole added/removed lines: php-diff marks the <tbody> block. */
+.sideBySide :global(.change-ins) td:global(.new) {
+    background: var(--mantine-color-green-light);
+}
+
+.sideBySide :global(.change-del) td:global(.old) {
+    background: var(--mantine-color-red-light);
+}
+
 .sideBySide del {
     background: var(--mantine-color-red-light);
     text-decoration: none;

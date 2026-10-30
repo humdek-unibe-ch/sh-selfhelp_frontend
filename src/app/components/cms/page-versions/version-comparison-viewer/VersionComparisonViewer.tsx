@@ -30,8 +30,16 @@ export function VersionComparisonViewer({
     initialVersion1Id,
     initialVersion2Id
 }: IVersionComparisonViewerProps) {
-    const [version1Id, setVersion1Id] = useState<number | null>(initialVersion1Id || null);
-    const [version2Id, setVersion2Id] = useState<number | null>(initialVersion2Id || null);
+    // The backend diffs version (old) -> draft (new), so keep the draft (-1) in Version 2.
+    const draftLast = (v1: number | null, v2: number | null): [number | null, number | null] =>
+        v1 === -1 && v2 !== -1 ? [v2, v1] : [v1, v2];
+    const [version1Id, setVersion1Id] = useState<number | null>(() => draftLast(initialVersion1Id || null, initialVersion2Id || null)[0]);
+    const [version2Id, setVersion2Id] = useState<number | null>(() => draftLast(initialVersion1Id || null, initialVersion2Id || null)[1]);
+    const setVersions = (v1: number | null, v2: number | null) => {
+        const [first, second] = draftLast(v1, v2);
+        setVersion1Id(first);
+        setVersion2Id(second);
+    };
     const [format, setFormat] = useState<'unified' | 'side_by_side' | 'json_patch' | 'summary'>('side_by_side');
 
     // Update state when modal opens with new initial values. Render-phase
@@ -45,14 +53,14 @@ export function VersionComparisonViewer({
         setPrevInitial1(initialVersion1Id);
         setPrevInitial2(initialVersion2Id);
         if (opened) {
-            setVersion1Id(initialVersion1Id || null);
-            setVersion2Id(initialVersion2Id || null);
+            setVersions(initialVersion1Id || null, initialVersion2Id || null);
         }
     }
 
     // Handle draft comparison specially
-    const isDraftComparison = version1Id === -1 || version2Id === -1;
-    const draftVersionId = version1Id === -1 ? version2Id : version1Id;
+    const isDraftComparison = version2Id === -1;
+    const draftVersionId = version1Id;
+    const isSameVersion = version1Id !== null && version1Id === version2Id;
 
     const { data: comparison, isLoading, error } = useQuery({
         queryKey: isDraftComparison
@@ -61,7 +69,7 @@ export function VersionComparisonViewer({
         queryFn: () => isDraftComparison
             ? PageVersionApi.compareDraftWithVersion(pageId!, draftVersionId!, format)
             : PageVersionApi.compareVersions(pageId!, version1Id!, version2Id!, { format }),
-        enabled: !!pageId && (isDraftComparison ? !!draftVersionId : !!version1Id && !!version2Id),
+        enabled: !!pageId && !isSameVersion && (isDraftComparison ? !!draftVersionId : !!version1Id && !!version2Id),
         staleTime: 5 * 60 * 1000, // 5 minutes
         gcTime: 10 * 60 * 1000, // 10 minutes
     });
@@ -74,6 +82,7 @@ export function VersionComparisonViewer({
     // side_by_side is an HTML table, unified is text, json_patch/summary are objects.
     const diff = comparison?.diff;
     const diffText = typeof diff === 'string' ? diff : JSON.stringify(diff ?? null, null, 2);
+    const hasNoDifferences = isSameVersion || (!!comparison && (diffText.trim() === '' || diffText === '[]'));
     const diffHtml = useMemo(() => {
         return DOMPurify.sanitize(typeof diff === 'string' ? diff : '', {
             ALLOWED_TAGS: ['table', 'thead', 'tbody', 'tr', 'th', 'td', 'del', 'ins', 'span'],
@@ -99,7 +108,7 @@ export function VersionComparisonViewer({
                 data={versionOptions}
                 value={version1Id?.toString() || null}
                 onChange={(value) =>
-                  setVersion1Id(value ? parseInt(value) : null)
+                  setVersions(value ? parseInt(value) : null, version2Id)
                 }
               />
               <Select
@@ -108,7 +117,7 @@ export function VersionComparisonViewer({
                 data={versionOptions}
                 value={version2Id?.toString() || null}
                 onChange={(value) =>
-                  setVersion2Id(value ? parseInt(value) : null)
+                  setVersions(version1Id, value ? parseInt(value) : null)
                 }
               />
               <Select
@@ -139,7 +148,13 @@ export function VersionComparisonViewer({
               </Alert>
             )}
 
-            {!isLoading && !error && comparison && (
+            {hasNoDifferences && (
+              <Stack align="center" justify="center" h="100%">
+                <Text c="dimmed">No differences between these versions</Text>
+              </Stack>
+            )}
+
+            {!isLoading && !error && comparison && !hasNoDifferences && (
               <ScrollArea h="100%">
                 {format === "side_by_side" ? (
                   <div className={classes.sideBySide} dangerouslySetInnerHTML={{ __html: diffHtml }} />
