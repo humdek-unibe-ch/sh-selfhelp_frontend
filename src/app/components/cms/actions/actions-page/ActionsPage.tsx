@@ -31,6 +31,7 @@ export function ActionsPage() {
   const [params, setParams] = useState<IActionsListParams>(filterParams);
 
   const { data, isFetching, refetch } = useActions(params);
+  const hasAppliedFilters = !!params.search || !!params.triggerTypeId || !!params.dataTableId;
   const deleteMutation = useDeleteAction();
   const triggerTypes = useLookupsByType('actionTriggerTypes');
   const { data: dataTablesData } = useDataTables();
@@ -218,9 +219,11 @@ const dataTableOptions = useMemo(() => {
                           isFetching ? "Loading actions..." : "No actions found"
                         }
                         description={
-                          !isFetching
-                            ? "Try adjusting your search or filter criteria"
-                            : undefined
+                          isFetching
+                            ? undefined
+                            : hasAppliedFilters
+                              ? "Try adjusting your search or filter criteria"
+                              : "Create an action to get started"
                         }
                       />
                     </Table.Td>
