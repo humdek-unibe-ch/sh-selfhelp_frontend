@@ -77,6 +77,10 @@ incompatible pair.
   resource-side check the client gate deliberately does not mirror.
 
 ### Fixed
+- **CMS app templates: "Add new" no longer opens a dialog titled "Edit …".**
+  Each template's single add/edit form page now has a neutral title (e.g.
+  "Question" instead of "Edit question"). Applies to new imports; existing
+  apps keep their title until it is changed in the page editor.
 - **Cleaning user data now actually erases it.** Core versions before 0.1.42
   answered `200 {"cleaned": true}` from a stub that deleted nothing. The action
   was unreachable from the UI until this release, so no erasure was ever

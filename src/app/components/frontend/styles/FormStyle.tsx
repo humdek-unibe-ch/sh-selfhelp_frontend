@@ -154,7 +154,9 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             if (field instanceof HTMLButtonElement) return;
             const input = field as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
             if (!input.value.trim()) {
-                const label = input.getAttribute('placeholder') || input.name || 'Field';
+                // Prefer the visible label (minus the required asterisk) over a placeholder.
+                const labelText = input.labels?.[0]?.textContent?.replace(/\s*\*\s*$/, '').trim();
+                const label = labelText || input.getAttribute('placeholder') || input.name || 'Field';
                 missingFields.push(label);
             }
         });
