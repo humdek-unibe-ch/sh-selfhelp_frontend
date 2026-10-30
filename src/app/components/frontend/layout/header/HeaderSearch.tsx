@@ -17,7 +17,7 @@ import {
     TextInput,
     UnstyledButton,
 } from '@mantine/core';
-import { useClickOutside, useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useClickOutside, useDebouncedValue, useDisclosure, useId, useMediaQuery } from '@mantine/hooks';
 import { IconFileText, IconSearch, IconX } from '@tabler/icons-react';
 import { useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -107,6 +107,14 @@ function HeaderSearchField({
 }: IHeaderSearchFieldProps): React.ReactElement {
     // Tracked separately from the query so dismissing keeps what was typed.
     const [isPanelOpen, setIsPanelOpen] = useState(false);
+    // Keyboard-highlighted result (-1 = none); reset whenever the results change.
+    const [activeIndex, setActiveIndex] = useState(-1);
+    const [prevOptions, setPrevOptions] = useState(options);
+    if (prevOptions !== options) {
+        setPrevOptions(options);
+        setActiveIndex(-1);
+    }
+    const listboxId = useId();
     const inputRef = useRef<HTMLInputElement>(null);
     const clickOutsideRef = useClickOutside(() => setIsPanelOpen(false));
 
@@ -142,8 +150,28 @@ function HeaderSearchField({
                         // Don't let a parent overlay close too.
                         event.stopPropagation();
                         setIsPanelOpen(false);
+                        return;
+                    }
+                    if (!isPanelVisible || options.length === 0) {
+                        return;
+                    }
+                    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                        event.preventDefault();
+                        const step = event.key === 'ArrowDown' ? 1 : -1;
+                        setActiveIndex((index) => (index + step + options.length) % options.length);
+                    } else if (event.key === 'Enter' && activeIndex >= 0) {
+                        event.preventDefault();
+                        setIsPanelOpen(false);
+                        onNavigate(options[activeIndex].value);
                     }
                 }}
+                role="combobox"
+                aria-expanded={isPanelVisible}
+                aria-controls={isPanelVisible ? listboxId : undefined}
+                aria-autocomplete="list"
+                aria-activedescendant={
+                    isPanelVisible && activeIndex >= 0 ? `${listboxId}-${activeIndex}` : undefined
+                }
                 data-panel-open={isPanelVisible || undefined}
                 leftSection={<IconSearch size={16} stroke={1.6} />}
                 rightSection={
@@ -168,7 +196,7 @@ function HeaderSearchField({
             />
 
             {isPanelVisible && (
-                <Box className={styles.panel} role="listbox" aria-label="Search results">
+                <Box id={listboxId} className={styles.panel} role="listbox" aria-label="Search results">
                     {options.length > 0 ? (
                         <>
                             <Box className={styles.panelHeader}>
@@ -182,10 +210,13 @@ function HeaderSearchField({
 
                             <ScrollArea.Autosize mah={280} type="hover">
                                 <Stack gap={2} className={styles.panelList}>
-                                    {options.map((option) => (
+                                    {options.map((option, index) => (
                                         <UnstyledButton
                                             key={option.value}
+                                            id={`${listboxId}-${index}`}
                                             role="option"
+                                            aria-selected={index === activeIndex}
+                                            data-active={index === activeIndex || undefined}
                                             onClick={() => {
                                                 setIsPanelOpen(false);
                                                 onNavigate(option.value);
@@ -269,7 +300,10 @@ export function HeaderSearch({
     const resultLimit = navigation?.search?.result_limit ?? 8;
     const endpoint = searchEndpointForMode(searchMode);
     const trimmed = query.trim();
-    const enabled = isActiveSurface && endpoint !== null && trimmed.length >= minChars;
+    // Remote search waits for a typing pause instead of firing per keystroke.
+    const [debouncedTrimmed] = useDebouncedValue(trimmed, 250);
+    const isDebouncing = debouncedTrimmed !== trimmed;
+    const enabled = isActiveSurface && endpoint !== null && debouncedTrimmed.length >= minChars;
 
     const menuHits = useMemo(() => {
         if (searchMode !== 'menu_pages' || !navigation || trimmed.length < minChars) {
@@ -279,14 +313,14 @@ export function HeaderSearch({
     }, [navigation, resultLimit, searchMode, minChars, trimmed]);
 
     const { data, isFetching } = useQuery({
-        queryKey: ['search', searchMode, trimmed, currentLanguageId],
+        queryKey: ['search', searchMode, debouncedTrimmed, currentLanguageId],
         queryFn: async () => {
             if (!endpoint) {
                 return [];
             }
             const response = await permissionAwareApiClient.get<IBaseApiResponse<ISearchResponse>>(
                 endpoint,
-                trimmed,
+                debouncedTrimmed,
                 currentLanguageId,
             );
             return response.data.data?.results ?? [];
@@ -310,7 +344,7 @@ export function HeaderSearch({
         return null;
     }
 
-    const loading = searchMode === 'menu_pages' ? false : isFetching;
+    const loading = searchMode === 'menu_pages' ? false : isFetching || isDebouncing;
 
     const navigateToHit = (value: string) => {
         const option = options.find((row) => row.value === value);
