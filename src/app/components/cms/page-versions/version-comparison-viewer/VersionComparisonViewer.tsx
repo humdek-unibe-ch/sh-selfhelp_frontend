@@ -11,6 +11,7 @@ import { PageVersionApi } from '../../../../../api/admin/page-version.api';
 import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { type IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 import DOMPurify from 'isomorphic-dompurify';
+import classes from './VersionComparisonViewer.module.css';
 
 interface IVersionComparisonViewerProps {
     opened: boolean;
@@ -70,11 +71,15 @@ export function VersionComparisonViewer({
         label: v.version_name || `Version ${v.version_number}`
     }));
 
-    const cleanDiff = useMemo(() => {
-        return DOMPurify.sanitize((comparison?.diff as string) || "", {
-        ALLOWED_TAGS: [],
-      });
-    }, [comparison]);
+    // side_by_side is an HTML table, unified is text, json_patch/summary are objects.
+    const diff = comparison?.diff;
+    const diffText = typeof diff === 'string' ? diff : JSON.stringify(diff ?? null, null, 2);
+    const diffHtml = useMemo(() => {
+        return DOMPurify.sanitize(typeof diff === 'string' ? diff : '', {
+            ALLOWED_TAGS: ['table', 'thead', 'tbody', 'tr', 'th', 'td', 'del', 'ins', 'span'],
+            ALLOWED_ATTR: ['class', 'colspan'],
+        });
+    }, [diff]);
 
     return (
       <Modal
@@ -83,6 +88,7 @@ export function VersionComparisonViewer({
         title="Compare Versions"
         size="xl"
         fullScreen
+        closeOnEscape
       >
         <Stack gap="md" h="calc(100vh - 120px)">
           <Paper p="md" withBorder>
@@ -135,19 +141,11 @@ export function VersionComparisonViewer({
 
             {!isLoading && !error && comparison && (
               <ScrollArea h="100%">
-                {format === "side_by_side" && (
-                  <div style={{ fontSize: "12px" }}>{cleanDiff}</div>
-                )}
-
-                {format === "unified" && (
+                {format === "side_by_side" ? (
+                  <div className={classes.sideBySide} dangerouslySetInnerHTML={{ __html: diffHtml }} />
+                ) : (
                   <Code block style={{ whiteSpace: "pre-wrap" }}>
-                    {cleanDiff}
-                  </Code>
-                )}
-
-                {(format === "json_patch" || format === "summary") && (
-                  <Code block style={{ whiteSpace: "pre-wrap" }}>
-                    {JSON.stringify(cleanDiff, null, 2)}
+                    {diffText}
                   </Code>
                 )}
               </ScrollArea>

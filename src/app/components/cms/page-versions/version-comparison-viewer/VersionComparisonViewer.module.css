@@ -1,0 +1,37 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+/* Backend side-by-side diff table (php-diff "diff-wrapper" markup). */
+.sideBySide table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mantine-font-family-monospace);
+    font-size: 12px;
+}
+
+.sideBySide th {
+    width: 1%;
+    padding: 0 6px;
+    color: var(--mantine-color-dimmed);
+    text-align: right;
+    vertical-align: top;
+}
+
+.sideBySide td {
+    width: 49%;
+    padding: 0 6px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    vertical-align: top;
+}
+
+.sideBySide del {
+    background: var(--mantine-color-red-light);
+    text-decoration: none;
+}
+
+.sideBySide ins {
+    background: var(--mantine-color-green-light);
+    text-decoration: none;
+}

@@ -84,6 +84,9 @@ incompatible pair.
   Each template's single add/edit form page now has a neutral title (e.g.
   "Question" instead of "Edit question"). Applies to new imports; existing
   apps keep their title until it is changed in the page editor.
+- **Compare Versions dialog.** Escape now closes it, the side-by-side diff
+  renders as a table instead of stripped raw text, and JSON Patch / Summary
+  show pretty-printed JSON instead of `""`.
 - **Cleaning user data now actually erases it.** Core versions before 0.1.42
   answered `200 {"cleaned": true}` from a stub that deleted nothing. The action
   was unreachable from the UI until this release, so no erasure was ever
