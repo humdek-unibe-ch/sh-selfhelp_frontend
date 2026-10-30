@@ -77,6 +77,9 @@ incompatible pair.
   resource-side check the client gate deliberately does not mirror.
 
 ### Fixed
+- **Signing in from "Page not found" returns you to the page.** A guest who
+  opens a protected page and uses the Sign in button now lands back on that
+  page after login (including after the 2FA step) instead of on home.
 - **CMS app templates: "Add new" no longer opens a dialog titled "Edit …".**
   Each template's single add/edit form page now has a neutral title (e.g.
   "Question" instead of "Edit question"). Applies to new imports; existing

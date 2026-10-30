@@ -60,7 +60,9 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                 sessionStorage.removeItem('2fa_time_remaining');
                 sessionStorage.removeItem('2fa_last_update');
                 sessionStorage.setItem('2fa_fresh_login', 'true');
-                router.push(ROUTES.TWO_FACTOR_AUTH);
+                // Keep the post-login target across the 2FA step.
+                const redirectTo = searchParams.get('redirectTo');
+                router.push(redirectTo ? `${ROUTES.TWO_FACTOR_AUTH}?redirectTo=${encodeURIComponent(redirectTo)}` : ROUTES.TWO_FACTOR_AUTH);
                 return;
             }
 

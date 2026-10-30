@@ -16,14 +16,15 @@ import { renderWithProviders } from '../../../../../test-utils/renderWithProvide
  * It also pins the already-authenticated guard: the login form must never
  * render on top of a live session.
  */
-const { replaceMock, authState, searchParamsState } = vi.hoisted(() => ({
+const { pushMock, replaceMock, authState, searchParamsState } = vi.hoisted(() => ({
+    pushMock: vi.fn(),
     replaceMock: vi.fn(),
     authState: { value: { isAuthenticated: false, isLoading: false } },
     searchParamsState: { redirectTo: null as string | null },
 }));
 
 vi.mock('next/navigation', () => ({
-    useRouter: () => ({ push: vi.fn(), replace: replaceMock, prefetch: vi.fn() }),
+    useRouter: () => ({ push: pushMock, replace: replaceMock, prefetch: vi.fn() }),
     useSearchParams: () => ({ get: () => searchParamsState.redirectTo }),
 }));
 vi.mock('../../../../../hooks/useAuth', () => ({
@@ -44,6 +45,7 @@ type LoginStyleField = ComponentProps<typeof LoginStyle>['style'];
 
 describe('LoginStyle', () => {
     beforeEach(() => {
+        pushMock.mockClear();
         replaceMock.mockClear();
         authState.value = { isAuthenticated: false, isLoading: false };
         searchParamsState.redirectTo = null;
@@ -162,6 +164,25 @@ describe('LoginStyle', () => {
             expect(replaceMock).not.toHaveBeenCalled();
             expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
         });
+    });
+
+    // Regression: the 2FA hop dropped redirectTo, so 2FA users always landed on
+    // home instead of the page that sent them to log in.
+    it('carries the redirectTo target through to the 2FA step', async () => {
+        searchParamsState.redirectTo = '/profile';
+        vi.mocked(AuthApi.login).mockResolvedValueOnce({
+            data: { requires_2fa: true, id_users: 7 },
+        } as unknown as Awaited<ReturnType<typeof AuthApi.login>>);
+        const user = userEvent.setup();
+        renderWithProviders(
+            <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+        );
+
+        await user.type(screen.getByLabelText(/Email\/Username/), 'qa.user@selfhelp.test');
+        await user.type(screen.getByLabelText(/^Password/), 'qa-password');
+        await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+        expect(pushMock).toHaveBeenCalledWith('/two-factor-authentication?redirectTo=%2Fprofile');
     });
 
     it('warns inline how long to wait when the backend rate-limits the login (429)', async () => {

@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../test-utils/renderWithProviders';
 
@@ -11,6 +11,10 @@ import { renderWithProviders } from '../../../../../test-utils/renderWithProvide
  * message and a route home, plus an auth-aware "Sign in" call to action and
  * configurable title/message content fields.
  */
+vi.mock('next/navigation', () => ({
+    usePathname: () => '/profile',
+}));
+
 import NotFoundStyle from '../NotFoundStyle';
 
 describe('NotFoundStyle', () => {
@@ -19,6 +23,13 @@ describe('NotFoundStyle', () => {
         expect(screen.getByText('Page not found')).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /Back to home/i })).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /Sign in/i })).toBeInTheDocument();
+    });
+
+    // Regression: the guest sign-in link pointed at bare /login, so signing in
+    // dropped the visitor on home instead of the protected page they opened.
+    it('sends guests back to the page they opened after signing in', () => {
+        renderWithProviders(<NotFoundStyle style={{}} styleProps={{}} cssClass="" isAuthenticated={false} />);
+        expect(screen.getByRole('link', { name: /Sign in/i })).toHaveAttribute('href', '/login?redirectTo=%2Fprofile');
     });
 
     it('hides the sign-in link for authenticated users', () => {
