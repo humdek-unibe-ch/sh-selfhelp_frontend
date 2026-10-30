@@ -24,7 +24,6 @@ import { IconInfoCircle, IconWorld, IconLayoutDashboard, IconChevronDown } from 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { AdminNavigationApi } from '../../../../../api/admin/navigation.api';
-import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { invalidateAdminNavigationQueries } from '../../../../../utils/admin-navigation-cache.utils';
 import type { IAdminPage, INavigationMembershipBadge } from '../../../../../types/responses/admin/admin.types';
 import { usePageFormStore } from '../../../../store/pageFormStore';
@@ -235,7 +234,6 @@ export const PageNavigationMembership = React.memo(function PageNavigationMember
     const removeMutation = useMutation({
         mutationFn: (menuItemId: number) => AdminNavigationApi.deleteMenuItem(menuItemId),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
             await invalidateAdminNavigationQueries(queryClient);
         },
     });

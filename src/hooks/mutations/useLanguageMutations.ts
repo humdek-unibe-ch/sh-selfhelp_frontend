@@ -48,8 +48,6 @@ export function useCreateLanguageMutation(options: ILanguageMutationOptions = {}
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LANGUAGES }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PUBLIC_LANGUAGES }),
-                queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LANGUAGES }),
-                queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PUBLIC_LANGUAGES }),
             ]);
 
             if (showNotifications) {
@@ -106,8 +104,6 @@ export function useUpdateLanguageMutation(options: ILanguageMutationOptions = {}
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LANGUAGES }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PUBLIC_LANGUAGES }),
-                queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LANGUAGES }),
-                queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PUBLIC_LANGUAGES }),
             ]);
 
             if (showNotifications) {
@@ -163,8 +159,6 @@ export function useDeleteLanguageMutation(options: IDeleteLanguageMutationOption
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LANGUAGES }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PUBLIC_LANGUAGES }),
-                queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LANGUAGES }),
-                queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PUBLIC_LANGUAGES }),
             ]);
 
             if (showNotifications) {

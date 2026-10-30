@@ -31,9 +31,6 @@ export function usePublishVersionMutation() {
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
-
-            // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) });
             
             notifications.show({
                 title: 'Version Published',
@@ -68,9 +65,6 @@ export function usePublishSpecificVersionMutation() {
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
             
-            // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) });
-            
             notifications.show({
                 title: 'Version Published',
                 message: 'Selected version published successfully',
@@ -102,9 +96,6 @@ export function useUnpublishPageMutation() {
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(pageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
-            
-            // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(pageId) });
             
             notifications.show({
                 title: 'Page Unpublished',
@@ -173,10 +164,6 @@ export function useRestoreFromVersionMutation() {
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
-
-            // Force immediate refetch of page data
-            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) });
-            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) });
 
             notifications.show({
                 title: 'Sections Restored',
