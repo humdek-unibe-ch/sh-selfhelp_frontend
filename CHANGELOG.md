@@ -51,6 +51,36 @@ release works against any core in range.
   reproduced in the frontend, so the builder's verdict cannot drift from what
   the public menu actually renders.
 
+### Fixed
+- **Signing in from "Page not found" returns you to the page.** A guest who
+  opens a protected page and uses the Sign in button now lands back on that
+  page after login (including after the 2FA step) instead of on home.
+- **CMS app templates: "Add new" no longer opens a dialog titled "Edit …".**
+  Each template's single add/edit form page now has a neutral title (e.g.
+  "Question" instead of "Edit question"). Applies to new imports; existing
+  apps keep their title until it is changed in the page editor.
+- **Compare Versions dialog.** Escape now closes it, the side-by-side diff
+  renders as a table instead of stripped raw text (added/removed lines in
+  green/red), and JSON Patch / Summary show pretty-printed JSON instead of
+  `""`. Comparing a version with itself (including draft vs draft) shows
+  "No differences" instead of a blank pane or an error, and the draft always
+  sits in Version 2 so the labels match the diff direction.
+- **Add to menu adds the page.** In the page editor, "Add to menu → <menu>"
+  now adds the page to that menu (menus it is already in are disabled) instead
+  of only opening the menu builder. Adding an item in the menu builder now
+  shows a confirmation.
+- **Header search** waits for a typing pause instead of sending a request per
+  keystroke, and the arrow keys and Enter move through and open results.
+- **Clearer empty states.** Data Browser says "No data tables selected" (with
+  a hint) when tables exist but none are picked, and Actions only suggests
+  adjusting filters when filters are actually applied.
+- The color scheme button is labelled with the current scheme
+  ("Color scheme: Dark") instead of "Toggle color scheme".
+- The CMS Apps page points editors at "Manage content" instead of the
+  `/cms/<app>` URL, which does not exist.
+- Admin edits no longer refetch pages, sections, versions and languages twice
+  after each change, and section-only changes no longer reload the page list.
+
 ---
 
 ## v0.1.68 — 2026-07-29
@@ -77,19 +107,6 @@ incompatible pair.
   resource-side check the client gate deliberately does not mirror.
 
 ### Fixed
-- **Signing in from "Page not found" returns you to the page.** A guest who
-  opens a protected page and uses the Sign in button now lands back on that
-  page after login (including after the 2FA step) instead of on home.
-- **CMS app templates: "Add new" no longer opens a dialog titled "Edit …".**
-  Each template's single add/edit form page now has a neutral title (e.g.
-  "Question" instead of "Edit question"). Applies to new imports; existing
-  apps keep their title until it is changed in the page editor.
-- **Compare Versions dialog.** Escape now closes it, the side-by-side diff
-  renders as a table instead of stripped raw text (added/removed lines in
-  green/red), and JSON Patch / Summary show pretty-printed JSON instead of
-  `""`. Comparing a version with itself (including draft vs draft) shows
-  "No differences" instead of a blank pane or an error, and the draft always
-  sits in Version 2 so the labels match the diff direction.
 - **Cleaning user data now actually erases it.** Core versions before 0.1.42
   answered `200 {"cleaned": true}` from a stub that deleted nothing. The action
   was unreachable from the UI until this release, so no erasure was ever
