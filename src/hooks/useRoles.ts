@@ -99,9 +99,9 @@ export function useUpdateRole() {
   return useMutation({
     mutationFn: ({ roleId, data }: { roleId: number; data: IUpdateRoleRequest }) =>
       AdminRoleApi.updateRole(roleId, data),
-    onSuccess: (_, { roleId }) => {
+    onSuccess: () => {
+      // The ['roles'] prefix also covers this role's detail key.
       void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.all });
-      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.detail(roleId) });
       notifications.show({
         title: 'Success',
         message: 'Role updated successfully',
