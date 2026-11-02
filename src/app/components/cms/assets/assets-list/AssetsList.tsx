@@ -23,10 +23,7 @@ import {
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import {
-  createColumnHelper,
-  type SortingState,
-} from '@tanstack/react-table';
+import { type SortingState } from '@tanstack/react-table';
 import { 
   IconTrash, 
   IconDownload, 
@@ -48,6 +45,7 @@ import { useAssets, useDeleteAsset } from '../../../../../hooks/useAssets';
 import { DeleteAssetModal } from '../delete-asset-modal';
 import type { IAsset } from '../../../../../api/admin/asset.api';
 import { getAssetUrl } from '../../../../../utils/asset-url.utils';
+import { adminTableClasses as tableStyles } from '../../shared/admin-table';
 
 interface IAssetsListProps {
   onAssetSelect?: (asset: IAsset) => void;
@@ -65,8 +63,6 @@ interface IDeleteModalState {
   opened: boolean;
   asset: IAsset | null;
 }
-
-const columnHelper = createColumnHelper<IAsset>();
 
 export function AssetsList({ onAssetSelect }: IAssetsListProps) {
   const [page, setPage] = useState(1);
@@ -218,105 +214,6 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     }));
   };
 
-  const _columns = useMemo(() => [
-    columnHelper.accessor('id', {
-      header: 'ID',
-      size: 80,
-      enableSorting: true,
-    }),
-    columnHelper.accessor('file_name', {
-      header: 'File Name',
-      cell: ({ row }) => {
-        const asset = row.original;
-        const correctedPath = getAssetUrl(asset.file_path);
-        return (
-          <Group gap="sm">
-            {isImageFile(asset.file_name) && (
-              <Image
-                src={correctedPath}
-                alt={asset.file_name}
-                width={40}
-                height={40}
-                fit="cover"
-                radius="sm"
-              />
-            )}
-            <div>
-              <Text size="sm" fw={500}>
-                {asset.file_name}
-              </Text>
-              {asset.original_name && asset.original_name !== asset.file_name && (
-                <Text size="xs" c="dimmed">
-                  Original: {asset.original_name}
-                </Text>
-              )}
-            </div>
-          </Group>
-        );
-      },
-      enableSorting: true,
-    }),
-    columnHelper.accessor('folder', {
-      header: 'Folder',
-      cell: ({ getValue }) => {
-        const folder = getValue();
-        return folder ? (
-          <Badge variant="outline" size="sm">
-            {folder}
-          </Badge>
-        ) : (
-          <Text size="sm" c="dimmed">Root</Text>
-        );
-      },
-      enableSorting: true,
-    }),
-    columnHelper.display({
-      id: 'actions',
-      header: 'Actions',
-      size: 120,
-      cell: ({ row }) => {
-        const asset = row.original;
-        const correctedPath = getAssetUrl(asset.file_path);
-        return (
-          <Group gap="xs">
-            <Tooltip label="View/Download">
-              <ActionIcon
-                variant="subtle"
-                color="blue"
-                component="a"
-                href={correctedPath}
-                target="_blank"
-              >
-                <IconEye size={16} />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Download">
-              <ActionIcon
-                variant="subtle"
-                color="green"
-                component="a"
-                href={correctedPath}
-                download={asset.original_name || asset.file_name}
-              >
-                <IconDownload size={16} />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Delete">
-              <ActionIcon
-                variant="subtle"
-                color="red"
-                onClick={() => handleDeleteAsset(asset)}
-                loading={deleteAssetMutation.isPending && deleteModal.asset?.id === asset.id}
-              >
-                <IconTrash size={16} />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
-        );
-      },
-    }),
-  ], [deleteAssetMutation.isPending, deleteModal.asset?.id, isImageFile]);
-
   if (error) {
     return (
       <Paper p="md">
@@ -329,44 +226,46 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     <>
       <Stack gap="md">
         {/* Search and Filters */}
-        <Group>
-          <TextInput
-            placeholder="Search assets..."
-            leftSection={<IconSearch size={16} />}
-            rightSection={
-              search ? (
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  onClick={() => setSearch('')}
-                  size="sm"
-                >
-                  <IconX size={14} />
-                </ActionIcon>
-              ) : null
-            }
-            value={search}
-            onChange={(e) => setSearch(e.currentTarget.value)}
-            style={{ flex: 1 }}
-          />
-          <Select
-            placeholder="Page size"
-            data={[
-              { value: '50', label: '50 per page' },
-              { value: '100', label: '100 per page' },
-              { value: '200', label: '200 per page' },
-              { value: '500', label: '500 per page' },
-            ]}
-            value={pageSize.toString()}
-            onChange={(value) => {
-              if (value) {
-                setPageSize(parseInt(value, 10));
-                setPage(1);
+        <Card withBorder p="md">
+          <Group gap="md" align="flex-end">
+            <TextInput
+              placeholder="Search assets..."
+              leftSection={<IconSearch size={16} />}
+              rightSection={
+                search ? (
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    onClick={() => setSearch('')}
+                    size="sm"
+                  >
+                    <IconX size={14} />
+                  </ActionIcon>
+                ) : null
               }
-            }}
-            w={150}
-          />
-        </Group>
+              value={search}
+              onChange={(e) => setSearch(e.currentTarget.value)}
+              style={{ flex: 1 }}
+            />
+            <Select
+              placeholder="Page size"
+              data={[
+                { value: '50', label: '50 per page' },
+                { value: '100', label: '100 per page' },
+                { value: '200', label: '200 per page' },
+                { value: '500', label: '500 per page' },
+              ]}
+              value={pageSize.toString()}
+              onChange={(value) => {
+                if (value) {
+                  setPageSize(Number.parseInt(value, 10));
+                  setPage(1);
+                }
+              }}
+              w={150}
+            />
+          </Group>
+        </Card>
 
         {/* Loading State */}
         {isLoading && (
@@ -415,14 +314,14 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
               </Card.Section>
 
               <Collapse expanded={isExpanded}>
-                <Card.Section>
-                  <Table striped highlightOnHover>
+                <Card.Section className={tableStyles.tableScrollContainer}>
+                  <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
                     <Table.Thead>
                       <Table.Tr>
-                        <Table.Th w={80}>ID</Table.Th>
-                        <Table.Th>File Name</Table.Th>
-                        <Table.Th w={120}>Folder</Table.Th>
-                        <Table.Th w={120}>Actions</Table.Th>
+                        <Table.Th w={80} className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>ID</span></Table.Th>
+                        <Table.Th className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>File Name</span></Table.Th>
+                        <Table.Th w={120} className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>Folder</span></Table.Th>
+                        <Table.Th w={120} className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>Actions</span></Table.Th>
                       </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
@@ -434,10 +333,10 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                             className={onAssetSelect ? 'cursor-pointer' : 'cursor-default'}
                             onClick={() => onAssetSelect?.(asset)}
                           >
-                            <Table.Td>
-                              <Text size="sm">{asset.id}</Text>
+                            <Table.Td className={tableStyles.tableCell}>
+                              <Text size="sm" c="dimmed">{asset.id}</Text>
                             </Table.Td>
-                            <Table.Td>
+                            <Table.Td className={tableStyles.tableCell}>
                               <Group gap="sm">
                                 {isImageFile(asset.file_name) && (
                                   <Image
@@ -460,17 +359,17 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                                 </div>
                               </Group>
                             </Table.Td>
-                            <Table.Td>
+                            <Table.Td className={tableStyles.tableCell}>
                               {asset.folder ? (
-                                <Badge variant="outline" size="sm">
+                                <Badge variant="light" color="gray" size="sm" radius="sm">
                                   {asset.folder}
                                 </Badge>
                               ) : (
                                 <Text size="sm" c="dimmed">Root</Text>
                               )}
                             </Table.Td>
-                            <Table.Td>
-                              <Group gap="xs" wrap="nowrap">
+                            <Table.Td className={tableStyles.tableCell}>
+                              <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
                                 <Tooltip label="View">
                                   <ActionIcon
                                     variant="subtle"

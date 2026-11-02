@@ -52,6 +52,24 @@ export function useScheduledJobsAll(filters: IScheduledJobFilters = {}) {
 }
 
 /**
+ * Hook to fetch the scheduled-job counts for the stat tiles.
+ *
+ * Intentionally takes no params: the backend scopes them to the jobs the
+ * caller can see, and they describe that whole visible set rather than the
+ * filtered result, so they must not refetch as filters change.
+ */
+export function useScheduledJobsStats() {
+    return useQuery({
+        queryKey: ['scheduledJobsStats'],
+        queryFn: () => AdminScheduledJobsApi.getScheduledJobsStats(),
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
+        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+    });
+}
+
+/**
  * Hook to fetch a specific scheduled job by ID
  */
 export function useScheduledJob(jobId: number, enabled: boolean = true) {
@@ -103,6 +121,7 @@ export function useExecuteScheduledJobMutation() {
             void queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
             void queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
             void queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobsStats'] });
         },
         onError: (error, jobId) => {
 
@@ -220,6 +239,7 @@ export function useRunDueJobsNowMutation() {
             void queryClient.invalidateQueries({ queryKey: ['scheduledJobRunnerStatus'] });
             void queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
             void queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] });
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobsStats'] });
         },
         onError: () => {
             notifications.show({
@@ -251,6 +271,7 @@ export function useDeleteScheduledJobMutation() {
             void queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
             void queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
             void queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
+            void queryClient.invalidateQueries({ queryKey: ['scheduledJobsStats'] });
         },
         onError: (error, jobId) => {
 

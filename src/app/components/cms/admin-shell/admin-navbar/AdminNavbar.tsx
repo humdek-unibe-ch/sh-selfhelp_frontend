@@ -8,12 +8,12 @@ import { useMemo, useState, useEffect } from 'react';
 import { ScrollArea, Group, Box, Accordion, ActionIcon, Tooltip, Text } from '@mantine/core';
 import {
     IconDashboard,
-    IconSettingsAutomation,
-    IconPhoto,
     IconSettings,
+    IconSettingsAutomation,
+    IconFileText,
+    IconPhoto,
     IconDatabase,
     IconPlayerPlay,
-    IconFileText,
     IconPlus,
     IconPuzzle,
     IconTransfer,
@@ -488,12 +488,11 @@ export function AdminNavbar() {
 
     return (
         <nav className={classes.navbar}>
-            {/* Compact header: brand + preview toggle on one row, search below */}
+            {/* Header: brand, then the preview-toggle control strip, then search. */}
             <Box className={classes.header}>
-                <Group justify="space-between" align="center" wrap="nowrap" mb="sm">
-                    <SelfHelpLogo variant="compact" />
-                    <PreviewModeToggle showLabel={false} />
-                </Group>
+                <SelfHelpLogo variant="compact" />
+
+                <PreviewModeToggle />
 
                 <NavigationSearch
                     adminPagesData={adminPagesData}

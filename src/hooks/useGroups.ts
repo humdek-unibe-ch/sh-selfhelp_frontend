@@ -23,6 +23,7 @@ const GROUPS_QUERY_KEYS = {
   details: () => [...GROUPS_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: number) => [...GROUPS_QUERY_KEYS.details(), id] as const,
   acls: (id: number) => [...GROUPS_QUERY_KEYS.all, 'acls', id] as const,
+  members: (id: number) => [...GROUPS_QUERY_KEYS.all, 'members', id] as const,
 };
 
 // Get paginated groups
@@ -39,6 +40,17 @@ export function useGroupDetails(groupId: number) {
   return useQuery({
     queryKey: GROUPS_QUERY_KEYS.detail(groupId),
     queryFn: () => AdminGroupApi.getGroupById(groupId),
+    enabled: !!groupId,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+  });
+}
+
+// List a group's members. Enabled only when a group is selected so the
+// "View members" modal fetches lazily on open, not on every list render.
+export function useGroupMembers(groupId: number | null) {
+  return useQuery({
+    queryKey: GROUPS_QUERY_KEYS.members(groupId ?? 0),
+    queryFn: () => AdminGroupApi.getGroupMembers(groupId as number),
     enabled: !!groupId,
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
   });

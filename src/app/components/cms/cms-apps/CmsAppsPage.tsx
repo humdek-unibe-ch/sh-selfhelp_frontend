@@ -15,16 +15,18 @@ import {
     Badge,
     Anchor,
     Alert,
-    Paper,
+    Box,
     ActionIcon,
     Tooltip,
 } from '@mantine/core';
-import { IconPlus, IconApps, IconExternalLink, IconTrash, IconEye } from '@tabler/icons-react';
+import { IconPlus, IconExternalLink, IconTrash, IconEye } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useCmsAppsQuery } from '../../../../hooks/useCmsApps';
 import { useAuth } from '../../../../hooks/useAuth';
 import { CreateCmsAppModal } from './CreateCmsAppModal';
 import { DeleteCmsAppModal } from './DeleteCmsAppModal';
+import { EmptyState } from '../../shared/common/EmptyState';
+import { adminTableClasses as tableStyles } from '../shared/admin-table';
 
 export function CmsAppsPage() {
     const { permissionChecker } = useAuth();
@@ -63,48 +65,31 @@ export function CmsAppsPage() {
                 )}
             </Group>
 
-            <Paper withBorder>
-                <Table striped highlightOnHover>
-                    <Table.Thead>
-                        <Table.Tr>
-                            <Table.Th>Name</Table.Th>
-                            <Table.Th>Slug</Table.Th>
-                            <Table.Th>Pages</Table.Th>
-                            <Table.Th>Manage content</Table.Th>
-                            <Table.Th w={110}>Actions</Table.Th>
-                        </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                        {isLoading ? (
+            <div className={tableStyles.tableWrapper}>
+                <Box className={tableStyles.tableScrollContainer}>
+                    <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
+                        <Table.Thead>
                             <Table.Tr>
-                                <Table.Td colSpan={5}>
-                                    <Text size="sm" c="dimmed">Loading…</Text>
-                                </Table.Td>
+                                <Table.Th className={tableStyles.tableHeader}>Name</Table.Th>
+                                <Table.Th className={tableStyles.tableHeader}>Slug</Table.Th>
+                                <Table.Th className={tableStyles.tableHeader}>Pages</Table.Th>
+                                <Table.Th className={tableStyles.tableHeader}>Manage content</Table.Th>
+                                <Table.Th className={tableStyles.tableHeader} w={110}>Actions</Table.Th>
                             </Table.Tr>
-                        ) : apps.length === 0 ? (
-                            <Table.Tr>
-                                <Table.Td colSpan={5}>
-                                    <Group gap="xs" p="md">
-                                        <IconApps size="1rem" />
-                                        <Text size="sm" c="dimmed">
-                                            No CMS apps yet. Create an empty shell, then scaffold or import a template.
-                                        </Text>
-                                    </Group>
-                                </Table.Td>
-                            </Table.Tr>
-                        ) : (
-                            apps.map((app) => (
+                        </Table.Thead>
+                        <Table.Tbody>
+                            {apps.map((app) => (
                                 <Table.Tr key={app.id}>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         <Anchor component={Link} href={`/admin/cms-apps/${app.slug}`} fw={500}>
                                             {app.name}
                                         </Anchor>
                                     </Table.Td>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         <Badge variant="light">{app.slug}</Badge>
                                     </Table.Td>
-                                    <Table.Td>{app.page_count}</Table.Td>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>{app.page_count}</Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         {app.cms_list_keyword || app.id_cms_list_page ? (
                                             <Anchor
                                                 component={Link}
@@ -120,8 +105,8 @@ export function CmsAppsPage() {
                                             <Text size="sm" c="dimmed">—</Text>
                                         )}
                                     </Table.Td>
-                                    <Table.Td>
-                                        <Group gap={4} wrap="nowrap">
+                                    <Table.Td className={tableStyles.tableCell}>
+                                        <Group gap={2} wrap="nowrap" justify="flex-end" className={tableStyles.actionsCell}>
                                             {app.public_list_keyword && (
                                                 <Tooltip label="Live preview (public list)">
                                                     <ActionIcon
@@ -129,6 +114,8 @@ export function CmsAppsPage() {
                                                         href={`/admin/preview/${app.public_list_keyword}`}
                                                         target="_blank"
                                                         variant="subtle"
+                                                        color="gray"
+                                                        size="sm"
                                                         aria-label={`Live preview ${app.name}`}
                                                     >
                                                         <IconEye size="1rem" />
@@ -140,6 +127,7 @@ export function CmsAppsPage() {
                                                     <ActionIcon
                                                         color="red"
                                                         variant="subtle"
+                                                        size="sm"
                                                         aria-label={`Delete app ${app.name}`}
                                                         onClick={() =>
                                                             setDeleteTarget({
@@ -156,11 +144,21 @@ export function CmsAppsPage() {
                                         </Group>
                                     </Table.Td>
                                 </Table.Tr>
-                            ))
-                        )}
-                    </Table.Tbody>
-                </Table>
-            </Paper>
+                            ))}
+                        </Table.Tbody>
+                    </Table>
+                </Box>
+
+                {/* Empty / loading state — below the header row. */}
+                {isLoading ? (
+                    <Text size="sm" c="dimmed" ta="center" py="md">Loading…</Text>
+                ) : apps.length === 0 ? (
+                    <EmptyState
+                        title="No CMS apps yet"
+                        description="Create an empty shell, then scaffold or import a template."
+                    />
+                ) : null}
+            </div>
 
             <CreateCmsAppModal opened={createOpen} onClose={() => setCreateOpen(false)} />
             {deleteTarget && (

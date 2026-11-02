@@ -5,12 +5,15 @@ SPDX-License-Identifier: MPL-2.0
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
-import type { 
-  IUsersListResponse, 
-  IUsersListParams, 
+import type {
+  IUsersListResponse,
+  IUsersListParams,
   IUserDetails,
   IUserGroup,
-  IUserRole
+  IUserRole,
+  IUsersStats,
+  IBulkOperationResult,
+  IUsersImportResult
 } from '../../types/responses/admin/users.types';
 import type {
   ICreateUserRequest,
@@ -18,6 +21,8 @@ import type {
   IToggleUserBlockRequest,
   IUserGroupsRequest,
   IUserRolesRequest,
+  IBulkUserIdsRequest,
+  IBulkGroupMembershipRequest,
   IImpersonateUserResponse,
   IStopImpersonateResponse
 } from '../../types/requests/admin/users.types';
@@ -32,12 +37,119 @@ export const AdminUserApi = {
     if (params.page) searchParams.append('page', params.page.toString());
     if (params.pageSize) searchParams.append('pageSize', params.pageSize.toString());
     if (params.search) searchParams.append('search', params.search);
+    if (params.status) searchParams.append('status', params.status);
+    if (params.id_groups) searchParams.append('id_groups', params.id_groups.toString());
     if (params.sort) searchParams.append('sort', params.sort);
     if (params.sortDirection) searchParams.append('sortDirection', params.sortDirection);
 
     const response = await permissionAwareApiClient.get<IBaseApiResponse<IUsersListResponse>>(
       API_CONFIG.ENDPOINTS.ADMIN_USERS_GET_ALL,
       { params: Object.fromEntries(searchParams) }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get the user counts backing the stat tiles.
+   *
+   * Scoped server-side to the users the caller can see, and deliberately
+   * unfiltered: they describe that whole visible set, not the current
+   * search/filter result, so the tiles stay stable while filtering.
+   */
+  async getUsersStats(): Promise<IUsersStats> {
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IUsersStats>>(
+      API_CONFIG.ENDPOINTS.ADMIN_USERS_STATS
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Delete one or more users. A single delete is a one-element array.
+   */
+  async bulkDeleteUsers(data: IBulkUserIdsRequest): Promise<IBulkOperationResult> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<IBulkOperationResult>>(
+      API_CONFIG.ENDPOINTS.ADMIN_USERS_BULK_DELETE,
+      data
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Add one or more users to one or more groups.
+   */
+  async bulkAddUsersToGroup(data: IBulkGroupMembershipRequest): Promise<IBulkOperationResult> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<IBulkOperationResult>>(
+      API_CONFIG.ENDPOINTS.ADMIN_USERS_BULK_ADD_TO_GROUP,
+      data
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Remove one or more users from one or more groups.
+   */
+  async bulkRemoveUsersFromGroup(
+    data: IBulkGroupMembershipRequest
+  ): Promise<IBulkOperationResult> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<IBulkOperationResult>>(
+      API_CONFIG.ENDPOINTS.ADMIN_USERS_BULK_REMOVE_FROM_GROUP,
+      data
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Send activation mail to one or more users.
+   */
+  async bulkSendActivation(data: IBulkUserIdsRequest): Promise<IBulkOperationResult> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<IBulkOperationResult>>(
+      API_CONFIG.ENDPOINTS.ADMIN_USERS_BULK_SEND_ACTIVATION,
+      data
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Export users as CSV, honouring the current filters. Returns the raw file
+   * blob plus the server's filename — this endpoint is not JSON-enveloped.
+   *
+   * The backend names the file (`users_<timestamp>.csv`) and sends it in
+   * `Content-Disposition`; we use that rather than inventing our own so the
+   * export matches every other CSV the CMS produces.
+   */
+  async exportUsersCsv(
+    params: IUsersListParams = {}
+  ): Promise<{ blob: Blob; filename: string | null }> {
+    const query: Record<string, string> = {};
+    if (params.search) query['search'] = params.search;
+    if (params.status) query['status'] = params.status;
+    if (params.id_groups) query['id_groups'] = params.id_groups.toString();
+
+    const response = await permissionAwareApiClient.get<Blob>(
+      API_CONFIG.ENDPOINTS.ADMIN_USERS_EXPORT_CSV,
+      { params: query, responseType: 'blob' }
+    );
+
+    const disposition = response.headers['content-disposition'];
+    const match =
+      typeof disposition === 'string'
+        ? /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition)
+        : null;
+
+    return { blob: response.data, filename: match ? decodeURIComponent(match[1]) : null };
+  },
+
+  /**
+   * Import users from a CSV file.
+   */
+  async importUsersCsv(file: File): Promise<IUsersImportResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<IUsersImportResult>>(
+      API_CONFIG.ENDPOINTS.ADMIN_USERS_IMPORT_CSV,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
     );
     return response.data.data;
   },

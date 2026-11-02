@@ -34,20 +34,17 @@ import {
     NumberInput,
     Select,
     MultiSelect,
-    Pagination,
     Box} from '@mantine/core';
 
 import {
     IconSearch,
     IconX,
-    IconSortAscending,
-    IconSortDescending,
     IconDownload,
     IconSparkles,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { downloadBlobFile, generateExportFilename } from '../../../../utils/export-import.utils';
-import { useRegistrationCodes, useExportRegistrationCodes, useGenerateRegistrationCodes } from '../../../../hooks/useRegistrationCodes';
+import { useRegistrationCodes, useRegistrationCodesStats, useExportRegistrationCodes, useGenerateRegistrationCodes } from '../../../../hooks/useRegistrationCodes';
 import { useGroups } from '../../../../hooks/useGroups';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCanReadRegistrationCodes, useCanCreateRegistrationCodes } from '../../../../hooks/usePermissionChecks';
@@ -56,6 +53,8 @@ import { PageHeader } from '../../shared/common/PageHeader';
 import { EmptyState } from '../../shared/common/EmptyState';
 import { FilterActions } from '../../shared/common/FilterControls';
 import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../shared/admin-table';
+import { RegistrationCodesStatsTiles } from './RegistrationCodesStatsTiles';
 import type { IRegistrationCode, IRegistrationCodesListParams } from '../../../../types/responses/admin/registration-codes.types';
 
 /**
@@ -106,6 +105,7 @@ export function RegistrationCodesPage() {
     const [params, setParams] = useState<IRegistrationCodesListParams>(DEFAULT_PARAMS);
 
     const { data, isFetching, error, refetch } = useRegistrationCodes(params);
+    const { data: statsData, isLoading: isLoadingStats, isError: isStatsError } = useRegistrationCodesStats();
 
     const generateMin = data?.config?.generate_min ?? 1;
     const generateMax = data?.config?.generate_max ?? 10000;
@@ -206,22 +206,23 @@ export function RegistrationCodesPage() {
     const columns = useMemo<ColumnDef<IRegistrationCode>[]>(() => [
         {
             accessorKey: 'code',
-            header: 'Code',
+            header: () => <span className={tableStyles.colHeader}>Code</span>,
             cell: ({ row }) => (
-                <Text size="sm" ff="monospace" fw={500}>{row.original.code}</Text>
+                <span className={tableStyles.monoCell}>{row.original.code}</span>
             ),
         },
         {
             accessorKey: 'group_name',
-            header: 'Groups',
+            header: () => <span className={tableStyles.colHeader}>Groups</span>,
             cell: ({ row }) => {
                 const names = row.original.group_names?.length
                     ? row.original.group_names
                     : (row.original.group_name ? [row.original.group_name] : []);
+                if (names.length === 0) return <Text size="xs" c="dimmed">—</Text>;
                 return (
-                    <Group gap={4}>
+                    <Group gap={4} wrap="wrap">
                         {names.map((name, i) => (
-                            <Badge key={`${row.original.code}-${name}-${i}`} variant="light" color="blue">{name}</Badge>
+                            <Badge key={`${row.original.code}-${name}-${i}`} variant="light" color="blue" size="sm" radius="sm">{name}</Badge>
                         ))}
                     </Group>
                 );
@@ -229,23 +230,16 @@ export function RegistrationCodesPage() {
         },
         {
             accessorKey: 'is_consumed',
-            header: 'Status',
+            header: () => <span className={tableStyles.colHeader}>Status</span>,
             cell: ({ row }) => (
-                <Badge variant="light" color={row.original.is_consumed ? 'gray' : 'green'}>
+                <Badge variant="light" color={row.original.is_consumed ? 'gray' : 'green'} size="sm" radius="sm">
                     {row.original.is_consumed ? 'Used' : 'Available'}
                 </Badge>
             ),
         },
         {
             accessorKey: 'created_at',
-            header: ({ column }) => (
-                <Group gap="xs">
-                    <Text fw={500}>Created</Text>
-                    <ActionIcon variant="transparent" size="xs" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                        {column.getIsSorted() === 'asc' ? <IconSortAscending size={14} /> : column.getIsSorted() === 'desc' ? <IconSortDescending size={14} /> : <IconSortAscending size={14} opacity={0.5} />}
-                    </ActionIcon>
-                </Group>
-            ),
+            header: ({ column }) => <SortHeader label="Created" column={column} />,
             cell: ({ row }) => (
                 <Text size="sm" c="dimmed">{formatTimestamp(row.original.created_at)}</Text>
             ),
@@ -253,24 +247,17 @@ export function RegistrationCodesPage() {
         },
         {
             accessorKey: 'consumed_at',
-            header: ({ column }) => (
-                <Group gap="xs">
-                    <Text fw={500}>Consumed</Text>
-                    <ActionIcon variant="transparent" size="xs" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                        {column.getIsSorted() === 'asc' ? <IconSortAscending size={14} /> : column.getIsSorted() === 'desc' ? <IconSortDescending size={14} /> : <IconSortAscending size={14} opacity={0.5} />}
-                    </ActionIcon>
-                </Group>
-            ),
+            header: ({ column }) => <SortHeader label="Consumed" column={column} />,
             cell: ({ row }) => (
                 row.original.consumed_at
                     ? <Text size="sm" c="dimmed">{formatTimestamp(row.original.consumed_at)}</Text>
-                    : null
+                    : <Text size="sm" c="dimmed">—</Text>
             ),
             enableSorting: true,
         },
         {
             accessorKey: 'user_email',
-            header: 'Registered User',
+            header: () => <span className={tableStyles.colHeader}>Registered User</span>,
             cell: ({ row }) => (
                 row.original.user_email
                     ? <Text size="sm">{row.original.user_email}</Text>
@@ -314,6 +301,8 @@ export function RegistrationCodesPage() {
                     <PageHeader
                         title="Registration Codes"
                         subtitle="Manage invitation codes required for user registration when open registration is disabled"
+                        badge={data?.pagination.totalCount ?? 0}
+                        badgeAriaLabel="codes"
                     >
                         {canReadRegistrationCodes && (
                             <Button
@@ -334,6 +323,13 @@ export function RegistrationCodesPage() {
                             </Button>
                         )}
                     </PageHeader>
+
+                    <RegistrationCodesStatsTiles
+                        stats={statsData}
+                        isLoading={isLoadingStats}
+                        isError={isStatsError}
+                        activeStatus={params.status ?? 'all'}
+                    />
 
                     {/* Filters */}
                     <Card withBorder p="md">
@@ -373,8 +369,10 @@ export function RegistrationCodesPage() {
                                     clearable
                                     w={150}
                                 />
+                            </Group>
+                            <Group justify="flex-end" gap="md" align="flex-end">
                                 <Select
-                                    placeholder="Per page"
+                                    label="Rows per page"
                                     value={filterParams.pageSize?.toString() ?? '20'}
                                     onChange={handlePageSizeChange}
                                     data={[
@@ -383,10 +381,11 @@ export function RegistrationCodesPage() {
                                         { value: '50', label: '50' },
                                         { value: '100', label: '100' },
                                     ]}
-                                    w={100}
+                                    withCheckIcon={false}
+                                    allowDeselect={false}
+                                    w={110}
                                 />
-                            </Group>
-                            <Group justify="flex-end">
+
                                 <FilterActions
                                     onApply={handleApplyFilters}
                                     onReset={handleResetFilters}
@@ -399,16 +398,16 @@ export function RegistrationCodesPage() {
                     </Card>
 
                     {/* Table */}
-                    <div style={{ position: 'relative' }}>
+                    <div className={tableStyles.tableWrapper}>
                         <LoadingOverlay visible={isFetching} />
 
-                        <Box style={{ overflowX: 'auto' }}>
-                            <Table striped highlightOnHover>
+                        <Box className={tableStyles.tableScrollContainer}>
+                            <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
                                 <TableThead>
                                     {table.getHeaderGroups().map(headerGroup => (
                                         <TableTr key={headerGroup.id}>
                                             {headerGroup.headers.map(header => (
-                                                <TableTh key={header.id}>
+                                                <TableTh key={header.id} className={tableStyles.tableHeader}>
                                                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                                 </TableTh>
                                             ))}
@@ -419,7 +418,7 @@ export function RegistrationCodesPage() {
                                     {table.getRowModel().rows.map(row => (
                                         <TableTr key={row.id}>
                                             {row.getVisibleCells().map(cell => (
-                                                <TableTd key={cell.id}>
+                                                <TableTd key={cell.id} className={tableStyles.tableCell}>
                                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                 </TableTd>
                                             ))}
@@ -439,24 +438,21 @@ export function RegistrationCodesPage() {
                                 }
                             />
                         )}
-                    </div>
 
-                    {/* Pagination */}
-                    {data?.pagination && data.pagination.totalPages > 1 && (
-                        <Group justify="space-between">
-                            <Text size="sm" c="dimmed">
-                                Showing {(data.pagination.page - 1) * data.pagination.pageSize + 1} to{' '}
-                                {Math.min(data.pagination.page * data.pagination.pageSize, data.pagination.totalCount)} of{' '}
-                                {data.pagination.totalCount} codes
-                            </Text>
-                            <Pagination
-                                value={data.pagination.page}
-                                onChange={handlePageChange}
-                                total={data.pagination.totalPages}
-                                size="sm"
+                        {/* Footer — always visible when data is loaded. */}
+                        {data?.pagination && (
+                            <AdminTableFooter
+                                totalCount={data.pagination.totalCount}
+                                itemLabel="codes"
+                                pagination={{
+                                    page: data.pagination.page,
+                                    pageSize: data.pagination.pageSize,
+                                    totalPages: data.pagination.totalPages,
+                                    onPageChange: handlePageChange,
+                                }}
                             />
-                        </Group>
-                    )}
+                        )}
+                    </div>
                 </Stack>
             </Card>
 

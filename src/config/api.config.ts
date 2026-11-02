@@ -409,6 +409,34 @@ export const API_CONFIG = {
             route: (userId: number) => `/admin/users/${userId}`,
             permissions: [PERMISSIONS.ADMIN_USER_READ]
         },
+        ADMIN_USERS_STATS: {
+            route: '/admin/users/stats',
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_BULK_DELETE: {
+            route: '/admin/users/bulk-delete',
+            permissions: [PERMISSIONS.ADMIN_USER_DELETE]
+        },
+        ADMIN_USERS_BULK_ADD_TO_GROUP: {
+            route: '/admin/users/bulk-add-to-group',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_BULK_REMOVE_FROM_GROUP: {
+            route: '/admin/users/bulk-remove-from-group',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_BULK_SEND_ACTIVATION: {
+            route: '/admin/users/bulk-send-activation',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_EXPORT_CSV: {
+            route: '/admin/users/export',
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_IMPORT_CSV: {
+            route: '/admin/users/import',
+            permissions: [PERMISSIONS.ADMIN_USER_CREATE]
+        },
         ADMIN_USERS_CREATE: {
             route: '/admin/users',
             permissions: [PERMISSIONS.ADMIN_USER_CREATE]
@@ -493,6 +521,10 @@ export const API_CONFIG = {
             route: (groupId: number) => `/admin/groups/${groupId}`,
             permissions: [PERMISSIONS.ADMIN_GROUP_DELETE]
         },
+        ADMIN_GROUPS_MEMBERS_GET: {
+            route: (groupId: number) => `/admin/groups/${groupId}/users`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_READ]
+        },
         ADMIN_GROUPS_ACLS_GET: {
             route: (groupId: number) => `/admin/groups/${groupId}/acls`,
             permissions: [PERMISSIONS.ADMIN_GROUP_READ]
@@ -509,6 +541,10 @@ export const API_CONFIG = {
         },
         ADMIN_ROLES_GET_ONE: {
             route: (roleId: number) => `/admin/roles/${roleId}`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
+        },
+        ADMIN_ROLES_MEMBERS_GET: {
+            route: (roleId: number) => `/admin/roles/${roleId}/users`,
             permissions: [PERMISSIONS.ADMIN_ROLE_READ]
         },
         ADMIN_ROLES_CREATE: {
@@ -581,6 +617,10 @@ export const API_CONFIG = {
         // Admin scheduled jobs endpoints
         ADMIN_SCHEDULED_JOBS_GET_ALL: {
             route: '/admin/scheduled-jobs',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
+        ADMIN_SCHEDULED_JOBS_STATS: {
+            route: '/admin/scheduled-jobs/stats',
             permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
         },
         ADMIN_SCHEDULED_JOBS_GET_ONE: {
@@ -980,6 +1020,10 @@ export const API_CONFIG = {
         },
         ADMIN_REGISTRATION_CODES_EXPORT: {
             route: '/admin/registration-codes/export',
+            permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]
+        },
+        ADMIN_REGISTRATION_CODES_STATS: {
+            route: '/admin/registration-codes/stats',
             permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]
         },
         // Admin audit management endpoints

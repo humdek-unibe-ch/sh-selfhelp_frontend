@@ -37,6 +37,7 @@ import { type IMoveData } from './PageSections';
 import { calculateDragDropPosition, calculateContainerDropPosition } from '../../../../../utils/position-calculator';
 import { type IStyleGroup } from '../../../../../types/responses/admin/styles.types';
 import { isStyleRelationshipValid, findStyleById } from '../../../../../utils/style-relationship.utils';
+import { getStyleVisual } from '../../../../../utils/style-visuals';
 import styles from './SectionsList.module.css';
 
 // Pure recursive lookup (no component scope) — kept at module level so it has a
@@ -650,9 +651,24 @@ const SectionItem = memo(function SectionItem({
         return classes.join(' ');
     };
 
+    // Top-level enclosing card carries the section's own UNIQUE style hue so its
+    // border/accent match the row inside it. The card CSS derives the accent
+    // colour from `--section-hue` (fixed S/L, theme-aware) — same model as the row.
+    const cardAccentStyle =
+        level === 0
+            ? ({
+                  '--section-hue': getStyleVisual(section.style_name, canHaveChildren).hue,
+              } as React.CSSProperties)
+            : undefined;
+
     return (
         <Box
-            className={getWrapperClasses()}
+            style={cardAccentStyle}
+            className={`${getWrapperClasses()} ${
+                level === 0
+                    ? `${styles.topLevelCard} ${selectedSectionId === section.id ? styles.topLevelCardSelected : ''}`
+                    : ''
+            }`}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
         >
@@ -715,7 +731,7 @@ const SectionItem = memo(function SectionItem({
 
             {/* Render children if expanded */}
             {isExpanded && hasChildren && (
-                <Box className={`${styles.childrenContainer} ${styles[`level${level}`] || styles.level0}`}>
+                <Box className={styles.childrenContainer}>
                     {section.children.map((child, childIndex) => (
                         <SectionItem
                             key={`section-${child.id}-${child.position || childIndex}`}

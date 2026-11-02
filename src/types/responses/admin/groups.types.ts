@@ -45,4 +45,8 @@ export interface IGroupsListParams {
   search?: string;
   sort?: 'name' | 'description' | 'members_count' | 'created_at' | 'updated_at';
   sortDirection?: 'asc' | 'desc';
-} 
+}
+
+/** A user who belongs to a group, as listed by "View members". Shared with
+ *  roles via `IMemberUser` — same shape from every `.../users` endpoint. */
+export type { IMemberUser as IGroupMember } from './admin.types';
