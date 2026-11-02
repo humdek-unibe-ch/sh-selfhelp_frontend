@@ -15,6 +15,7 @@ import {
     Badge,
     Anchor,
     Alert,
+    Box,
     Select,
     TextInput,
     Paper,
@@ -43,6 +44,7 @@ import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { useAuth } from '../../../../hooks/useAuth';
 import { CMS_APP_ROLES, type TCmsAppRole } from '../../../../types/requests/admin/cms-app.types';
 import { ScaffoldCmsAppModal } from './ScaffoldCmsAppModal';
+import { adminTableClasses as tableStyles } from '../shared/admin-table';
 import { DeleteCmsAppModal } from './DeleteCmsAppModal';
 
 interface ICmsAppDetailPageProps {
@@ -259,27 +261,29 @@ export function CmsAppDetailPage({ slug }: ICmsAppDetailPageProps) {
                             <Text size="sm" c="dimmed">Empty — scaffold or assign pages below.</Text>
                         )}
                     </Group>
-                    <Table withTableBorder>
+                    <div className={tableStyles.tableWrapper}>
+                      <Box className={tableStyles.tableScrollContainer}>
+                        <Table verticalSpacing="sm" horizontalSpacing="md">
                         <Table.Thead>
                             <Table.Tr>
-                                <Table.Th>Keyword</Table.Th>
-                                <Table.Th>URL</Table.Th>
-                                <Table.Th>Role</Table.Th>
-                                <Table.Th />
+                                <Table.Th className={tableStyles.tableHeader}>Keyword</Table.Th>
+                                <Table.Th className={tableStyles.tableHeader}>URL</Table.Th>
+                                <Table.Th className={tableStyles.tableHeader}>Role</Table.Th>
+                                <Table.Th className={tableStyles.tableHeader} />
                             </Table.Tr>
                         </Table.Thead>
                         <Table.Tbody>
                             {app.pages.map((page) => (
                                 <Table.Tr key={page.page_id}>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         <Anchor component={Link} href={`/admin/pages/${page.keyword}`}>
                                             {page.keyword}
                                         </Anchor>
                                     </Table.Td>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         <Code>{page.url ?? '—'}</Code>
                                     </Table.Td>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         {canUpdate ? (
                                             <Select
                                                 data={ROLE_OPTIONS}
@@ -298,7 +302,7 @@ export function CmsAppDetailPage({ slug }: ICmsAppDetailPageProps) {
                                             <Badge>{page.cms_app_role}</Badge>
                                         )}
                                     </Table.Td>
-                                    <Table.Td>
+                                    <Table.Td className={tableStyles.tableCell}>
                                         {canUpdate && (
                                             <Button
                                                 size="compact-xs"
@@ -318,7 +322,9 @@ export function CmsAppDetailPage({ slug }: ICmsAppDetailPageProps) {
                                 </Table.Tr>
                             ))}
                         </Table.Tbody>
-                    </Table>
+                        </Table>
+                      </Box>
+                    </div>
 
                     {canUpdate && (
                         <Group align="flex-end" grow>

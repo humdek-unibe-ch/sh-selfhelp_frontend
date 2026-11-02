@@ -22,10 +22,10 @@ import {
   TableTr,
 
   Card,
+  Checkbox,
   Group,
   TextInput,
   Select,
-  Pagination,
   Badge,
   ActionIcon,
   Tooltip,
@@ -40,23 +40,44 @@ import {
   IconSearch,
   IconEdit,
   IconTrash,
+  IconEraser,
   IconLock,
   IconLockOpen,
   IconMail,
   IconUserCheck,
   IconDots,
   IconPlus,
-  IconSortAscending,
-  IconSortDescending,
+  IconFileExport,
+  IconFileImport,
   IconX,
 } from '@tabler/icons-react';
-import { useUsers } from '../../../../../hooks/useUsers';
-import type { IUserBasic, IUsersListParams } from '../../../../../types/responses/admin/users.types';
+import {
+  useUsers,
+  useUsersStats,
+  useBulkAddUsersToGroup,
+  useBulkRemoveUsersFromGroup,
+  useBulkSendActivation,
+  useBulkDeleteUsers,
+  useExportUsersCsv,
+  useImportUsersCsv,
+} from '../../../../../hooks/useUsers';
+import { useGroups } from '../../../../../hooks/useGroups';
+import type {
+  IUserBasic,
+  IUsersListParams,
+  TUserStatusFilter,
+} from '../../../../../types/responses/admin/users.types';
 import { getUserStatusColor } from '../../../../../utils/status-color.utils';
 import classes from './UsersList.module.css';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { FilterActions } from '../../../shared/common/FilterControls';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { UsersStatsTiles } from './UsersStatsTiles';
+import { UsersBulkActionsBar } from './UsersBulkActionsBar';
+import { BulkGroupMembershipModal } from './BulkGroupMembershipModal';
+import { BulkDeleteUsersModal } from './BulkDeleteUsersModal';
+import { ImportUsersCsvModal } from './ImportUsersCsvModal';
 
 interface IUsersListProps {
   onCreateUser?: () => void;
@@ -65,6 +86,7 @@ interface IUsersListProps {
   onToggleBlock?: (userId: number, blocked: boolean) => void;
   onSendActivationMail?: (userId: number) => void;
   onImpersonateUser?: (userId: number) => void;
+  onCleanUserData?: (userId: number, email: string) => void;
   permissions?: {
     canCreate?: boolean;
     canUpdate?: boolean;
@@ -82,6 +104,7 @@ export function UsersList({
   onToggleBlock,
   onSendActivationMail,
   onImpersonateUser,
+  onCleanUserData,
   permissions = {},
 }: IUsersListProps) {
   // Filter form state (what user is editing)
@@ -96,8 +119,38 @@ export function UsersList({
   // Applied params (what is sent to the API)
   const [params, setParams] = useState<IUsersListParams>(filterParams);
 
+  // Row selection for the bulk actions, keyed by user id.
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  // Bulk / CSV modals. `groupMode` doubles as the open flag for the group
+  // membership modal: null closed, otherwise the direction it operates in.
+  const [groupMode, setGroupMode] = useState<'add' | 'remove' | null>(null);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+
   // Fetch users data
   const { data: usersData, isFetching, error, refetch } = useUsers(params);
+  const {
+    data: statsData,
+    isLoading: isLoadingStats,
+    isError: isStatsError,
+  } = useUsersStats();
+
+  // Groups drive the Group filter dropdown.
+  const { data: groupsData } = useGroups({ pageSize: 100 });
+
+  const bulkAddToGroup = useBulkAddUsersToGroup();
+  const bulkRemoveFromGroup = useBulkRemoveUsersFromGroup();
+  const bulkSendActivation = useBulkSendActivation();
+  const bulkDelete = useBulkDeleteUsers();
+  const exportCsv = useExportUsersCsv();
+  const importCsv = useImportUsersCsv();
+
+  const isBulkBusy =
+    bulkAddToGroup.isPending ||
+    bulkRemoveFromGroup.isPending ||
+    bulkSendActivation.isPending ||
+    bulkDelete.isPending;
 
   // Table sorting state
   const [sorting, setSorting] = useState<SortingState>([
@@ -145,8 +198,10 @@ export function UsersList({
     }));
   }, []);
 
-  // Handle page change
+  // Handle page change. Selection is per-page, so leaving the page drops it —
+  // acting on ids that are no longer on screen is not what the count implies.
   const handlePageChange = useCallback((page: number) => {
+    setSelectedIds(new Set());
     setParams((prev) => ({ ...prev, page }));
   }, []);
 
@@ -176,36 +231,100 @@ export function UsersList({
 
   // Apply filters
   const handleApplyFilters = useCallback(() => {
+    setSelectedIds(new Set());
     setParams({ ...filterParams, page: 1 });
   }, [filterParams]);
+
+  const handleSelectAll = useCallback((checked: boolean) => {
+    setSelectedIds(checked ? new Set((usersData?.users ?? []).map((u) => u.id)) : new Set());
+  }, [usersData]);
+
+  const handleToggleRow = useCallback((userId: number, checked: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(userId);
+      } else {
+        next.delete(userId);
+      }
+      return next;
+    });
+  }, []);
+
+  const selectedUsers = useMemo(
+    () => (usersData?.users ?? []).filter((u) => selectedIds.has(u.id)),
+    [usersData, selectedIds],
+  );
+
+  const handleBulkGroupMembership = useCallback(
+    (groupIds: number[]) => {
+      const mutation = groupMode === 'remove' ? bulkRemoveFromGroup : bulkAddToGroup;
+      mutation.mutate(
+        { userIds: [...selectedIds], groupIds },
+        {
+          onSuccess: () => {
+            setGroupMode(null);
+            setSelectedIds(new Set());
+          },
+        },
+      );
+    },
+    [groupMode, bulkAddToGroup, bulkRemoveFromGroup, selectedIds],
+  );
+
+  const handleBulkSendActivation = useCallback(() => {
+    bulkSendActivation.mutate([...selectedIds], {
+      onSuccess: () => setSelectedIds(new Set()),
+    });
+  }, [bulkSendActivation, selectedIds]);
+
+  const handleBulkDelete = useCallback(() => {
+    bulkDelete.mutate([...selectedIds], {
+      onSuccess: () => {
+        setBulkDeleteOpen(false);
+        setSelectedIds(new Set());
+      },
+    });
+  }, [bulkDelete, selectedIds]);
+
+  const handleImportCsv = useCallback(
+    (file: File) => {
+      importCsv.mutate(file, { onSuccess: () => setImportOpen(false) });
+    },
+    [importCsv],
+  );
+
+  const rows = usersData?.users ?? [];
+  const allSelected = rows.length > 0 && rows.every((u) => selectedIds.has(u.id));
+  const someSelected = rows.some((u) => selectedIds.has(u.id));
 
   // Define table columns
   const columns = useMemo<ColumnDef<IUserBasic>[]>(
     () => [
       {
-        accessorKey: "id",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>ID</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
+        id: "select",
+        header: () => (
+          <Checkbox
+            aria-label="Select all users on this page"
+            checked={allSelected}
+            indeterminate={someSelected && !allSelected}
+            onChange={(e) => handleSelectAll(e.currentTarget.checked)}
+          />
         ),
         cell: ({ row }) => (
-          <Text size="sm" fw={500}>
+          <Checkbox
+            aria-label={`Select ${row.original.email}`}
+            checked={selectedIds.has(row.original.id)}
+            onChange={(e) => handleToggleRow(row.original.id, e.currentTarget.checked)}
+          />
+        ),
+        enableSorting: false,
+      },
+      {
+        accessorKey: "id",
+        header: ({ column }) => <SortHeader label="ID" column={column} />,
+        cell: ({ row }) => (
+          <Text size="sm" c="dimmed">
             {row.original.id}
           </Text>
         ),
@@ -213,85 +332,49 @@ export function UsersList({
       },
       {
         accessorKey: "email",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Email</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
-        cell: ({ row }) => (
-          <div className={classes.emailCell}>
-            <Text size="sm" fw={500}>
-              {row.original.email}
-            </Text>
-            {row.original.name && (
-              <Text size="xs" c="dimmed">
-                {row.original.name}
+        header: ({ column }) => <SortHeader label="User" column={column} />,
+        cell: ({ row }) => {
+          const u = row.original;
+          return (
+            <div className={classes.userText}>
+              <Text size="sm" fw={600} className={classes.userName}>
+                {u.name || u.user_name || u.email}
               </Text>
-            )}
-          </div>
-        ),
+              <Text size="xs" c="dimmed" className={classes.userEmail}>
+                {u.email}
+              </Text>
+            </div>
+          );
+        },
         enableSorting: true,
       },
       {
         accessorKey: "user_name",
-        header: "Username",
+        header: () => <span className={tableStyles.colHeader}>Username</span>,
         cell: ({ row }) => (
-          <Text size="sm">{row.original.user_name || "-"}</Text>
+          <Text size="sm">{row.original.user_name || "—"}</Text>
         ),
-        enableSorting: true,
       },
       {
         accessorKey: "code",
-        header: "User Code",
-        cell: ({ row }) => (
-          <Text size="xs" ff="monospace" c="dimmed">
-            {row.original.code || "-"}
-          </Text>
-        ),
+        header: () => <span className={tableStyles.colHeader}>User Code</span>,
+        cell: ({ row }) =>
+          row.original.code ? (
+            <span className={tableStyles.monoCell}>{row.original.code}</span>
+          ) : (
+            <Text size="xs" c="dimmed">—</Text>
+          ),
       },
-
       {
         accessorKey: "user_type",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Type</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Type" column={column} />,
         cell: ({ row }) => (
           <Badge
             variant="light"
             color={row.original.user_type_code === "admin" ? "red" : "blue"}
             size="sm"
+            radius="sm"
+            styles={{ label: { textTransform: "capitalize" } }}
           >
             {row.original.user_type}
           </Badge>
@@ -300,30 +383,17 @@ export function UsersList({
       },
       {
         accessorKey: "status",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Status</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Status" column={column} />,
         cell: ({ row }) => {
           const status = row.original.blocked ? "blocked" : row.original.status;
           return (
-            <Badge variant="light" color={getUserStatusColor(status)} size="sm">
+            <Badge
+              variant="light"
+              color={getUserStatusColor(status)}
+              size="sm"
+              radius="sm"
+              styles={{ label: { textTransform: "capitalize" } }}
+            >
               {row.original.blocked ? "Blocked" : row.original.status}
             </Badge>
           );
@@ -332,44 +402,41 @@ export function UsersList({
       },
       {
         accessorKey: "groups",
-        header: "Groups",
-        cell: ({ row }) => (
-          <Text size="xs" c="dimmed" lineClamp={2}>
-            {row.original.groups || "No groups"}
-          </Text>
-        ),
+        header: () => <span className={tableStyles.colHeader}>Groups</span>,
+        cell: ({ row }) => {
+          const groups = row.original.groups?.split(/[,;]/).map((g) => g.trim()).filter(Boolean) ?? [];
+          if (groups.length === 0) return <Text size="xs" c="dimmed">—</Text>;
+          return (
+            <Group gap={4} wrap="wrap">
+              {groups.map((g) => (
+                <Badge key={g} variant="light" color="gray" size="sm" radius="sm">
+                  {g}
+                </Badge>
+              ))}
+            </Group>
+          );
+        },
       },
       {
         accessorKey: "roles",
-        header: "Roles",
-        cell: ({ row }) => (
-          <Text size="xs" c="dimmed" lineClamp={2}>
-            {row.original.roles || "No roles"}
-          </Text>
-        ),
+        header: () => <span className={tableStyles.colHeader}>Roles</span>,
+        cell: ({ row }) => {
+          const roles = row.original.roles?.split(/[,;]/).map((r) => r.trim()).filter(Boolean) ?? [];
+          if (roles.length === 0) return <Text size="xs" c="dimmed">—</Text>;
+          return (
+            <Group gap={4} wrap="wrap">
+              {roles.map((r) => (
+                <Badge key={r} variant="light" color="blue" size="sm" radius="sm">
+                  {r}
+                </Badge>
+              ))}
+            </Group>
+          );
+        },
       },
       {
         accessorKey: "last_login",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Last Login</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Last Login" column={column} />,
         cell: ({ row }) => (
           <Text size="xs" c="dimmed">
             {row.original.last_login || "Never"}
@@ -379,7 +446,7 @@ export function UsersList({
       },
       {
         accessorKey: "user_activity",
-        header: "Activity",
+        header: () => <span className={tableStyles.colHeader}>Activity</span>,
         cell: ({ row }) => (
           <Text size="xs" c="dimmed">
             {row.original.user_activity}
@@ -388,13 +455,15 @@ export function UsersList({
       },
       {
         id: "actions",
-        header: "Actions",
+        header: () => <span className={tableStyles.colHeader}>Actions</span>,
         cell: ({ row }) => (
-          <Group gap="xs">
-            <Tooltip label="Edit User">
+          <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
+            <Tooltip label="Edit user" withArrow>
               <ActionIcon
                 variant="subtle"
+                color="gray"
                 size="sm"
+                aria-label="Edit user"
                 onClick={() => onEditUser?.(row.original.id)}
                 disabled={!permissions.canUpdate}
               >
@@ -402,13 +471,12 @@ export function UsersList({
               </ActionIcon>
             </Tooltip>
 
-            <Tooltip
-              label={row.original.blocked ? "Unblock User" : "Block User"}
-            >
+            <Tooltip label={row.original.blocked ? "Unblock user" : "Block user"} withArrow>
               <ActionIcon
                 variant="subtle"
                 size="sm"
                 color={row.original.blocked ? "green" : "red"}
+                aria-label={row.original.blocked ? "Unblock user" : "Block user"}
                 onClick={() =>
                   onToggleBlock?.(row.original.id, !row.original.blocked)
                 }
@@ -426,9 +494,9 @@ export function UsersList({
               </ActionIcon>
             </Tooltip>
 
-            <Menu shadow="md" width={200}>
+            <Menu shadow="md" width={200} position="bottom-end" withArrow>
               <Menu.Target>
-                <ActionIcon variant="subtle" size="sm">
+                <ActionIcon variant="subtle" color="gray" size="sm" aria-label="More actions">
                   <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
@@ -439,16 +507,26 @@ export function UsersList({
                   onClick={() => onSendActivationMail?.(row.original.id)}
                   disabled={!permissions.canUpdate}
                 >
-                  Send Activation Mail
+                  Send activation mail
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<IconUserCheck size={14} />}
                   onClick={() => onImpersonateUser?.(row.original.id)}
                   disabled={!permissions.canImpersonate}
                 >
-                  Impersonate User
+                  Impersonate user
                 </Menu.Item>
                 <Menu.Divider />
+                <Menu.Item
+                  leftSection={<IconEraser size={14} />}
+                  color="red"
+                  onClick={() =>
+                    onCleanUserData?.(row.original.id, row.original.email)
+                  }
+                  disabled={!permissions.canUpdate}
+                >
+                  Clean user data
+                </Menu.Item>
                 <Menu.Item
                   leftSection={<IconTrash size={14} />}
                   color="red"
@@ -457,7 +535,7 @@ export function UsersList({
                   }
                   disabled={!permissions.canDelete}
                 >
-                  Delete User
+                  Delete user
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
@@ -466,11 +544,17 @@ export function UsersList({
       },
     ],
     [
+      allSelected,
+      someSelected,
+      selectedIds,
+      handleSelectAll,
+      handleToggleRow,
       onEditUser,
       onDeleteUser,
       onToggleBlock,
       onSendActivationMail,
       onImpersonateUser,
+      onCleanUserData,
       permissions.canBlock,
       permissions.canDelete,
       permissions.canImpersonate,
@@ -511,6 +595,8 @@ export function UsersList({
         <PageHeader
           title="Users Management"
           subtitle="Manage user accounts, permissions, and settings"
+          badge={usersData?.pagination.totalCount ?? 0}
+          badgeAriaLabel="users"
         >
           <Group gap="xs">
             <Button
@@ -518,50 +604,123 @@ export function UsersList({
               onClick={onCreateUser}
               disabled={!permissions.canCreate}
             >
-              Create User
+              Add User
+            </Button>
+            <Button
+              variant="default"
+              leftSection={<IconFileImport size={16} />}
+              onClick={() => setImportOpen(true)}
+              disabled={!permissions.canCreate}
+            >
+              Import CSV
+            </Button>
+            <Button
+              variant="default"
+              leftSection={<IconFileExport size={16} />}
+              onClick={() => exportCsv.mutate(params)}
+              loading={exportCsv.isPending}
+            >
+              Export
             </Button>
           </Group>
         </PageHeader>
 
-        {/* Filters Card with FilterActions */}
+        <UsersStatsTiles
+          stats={statsData}
+          isLoading={isLoadingStats}
+          isError={isStatsError}
+          activeStatus={params.status ?? 'all'}
+        />
+
+        {/* Filters. Search gets its own full-width row so the long placeholder
+            is never squeezed by the fixed-width selects beside it; the selects
+            wrap onto as many rows as they need on narrow viewports. */}
         <Card withBorder p="md">
-          <Group gap="md" align="flex-end" justify="space-between">
-            <Group gap="md" style={{ flex: 1 }}>
-              <TextInput
-                placeholder="Search users by email, name, or code..."
-                leftSection={<IconSearch size={16} />}
-                rightSection={
-                  filterParams.search ? (
-                    <ActionIcon
-                      variant="subtle"
-                      color="gray"
-                      size="sm"
-                      onClick={handleClearSearch}
-                    >
-                      <IconX size={14} />
-                    </ActionIcon>
-                  ) : null
-                }
-                value={filterParams.search}
-                onChange={(e) => handleSearch(e.currentTarget.value)}
-                style={{ flex: 1 }}
-              />
+          <Stack gap="md">
+            <TextInput
+              aria-label="Search users"
+              placeholder="Search users by email, name, or code..."
+              leftSection={<IconSearch size={16} />}
+              rightSection={
+                filterParams.search ? (
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    aria-label="Clear search"
+                    onClick={handleClearSearch}
+                  >
+                    <IconX size={14} />
+                  </ActionIcon>
+                ) : null
+              }
+              value={filterParams.search}
+              onChange={(e) => handleSearch(e.currentTarget.value)}
+            />
 
-              <Select
-                placeholder="Per page"
-                value={filterParams.pageSize?.toString()}
-                onChange={handlePageSizeChange}
-                data={[
-                  { value: "10", label: "10" },
-                  { value: "20", label: "20" },
-                  { value: "50", label: "50" },
-                  { value: "100", label: "100" },
-                ]}
-                w={100}
-              />
-            </Group>
+            <Group gap="md" align="flex-end" justify="space-between" wrap="wrap">
+              <Group gap="md" align="flex-end" wrap="wrap">
+                <Select
+                  label="Status"
+                  value={filterParams.status ?? 'all'}
+                  onChange={(value) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      status:
+                        value && value !== 'all'
+                          ? (value as Exclude<TUserStatusFilter, 'all'>)
+                          : undefined,
+                      page: 1,
+                    }))
+                  }
+                  data={[
+                    { value: 'all', label: 'All' },
+                    { value: 'active', label: 'Active' },
+                    { value: 'invited', label: 'Invited' },
+                    { value: 'imported', label: 'Imported' },
+                    { value: 'blocked', label: 'Blocked' },
+                  ]}
+                  withCheckIcon={false}
+                  allowDeselect={false}
+                  w={160}
+                />
 
-             <Group justify="flex-end">
+                <Select
+                  label="Group"
+                  placeholder="All"
+                  value={filterParams.id_groups?.toString() ?? null}
+                  onChange={(value) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      id_groups: value ? Number(value) : undefined,
+                      page: 1,
+                    }))
+                  }
+                  data={(groupsData?.groups ?? []).map((group) => ({
+                    value: group.id.toString(),
+                    label: group.name,
+                  }))}
+                  searchable
+                  clearable
+                  w={160}
+                />
+
+                <Select
+                  label="Rows per page"
+                  value={filterParams.pageSize?.toString()}
+                  onChange={handlePageSizeChange}
+                  data={[
+                    { value: "10", label: "10" },
+                    { value: "20", label: "20" },
+                    { value: "50", label: "50" },
+                    { value: "100", label: "100" },
+                  ]}
+                  withCheckIcon={false}
+                  allowDeselect={false}
+                  w={110}
+                />
+              </Group>
+
               <FilterActions
                 onApply={handleApplyFilters}
                 onReset={handleResetFilters}
@@ -570,20 +729,32 @@ export function UsersList({
                 isApplyDisabled={filterParams === params}
               />
             </Group>
-          </Group>
+          </Stack>
         </Card>
 
         {/* Table */}
-        <div className={classes.tableWrapper}>
+        <div className={tableStyles.tableWrapper}>
           <LoadingOverlay visible={isFetching} />
 
-          <Box className={classes.tableScrollContainer}>
-            <Table striped highlightOnHover className={classes.table}>
+          {selectedIds.size > 0 && (
+            <UsersBulkActionsBar
+              selectedCount={selectedIds.size}
+              onAddToGroup={() => setGroupMode('add')}
+              onRemoveFromGroup={() => setGroupMode('remove')}
+              onSendActivation={handleBulkSendActivation}
+              onDelete={() => setBulkDeleteOpen(true)}
+              isBusy={isBulkBusy}
+              permissions={permissions}
+            />
+          )}
+
+          <Box className={tableStyles.tableScrollContainer}>
+            <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
               <TableThead>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableTr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableTh key={header.id} className={classes.tableHeader}>
+                      <TableTh key={header.id} className={tableStyles.tableHeader}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -597,9 +768,9 @@ export function UsersList({
               </TableThead>
               <TableTbody>
                 {table.getRowModel().rows.map((row) => (
-                  <TableTr key={row.id} className={classes.tableRow}>
+                  <TableTr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableTd key={cell.id} className={classes.tableCell}>
+                      <TableTd key={cell.id} className={tableStyles.tableCell}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
@@ -618,38 +789,52 @@ export function UsersList({
               <EmptyState
                 title="No users found"
                 description={
-                  params.search
-                    ? "Try adjusting your search criteria"
+                  params.search || params.status || params.id_groups
+                    ? "Try adjusting your search or filters"
                     : "Get started by creating your first user"
                 }
               />
             )}
-        </div>
 
-        {/* Pagination */}
-        {usersData?.pagination && usersData.pagination.totalPages > 1 && (
-          <Group justify="space-between">
-            <Text size="sm" c="dimmed">
-              Showing{" "}
-              {(usersData.pagination.page - 1) * usersData.pagination.pageSize +
-                1}{" "}
-              to{" "}
-              {Math.min(
-                usersData.pagination.page * usersData.pagination.pageSize,
-                usersData.pagination.totalCount,
-              )}{" "}
-              of {usersData.pagination.totalCount} users
-            </Text>
-
-            <Pagination
-              value={usersData.pagination.page}
-              onChange={handlePageChange}
-              total={usersData.pagination.totalPages}
-              size="sm"
+          {/* Footer — always visible when data is loaded. */}
+          {usersData?.pagination && (
+            <AdminTableFooter
+              totalCount={usersData.pagination.totalCount}
+              itemLabel="users"
+              pagination={{
+                page: usersData.pagination.page,
+                pageSize: usersData.pagination.pageSize,
+                totalPages: usersData.pagination.totalPages,
+                onPageChange: handlePageChange,
+              }}
             />
-          </Group>
-        )}
+          )}
+        </div>
       </Stack>
+
+      <BulkGroupMembershipModal
+        opened={groupMode !== null}
+        onClose={() => setGroupMode(null)}
+        mode={groupMode ?? 'add'}
+        selectedCount={selectedIds.size}
+        onConfirm={handleBulkGroupMembership}
+        isLoading={bulkAddToGroup.isPending || bulkRemoveFromGroup.isPending}
+      />
+
+      <BulkDeleteUsersModal
+        opened={bulkDeleteOpen}
+        onClose={() => setBulkDeleteOpen(false)}
+        users={selectedUsers}
+        onConfirm={handleBulkDelete}
+        isLoading={bulkDelete.isPending}
+      />
+
+      <ImportUsersCsvModal
+        opened={importOpen}
+        onClose={() => setImportOpen(false)}
+        onConfirm={handleImportCsv}
+        isLoading={importCsv.isPending}
+      />
     </Card>
   );
-} 
+}

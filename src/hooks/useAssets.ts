@@ -3,13 +3,15 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  AdminAssetApi, 
-  type IAssetsListResponse, 
-  type IAssetsListParams, 
-  type IAsset, 
+import {
+  AdminAssetApi,
+  type IAssetsListResponse,
+  type IAssetsListParams,
+  type IAsset,
   type ICreateAssetRequest,
-  type ICreateMultipleAssetsRequest
+  type ICreateMultipleAssetsRequest,
+  type IExportAssetsRequest,
+  type IAssetFoldersResponse
 } from '../api/admin/asset.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 
@@ -86,4 +88,61 @@ export function useDeleteAsset() {
       void queryClient.invalidateQueries({ queryKey: ['assets'] });
     },
   });
-} 
+}
+
+/**
+ * Hook to fetch the asset folders and their open-access flags.
+ */
+export function useAssetFolders() {
+  return useQuery<IAssetFoldersResponse>({
+    queryKey: ['assets', 'folders'],
+    queryFn: () => AdminAssetApi.getFolders(),
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+    refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * Hook to toggle a folder's open-access flag.
+ *
+ * Invalidates the whole `assets` tree: flipping the flag changes which folders
+ * (and therefore assets) other callers can read, so the list must refetch too.
+ */
+export function useSetFolderOpenAccess() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ folder, isOpenAccess }: { folder: string; isOpenAccess: boolean }) =>
+      AdminAssetApi.setFolderOpenAccess(folder, isOpenAccess),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['assets'] });
+    },
+  });
+}
+
+/**
+ * Hook to export assets as a zip bundle. Returns the blob for the caller to
+ * trigger a browser download; does not touch the assets cache.
+ */
+export function useExportAssets() {
+  return useMutation({
+    mutationFn: (request: IExportAssetsRequest = {}) => AdminAssetApi.exportAssets(request),
+  });
+}
+
+/**
+ * Hook to import an asset zip bundle. Invalidates the assets list on success.
+ */
+export function useImportAssets() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ file, overwrite }: { file: File; overwrite?: boolean }) =>
+      AdminAssetApi.importAssets(file, overwrite),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['assets'] });
+    },
+  });
+}
+
+ 

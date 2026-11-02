@@ -4,42 +4,65 @@ SPDX-License-Identifier: MPL-2.0
 */
 /* SectionsList Component Styles */
 
-/* Container styles - main scrollable area for sections */
+/* Container styles - main scrollable area for sections. Transparent so the
+   gray sections panel shows behind the white section cards (mockup look). */
 .sectionsContainer {
-    padding: 4px 16px 16px 16px;
+    /* Extra right padding keeps the scrollbar clear of the section cards. */
+    padding: 4px 10px 16px 4px;
     height: 100%;
     /* Take full height of parent */
     overflow-y: auto;
     overflow-x: hidden;
-    background: var(--mantine-color-body);
+    background: transparent;
     flex: 1;
     /* Allow it to grow and shrink */
+    scrollbar-gutter: stable;
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: var(--mantine-color-gray-4) transparent;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar — transparent track, thumb only. */
 .sectionsContainer::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .sectionsContainer::-webkit-scrollbar-track {
-    background: var(--mantine-color-default-border);
-    border-radius: 3px;
+    background: transparent;
 }
 
 .sectionsContainer::-webkit-scrollbar-thumb {
-    background: var(--mantine-color-dimmed);
-    border-radius: 3px;
+    background: var(--mantine-color-gray-4);
+    border-radius: 999px;
+    /* Inset the thumb from the edge via a transparent border. */
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 
 .sectionsContainer::-webkit-scrollbar-thumb:hover {
-    background: var(--mantine-color-text);
+    background: var(--mantine-color-gray-5);
+    background-clip: content-box;
+}
+
+[data-mantine-color-scheme='dark'] .sectionsContainer::-webkit-scrollbar-thumb {
+    background: var(--mantine-color-dark-3);
+    background-clip: content-box;
+}
+
+[data-mantine-color-scheme='dark'] .sectionsContainer::-webkit-scrollbar-thumb:hover {
+    background: var(--mantine-color-dark-2);
+    background-clip: content-box;
+}
+
+[data-mantine-color-scheme='dark'] .sectionsContainer {
+    scrollbar-color: var(--mantine-color-dark-3) transparent;
 }
 
 /* Sections list */
 .sectionsList {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
 /* Section item wrapper */
@@ -48,25 +71,55 @@ SPDX-License-Identifier: MPL-2.0
     transition: background-color 200ms ease;
 }
 
+/* Top-level section + its descendants form ONE enclosing rounded card.
+   The parent row is the tinted header; nested rows sit plainly inside.
+   `--card-accent` is derived from the section's unique `--section-hue` (set
+   inline in SectionsList.tsx) with fixed S/L, so the card border matches the
+   row colour and stays theme-aware. */
+.topLevelCard {
+    --card-accent: hsl(var(--section-hue, 220) 65% 55%);
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: 10px;
+    background: var(--mantine-color-body);
+    overflow: hidden;
+    box-shadow: 0 1px 3px light-dark(rgba(15, 23, 42, 0.04), rgba(0, 0, 0, 0.2));
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* On hover the whole enclosing card border adopts the section's style accent. */
+.topLevelCard:hover {
+    border-color: var(--card-accent, var(--mantine-color-blue-4));
+    box-shadow: 0 0 0 1px var(--card-accent, var(--mantine-color-blue-4)),
+        0 2px 8px light-dark(rgba(15, 23, 42, 0.06), rgba(0, 0, 0, 0.25));
+}
+
+/* Highlight the whole enclosing card when its top-level section is selected —
+   using the section's OWN style accent, not a fixed colour. */
+.topLevelCardSelected {
+    border-color: var(--card-accent, var(--mantine-color-blue-5));
+    box-shadow: 0 0 0 1px var(--card-accent, var(--mantine-color-blue-5));
+}
+
 /* Drag and drop states */
 .sectionItemWrapper.isDragging {
     opacity: 0.5;
 }
 
+/* Drop-target emphasis uses an inset ring (box-shadow) + tint only — no real
+   border, so the row never shifts by a pixel and nothing looks clipped inside
+   the enclosing `overflow: hidden` card. */
 .sectionItemWrapper.isContainerDropTarget {
     background: light-dark(var(--mantine-color-green-0), var(--mantine-color-green-9));
-    border: 1px solid var(--mantine-color-green-4);
     border-radius: 6px;
-    transition: all 200ms ease;
-    box-shadow: 0 0 0 1px light-dark(var(--mantine-color-green-2), var(--mantine-color-green-7));
+    transition: background-color 200ms ease, box-shadow 200ms ease;
+    box-shadow: inset 0 0 0 1.5px var(--mantine-color-green-5);
 }
 
 .sectionItemWrapper.isInvalidDropTarget {
     background: light-dark(var(--mantine-color-red-0), var(--mantine-color-red-9));
-    border: 1px solid var(--mantine-color-red-4);
     border-radius: 6px;
-    transition: all 200ms ease;
-    box-shadow: 0 0 0 1px light-dark(var(--mantine-color-red-2), var(--mantine-color-red-7));
+    transition: background-color 200ms ease, box-shadow 200ms ease;
+    box-shadow: inset 0 0 0 1.5px var(--mantine-color-red-5);
 }
 
 .sectionItemWrapper.isBeingDragged {
@@ -83,84 +136,40 @@ SPDX-License-Identifier: MPL-2.0
 
 /* Drop indicators are now handled by react-drop-indicator library */
 
-/* Drop zone area for empty containers */
-.dropZoneArea {
+/* Invisible drop target overlaying the row of an empty container. The visible
+   "add as first child" hint is rendered inline inside PageSection, so this only
+   needs to be a hittable area — it carries no visuals of its own. */
+.dropZoneTarget {
     position: absolute;
-    top: 2px;
-    right: 4px;
-    bottom: 2px;
-    background: light-dark(var(--mantine-color-green-1), var(--mantine-color-green-9));
-    border: 2px dashed var(--mantine-color-green-4);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: all 200ms ease;
+    inset: 0;
     z-index: 10;
     cursor: pointer;
-    padding: 4px;
-    gap: 2px;
 }
 
-.dropZoneArea.visible {
-    opacity: 1;
-}
-
-.dropZoneArea.active {
-    background: light-dark(var(--mantine-color-green-2), var(--mantine-color-green-8));
-    border-color: var(--mantine-color-green-6);
-    border-style: solid;
-    box-shadow: 0 0 12px light-dark(var(--mantine-color-green-3), var(--mantine-color-green-6));
-    transform: scale(1.02);
-}
-
-.dropZoneArea.invalid {
-    background: light-dark(var(--mantine-color-red-2), var(--mantine-color-red-9));
-    border-color: var(--mantine-color-red-6);
-    border-style: solid;
-    box-shadow: 0 0 12px light-dark(var(--mantine-color-red-3), var(--mantine-color-red-6));
-}
-
-.dropZoneIcon {
-    color: var(--mantine-color-green-6);
-    font-size: 14px;
-    margin-bottom: 1px;
-}
-
-.dropZoneText {
-    color: light-dark(var(--mantine-color-green-7), var(--mantine-color-green-4));
-    font-size: 10px;
-    font-weight: 600;
-    text-align: center;
-    line-height: 1.1;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.dropZoneArea.active .dropZoneIcon {
-    color: light-dark(var(--mantine-color-green-7), var(--mantine-color-green-4));
-}
-
-.dropZoneArea.active .dropZoneText {
-    color: light-dark(var(--mantine-color-green-8), var(--mantine-color-green-3));
-}
-
-.dropZoneArea.invalid .dropZoneIcon {
-    color: light-dark(var(--mantine-color-red-7), var(--mantine-color-red-4));
-}
-
-.dropZoneArea.invalid .dropZoneText {
-    color: light-dark(var(--mantine-color-red-8), var(--mantine-color-red-3));
-}
-
-/* Children container */
+/* Children container - a clean DASHED vertical tree guide line groups children
+   under their parent (matches the mockup). */
 .childrenContainer {
-    margin-top: 2px;
-    padding-left: 0;
     position: relative;
-    border-radius: 4px;
-    padding: 2px 0;
+    /* Bottom padding leaves room for the last child's bottom drop-indicator line
+       so it isn't clipped by the enclosing card's `overflow: hidden`. */
+    padding: 0 0 4px 16px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.childrenContainer::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 0;
+    bottom: 14px;
+    width: 0;
+    border-left: 1.5px dashed var(--mantine-color-gray-4);
+}
+
+[data-mantine-color-scheme='dark'] .childrenContainer::before {
+    border-left-color: var(--mantine-color-dark-3);
 }
 
 /* Empty state */
@@ -260,7 +269,6 @@ SPDX-License-Identifier: MPL-2.0
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
     .sectionItemWrapper,
-    .dropZoneArea,
     .dragHandle {
         transition: none;
     }
@@ -274,8 +282,7 @@ SPDX-License-Identifier: MPL-2.0
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-    .dropIndicatorLine,
-    .dropZoneArea {
+    .dropIndicatorLine {
         border-width: 3px;
     }
     

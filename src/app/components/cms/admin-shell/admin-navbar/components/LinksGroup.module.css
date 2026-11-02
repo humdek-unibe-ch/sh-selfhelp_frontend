@@ -3,96 +3,121 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 
-/* Standalone top-level link (Dashboard) aligned with accordion controls */
+/* Standalone top-level link (Dashboard) aligned with the group rows. */
 .directLink {
   display: block;
   width: 100%;
-  padding: 8px var(--mantine-spacing-sm);
+  padding: 8px 10px;
   margin-bottom: 4px;
   border-radius: var(--mantine-radius-md);
   font-size: var(--mantine-font-size-sm);
   font-weight: 600;
-  color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-dark-0));
+  color: var(--mantine-color-text);
+  transition: background-color 120ms ease, color 120ms ease;
+}
 
-  &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
-  }
+.directLink:hover {
+  background-color: var(--mantine-color-gray-0);
+}
 
-  &[data-active] {
-    background-color: light-dark(var(--mantine-color-blue-0), rgba(34, 139, 230, 0.15));
-    color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-2));
-  }
+[data-mantine-color-scheme='dark'] .directLink:hover {
+  background-color: var(--mantine-color-dark-6);
+}
+
+.directLink[data-active] {
+  background-color: var(--mantine-color-blue-light);
+  color: var(--mantine-color-blue-light-color);
 }
 
 .directLinkIcon {
   display: inline-flex;
   align-items: center;
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
+  color: var(--mantine-color-dimmed);
 }
 
 .directLink[data-active] .directLinkIcon {
   color: inherit;
 }
 
-/* Sub-group header inside an accordion panel (e.g. "Content Pages") */
+/* Sub-group header inside an accordion panel (e.g. "Content Pages"). */
 .control {
-  font-weight: 500;
   display: block;
   width: 100%;
-  padding: 6px var(--mantine-spacing-sm);
-  color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-gray-3));
+  padding: 7px 10px;
+  border-radius: var(--mantine-radius-md);
   font-size: var(--mantine-font-size-sm);
-  border-radius: var(--mantine-radius-sm);
-
-  &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
-    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-  }
-
-  &[data-active="true"] {
-    background-color: light-dark(var(--mantine-color-blue-0), rgba(34, 139, 230, 0.15));
-    color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-2));
-    font-weight: 600;
-  }
+  font-weight: 500;
+  color: var(--mantine-color-text);
+  transition: background-color 120ms ease, color 120ms ease;
 }
 
+.control:hover {
+  background-color: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='dark'] .control:hover {
+  background-color: var(--mantine-color-dark-6);
+}
+
+.control[data-active='true'] {
+  background-color: var(--mantine-color-blue-light);
+  color: var(--mantine-color-blue-light-color);
+  font-weight: 600;
+}
+
+/* Group row icon + label. */
 .groupIcon {
   display: inline-flex;
   align-items: center;
-  margin-right: 10px;
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 12px;
+  color: var(--mantine-color-dimmed);
 }
 
-/* Nested link rows: soft neutral guide rail + pill hover/active states */
+.control[data-active='true'] .groupIcon {
+  color: inherit;
+}
+
+.groupLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Child link. The `border-left` is the indent rail that ties children to their
+   parent; the active child brightens it. */
 .link {
-  font-weight: 400;
   display: block;
   text-decoration: none;
-  padding: 5px 10px;
-  margin: 1px 0 1px 14px;
-  font-size: 13px;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
-  border-left: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  border-top-right-radius: var(--mantine-radius-sm);
-  border-bottom-right-radius: var(--mantine-radius-sm);
-
-  &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
-    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-  }
-
-  &[data-active="true"] {
-    background-color: light-dark(var(--mantine-color-blue-0), rgba(34, 139, 230, 0.15));
-    color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-2));
-    font-weight: 500;
-  }
+  padding: 7px 10px;
+  padding-left: 22px;
+  margin-left: 18px;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 400;
+  color: var(--mantine-color-dimmed);
+  border-left: 1px solid var(--mantine-color-default-border);
+  border-radius: 0 var(--mantine-radius-md) var(--mantine-radius-md) 0;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
-.chevron {
-  transition: transform 200ms ease;
+.link:hover {
+  background-color: var(--mantine-color-gray-0);
+  color: var(--mantine-color-text);
 }
 
-/* Additional styles for inline style conversion */
+[data-mantine-color-scheme='dark'] .link:hover {
+  background-color: var(--mantine-color-dark-6);
+}
+
+.link[data-active='true'] {
+  background-color: var(--mantine-color-blue-light);
+  color: var(--mantine-color-blue-light-color);
+  font-weight: 500;
+  border-left-color: var(--mantine-color-blue-filled);
+}
+
+/* Main clickable area of a group row. */
 .nestedLink {
   flex: 1;
   min-width: 0;
@@ -102,9 +127,8 @@ SPDX-License-Identifier: MPL-2.0
   padding: 0;
   background-color: transparent;
   border: none;
-  font-size: inherit;
+  font: inherit;
   color: inherit;
-  font-weight: inherit;
 }
 
 .iconContainer {
@@ -114,40 +138,26 @@ SPDX-License-Identifier: MPL-2.0
 }
 
 .chevronButton {
-  padding: 4px;
+  flex-shrink: 0;
+  padding: 2px;
   background-color: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--mantine-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
-  transition: background-color 200ms ease;
+  color: var(--mantine-color-dimmed);
+  transition: background-color 120ms ease, color 120ms ease;
 }
 
 .chevronButton:hover {
-  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4));
+  background-color: var(--mantine-color-default-hover);
+  color: var(--mantine-color-text);
 }
 
+.chevron,
 .chevronIcon {
   transition: transform 200ms ease;
-}
-
-/* Indentation per nesting level */
-.nestedLinkLevel1 {
-  padding-left: 14px;
-}
-
-.nestedLinkLevel2 {
-  padding-left: 26px;
-}
-
-.nestedLinkLevel3 {
-  padding-left: 38px;
-}
-
-.nestedLinkLevel4 {
-  padding-left: 50px;
 }
 
 /* Chevron rotation states */
@@ -159,23 +169,50 @@ SPDX-License-Identifier: MPL-2.0
   transform: none;
 }
 
-/* Nested parent link styles (rows that also expand) */
+/* Nested indent levels. Each level adds one rail's worth of inset. */
+.nestedLinkLevel1 {
+  padding-left: 22px;
+}
+
+.nestedLinkLevel2 {
+  padding-left: 38px;
+}
+
+.nestedLinkLevel3 {
+  padding-left: 54px;
+}
+
+.nestedLinkLevel4 {
+  padding-left: 70px;
+}
+
 .nestedParentLink {
-  padding-left: 14px;
+  padding-left: 22px;
   font-weight: 500;
 }
 
 .nestedParentLinkLevel2 {
-  padding-left: 26px;
-  font-weight: 500;
-}
-
-.nestedParentLinkLevel3 {
   padding-left: 38px;
   font-weight: 500;
 }
 
-.nestedParentLinkLevel4 {
-  padding-left: 50px;
+.nestedParentLinkLevel3 {
+  padding-left: 54px;
   font-weight: 500;
+}
+
+.nestedParentLinkLevel4 {
+  padding-left: 70px;
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .directLink,
+  .control,
+  .link,
+  .chevron,
+  .chevronIcon,
+  .chevronButton {
+    transition: none;
+  }
 }

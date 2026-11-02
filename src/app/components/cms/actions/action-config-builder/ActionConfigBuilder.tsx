@@ -185,7 +185,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             const tables = await AdminDataApi.listDataTables();
             setFormOptions((tables.dataTables || []).map((t) => ({ value: String(t.id), label: t.displayName || t.name })));
             const assets = await AdminAssetApi.getAssets({ page: 1, pageSize: 1000 });
-            setAssetOptions(assets.assets.map(a => ({ value: a.file_path, label: a.original_name || a.file_name })));
+            // Persist the delivery URL, not the (unfetchable) file_path key.
+            setAssetOptions(assets.assets.map(a => ({ value: a.url, label: a.original_name || a.file_name })));
         })();
     }, []);
 

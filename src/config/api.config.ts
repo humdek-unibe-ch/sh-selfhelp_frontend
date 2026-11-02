@@ -399,6 +399,42 @@ export const API_CONFIG = {
             route: (assetId: number) => `/admin/assets/${assetId}`,
             permissions: [PERMISSIONS.ADMIN_ASSET_DELETE]
         },
+        // Export assets as a downloadable zip bundle (binary files +
+        // manifest.json). POST with body { folders?: string[] } (empty/omitted
+        // = all readable folders); returns an `application/zip` blob.
+        ADMIN_ASSETS_EXPORT: {
+            route: '/admin/assets/export',
+            permissions: [PERMISSIONS.ADMIN_ASSET_READ]
+        },
+        // Import an asset zip bundle previously produced by the export endpoint.
+        ADMIN_ASSETS_IMPORT: {
+            route: '/admin/assets/import',
+            permissions: [PERMISSIONS.ADMIN_ASSET_CREATE]
+        },
+        // List every asset folder with its open-access flag. Folder-scoped —
+        // the sibling group-scoped grants live on ADMIN_GROUPS_ASSET_ACLS_*.
+        ADMIN_ASSETS_FOLDERS_GET: {
+            route: '/admin/assets/folders',
+            permissions: [PERMISSIONS.ADMIN_ASSET_READ]
+        },
+        // Toggle a folder's open-access (public read) flag. Gated on the
+        // group-ACL write permission, NOT an asset permission: making a folder
+        // world-readable is an access-control decision, so it matches backend
+        // enforcement and the permission that reveals the group-ACL editor.
+        ADMIN_ASSETS_FOLDER_OPEN_ACCESS_UPDATE: {
+            route: (folder: string) => `/admin/assets/folders/${encodeURIComponent(folder)}/open-access`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_ACL]
+        },
+        ADMIN_GROUPS_ASSET_ACLS_GET: {
+            route: (groupId: number) => `/admin/groups/${groupId}/asset-acls`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_ACL]
+        },
+        ADMIN_GROUPS_ASSET_ACLS_UPDATE: {
+            route: (groupId: number) => `/admin/groups/${groupId}/asset-acls`,
+            // Gated on the group-ACL write permission (same as the sibling page-ACL
+            // write), matching backend enforcement for the group asset-ACL editor.
+            permissions: [PERMISSIONS.ADMIN_GROUP_ACL]
+        },
 
         // Admin users endpoints
         ADMIN_USERS_GET_ALL: {
@@ -408,6 +444,34 @@ export const API_CONFIG = {
         ADMIN_USERS_GET_ONE: {
             route: (userId: number) => `/admin/users/${userId}`,
             permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_STATS: {
+            route: '/admin/users/stats',
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_BULK_DELETE: {
+            route: '/admin/users/bulk-delete',
+            permissions: [PERMISSIONS.ADMIN_USER_DELETE]
+        },
+        ADMIN_USERS_BULK_ADD_TO_GROUP: {
+            route: '/admin/users/bulk-add-to-group',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_BULK_REMOVE_FROM_GROUP: {
+            route: '/admin/users/bulk-remove-from-group',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_BULK_SEND_ACTIVATION: {
+            route: '/admin/users/bulk-send-activation',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_EXPORT_CSV: {
+            route: '/admin/users/export',
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_IMPORT_CSV: {
+            route: '/admin/users/import',
+            permissions: [PERMISSIONS.ADMIN_USER_CREATE]
         },
         ADMIN_USERS_CREATE: {
             route: '/admin/users',
@@ -430,7 +494,7 @@ export const API_CONFIG = {
             permissions: []
         },
         // NOTE: the user-management mutations below (group/role assignment,
-        // activation mail, clean-data) are enforced by the backend
+        // activation mail) are enforced by the backend
         // (admin.user.* on Symfony). Their client `permissions` arrays are
         // empty pending a backend-confirmed client mapping — do not assume a
         // permission here without coordination (see the "every mutating
@@ -459,9 +523,12 @@ export const API_CONFIG = {
             route: (userId: number) => `/admin/users/${userId}/send-activation-mail`,
             permissions: []
         },
+        // Destructive, but gated on `admin.user.update` to match the backend
+        // route permission for `admin_users_clean_data_v1` — a stricter client
+        // gate would hide the action from admins the backend still allows.
         ADMIN_USERS_CLEAN_DATA: {
             route: (userId: number) => `/admin/users/${userId}/clean-data`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
         },
         ADMIN_USERS_IMPERSONATE: {
             route: (userId: number) => `/admin/users/${userId}/impersonate`,
@@ -493,6 +560,10 @@ export const API_CONFIG = {
             route: (groupId: number) => `/admin/groups/${groupId}`,
             permissions: [PERMISSIONS.ADMIN_GROUP_DELETE]
         },
+        ADMIN_GROUPS_MEMBERS_GET: {
+            route: (groupId: number) => `/admin/groups/${groupId}/users`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_READ]
+        },
         ADMIN_GROUPS_ACLS_GET: {
             route: (groupId: number) => `/admin/groups/${groupId}/acls`,
             permissions: [PERMISSIONS.ADMIN_GROUP_READ]
@@ -509,6 +580,10 @@ export const API_CONFIG = {
         },
         ADMIN_ROLES_GET_ONE: {
             route: (roleId: number) => `/admin/roles/${roleId}`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
+        },
+        ADMIN_ROLES_MEMBERS_GET: {
+            route: (roleId: number) => `/admin/roles/${roleId}/users`,
             permissions: [PERMISSIONS.ADMIN_ROLE_READ]
         },
         ADMIN_ROLES_CREATE: {
@@ -581,6 +656,10 @@ export const API_CONFIG = {
         // Admin scheduled jobs endpoints
         ADMIN_SCHEDULED_JOBS_GET_ALL: {
             route: '/admin/scheduled-jobs',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
+        ADMIN_SCHEDULED_JOBS_STATS: {
+            route: '/admin/scheduled-jobs/stats',
             permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
         },
         ADMIN_SCHEDULED_JOBS_GET_ONE: {
@@ -980,6 +1059,10 @@ export const API_CONFIG = {
         },
         ADMIN_REGISTRATION_CODES_EXPORT: {
             route: '/admin/registration-codes/export',
+            permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]
+        },
+        ADMIN_REGISTRATION_CODES_STATS: {
+            route: '/admin/registration-codes/stats',
             permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]
         },
         // Admin audit management endpoints

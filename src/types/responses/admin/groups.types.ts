@@ -25,6 +25,20 @@ export interface IGroupPageAcl {
   acl_delete: boolean;
 }
 
+/** Access level a group holds on an asset folder. `manage` implies `read`. */
+export type TAssetFolderAccessLevel = 'read' | 'manage';
+
+/** One folder grant held by a group (as returned by GET group asset-acls). */
+export interface IGroupAssetAcl {
+  folder: string;
+  access_level: TAssetFolderAccessLevel;
+}
+
+/** GET /admin/groups/{id}/asset-acls response `data`. */
+export interface IGroupAssetAclsResponse {
+  acls: IGroupAssetAcl[];
+}
+
 export interface IGroupsPagination {
   page: number;
   pageSize: number;
@@ -45,4 +59,8 @@ export interface IGroupsListParams {
   search?: string;
   sort?: 'name' | 'description' | 'members_count' | 'created_at' | 'updated_at';
   sortDirection?: 'asc' | 'desc';
-} 
+}
+
+/** A user who belongs to a group, as listed by "View members". Shared with
+ *  roles via `IMemberUser` — same shape from every `.../users` endpoint. */
+export type { IMemberUser as IGroupMember } from './admin.types';

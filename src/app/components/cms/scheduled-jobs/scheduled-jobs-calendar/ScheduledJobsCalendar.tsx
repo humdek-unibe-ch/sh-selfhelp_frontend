@@ -382,11 +382,8 @@ export default function ScheduledJobsCalendar() {
           <PageHeader
             title="Scheduled Jobs Calendar"
             subtitle="Manage and monitor scheduled jobs via calendar"
-            badge={
-              scheduledJobsData && scheduledJobsData.totalCount > 0
-                ? scheduledJobsData.totalCount
-                : undefined
-            }
+            badge={scheduledJobsData?.totalCount ?? 0}
+            badgeAriaLabel="jobs"
           >
             {/* Legend as children */}
             <Group gap="sm" align="center">

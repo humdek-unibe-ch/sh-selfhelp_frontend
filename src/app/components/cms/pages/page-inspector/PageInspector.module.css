@@ -30,4 +30,22 @@ SPDX-License-Identifier: MPL-2.0
 
 .fullWidthLabel :global(.mantine-InputWrapper-root) {
     width: 100%;
+}
+
+/* Page Information — a neutral card (not tinted), matching Section Information. */
+.pageInfoCard {
+    background: var(--mantine-color-body);
+}
+
+/* Keyword / URL / Page ID sub-cells inside the info card — small bordered boxes. */
+.infoCell {
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: var(--mantine-radius-sm);
+    padding: 8px 10px;
+    min-width: 0;
+    background: var(--mantine-color-body);
+}
+
+.infoCellMono {
+    font-family: var(--mantine-font-family-monospace);
 } 
