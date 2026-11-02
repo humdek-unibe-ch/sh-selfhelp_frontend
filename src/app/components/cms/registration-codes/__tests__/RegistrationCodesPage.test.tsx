@@ -47,6 +47,11 @@ vi.mock('../../../../../hooks/useRegistrationCodes', () => ({
         error: null,
         refetch: vi.fn(),
     }),
+    useRegistrationCodesStats: () => ({
+        data: { total: state.codes.length, available: state.codes.length, used: 0 },
+        isLoading: false,
+        isError: false,
+    }),
     useExportRegistrationCodes: () => ({ mutate: vi.fn(), isPending: false }),
     useGenerateRegistrationCodes: () => ({ mutate: vi.fn(), isPending: false }),
 }));
