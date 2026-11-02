@@ -157,13 +157,15 @@ export function NavigationBuilderPage(): React.ReactElement {
     };
 
     const refreshBuilderFully = (options?: { pages?: boolean; publicNav?: boolean }) => {
+        if (options?.publicNav) {
+            // Already covers the overview, every preview and the pages list.
+            schedulePublicNavigationRefresh(queryClient);
+            return;
+        }
         void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_NAVIGATION_OVERVIEW });
         refreshBuilderPreview();
         if (options?.pages) {
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
-        }
-        if (options?.publicNav) {
-            schedulePublicNavigationRefresh(queryClient);
         }
     };
 
