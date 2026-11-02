@@ -37,11 +37,11 @@ describe('AdminEditCornerButton', () => {
         expect(link).toHaveTextContent('Edit page');
     });
 
-    it('sits in the top-right, below the site header and clear of the debug button', () => {
+    it('sits in the top-left, below the site header', () => {
         renderWithProviders(<AdminEditCornerButton />);
 
         // Default branding → 60px single-row header, plus a 16px gap.
         const link = screen.getByRole('link', { name: 'Edit this page in Admin' });
-        expect(link).toHaveStyle({ position: 'fixed', top: '76px', right: '16px' });
+        expect(link).toHaveStyle({ position: 'fixed', top: '76px', left: '16px' });
     });
 });
