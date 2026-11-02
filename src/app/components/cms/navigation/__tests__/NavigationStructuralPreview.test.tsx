@@ -132,6 +132,75 @@ describe('NavigationStructuralPreview', () => {
         expect(screen.getByText('Hidden tab')).toBeInTheDocument();
     });
 
+    it('previews bottom-tab children as the top tab strip they become', () => {
+        renderWithProviders(
+            <NavigationStructuralPreview
+                menuKey="mobile_bottom_tabs"
+                items={[
+                    item({ id: 1, label: 'Projekt Name' }),
+                    item({ id: 2, label: 'AGB', parent_item_id: 1 }),
+                    item({ id: 3, label: 'profile', parent_item_id: 1 }),
+                ]}
+                pageById={noPages}
+                resolvedLabelByItemId={labels([[1, 'Projekt Name'], [2, 'AGB'], [3, 'profile']])}
+            />,
+        );
+
+        // Both rows are labelled, so the two-tab-bar layout is visible here
+        // instead of only being discoverable by opening the app.
+        expect(screen.getByText('Tab bar')).toBeInTheDocument();
+        expect(screen.getByText('Top tabs')).toBeInTheDocument();
+        expect(screen.getByText('AGB')).toBeInTheDocument();
+        expect(screen.getByText('profile')).toBeInTheDocument();
+    });
+
+    it('merges children of every bottom tab into one ordered Top tabs line', () => {
+        renderWithProviders(
+            <NavigationStructuralPreview
+                menuKey="mobile_bottom_tabs"
+                items={[
+                    item({ id: 1, label: 'Projekt Name', position: 10 }),
+                    item({ id: 2, label: 'AGB', parent_item_id: 1, position: 10 }),
+                    item({ id: 3, label: 'profile', parent_item_id: 1, position: 20 }),
+                    item({ id: 4, label: 'Startseite', position: 20 }),
+                    item({ id: 5, label: 'Beratung', parent_item_id: 4, position: 10 }),
+                ]}
+                pageById={noPages}
+                resolvedLabelByItemId={labels([
+                    [1, 'Projekt Name'], [2, 'AGB'], [3, 'profile'],
+                    [4, 'Startseite'], [5, 'Beratung'],
+                ])}
+            />,
+        );
+
+        // A second tab with children must not spawn a second labelled row.
+        expect(screen.getAllByText('Top tabs')).toHaveLength(1);
+
+        // Children read in tab order, then child order within each tab.
+        const strip = screen.getByText('Top tabs').parentElement as HTMLElement;
+        const pills = ['AGB', 'profile', 'Beratung'].map(
+            (text) => screen.getByText(text),
+        );
+        for (const pill of pills) {
+            expect(strip).toContainElement(pill);
+        }
+        expect(strip.textContent).toContain('AGBprofileBeratung');
+    });
+
+    it('keeps the flat row when no bottom tab has children', () => {
+        renderWithProviders(
+            <NavigationStructuralPreview
+                menuKey="mobile_bottom_tabs"
+                items={[item({ id: 1, label: 'Home' }), item({ id: 2, label: 'Info' })]}
+                pageById={noPages}
+                resolvedLabelByItemId={labels([[1, 'Home'], [2, 'Info']])}
+            />,
+        );
+
+        expect(screen.queryByText('Top tabs')).not.toBeInTheDocument();
+        expect(screen.queryByText('Tab bar')).not.toBeInTheDocument();
+    });
+
     it('renders nothing for an empty menu', () => {
         renderWithProviders(
             <NavigationStructuralPreview

@@ -22,6 +22,9 @@ import {
     getMenuItemDisplay,
     getPageEditorPath,
     getPageKeyword,
+    getPresetGaps,
+    getPublicMenuExclusionReason,
+    getRootItemLimitState,
     menuIconForItem,
     nestStoredMenuItems,
 } from '../navigation-builder.utils';
@@ -191,5 +194,249 @@ describe('navigation-builder.utils', () => {
             position: 10,
             parent_item_id: 1,
         });
+    });
+});
+
+describe('getPublicMenuExclusionReason', () => {
+    it('renders the wording for each backend reason code', () => {
+        expect(
+            getPublicMenuExclusionReason(
+                makeItem({ id: 1, page_id: 7, public_visibility: { rendered: false, reason: 'headless' } }),
+            ),
+        ).toMatch(/headless/i);
+
+        expect(
+            getPublicMenuExclusionReason(
+                makeItem({ id: 2, page_id: 8, public_visibility: { rendered: false, reason: 'page_type_excluded' } }),
+            ),
+        ).toMatch(/core and experiment/i);
+
+        expect(
+            getPublicMenuExclusionReason(
+                makeItem({ id: 3, page_id: 9, public_visibility: { rendered: false, reason: 'page_not_accessible' } }),
+            ),
+        ).toMatch(/without access/i);
+    });
+
+    it('stays silent when the backend says the item renders', () => {
+        expect(
+            getPublicMenuExclusionReason(
+                makeItem({ id: 4, page_id: 10, public_visibility: { rendered: true, reason: null } }),
+            ),
+        ).toBeNull();
+    });
+
+    it('stays silent when the backend omits public_visibility', () => {
+        expect(getPublicMenuExclusionReason(makeItem({ id: 5, page_id: 11 }))).toBeNull();
+        expect(getPublicMenuExclusionReason(makeItem({ id: 6, item_type: 'group' }))).toBeNull();
+    });
+
+    it('ignores an unrecognised reason code rather than rendering a blank badge', () => {
+        // Simulates a newer backend adding a code this build does not know.
+        const forwardCompatible = {
+            ...makeItem({ id: 7, page_id: 12 }),
+            public_visibility: { rendered: false, reason: 'some_future_code' },
+        } as unknown as Parameters<typeof getPublicMenuExclusionReason>[0];
+
+        expect(getPublicMenuExclusionReason(forwardCompatible)).toBeNull();
+    });
+});
+
+describe('getPresetGaps', () => {
+    const root = (over = {}) => makeItem({ id: 1, page_id: 5, parent_item_id: null, ...over });
+    const child = (over = {}) => makeItem({ id: 2, page_id: 6, parent_item_id: 1, ...over });
+
+    it('flags a childless root under panel presets, since it renders as Simple', () => {
+        for (const preset of ['dropdown', 'mega-menu', 'double-dropdown', 'double-mega-menu']) {
+            const labels = getPresetGaps(root(), preset, 0).map((g) => g.label);
+            expect(labels).toContain('No children');
+        }
+    });
+
+    it('stays quiet about children for simple and tabs, which open no panel', () => {
+        expect(getPresetGaps(root(), 'simple', 0)).toEqual([]);
+        expect(getPresetGaps(root(), 'tabs', 0)).toEqual([]);
+    });
+
+    it('does not flag a root that already has children', () => {
+        expect(getPresetGaps(root(), 'dropdown', 3).map((g) => g.label)).not.toContain('No children');
+    });
+
+    it('flags missing icon and description on mega-menu cells', () => {
+        const labels = getPresetGaps(child(), 'mega-menu', 0).map((g) => g.label);
+        expect(labels).toEqual(expect.arrayContaining(['No icon', 'No description']));
+    });
+
+    it('flags icon and description on dropdown rows, which render both', () => {
+        for (const preset of ['dropdown', 'double-dropdown']) {
+            const labels = getPresetGaps(child(), preset, 0).map((g) => g.label);
+            expect(labels).toEqual(expect.arrayContaining(['No icon', 'No description']));
+        }
+    });
+
+    it('clears once the item supplies icon and description', () => {
+        const filled = child({
+            icon: 'users',
+            translations: [{ language_id: 1, label: 'Team', description: 'Meet the team' }],
+        });
+        expect(getPresetGaps(filled, 'mega-menu', 0, 1)).toEqual([]);
+    });
+
+    it('scopes descriptions to the active language', () => {
+        const deOnly = child({
+            icon: 'users',
+            translations: [{ language_id: 2, label: 'Team', description: 'Das Team' }],
+        });
+        expect(getPresetGaps(deOnly, 'mega-menu', 0, 1).map((g) => g.label)).toEqual(['No description']);
+    });
+
+    it('ignores external links and separators', () => {
+        expect(getPresetGaps(makeItem({ id: 9, item_type: 'external_url' }), 'mega-menu', 0)).toEqual([]);
+    });
+});
+
+describe('menu_eligible page filtering', () => {
+    const page = (over: Partial<IAdminPage> & { id_pages: number }): IAdminPage => ({
+        keyword: 'p', url: 'p', id_parent_page: null, is_headless: false,
+        is_open_access: false, id_page_access_types: 1, id_page_types: 2,
+        is_system: false, crud: 15, ...over,
+    });
+    // Mirrors the picker predicate in NavigationItemModals.
+    const eligible = (p: IAdminPage) => p.menu_eligible !== false;
+
+    it('drops pages the backend marks ineligible', () => {
+        expect(eligible(page({ id_pages: 1, menu_eligible: false }))).toBe(false);
+        expect(eligible(page({ id_pages: 2, menu_eligible: true }))).toBe(true);
+    });
+
+    it('keeps headless pages, whose flag an author can still untick', () => {
+        expect(eligible(page({ id_pages: 3, is_headless: true, menu_eligible: true }))).toBe(true);
+    });
+
+    it('keeps every page when the field is absent (core < 0.1.43)', () => {
+        expect(eligible(page({ id_pages: 4 }))).toBe(true);
+    });
+});
+
+describe('getPresetGaps across menus', () => {
+    const root = (over = {}) => makeItem({ id: 1, page_id: 5, parent_item_id: null, ...over });
+    const child = (over = {}) => makeItem({ id: 2, page_id: 6, parent_item_id: 1, ...over });
+    const labels = (...args: Parameters<typeof getPresetGaps>) =>
+        getPresetGaps(...args).map((g) => g.label);
+
+    describe('web_footer', () => {
+        const withDesc = { translations: [{ language_id: 1, label: 'x', description: 'd' }] };
+
+        it('stays silent when a columns link supplies both fields', () => {
+            expect(labels(child({ icon: 'home', ...withDesc }), 'columns', 0, 1, 'web_footer')).toEqual([]);
+        });
+
+        it('flags empty fields in columns, matching the header wording', () => {
+            expect(labels(child(), 'columns', 0, 1, 'web_footer'))
+                .toEqual(['No icon', 'No description']);
+        });
+
+        it('flags a filled description the inline preset will not render', () => {
+            expect(labels(child(withDesc), 'inline', 0, 1, 'web_footer')).toEqual(['Description not shown']);
+            // Icons render inline, so an empty one is not worth flagging there.
+            expect(labels(child({ icon: 'home' }), 'inline', 0, 1, 'web_footer')).toEqual([]);
+        });
+
+        it('flags children nested under a page, which build no column', () => {
+            expect(labels(root({ icon: 'i', ...withDesc }), 'columns', 2, 1, 'web_footer'))
+                .toEqual(['Children not shown']);
+            // A group heading is exactly what does build a column.
+            expect(labels(makeItem({ id: 3, item_type: 'group', parent_item_id: null }), 'columns', 2, 1, 'web_footer'))
+                .not.toContain('Children not shown');
+        });
+    });
+
+    describe('mobile menus', () => {
+        it('flags a missing mobile icon in both mobile menus', () => {
+            for (const key of ['mobile_drawer', 'mobile_bottom_tabs'] as const) {
+                expect(labels(root(), '', 0, 1, key)).toContain('No mobile icon');
+            }
+        });
+
+        it('flags an icon name outside the mobile icon set', () => {
+            const gaps = getPresetGaps(root({ mobile_icon: 'Icon123' }), '', 0, 1, 'mobile_drawer');
+            expect(gaps.map((g) => g.label)).toContain('Unknown mobile icon');
+            // The tooltip names the offending value so it can be corrected.
+            expect(gaps[0].reason).toContain('Icon123');
+        });
+
+        it('accepts a valid mobile icon', () => {
+            expect(labels(root({ mobile_icon: 'House' }), '', 0, 1, 'mobile_drawer')).not.toContain('No mobile icon');
+        });
+
+        it('flags descriptions, which mobile never renders', () => {
+            const withDesc = root({
+                mobile_icon: 'House',
+                translations: [{ language_id: 1, label: 'x', description: 'd' }],
+            });
+            expect(labels(withDesc, '', 0, 1, 'mobile_drawer')).toEqual(['Description not shown']);
+        });
+
+        it('tells the author that bottom-tab children become a top tab strip', () => {
+            const gaps = getPresetGaps(root({ mobile_icon: 'House' }), '', 3, 1, 'mobile_bottom_tabs');
+            expect(gaps.map((g) => g.label)).toContain('Children as top tabs');
+            // The children are not lost, so the tag must not claim they are —
+            // the mobile app renders them above the page content.
+            expect(gaps.map((g) => g.label)).not.toContain('Children not shown');
+            expect(gaps.find((g) => g.label === 'Children as top tabs')?.reason)
+                .toMatch(/top of the screen/);
+            // The drawer renders a tree, so nesting there is fine.
+            expect(labels(root({ mobile_icon: 'House' }), '', 3, 1, 'mobile_drawer')).toEqual([]);
+        });
+
+        it('leaves a childless bottom tab untagged', () => {
+            expect(labels(root({ mobile_icon: 'House' }), '', 0, 1, 'mobile_bottom_tabs')).toEqual([]);
+        });
+    });
+});
+
+describe('getRootItemLimitState', () => {
+    const roots = (n: number) => Array.from({ length: n }, (_, i) => makeItem({ id: i + 1 }));
+
+    it('treats an uncapped menu as always addable', () => {
+        const state = getRootItemLimitState(roots(20), null);
+        expect(state.limit).toBeNull();
+        expect(state.atLimit).toBe(false);
+        expect(state.overLimit).toBe(false);
+        expect(state.blockedReason).toBeNull();
+    });
+
+    it('allows adding below the limit', () => {
+        const state = getRootItemLimitState(roots(4), 5);
+        expect(state.count).toBe(4);
+        expect(state.atLimit).toBe(false);
+        expect(state.blockedReason).toBeNull();
+    });
+
+    it('blocks a new root item once the limit is reached', () => {
+        const state = getRootItemLimitState(roots(5), 5);
+        expect(state.atLimit).toBe(true);
+        // Exactly at the cap is "full", not "over" — the app still renders
+        // every item, so the copy must not claim anything is being dropped.
+        expect(state.overLimit).toBe(false);
+        expect(state.blockedReason).toContain('at most 5 root items');
+        expect(state.blockedReason).toContain('under an existing item');
+    });
+
+    it('still reports over-limit when the menu is past the cap', () => {
+        const state = getRootItemLimitState(roots(7), 5);
+        expect(state.atLimit).toBe(true);
+        expect(state.overLimit).toBe(true);
+    });
+
+    it('counts only root items, so nesting is the way past a full menu', () => {
+        const items = [
+            ...roots(5),
+            makeItem({ id: 90, parent_item_id: 1 }),
+            makeItem({ id: 91, parent_item_id: 1 }),
+        ];
+        const state = getRootItemLimitState(items, 5);
+        expect(state.count).toBe(5);
+        expect(state.overLimit).toBe(false);
     });
 });

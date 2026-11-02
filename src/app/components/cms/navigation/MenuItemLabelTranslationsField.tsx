@@ -86,6 +86,7 @@ export function MenuItemLabelTranslationsField({
     };
 
     const missingCount = languagesWithStatus.filter((entry) => !entry.hasTranslation).length;
+    const hasAnyLabel = hasAnyMenuItemLabel(value);
     const activeDraft = activeLanguageData ? value[activeLanguageData.id] ?? EMPTY_DRAFT : EMPTY_DRAFT;
 
     return (
@@ -136,6 +137,7 @@ export function MenuItemLabelTranslationsField({
                                 ?? `Enter label for ${activeLanguageData.language}`
                             }
                             required={required}
+                            error={required && !hasAnyLabel ? 'Label is required' : undefined}
                         />
                     ) : null}
                     {withPresentationFields ? (
@@ -160,13 +162,28 @@ export function MenuItemLabelTranslationsField({
                 </>
             ) : null}
 
-            {required && missingCount > 0 ? (
+            {required && !hasAnyLabel ? (
+                <Text size="xs" c="red">
+                    A label is required in at least one language before this item can be saved.
+                </Text>
+            ) : required && missingCount > 0 ? (
                 <Text size="xs" c="orange">
                     {missingCount} language{missingCount === 1 ? '' : 's'} still need a label.
+                    {' '}
+                    Missing translations fall back to a language that has one.
                 </Text>
             ) : null}
         </Stack>
     );
+}
+
+/**
+ * True when at least one language carries a label. The public menu falls back
+ * across languages, so a single label is enough to render the item — missing
+ * per-language translations stay a soft warning inside the field.
+ */
+export function hasAnyMenuItemLabel(value: TMenuItemTranslations): boolean {
+    return Object.values(value).some((draft) => draft.label.trim() !== '');
 }
 
 export function buildMenuItemTranslationsPayload(

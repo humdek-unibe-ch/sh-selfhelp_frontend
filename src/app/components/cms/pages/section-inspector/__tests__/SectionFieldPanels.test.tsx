@@ -16,6 +16,7 @@ SPDX-License-Identifier: MPL-2.0
  */
 import { afterAll, beforeAll, describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {
     extendStyleRegistry,
     _resetPluginStyleRegistry,
@@ -134,5 +135,25 @@ describe('SectionFieldPanels — platform-aware cards', () => {
         // The mobile_variant field stub renders once (inside the Mobile card).
         expect(screen.getByText('field:mobile_variant')).toBeInTheDocument();
         expect(screen.getByText('field:web_card_shadow')).toBeInTheDocument();
+    });
+
+    // condition/data_config moved to inline editing — the inspector's Global
+    // Fields must no longer offer them.
+    it('does not offer condition or data_config in Global Fields', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(<SectionFieldPanels {...panelProps} fields={baseFields} styleName="button" />);
+
+        // The Global Fields card still exists (css / css_mobile / debug remain)...
+        expect(screen.getByText('Global Fields')).toBeInTheDocument();
+
+        // ...but searching for the removed global field types matches nothing,
+        // which hides the whole card.
+        const search = screen.getByPlaceholderText('Search fields by name...');
+        await user.type(search, 'condition');
+        expect(screen.queryByText('Global Fields')).not.toBeInTheDocument();
+
+        await user.clear(search);
+        await user.type(search, 'data_config');
+        expect(screen.queryByText('Global Fields')).not.toBeInTheDocument();
     });
 });

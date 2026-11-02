@@ -16,6 +16,109 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.69 — 2026-08-03
+
+Requires core **>=0.1.43** for the navigation warning tags. The rest of the
+release works against any core in range.
+
+### Added
+- **Warning tags in the navigation builder.** Menu items now show, per row,
+  why they will not appear the way you expect. A "Not in public menu" tag
+  marks items the public menu drops — a headless page, a page type that is
+  not core/experiment, or a page the visitor cannot access — each with the
+  reason in a tooltip. Separate tags flag what the selected header preset
+  renders but the item leaves empty: a root item with no children (which
+  makes Dropdown and Mega menu look identical to Simple), and a missing icon
+  or description on entries shown in mega-menu panels and dropdown rows.
+  Previously a preset change could appear to do nothing with no explanation.
+- Description tags respect the language you are editing, so a description
+  that exists only in another language no longer hides an empty panel entry.
+
+### Changed
+- **Child-page navigation styling.** The left sidebar gains a divider on its
+  right edge matching the admin navbar, and each entry shows its route path
+  under the label. The previous/next pager uses equal-width cards with
+  "Previous"/"Next" labels and a divider separating it from page content.
+  Keyboard focus outlines were added to sidebar entries, pills, and pager
+  cards, which previously had no visible focus state.
+- The floating "Edit page" admin shortcut moves from below the site header to
+  the bottom-right of the viewport.
+- The public-menu exclusion rule is now read from the backend rather than
+  reproduced in the frontend, so the builder's verdict cannot drift from what
+  the public menu actually renders.
+
+---
+
+## v0.1.68 — 2026-07-29
+
+Requires core **>=0.1.42**. Both sides must land: the backend pins
+`supports.frontend >=0.1.68`, and the registry resolver refuses an
+incompatible pair.
+
+### Added
+- **Clean user data (restored from SelfHelp v1).** Users Management gains a
+  "Clean user data" row action that removes everything a user produced —
+  activity logs, submitted input data, and scheduled actions — while keeping
+  the user account itself. It is the erasure path for a GDPR request, as
+  distinct from deleting the account. Because the row stays in the list
+  afterwards, the confirmation modal names what will be destroyed and requires
+  typing the user's email address.
+- Cleaning reports what was removed; the admin Users list "Activity" column
+  drops to 0 for the cleaned user.
+
+### Changed
+- The `clean-data` endpoint's client-side permission gate moves from unset to
+  `admin.user.update`, matching the backend route permission. The backend
+  additionally requires delete-level access to the specific user, which is a
+  resource-side check the client gate deliberately does not mirror.
+
+### Fixed
+- **Cleaning user data now actually erases it.** Core versions before 0.1.42
+  answered `200 {"cleaned": true}` from a stub that deleted nothing. The action
+  was unreachable from the UI until this release, so no erasure was ever
+  silently lost — but the `supports.core` floor is raised to 0.1.42 so this
+  release cannot pair with a core where confirming an irreversible erasure
+  reports a success that did not happen.
+
+---
+
+## v0.1.67 — 2026-07-28
+
+Requires core **>=0.1.41**. Both sides must land: the backend pins
+`supports.frontend >=0.1.67`, and the registry resolver refuses an
+incompatible pair.
+
+### Changed
+- **Asset bytes are fetched from `url`, never `file_path` (breaking).** Core
+  0.1.41 moved asset files out of the backend document root, so the old static
+  `/uploads/assets/...` URLs now 404. Every image, video, preview, download and
+  link is built from the asset's `url` (`/cms-api/v1/assets/<folder>/<name>`),
+  which authorizes each request against the folder ACLs. `file_path` remains a
+  logical key for display and identity only. The bytes ride the existing BFF
+  (`/api/assets/...`) so the proxy attaches the caller's token; addressing the
+  backend route directly would send the request anonymously, hiding every
+  image from admins and from users who have been granted the folder.
+- Asset pickers (navigation logo, action config) now persist the delivery URL.
+- `getAssetUrl` maps legacy `uploads/assets/...` paths onto the delivery route
+  so previously stored references still render. The frontend's own static
+  artwork under `public/assets/` (the app logos) is a different directory
+  from the backend's `uploads/assets/` and is unaffected — it stays served
+  by Next.
+
+### Added
+- **Per-folder "Public — anyone can view" toggle** on the Assets page. Public
+  folders are readable by everyone, including logged-out visitors, which keeps
+  logos and public-page imagery working. Enabling asks for confirmation and
+  names the folder; disabling does not. Open access grants view access only —
+  uploading and deleting still follow group permissions.
+  This is folder-scoped and separate from the group-scoped folder-ACL editor in
+  the Groups page; both are needed.
+- The toggle is gated on `admin.group.acl` because it is an access-control
+  decision. Users without it see the current state read-only rather than hidden.
+- **"No access" placeholder** in the asset manager. A `403` on an image is an
+  expected state now, so a lock placeholder is shown instead of a broken image,
+  with no error toast.
+
 ## v0.1.63 — 2026-07-09
 
 ### Changed

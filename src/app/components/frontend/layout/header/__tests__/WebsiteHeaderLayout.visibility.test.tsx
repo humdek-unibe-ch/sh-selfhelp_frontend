@@ -123,4 +123,32 @@ describe('WebsiteHeaderLayout live-preview chrome', () => {
         expect(within(mainNav).getByRole('link', { name: /Home/i })).toBeVisible();
         expect(within(mainNav).getAllByRole('link').length).toBeGreaterThan(0);
     });
+
+    // The brand renders as its own full-height column (with the vertical rule)
+    // only for double presets; single-row presets keep the plain centred slot.
+    it.each(['double-dropdown', 'double-mega-menu'] as const)(
+        'marks the brand slot as a standalone column for preset %s',
+        (preset) => {
+            const { container } = renderWithProviders(
+                <div style={{ width: 1280 }}>
+                    <WebsiteHeaderLayout initialHeaderMenu={menuWithPreset(preset)} />
+                </div>,
+            );
+
+            expect(container.querySelector('[data-double]')).not.toBeNull();
+        },
+    );
+
+    it.each(['simple', 'dropdown', 'mega-menu', 'tabs'] as const)(
+        'keeps the brand slot inline for single-row preset %s',
+        (preset) => {
+            const { container } = renderWithProviders(
+                <div style={{ width: 1280 }}>
+                    <WebsiteHeaderLayout initialHeaderMenu={menuWithPreset(preset)} />
+                </div>,
+            );
+
+            expect(container.querySelector('[data-double]')).toBeNull();
+        },
+    );
 });

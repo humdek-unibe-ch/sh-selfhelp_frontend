@@ -4,19 +4,25 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { forwardRef, useState, type ComponentPropsWithRef } from 'react';
-import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip, Checkbox } from '@mantine/core';
-import { 
-    IconChevronRight, 
-    IconChevronDown, 
-    IconPlus, 
-    IconTrash, 
+import { forwardRef, useMemo, useState, type ComponentPropsWithRef } from 'react';
+import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip, Checkbox, Menu } from '@mantine/core';
+import {
+    IconChevronRight,
+    IconChevronDown,
+    IconPlus,
+    IconTrash,
     IconGripVertical,
-    IconFolder,
-    IconFolderOpen,
-    IconFile
+    IconFilter,
+    IconDatabase,
+    IconCornerDownRight,
+    IconRowInsertTop,
+    IconRowInsertBottom
 } from '@tabler/icons-react';
 import { type IPageSectionWithFields } from '../../../../../types/common/pages.type';
+import { getStyleVisual } from '../../../../../utils/style-visuals';
+import { useUpdateSectionMutation } from '../../../../../hooks/mutations';
+import { ConditionBuilderModal } from '../../shared/condition-builder-modal/ConditionBuilderModal';
+import { DataConfigModal, type IDataSource } from '../../shared/data-config-modal/DataConfigModal';
 import { RemoveSectionModal } from './RemoveSectionModal';
 import styles from './PageSection.module.css';
 import SectionLink from './SectionLink';
@@ -44,6 +50,8 @@ interface IPageSectionProps {
     isDragging?: boolean;
 
     showInsideDropZone?: boolean;
+    /** Hover emphasis for the inline "add as first child" hint. */
+    dropZoneEmphasis?: 'active' | 'invalid' | null;
 
     defaultBulkSelected?: boolean;
     onToggleSelect?: (sectionId: number, selected: boolean) => void;
@@ -55,7 +63,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     section,
     level,
     parentId,
-    pageId: _pageId,
+    pageId,
     expandedSections,
     onToggleExpand,
     onRemoveSection,
@@ -72,7 +80,8 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     dragHandleProps,
     isDragging = false,
 
-    showInsideDropZone: _showInsideDropZone = false,
+    showInsideDropZone = false,
+    dropZoneEmphasis = null,
 
     defaultBulkSelected = false,
     onToggleSelect,
@@ -80,6 +89,10 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     bulkMode
 }, ref) => {
     const [removeModalOpened, setRemoveModalOpened] = useState(false);
+    const [conditionModalOpened, setConditionModalOpened] = useState(false);
+    const [dataConfigModalOpened, setDataConfigModalOpened] = useState(false);
+    // Pins the hover-only action buttons visible while the add menu is open.
+    const [addMenuOpened, setAddMenuOpened] = useState(false);
     const [isBulkSelected, setIsBulkSelected] = useState(defaultBulkSelected);
     const [trackedSelectionVersion, setTrackedSelectionVersion] = useState(selectionVersion);
 
@@ -96,34 +109,34 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     const isActive = selectedSectionId === section.id;
     const isFocused = focusedSectionId === section.id;
 
-    // Dynamic indentation aligned with chevron - 12px per level to align with chevron positioning
-    const getSectionTypeColor = () => {
-        if (canHaveChildren) return 'blue';
-        return 'gray';
-    };
+    // Per-style icon + accent colour so an editor can distinguish a `container`
+    // from an `image` from a `login` at a glance. Falls back to a
+    // container-aware default for styles not yet in the visual registry.
+    const styleVisual = useMemo(
+        () => getStyleVisual(section.style_name, canHaveChildren),
+        [section.style_name, canHaveChildren]
+    );
+    const StyleIcon = styleVisual.icon;
 
+    // Inline indicators: a section can carry a visibility `condition` and/or a
+    // dynamic `data_config`. Show a small chip for each so an editor can spot
+    // conditional / data-bound sections without opening the inspector.
+    const hasCondition = Boolean(section.condition && String(section.condition).trim());
+    const hasDataConfig =
+        section.data_config !== null &&
+        section.data_config !== undefined &&
+        String(section.data_config).trim() !== '';
+
+    // Dynamic per-style theming: the row publishes its style's UNIQUE hue as
+    // `--section-hue`; the CSS builds the tint / hover / accent from it (fixed
+    // S/L, theme-aware). Every style thus reads in its own colour — a container
+    // blue, a background-image green, an accordion orange, etc.
+    // Nesting indentation is owned entirely by the `.childrenContainer` dashed
+    // guide line in SectionsList — the row itself carries no per-level margin, so
+    // deeply nested trees don't compound indent and squeeze the content to nothing.
     const getIndentationStyle = () => ({
-        '--section-indent': `${level * 12}px`,
-        '--section-icon-color': `var(--mantine-color-${getSectionTypeColor()}-6)`
+        '--section-hue': styleVisual.hue
     } as React.CSSProperties);
-
-    const getSectionIcon = () => {
-        if (canHaveChildren) {
-            return hasChildren && isExpanded ? <IconFolderOpen size={10} /> : <IconFolder size={10} />;
-        }
-        return <IconFile size={10} />;
-    };
-
-    // Get level class with support for 30+ levels
-    const getLevelClass = () => {
-        const maxDefinedLevel = 29;
-        if (level <= maxDefinedLevel) {
-            return styles[`level${level}`];
-        }
-        // For levels beyond 29, cycle through the first 12 levels with different shades
-        const cycleLevel = level % 12;
-        return styles[`level${cycleLevel + 18}`]; // Use levels 18-29 for cycling
-    };
 
     const handleToggleExpand = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -146,6 +159,43 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     const handleRemoveConfirm = () => {
         onRemoveSection(section.id, parentId);
         setRemoveModalOpened(false);
+    };
+
+    // Inline global-field editing: the condition / data-config icons open the
+    // SAME builders the inspector uses, then persist via the section update
+    // mutation (only the touched global field is sent; content/property fields
+    // are left untouched with empty arrays).
+    const updateGlobalFieldMutation = useUpdateSectionMutation({ pageId, showNotifications: true });
+
+    const openConditionModal = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setConditionModalOpened(true);
+    };
+
+    const openDataConfigModal = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDataConfigModalOpened(true);
+    };
+
+    const handleConditionSave = (jsonLogic: string | null) => {
+        updateGlobalFieldMutation.mutate({
+            pageId,
+            sectionId: section.id,
+            sectionData: { contentFields: [], propertyFields: [], globalFields: { condition: jsonLogic } }
+        });
+        setConditionModalOpened(false);
+    };
+
+    const handleDataConfigSave = (dataConfig: IDataSource[]) => {
+        const serialized = dataConfig.length > 0 ? JSON.stringify(dataConfig) : null;
+        updateGlobalFieldMutation.mutate({
+            pageId,
+            sectionId: section.id,
+            sectionData: { contentFields: [], propertyFields: [], globalFields: { data_config: serialized } }
+        });
+        setDataConfigModalOpened(false);
     };
 
     const handleAddChild = (e: React.MouseEvent) => {
@@ -183,7 +233,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
           <SectionLink
             sectionId={section.id}
             onSectionSelect={onSectionSelect}
-            className={`${styles.sectionItem} ${getLevelClass()} ${isActive ? styles.selected : ""} ${isBulkSelected ? styles.bulkSelected : ""} ${isFocused ? styles.focused : ""}`}
+            className={`${styles.sectionItem} ${level === 0 ? styles.topRow : styles.nestedRow} ${isActive ? styles.selected : ""} ${isBulkSelected ? styles.bulkSelected : ""} ${isFocused ? styles.focused : ""}`}
             data-section-id={section.id}
           >
             <Paper ref={ref} className={styles.sectionPaper}>
@@ -221,15 +271,20 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                   <Box w={12} />
                 )}
 
-                {/* Section Icon */}
-                <Box className={styles.sectionIcon}>{getSectionIcon()}</Box>
+                {/* Per-style icon chip (colour + glyph bound to the style). The
+                    colour is derived in CSS from the row's `--section-hue`, so no
+                    inline colour vars are needed and the SSR/hydrated markup stays
+                    identical (no hydration mismatch). */}
+                <Box className={styles.styleIcon} title={section.style_name}>
+                  <StyleIcon size={13} stroke={2} />
+                </Box>
 
-                {/* Section Info - Ultra Compact */}
+                {/* Section Info - name + style badge + inline indicators */}
                 <Box className={styles.sectionInfo}>
-                  <Group gap={3} wrap="nowrap" align="center">
+                  <Group gap={6} wrap="nowrap" align="center" style={{ flex: 1 }}>
                     <Text
-                      size="xs"
-                      fw={500}
+                      size="sm"
+                      fw={600}
                       className={styles.sectionName}
                       title={section.section_name}
                     >
@@ -238,10 +293,13 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                         query={searchQuery}
                       />
                     </Text>
+                    {/* Style badge — coloured from the row's `--section-hue` via
+                        the CSS module (Mantine's `color` prop only accepts palette
+                        keys, so we style it directly to allow a unique hue). */}
                     <Badge
                       size="xs"
                       variant="light"
-                      color={getSectionTypeColor()}
+                      radius="sm"
                       className={styles.styleBadge}
                     >
                       <HighlightText
@@ -254,64 +312,117 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                         size="xs"
                         variant="outline"
                         color="gray"
+                        radius="sm"
                         className={styles.childCount}
                       >
                         {section.children?.length}
                       </Badge>
                     )}
+                    {/* Inline "add as first child" hint — fills the space after
+                        the badges while dragging over an empty container. In-flow
+                        so it never overlaps the row and leaves the action buttons
+                        + id/pos meta exactly where they normally sit. */}
+                    {showInsideDropZone && (
+                      <Group
+                        gap={6}
+                        wrap="nowrap"
+                        align="center"
+                        justify="center"
+                        className={`${styles.firstChildHint} ${
+                          dropZoneEmphasis === 'active'
+                            ? styles.firstChildHintActive
+                            : dropZoneEmphasis === 'invalid'
+                              ? styles.firstChildHintInvalid
+                              : ''
+                        }`}
+                      >
+                        <IconPlus size={14} stroke={2.5} />
+                        <Text size="xs" fw={600} lh={1}>Add as first child</Text>
+                      </Group>
+                    )}
                   </Group>
-                  <Text size="xs" c="dimmed" className={styles.sectionMeta}>
-                    #
-                    <HighlightText
-                      text={String(section.id)}
-                      query={searchQuery}
-                    />{" "}
-                    • pos:{section.position}
-                  </Text>
                 </Box>
 
                 {/* Action Buttons - Ultra compact and hover-based */}
-                <Group gap={1} className={styles.actionButtons}>
-                  {canHaveChildren && (
-                    <Tooltip label="Add child" position="top" withArrow>
+                <Group
+                  gap={1}
+                  className={`${styles.actionButtons} ${addMenuOpened ? styles.actionButtonsPinned : ''}`}
+                >
+                  {/* Condition + Data Config modal triggers (left of add/remove).
+                      Highlighted when the section already carries a value. */}
+                  <Tooltip label={hasCondition ? 'Edit visibility condition' : 'Add visibility condition'} position="top" withArrow>
+                    <ActionIcon
+                      size="xs"
+                      variant={hasCondition ? 'light' : 'subtle'}
+                      color="violet"
+                      onClick={openConditionModal}
+                      className={`${styles.actionButton} ${hasCondition ? styles.actionButtonActive : ''}`}
+                      data-action-button="true"
+                      aria-label="Edit condition"
+                    >
+                      <IconFilter />
+                    </ActionIcon>
+                  </Tooltip>
+
+                  <Tooltip label={hasDataConfig ? 'Edit data configuration' : 'Add data configuration'} position="top" withArrow>
+                    <ActionIcon
+                      size="xs"
+                      variant={hasDataConfig ? 'light' : 'subtle'}
+                      color="teal"
+                      onClick={openDataConfigModal}
+                      className={`${styles.actionButton} ${hasDataConfig ? styles.actionButtonActive : ''}`}
+                      data-action-button="true"
+                      aria-label="Edit data configuration"
+                    >
+                      <IconDatabase />
+                    </ActionIcon>
+                  </Tooltip>
+
+                  <Menu
+                    shadow="md"
+                    position="bottom-end"
+                    withArrow
+                    withinPortal
+                    opened={addMenuOpened}
+                    onChange={setAddMenuOpened}
+                  >
+                    <Menu.Target>
                       <ActionIcon
                         size="xs"
                         variant="subtle"
                         color="green"
-                        onClick={handleAddChild}
                         className={styles.actionButton}
                         data-action-button="true"
+                        aria-label={`Add a section near ${section.section_name}`}
                       >
                         <IconPlus />
                       </ActionIcon>
-                    </Tooltip>
-                  )}
+                    </Menu.Target>
 
-                  <Tooltip label="Add above" position="top" withArrow>
-                    <ActionIcon
-                      size="xs"
-                      variant="subtle"
-                      color="blue"
-                      onClick={handleAddSiblingAbove}
-                      className={styles.actionButton}
-                      data-action-button="true"
-                    >
-                      <IconPlus />
-                    </ActionIcon>
-                  </Tooltip>
-
-                  <Tooltip label="Add below" position="top" withArrow>
-                    <ActionIcon
-                      size="xs"
-                      variant="subtle"
-                      color="blue"
-                      onClick={handleAddSiblingBelow}
-                      className={styles.actionButton}
-                      data-action-button="true"
-                    >
-                      <IconPlus />
-                    </ActionIcon>
-                  </Tooltip>
+                    <Menu.Dropdown>
+                      <Menu.Label>Add section</Menu.Label>
+                      {canHaveChildren && (
+                        <Menu.Item
+                          leftSection={<IconCornerDownRight size={14} />}
+                          onClick={handleAddChild}
+                        >
+                          Add child
+                        </Menu.Item>
+                      )}
+                      <Menu.Item
+                        leftSection={<IconRowInsertTop size={14} />}
+                        onClick={handleAddSiblingAbove}
+                      >
+                        Add above
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={<IconRowInsertBottom size={14} />}
+                        onClick={handleAddSiblingBelow}
+                      >
+                        Add below
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
 
                   <Tooltip label="Remove" position="top" withArrow>
                     <ActionIcon
@@ -326,9 +437,19 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                     </ActionIcon>
                   </Tooltip>
                 </Group>
+
+                {/* id + position meta - at the very end, after the action buttons */}
+                <Text size="xs" className={styles.sectionMeta}>
+                  #
+                  <HighlightText text={String(section.id)} query={searchQuery} />
+                  {" · pos "}
+                  {section.position}
+                </Text>
+
                 {bulkMode && (
                   <Checkbox
                     size="xs"
+                    color="orange"
                     checked={isBulkSelected}
                     onChange={(event) => {
                       const checked = event.currentTarget.checked;
@@ -336,7 +457,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                       onToggleSelect?.(section.id, checked);
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    aria-label={`Select ${section.section_name}`}
+                    aria-label={`Select ${section.section_name} for removal`}
                   />
                 )}
               </Group>
@@ -351,6 +472,26 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
           onConfirm={handleRemoveConfirm}
           section={section}
         />
+
+        {/* Inline global-field editors (same builders as the inspector) */}
+        {conditionModalOpened && (
+          <ConditionBuilderModal
+            opened={conditionModalOpened}
+            onClose={() => setConditionModalOpened(false)}
+            onSave={handleConditionSave}
+            initialValue={section.condition ?? ''}
+            title={`Condition — ${section.section_name}`}
+          />
+        )}
+        {dataConfigModalOpened && (
+          <DataConfigModal
+            opened={dataConfigModalOpened}
+            onClose={() => setDataConfigModalOpened(false)}
+            onSave={handleDataConfigSave}
+            initialValue={section.data_config ? String(section.data_config) : ''}
+            title={`Data Config — ${section.section_name}`}
+          />
+        )}
       </>
     );
 });

@@ -39,6 +39,20 @@ SPDX-License-Identifier: MPL-2.0
     padding: var(--mantine-spacing-sm);
 }
 
+/* Section Information — a neutral card (not tinted), matching the mockup. */
+.sectionInfoCard {
+    background: var(--mantine-color-body);
+}
+
+/* Style / Type / ID sub-cells inside the info card — small bordered boxes. */
+.infoCell {
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: var(--mantine-radius-sm);
+    padding: 8px 10px;
+    min-width: 0;
+    background: var(--mantine-color-body);
+}
+
 .actionButton {
     opacity: 0.7;
     transition: opacity 0.2s ease;

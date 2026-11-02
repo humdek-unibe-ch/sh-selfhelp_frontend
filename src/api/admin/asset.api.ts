@@ -10,9 +10,29 @@ export interface IAsset {
   id: number;
   file_name: string;
   original_name?: string;
+  /**
+   * Logical key only (`uploads/assets/<folder>/<name>`) — NOT fetchable since
+   * core 0.1.41 moved files out of the document root. Use it for display,
+   * identity and dedupe; use `url` to fetch bytes.
+   */
   file_path: string;
+  /**
+   * The ACL-enforced delivery route (`/cms-api/v1/assets/<folder>/<name>`) and
+   * the only way to fetch the bytes. Pass through `getAssetUrl`.
+   */
+  url: string;
   asset_type?: string;
-  folder: string | null;    
+  folder: string | null;
+}
+
+/** A folder and whether everyone (incl. anonymous callers) may read it. */
+export interface IAssetFolder {
+  folder: string;
+  is_open_access: boolean;
+}
+
+export interface IAssetFoldersResponse {
+  folders: IAssetFolder[];
 }
 
 export interface IAssetsListResponse {
@@ -58,6 +78,21 @@ interface IMultipleAssetsUploadResponse {
     file_name: string;
     error: string;
   }[];
+}
+
+/**
+ * Body for exporting assets as a zip bundle. Omitting/empty `folders` exports
+ * all readable folders. Response is a binary zip blob, not the JSON envelope.
+ */
+export interface IExportAssetsRequest {
+  folders?: string[];
+}
+
+/** Result of importing an asset zip bundle (per-file errors don't fail the request). */
+export interface IImportAssetsResponse {
+  imported: number;
+  skipped: number;
+  errors: { file: string; error: string }[];
 }
 
 export const AdminAssetApi = {
@@ -162,5 +197,65 @@ export const AdminAssetApi = {
   async deleteAsset(assetId: number): Promise<{ success: boolean }> {
     const response = await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_ASSETS_DELETE, assetId);
     return { success: response.status === 204 || response.status === 200 };
+  },
+
+  /**
+   * List every asset folder with its open-access flag.
+   */
+  async getFolders(): Promise<IAssetFoldersResponse> {
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IAssetFoldersResponse>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_FOLDERS_GET
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Toggle a folder's open-access (public read) flag. Grants read only — it
+   * never grants `manage`; uploading and deleting still follow group ACLs.
+   * 404s if the folder does not exist (folders are created by the first upload).
+   */
+  async setFolderOpenAccess(folder: string, isOpenAccess: boolean): Promise<IAssetFolder> {
+    const response = await permissionAwareApiClient.put<IBaseApiResponse<IAssetFolder>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_FOLDER_OPEN_ACCESS_UPDATE,
+      { is_open_access: isOpenAccess },
+      folder
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Export assets as a downloadable zip bundle (binary files + manifest.json).
+   * Omitting/empty `folders` exports every folder the caller can read.
+   * Returns the raw zip blob for the caller to trigger a browser download.
+   */
+  async exportAssets(request: IExportAssetsRequest = {}): Promise<Blob> {
+    const body = request.folders && request.folders.length > 0 ? { folders: request.folders } : {};
+    const response = await permissionAwareApiClient.post<Blob>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_EXPORT,
+      body,
+      { responseType: 'blob' }
+    );
+    return response.data;
+  },
+
+  /**
+   * Import an asset zip bundle previously produced by `exportAssets`.
+   * Per-file failures come back in `errors[]`; the request still succeeds.
+   */
+  async importAssets(file: File, overwrite = false): Promise<IImportAssetsResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('overwrite', overwrite.toString());
+
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<IImportAssetsResponse>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_IMPORT,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data.data;
   },
 }; 

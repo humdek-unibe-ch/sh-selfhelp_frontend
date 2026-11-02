@@ -28,6 +28,7 @@ import {
     IconClock, IconX,
 } from '@tabler/icons-react';
 import { PageHeader } from '../../../shared/common/PageHeader';
+import { adminTableClasses as tableStyles } from '../../shared/admin-table';
 import { useAuth } from '../../../../../hooks/useAuth';
 import {
     useSystemVersion, useSystemHealth, useSystemAdvisories, useUpdatePreflight, useUpdateStatus,
@@ -626,17 +627,17 @@ export function SystemMaintenancePage() {
                                 <Table verticalSpacing="xs">
                                     <Table.Thead>
                                         <Table.Tr>
-                                            <Table.Th>Plugin</Table.Th>
-                                            <Table.Th>Version</Table.Th>
-                                            <Table.Th>Compatible</Table.Th>
+                                            <Table.Th className={tableStyles.tableHeader}>Plugin</Table.Th>
+                                            <Table.Th className={tableStyles.tableHeader}>Version</Table.Th>
+                                            <Table.Th className={tableStyles.tableHeader}>Compatible</Table.Th>
                                         </Table.Tr>
                                     </Table.Thead>
                                     <Table.Tbody>
                                         {versionData.installed_plugins.map((p) => (
                                             <Table.Tr key={p.id}>
-                                                <Table.Td><Text size="sm">{p.id}</Text></Table.Td>
-                                                <Table.Td><Code>{p.version}</Code></Table.Td>
-                                                <Table.Td>
+                                                <Table.Td className={tableStyles.tableCell}><Text size="sm">{p.id}</Text></Table.Td>
+                                                <Table.Td className={tableStyles.tableCell}><Code>{p.version}</Code></Table.Td>
+                                                <Table.Td className={tableStyles.tableCell}>
                                                     <Badge color={p.compatible ? 'green' : 'red'} variant="light">
                                                         {p.compatible ? 'Yes' : 'No'}
                                                     </Badge>
@@ -820,19 +821,19 @@ export function SystemMaintenancePage() {
                         <Table verticalSpacing="xs">
                             <Table.Thead>
                                 <Table.Tr>
-                                    <Table.Th>Component</Table.Th>
-                                    <Table.Th>Status</Table.Th>
-                                    <Table.Th>Detail</Table.Th>
+                                    <Table.Th className={tableStyles.tableHeader}>Component</Table.Th>
+                                    <Table.Th className={tableStyles.tableHeader}>Status</Table.Th>
+                                    <Table.Th className={tableStyles.tableHeader}>Detail</Table.Th>
                                 </Table.Tr>
                             </Table.Thead>
                             <Table.Tbody>
                                 {healthData.components.map((c) => (
                                     <Table.Tr key={c.name}>
-                                        <Table.Td><Text size="sm" tt="capitalize">{c.name.replace(/_/g, ' ')}</Text></Table.Td>
-                                        <Table.Td>
+                                        <Table.Td className={tableStyles.tableCell}><Text size="sm" tt="capitalize">{c.name.replace(/_/g, ' ')}</Text></Table.Td>
+                                        <Table.Td className={tableStyles.tableCell}>
                                             <Badge color={COMPONENT_COLOR[c.status]} variant="light">{c.status}</Badge>
                                         </Table.Td>
-                                        <Table.Td><Text size="sm" c="dimmed">{c.detail}</Text></Table.Td>
+                                        <Table.Td className={tableStyles.tableCell}><Text size="sm" c="dimmed">{c.detail}</Text></Table.Td>
                                     </Table.Tr>
                                 ))}
                             </Table.Tbody>

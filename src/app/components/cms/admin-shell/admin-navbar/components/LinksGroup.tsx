@@ -254,7 +254,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
   return (
     <>
       <Box className={classes.control} data-active={isActive}>
-        <Group justify="space-between" gap={0}>
+        <Group justify="space-between" gap={0} wrap="nowrap">
           {/* Main clickable area for navigation */}
           <UnstyledButton
             onClick={() => {
@@ -285,7 +285,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
           >
             <Box className={classes.iconContainer}>
               {icon ? <Box className={classes.groupIcon}>{icon}</Box> : null}
-              <Box>{label}</Box>
+              <Box className={classes.groupLabel}>{label}</Box>
             </Box>
           </UnstyledButton>
 
@@ -297,6 +297,8 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, onClick 
                 setOpened((o: boolean) => !o);
               }}
               className={classes.chevronButton}
+              aria-label={`${opened ? 'Collapse' : 'Expand'} ${label}`}
+              aria-expanded={opened}
             >
               <IconChevronRight
                 className={`${classes.chevron} ${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}
@@ -462,6 +464,8 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
               setOpened((o: boolean) => !o);
             }}
             className={classes.chevronButton}
+            aria-label={`${opened ? 'Collapse' : 'Expand'} ${label}`}
+            aria-expanded={opened}
           >
             <IconChevronRight
               className={`${classes.chevron} ${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}

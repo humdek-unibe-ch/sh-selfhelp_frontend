@@ -5,12 +5,13 @@ SPDX-License-Identifier: MPL-2.0
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
-import type { 
-  IRolesListResponse, 
-  IRolesListParams, 
+import type {
+  IRolesListResponse,
+  IRolesListParams,
   IRoleDetails,
   IRolePermission
 } from '../../types/responses/admin/roles.types';
+import type { IMemberUser } from '../../types/responses/admin/admin.types';
 import type {
   ICreateRoleRequest,
   IUpdateRoleRequest,
@@ -35,6 +36,17 @@ export const AdminRoleApi = {
     const response = await permissionAwareApiClient.get<IBaseApiResponse<IRolesListResponse>>(
       API_CONFIG.ENDPOINTS.ADMIN_ROLES_GET_ALL,
       { params: Object.fromEntries(searchParams) }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * List the users who have a role ("View users").
+   */
+  async getRoleMembers(roleId: number): Promise<IMemberUser[]> {
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IMemberUser[]>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ROLES_MEMBERS_GET,
+      roleId
     );
     return response.data.data;
   },
