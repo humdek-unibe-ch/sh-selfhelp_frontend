@@ -219,6 +219,12 @@ export const PageNavigationMembership = React.memo(function PageNavigationMember
         }));
     }, [pages, pageId]);
 
+    // Page types that can never be in a public menu (same rule as the menu builder).
+    const isMenuEligible = useMemo(
+        () => pages?.find((entry) => entry.id_pages === pageId)?.menu_eligible !== false,
+        [pages, pageId],
+    );
+
     const addMutation = useMutation({
         mutationFn: (menuKey: string) =>
             AdminNavigationApi.createMenuItem(menuKey, { item_type: 'page', page_id: pageId, parent_item_id: null }),
@@ -247,7 +253,7 @@ export const PageNavigationMembership = React.memo(function PageNavigationMember
                         {canUpdateNavigation ? (
                         <Menu withinPortal position="bottom-end">
                             <Menu.Target>
-                                <Button variant="default" size="xs" rightSection={<IconChevronDown size={14} />}>
+                                <Button variant="default" size="xs" rightSection={<IconChevronDown size={14} />} disabled={!isMenuEligible}>
                                     Add to menu
                                 </Button>
                             </Menu.Target>

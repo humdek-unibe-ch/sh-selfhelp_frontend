@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
@@ -11,9 +11,10 @@ import { renderWithProviders } from '../../../../../../test-utils/renderWithProv
  * L6: "Add to menu → <menu>" only opened the menu builder; it must add the
  * page to that menu and confirm it.
  */
-const { createMenuItem, showNotification } = vi.hoisted(() => ({
+const { createMenuItem, showNotification, pageState } = vi.hoisted(() => ({
     createMenuItem: vi.fn(),
     showNotification: vi.fn(),
+    pageState: { menuEligible: true },
 }));
 
 vi.mock('../../../../../../api/admin/navigation.api', () => ({
@@ -23,7 +24,12 @@ vi.mock('@mantine/notifications', () => ({ notifications: { show: showNotificati
 vi.mock('../../../../../../hooks/usePermissionChecks', () => ({ useCanUpdateNavigation: () => true }));
 vi.mock('../../../../../../hooks/useAdminPages', () => ({
     useAdminPages: () => ({
-        pages: [{ id_pages: 5, keyword: 'about', navigationMembership: [{ menu_key: 'web_header', explicit: true, menu_item_id: 1 }] }],
+        pages: [{
+            id_pages: 5,
+            keyword: 'about',
+            menu_eligible: pageState.menuEligible,
+            navigationMembership: [{ menu_key: 'web_header', explicit: true, menu_item_id: 1 }],
+        }],
         isLoading: false,
     }),
 }));
@@ -31,6 +37,10 @@ vi.mock('../../../../../../hooks/useAdminPages', () => ({
 import { PageNavigationMembership } from '../page-field-groups';
 
 describe('PageNavigationMembership "Add to menu"', () => {
+    beforeEach(() => {
+        pageState.menuEligible = true;
+    });
+
     it('adds the page to the chosen menu and confirms it', async () => {
         createMenuItem.mockResolvedValue({ item: { id: 2 }, children: [] });
         renderWithProviders(<PageNavigationMembership pageId={5} />);
@@ -50,5 +60,13 @@ describe('PageNavigationMembership "Add to menu"', () => {
         await userEvent.click(screen.getByRole('button', { name: 'Add to menu' }));
 
         expect(await screen.findByRole('menuitem', { name: /Web header/ }, { timeout: 5000 })).toBeDisabled();
+    });
+
+    // The menu builder never offers pages whose type can't be in a public menu.
+    it('cannot add a page that is not eligible for menus', () => {
+        pageState.menuEligible = false;
+        renderWithProviders(<PageNavigationMembership pageId={5} />);
+
+        expect(screen.getByRole('button', { name: 'Add to menu' })).toBeDisabled();
     });
 });
