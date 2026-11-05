@@ -569,10 +569,6 @@ export const API_CONFIG = {
             route: (groupId: number) => `/admin/groups/${groupId}`,
             permissions: [PERMISSIONS.ADMIN_GROUP_DELETE]
         },
-        ADMIN_GROUPS_MEMBERS_GET: {
-            route: (groupId: number) => `/admin/groups/${groupId}/users`,
-            permissions: [PERMISSIONS.ADMIN_GROUP_READ]
-        },
         ADMIN_GROUPS_ACLS_GET: {
             route: (groupId: number) => `/admin/groups/${groupId}/acls`,
             permissions: [PERMISSIONS.ADMIN_GROUP_READ]
@@ -589,10 +585,6 @@ export const API_CONFIG = {
         },
         ADMIN_ROLES_GET_ONE: {
             route: (roleId: number) => `/admin/roles/${roleId}`,
-            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
-        },
-        ADMIN_ROLES_MEMBERS_GET: {
-            route: (roleId: number) => `/admin/roles/${roleId}/users`,
             permissions: [PERMISSIONS.ADMIN_ROLE_READ]
         },
         ADMIN_ROLES_CREATE: {

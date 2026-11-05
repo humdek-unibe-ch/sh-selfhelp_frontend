@@ -62,12 +62,12 @@ import {
   useImportUsersCsv,
 } from '../../../../../hooks/useUsers';
 import { useGroups } from '../../../../../hooks/useGroups';
+import { useRoles } from '../../../../../hooks/useRoles';
 import type {
   IUserBasic,
   IUsersListParams,
-  TUserStatusFilter,
 } from '../../../../../types/responses/admin/users.types';
-import { getUserStatusColor } from '../../../../../utils/status-color.utils';
+import { UserStatusBadge, UserStatusFilterSelect } from '../../shared/user-status';
 import classes from './UsersList.module.css';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { EmptyState } from '../../../shared/common/EmptyState';
@@ -138,6 +138,7 @@ export function UsersList({
 
   // Groups drive the Group filter dropdown.
   const { data: groupsData } = useGroups({ pageSize: 100 });
+  const { data: rolesData } = useRoles({ pageSize: 100 });
 
   const bulkAddToGroup = useBulkAddUsersToGroup();
   const bulkRemoveFromGroup = useBulkRemoveUsersFromGroup();
@@ -384,20 +385,7 @@ export function UsersList({
       {
         accessorKey: "status",
         header: ({ column }) => <SortHeader label="Status" column={column} />,
-        cell: ({ row }) => {
-          const status = row.original.blocked ? "blocked" : row.original.status;
-          return (
-            <Badge
-              variant="light"
-              color={getUserStatusColor(status)}
-              size="sm"
-              radius="sm"
-              styles={{ label: { textTransform: "capitalize" } }}
-            >
-              {row.original.blocked ? "Blocked" : row.original.status}
-            </Badge>
-          );
-        },
+        cell: ({ row }) => <UserStatusBadge status={row.original.status} blocked={row.original.blocked} />,
         enableSorting: true,
       },
       {
@@ -660,29 +648,9 @@ export function UsersList({
 
             <Group gap="md" align="flex-end" justify="space-between" wrap="wrap">
               <Group gap="md" align="flex-end" wrap="wrap">
-                <Select
-                  label="Status"
-                  value={filterParams.status ?? 'all'}
-                  onChange={(value) =>
-                    setFilterParams((prev) => ({
-                      ...prev,
-                      status:
-                        value && value !== 'all'
-                          ? (value as Exclude<TUserStatusFilter, 'all'>)
-                          : undefined,
-                      page: 1,
-                    }))
-                  }
-                  data={[
-                    { value: 'all', label: 'All' },
-                    { value: 'active', label: 'Active' },
-                    { value: 'invited', label: 'Invited' },
-                    { value: 'imported', label: 'Imported' },
-                    { value: 'blocked', label: 'Blocked' },
-                  ]}
-                  withCheckIcon={false}
-                  allowDeselect={false}
-                  w={160}
+                <UserStatusFilterSelect
+                  value={filterParams.status}
+                  onChange={(status) => setFilterParams((prev) => ({ ...prev, status, page: 1 }))}
                 />
 
                 <Select
@@ -699,6 +667,26 @@ export function UsersList({
                   data={(groupsData?.groups ?? []).map((group) => ({
                     value: group.id.toString(),
                     label: group.name,
+                  }))}
+                  searchable
+                  clearable
+                  w={160}
+                />
+
+                <Select
+                  label="Role"
+                  placeholder="All"
+                  value={filterParams.id_roles?.toString() ?? null}
+                  onChange={(value) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      id_roles: value ? Number(value) : undefined,
+                      page: 1,
+                    }))
+                  }
+                  data={(rolesData?.roles ?? []).map((role) => ({
+                    value: role.id.toString(),
+                    label: role.name,
                   }))}
                   searchable
                   clearable
@@ -789,7 +777,7 @@ export function UsersList({
               <EmptyState
                 title="No users found"
                 description={
-                  params.search || params.status || params.id_groups
+                  params.search || params.status || params.id_groups || params.id_roles
                     ? "Try adjusting your search or filters"
                     : "Get started by creating your first user"
                 }

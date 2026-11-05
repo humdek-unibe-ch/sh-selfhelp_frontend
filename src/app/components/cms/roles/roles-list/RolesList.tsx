@@ -48,6 +48,8 @@ import {
   IconUserCheck,
 } from '@tabler/icons-react';
 import { useRoles } from '../../../../../hooks/useRoles';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import type { IRoleDetails, IRolesListParams } from '../../../../../types/responses/admin/roles.types';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
@@ -91,6 +93,9 @@ export function RolesList({
 
   // The role whose users are being viewed, or null when the modal is closed.
   const [membersOf, setMembersOf] = useState<{ id: number; name: string } | null>(null);
+  // The members dialog reads the Users list.
+  const { permissionChecker } = useAuthUser();
+  const canViewMembers = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_USER_READ) ?? false;
 
   // Fetch roles data
   const { data: rolesData, refetch, isFetching, error } = useRoles(params);
@@ -342,6 +347,7 @@ export function RolesList({
                 <Menu.Dropdown>
                   <Menu.Item
                     leftSection={<IconUsers size={14} />}
+                    disabled={!canViewMembers}
                     onClick={() =>
                       setMembersOf({ id: row.original.id, name: row.original.name })
                     }
@@ -373,6 +379,7 @@ export function RolesList({
       onManagePagePermissions,
       onManageDataTablePermissions,
       onManageGroupPermissions,
+      canViewMembers,
     ],
   );
 

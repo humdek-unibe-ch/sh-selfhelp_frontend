@@ -86,6 +86,8 @@ export function GroupsList({
 
   const { permissionChecker } = useAuthUser();
   const canManageAcls = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_GROUP_ACL) ?? false;
+  // The members dialog reads the Users list.
+  const canViewMembers = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_USER_READ) ?? false;
 
   // Fetch groups data
   const { data: groupsData, isFetching, refetch, error } = useGroups(params);
@@ -259,6 +261,7 @@ export function GroupsList({
               <Menu.Dropdown>
                 <Menu.Item
                   leftSection={<IconUsers size={14} />}
+                  disabled={!canViewMembers}
                   onClick={() =>
                     setMembersOf({ id: row.original.id, name: row.original.name })
                   }
@@ -281,7 +284,7 @@ export function GroupsList({
         ),
       },
     ],
-    [onEditGroup, onDeleteGroup, onManageAcls, canManageAcls],
+    [onEditGroup, onDeleteGroup, onManageAcls, canManageAcls, canViewMembers],
   );
 
   // Initialize table

@@ -42,6 +42,11 @@ rework. The rest of the release works against any core in range.
 - **Assets: who can manage them.** "Who can manage it" picks the roles that
   may see, edit and delete an asset in the CMS; left empty on upload, your own
   roles get it. Researchers on one instance do not see each other's assets.
+- **Users: role filter.** The users list and its CSV export can be filtered
+  by role, next to group and status. Requires core **>=0.1.43**.
+- **Groups and Roles: searchable members.** "View members" can search, filter
+  by status and page through the members, like the users list. It needs
+  `admin.user.read`. Requires core **>=0.1.43**.
 - **Form uploads in Admin → Data.** File cells show the file name with View
   and Download buttons instead of the raw storage path. A cell with several
   files opens a list with "Download all (zip)", and the export menu downloads

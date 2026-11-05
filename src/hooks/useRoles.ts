@@ -25,7 +25,6 @@ const ROLES_QUERY_KEYS = {
   details: () => [...ROLES_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: number) => [...ROLES_QUERY_KEYS.details(), id] as const,
   permissions: (id: number) => [...ROLES_QUERY_KEYS.all, 'permissions', id] as const,
-  members: (id: number) => [...ROLES_QUERY_KEYS.all, 'members', id] as const,
 };
 
 // Get paginated roles
@@ -42,17 +41,6 @@ export function useRoleDetails(roleId: number) {
   return useQuery({
     queryKey: ROLES_QUERY_KEYS.detail(roleId),
     queryFn: () => AdminRoleApi.getRoleById(roleId),
-    enabled: !!roleId,
-    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
-  });
-}
-
-// List a role's members. Enabled only when a role is selected so the
-// "View users" modal fetches lazily on open, not on every list render.
-export function useRoleMembers(roleId: number | null) {
-  return useQuery({
-    queryKey: ROLES_QUERY_KEYS.members(roleId ?? 0),
-    queryFn: () => AdminRoleApi.getRoleMembers(roleId as number),
     enabled: !!roleId,
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
   });

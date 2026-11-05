@@ -9,8 +9,7 @@ import type {
   IGroupsListResponse,
   IGroupsListParams,
   IGroupDetails,
-  IGroupPageAcl,
-  IGroupMember
+  IGroupPageAcl
 } from '../../types/responses/admin/groups.types';
 import type {
   ICreateGroupRequest,
@@ -34,17 +33,6 @@ export const AdminGroupApi = {
     const response = await permissionAwareApiClient.get<IBaseApiResponse<IGroupsListResponse>>(
       API_CONFIG.ENDPOINTS.ADMIN_GROUPS_GET_ALL,
       { params: Object.fromEntries(searchParams) }
-    );
-    return response.data.data;
-  },
-
-  /**
-   * List the users who belong to a group ("View members").
-   */
-  async getGroupMembers(groupId: number): Promise<IGroupMember[]> {
-    const response = await permissionAwareApiClient.get<IBaseApiResponse<IGroupMember[]>>(
-      API_CONFIG.ENDPOINTS.ADMIN_GROUPS_MEMBERS_GET,
-      groupId
     );
     return response.data.data;
   },

@@ -16,6 +16,7 @@ import {
 } from '@tabler/icons-react';
 import type { ComponentType } from 'react';
 import type { IUsersStats, TUserStatusFilter } from '../../../../../types/responses/admin/users.types';
+import { USER_STATUS_LABELS } from '../../shared/user-status';
 import classes from './UsersStatsTiles.module.css';
 
 interface IUsersStatsTilesProps {
@@ -38,10 +39,10 @@ interface ITile {
 
 const TILES: ITile[] = [
   { status: 'all', label: 'Total users', color: 'blue', icon: IconUsers },
-  { status: 'active', label: 'Active', color: 'green', icon: IconCircleCheck },
-  { status: 'invited', label: 'Invited', color: 'orange', icon: IconClock },
-  { status: 'imported', label: 'Imported', color: 'grape', icon: IconFileImport },
-  { status: 'blocked', label: 'Blocked', color: 'red', icon: IconBan },
+  { status: 'active', label: USER_STATUS_LABELS.active, color: 'green', icon: IconCircleCheck },
+  { status: 'invited', label: USER_STATUS_LABELS.invited, color: 'orange', icon: IconClock },
+  { status: 'imported', label: USER_STATUS_LABELS.imported, color: 'grape', icon: IconFileImport },
+  { status: 'blocked', label: USER_STATUS_LABELS.blocked, color: 'red', icon: IconBan },
 ];
 
 /**
