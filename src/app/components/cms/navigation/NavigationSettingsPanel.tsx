@@ -38,6 +38,7 @@ import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { useAssets } from '../../../../hooks/useAssets';
 
 import { getAssetUrl } from '../../../../utils/asset-url.utils';
+import { assetFileLabel } from '../assets/assets.utils';
 
 const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|svg|webp|avif)$/i;
 
@@ -237,14 +238,16 @@ function NavigationSettingsForm({
 
         return assets
 
-            .filter((asset) => IMAGE_EXTENSIONS.test(asset.file_name))
+            // Stored files have no extension, so prefer the recorded MIME type;
+            // the file name's extension covers folder-era assets.
+            .filter((asset) => (asset.mime_type ? asset.mime_type.startsWith('image/') : IMAGE_EXTENSIONS.test(asset.name ?? '')))
 
             .map((asset) => ({
 
                 // Persist the delivery URL, not the (unfetchable) file_path key.
                 value: asset.url,
 
-                label: asset.original_name && asset.original_name.trim() !== '' ? asset.original_name : asset.file_name,
+                label: assetFileLabel(asset),
 
             }));
 

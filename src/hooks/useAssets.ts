@@ -8,10 +8,11 @@ import {
   type IAssetsListResponse,
   type IAssetsListParams,
   type IAsset,
+  type IBulkAssetGroupsRequest,
   type ICreateAssetRequest,
   type ICreateMultipleAssetsRequest,
   type IExportAssetsRequest,
-  type IAssetFoldersResponse
+  type IUpdateAssetRequest,
 } from '../api/admin/asset.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 
@@ -54,7 +55,6 @@ export function useCreateAsset() {
   return useMutation({
     mutationFn: (assetData: ICreateAssetRequest) => AdminAssetApi.createAsset(assetData),
     onSuccess: () => {
-      // Invalidate and refetch assets list
       void queryClient.invalidateQueries({ queryKey: ['assets'] });
     },
   });
@@ -69,7 +69,83 @@ export function useCreateMultipleAssets() {
   return useMutation({
     mutationFn: (assetData: ICreateMultipleAssetsRequest) => AdminAssetApi.createMultipleAssets(assetData),
     onSuccess: () => {
-      // Invalidate and refetch assets list
+      void queryClient.invalidateQueries({ queryKey: ['assets'] });
+    },
+  });
+}
+
+/**
+ * Hook to edit an asset (and optionally replace its file under the same uuid).
+ */
+export function useUpdateAsset() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ assetId, data }: { assetId: number; data: IUpdateAssetRequest }) =>
+      AdminAssetApi.updateAsset(assetId, data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['assets'] });
+    },
+  });
+}
+
+/**
+ * Hook to add or remove groups on several assets at once.
+ */
+export function useBulkAssetGroups() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: IBulkAssetGroupsRequest) => AdminAssetApi.bulkUpdateGroups(request),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['assets'] });
+    },
+  });
+}
+
+/**
+ * Hook to delete several assets at once.
+ */
+export function useBulkDeleteAssets() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (assetIds: number[]) => AdminAssetApi.bulkDeleteAssets(assetIds),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['assets'] });
+    },
+  });
+}
+
+/**
+ * Asset folders (flat; build the tree from `parent_id`). Saves and deletes
+ * return the full list, which replaces the cache directly.
+ */
+export function useAssetFolders() {
+  return useQuery({
+    queryKey: ['assets', 'folders'],
+    queryFn: () => AdminAssetApi.getFolders(),
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+  });
+}
+
+export function useSaveAssetFolder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ folder, folderId }: { folder: { name: string; parent_id: number | null }; folderId?: number }) =>
+      AdminAssetApi.saveFolder(folder, folderId),
+    onSuccess: (folders) => queryClient.setQueryData(['assets', 'folders'], folders),
+  });
+}
+
+export function useDeleteAssetFolder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (folderId: number) => AdminAssetApi.deleteFolder(folderId),
+    // Assets of deleted folders move to the top level: refresh lists too.
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['assets'] });
     },
   });
@@ -83,37 +159,6 @@ export function useDeleteAsset() {
 
   return useMutation({
     mutationFn: (assetId: number) => AdminAssetApi.deleteAsset(assetId),
-    onSuccess: () => {
-      // Invalidate and refetch assets list
-      void queryClient.invalidateQueries({ queryKey: ['assets'] });
-    },
-  });
-}
-
-/**
- * Hook to fetch the asset folders and their open-access flags.
- */
-export function useAssetFolders() {
-  return useQuery<IAssetFoldersResponse>({
-    queryKey: ['assets', 'folders'],
-    queryFn: () => AdminAssetApi.getFolders(),
-    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
-    refetchOnWindowFocus: false,
-  });
-}
-
-/**
- * Hook to toggle a folder's open-access flag.
- *
- * Invalidates the whole `assets` tree: flipping the flag changes which folders
- * (and therefore assets) other callers can read, so the list must refetch too.
- */
-export function useSetFolderOpenAccess() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ folder, isOpenAccess }: { folder: string; isOpenAccess: boolean }) =>
-      AdminAssetApi.setFolderOpenAccess(folder, isOpenAccess),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['assets'] });
     },
@@ -137,12 +182,9 @@ export function useImportAssets() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ file, overwrite }: { file: File; overwrite?: boolean }) =>
-      AdminAssetApi.importAssets(file, overwrite),
+    mutationFn: (file: File) => AdminAssetApi.importAssets(file),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['assets'] });
     },
   });
 }
-
- 

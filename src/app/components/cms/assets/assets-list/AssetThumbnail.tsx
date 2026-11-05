@@ -13,15 +13,15 @@ interface IAssetThumbnailProps {
   alt: string;
 }
 
-const BOX = 75;
+const BOX = 40;
 
 /**
  * Asset preview thumbnail that degrades to a "no access" placeholder.
  *
  * Since core 0.1.41 asset bytes come from the ACL-enforced delivery route, so a
- * `403` on an image is an EXPECTED state (the folder is closed to this user),
- * not a bug. The admin list still shows such assets — folder ACLs filter the
- * listing, but an asset can become unreadable between fetch and render — so we
+ * `403` on an image is an EXPECTED state (the user is in none of the asset's
+ * groups), not a bug. An asset can become unreadable between fetch and render
+ * (its groups changed), so we
  * render a lock placeholder instead of a broken-image icon, and deliberately
  * raise no error toast.
  *
@@ -35,12 +35,12 @@ export function AssetThumbnail({ src, alt }: IAssetThumbnailProps) {
   // Track WHICH src failed rather than a bare boolean: rows are keyed by
   // `asset.id`, so this component is reused (not remounted) when the list
   // refetches. A bare flag would latch the placeholder on forever — e.g. after
-  // the folder is made public and the same row's image becomes readable again.
+  // the asset is shared with the viewer and the same row's image becomes readable again.
   const failed = failedSrc === src;
 
   if (failed) {
     return (
-      <Tooltip label="No access — you cannot view files in this folder">
+      <Tooltip label="Preview unavailable — you are not in any of this asset's groups, or the file is missing">
         <Center
           w={BOX}
           h={BOX}
@@ -49,7 +49,7 @@ export function AssetThumbnail({ src, alt }: IAssetThumbnailProps) {
           role="img"
           aria-label={`${alt} — no access`}
         >
-          <IconLock size={20} color="var(--mantine-color-gray-6)" aria-hidden />
+          <IconLock size={16} color="var(--mantine-color-gray-6)" aria-hidden />
         </Center>
       </Tooltip>
     );

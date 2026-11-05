@@ -12,6 +12,7 @@ import { ACTION_SCHEDULE_TYPES, TIME_PERIOD, WEEKDAYS } from '../../../../../con
 import { AdminGroupApi } from '../../../../../api/admin/group.api';
 import { AdminDataApi } from '../../../../../api/admin/data.api';
 import { AdminAssetApi } from '../../../../../api/admin/asset.api';
+import { assetFileLabel } from '../../assets/assets.utils';
 import { ConditionBuilderField } from '../../shared/field-components/ConditionBuilderField';
 import dynamic from 'next/dynamic';
 import { DateTimePicker, TimeInput } from '@mantine/dates';
@@ -186,7 +187,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             setFormOptions((tables.dataTables || []).map((t) => ({ value: String(t.id), label: t.displayName || t.name })));
             const assets = await AdminAssetApi.getAssets({ page: 1, pageSize: 1000 });
             // Persist the delivery URL, not the (unfetchable) file_path key.
-            setAssetOptions(assets.assets.map(a => ({ value: a.url, label: a.original_name || a.file_name })));
+            setAssetOptions(assets.assets.map(a => ({ value: a.url, label: assetFileLabel(a) })));
         })();
     }, []);
 

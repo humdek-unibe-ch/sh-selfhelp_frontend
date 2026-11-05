@@ -9,7 +9,6 @@ import {
   Stack,
   Tabs,
   Text,
-  Switch,
   Group,
   Paper,
   Badge,
@@ -33,8 +32,7 @@ import { parseApiError } from '../../../../../utils/mutation-error-handler';
 interface IExportImportAssetsModalProps {
   opened: boolean;
   onClose: () => void;
-  /** When set, export is scoped to this folder; otherwise all visible assets. */
-  folder?: string | null;
+  assetIds?: number[];
   /** Whether the user may import (needs `admin.asset.create`). Hides the Import tab when false. */
   canImport?: boolean;
 }
@@ -51,29 +49,28 @@ function downloadBlob(blob: Blob, fileName: string): void {
   URL.revokeObjectURL(url);
 }
 
-export function ExportImportAssetsModal({ opened, onClose, folder, canImport = true }: IExportImportAssetsModalProps) {
+export function ExportImportAssetsModal({ opened, onClose, assetIds = [], canImport = true }: IExportImportAssetsModalProps) {
   const [tab, setTab] = useState<string | null>('export');
   const [importFile, setImportFile] = useState<File | null>(null);
-  const [overwrite, setOverwrite] = useState(false);
 
   const exportMutation = useExportAssets();
   const importMutation = useImportAssets();
 
-  const scoped = typeof folder === 'string' && folder.length > 0;
+  const scoped = assetIds.length > 0;
+  const scopeLabel = `${assetIds.length} selected asset${assetIds.length === 1 ? '' : 's'}`;
 
   const handleClose = () => {
     if (exportMutation.isPending || importMutation.isPending) return;
     setImportFile(null);
-    setOverwrite(false);
     setTab('export');
     onClose();
   };
 
   const handleExport = async () => {
     try {
-      const blob = await exportMutation.mutateAsync(scoped ? { folders: [folder as string] } : {});
+      const blob = await exportMutation.mutateAsync(scoped ? { asset_ids: assetIds } : {});
       const stamp = new Date().toISOString().slice(0, 10);
-      downloadBlob(blob, `assets-${scoped ? `${folder}-` : ''}${stamp}.zip`);
+      downloadBlob(blob, `assets-${scoped ? 'selected-' : ''}${stamp}.zip`);
       notifications.show({ title: 'Success', message: 'Assets exported', color: 'green' });
       handleClose();
     } catch (error) {
@@ -85,7 +82,7 @@ export function ExportImportAssetsModal({ opened, onClose, folder, canImport = t
   const handleImport = async () => {
     if (!importFile) return;
     try {
-      const result = await importMutation.mutateAsync({ file: importFile, overwrite });
+      const result = await importMutation.mutateAsync(importFile);
       const failed = result.errors?.length ?? 0;
       if (failed === 0) {
         notifications.show({
@@ -124,7 +121,7 @@ export function ExportImportAssetsModal({ opened, onClose, folder, canImport = t
       customActions={
         isExport || !canImport ? (
           <Button leftSection={<IconDownload size={16} />} onClick={() => void handleExport()} loading={exportMutation.isPending}>
-            Export {scoped ? `"${folder}"` : 'all'}
+            Export {scoped ? scopeLabel : 'all'}
           </Button>
         ) : (
           <Button
@@ -155,15 +152,15 @@ export function ExportImportAssetsModal({ opened, onClose, folder, canImport = t
             <Alert icon={<IconAlertCircle size={16} />} color="blue" variant="light">
               <Text size="sm">
                 {scoped
-                  ? `Exports every asset in the "${folder}" folder as a zip bundle (files + manifest.json).`
-                  : 'Exports every asset you can see as a zip bundle (files + manifest.json). The bundle can be imported into another SelfHelp instance.'}
+                  ? `Exports the ${scopeLabel} as a zip bundle (files + manifest.json), with their alt text and groups.`
+                  : 'Exports every asset you can see as a zip bundle (files + manifest.json), with alt text and groups. The bundle can be imported into another SelfHelp instance.'}
               </Text>
             </Alert>
             <Paper withBorder p="md">
               <Group gap="sm">
                 <IconFileZip size={24} />
                 <div>
-                  <Text size="sm" fw={500}>{scoped ? `Folder: ${folder}` : 'All assets'}</Text>
+                  <Text size="sm" fw={500}>{scoped ? scopeLabel : 'All assets'}</Text>
                   <Text size="xs" c="dimmed">Downloads a single .zip archive</Text>
                 </div>
               </Group>
@@ -213,13 +210,9 @@ export function ExportImportAssetsModal({ opened, onClose, folder, canImport = t
               </Paper>
             )}
 
-            <Switch
-              label="Overwrite existing files"
-              description="Replace assets that already exist with the same name"
-              checked={overwrite}
-              onChange={(e) => setOverwrite(e.currentTarget.checked)}
-              disabled={importMutation.isPending}
-            />
+            <Text size="xs" c="dimmed">
+              Import never replaces existing files: assets that already exist here (same id) are skipped.
+            </Text>
           </Stack>
         </Tabs.Panel>
       </Tabs>

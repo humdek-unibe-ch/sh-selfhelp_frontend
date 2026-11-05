@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, type ReactNode } from 'react';
 import {
   Table,
   Text,
@@ -15,271 +15,390 @@ import {
   Stack,
   Paper,
   Tooltip,
-  Collapse,
   Card,
   Badge,
-  Title,
+  Checkbox,
+  Button,
+  Box,
+  LoadingOverlay,
   UnstyledButton,
+  Breadcrumbs,
+  Anchor,
 } from '@mantine/core';
-import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { type SortingState } from '@tanstack/react-table';
-import { 
-  IconTrash, 
-  IconDownload, 
-  IconEye, 
-  IconSearch, 
-  IconChevronUp, 
-  IconChevronDown, 
+import {
+  IconTrash,
+  IconDownload,
+  IconEye,
+  IconSearch,
   IconX,
-  IconChevronRight,
-  IconFolder,
-  IconFolderOpen,
-  IconPhoto,
-  IconFile,
-  IconVideo,
-  IconMusic,
-  IconFileText,
-  IconTable,
-  IconCode,
-  IconTypography,
+  IconPencil,
+  IconUsersGroup,
   IconFileZip,
+  IconFolder,
+  IconHome,
 } from '@tabler/icons-react';
-import { useAssets, useDeleteAsset, useAssetFolders } from '../../../../../hooks/useAssets';
+import { useAssets, useDeleteAsset, useBulkAssetGroups, useBulkDeleteAssets, useAssetFolders } from '../../../../../hooks/useAssets';
+import { useGroups } from '../../../../../hooks/useGroups';
 import { DeleteAssetModal } from '../delete-asset-modal';
+import { AssetFormModal } from '../asset-form-modal/AssetFormModal';
 import { AssetThumbnail } from './AssetThumbnail';
-import type { IAsset } from '../../../../../api/admin/asset.api';
+import { BulkGroupMembershipModal } from '../../users/users-list/BulkGroupMembershipModal';
+import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
+import { FilterActions } from '../../../shared/common/FilterControls';
+import type { IAsset, IAssetFolder } from '../../../../../api/admin/asset.api';
 import { getAssetUrl } from '../../../../../utils/asset-url.utils';
-import { adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { PageHeader } from '../../../shared/common/PageHeader';
+import { EmptyState } from '../../../shared/common/EmptyState';
 import { useAuthUser } from '../../../../../hooks/useUserData';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import { parseApiError } from '../../../../../utils/mutation-error-handler';
+import { assetLabel, folderTrail, getAssetTypeInfo, isImageAsset } from '../assets.utils';
 
 interface IAssetsListProps {
+  folderId: number | null;
+  onFolderChange: (folderId: number | null) => void;
   onAssetSelect?: (asset: IAsset) => void;
+  onExportSelected?: (assetIds: number[]) => void;
+  headerActions?: ReactNode;
+  onEditFolder?: (folderId: number) => void;
 }
 
-/** Assets under one folder. `folder: null` (root uploads) groups under ROOT_KEY. */
-interface IAssetGroup {
-  /** Group identity + expand/collapse key. */
-  key: string;
-  label: string;
-  /** The real folder name, or null for root-level assets. */
-  folder: string | null;
-  assets: IAsset[];
-}
+const BULK_COPY = {
+  add: {
+    title: 'Share assets with groups',
+    action: 'Add groups',
+    detail: 'will be visible to members of the groups you pick. Groups already set are left unchanged.',
+  },
+  remove: {
+    title: 'Remove groups from assets',
+    action: 'Remove groups',
+    detail: 'will no longer be visible to the groups you pick (unless another of their groups allows it).',
+  },
+};
 
-/** Sentinel for assets with no folder, so the key stays a usable string. */
-const ROOT_KEY = '__root__';
+const DEFAULT_FILTERS = { search: '', groupId: null as string | null, pageSize: 20 };
+
+/** Who can see an asset: one badge per group; no groups = public. */
+function AccessBadges({ asset }: { asset: IAsset }) {
+  if (asset.groups.length === 0) {
+    return <Badge variant="light" color="orange" size="sm">Public</Badge>;
+  }
+
+  return (
+    <Group gap={4}>
+      {asset.groups.map((group) => (
+        <Badge key={group.id} variant="light" color="blue" size="sm">{group.name}</Badge>
+      ))}
+    </Group>
+  );
+}
 
 /**
- * Extensions we render an inline preview for. Shared by the type label and the
- * thumbnail check so the two cannot disagree about what "an image" is.
+ * The assets table as a folder browser: it shows one folder at a time (its
+ * subfolders, then its assets, paged), with breadcrumbs back up. A search or
+ * group filter searches every folder instead and shows each result's folder.
  */
-const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif', 'tif', 'tiff'];
-
-interface IDeleteModalState {
-  opened: boolean;
-  asset: IAsset | null;
-}
-
-export function AssetsList({ onAssetSelect }: IAssetsListProps) {
+export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSelected, headerActions, onEditFolder }: IAssetsListProps) {
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(100); // Increased for better grouping
-  const [search, setSearch] = useState('');
-  const [sorting, _setSorting] = useState<SortingState>([]);
-  const [debouncedSearch] = useDebouncedValue(search, 300);
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
-  const [deleteModal, setDeleteModal] = useState<IDeleteModalState>({ opened: false, asset: null });
+  const [draft, setDraft] = useState(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const { pageSize } = filters;
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<IAsset | null>(null);
+  const [editTarget, setEditTarget] = useState<IAsset | null>(null);
+  const [bulkMode, setBulkMode] = useState<'add' | 'remove' | null>(null);
 
   const deleteAssetMutation = useDeleteAsset();
+  const bulkGroupsMutation = useBulkAssetGroups();
+  const bulkDeleteMutation = useBulkDeleteAssets();
+  const { data: folders = [] } = useAssetFolders();
+
+  const searching = filters.search !== '' || filters.groupId !== null;
+
+  const openFolder = (id: number | null) => {
+    onFolderChange(id);
+    setPage(1);
+    setSelectedIds([]);
+  };
+  const applyFilters = () => {
+    setFilters(draft);
+    setPage(1);
+    setSelectedIds([]);
+  };
+  const resetFilters = () => {
+    setDraft(DEFAULT_FILTERS);
+    setFilters(DEFAULT_FILTERS);
+    setPage(1);
+    setSelectedIds([]);
+  };
   const { permissionChecker } = useAuthUser();
   const canDelete = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_DELETE) ?? false;
+  const canUpdate = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_UPDATE) ?? false;
 
-  // Prepare query parameters
+  // A folder id that no longer exists (deleted meanwhile) falls back to the top level.
+  const knownFolderId = folderId !== null && folders.some((folder) => folder.id === folderId) ? folderId : null;
+
   const queryParams = useMemo(() => ({
     page,
     pageSize,
-    search: debouncedSearch || undefined,
-    sort: sorting[0]?.id,
-    sortDirection: (sorting[0]?.desc ? 'desc' : 'asc') as 'desc' | 'asc',
-  }), [page, pageSize, debouncedSearch, sorting]);
+    search: filters.search || undefined,
+    group_id: filters.groupId ? Number(filters.groupId) : undefined,
+    // 0 = assets in no folder; searching looks in every folder.
+    folder_id: searching ? undefined : knownFolderId ?? 0,
+  }), [page, pageSize, filters, searching, knownFolderId]);
 
-  const { data: assetsData, isLoading, error } = useAssets(queryParams);
+  const { data: assetsData, isLoading, isFetching, error, refetch } = useAssets(queryParams);
+  const { data: allAssetsData } = useAssets({ page: 1, pageSize: 1 });
+  const { data: groupsData } = useGroups({ pageSize: 1000 });
+  const assets = useMemo(() => assetsData?.assets ?? [], [assetsData]);
 
-  // Folder open-access flags, so the tree can badge public folders. Shares the
-  // `['assets','folders']` cache with the FolderAccessPanel above, so toggling
-  // the switch there updates these badges without a second request.
-  const { data: foldersData } = useAssetFolders();
-  const openAccessFolders = useMemo(
-    () => new Set((foldersData?.folders ?? []).filter(f => f.is_open_access).map(f => f.folder)),
-    [foldersData]
-  );
+  const groupFilterOptions = (groupsData?.groups ?? []).map((group) => ({
+    value: String(group.id),
+    label: group.name,
+  }));
 
-  const handleDeleteAsset = (asset: IAsset) => {
-    setDeleteModal({ opened: true, asset });
-  };
+  const subfolders = searching || page > 1
+    ? []
+    : folders.filter((folder) => folder.parent_id === knownFolderId).sort((a, b) => a.name.localeCompare(b.name));
+  const trail = folderTrail(folders, knownFolderId);
+  const folderPath = (id: number | null) => folderTrail(folders, id).map((folder) => folder.name).join(' / ');
+
+  const pageIds = assets.map((asset) => asset.id);
+  const sharedGroupIds = assets
+    .filter((asset) => selectedIds.includes(asset.id))
+    .map((asset) => asset.groups.map((group) => group.id))
+    .reduce<number[] | null>((shared, ids) => (shared === null ? ids : shared.filter((id) => ids.includes(id))), null) ?? [];
+  const allOnPageSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.includes(id));
+  const someOnPageSelected = pageIds.some((id) => selectedIds.includes(id));
+
+  const toggleSelected = (id: number) =>
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const toggleAllOnPage = () =>
+    setSelectedIds((prev) =>
+      allOnPageSelected ? prev.filter((id) => !pageIds.includes(id)) : Array.from(new Set([...prev, ...pageIds]))
+    );
 
   const confirmDeleteAsset = async () => {
-    if (!deleteModal.asset) return;
+    if (!deleteTarget) return;
 
     try {
-      await deleteAssetMutation.mutateAsync(deleteModal.asset.id);
+      await deleteAssetMutation.mutateAsync(deleteTarget.id);
+      notifications.show({ title: 'Success', message: 'Asset deleted successfully', color: 'green' });
+      setSelectedIds((prev) => prev.filter((id) => id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      const { errorTitle, errorMessage } = parseApiError(err);
+      notifications.show({ title: errorTitle, message: errorMessage, color: 'red' });
+    }
+  };
+
+  const confirmBulkGroups = async (groupIds: number[]) => {
+    if (!bulkMode) return;
+
+    try {
+      const result = await bulkGroupsMutation.mutateAsync({ asset_ids: selectedIds, group_ids: groupIds, mode: bulkMode });
       notifications.show({
         title: 'Success',
-        message: 'Asset deleted successfully',
+        message: `${result.updated} asset${result.updated === 1 ? '' : 's'} updated`,
         color: 'green',
       });
-      setDeleteModal({ opened: false, asset: null });
-    } catch (error) {
-      const { errorTitle, errorMessage } = parseApiError(error);
-      notifications.show({
-        title: errorTitle,
-        message: errorMessage,
-        color: 'red',
-      });
+      setBulkMode(null);
+    } catch (err) {
+      const { errorTitle, errorMessage } = parseApiError(err);
+      notifications.show({ title: errorTitle, message: errorMessage, color: 'red' });
     }
   };
 
-  // Get file extension from filename
-  const getFileExtension = (fileName: string): string => {
-    const parts = fileName.split('.');
-    return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
+  const confirmBulkDelete = async () => {
+    try {
+      const result = await bulkDeleteMutation.mutateAsync(selectedIds);
+      notifications.show({ title: 'Success', message: `${result.deleted} asset${result.deleted === 1 ? '' : 's'} deleted`, color: 'green' });
+      setSelectedIds([]);
+      setBulkDeleteOpen(false);
+    } catch (err) {
+      const { errorTitle, errorMessage } = parseApiError(err);
+      notifications.show({ title: errorTitle, message: errorMessage, color: 'red' });
+    }
   };
 
-  // Determine asset type info from asset_type or file extension. Grouping is by
-  // folder now, so this drives the PER-ROW type icon (the only place file type
-  // is still surfaced) rather than a group header.
-  //
-  // The row shows the concrete EXTENSION (`WEBP`, `MP4`) rather than the broad
-  // category, because "Image" repeats what the icon already says while hiding
-  // the one detail that matters when picking or debugging an asset. The
-  // category still drives the icon/colour, and its label is the fallback for
-  // extensionless files so the cell is never blank.
-  const getAssetTypeInfo = useCallback((asset: IAsset) => {
-    // Derive the category from the FILE EXTENSION, not `asset_type`.
-    //
-    // `asset_type` is a storage category with only three values — `css`,
-    // `asset`, `static` (see ASSET_TYPES_* in lookups.constants). Trusting it
-    // first meant virtually every upload arrived as `asset`, matched no case
-    // below, and fell through to "Other". The extension is what actually
-    // describes the file, so it decides; `asset_type` only contributes `css`,
-    // the one value that carries information an extension cannot.
-    let typeCategory: string;
-    const extension = getFileExtension(asset.file_name);
+  const renderFolderRow = (folder: IAssetFolder) => {
+    const childCount = folders.filter((child) => child.parent_id === folder.id).length;
+    const contents = [
+      childCount > 0 ? `${childCount} folder${childCount === 1 ? '' : 's'}` : null,
+      `${folder.asset_count} asset${folder.asset_count === 1 ? '' : 's'}`,
+    ].filter(Boolean).join(' · ');
+    return (
+      <Table.Tr
+        key={`folder-${folder.id}`}
+        onClick={() => openFolder(folder.id)}
+        style={{ cursor: 'pointer' }}
+      >
+        <Table.Td className={tableStyles.tableCell} />
+        <Table.Td className={tableStyles.tableCell}>
+          <UnstyledButton
+            onClick={(e) => {
+              e.stopPropagation();
+              openFolder(folder.id);
+            }}
+            aria-label={`Open folder ${folder.name}`}
+          >
+            <Group gap="sm" wrap="nowrap">
+              <IconFolder size={22} color="var(--mantine-color-yellow-6)" aria-hidden />
+              <div>
+                <Text size="sm" fw={600}>{folder.name}</Text>
+                <Text size="xs" c="dimmed">{contents}</Text>
+              </div>
+            </Group>
+          </UnstyledButton>
+        </Table.Td>
+        <Table.Td className={tableStyles.tableCell}>
+          <Text size="sm" c="dimmed">Folder</Text>
+        </Table.Td>
+        <Table.Td className={tableStyles.tableCell} />
+        <Table.Td className={tableStyles.tableCell} onClick={(e) => e.stopPropagation()}>
+          {canUpdate && onEditFolder && (
+            <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
+              <Tooltip label="Edit folder">
+                <ActionIcon variant="subtle" color="gray" aria-label={`Edit folder ${folder.name}`} onClick={() => onEditFolder(folder.id)}>
+                  <IconPencil size={16} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
+          )}
+        </Table.Td>
+      </Table.Tr>
+    );
+  };
 
-    if (asset.asset_type?.toLowerCase() === 'css' || extension === 'css') {
-      typeCategory = 'css';
-    } else {
-      // Map extensions to categories
-      if (IMAGE_EXTENSIONS.includes(extension)) {
-        typeCategory = 'image';
-      } else if (['mp4', 'webm', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'm4v', 'ogv'].includes(extension)) {
-        typeCategory = 'video';
-      } else if (['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'oga', 'opus', 'weba'].includes(extension)) {
-        typeCategory = 'audio';
-      } else if (['pdf'].includes(extension)) {
-        typeCategory = 'pdf';
-      } else if (['doc', 'docx', 'odt', 'rtf'].includes(extension)) {
-        typeCategory = 'document';
-      } else if (['xls', 'xlsx', 'ods', 'csv'].includes(extension)) {
-        typeCategory = 'spreadsheet';
-      } else if (['woff', 'woff2', 'ttf', 'otf', 'eot'].includes(extension)) {
-        typeCategory = 'font';
-      } else if (['zip', 'gz', 'tar', 'rar', '7z'].includes(extension)) {
-        typeCategory = 'archive';
-      } else if (['js', 'jsx', 'ts', 'tsx', 'json', 'xml', 'html', 'htm', 'php', 'py', 'java', 'cpp', 'c', 'h', 'scss', 'sass', 'less', 'yml', 'yaml'].includes(extension)) {
-        typeCategory = 'code';
-      } else if (['txt', 'md', 'log'].includes(extension)) {
-        typeCategory = 'text';
-      } else {
-        typeCategory = 'other';
-      }
-    }
-
-    // Labels are SINGULAR: this describes one row's file, not a group.
-    const categoryInfo = ((): { label: string; icon: React.ReactNode; color: string } => {
-    switch (typeCategory) {
-      case 'image':
-        return { label: 'Image', icon: <IconPhoto size={18} />, color: 'green' };
-      case 'video':
-        return { label: 'Video', icon: <IconVideo size={18} />, color: 'blue' };
-      case 'audio':
-        return { label: 'Audio', icon: <IconMusic size={18} />, color: 'orange' };
-      case 'pdf':
-        return { label: 'PDF', icon: <IconFileText size={18} />, color: 'red' };
-      case 'document':
-        return { label: 'Document', icon: <IconFileText size={18} />, color: 'blue' };
-      case 'spreadsheet':
-        return { label: 'Spreadsheet', icon: <IconTable size={18} />, color: 'green' };
-      case 'font':
-        return { label: 'Font', icon: <IconTypography size={18} />, color: 'grape' };
-      case 'archive':
-        return { label: 'Archive', icon: <IconFileZip size={18} />, color: 'yellow' };
-      case 'css':
-        return { label: 'CSS', icon: <IconCode size={18} />, color: 'purple' };
-      case 'code':
-        return { label: 'Code', icon: <IconCode size={18} />, color: 'yellow' };
-      case 'text':
-        return { label: 'Text', icon: <IconFileText size={18} />, color: 'gray' };
-      default:
-        return { label: 'Other', icon: <IconFile size={18} />, color: 'gray' };
-    }
-    })();
-
-    return {
-      ...categoryInfo,
-      label: extension ? extension.toUpperCase() : categoryInfo.label,
-    };
-  }, []);
-
-  // Check if file is an image based on extension
-  const isImageFile = useCallback((fileName: string): boolean => {
-    return IMAGE_EXTENSIONS.includes(getFileExtension(fileName));
-  }, []);
-
-
-  // Group assets by FOLDER — the folder is the unit that carries meaning now
-  // (ACL grants and the open-access flag are both folder-scoped). File type
-  // stays visible per row via its icon.
-  const assetGroups = useMemo((): IAssetGroup[] => {
-    if (!assetsData?.assets) return [];
-
-    const groupMap = new Map<string, IAssetGroup>();
-
-    assetsData.assets.forEach(asset => {
-      const folder = asset.folder || null;
-      const key = folder ?? ROOT_KEY;
-
-      if (!groupMap.has(key)) {
-        groupMap.set(key, {
-          key,
-          label: folder ?? 'Root',
-          folder,
-          assets: [],
-        });
-      }
-
-      groupMap.get(key)!.assets.push(asset);
-    });
-
-    // Alphabetical by folder so the tree is stable and predictable as assets
-    // are added/removed; root sorts first.
-    return Array.from(groupMap.values()).sort((a, b) => {
-      if (a.key === ROOT_KEY) return -1;
-      if (b.key === ROOT_KEY) return 1;
-      return a.label.localeCompare(b.label);
-    });
-  }, [assetsData]);
-
-  const toggleGroup = (groupKey: string) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      // Groups render expanded by default, so an absent entry means EXPANDED.
-      // Reading `!prev[key]` made the first click a no-op (`!undefined` is
-      // true), which is why collapsing used to need two clicks.
-      [groupKey]: !(prev[groupKey] ?? true),
-    }));
+  const renderAssetRow = (asset: IAsset) => {
+    // `url` is the ACL-enforced delivery route and the only
+    // fetchable source; `file_path` is a logical key only.
+    const deliveryUrl = getAssetUrl(asset.url);
+    const typeInfo = getAssetTypeInfo(asset);
+    const label = assetLabel(asset);
+    const path = searching ? folderPath(asset.folder_id) : '';
+    return (
+      <Table.Tr
+        key={asset.id}
+        className={onAssetSelect ? 'cursor-pointer' : 'cursor-default'}
+        onClick={() => onAssetSelect?.(asset)}
+      >
+        <Table.Td className={tableStyles.tableCell} onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            aria-label={`Select ${label}`}
+            checked={selectedIds.includes(asset.id)}
+            onChange={() => toggleSelected(asset.id)}
+          />
+        </Table.Td>
+        <Table.Td className={tableStyles.tableCell}>
+          <Group gap="sm" wrap="nowrap">
+            {isImageAsset(asset) && <AssetThumbnail src={deliveryUrl} alt={asset.alt || label} />}
+            <div style={{ minWidth: 0 }}>
+              <Text size="sm" fw={500} truncate>{label}</Text>
+              {label !== asset.uuid && (
+                <Text size="xs" c="dimmed" ff="monospace" truncate>{asset.uuid}</Text>
+              )}
+              {asset.alt && (
+                <Text size="xs" c="dimmed" truncate>Alt: {asset.alt}</Text>
+              )}
+              {searching && (
+                <Anchor
+                  component="button"
+                  type="button"
+                  size="xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    resetFilters();
+                    onFolderChange(path ? asset.folder_id : null);
+                  }}
+                >
+                  <Group gap={4} wrap="nowrap">
+                    <IconFolder size={12} aria-hidden />
+                    {path || 'No folder'}
+                  </Group>
+                </Anchor>
+              )}
+            </div>
+          </Group>
+        </Table.Td>
+        <Table.Td className={tableStyles.tableCell}>
+          <Group gap="xs" wrap="nowrap">
+            <div style={{ color: `var(--mantine-color-${typeInfo.color}-6)`, display: 'flex' }} aria-hidden>
+              {typeInfo.icon}
+            </div>
+            <Text size="sm" c="dimmed">{typeInfo.label}</Text>
+          </Group>
+        </Table.Td>
+        <Table.Td className={tableStyles.tableCell}>
+          <AccessBadges asset={asset} />
+        </Table.Td>
+        <Table.Td className={tableStyles.tableCell}>
+          <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
+            <Tooltip label="View">
+              <ActionIcon
+                variant="subtle"
+                color="blue"
+                component="a"
+                href={deliveryUrl}
+                target="_blank"
+                aria-label={`View ${label}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <IconEye size={16} />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Download">
+              <ActionIcon
+                variant="subtle"
+                color="green"
+                component="a"
+                href={deliveryUrl}
+                download
+                aria-label={`Download ${label}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <IconDownload size={16} />
+              </ActionIcon>
+            </Tooltip>
+            {canUpdate && (
+              <Tooltip label="Edit">
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  aria-label={`Edit ${label}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditTarget(asset);
+                  }}
+                >
+                  <IconPencil size={16} />
+                </ActionIcon>
+              </Tooltip>
+            )}
+            {canDelete && (
+              <Tooltip label="Delete">
+                <ActionIcon
+                  variant="subtle"
+                  color="red"
+                  aria-label={`Delete ${label}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget(asset);
+                  }}
+                  loading={deleteAssetMutation.isPending && deleteTarget?.id === asset.id}
+                >
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Tooltip>
+            )}
+          </Group>
+        </Table.Td>
+      </Table.Tr>
+    );
   };
 
   if (error) {
@@ -290,258 +409,216 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     );
   }
 
+  const isEmpty = !isLoading && assets.length === 0 && subfolders.length === 0;
+
   return (
-    <>
+    <Card>
       <Stack gap="md">
-        {/* Search and Filters */}
+        <PageHeader
+          title="Assets Management"
+          subtitle="Upload and manage media files. Assets without groups are public; add groups to restrict who can see them."
+          badge={allAssetsData?.pagination.total ?? 0}
+          badgeAriaLabel="assets"
+        >
+          {headerActions}
+        </PageHeader>
+
         <Card withBorder p="md">
-          <Group gap="md" align="flex-end">
-            <TextInput
-              placeholder="Search assets..."
-              leftSection={<IconSearch size={16} />}
-              rightSection={
-                search ? (
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    onClick={() => setSearch('')}
-                    size="sm"
-                  >
-                    <IconX size={14} />
-                  </ActionIcon>
-                ) : null
-              }
-              value={search}
-              onChange={(e) => setSearch(e.currentTarget.value)}
-              style={{ flex: 1 }}
-            />
-            <Select
-              placeholder="Page size"
-              data={[
-                { value: '50', label: '50 per page' },
-                { value: '100', label: '100 per page' },
-                { value: '200', label: '200 per page' },
-                { value: '500', label: '500 per page' },
-              ]}
-              value={pageSize.toString()}
-              onChange={(value) => {
-                if (value) {
-                  setPageSize(Number.parseInt(value, 10));
-                  setPage(1);
+          <Group gap="md" align="flex-end" justify="space-between">
+            <Group gap="md" align="flex-end" style={{ flex: 1 }}>
+              <TextInput
+                aria-label="Search assets"
+                placeholder="Search all folders by name or alt text..."
+                leftSection={<IconSearch size={16} />}
+                rightSection={
+                  draft.search ? (
+                    <ActionIcon variant="subtle" color="gray" onClick={() => setDraft({ ...draft, search: '' })} size="sm" aria-label="Clear search">
+                      <IconX size={14} />
+                    </ActionIcon>
+                  ) : null
                 }
-              }}
-              w={150}
-            />
+                value={draft.search}
+                onChange={(e) => setDraft({ ...draft, search: e.currentTarget.value })}
+                onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+                style={{ flex: 1, minWidth: 200 }}
+              />
+              <Select
+                aria-label="Filter by group"
+                placeholder="All groups"
+                data={groupFilterOptions}
+                value={draft.groupId}
+                onChange={(value) => setDraft({ ...draft, groupId: value })}
+                clearable
+                searchable
+                w={200}
+              />
+            </Group>
+            <Group justify="flex-end" gap="md" align="flex-end">
+              <Select
+                label="Rows per page"
+                data={['10', '20', '50', '100']}
+                value={draft.pageSize.toString()}
+                onChange={(value) => value && setDraft({ ...draft, pageSize: Number.parseInt(value, 10) })}
+                withCheckIcon={false}
+                allowDeselect={false}
+                w={110}
+              />
+              <FilterActions
+                onApply={applyFilters}
+                onReset={resetFilters}
+                onRefresh={() => void refetch()}
+                isFetching={isFetching}
+                isApplyDisabled={draft === filters}
+              />
+            </Group>
           </Group>
         </Card>
 
-        {/* Loading State */}
-        {isLoading && (
-          <Paper p="xl">
-            <Text ta="center">Loading assets...</Text>
-          </Paper>
+        {searching ? (
+          <Text size="sm" c="dimmed">Results from all folders. Reset the filters to browse folders again.</Text>
+        ) : (
+          <nav aria-label="Folder path">
+            <Breadcrumbs separatorMargin={6}>
+              <Anchor component="button" type="button" size="sm" onClick={() => openFolder(null)} c={trail.length === 0 ? 'inherit' : undefined}>
+                <Group gap={4} wrap="nowrap">
+                  <IconHome size={14} aria-hidden />
+                  All assets
+                </Group>
+              </Anchor>
+              {trail.map((folder, index) =>
+                index === trail.length - 1 ? (
+                  <Text key={folder.id} size="sm" fw={600} aria-current="location">{folder.name}</Text>
+                ) : (
+                  <Anchor key={folder.id} component="button" type="button" size="sm" onClick={() => openFolder(folder.id)}>
+                    {folder.name}
+                  </Anchor>
+                )
+              )}
+            </Breadcrumbs>
+          </nav>
         )}
 
-        {/* Asset Groups */}
-        {!isLoading && assetGroups.length === 0 && (
-          <Paper p="xl">
-            <Text ta="center" c="dimmed">
-              No assets found
-            </Text>
-          </Paper>
-        )}
-
-        {!isLoading && assetGroups.map((group) => {
-          const isExpanded = expandedGroups[group.key] ?? true;
-          const isOpenAccess = group.folder !== null && openAccessFolders.has(group.folder);
-
-          return (
-            <Card key={group.key} withBorder>
-              <Card.Section p="md">
-                {/* The whole header is one button so the folder can be
-                    toggled by click AND by keyboard. */}
-                <UnstyledButton
-                  type="button"
-                  aria-expanded={isExpanded}
-                  onClick={() => toggleGroup(group.key)}
-                  w="100%"
-                >
-                  <Group justify="space-between">
-                    <Group gap="sm">
-                      <div style={{ color: 'var(--mantine-color-blue-6)', display: 'flex' }}>
-                        {isExpanded ? <IconFolderOpen size={20} /> : <IconFolder size={20} />}
-                      </div>
-                      <Title order={4}>{group.label}</Title>
-                      <Badge variant="light" color="blue">
-                        {group.assets.length} file{group.assets.length !== 1 ? 's' : ''}
-                      </Badge>
-                      {isOpenAccess && (
-                        <Badge variant="light" color="orange" size="sm" radius="sm">
-                          Public
-                        </Badge>
-                      )}
-                    </Group>
-                    <ActionIcon variant="subtle" color="gray" component="div" aria-hidden>
-                      {isExpanded ? (
-                        <IconChevronDown size={16} />
-                      ) : (
-                        <IconChevronRight size={16} />
-                      )}
-                    </ActionIcon>
-                  </Group>
-                </UnstyledButton>
-              </Card.Section>
-
-              <Collapse expanded={isExpanded}>
-                <Card.Section className={tableStyles.tableScrollContainer}>
-                  <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th w={80} className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>ID</span></Table.Th>
-                        <Table.Th className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>File Name</span></Table.Th>
-                        <Table.Th w={120} className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>Type</span></Table.Th>
-                        <Table.Th w={120} className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>Actions</span></Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {group.assets.map((asset) => {
-                        // `url` is the ACL-enforced delivery route and the only
-                        // fetchable source; `file_path` is a logical key only.
-                        const correctedPath = getAssetUrl(asset.url);
-                        const typeInfo = getAssetTypeInfo(asset);
-                        return (
-                          <Table.Tr 
-                            key={asset.id}
-                            className={onAssetSelect ? 'cursor-pointer' : 'cursor-default'}
-                            onClick={() => onAssetSelect?.(asset)}
-                          >
-                            <Table.Td className={tableStyles.tableCell}>
-                              <Text size="sm" c="dimmed">{asset.id}</Text>
-                            </Table.Td>
-                            <Table.Td className={tableStyles.tableCell}>
-                              <Group gap="sm">
-                                {isImageFile(asset.file_name) && (
-                                  <AssetThumbnail
-                                    src={correctedPath}
-                                    alt={asset.file_name}
-                                  />
-                                )}
-                                <div>
-                                  <Text size="sm" fw={500}>
-                                    {asset.file_name}
-                                  </Text>
-                                  {asset.original_name && asset.original_name !== asset.file_name && (
-                                    <Text size="xs" c="dimmed">
-                                      Original: {asset.original_name}
-                                    </Text>
-                                  )}
-                                </div>
-                              </Group>
-                            </Table.Td>
-                            <Table.Td className={tableStyles.tableCell}>
-                              {/* Folder is the group header now, so this column
-                                  surfaces file type instead of repeating it. */}
-                              <Group gap="xs" wrap="nowrap">
-                                <div style={{ color: `var(--mantine-color-${typeInfo.color}-6)`, display: 'flex' }}>
-                                  {typeInfo.icon}
-                                </div>
-                                <Text size="sm" c="dimmed">{typeInfo.label}</Text>
-                              </Group>
-                            </Table.Td>
-                            <Table.Td className={tableStyles.tableCell}>
-                              <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
-                                <Tooltip label="View">
-                                  <ActionIcon
-                                    variant="subtle"
-                                    color="blue"
-                                    component="a"
-                                    href={correctedPath}
-                                    target="_blank"
-                                    aria-label={`View ${asset.file_name}`}
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <IconEye size={16} />
-                                  </ActionIcon>
-                                </Tooltip>
-                                <Tooltip label="Download">
-                                  <ActionIcon
-                                    variant="subtle"
-                                    color="green"
-                                    component="a"
-                                    href={correctedPath}
-                                    download={asset.original_name || asset.file_name}
-                                    aria-label={`Download ${asset.file_name}`}
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <IconDownload size={16} />
-                                  </ActionIcon>
-                                </Tooltip>
-                                {canDelete && (
-                                  <Tooltip label="Delete">
-                                    <ActionIcon
-                                      variant="subtle"
-                                      color="red"
-                                      aria-label={`Delete ${asset.file_name}`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteAsset(asset);
-                                      }}
-                                      loading={deleteAssetMutation.isPending && deleteModal.asset?.id === asset.id}
-                                    >
-                                      <IconTrash size={16} />
-                                    </ActionIcon>
-                                  </Tooltip>
-                                )}
-                              </Group>
-                            </Table.Td>
-                          </Table.Tr>
-                        );
-                      })}
-                    </Table.Tbody>
-                  </Table>
-                </Card.Section>
-              </Collapse>
-            </Card>
-          );
-        })}
-
-        {/* Pagination Info */}
-        {assetsData && assetsData.pagination && (
-          <Group justify="space-between">
-            <Text size="sm" c="dimmed">
-              Showing {((page - 1) * pageSize) + 1} to {Math.min(page * pageSize, assetsData.pagination.total)} of {assetsData.pagination.total} assets
-            </Text>
-            <Group>
-              <ActionIcon
-                variant="outline"
-                disabled={page <= 1}
-                onClick={() => setPage(page - 1)}
-              >
-                <IconChevronUp size={16} style={{ transform: 'rotate(-90deg)' }} />
-              </ActionIcon>
-              <Text size="sm">
-                Page {page} of {assetsData.pagination.totalPages}
+        {selectedIds.length > 0 && (
+          <Paper withBorder p="sm" role="region" aria-label="Bulk actions">
+            <Group justify="space-between">
+              <Text size="sm" fw={500}>
+                {selectedIds.length} asset{selectedIds.length === 1 ? '' : 's'} selected
               </Text>
-              <ActionIcon
-                variant="outline"
-                disabled={page >= assetsData.pagination.totalPages}
-                onClick={() => setPage(page + 1)}
-              >
-                <IconChevronDown size={16} style={{ transform: 'rotate(-90deg)' }} />
-              </ActionIcon>
+              <Group gap="xs">
+                {canUpdate && (
+                  <>
+                    <Button size="xs" variant="light" leftSection={<IconUsersGroup size={14} />} onClick={() => setBulkMode('add')}>
+                      Add groups
+                    </Button>
+                    <Button size="xs" variant="light" color="gray" leftSection={<IconUsersGroup size={14} />} onClick={() => setBulkMode('remove')}>
+                      Remove groups
+                    </Button>
+                  </>
+                )}
+                {canDelete && (
+                  <Button size="xs" variant="light" color="red" leftSection={<IconTrash size={14} />} onClick={() => setBulkDeleteOpen(true)}>
+                    Delete
+                  </Button>
+                )}
+                {onExportSelected && (
+                  <Button size="xs" variant="light" leftSection={<IconFileZip size={14} />} onClick={() => onExportSelected(selectedIds)}>
+                    Export selected
+                  </Button>
+                )}
+                <Button size="xs" variant="subtle" color="gray" onClick={() => setSelectedIds([])}>
+                  Clear selection
+                </Button>
+              </Group>
             </Group>
-          </Group>
+          </Paper>
         )}
+
+        <div className={tableStyles.tableWrapper}>
+          <LoadingOverlay visible={isFetching} />
+          <Box className={tableStyles.tableScrollContainer}>
+              <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th w={40} className={tableStyles.tableHeader}>
+                      <Checkbox
+                        aria-label="Select all assets on this page"
+                        checked={allOnPageSelected}
+                        indeterminate={someOnPageSelected && !allOnPageSelected}
+                        disabled={pageIds.length === 0}
+                        onChange={toggleAllOnPage}
+                      />
+                    </Table.Th>
+                    <Table.Th className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>Asset</span></Table.Th>
+                    <Table.Th w={110} className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>Type</span></Table.Th>
+                    <Table.Th className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>Who can see it</span></Table.Th>
+                    <Table.Th w={150} className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>Actions</span></Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {subfolders.map(renderFolderRow)}
+                  {assets.map(renderAssetRow)}
+                </Table.Tbody>
+              </Table>
+          </Box>
+
+          {isEmpty && (
+            <EmptyState
+              title={searching ? 'No assets found' : trail.length > 0 ? 'This folder is empty' : 'No assets yet'}
+              description={searching ? 'Try adjusting your filters' : 'Upload an asset to get started'}
+            />
+          )}
+
+          {assetsData?.pagination && (
+            <AdminTableFooter
+              totalCount={assetsData.pagination.total}
+              itemLabel="assets"
+              pagination={{
+                page,
+                pageSize,
+                totalPages: assetsData.pagination.totalPages,
+                onPageChange: setPage,
+              }}
+            />
+          )}
+        </div>
       </Stack>
 
-      {/* Delete Asset Modal */}
       <DeleteAssetModal
-        opened={deleteModal.opened}
-        onClose={() => setDeleteModal({ opened: false, asset: null })}
+        opened={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDeleteAsset}
-        assetName={deleteModal.asset?.file_name || ''}
+        assetName={deleteTarget ? assetLabel(deleteTarget) : ''}
         isLoading={deleteAssetMutation.isPending}
       />
-    </>
+
+      <AssetFormModal opened={editTarget !== null} onClose={() => setEditTarget(null)} asset={editTarget} />
+
+      <BulkGroupMembershipModal
+        opened={bulkMode !== null}
+        onClose={() => setBulkMode(null)}
+        mode={bulkMode ?? 'add'}
+        selectedCount={selectedIds.length}
+        onConfirm={(groupIds) => void confirmBulkGroups(groupIds)}
+        isLoading={bulkGroupsMutation.isPending}
+        copy={BULK_COPY}
+        itemLabel="asset"
+        allowedGroupIds={bulkMode === 'remove' ? sharedGroupIds : undefined}
+      />
+
+      <ModalWrapper
+        opened={bulkDeleteOpen}
+        onClose={() => setBulkDeleteOpen(false)}
+        title={`Delete ${selectedIds.length} asset${selectedIds.length === 1 ? '' : 's'}?`}
+        size="sm"
+        onDelete={() => void confirmBulkDelete()}
+        deleteLabel="Delete"
+        isLoading={bulkDeleteMutation.isPending}
+      >
+        <Text size="sm" c="red">
+          The files are deleted permanently. Pages still using them will show a broken image.
+        </Text>
+      </ModalWrapper>
+
+    </Card>
   );
 }

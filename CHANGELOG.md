@@ -18,10 +18,29 @@ No engineering diary, no implementation detail — that belongs in
 
 ## v0.1.69 — 2026-08-03
 
-Requires core **>=0.1.43** for the navigation warning tags. The rest of the
-release works against any core in range.
+Requires core **>=0.1.43** for the navigation warning tags and the asset
+rework. The rest of the release works against any core in range.
 
 ### Added
+- **Assets: edit and replace.** Each asset has an Edit action: change its
+  name, default alt text, folder, who can see it and who can manage it, or drop
+  in a new file. A replaced file keeps the asset's address, so every page using
+  it shows the new file. Upload and edit share one form.
+- **Assets: default alt text.** Set an alt text once on the asset; image
+  sections that leave their own alt empty use it. A section's own alt still
+  wins.
+- **Assets: bulk actions.** Select assets to add groups, remove groups they all
+  share, delete them after a confirmation, or export only those.
+- **Assets: nested folders.** The asset page is a folder browser: open a folder
+  to see its subfolders and its own assets (paged like the other lists), go
+  back up with the breadcrumbs, and upload straight into the open folder.
+  Search and the group filter look in every folder and link each result to its
+  folder. The header counts every asset. The **Folders** button creates,
+  renames, moves and deletes folders. Folders only organise; they do not change
+  who can see an asset.
+- **Assets: who can manage them.** "Who can manage it" picks the roles that
+  may see, edit and delete an asset in the CMS; left empty on upload, your own
+  roles get it. Researchers on one instance do not see each other's assets.
 - **Form uploads in Admin → Data.** File cells show the file name with View
   and Download buttons instead of the raw storage path. A cell with several
   files opens a list with "Download all (zip)", and the export menu downloads
@@ -39,6 +58,24 @@ release works against any core in range.
   that exists only in another language no longer hides an empty panel entry.
 
 ### Changed
+- **Assets: public unless restricted.** An asset with no groups is public;
+  "Who can see it" restricts it to members of the chosen groups. New uploads
+  have no groups and the form says **THIS ASSET IS PUBLIC** until you pick
+  some. The folder access panel and the "Asset Folders" tab in the Groups ACL
+  modal are removed. The Assets page uses the same header, filters (Apply /
+  Reset / Refresh) and footer as the other admin lists.
+- **Assets: no more overwrite.** Uploading a file with an existing name adds a
+  second asset instead of replacing one, and import skips assets that already
+  exist.
+- **Assets are stored under their id, with a separate name.** Each asset's
+  generated id replaces its file name (no extension). A **Name** without
+  extension, editable on upload and edit and set to the uploaded file name by
+  default, is what the list shows, with the id beneath it; pickers show
+  `name.extension`. Downloads are saved as `<id>.<extension>`.
+- **Groups: researcher instead of therapist, no admin group.** Page import and
+  navigation import mention subject and researcher; the page import group
+  picker no longer hides an "admin" group (admin rights come from the role).
+
 - **Child-page navigation styling.** The left sidebar gains a divider on its
   right edge matching the admin navbar, and each entry shows its route path
   under the label. The previous/next pager uses equal-width cards with
@@ -52,6 +89,9 @@ release works against any core in range.
   the public menu actually renders.
 
 ### Fixed
+- **Assets: Export downloads the zip again.** The request option asking for a
+  binary response was ignored, so the download failed with
+  "Failed to execute 'createObjectURL' on 'URL'".
 - **Signing in from "Page not found" returns you to the page.** A guest who
   opens a protected page and uses the Sign in button now lands back on that
   page after login (including after the 2FA step) instead of on home.
