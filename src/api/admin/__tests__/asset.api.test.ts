@@ -72,6 +72,17 @@ describe('AdminAssetApi', () => {
         expect(formDataOf(1).get('folder_id')).toBe('');
     });
 
+    it('bulk moves assets into a folder, or to the top level with null', async () => {
+        postMock.mockResolvedValue({ data: { data: { moved: 2 } } });
+
+        const result = await AdminAssetApi.bulkMoveToFolder([1, 2], 10);
+        await AdminAssetApi.bulkMoveToFolder([1], null);
+
+        expect(postMock).toHaveBeenNthCalledWith(1, API_CONFIG.ENDPOINTS.ADMIN_ASSETS_BULK_FOLDER, { asset_ids: [1, 2], folder_id: 10 });
+        expect(postMock).toHaveBeenNthCalledWith(2, API_CONFIG.ENDPOINTS.ADMIN_ASSETS_BULK_FOLDER, { asset_ids: [1], folder_id: null });
+        expect(result.moved).toBe(2);
+    });
+
     it('bulk deletes with a JSON body of asset ids', async () => {
         postMock.mockResolvedValue({ data: { data: { deleted: 2 } } });
 

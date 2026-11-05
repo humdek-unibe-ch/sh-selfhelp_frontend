@@ -218,6 +218,17 @@ export const AdminAssetApi = {
   },
 
   /**
+   * Move several assets into one folder (null = the top level)
+   */
+  async bulkMoveToFolder(assetIds: number[], folderId: number | null): Promise<{ moved: number }> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<{ moved: number }>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_BULK_FOLDER,
+      { asset_ids: assetIds, folder_id: folderId }
+    );
+    return response.data.data;
+  },
+
+  /**
    * Delete several assets at once
    */
   async bulkDeleteAssets(assetIds: number[]): Promise<{ deleted: number }> {

@@ -65,6 +65,7 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
     useDeleteAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useBulkAssetGroups: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useBulkDeleteAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useBulkMoveAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useAssetFolders: () => ({ data: [] }),
     useSaveAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useDeleteAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),

@@ -30,7 +30,8 @@ rework. The rest of the release works against any core in range.
   sections that leave their own alt empty use it. A section's own alt still
   wins.
 - **Assets: bulk actions.** Select assets to add groups, remove groups they all
-  share, delete them after a confirmation, or export only those.
+  share, move them to another folder, delete them after a confirmation, or
+  export only those.
 - **Assets: nested folders.** The asset page is a folder browser: open a folder
   to see its subfolders and its own assets (paged like the other lists), go
   back up with the breadcrumbs, and upload straight into the open folder.

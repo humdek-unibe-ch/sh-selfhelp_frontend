@@ -104,6 +104,21 @@ export function useBulkAssetGroups() {
 }
 
 /**
+ * Hook to move several assets into one folder.
+ */
+export function useBulkMoveAssets() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ assetIds, folderId }: { assetIds: number[]; folderId: number | null }) =>
+      AdminAssetApi.bulkMoveToFolder(assetIds, folderId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['assets'] });
+    },
+  });
+}
+
+/**
  * Hook to delete several assets at once.
  */
 export function useBulkDeleteAssets() {

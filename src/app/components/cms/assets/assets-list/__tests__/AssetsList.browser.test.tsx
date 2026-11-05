@@ -14,9 +14,10 @@ import type { IAssetsListParams } from '../../../../../../api/admin/asset.api';
  * first page, then its assets, paged), breadcrumbs back up; search covers
  * every folder; the header counts every asset; bulk delete asks first.
  */
-const { hasPermission, bulkDelete, requests } = vi.hoisted(() => ({
+const { hasPermission, bulkDelete, bulkMove, requests } = vi.hoisted(() => ({
     hasPermission: vi.fn(),
     bulkDelete: vi.fn(),
+    bulkMove: vi.fn(),
     requests: [] as IAssetsListParams[],
 }));
 
@@ -70,6 +71,7 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
     useDeleteAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useBulkAssetGroups: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useBulkDeleteAssets: () => ({ mutateAsync: bulkDelete, isPending: false }),
+    useBulkMoveAssets: () => ({ mutateAsync: bulkMove, isPending: false }),
     useSaveAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useDeleteAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useCreateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
@@ -92,6 +94,7 @@ describe('AssetsList folder browser', () => {
         requests.length = 0;
         hasPermission.mockReset().mockReturnValue(true);
         bulkDelete.mockReset().mockResolvedValue({ deleted: 2 });
+        bulkMove.mockReset().mockResolvedValue({ moved: 2 });
     });
 
     it('shows the top level: its folders with their contents, then only assets in no folder', () => {
@@ -158,6 +161,24 @@ describe('AssetsList folder browser', () => {
         fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
         await waitFor(() => expect(bulkDelete).toHaveBeenCalledWith([2, 3]));
+    });
+
+    it('moves the selected assets to the folder picked, starting from the open one', async () => {
+        renderWithProviders(<Browser />);
+        fireEvent.click(screen.getByRole('button', { name: 'Open folder Team' }));
+
+        fireEvent.click(screen.getByRole('checkbox', { name: 'Select all assets on this page' }));
+        fireEvent.click(within(screen.getByRole('region', { name: 'Bulk actions' })).getByRole('button', { name: /Move to folder/ }));
+        const dialog = await screen.findByRole('dialog');
+        const picker = within(dialog).getByLabelText('Move to');
+        expect(picker).toHaveValue('Team');
+
+        fireEvent.click(picker);
+        const listbox = document.getElementById(picker.getAttribute('aria-controls') ?? '');
+        fireEvent.click(within(listbox as HTMLElement).getByRole('option', { name: 'Team / Photos', hidden: true }));
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Move' }));
+
+        await waitFor(() => expect(bulkMove).toHaveBeenCalledWith({ assetIds: [2, 3], folderId: 11 }));
     });
 
     it('hides bulk delete without admin.asset.delete', () => {

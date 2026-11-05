@@ -34,13 +34,13 @@ filter card with `FilterActions`, `AdminTableFooter`):
 
 | Piece | What it does |
 | --- | --- |
-| `AssetsList` | A folder browser: one folder at a time (breadcrumbs back up, starting at "All assets"), its subfolders first (with folder and `asset_count` totals, Edit folder), then its assets paged like the other lists (`folder_id`, `0` = assets in no folder). Search and the group filter search every folder and show each result's folder as a link. The page owns the current folder so uploads default into it. Selection covers the visible assets and resets when the folder or filters change. Bulk bar: **Add groups**, **Remove groups** (only groups every selected asset has), **Delete** (confirmed), **Export selected**. |
+| `AssetsList` | A folder browser: one folder at a time (breadcrumbs back up, starting at "All assets"), its subfolders first (with folder and `asset_count` totals, Edit folder), then its assets paged like the other lists (`folder_id`, `0` = assets in no folder). Search and the group filter search every folder and show each result's folder as a link. The page owns the current folder so uploads default into it. Selection covers the visible assets and resets when the folder or filters change. Bulk bar: **Add groups**, **Remove groups** (only groups every selected asset has), **Move to folder** (starts on the open folder; "No folder" = top level), **Delete** (confirmed), **Export selected**. |
 | `AssetFormModal` | One `ModalWrapper` for both modes: files (create) or an optional replacement file (edit), name, default alt, folder, "Who can see it" (groups) with the public alert, "Who can manage it" (roles). |
 | `AssetFolderModal` | Folder manager (header **Folders** button, or a folder row's Edit): pick a folder to rename, move or delete it, or none to create one. |
 | `ExportImportAssetsModal` | Export the selected assets or everything; import a bundle. Import never overwrites (existing uuids are skipped). |
 
 Gating (`PERMISSIONS`): upload, import and new folders need
-`admin.asset.create`; edit, replace, bulk groups and folder edits need
+`admin.asset.create`; edit, replace, bulk groups, bulk move and folder edits need
 `admin.asset.update`; delete, bulk delete and folder delete need
 `admin.asset.delete`; listing and export need `admin.asset.read`.
 
@@ -69,7 +69,7 @@ Every mutation invalidates that prefix once.
 
 ## Tests
 
-- `src/api/admin/__tests__/asset.api.test.ts` — request encoding (groups, roles, folder, edit, bulk groups/delete, folders, export/import).
+- `src/api/admin/__tests__/asset.api.test.ts` — request encoding (groups, roles, folder, edit, bulk groups/move/delete, folders, export/import).
 - `src/api/__tests__/permission-aware-client.test.ts` — `responseType` is request config (export downloads a Blob).
 - `src/app/components/cms/assets/asset-form-modal/__tests__/AssetFormModal.test.tsx` — public by default with the alert, uploader's roles, edit payload, replace uses update.
-- `src/app/components/cms/assets/assets-list/__tests__/` — delivery URLs, type column, action gating, access badges, group filter on Apply, bulk actions, folder browser (top level = `folder_id: 0`, open a folder and back via breadcrumbs, subfolders on page 1 only, search across folders, header total), bulk delete.
+- `src/app/components/cms/assets/assets-list/__tests__/` — delivery URLs, type column, action gating, access badges, group filter on Apply, bulk actions, folder browser (top level = `folder_id: 0`, open a folder and back via breadcrumbs, subfolders on page 1 only, search across folders, header total, move to folder), bulk delete.

@@ -37,8 +37,9 @@ import {
   IconFileZip,
   IconFolder,
   IconHome,
+  IconFolderShare,
 } from '@tabler/icons-react';
-import { useAssets, useDeleteAsset, useBulkAssetGroups, useBulkDeleteAssets, useAssetFolders } from '../../../../../hooks/useAssets';
+import { useAssets, useDeleteAsset, useBulkAssetGroups, useBulkDeleteAssets, useBulkMoveAssets, useAssetFolders } from '../../../../../hooks/useAssets';
 import { useGroups } from '../../../../../hooks/useGroups';
 import { DeleteAssetModal } from '../delete-asset-modal';
 import { AssetFormModal } from '../asset-form-modal/AssetFormModal';
@@ -54,7 +55,7 @@ import { EmptyState } from '../../../shared/common/EmptyState';
 import { useAuthUser } from '../../../../../hooks/useUserData';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import { parseApiError } from '../../../../../utils/mutation-error-handler';
-import { assetLabel, folderTrail, getAssetTypeInfo, isImageAsset } from '../assets.utils';
+import { assetLabel, folderOptions, folderTrail, getAssetTypeInfo, isImageAsset } from '../assets.utils';
 
 interface IAssetsListProps {
   folderId: number | null;
@@ -79,6 +80,9 @@ const BULK_COPY = {
 };
 
 const DEFAULT_FILTERS = { search: '', groupId: null as string | null, pageSize: 20 };
+
+/** Select value for "no folder" in the move dialog (Select values cannot be null). */
+const TOP_LEVEL = 'top';
 
 /** Who can see an asset: one badge per group; no groups = public. */
 function AccessBadges({ asset }: { asset: IAsset }) {
@@ -110,10 +114,13 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
   const [deleteTarget, setDeleteTarget] = useState<IAsset | null>(null);
   const [editTarget, setEditTarget] = useState<IAsset | null>(null);
   const [bulkMode, setBulkMode] = useState<'add' | 'remove' | null>(null);
+  // null = move dialog closed.
+  const [moveTarget, setMoveTarget] = useState<string | null>(null);
 
   const deleteAssetMutation = useDeleteAsset();
   const bulkGroupsMutation = useBulkAssetGroups();
   const bulkDeleteMutation = useBulkDeleteAssets();
+  const bulkMoveMutation = useBulkMoveAssets();
   const { data: folders = [] } = useAssetFolders();
 
   const searching = filters.search !== '' || filters.groupId !== null;
@@ -207,6 +214,23 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
         color: 'green',
       });
       setBulkMode(null);
+    } catch (err) {
+      const { errorTitle, errorMessage } = parseApiError(err);
+      notifications.show({ title: errorTitle, message: errorMessage, color: 'red' });
+    }
+  };
+
+  const confirmBulkMove = async () => {
+    if (moveTarget === null) return;
+
+    try {
+      const result = await bulkMoveMutation.mutateAsync({
+        assetIds: selectedIds,
+        folderId: moveTarget === TOP_LEVEL ? null : Number(moveTarget),
+      });
+      notifications.show({ title: 'Success', message: `${result.moved} asset${result.moved === 1 ? '' : 's'} moved`, color: 'green' });
+      setSelectedIds([]);
+      setMoveTarget(null);
     } catch (err) {
       const { errorTitle, errorMessage } = parseApiError(err);
       notifications.show({ title: errorTitle, message: errorMessage, color: 'red' });
@@ -513,6 +537,9 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
                     <Button size="xs" variant="light" color="gray" leftSection={<IconUsersGroup size={14} />} onClick={() => setBulkMode('remove')}>
                       Remove groups
                     </Button>
+                    <Button size="xs" variant="light" leftSection={<IconFolderShare size={14} />} onClick={() => setMoveTarget(knownFolderId === null ? TOP_LEVEL : String(knownFolderId))}>
+                      Move to folder
+                    </Button>
                   </>
                 )}
                 {canDelete && (
@@ -604,6 +631,25 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
         itemLabel="asset"
         allowedGroupIds={bulkMode === 'remove' ? sharedGroupIds : undefined}
       />
+
+      <ModalWrapper
+        opened={moveTarget !== null}
+        onClose={() => setMoveTarget(null)}
+        title={`Move ${selectedIds.length} asset${selectedIds.length === 1 ? '' : 's'}`}
+        size="sm"
+        onSave={() => void confirmBulkMove()}
+        saveLabel="Move"
+        isLoading={bulkMoveMutation.isPending}
+      >
+        <Select
+          label="Move to"
+          data={[{ value: TOP_LEVEL, label: 'No folder (top level)' }, ...folderOptions(folders)]}
+          value={moveTarget}
+          onChange={(value) => value && setMoveTarget(value)}
+          allowDeselect={false}
+          searchable
+        />
+      </ModalWrapper>
 
       <ModalWrapper
         opened={bulkDeleteOpen}

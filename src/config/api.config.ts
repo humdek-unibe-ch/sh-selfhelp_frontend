@@ -408,6 +408,10 @@ export const API_CONFIG = {
             route: '/admin/assets/bulk-groups',
             permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
         },
+        ADMIN_ASSETS_BULK_FOLDER: {
+            route: '/admin/assets/bulk-folder',
+            permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
+        },
         ADMIN_ASSETS_BULK_DELETE: {
             route: '/admin/assets/bulk-delete',
             permissions: [PERMISSIONS.ADMIN_ASSET_DELETE]
