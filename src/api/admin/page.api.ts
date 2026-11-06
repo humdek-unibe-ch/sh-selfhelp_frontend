@@ -81,11 +81,11 @@ export const AdminPageApi = {
      * Updates an existing page
      * @param {number} pageId - The page ID to update
      * @param {IUpdatePageRequest} updateData - The page data and fields to update
-     * @returns {Promise<IAdminPage>} The updated page data
+     * @returns {Promise<IPageFieldsData>} The updated page with its fields
      * @throws {Error} When API request fails
      */
-    async updatePage(pageId: number, updateData: IUpdatePageRequest): Promise<IAdminPage> {
-        const response = await permissionAwareApiClient.put<IBaseApiResponse<IAdminPage>>(
+    async updatePage(pageId: number, updateData: IUpdatePageRequest): Promise<IPageFieldsData> {
+        const response = await permissionAwareApiClient.put<IBaseApiResponse<IPageFieldsData>>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_UPDATE,
             updateData,
             pageId

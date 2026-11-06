@@ -14,6 +14,7 @@ import type {
   IUpdateGroupRequest,
   IUpdateGroupAclsRequest
 } from '../types/requests/admin/groups.types';
+import { getApiErrorText } from '../utils/mutation-error-handler';
 
 // Query keys
 const GROUPS_QUERY_KEYS = {
@@ -71,7 +72,7 @@ export function useCreateGroup() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to create group',
+        message: getApiErrorText(error) || 'Failed to create group',
         color: 'red',
       });
     },
@@ -97,7 +98,7 @@ export function useUpdateGroup() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update group',
+        message: getApiErrorText(error) || 'Failed to update group',
         color: 'red',
       });
     },
@@ -121,7 +122,7 @@ export function useDeleteGroup() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to delete group',
+        message: getApiErrorText(error) || 'Failed to delete group',
         color: 'red',
       });
     },
@@ -150,7 +151,7 @@ export function useUpdateGroupAcls() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update group ACLs',
+        message: getApiErrorText(error) || 'Failed to update group ACLs',
         color: 'red',
       });
     },

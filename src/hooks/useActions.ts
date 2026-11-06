@@ -10,6 +10,7 @@ import type { ICreateActionRequest, IUpdateActionRequest } from '../types/reques
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import React from 'react';
+import { getApiErrorText } from '../utils/mutation-error-handler';
 
 export const ACTION_QUERY_KEYS = {
     all: ['actions'] as const,
@@ -21,9 +22,7 @@ export const ACTION_QUERY_KEYS = {
 
 function getErrorMessage(err: unknown, fallback: string) {
     if (err && typeof err === 'object') {
-        // axios-style error.message or error.response.data.message, etc.
-        const anyErr = err as { message?: string; response?: { data?: { message?: string } } };
-        return anyErr.response?.data?.message ?? anyErr.message ?? fallback;
+        return getApiErrorText(err) ?? (err as { message?: string }).message ?? fallback;
     }
     return fallback;
 }

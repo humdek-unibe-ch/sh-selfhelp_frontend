@@ -39,7 +39,6 @@ import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { type IUpdatePageData, type IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
-import { notifications } from '@mantine/notifications';
 import styles from './ConfigurationPageEditor.module.css';
 import { FieldRenderer, type IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { useQueryClient } from '@tanstack/react-query';
@@ -113,12 +112,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
     // Update page mutation
     const updatePageMutation = useUpdatePageMutation({
+        // The mutation shows the success toast; one is enough.
         onSuccess: () => {
-            notifications.show({
-                title: 'Success',
-                message: 'Configuration saved successfully',
-                color: 'green',
-            });
             // Refetch page fields to reload the data
             void refetchPageFields();
             

@@ -14,6 +14,7 @@ import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import { notifications } from '@mantine/notifications';
 import { type IPublishVersionRequest } from '../../types/requests/admin/page-version.types';
 import { debug } from '../../utils/debug-logger';
+import { getApiErrorText } from '../../utils/mutation-error-handler';
 
 export function usePublishVersionMutation() {
     const queryClient = useQueryClient();
@@ -42,7 +43,7 @@ export function usePublishVersionMutation() {
             debug('Failed to publish version', 'usePublishVersionMutation', { error });
             notifications.show({
                 title: 'Publish Failed',
-                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to publish version',
+                message: getApiErrorText(error) || 'Failed to publish version',
                 color: 'red',
             });
         },
@@ -75,7 +76,7 @@ export function usePublishSpecificVersionMutation() {
             debug('Failed to publish specific version', 'usePublishSpecificVersionMutation', { error });
             notifications.show({
                 title: 'Publish Failed',
-                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to publish version',
+                message: getApiErrorText(error) || 'Failed to publish version',
                 color: 'red',
             });
         },
@@ -107,7 +108,7 @@ export function useUnpublishPageMutation() {
             debug('Failed to unpublish page', 'useUnpublishPageMutation', { error });
             notifications.show({
                 title: 'Unpublish Failed',
-                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to unpublish page',
+                message: getApiErrorText(error) || 'Failed to unpublish page',
                 color: 'red',
             });
         },
@@ -136,7 +137,7 @@ export function useDeleteVersionMutation() {
             debug('Failed to delete version', 'useDeleteVersionMutation', { error });
             notifications.show({
                 title: 'Delete Failed',
-                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to delete version',
+                message: getApiErrorText(error) || 'Failed to delete version',
                 color: 'red',
             });
         },
@@ -175,7 +176,7 @@ export function useRestoreFromVersionMutation() {
             debug('Failed to restore from version', 'useRestoreFromVersionMutation', { error });
             notifications.show({
                 title: 'Restore Failed',
-                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to restore sections from version',
+                message: getApiErrorText(error) || 'Failed to restore sections from version',
                 color: 'red',
             });
         },

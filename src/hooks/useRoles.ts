@@ -16,6 +16,7 @@ import type {
   IAddPermissionsToRoleRequest,
   IRemovePermissionsFromRoleRequest
 } from '../types/requests/admin/roles.types';
+import { getApiErrorText } from '../utils/mutation-error-handler';
 
 // Query keys
 const ROLES_QUERY_KEYS = {
@@ -73,7 +74,7 @@ export function useCreateRole() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to create role',
+        message: getApiErrorText(error) || 'Failed to create role',
         color: 'red',
       });
     },
@@ -99,7 +100,7 @@ export function useUpdateRole() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update role',
+        message: getApiErrorText(error) || 'Failed to update role',
         color: 'red',
       });
     },
@@ -123,7 +124,7 @@ export function useDeleteRole() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to delete role',
+        message: getApiErrorText(error) || 'Failed to delete role',
         color: 'red',
       });
     },
@@ -149,7 +150,7 @@ export function useUpdateRolePermissions() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update role permissions',
+        message: getApiErrorText(error) || 'Failed to update role permissions',
         color: 'red',
       });
     },
@@ -175,7 +176,7 @@ export function useAddPermissionsToRole() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to add permissions to role',
+        message: getApiErrorText(error) || 'Failed to add permissions to role',
         color: 'red',
       });
     },
@@ -201,7 +202,7 @@ export function useRemovePermissionsFromRole() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to remove permissions from role',
+        message: getApiErrorText(error) || 'Failed to remove permissions from role',
         color: 'red',
       });
     },

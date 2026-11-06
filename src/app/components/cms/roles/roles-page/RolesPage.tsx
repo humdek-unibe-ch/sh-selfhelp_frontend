@@ -12,7 +12,6 @@ import { PagePermissionsModal } from '../page-permissions-modal/PagePermissionsM
 import { DataTablePermissionsModal } from '../datatable-permissions-modal/DataTablePermissionsModal';
 import { GroupPermissionsModal } from '../group-permissions-modal/GroupPermissionsModal';
 import { useDeleteRole } from '../../../../../hooks/useRoles';
-import { notifications } from '@mantine/notifications';
 
 export function RolesPage() {
   const [createModalOpened, setCreateModalOpened] = useState(false);
@@ -49,23 +48,11 @@ export function RolesPage() {
   // Handle confirm delete
   const handleConfirmDelete = () => {
     if (deletingRole) {
+      // useDeleteRole shows the success and error toasts.
       deleteRoleMutation.mutate(deletingRole.id, {
         onSuccess: () => {
-          notifications.show({
-            title: 'Success',
-            message: 'Role deleted successfully',
-            color: 'green',
-          });
           setDeleteModalOpened(false);
           setDeletingRole(null);
-        },
-        onError: (error: unknown) => {
-          const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-          notifications.show({
-            title: 'Error',
-            message: message || 'Failed to delete role',
-            color: 'red',
-          });
         },
       });
     }

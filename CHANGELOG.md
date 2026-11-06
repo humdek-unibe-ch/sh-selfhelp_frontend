@@ -95,6 +95,12 @@ rework. The rest of the release works against any core in range.
   the public menu actually renders.
 
 ### Fixed
+- **Admin messages say what happened.** Saving or deleting a page names the
+  page by its keyword instead of its id (`Page "477"`). Errors in groups,
+  roles, permissions, versions, cache, actions, sections and registration codes
+  show the server's reason (e.g. "Group name already exists") instead of
+  "Conflict" or "Bad Request". Creating, editing or deleting a group or role,
+  and saving a configuration page, show one toast instead of two.
 - **Assets: Export downloads the zip again.** The request option asking for a
   binary response was ignored, so the download failed with
   "Failed to execute 'createObjectURL' on 'URL'".

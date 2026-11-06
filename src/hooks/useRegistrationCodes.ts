@@ -10,6 +10,7 @@ import { AdminRegistrationCodesApi } from '../api/admin/registration-codes.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type { IGenerateRegistrationCodesRequest } from '../types/requests/admin/registration-codes.types';
 import type { IRegistrationCodesListParams } from '../types/responses/admin/registration-codes.types';
+import { getApiErrorText } from '../utils/mutation-error-handler';
 
 const QUERY_KEYS = {
     all: ['registration-codes'] as const,
@@ -48,7 +49,7 @@ export function useExportRegistrationCodes() {
         onError: (error: unknown) => {
             notifications.show({
                 title: 'Export Failed',
-                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to export registration codes',
+                message: getApiErrorText(error) || 'Failed to export registration codes',
                 color: 'red',
             });
         },
@@ -71,7 +72,7 @@ export function useGenerateRegistrationCodes() {
         onError: (error: unknown) => {
             notifications.show({
                 title: 'Error',
-                message: (error as { response?: { data?: { error?: string } } })?.response?.data?.error || (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to generate registration codes',
+                message: (error as { response?: { data?: { error?: string } } })?.response?.data?.error || getApiErrorText(error) || 'Failed to generate registration codes',
                 color: 'red',
             });
         },

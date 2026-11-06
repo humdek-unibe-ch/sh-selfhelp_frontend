@@ -3,7 +3,20 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect } from 'vitest';
-import { parseApiError } from '../mutation-error-handler';
+import { getApiErrorText, parseApiError } from '../mutation-error-handler';
+
+/** L2: the envelope's `message` is the HTTP reason phrase, never the reason. */
+describe('getApiErrorText', () => {
+    it("returns the backend's reason, not the reason phrase", () => {
+        const conflict = { response: { status: 409, data: { message: 'Conflict', error: 'Group name already exists' } } };
+        expect(getApiErrorText(conflict)).toBe('Group name already exists');
+    });
+
+    it('returns nothing when the envelope has no reason, so callers use their own text', () => {
+        expect(getApiErrorText({ response: { status: 409, data: { message: 'Conflict', error: null } } })).toBeUndefined();
+        expect(getApiErrorText(new Error('Network Error'))).toBeUndefined();
+    });
+});
 
 /**
  * The asset upload/delete/import/export handlers now route errors through
