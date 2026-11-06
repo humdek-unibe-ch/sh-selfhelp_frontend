@@ -259,7 +259,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                                                 placeholder="johndoe"
                                                 required
                                                 autoComplete="off"
-                                                description="Only letters, numbers, hyphens, and underscores allowed"
+                                                description="Only letters, numbers, hyphens, underscores, and dots allowed"
                                                 {...form.getInputProps('user_name')}
                                             />
 
@@ -268,7 +268,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                                                 placeholder="Enter validation code"
                                                 required
                                                 autoComplete="off"
-                                                description="Max 16 characters. Only letters, numbers, hyphens, and underscores allowed"
+                                                description="Max 16 characters. Only letters, numbers, hyphens, underscores, and dots allowed"
                                                 {...form.getInputProps('validation_code')}
                                             />
                                         </>
