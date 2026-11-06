@@ -101,6 +101,10 @@ rework. The rest of the release works against any core in range.
   show the server's reason (e.g. "Group name already exists") instead of
   "Conflict" or "Bad Request". Creating, editing or deleting a group or role,
   and saving a configuration page, show one toast instead of two.
+- **Publishing panel before the first publish.** A page that was never
+  published says "Not published yet" instead of "Changes detected since last
+  publish", and no longer offers "Compare Draft vs Published", which opened an
+  empty comparison.
 - **Assets: Export downloads the zip again.** The request option asking for a
   binary response was ignored, so the download failed with
   "Failed to execute 'createObjectURL' on 'URL'".

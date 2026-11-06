@@ -217,7 +217,11 @@ export function PublishingPanel({
                     <Group justify="space-between" align="center">
                         <Stack gap="xs">
                             <Text size="lg" fw={600}>Publishing</Text>
-                            {hasUnpublishedChanges && (
+                            {!publishedVersion ? (
+                                <Text size="sm" c="orange" fw={500}>
+                                    Not published yet. Publish to create the first version.
+                                </Text>
+                            ) : hasUnpublishedChanges && (
                                 <Text size="sm" c="orange" fw={500}>
                                     Changes detected since last publish
                                 </Text>
@@ -225,7 +229,8 @@ export function PublishingPanel({
                         </Stack>
 
                         <Group gap="sm">
-                            {hasUnpublishedChanges && (
+                            {/* Nothing to compare against before the first publish. */}
+                            {publishedVersion && hasUnpublishedChanges && (
                                 <Button
                                     variant="light"
                                     color="blue"
