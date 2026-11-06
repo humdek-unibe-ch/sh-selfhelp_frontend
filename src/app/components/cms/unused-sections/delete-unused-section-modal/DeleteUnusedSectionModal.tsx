@@ -115,7 +115,7 @@ export function DeleteUnusedSectionModal({
                     <Text fw={500}>
                         To confirm deletion, type the section name: <Text span c="red" fw={600}>{section.name}</Text>
                     </Text>
-                    <TextInput
+                    <TextInput aria-label="Section name to confirm"
                         placeholder={`Type "${section.name}" to confirm`}
                         value={confirmationText}
                         onChange={(event) => setConfirmationText(event.currentTarget.value)}

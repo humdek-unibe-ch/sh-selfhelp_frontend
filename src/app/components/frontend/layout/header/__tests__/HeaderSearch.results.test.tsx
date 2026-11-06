@@ -139,10 +139,14 @@ describe('HeaderSearch results rendering', () => {
 
         await user.type(screen.getByPlaceholderText('Search'), 'abo');
 
-        const panel = await screen.findByRole('listbox', { name: 'Search results' });
-        expect(await within(panel).findByText('Results')).toBeInTheDocument();
-        expect(within(panel).getByText('2')).toBeInTheDocument();
-        expect(within(panel).getAllByRole('option')).toHaveLength(2);
+        // The listbox holds only the options; the header sits beside it.
+        const listbox = await screen.findByRole('listbox', { name: 'Search results' });
+        const options = within(listbox).getAllByRole('option');
+        expect(options).toHaveLength(2);
+        expect(options[0]).toHaveAttribute('href', '/about-us');
+        expect(screen.getByText('Results')).toBeInTheDocument();
+        // Screen readers hear the count through the live region.
+        expect(screen.getByRole('status')).toHaveTextContent('2 results');
     });
 
     it('shows the CMS-style empty state when nothing matches', async () => {
@@ -153,8 +157,9 @@ describe('HeaderSearch results rendering', () => {
 
         await user.type(screen.getByPlaceholderText('Search'), 'zzz');
 
-        expect(await screen.findByText('No results')).toBeInTheDocument();
-        expect(screen.getByText(/Nothing matches "zzz"/)).toBeInTheDocument();
+        expect(await screen.findByText(/Nothing matches "zzz"/)).toBeInTheDocument();
+        expect(screen.getByRole('status')).toHaveTextContent('No results');
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 
     it('keeps the panel closed until min_chars is reached', async () => {

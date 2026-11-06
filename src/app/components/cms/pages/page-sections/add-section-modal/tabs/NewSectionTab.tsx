@@ -156,7 +156,7 @@ export function NewSectionTab({
                                                 )}
 
                                                 {isSelected && (
-                                                    <NumberInput
+                                                    <NumberInput aria-label="Number of sections"
                                                         size="xs"
                                                         min={1}
                                                         max={10}

@@ -124,14 +124,14 @@ const dataTableOptions = useMemo(() => {
         <Card withBorder p="md">
           <Group gap="md" align="flex-end" justify="space-between">
             <Group gap="md" style={{ flex: 1 }}>
-              <TextInput
+              <TextInput aria-label="Search actions"
                 value={filterParams.search || ""}
                 onChange={(e) => handleSearch(e.currentTarget.value)}
                 placeholder="Search actions"
                 style={{ flex: 1 }}
                 rightSection={
                   filterParams.search ? (
-                    <ActionIcon
+                    <ActionIcon aria-label="Clear search"
                       variant="subtle"
                       color="gray"
                       size="sm"
@@ -143,7 +143,7 @@ const dataTableOptions = useMemo(() => {
                 }
               />
 
-              <Select
+              <Select aria-label="Filter by trigger"
                 placeholder="Trigger"
                 data={triggerOptions}
                 value={filterParams.triggerTypeId ? String(filterParams.triggerTypeId) : null}
@@ -158,7 +158,7 @@ const dataTableOptions = useMemo(() => {
                 w={180}
               />
 
-              <Select
+              <Select aria-label="Filter by data table"
                 placeholder="Data table"
                 data={dataTableOptions}
                 value={filterParams.dataTableId ? String(filterParams.dataTableId) : null}

@@ -144,7 +144,7 @@ export function SectionFieldPanels({
     return (
         <Stack gap="md">
             <Box>
-                <TextInput
+                <TextInput aria-label="Search fields"
                     placeholder="Search fields by name..."
                     value={fieldSearch}
                     onChange={(e) => setFieldSearch(e.currentTarget.value)}

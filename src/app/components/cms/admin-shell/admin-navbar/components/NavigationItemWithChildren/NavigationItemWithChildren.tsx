@@ -95,7 +95,7 @@ export function NavigationItemWithChildren({
             >
                 <Group gap="xs" wrap="nowrap">
                     {hasChildren && (
-                        <ActionIcon
+                        <ActionIcon aria-label={isExpanded ? `Collapse ${label}` : `Expand ${label}`} aria-expanded={isExpanded}
                             size="sm"
                             variant="subtle"
                             onClick={handleToggleExpand}

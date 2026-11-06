@@ -79,7 +79,7 @@ export function AuditLogsList({ onViewDetails }: AuditLogsListProps) {
           <Group>
             <Group gap="xs">
               <Text size="sm" c="dimmed">Show:</Text>
-              <Select
+              <Select aria-label="Rows per page"
                 size="xs"
                 w={80}
                 data={[

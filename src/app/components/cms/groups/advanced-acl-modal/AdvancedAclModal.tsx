@@ -284,7 +284,7 @@ export function AclManagement({
                             {selectedPages.length} pages selected
                         </Badge>
                     </Group>
-                    <ActionIcon
+                    <ActionIcon aria-label={isExpanded ? 'Collapse page list' : 'Expand page list'} aria-expanded={isExpanded}
                         variant="subtle"
                         onClick={() => setIsExpanded(!isExpanded)}
                         size="sm"
@@ -304,12 +304,12 @@ export function AclManagement({
                     </Alert>
 
                     {/* Search */}
-                    <TextInput
+                    <TextInput aria-label="Search pages"
                         placeholder="Search pages..."
                         leftSection={<IconSearch size="1rem" />}
                         rightSection={
                             searchTerm && (
-                                <ActionIcon
+                                <ActionIcon aria-label="Clear search"
                                     variant="subtle"
                                     color="gray"
                                     size="sm"

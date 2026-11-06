@@ -99,7 +99,7 @@ export function BulkDeleteJobsModal({
                     To confirm deletion, please type: <strong>{expectedText}</strong>
                 </Text>
 
-                <TextInput
+                <TextInput aria-label="Confirmation text"
                     placeholder={expectedText}
                     value={confirmText}
                     onChange={(e) => setConfirmText(e.currentTarget.value)}

@@ -54,7 +54,7 @@ import type { IRoleDetails, IRolesListParams } from '../../../../../types/respon
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
-import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
 import { RoleMembersModal } from './RoleMembersModal';
 import classes from './RolesList.module.css';
 
@@ -272,7 +272,9 @@ export function RolesList({
                     : "Manage Page Permissions"
                 }
               >
-                <ActionIcon
+                <ActionIcon aria-label={adminRole
+                    ? "Admin role permissions cannot be modified"
+                    : "Manage Page Permissions"}
                   variant="subtle"
                   size="sm"
                   color="blue"
@@ -296,7 +298,9 @@ export function RolesList({
                     : "Manage Data Table Permissions"
                 }
               >
-                <ActionIcon
+                <ActionIcon aria-label={adminRole
+                    ? "Admin role permissions cannot be modified"
+                    : "Manage Data Table Permissions"}
                   variant="subtle"
                   size="sm"
                   color="green"
@@ -320,7 +324,9 @@ export function RolesList({
                     : "Manage Group Permissions"
                 }
               >
-                <ActionIcon
+                <ActionIcon aria-label={adminRole
+                    ? "Admin role permissions cannot be modified"
+                    : "Manage Group Permissions"}
                   variant="subtle"
                   size="sm"
                   color="purple"
@@ -427,12 +433,12 @@ export function RolesList({
         <Card withBorder p="md">
           <Group gap="md" align="flex-end" justify="space-between">
             <Group gap="md" style={{ flex: 1 }}>
-              <TextInput
+              <TextInput aria-label="Search roles"
                 placeholder="Search roles..."
                 leftSection={<IconSearch size={16} />}
                 rightSection={
                   filterParams.search ? (
-                    <ActionIcon
+                    <ActionIcon aria-label="Clear search"
                       variant="subtle"
                       color="gray"
                       size="sm"
@@ -485,7 +491,7 @@ export function RolesList({
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableTr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableTh key={header.id} className={tableStyles.tableHeader}>
+                      <TableTh key={header.id} aria-sort={ariaSort(header.column)} className={tableStyles.tableHeader}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(

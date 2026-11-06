@@ -49,7 +49,7 @@ export function LockedField({
                     label={isLocked ? lockedTooltip : unlockedTooltip}
                     position="left"
                 >
-                    <ActionIcon
+                    <ActionIcon aria-label={isLocked ? lockedTooltip : unlockedTooltip}
                         variant={isLocked ? "subtle" : "filled"}
                         color={isLocked ? "gray" : "blue"}
                         onClick={handleToggleLock}

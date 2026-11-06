@@ -433,7 +433,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                         <Title order={4}>Content</Title>
                                         <Badge color="blue" variant="light" size="sm">{contentFields.length} fields</Badge>
                                     </Group>
-                                    <ActionIcon variant="subtle" size="md">
+                                    <ActionIcon aria-label={contentExpanded ? 'Collapse Content' : 'Expand Content'} aria-expanded={contentExpanded} variant="subtle" size="md">
                                         {contentExpanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
                                     </ActionIcon>
                                 </Group>
@@ -485,7 +485,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                         <Title order={4}>Properties</Title>
                                         <Badge color="purple" variant="light" size="sm">{propertyFields.length} properties</Badge>
                                     </Group>
-                                    <ActionIcon variant="subtle" size="md">
+                                    <ActionIcon aria-label={propertiesExpanded ? 'Collapse Properties' : 'Expand Properties'} aria-expanded={propertiesExpanded} variant="subtle" size="md">
                                         {propertiesExpanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
                                     </ActionIcon>
                                 </Group>

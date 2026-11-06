@@ -66,8 +66,10 @@ describe('NavigationSearch results panel', () => {
 
         await userEvent.type(getInput(), 'a');
 
-        expect(screen.getByRole('listbox', { name: 'Search results' })).toBeInTheDocument();
-        expect(screen.getByRole('option', { name: /Assets/ })).toBeInTheDocument();
+        expect(screen.getByRole('navigation', { name: 'Search results' })).toBeInTheDocument();
+        // Results are real links, and the count is announced.
+        expect(screen.getByRole('link', { name: /Assets/ })).toHaveAttribute('href', '/admin/assets');
+        expect(screen.getByRole('status')).toHaveTextContent(/\d+ results?/);
     });
 
     // The docked look depends on this attribute reaching the <input>, where the
@@ -88,11 +90,11 @@ describe('NavigationSearch results panel', () => {
         renderSearch();
 
         await userEvent.type(getInput(), 'a');
-        expect(screen.getByRole('listbox', { name: 'Search results' })).toBeInTheDocument();
+        expect(screen.getByRole('navigation', { name: 'Search results' })).toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('button', { name: 'outside' }));
 
-        expect(screen.queryByRole('listbox', { name: 'Search results' })).toBeNull();
+        expect(screen.queryByRole('navigation', { name: 'Search results' })).toBeNull();
         expect(getInput()).toHaveValue('a');
     });
 
@@ -102,7 +104,7 @@ describe('NavigationSearch results panel', () => {
         await userEvent.type(getInput(), 'a');
         await userEvent.keyboard('{Escape}');
 
-        expect(screen.queryByRole('listbox', { name: 'Search results' })).toBeNull();
+        expect(screen.queryByRole('navigation', { name: 'Search results' })).toBeNull();
         expect(getInput()).toHaveValue('a');
     });
 
@@ -111,21 +113,21 @@ describe('NavigationSearch results panel', () => {
 
         await userEvent.type(getInput(), 'a');
         await userEvent.keyboard('{Escape}');
-        expect(screen.queryByRole('listbox', { name: 'Search results' })).toBeNull();
+        expect(screen.queryByRole('navigation', { name: 'Search results' })).toBeNull();
 
         await userEvent.click(getInput());
 
-        expect(screen.getByRole('listbox', { name: 'Search results' })).toBeInTheDocument();
+        expect(screen.getByRole('navigation', { name: 'Search results' })).toBeInTheDocument();
     });
 
     it('closes the panel and clears the query after selecting a result', async () => {
         renderSearch();
 
         await userEvent.type(getInput(), 'a');
-        await userEvent.click(screen.getByRole('option', { name: /Assets/ }));
+        await userEvent.click(screen.getByRole('link', { name: /Assets/ }));
 
         expect(push).toHaveBeenCalledWith('/admin/assets');
-        expect(screen.queryByRole('listbox', { name: 'Search results' })).toBeNull();
+        expect(screen.queryByRole('navigation', { name: 'Search results' })).toBeNull();
         expect(getInput()).toHaveValue('');
     });
 
@@ -135,7 +137,7 @@ describe('NavigationSearch results panel', () => {
         await userEvent.type(getInput(), 'a');
         await userEvent.click(screen.getByRole('button', { name: 'Clear search' }));
 
-        expect(screen.queryByRole('listbox', { name: 'Search results' })).toBeNull();
+        expect(screen.queryByRole('navigation', { name: 'Search results' })).toBeNull();
         expect(getInput()).toHaveValue('');
     });
 });

@@ -72,7 +72,7 @@ import classes from './UsersList.module.css';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { FilterActions } from '../../../shared/common/FilterControls';
-import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
 import { UsersStatsTiles } from './UsersStatsTiles';
 import { UsersBulkActionsBar } from './UsersBulkActionsBar';
 import { BulkGroupMembershipModal } from './BulkGroupMembershipModal';
@@ -742,7 +742,7 @@ export function UsersList({
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableTr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableTh key={header.id} className={tableStyles.tableHeader}>
+                      <TableTh key={header.id} aria-sort={ariaSort(header.column)} className={tableStyles.tableHeader}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(

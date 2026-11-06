@@ -273,7 +273,7 @@ export function PublishingPanel({
                     </Group>
 
                     {/* Search Bar */}
-                    <TextInput
+                    <TextInput aria-label="Search versions"
                         placeholder="Search versions..."
                         leftSection={<IconSearch size={16} />}
                         value={searchQuery}
@@ -312,7 +312,7 @@ export function PublishingPanel({
 
                                 <Group gap="xs">
                                     <Tooltip label="View Info">
-                                        <ActionIcon
+                                        <ActionIcon aria-label="View Info"
                                             variant="light"
                                             color="blue"
                                             onClick={() => handleViewVersion(publishedVersion.id)}
@@ -321,7 +321,7 @@ export function PublishingPanel({
                                         </ActionIcon>
                                     </Tooltip>
                                     <Tooltip label="Compare">
-                                        <ActionIcon
+                                        <ActionIcon aria-label="Compare"
                                             variant="light"
                                             color="gray"
                                             onClick={() => handleCompareVersion(publishedVersion.id)}
@@ -331,7 +331,7 @@ export function PublishingPanel({
                                     </Tooltip>
                                     {onRestore && (
                                         <Tooltip label="Restore from this version">
-                                            <ActionIcon
+                                            <ActionIcon aria-label="Restore from this version"
                                                 variant="light"
                                                 color="purple"
                                                 onClick={() => handleRestoreVersion(publishedVersion.id)}
@@ -379,7 +379,7 @@ export function PublishingPanel({
 
                                     <Group gap="xs">
                                         <Tooltip label="View Info">
-                                            <ActionIcon
+                                            <ActionIcon aria-label="View Info"
                                                 variant="light"
                                                 color="blue"
                                                 onClick={() => handleViewVersion(version.id)}
@@ -388,7 +388,7 @@ export function PublishingPanel({
                                             </ActionIcon>
                                         </Tooltip>
                                         <Tooltip label="Compare">
-                                            <ActionIcon
+                                            <ActionIcon aria-label="Compare"
                                                 variant="light"
                                                 color="gray"
                                                 onClick={() => handleCompareVersion(version.id)}
@@ -398,7 +398,7 @@ export function PublishingPanel({
                                         </Tooltip>
                                         {onRestore && (
                                             <Tooltip label="Restore from this version">
-                                                <ActionIcon
+                                                <ActionIcon aria-label="Restore from this version"
                                                     variant="light"
                                                     color="purple"
                                                     onClick={() => handleRestoreVersion(version.id)}
@@ -408,7 +408,7 @@ export function PublishingPanel({
                                             </Tooltip>
                                         )}
                                         <Tooltip label="Delete Version">
-                                            <ActionIcon
+                                            <ActionIcon aria-label="Delete Version"
                                                 variant="light"
                                                 color="red"
                                                 onClick={() => handleDeleteVersion(version.id)}

@@ -408,7 +408,7 @@ export const PageRoutesPanel = React.memo(function PageRoutesPanel({
                                         {placeholders.map((placeholder) => (
                                             <Group key={placeholder} gap="xs" wrap="nowrap">
                                                 <Code>{placeholder}</Code>
-                                                <TextInput
+                                                <TextInput aria-label={`Rule for ${placeholder}`}
                                                     size="xs"
                                                     placeholder={suggestRequirement(placeholder)}
                                                     value={route.requirements?.[placeholder] ?? ''}

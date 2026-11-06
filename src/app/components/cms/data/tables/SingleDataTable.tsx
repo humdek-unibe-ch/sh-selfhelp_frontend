@@ -35,7 +35,7 @@ import {
 } from '@mantine/core';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { EmptyState } from '../../../shared/common/EmptyState';
-import { SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { SortHeader, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
 import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconRefresh, IconDownload, IconFileTypeCsv, IconJson, IconFileZip } from '@tabler/icons-react';
 import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable, useTableColumns } from '../../../../../hooks/useData';
 import { useDataTableOptionLabelMaps } from '../../../../../hooks/useDataTableOptionLabelMaps';
@@ -240,24 +240,24 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
             </Menu.Dropdown>
           </Menu>
           <Tooltip label="Refresh table data">
-            <ActionIcon variant="subtle" onClick={() => refetch()} loading={isFetching}>
+            <ActionIcon aria-label="Refresh table data" variant="subtle" onClick={() => refetch()} loading={isFetching}>
               <IconRefresh size={16} />
             </ActionIcon>
           </Tooltip>
           <Tooltip label="Edit table">
-            <ActionIcon variant="subtle" onClick={() => setIsEditorOpen(true)}>
+            <ActionIcon aria-label="Edit table" variant="subtle" onClick={() => setIsEditorOpen(true)}>
               <IconEdit size={16} />
             </ActionIcon>
           </Tooltip>
           <Tooltip label="Delete this entire table">
-            <ActionIcon variant="subtle" color="red" onClick={() => setIsDeleteTableOpen(true)}>
+            <ActionIcon aria-label="Delete this entire table" variant="subtle" color="red" onClick={() => setIsDeleteTableOpen(true)}>
               <IconDatabaseOff size={16} />
             </ActionIcon>
           </Tooltip>
         </Group>
       </Group>
 
-      <TextInput
+      <TextInput aria-label="Search table data"
         placeholder="Search table data..."
         leftSection={<IconSearch size={16} />}
         value={globalFilter}
@@ -274,7 +274,7 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableTr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableTh key={header.id} className={tableStyles.tableHeader}>
+                    <TableTh key={header.id} aria-sort={ariaSort(header.column)} className={tableStyles.tableHeader}>
                       {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableTh>
                   ))}

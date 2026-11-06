@@ -261,7 +261,7 @@ export function ScaffoldCmsAppModal({
                                                 {...form.getInputProps(`form_fields.${index}.label`)}
                                             />
                                             <Tooltip label="Remove field">
-                                                <ActionIcon
+                                                <ActionIcon aria-label="Remove field"
                                                     color="red"
                                                     variant="subtle"
                                                     mt={4}

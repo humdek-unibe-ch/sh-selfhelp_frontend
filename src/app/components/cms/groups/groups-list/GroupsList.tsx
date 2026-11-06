@@ -52,7 +52,7 @@ import type { IGroupDetails, IGroupsListParams } from '../../../../../types/resp
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
-import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
 import { GroupMembersModal } from './GroupMembersModal';
 import classes from './GroupsList.module.css';
 
@@ -334,12 +334,12 @@ export function GroupsList({
         <Card withBorder p="md">
           <Group gap="md" align="flex-end" justify="space-between">
             <Group gap="md" style={{ flex: 1 }}>
-              <TextInput
+              <TextInput aria-label="Search groups"
                 placeholder="Search groups..."
                 leftSection={<IconSearch size={16} />}
                 rightSection={
                   filterParams.search ? (
-                    <ActionIcon variant="subtle" color="gray" size="sm" onClick={handleClearSearch}>
+                    <ActionIcon aria-label="Clear search" variant="subtle" color="gray" size="sm" onClick={handleClearSearch}>
                       <IconX size={14} />
                     </ActionIcon>
                   ) : null
@@ -387,7 +387,7 @@ export function GroupsList({
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableTr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableTh key={header.id} className={tableStyles.tableHeader}>
+                      <TableTh key={header.id} aria-sort={ariaSort(header.column)} className={tableStyles.tableHeader}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(

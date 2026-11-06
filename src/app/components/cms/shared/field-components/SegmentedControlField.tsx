@@ -6,6 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { SegmentedControl, Input } from '@mantine/core';
 import { type IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+import { useFieldLabel } from '../../../shared/common/field-label-context';
 
 interface ISegmentedControlFieldProps {
     fieldId: number;
@@ -24,6 +25,7 @@ export function SegmentedControlField({
     placeholder = 'Select an option...',
     disabled = false
 }: ISegmentedControlFieldProps) {
+    const fieldLabel = useFieldLabel();
     const options = (config.options || []).map(option => ({
         value: option.value,
         label: option.text,
@@ -33,7 +35,7 @@ export function SegmentedControlField({
     if (options.length === 0) {
         return (
             <Input.Wrapper labelElement="div" label={placeholder}>
-                <SegmentedControl
+                <SegmentedControl role="radiogroup" aria-labelledby={fieldLabel?.id}
                     key={fieldId}
                     data={[{ value: '', label: 'No options available', disabled: true }]}
                     value={value || ''}
@@ -47,7 +49,7 @@ export function SegmentedControlField({
     }
 
     return (
-        <SegmentedControl
+        <SegmentedControl role="radiogroup" aria-labelledby={fieldLabel?.id}
             key={fieldId}
             data={options}
             value={value || options[0]?.value || ''}

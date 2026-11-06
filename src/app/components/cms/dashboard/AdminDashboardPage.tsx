@@ -97,7 +97,7 @@ export function AdminDashboardPage() {
         <Stack gap="lg">
             <Group justify="space-between" align="flex-end" wrap="wrap">
                 <div>
-                    <Title order={2}>Dashboard</Title>
+                    <Title order={1} size="h2">Dashboard</Title>
                     <Text size="sm" c="dimmed" mt={4}>{greeting} — here is how your site is doing.</Text>
                 </div>
                 {canReadAnalytics ? (

@@ -125,7 +125,7 @@ export function VersionHistoryList({
                                 <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
                                     {!isPublished && (
                                         <Tooltip label="Publish this version" withArrow>
-                                            <ActionIcon 
+                                            <ActionIcon aria-label="Publish this version" 
                                                 size="md" 
                                                 variant="light"
                                                 color="green"
@@ -137,7 +137,7 @@ export function VersionHistoryList({
                                     )}
                                     
                                     <Tooltip label="View details" withArrow>
-                                        <ActionIcon
+                                        <ActionIcon aria-label="View details"
                                             size="md"
                                             variant="light"
                                             color="blue"
@@ -149,7 +149,7 @@ export function VersionHistoryList({
 
                                     {onCompare && (
                                         <Tooltip label="Compare versions" withArrow>
-                                            <ActionIcon
+                                            <ActionIcon aria-label="Compare versions"
                                                 size="md"
                                                 variant="light"
                                                 color="orange"
@@ -162,7 +162,7 @@ export function VersionHistoryList({
 
                                     {onRestore && isPublished && (
                                         <Tooltip label="Restore from this version" withArrow>
-                                            <ActionIcon
+                                            <ActionIcon aria-label="Restore from this version"
                                                 size="md"
                                                 variant="light"
                                                 color="purple"
@@ -175,7 +175,7 @@ export function VersionHistoryList({
 
                                     {!isPublished && (
                                         <Tooltip label="Delete version" withArrow>
-                                            <ActionIcon 
+                                            <ActionIcon aria-label="Delete version" 
                                                 size="md" 
                                                 variant="light"
                                                 color="red"

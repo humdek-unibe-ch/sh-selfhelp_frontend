@@ -16,11 +16,13 @@ import {
     Text,
     TextInput,
     UnstyledButton,
+    VisuallyHidden,
 } from '@mantine/core';
 import { useClickOutside, useDebouncedValue, useDisclosure, useId, useMediaQuery } from '@mantine/hooks';
 import { IconFileText, IconSearch, IconX } from '@tabler/icons-react';
 import { useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { searchMenuPagesInPayload, type TNavigationSearchMode } from '@selfhelp/shared';
 import { permissionAwareApiClient } from '../../../../../api/base.api';
@@ -59,6 +61,11 @@ function searchEndpointForMode(
         return API_CONFIG.ENDPOINTS.SEARCH_CONTENT;
     }
     return API_CONFIG.ENDPOINTS.SEARCH_PAGES;
+}
+
+/** The page a hit opens; null when the hit has neither a url nor a keyword. */
+function hitHref(hit: ISearchHit): string | null {
+    return hit.url || (hit.keyword ? `/${hit.keyword}` : null);
 }
 
 /**
@@ -123,6 +130,14 @@ function HeaderSearchField({
     const isPanelVisible =
         Boolean(query) && !belowMinChars && isPanelOpen && !(loading && options.length === 0);
 
+    const status = !query || belowMinChars
+        ? ''
+        : loading
+            ? 'Searching…'
+            : options.length === 0
+                ? 'No results'
+                : `${options.length} ${options.length === 1 ? 'result' : 'results'}`;
+
     const clearSearch = () => {
         onQueryChange('');
         setIsPanelOpen(false);
@@ -134,7 +149,11 @@ function HeaderSearchField({
             className={`${styles.root} ${compact ? styles.rootBlock : styles.rootInline}`}
             ref={clickOutsideRef}
         >
-            <TextInput
+            {/* Always mounted so changes are announced. */}
+            <VisuallyHidden role="status" aria-live="polite">
+                {status}
+            </VisuallyHidden>
+            <TextInput aria-label="Search the site"
                 ref={inputRef}
                 placeholder="Search"
                 value={query}
@@ -167,7 +186,7 @@ function HeaderSearchField({
                 }}
                 role="combobox"
                 aria-expanded={isPanelVisible}
-                aria-controls={isPanelVisible ? listboxId : undefined}
+                aria-controls={isPanelVisible && options.length > 0 ? listboxId : undefined}
                 aria-autocomplete="list"
                 aria-activedescendant={
                     isPanelVisible && activeIndex >= 0 ? `${listboxId}-${activeIndex}` : undefined
@@ -196,7 +215,7 @@ function HeaderSearchField({
             />
 
             {isPanelVisible && (
-                <Box id={listboxId} className={styles.panel} role="listbox" aria-label="Search results">
+                <Box className={styles.panel}>
                     {options.length > 0 ? (
                         <>
                             <Box className={styles.panelHeader}>
@@ -209,15 +228,22 @@ function HeaderSearchField({
                             </Box>
 
                             <ScrollArea.Autosize mah={280} type="hover">
-                                <Stack gap={2} className={styles.panelList}>
+                                <Stack gap={2} className={styles.panelList} id={listboxId} role="listbox" aria-label="Search results">
                                     {options.map((option, index) => (
                                         <UnstyledButton
                                             key={option.value}
+                                            component={Link}
+                                            href={hitHref(option.hit) ?? '#'}
                                             id={`${listboxId}-${index}`}
                                             role="option"
                                             aria-selected={index === activeIndex}
                                             data-active={index === activeIndex || undefined}
-                                            onClick={() => {
+                                            onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
+                                                // Let the browser handle new-tab / new-window clicks.
+                                                if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
+                                                    return;
+                                                }
+                                                event.preventDefault();
                                                 setIsPanelOpen(false);
                                                 onNavigate(option.value);
                                             }}
@@ -349,7 +375,7 @@ export function HeaderSearch({
     const navigateToHit = (value: string) => {
         const option = options.find((row) => row.value === value);
         const hit = option?.hit;
-        const href = hit?.url || (hit?.keyword ? `/${hit.keyword}` : null);
+        const href = hit ? hitHref(hit) : null;
         if (href) {
             router.push(href);
             setQuery('');

@@ -246,7 +246,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
               >
                 {/* Drag Handle - properly connected */}
                 <div {...dragHandleProps}>
-                  <ActionIcon
+                  <ActionIcon component="span" aria-hidden="true" tabIndex={-1}
                     variant="subtle"
                     size="xs"
                     color="gray"
@@ -258,7 +258,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
 
                 {/* Expand/Collapse Toggle - only show if has children */}
                 {hasChildren ? (
-                  <ActionIcon
+                  <ActionIcon aria-label={isExpanded ? `Collapse ${section.section_name}` : `Expand ${section.section_name}`} aria-expanded={isExpanded}
                     variant="subtle"
                     size="xs"
                     onClick={handleToggleExpand}
@@ -425,7 +425,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                   </Menu>
 
                   <Tooltip label="Remove" position="top" withArrow>
-                    <ActionIcon
+                    <ActionIcon aria-label="Remove"
                       size="xs"
                       variant="subtle"
                       color="orange"

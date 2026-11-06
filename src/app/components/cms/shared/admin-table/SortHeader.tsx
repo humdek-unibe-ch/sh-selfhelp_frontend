@@ -16,6 +16,19 @@ interface ISortHeaderProps {
   };
 }
 
+/**
+ * `aria-sort` for a column's `<th>`, so screen readers announce the sort
+ * state; undefined for columns that cannot be sorted.
+ */
+export function ariaSort(column: {
+  getCanSort: () => boolean;
+  getIsSorted: () => false | 'asc' | 'desc';
+}): 'ascending' | 'descending' | 'none' | undefined {
+  if (!column.getCanSort()) return undefined;
+  const sorted = column.getIsSorted();
+  return sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none';
+}
+
 /** Sortable admin-table column header: label + a single sort-direction toggle. */
 export function SortHeader({ label, column }: ISortHeaderProps) {
   const sorted = column.getIsSorted();

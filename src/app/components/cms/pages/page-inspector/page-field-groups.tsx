@@ -345,7 +345,7 @@ export const PageSettings = React.memo(function PageSettings() {
                         multiline
                         w={300}
                     >
-                        <ActionIcon variant="subtle" size="xs" color="gray">
+                        <ActionIcon aria-label="About Page Settings" variant="subtle" size="xs" color="gray">
                             <IconInfoCircle size="0.75rem" />
                         </ActionIcon>
                     </Tooltip>
@@ -432,7 +432,7 @@ export const PageAdditionalProperties = React.memo(function PageAdditionalProper
                         multiline
                         w={300}
                     >
-                        <ActionIcon variant="subtle" size="xs" color="gray">
+                        <ActionIcon aria-label="About Additional Properties" variant="subtle" size="xs" color="gray">
                             <IconInfoCircle size="0.75rem" />
                         </ActionIcon>
                     </Tooltip>

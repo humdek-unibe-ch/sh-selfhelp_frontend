@@ -8,6 +8,7 @@ import { type IRangeSliderStyle } from '../../../../../../types/common/styles.ty
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for RangeSliderStyle component
@@ -144,6 +145,7 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
     // the `css`/`css_mobile` escape hatch and spacing silently do nothing on a
     // label-less slider). With a wrapper, those live on the Input.Wrapper below.
     const hasWrapper = Boolean(label || description);
+    const plainLabel = DOMPurify.sanitize(label || '', { ALLOWED_TAGS: [] });
 
     // RangeSlider component
     const rangeSliderComponent = (
@@ -162,6 +164,8 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
             inverted={inverted}
             showLabelOnHover={showLabelOnHover}
             labelAlwaysOn={labelsAlwaysOn}
+            thumbFromLabel={plainLabel ? `${plainLabel} (from)` : undefined}
+            thumbToLabel={plainLabel ? `${plainLabel} (to)` : undefined}
             {...(hasWrapper ? {} : { ...styleProps, className: cssClass })}
         />
     );

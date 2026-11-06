@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { Box, Group, Text, TextInput } from '@mantine/core';
+import { useFieldLabel } from '../../../shared/common/field-label-context';
 
 interface IUnknownFieldProps {
     fieldId: number;
@@ -21,12 +22,13 @@ export function UnknownField({
     onChange,
     placeholder
 }: IUnknownFieldProps) {
+    const fieldLabel = useFieldLabel();
     return (
         <Box>
             <Group gap="xs" mt="xs">
                 <Text size="sm" c="dimmed">Unknown field type: {fieldType || 'null'}</Text>
             </Group>
-            <TextInput
+            <TextInput aria-labelledby={fieldLabel?.id}
                 key={fieldId}
                 placeholder={placeholder || ''}
                 value={value}

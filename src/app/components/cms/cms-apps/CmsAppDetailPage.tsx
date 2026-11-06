@@ -285,7 +285,7 @@ export function CmsAppDetailPage({ slug }: ICmsAppDetailPageProps) {
                                     </Table.Td>
                                     <Table.Td className={tableStyles.tableCell}>
                                         {canUpdate ? (
-                                            <Select
+                                            <Select aria-label={`Role of ${page.keyword}`}
                                                 data={ROLE_OPTIONS}
                                                 value={page.cms_app_role}
                                                 allowDeselect={false}

@@ -463,7 +463,7 @@ export function PluginsPage() {
     return (
         <Stack gap="md">
             <Group justify="space-between" align="center">
-                <Title order={2}>Plugins</Title>
+                <Title order={1} size="h2">Plugins</Title>
                 <Group gap="xs">
                     {installMode && (
                         <Tooltip label={`Plugin install mode: ${installMode}`}>
@@ -798,7 +798,7 @@ export function PluginsPage() {
                         <Tabs.Panel value="url" pt="md">
                             <Stack gap="sm">
                                 <Text size="sm">Paste a direct URL to a published <code>plugin.json</code>. The host downloads, verifies the canonical signed payload, and dispatches the install operation.</Text>
-                                <TextInput
+                                <TextInput aria-label="Plugin manifest URL"
                                     placeholder="https://example.com/path/to/plugin.json"
                                     value={installUrl}
                                     onChange={(e) => setInstallUrl(e.currentTarget.value)}

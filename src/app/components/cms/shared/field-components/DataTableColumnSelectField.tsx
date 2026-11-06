@@ -9,6 +9,7 @@ import { useMemo } from 'react';
 import { useTableColumns } from '../../../../../hooks/useData';
 import { useResolvedDataTableName } from './useResolvedDataTableName';
 import { buildColumnSelectOptions, withMissingColumnOptions } from './column-option.utils';
+import { useFieldLabel } from '../../../shared/common/field-label-context';
 
 export type TDataTableColumnSelectMode = 'single' | 'multiple';
 
@@ -48,6 +49,7 @@ export function DataTableColumnSelectField({
     placeholder,
     emptyHint,
 }: IDataTableColumnSelectFieldProps) {
+    const fieldLabel = useFieldLabel();
     const { tableName, isLoading: isTablesLoading, needsDataTable } = useResolvedDataTableName();
     const { data: columnsResp, isLoading: isColumnsLoading } = useTableColumns(tableName);
     const selected = useMemo(
@@ -82,7 +84,7 @@ export function DataTableColumnSelectField({
 
     if (mode === 'multiple') {
         return (
-            <MultiSelect
+            <MultiSelect aria-labelledby={fieldLabel?.id}
                 data={options}
                 value={selected}
                 onChange={(next) => onChange(next.join(','))}
@@ -95,7 +97,7 @@ export function DataTableColumnSelectField({
     }
 
     return (
-        <Select
+        <Select aria-labelledby={fieldLabel?.id}
             data={options}
             value={value.trim() !== '' ? value : null}
             onChange={(next) => onChange(next ?? '')}

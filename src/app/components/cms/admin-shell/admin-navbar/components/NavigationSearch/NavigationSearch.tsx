@@ -14,10 +14,12 @@ import {
     Box,
     ScrollArea,
     Highlight,
-    UnstyledButton
+    UnstyledButton,
+    VisuallyHidden
 } from '@mantine/core';
 import { useClickOutside } from '@mantine/hooks';
 import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, IconPhoto, IconPlayerPlay, IconFileText, IconLanguage, IconPuzzle } from '@tabler/icons-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './NavigationSearch.module.css';
 import { useNavigationStore } from '../../../../../../store/navigation.store';
@@ -438,16 +440,16 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
             .map(({ item }) => item);
     }, [searchableItems, searchQuery]);
 
-    const handleItemClick = (item: ISearchableItem, e?: React.MouseEvent) => {
-        // Support middle click and ctrl+click for new tab
-        if (e && (e.button === 1 || e.ctrlKey || e.metaKey)) {
-            window.open(item.href, '_blank');
+    const handleItemClick = (item: ISearchableItem, e: React.MouseEvent<HTMLAnchorElement>) => {
+        // Results are links: new-tab / new-window clicks are the browser's.
+        if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) {
             setSearchQuery('');
             setIsPanelOpen(false);
             onItemSelect?.();
             return;
         }
 
+        e.preventDefault();
         setActiveItem(item.href);
         router.push(item.href);
         setSearchQuery('');
@@ -462,10 +464,19 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
     };
 
     const isPanelVisible = Boolean(searchQuery) && isPanelOpen;
+    const resultStatus = !searchQuery
+        ? ''
+        : filteredItems.length === 0
+            ? 'No results'
+            : `${filteredItems.length} ${filteredItems.length === 1 ? 'result' : 'results'}`;
 
     return (
         <Box className={styles.root} ref={clickOutsideRef}>
-            <TextInput
+            {/* Always mounted so result-count changes are announced. */}
+            <VisuallyHidden role="status" aria-live="polite">
+                {resultStatus}
+            </VisuallyHidden>
+            <TextInput aria-label="Search functions and pages"
                 ref={inputRef}
                 placeholder="Search functions & pages"
                 value={searchQuery}
@@ -518,7 +529,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                 edge of the input, so the two read as one connected control
                 instead of a detached floating card. */}
             {isPanelVisible && (
-                <Box className={styles.panel} role="listbox" aria-label="Search results">
+                <Box className={styles.panel}>
                     {filteredItems.length > 0 ? (
                         <>
                             <Box className={styles.panelHeader}>
@@ -531,25 +542,14 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                             </Box>
 
                             <ScrollArea.Autosize mah={280} type="hover">
-                                <Stack gap={2} className={styles.panelList}>
+                                <Stack gap={2} className={styles.panelList} component="nav" aria-label="Search results">
                                     {filteredItems.map((item) => (
                                         <UnstyledButton
                                             key={item.id}
-                                            role="option"
-                                            onClick={(e) => handleItemClick(item, e)}
-                                            onMouseDown={(e: React.MouseEvent) => {
-                                                // Handle middle click
-                                                if (e.button === 1) {
-                                                    e.preventDefault();
-                                                    window.open(item.href, '_blank');
-                                                    setSearchQuery('');
-                                                    onItemSelect?.();
-                                                }
-                                            }}
-                                            onContextMenu={(e: React.MouseEvent) => {
-                                                // Allow right-click context menu for "open in new tab"
-                                                e.stopPropagation();
-                                            }}
+                                            component={Link}
+                                            href={item.href}
+                                            onClick={(e: React.MouseEvent<HTMLAnchorElement>) => handleItemClick(item, e)}
+                                            onAuxClick={(e: React.MouseEvent<HTMLAnchorElement>) => handleItemClick(item, e)}
                                             className={styles.searchItem}
                                         >
                                             <Group gap="sm" wrap="nowrap">

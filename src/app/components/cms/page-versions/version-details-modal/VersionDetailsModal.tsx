@@ -130,7 +130,7 @@ export function VersionDetailsModal({
                         <CopyButton value={version.id.toString()}>
                             {({ copied, copy }) => (
                                 <Tooltip label={copied ? 'Copied' : 'Copy ID'}>
-                                    <ActionIcon
+                                    <ActionIcon aria-label={copied ? 'Copied' : 'Copy ID'}
                                         size="sm"
                                         variant="subtle"
                                         color={copied ? 'green' : 'gray'}

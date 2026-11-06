@@ -445,7 +445,7 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
 
                 {/* 2) Manifest */}
                 <Tabs.Panel value="manifest" pt="md">
-                    <JsonInput
+                    <JsonInput aria-label="Plugin manifest"
                         value={JSON.stringify(manifest, null, 2)}
                         readOnly
                         minRows={20}

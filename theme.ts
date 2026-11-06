@@ -4,10 +4,32 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { createTheme, Modal } from "@mantine/core";
+import type { ComponentPropsWithoutRef } from "react";
+import { CloseButton, createTheme, Modal, Pagination } from "@mantine/core";
+
+// CloseButton's default-props type omits native button attributes.
+const closeButtonName: Pick<ComponentPropsWithoutRef<"button">, "aria-label"> = { "aria-label": "Close" };
 
 export const theme = createTheme({
   components: {
+    // Mantine renders these icon-only buttons without an accessible name;
+    // the CloseButton default also covers the close buttons inside Modal,
+    // Drawer, Alert and Notification.
+    CloseButton: CloseButton.extend({
+      defaultProps: { ...closeButtonName },
+    }),
+    Pagination: Pagination.extend({
+      defaultProps: {
+        getControlProps: (control) => ({
+          'aria-label': {
+            first: 'First page',
+            previous: 'Previous page',
+            next: 'Next page',
+            last: 'Last page',
+          }[control],
+        }),
+      },
+    }),
     // Modals are dismissible only via their own close / cancel control by
     // default: no accidental close on an outside click or Escape (which used to
     // discard unsaved edits, e.g. the data-table "Manage" editor). A specific

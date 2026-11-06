@@ -45,7 +45,7 @@ export function NavigationQuickActions({
                 </Text>
                 <Group gap="xs">
                     <Tooltip label="Create new page" position="top">
-                        <ActionIcon
+                        <ActionIcon aria-label="Create new page"
                             variant="light"
                             color="green"
                             size="sm"
@@ -56,7 +56,7 @@ export function NavigationQuickActions({
                     </Tooltip>
                     
                     <Tooltip label="Refresh navigation" position="top">
-                        <ActionIcon
+                        <ActionIcon aria-label="Refresh navigation"
                             variant="light"
                             color="blue"
                             size="sm"
@@ -69,7 +69,7 @@ export function NavigationQuickActions({
                     
                     {onOpenSettings && (
                         <Tooltip label="Navigation settings" position="top">
-                            <ActionIcon
+                            <ActionIcon aria-label="Navigation settings"
                                 variant="light"
                                 color="gray"
                                 size="sm"

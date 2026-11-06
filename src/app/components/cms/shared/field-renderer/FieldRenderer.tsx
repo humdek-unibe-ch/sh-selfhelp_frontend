@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Box, Text, Stack, Group, Select } from '@mantine/core';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import {
@@ -29,6 +29,7 @@ import {
     SpacingField,
     MonacoEditorField,
 } from '../field-components';
+import { FieldLabelContext, useFieldLabel } from '../../../shared/common/field-label-context';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 import type { ISectionDataTableInfo } from '../../../../../types/responses/admin/admin.types';
 import { extractFieldHelpExample } from '../../../../../utils/field-help.utils';
@@ -115,6 +116,7 @@ interface ISelectBranchFieldProps {
 
 // Select Language field - dropdown from public languages
 function SelectLanguageField({ fieldId, fieldValue, onChange, disabled }: ISelectBranchFieldProps) {
+    const fieldLabel = useFieldLabel();
     const { languages: languageOptions, isLoading: languagesLoading } = usePublicLanguages();
 
     // Local state to ensure proper updates like in the timezone field.
@@ -131,6 +133,7 @@ function SelectLanguageField({ fieldId, fieldValue, onChange, disabled }: ISelec
     return (
         <Select
             key={fieldId}
+            aria-labelledby={fieldLabel?.id}
             data={languageOptions.map(lang => ({
                 value: lang.id.toString(),
                 label: lang.language
@@ -152,6 +155,7 @@ function SelectLanguageField({ fieldId, fieldValue, onChange, disabled }: ISelec
 
 // Select Timezone field - dropdown from timezone lookups
 function SelectTimezoneField({ fieldId, fieldValue, onChange, disabled }: ISelectBranchFieldProps) {
+    const fieldLabel = useFieldLabel();
     const timezoneLookups = useLookupsByType('timezones');
 
     // Local state to ensure proper updates like in ProfileStyle.tsx.
@@ -168,6 +172,7 @@ function SelectTimezoneField({ fieldId, fieldValue, onChange, disabled }: ISelec
     return (
         <Select
             key={fieldId}
+            aria-labelledby={fieldLabel?.id}
             data={timezoneLookups.map(tz => ({
                 value: tz.id.toString(),
                 label: `${tz.lookupCode} - ${tz.lookupDescription}`
@@ -210,6 +215,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     // plugin-owned field types (e.g. `select-survey-js`) stay inside the
     // plugin bundle. Returns undefined for any field type no plugin claimed.
     const pluginFieldRenderer = usePluginFieldRenderer(field.type);
+    const labelId = useId();
 
     // Skip rendering hidden fields - they should not be visible to users
     if (field.hidden === 1) {
@@ -294,6 +300,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 <Group gap="xs" align="center">
                     <FieldLabelWithTooltip
                         label={getFieldLabel()}
+                        labelId={labelId}
                         tooltip={field.help || ''}
                         locale={languages && languages.length > 0 ? undefined : locale}
                         languages={languages}
@@ -306,11 +313,13 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                         {field.type || 'unknown'}
                     </Badge> */}
                 </Group>
-                {children}
+                <FieldLabelContext.Provider value={{ id: labelId, text: getFieldLabel() }}>
+                    {children}
+                </FieldLabelContext.Provider>
             </Stack>
         );
     };
-    
+
     // Plugin-supplied renderers win over host built-ins. This is the only
     // hook plugins need to ship custom field editors for plugin-owned
     // field types (e.g. SurveyJS' `select-survey-js`). The host wraps the

@@ -79,13 +79,13 @@ export function PermissionsMatrix({
             </Text>
 
             {/* Search Filter */}
-            <TextInput
+            <TextInput aria-label={searchPlaceholder}
                 placeholder={searchPlaceholder}
                 value={searchFilter}
                 onChange={(event) => setSearchFilter(event.currentTarget.value)}
                 rightSection={
                     searchFilter ? (
-                        <ActionIcon
+                        <ActionIcon aria-label="Clear filter"
                             variant="subtle"
                             color="gray"
                             size="sm"

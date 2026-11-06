@@ -551,7 +551,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                         To confirm deletion, please type the section name: <strong>{section.name}</strong>
                     </Text>
 
-                    <TextInput
+                    <TextInput aria-label="Section name to confirm"
                         placeholder="Enter section name to confirm"
                         value={deleteConfirmText}
                         onChange={(e) => setDeleteConfirmText(e.currentTarget.value)}

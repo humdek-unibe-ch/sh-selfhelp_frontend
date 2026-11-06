@@ -11,6 +11,7 @@ import type { languages } from 'monaco-editor';
 
 // Dynamic import for Monaco Editor to avoid SSR issues
 import dynamic from 'next/dynamic';
+import { useFieldLabel } from '../../../shared/common/field-label-context';
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { 
     ssr: false,
     loading: () => <LoadingOverlay visible />
@@ -248,6 +249,7 @@ export function MonacoFieldEditor({
         }
     }, [isEditorReady]);
 
+    const fieldLabel = useFieldLabel();
     const editorOptions: EditorProps['options'] = {
         selectOnLineNumbers: true,
         minimap: {
@@ -259,6 +261,7 @@ export function MonacoFieldEditor({
         lineNumbers: 'on',
         renderWhitespace: 'selection',
         readOnly,
+        ariaLabel: fieldLabel?.text,
         ...config.editorOptions
     };
 

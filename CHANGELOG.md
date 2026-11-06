@@ -95,6 +95,22 @@ rework. The rest of the release works against any core in range.
   the public menu actually renders.
 
 ### Fixed
+- **Accessibility (screen readers and keyboard).**
+  - Every icon-only button has a name, including the close button of every
+    dialog, alert and notification and the pagination arrows. The section
+    drag handle (mouse only) is no longer a dead keyboard stop.
+  - Form fields are named by their label: every field in the CMS inspectors,
+    the admin search and filter boxes, and the public form inputs (text area,
+    radio options, sliders, combobox, rich text).
+  - The CMS select pickers and the public combobox can be reached and opened
+    from the keyboard.
+  - The per-field language switch (DE/EN) is made of buttons you can tab to
+    and press; it also says which languages are translated.
+  - Each admin screen has one main heading; sortable columns announce their
+    sort order.
+  - The site and admin searches announce how many results were found, and
+    their results are links (open in a new tab works).
+  - A test fails the build if a new icon button or input has no name.
 - **Admin messages say what happened.** Saving or deleting a page names the
   page by its keyword instead of its id (`Page "477"`). Errors in groups,
   roles, permissions, versions, cache, actions, sections and registration codes

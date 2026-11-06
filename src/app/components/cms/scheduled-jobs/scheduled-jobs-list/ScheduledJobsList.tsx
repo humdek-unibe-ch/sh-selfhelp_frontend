@@ -56,7 +56,7 @@ import { ScheduledJobActionsMenuItems } from '../utils/ScheduledJobActionsMenuIt
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { PageHeader } from '../../../shared/common/PageHeader';
-import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
 interface IScheduledJobsListProps {
     onViewJob?: (jobId: number) => void;
     onExecuteJob?: (jobId: number) => void;
@@ -337,7 +337,7 @@ export function ScheduledJobsList({
             }
 
             return (
-              <ActionIcon
+              <ActionIcon aria-label={isExpanded ? 'Hide job details' : 'Show job details'} aria-expanded={isExpanded}
                 variant="subtle"
                 size="sm"
                 onClick={() => handleToggleExpand(row.original.id)}
@@ -525,7 +525,7 @@ export function ScheduledJobsList({
           cell: ({ row }) => (
             <Menu shadow="md" width={200}>
               <Menu.Target>
-                <ActionIcon variant="subtle" size="sm">
+                <ActionIcon aria-label="Job actions" variant="subtle" size="sm">
                   <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
@@ -621,7 +621,7 @@ export function ScheduledJobsList({
                   leftSection={<IconSearch size={16} />}
                   rightSection={
                     filterParams.search ? (
-                      <ActionIcon
+                      <ActionIcon aria-label="Clear search"
                         variant="subtle"
                         size="sm"
                         onClick={handleClearSearch}
@@ -755,7 +755,7 @@ export function ScheduledJobsList({
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableTr key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
-                        <TableTh key={header.id} className={tableStyles.tableHeader}>
+                        <TableTh key={header.id} aria-sort={ariaSort(header.column)} className={tableStyles.tableHeader}>
                           {header.isPlaceholder
                             ? null
                             : flexRender(
