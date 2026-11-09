@@ -53,7 +53,7 @@ import { PageHeader } from '../../shared/common/PageHeader';
 import { EmptyState } from '../../shared/common/EmptyState';
 import { FilterActions } from '../../shared/common/FilterControls';
 import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
-import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles } from '../shared/admin-table';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles, ariaSort } from '../shared/admin-table';
 import { RegistrationCodesStatsTiles } from './RegistrationCodesStatsTiles';
 import type { IRegistrationCode, IRegistrationCodesListParams } from '../../../../types/responses/admin/registration-codes.types';
 
@@ -335,12 +335,12 @@ export function RegistrationCodesPage() {
                     <Card withBorder p="md">
                         <Group gap="md" align="flex-end" justify="space-between">
                             <Group gap="md" style={{ flex: 1 }}>
-                                <TextInput
+                                <TextInput aria-label="Search codes"
                                     placeholder="Search codes..."
                                     leftSection={<IconSearch size={16} />}
                                     rightSection={
                                         filterParams.search ? (
-                                            <ActionIcon variant="subtle" color="gray" size="sm" onClick={handleClearSearch}>
+                                            <ActionIcon aria-label="Clear search" variant="subtle" color="gray" size="sm" onClick={handleClearSearch}>
                                                 <IconX size={14} />
                                             </ActionIcon>
                                         ) : null
@@ -349,7 +349,7 @@ export function RegistrationCodesPage() {
                                     onChange={e => handleSearch(e.currentTarget.value)}
                                     style={{ flex: 1 }}
                                 />
-                                <Select
+                                <Select aria-label="Filter by group"
                                     placeholder="Filter by group"
                                     data={groupOptions}
                                     value={filterParams.id_groups ? String(filterParams.id_groups) : null}
@@ -358,7 +358,7 @@ export function RegistrationCodesPage() {
                                     searchable
                                     w={180}
                                 />
-                                <Select
+                                <Select aria-label="Filter by status"
                                     placeholder="Filter by status"
                                     data={[
                                         { value: 'available', label: 'Available' },
@@ -407,7 +407,7 @@ export function RegistrationCodesPage() {
                                     {table.getHeaderGroups().map(headerGroup => (
                                         <TableTr key={headerGroup.id}>
                                             {headerGroup.headers.map(header => (
-                                                <TableTh key={header.id} className={tableStyles.tableHeader}>
+                                                <TableTh key={header.id} aria-sort={ariaSort(header.column)} className={tableStyles.tableHeader}>
                                                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                                 </TableTh>
                                             ))}

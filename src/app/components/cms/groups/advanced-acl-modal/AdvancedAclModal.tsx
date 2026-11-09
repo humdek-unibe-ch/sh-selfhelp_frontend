@@ -18,7 +18,6 @@ import {
     Checkbox,
     Badge,
     Tooltip,
-    Tabs,
     Box,
 } from '@mantine/core';
 import {
@@ -28,20 +27,15 @@ import {
     IconSearch,
     IconX,
     IconLock,
-    IconFile,
-    IconPhoto,
 } from '@tabler/icons-react';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import {
     useGroupDetails,
     useUpdateGroupAcls,
-    useGroupAssetAcls,
-    useUpdateGroupAssetAcls,
 } from '../../../../../hooks/useGroups';
 import { convertAclsToApiFormat, convertApiAclsToUiFormat } from '../../../../../utils/acl-conversion.utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { ModalWrapper } from '../../../shared';
-import { GroupAssetAclManagement, type IGroupAssetAclSelection } from './GroupAssetAclManagement';
 
 export interface IAclPage {
     id: number;
@@ -290,7 +284,7 @@ export function AclManagement({
                             {selectedPages.length} pages selected
                         </Badge>
                     </Group>
-                    <ActionIcon
+                    <ActionIcon aria-label={isExpanded ? 'Collapse page list' : 'Expand page list'} aria-expanded={isExpanded}
                         variant="subtle"
                         onClick={() => setIsExpanded(!isExpanded)}
                         size="sm"
@@ -310,12 +304,12 @@ export function AclManagement({
                     </Alert>
 
                     {/* Search */}
-                    <TextInput
+                    <TextInput aria-label="Search pages"
                         placeholder="Search pages..."
                         leftSection={<IconSearch size="1rem" />}
                         rightSection={
                             searchTerm && (
-                                <ActionIcon
+                                <ActionIcon aria-label="Clear search"
                                     variant="subtle"
                                     color="gray"
                                     size="sm"
@@ -370,23 +364,17 @@ export function AdvancedAclModal({
     groupName
 }: IAdvancedAclModalProps) {
     const [selectedPages, setSelectedPages] = useState<IAclPage[]>([]);
-    const [selectedFolders, setSelectedFolders] = useState<IGroupAssetAclSelection[]>([]);
     const queryClient = useQueryClient();
 
     // Fetch group details (including ACLs) - with fresh data when modal opens
     const { data: groupDetails, isLoading: isLoadingGroup, refetch: refetchGroupDetails } = useGroupDetails(groupId);
     const updateAclsMutation = useUpdateGroupAcls();
 
-    // Asset-folder ACLs for this group (lazy: only fetched while the modal is open).
-    const { data: assetAclsData } = useGroupAssetAcls(opened ? groupId : null);
-    const updateAssetAclsMutation = useUpdateGroupAssetAcls();
-
     // Extract ACLs from group details
     const existingAcls = groupDetails?.acls || [];
     // Only block the body with the overlay on the FIRST load (no data yet). The
     // open effect below invalidates + refetches group details every time the
-    // modal opens; that background refetch must NOT re-show a full-body spinner
-    // (it was covering the already-loaded Asset Folders tab).
+    // modal opens; that background refetch must NOT re-show a full-body spinner.
     const isLoadingAcls = isLoadingGroup && !groupDetails;
 
     // Side effects on open (invalidate + refetch fresh data) stay in an effect.
@@ -424,31 +412,12 @@ export function AdvancedAclModal({
         }
     }
 
-    // Seed the asset-folder selection from the group's saved grants, using the
-    // set-state-in-render pattern with a tracker OWNED BY THIS BLOCK. The earlier
-    // version reused prevOpened/prevGroupId from the page-ACL block above; that
-    // block resets them on the same render, so when the asset-acls query resolved
-    // on a LATER render this block's guard no longer matched the open/group
-    // transition and the seed was skipped — leaving the checkboxes unchecked
-    // despite the endpoint returning grants. An independent key over
-    // open + group + whether the data has loaded reseeds exactly once per state.
-    const [assetSeedKey, setAssetSeedKey] = useState<string | null>(null);
-    const nextAssetSeedKey = opened ? `${groupId}:${assetAclsData ? 'loaded' : 'pending'}` : null;
-    if (assetSeedKey !== nextAssetSeedKey) {
-        setAssetSeedKey(nextAssetSeedKey);
-        setSelectedFolders(opened ? (assetAclsData?.acls ?? []).map((a) => ({ ...a })) : []);
-    }
-
     const handleSave = async () => {
         try {
             // Convert to API format
             const aclsData = convertAclsToApiFormat(selectedPages);
 
-            // Save page ACLs and asset-folder ACLs together.
-            await Promise.all([
-                updateAclsMutation.mutateAsync({ groupId, data: { acls: aclsData } }),
-                updateAssetAclsMutation.mutateAsync({ groupId, data: { acls: selectedFolders } }),
-            ]);
+            await updateAclsMutation.mutateAsync({ groupId, data: { acls: aclsData } });
 
             // Force invalidate and refetch all related queries using correct query keys
             await queryClient.invalidateQueries({ queryKey: ['groups'] });
@@ -467,7 +436,7 @@ export function AdvancedAclModal({
     };
 
     const isLoading = isLoadingAcls;
-    const isSubmitting = updateAclsMutation.isPending || updateAssetAclsMutation.isPending;
+    const isSubmitting = updateAclsMutation.isPending;
 
     return (
         <ModalWrapper
@@ -487,33 +456,14 @@ export function AdvancedAclModal({
             <Box pos="relative">
                 <LoadingOverlay visible={isLoading} zIndex={1} overlayProps={{ blur: 1 }} />
 
-                <Tabs defaultValue="pages">
-                    <Tabs.List mb="md">
-                        <Tabs.Tab value="pages" leftSection={<IconFile size={14} />}>
-                            Pages
-                        </Tabs.Tab>
-                        <Tabs.Tab value="assets" leftSection={<IconPhoto size={14} />}>
-                            Asset Folders
-                        </Tabs.Tab>
-                    </Tabs.List>
-
-                    <Tabs.Panel value="pages">
-                        <AclManagement
-                            selectedPages={selectedPages}
-                            onChange={setSelectedPages}
-                            showHeader={false}
-                            maxHeight={500}
-                            initiallyExpanded={true}
-                        />
-                    </Tabs.Panel>
-
-                    <Tabs.Panel value="assets">
-                        <GroupAssetAclManagement
-                            selectedFolders={selectedFolders}
-                            onChange={setSelectedFolders}
-                        />
-                    </Tabs.Panel>
-                </Tabs>
+                {/* Asset access is set per asset (its groups) on the Assets page. */}
+                <AclManagement
+                    selectedPages={selectedPages}
+                    onChange={setSelectedPages}
+                    showHeader={false}
+                    maxHeight={500}
+                    initiallyExpanded={true}
+                />
             </Box>
         </ModalWrapper>
     );

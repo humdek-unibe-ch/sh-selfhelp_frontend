@@ -207,7 +207,7 @@ export const SectionInfoPanel = React.memo(function SectionInfoPanel({
                 <Stack gap="md">
                     <Box>
                         <Text size="xs" fw={500} c="dimmed" mb={6}>Section Name</Text>
-                        <TextInput
+                        <TextInput aria-label="Section name"
                             value={sectionName}
                             onChange={(e) => setSectionName(e.currentTarget.value)}
                             placeholder="Enter section name"

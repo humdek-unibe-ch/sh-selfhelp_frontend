@@ -52,10 +52,10 @@ export function CmsAppsPage() {
         <Stack gap="md">
             <Group justify="space-between" align="flex-start">
                 <div>
-                    <Title order={2}>CMS Apps</Title>
+                    <Title order={1} size="h2">CMS Apps</Title>
                     <Text c="dimmed" size="sm">
-                        Structure authoring only. Editors manage records at{' '}
-                        <CodeLike>/cms/&lt;app&gt;</CodeLike> via the site shell.
+                        Structure authoring only. Editors manage records via{' '}
+                        <strong>Manage content</strong>.
                     </Text>
                 </div>
                 {permissionChecker?.canCreateCmsApps() && (
@@ -171,13 +171,5 @@ export function CmsAppsPage() {
                 />
             )}
         </Stack>
-    );
-}
-
-function CodeLike({ children }: { children: React.ReactNode }) {
-    return (
-        <Text span ff="monospace" size="sm">
-            {children}
-        </Text>
     );
 }

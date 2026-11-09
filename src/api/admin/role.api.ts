@@ -11,7 +11,6 @@ import type {
   IRoleDetails,
   IRolePermission
 } from '../../types/responses/admin/roles.types';
-import type { IMemberUser } from '../../types/responses/admin/admin.types';
 import type {
   ICreateRoleRequest,
   IUpdateRoleRequest,
@@ -36,17 +35,6 @@ export const AdminRoleApi = {
     const response = await permissionAwareApiClient.get<IBaseApiResponse<IRolesListResponse>>(
       API_CONFIG.ENDPOINTS.ADMIN_ROLES_GET_ALL,
       { params: Object.fromEntries(searchParams) }
-    );
-    return response.data.data;
-  },
-
-  /**
-   * List the users who have a role ("View users").
-   */
-  async getRoleMembers(roleId: number): Promise<IMemberUser[]> {
-    const response = await permissionAwareApiClient.get<IBaseApiResponse<IMemberUser[]>>(
-      API_CONFIG.ENDPOINTS.ADMIN_ROLES_MEMBERS_GET,
-      roleId
     );
     return response.data.data;
   },

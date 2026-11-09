@@ -8,6 +8,11 @@ import { renderWithProviders } from '../../../../../test-utils/renderWithProvide
 import { PageHeader } from '../PageHeader';
 
 describe('PageHeader', () => {
+    it("is the screen's main heading (A4: admin screens had no h1)", () => {
+        renderWithProviders(<PageHeader title="Groups Management" />);
+        expect(screen.getByRole('heading', { level: 1, name: 'Groups Management' })).toBeInTheDocument();
+    });
+
     it('pills the item count next to the title', () => {
         renderWithProviders(<PageHeader title="Groups Management" badge={248} badgeAriaLabel="groups" />);
         expect(screen.getByLabelText('248 groups')).toHaveTextContent('248');

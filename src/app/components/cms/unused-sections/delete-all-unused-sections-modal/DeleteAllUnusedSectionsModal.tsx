@@ -110,7 +110,7 @@ export function DeleteAllUnusedSectionsModal({
                     <Text fw={500}>
                         To confirm deletion of all {sections.length} sections, type: <Text span c="red" fw={600}>{confirmationPhrase}</Text>
                     </Text>
-                    <TextInput
+                    <TextInput aria-label="Confirmation phrase"
                         placeholder={`Type "${confirmationPhrase}" to confirm`}
                         value={confirmationText}
                         onChange={(event) => setConfirmationText(event.currentTarget.value)}

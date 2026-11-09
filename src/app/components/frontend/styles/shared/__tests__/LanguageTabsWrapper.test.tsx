@@ -88,4 +88,23 @@ describe('LanguageTabsWrapper', () => {
         expect(screen.getByText('Abteilung')).toBeInTheDocument();
         expect(screen.getByRole('radiogroup', { name: 'Content language' })).toBeInTheDocument();
     });
+
+    it('keeps the locale switcher out of submitted form data', () => {
+        const { container } = renderWithProviders(
+            <form>
+                <LanguageTabsWrapper
+                    translatable
+                    name="answer"
+                    value="Seed"
+                    onChange={vi.fn()}
+                >
+                    {() => <textarea aria-label="answer-input" />}
+                </LanguageTabsWrapper>
+            </form>,
+        );
+
+        const keys = [...new FormData(container.querySelector('form')!).keys()];
+        expect(keys.some((key) => key.startsWith('mantine-'))).toBe(false);
+        expect(keys).toContain('section-locale-answer');
+    });
 });

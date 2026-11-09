@@ -16,11 +16,13 @@ import {
     Text,
     TextInput,
     UnstyledButton,
+    VisuallyHidden,
 } from '@mantine/core';
-import { useClickOutside, useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useClickOutside, useDebouncedValue, useDisclosure, useId, useMediaQuery } from '@mantine/hooks';
 import { IconFileText, IconSearch, IconX } from '@tabler/icons-react';
 import { useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { searchMenuPagesInPayload, type TNavigationSearchMode } from '@selfhelp/shared';
 import { permissionAwareApiClient } from '../../../../../api/base.api';
@@ -59,6 +61,11 @@ function searchEndpointForMode(
         return API_CONFIG.ENDPOINTS.SEARCH_CONTENT;
     }
     return API_CONFIG.ENDPOINTS.SEARCH_PAGES;
+}
+
+/** The page a hit opens; null when the hit has neither a url nor a keyword. */
+function hitHref(hit: ISearchHit): string | null {
+    return hit.url || (hit.keyword ? `/${hit.keyword}` : null);
 }
 
 /**
@@ -107,6 +114,14 @@ function HeaderSearchField({
 }: IHeaderSearchFieldProps): React.ReactElement {
     // Tracked separately from the query so dismissing keeps what was typed.
     const [isPanelOpen, setIsPanelOpen] = useState(false);
+    // Keyboard-highlighted result (-1 = none); reset whenever the results change.
+    const [activeIndex, setActiveIndex] = useState(-1);
+    const [prevOptions, setPrevOptions] = useState(options);
+    if (prevOptions !== options) {
+        setPrevOptions(options);
+        setActiveIndex(-1);
+    }
+    const listboxId = useId();
     const inputRef = useRef<HTMLInputElement>(null);
     const clickOutsideRef = useClickOutside(() => setIsPanelOpen(false));
 
@@ -114,6 +129,14 @@ function HeaderSearchField({
     // never opens as an empty box.
     const isPanelVisible =
         Boolean(query) && !belowMinChars && isPanelOpen && !(loading && options.length === 0);
+
+    const status = !query || belowMinChars
+        ? ''
+        : loading
+            ? 'Searching…'
+            : options.length === 0
+                ? 'No results'
+                : `${options.length} ${options.length === 1 ? 'result' : 'results'}`;
 
     const clearSearch = () => {
         onQueryChange('');
@@ -126,7 +149,11 @@ function HeaderSearchField({
             className={`${styles.root} ${compact ? styles.rootBlock : styles.rootInline}`}
             ref={clickOutsideRef}
         >
-            <TextInput
+            {/* Always mounted so changes are announced. */}
+            <VisuallyHidden role="status" aria-live="polite">
+                {status}
+            </VisuallyHidden>
+            <TextInput aria-label="Search the site"
                 ref={inputRef}
                 placeholder="Search"
                 value={query}
@@ -142,8 +169,28 @@ function HeaderSearchField({
                         // Don't let a parent overlay close too.
                         event.stopPropagation();
                         setIsPanelOpen(false);
+                        return;
+                    }
+                    if (!isPanelVisible || options.length === 0) {
+                        return;
+                    }
+                    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                        event.preventDefault();
+                        const step = event.key === 'ArrowDown' ? 1 : -1;
+                        setActiveIndex((index) => (index + step + options.length) % options.length);
+                    } else if (event.key === 'Enter' && activeIndex >= 0) {
+                        event.preventDefault();
+                        setIsPanelOpen(false);
+                        onNavigate(options[activeIndex].value);
                     }
                 }}
+                role="combobox"
+                aria-expanded={isPanelVisible}
+                aria-controls={isPanelVisible && options.length > 0 ? listboxId : undefined}
+                aria-autocomplete="list"
+                aria-activedescendant={
+                    isPanelVisible && activeIndex >= 0 ? `${listboxId}-${activeIndex}` : undefined
+                }
                 data-panel-open={isPanelVisible || undefined}
                 leftSection={<IconSearch size={16} stroke={1.6} />}
                 rightSection={
@@ -168,7 +215,7 @@ function HeaderSearchField({
             />
 
             {isPanelVisible && (
-                <Box className={styles.panel} role="listbox" aria-label="Search results">
+                <Box className={styles.panel}>
                     {options.length > 0 ? (
                         <>
                             <Box className={styles.panelHeader}>
@@ -181,12 +228,22 @@ function HeaderSearchField({
                             </Box>
 
                             <ScrollArea.Autosize mah={280} type="hover">
-                                <Stack gap={2} className={styles.panelList}>
-                                    {options.map((option) => (
+                                <Stack gap={2} className={styles.panelList} id={listboxId} role="listbox" aria-label="Search results">
+                                    {options.map((option, index) => (
                                         <UnstyledButton
                                             key={option.value}
+                                            component={Link}
+                                            href={hitHref(option.hit) ?? '#'}
+                                            id={`${listboxId}-${index}`}
                                             role="option"
-                                            onClick={() => {
+                                            aria-selected={index === activeIndex}
+                                            data-active={index === activeIndex || undefined}
+                                            onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
+                                                // Let the browser handle new-tab / new-window clicks.
+                                                if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
+                                                    return;
+                                                }
+                                                event.preventDefault();
                                                 setIsPanelOpen(false);
                                                 onNavigate(option.value);
                                             }}
@@ -269,7 +326,10 @@ export function HeaderSearch({
     const resultLimit = navigation?.search?.result_limit ?? 8;
     const endpoint = searchEndpointForMode(searchMode);
     const trimmed = query.trim();
-    const enabled = isActiveSurface && endpoint !== null && trimmed.length >= minChars;
+    // Remote search waits for a typing pause instead of firing per keystroke.
+    const [debouncedTrimmed] = useDebouncedValue(trimmed, 250);
+    const isDebouncing = debouncedTrimmed !== trimmed;
+    const enabled = isActiveSurface && endpoint !== null && debouncedTrimmed.length >= minChars;
 
     const menuHits = useMemo(() => {
         if (searchMode !== 'menu_pages' || !navigation || trimmed.length < minChars) {
@@ -279,14 +339,14 @@ export function HeaderSearch({
     }, [navigation, resultLimit, searchMode, minChars, trimmed]);
 
     const { data, isFetching } = useQuery({
-        queryKey: ['search', searchMode, trimmed, currentLanguageId],
+        queryKey: ['search', searchMode, debouncedTrimmed, currentLanguageId],
         queryFn: async () => {
             if (!endpoint) {
                 return [];
             }
             const response = await permissionAwareApiClient.get<IBaseApiResponse<ISearchResponse>>(
                 endpoint,
-                trimmed,
+                debouncedTrimmed,
                 currentLanguageId,
             );
             return response.data.data?.results ?? [];
@@ -310,12 +370,12 @@ export function HeaderSearch({
         return null;
     }
 
-    const loading = searchMode === 'menu_pages' ? false : isFetching;
+    const loading = searchMode === 'menu_pages' ? false : isFetching || isDebouncing;
 
     const navigateToHit = (value: string) => {
         const option = options.find((row) => row.value === value);
         const hit = option?.hit;
-        const href = hit?.url || (hit?.keyword ? `/${hit.keyword}` : null);
+        const href = hit ? hitHref(hit) : null;
         if (href) {
             router.push(href);
             setQuery('');

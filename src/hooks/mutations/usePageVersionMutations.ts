@@ -14,6 +14,7 @@ import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import { notifications } from '@mantine/notifications';
 import { type IPublishVersionRequest } from '../../types/requests/admin/page-version.types';
 import { debug } from '../../utils/debug-logger';
+import { getApiErrorText } from '../../utils/mutation-error-handler';
 
 export function usePublishVersionMutation() {
     const queryClient = useQueryClient();
@@ -31,9 +32,6 @@ export function usePublishVersionMutation() {
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
-
-            // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) });
             
             notifications.show({
                 title: 'Version Published',
@@ -45,7 +43,7 @@ export function usePublishVersionMutation() {
             debug('Failed to publish version', 'usePublishVersionMutation', { error });
             notifications.show({
                 title: 'Publish Failed',
-                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to publish version',
+                message: getApiErrorText(error) || 'Failed to publish version',
                 color: 'red',
             });
         },
@@ -68,9 +66,6 @@ export function usePublishSpecificVersionMutation() {
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
             
-            // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(variables.pageId) });
-            
             notifications.show({
                 title: 'Version Published',
                 message: 'Selected version published successfully',
@@ -81,7 +76,7 @@ export function usePublishSpecificVersionMutation() {
             debug('Failed to publish specific version', 'usePublishSpecificVersionMutation', { error });
             notifications.show({
                 title: 'Publish Failed',
-                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to publish version',
+                message: getApiErrorText(error) || 'Failed to publish version',
                 color: 'red',
             });
         },
@@ -103,9 +98,6 @@ export function useUnpublishPageMutation() {
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
             
-            // Force immediate refetch of version data
-            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_VERSIONS(pageId) });
-            
             notifications.show({
                 title: 'Page Unpublished',
                 message: 'Page reverted to draft mode',
@@ -116,7 +108,7 @@ export function useUnpublishPageMutation() {
             debug('Failed to unpublish page', 'useUnpublishPageMutation', { error });
             notifications.show({
                 title: 'Unpublish Failed',
-                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to unpublish page',
+                message: getApiErrorText(error) || 'Failed to unpublish page',
                 color: 'red',
             });
         },
@@ -145,7 +137,7 @@ export function useDeleteVersionMutation() {
             debug('Failed to delete version', 'useDeleteVersionMutation', { error });
             notifications.show({
                 title: 'Delete Failed',
-                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to delete version',
+                message: getApiErrorText(error) || 'Failed to delete version',
                 color: 'red',
             });
         },
@@ -174,10 +166,6 @@ export function useRestoreFromVersionMutation() {
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
             ]);
 
-            // Force immediate refetch of page data
-            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_DETAILS(variables.pageId) });
-            await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId) });
-
             notifications.show({
                 title: 'Sections Restored',
                 message: `Successfully restored ${response.data.sections_restored} sections from version "${response.data.version_restored_from.version_name || `v${response.data.version_restored_from.version_number}`}"`,
@@ -188,7 +176,7 @@ export function useRestoreFromVersionMutation() {
             debug('Failed to restore from version', 'useRestoreFromVersionMutation', { error });
             notifications.show({
                 title: 'Restore Failed',
-                message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to restore sections from version',
+                message: getApiErrorText(error) || 'Failed to restore sections from version',
                 color: 'red',
             });
         },

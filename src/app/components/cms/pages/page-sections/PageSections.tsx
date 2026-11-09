@@ -726,7 +726,7 @@ function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSection
          <Stack gap="sm">
            <Box>
              <Group gap={8} align="center" wrap="nowrap">
-               <Title order={2} className={pageStyles.pageTitle}>
+               <Title order={1} size="h2" className={pageStyles.pageTitle}>
                  {pageName || "Page"}
                </Title>
                <Text span className={pageStyles.titleSep}>/</Text>
@@ -877,7 +877,7 @@ function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSection
 
          {/* 2. Advanced Search Bar with match counter + Prev/Next navigation */}
          <Group gap="xs" wrap="nowrap" align="center">
-           <TextInput
+           <TextInput aria-label="Search sections"
              placeholder="Search sections by name, ID, or style..."
              value={searchQuery}
              onChange={(e) => handleSearchQueryChange(e.currentTarget.value)}

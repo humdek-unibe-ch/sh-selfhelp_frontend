@@ -39,7 +39,6 @@ import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { type IUpdatePageData, type IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
-import { notifications } from '@mantine/notifications';
 import styles from './ConfigurationPageEditor.module.css';
 import { FieldRenderer, type IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { useQueryClient } from '@tanstack/react-query';
@@ -113,12 +112,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
     // Update page mutation
     const updatePageMutation = useUpdatePageMutation({
+        // The mutation shows the success toast; one is enough.
         onSuccess: () => {
-            notifications.show({
-                title: 'Success',
-                message: 'Configuration saved successfully',
-                color: 'green',
-            });
             // Refetch page fields to reload the data
             void refetchPageFields();
             
@@ -438,7 +433,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                         <Title order={4}>Content</Title>
                                         <Badge color="blue" variant="light" size="sm">{contentFields.length} fields</Badge>
                                     </Group>
-                                    <ActionIcon variant="subtle" size="md">
+                                    <ActionIcon aria-label={contentExpanded ? 'Collapse Content' : 'Expand Content'} aria-expanded={contentExpanded} variant="subtle" size="md">
                                         {contentExpanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
                                     </ActionIcon>
                                 </Group>
@@ -490,7 +485,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                         <Title order={4}>Properties</Title>
                                         <Badge color="purple" variant="light" size="sm">{propertyFields.length} properties</Badge>
                                     </Group>
-                                    <ActionIcon variant="subtle" size="md">
+                                    <ActionIcon aria-label={propertiesExpanded ? 'Collapse Properties' : 'Expand Properties'} aria-expanded={propertiesExpanded} variant="subtle" size="md">
                                         {propertiesExpanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
                                     </ActionIcon>
                                 </Group>

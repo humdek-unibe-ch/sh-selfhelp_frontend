@@ -22,8 +22,8 @@ import {
 } from '@mantine/core';
 import { IconInfoCircle, IconWorld, IconLayoutDashboard, IconChevronDown } from '@tabler/icons-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { notifications } from '@mantine/notifications';
 import { AdminNavigationApi } from '../../../../../api/admin/navigation.api';
-import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { invalidateAdminNavigationQueries } from '../../../../../utils/admin-navigation-cache.utils';
 import type { IAdminPage, INavigationMembershipBadge } from '../../../../../types/responses/admin/admin.types';
 import { usePageFormStore } from '../../../../store/pageFormStore';
@@ -219,10 +219,27 @@ export const PageNavigationMembership = React.memo(function PageNavigationMember
         }));
     }, [pages, pageId]);
 
+    // Page types that can never be in a public menu (same rule as the menu builder).
+    const isMenuEligible = useMemo(
+        () => pages?.find((entry) => entry.id_pages === pageId)?.menu_eligible !== false,
+        [pages, pageId],
+    );
+
+    const addMutation = useMutation({
+        mutationFn: (menuKey: string) =>
+            AdminNavigationApi.createMenuItem(menuKey, { item_type: 'page', page_id: pageId, parent_item_id: null }),
+        onSuccess: async (_result, menuKey) => {
+            notifications.show({ title: 'Added to menu', message: `Page added to ${MENU_LABELS[menuKey] ?? menuKey}.`, color: 'green' });
+            await invalidateAdminNavigationQueries(queryClient);
+        },
+        onError: (error: Error) => {
+            notifications.show({ title: 'Could not add to menu', message: error.message, color: 'red' });
+        },
+    });
+
     const removeMutation = useMutation({
         mutationFn: (menuItemId: number) => AdminNavigationApi.deleteMenuItem(menuItemId),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
             await invalidateAdminNavigationQueries(queryClient);
         },
     });
@@ -236,7 +253,7 @@ export const PageNavigationMembership = React.memo(function PageNavigationMember
                         {canUpdateNavigation ? (
                         <Menu withinPortal position="bottom-end">
                             <Menu.Target>
-                                <Button variant="default" size="xs" rightSection={<IconChevronDown size={14} />}>
+                                <Button variant="default" size="xs" rightSection={<IconChevronDown size={14} />} disabled={!isMenuEligible}>
                                     Add to menu
                                 </Button>
                             </Menu.Target>
@@ -244,8 +261,8 @@ export const PageNavigationMembership = React.memo(function PageNavigationMember
                                 {ALL_MENU_KEYS.map((menuKey) => (
                                     <Menu.Item
                                         key={menuKey}
-                                        component="a"
-                                        href={`/admin/navigation?menu=${encodeURIComponent(menuKey)}`}
+                                        disabled={addMutation.isPending || memberships.some((entry) => entry.explicit && entry.key === menuKey)}
+                                        onClick={() => addMutation.mutate(menuKey)}
                                     >
                                         {MENU_LABELS[menuKey]}
                                     </Menu.Item>
@@ -328,7 +345,7 @@ export const PageSettings = React.memo(function PageSettings() {
                         multiline
                         w={300}
                     >
-                        <ActionIcon variant="subtle" size="xs" color="gray">
+                        <ActionIcon aria-label="About Page Settings" variant="subtle" size="xs" color="gray">
                             <IconInfoCircle size="0.75rem" />
                         </ActionIcon>
                     </Tooltip>
@@ -415,7 +432,7 @@ export const PageAdditionalProperties = React.memo(function PageAdditionalProper
                         multiline
                         w={300}
                     >
-                        <ActionIcon variant="subtle" size="xs" color="gray">
+                        <ActionIcon aria-label="About Additional Properties" variant="subtle" size="xs" color="gray">
                             <IconInfoCircle size="0.75rem" />
                         </ActionIcon>
                     </Tooltip>

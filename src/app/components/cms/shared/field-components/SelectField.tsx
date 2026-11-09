@@ -8,6 +8,7 @@ import { Select, MultiSelect, Group, Text, type ComboboxItem, type ComboboxLikeR
 import { IconCheck } from '@tabler/icons-react';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 import { CreatableSelectField } from './CreatableSelectField';
+import { useFieldLabel } from '../../../shared/common/field-label-context';
 
 interface ISelectFieldProps {
     fieldId: number;
@@ -60,6 +61,7 @@ export function SelectField({
     validationErrorMessage,
     dataVariables
 }: ISelectFieldProps) {
+    const fieldLabel = useFieldLabel();
 
     // Use CreatableSelectField if creatable is enabled
     if (creatable) {
@@ -114,7 +116,7 @@ export function SelectField({
         const currentValues = value ? value.split(separator).filter(Boolean) : [];
 
         return (
-            <MultiSelect
+            <MultiSelect aria-labelledby={fieldLabel?.id}
                 key={fieldId}
                 data={options}
                 value={currentValues}
@@ -150,7 +152,7 @@ export function SelectField({
 
     // Handle single select
     return (
-        <Select
+        <Select aria-labelledby={fieldLabel?.id}
             key={fieldId}
             data={options}
             value={value ?? ''}

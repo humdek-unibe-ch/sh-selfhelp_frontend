@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useCallback, useContext } from 'react';
+import React, { useState, useCallback, useContext, useId } from 'react';
 import {
     Combobox,
     Input,
@@ -163,6 +163,9 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
     }
 
     // Initialize combobox hook
+    const inputId = useId();
+    // The wrapper's label (`${inputId}-label`) names the combobox trigger.
+    const labelledBy = label ? `${inputId}-label` : undefined;
     const combobox = useCombobox({
         onDropdownClose: () => {
             combobox.resetSelectedOption();
@@ -303,7 +306,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                 </Group>
             ) : showCreateInput ? (
                 <Group gap="xs">
-                    <TextInput
+                    <TextInput aria-label="Custom value"
                         placeholder="Enter custom value"
                         value={newValue}
                         onChange={(event) => setNewValue(event.currentTarget.value)}
@@ -316,7 +319,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                             }
                         }}
                     />
-                    <ActionIcon
+                    <ActionIcon aria-label="Add value"
                         variant="light"
                         color="green"
                         size="sm"
@@ -325,7 +328,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                     >
                         <IconPlus size={14} />
                     </ActionIcon>
-                    <ActionIcon
+                    <ActionIcon aria-label="Cancel"
                         variant="light"
                         color="gray"
                         size="sm"
@@ -339,7 +342,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                 </Group>
             ) : showMultiInput && multiSelect ? (
                 <Stack gap="xs">
-                    <Textarea
+                    <Textarea aria-label="Custom values"
                         placeholder="Enter multiple values (one per line or space-separated)"
                         value={multiValues}
                         onChange={(event) => setMultiValues(event.currentTarget.value)}
@@ -393,9 +396,12 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                         handleToggleValue(val);
                     }}
                 >
-                    <Combobox.Target>
+                    <Combobox.Target targetType="button">
                         <Input
                             component="div"
+                            role="combobox"
+                            tabIndex={disabled ? -1 : 0}
+                            aria-labelledby={labelledBy}
                             pointer
                             rightSection={<IconChevronDown size={18} />}
                             onClick={() => combobox.toggleDropdown()}
@@ -432,7 +438,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
 
                     <Combobox.Dropdown>
                         {searchable && (
-                            <Combobox.Search
+                            <Combobox.Search aria-label="Search options"
                                 value={search}
                                 onChange={(event) => setSearch(event.currentTarget.value)}
                                 placeholder="Search options..."
@@ -472,6 +478,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
             <>
                 {label || description ? (
                     <Input.Wrapper
+                        id={inputId}
                         label={label}
                         description={parse(sanitizeHtmlForParsing(description))}
                         required={isRequired}
@@ -507,9 +514,12 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
                 withinPortal={false}
                 onOptionSubmit={handleToggleValue}
             >
-                <Combobox.Target>
+                <Combobox.Target targetType="button">
                     <Input
                         component="div"
+                        role="combobox"
+                        tabIndex={disabled ? -1 : 0}
+                        aria-labelledby={labelledBy}
                         pointer
                         rightSection={<IconChevronDown size={18} />}
                         onClick={() => combobox.toggleDropdown()}
@@ -555,7 +565,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
 
                 <Combobox.Dropdown>
                     {searchable && (
-                        <Combobox.Search
+                        <Combobox.Search aria-label="Search options"
                             value={search}
                             onChange={(event) => setSearch(event.currentTarget.value)}
                             placeholder="Search options..."
@@ -594,6 +604,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
     // Wrap with Input.Wrapper if label/description present
     const wrappedMultiSelect = label || description ? (
         <Input.Wrapper
+            id={inputId}
             label={label}
             description={parse(sanitizeHtmlForInline(description))}
             required={isRequired}

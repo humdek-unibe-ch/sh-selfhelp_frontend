@@ -15,6 +15,12 @@ const ICONS: Record<ColorSchemeType, React.JSX.Element> = {
     auto: <IconDeviceDesktop size="1.2rem" stroke={1.5} />,
 };
 
+const LABELS: Record<ColorSchemeType, string> = {
+    light: 'Light',
+    dark: 'Dark',
+    auto: 'Auto (System)',
+};
+
 /**
  * Color-scheme toggle.
  *
@@ -42,11 +48,12 @@ export function ThemeToggle(): React.JSX.Element {
     const { setColorScheme, colorScheme } = useMantineColorScheme();
 
     const activeIcon = ICONS[colorScheme as ColorSchemeType] ?? ICONS.auto;
+    const activeLabel = LABELS[colorScheme as ColorSchemeType] ?? LABELS.auto;
 
     return (
         <Menu shadow="md" width={200} position="bottom-end">
             <Menu.Target>
-                <ActionIcon variant="default" size="lg" aria-label="Toggle color scheme">
+                <ActionIcon variant="default" size="lg" aria-label={`Color scheme: ${activeLabel}`}>
                     <span suppressHydrationWarning style={{ display: 'inline-flex' }}>
                         {activeIcon}
                     </span>

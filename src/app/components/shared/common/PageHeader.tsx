@@ -31,7 +31,8 @@ export function PageHeader({
       <Group>
         <Container pl={0}>
           <Group gap={8} align="center">
-            <Title order={2}>{title}</Title>
+            {/* The screen's main heading; kept at the h2 visual size. */}
+            <Title order={1} size="h2">{title}</Title>
             {badge !== undefined && (
               <Badge
                 variant="light"

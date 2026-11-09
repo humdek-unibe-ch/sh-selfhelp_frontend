@@ -35,7 +35,7 @@ type TEndpointConfig = {
  * metadata the request interceptor enforces.
  *
  * The trailing argument is treated as config when it looks like one (has
- * `headers`/`params`/`baseURL`, plus `data` for DELETE bodies); everything
+ * `headers`/`params`/`baseURL`/`responseType`, plus `data` for DELETE bodies); everything
  * before it is a route parameter. This heuristic is safe because every route
  * param in `API_CONFIG` is a primitive (id / keyword), never a config-shaped
  * object. Centralizing it here keeps the per-verb wrappers to one line each and
@@ -53,6 +53,7 @@ function buildPermissionAwareRequest(
         (lastArg.headers !== undefined ||
             lastArg.params !== undefined ||
             lastArg.baseURL !== undefined ||
+            lastArg.responseType !== undefined ||
             (allowDataConfig && lastArg.data !== undefined));
 
     const config: AxiosRequestConfig | undefined = isLastArgConfig

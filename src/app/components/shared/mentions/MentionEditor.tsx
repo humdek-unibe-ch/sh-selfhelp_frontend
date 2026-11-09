@@ -22,6 +22,7 @@ import { MentionSuggestionList } from './MentionSuggestionList';
 import { PreserveSpaces } from './PreserveSpacesExtension';
 import { EmailStyleExtension, EMAIL_STYLE_PRESETS } from './EmailStyleExtension';
 import styles from './MentionEditor.module.css';
+import { useFieldLabel } from '../common/field-label-context';
 
 interface IMentionEditorProps {
     value: string;
@@ -213,8 +214,18 @@ export function MentionEditor({
         // live, so the editor must NOT be rebuilt when the map loads/changes.
     }, [maxVisibleRows, maxItems, singleLineMode, placeholder, enableRichTextShortcuts, emailStyles]);
 
+    const fieldLabel = useFieldLabel();
     const editor = useEditor({
         extensions,
+        // The editable area is a contenteditable div: give it the textbox role
+        // and the field's visible label as its name.
+        editorProps: {
+            attributes: {
+                role: 'textbox',
+                'aria-multiline': String(!singleLineMode),
+                ...(fieldLabel ? { 'aria-labelledby': fieldLabel.id } : {}),
+            },
+        },
         // Hydrate stored `{{token}}` into label chips for the initial paint
         // (issue #56 v2); the value-sync effect keeps it in step afterwards.
         content: tokensToMentionHtml(value, dataVariables),

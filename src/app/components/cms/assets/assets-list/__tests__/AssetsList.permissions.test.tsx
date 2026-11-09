@@ -8,24 +8,33 @@ import { renderWithProviders } from '../../../../../../test-utils/renderWithProv
 import { PERMISSIONS } from '../../../../../../types/auth/jwt-payload.types';
 
 /**
- * The asset delete action must be permission-gated: only a user holding
- * `admin.asset.delete` sees the Delete button. This guards the fix for the
- * generic-403 problem (a non-permitted user shouldn't even be offered the action).
+ * Row actions are permission-gated so a user is never offered an action the
+ * backend would refuse: Delete needs `admin.asset.delete`, Edit needs
+ * `admin.asset.update`; View and Download only need read.
  */
 const { hasPermission } = vi.hoisted(() => ({ hasPermission: vi.fn() }));
 
 vi.mock('../../../../../../hooks/useUserData', () => ({
     useAuthUser: () => ({ permissionChecker: { hasPermission }, user: null, isLoading: false, error: null }),
 }));
+vi.mock('../../../../../../hooks/useGroups', () => ({
+    useGroups: () => ({ data: { groups: [] }, isLoading: false }),
+}));
 vi.mock('../../../../../../hooks/useAssets', () => ({
     useAssets: () => ({
         data: {
             assets: [{
                 id: 1,
-                file_name: 'logo.png',
-                file_path: 'uploads/assets/champ/logo.png',
-                url: '/cms-api/v1/assets/champ/logo.png',
-                folder: 'champ',
+                uuid: '11111111-1111-4111-8111-111111111111',
+                name: 'logo.png',
+                file_path: 'uploads/assets/11111111-1111-4111-8111-111111111111',
+                url: '/cms-api/v1/assets/11111111-1111-4111-8111-111111111111',
+                mime_type: 'image/png',
+                size: 10,
+                alt: null,
+                groups: [],
+                created_at: '2026-11-03T10:00:00+00:00',
+                updated_at: '2026-11-03T10:00:00+00:00',
             }],
             pagination: { page: 1, pageSize: 100, total: 1, totalPages: 1 },
         },
@@ -33,28 +42,38 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
         error: null,
     }),
     useDeleteAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
-    useAssetFolders: () => ({ data: { folders: [{ folder: 'champ', is_open_access: false }] } }),
+    useBulkAssetGroups: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useBulkDeleteAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useBulkMoveAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useAssetFolders: () => ({ data: [] }),
+    useSaveAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useDeleteAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useCreateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useCreateMultipleAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useUpdateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 import { AssetsList } from '../AssetsList';
 
-describe('AssetsList delete gating', () => {
+describe('AssetsList action gating', () => {
     beforeEach(() => hasPermission.mockReset());
 
-    it('shows the Delete action when the user has admin.asset.delete', async () => {
-        hasPermission.mockImplementation((p: string) => p === PERMISSIONS.ADMIN_ASSET_DELETE);
-        renderWithProviders(<AssetsList />);
+    it('shows Edit and Delete when the user may update and delete assets', async () => {
+        hasPermission.mockImplementation((p: string) =>
+            p === PERMISSIONS.ADMIN_ASSET_DELETE || p === PERMISSIONS.ADMIN_ASSET_UPDATE
+        );
+        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
         expect(await screen.findByText('logo.png')).toBeInTheDocument();
-        expect(screen.getByRole('link', { name: /download/i })).toBeInTheDocument();
-        expect(screen.getByLabelText(/delete/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Edit logo.png' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Delete logo.png' })).toBeInTheDocument();
     });
 
-    it('hides the Delete action when the user lacks admin.asset.delete', async () => {
+    it('offers only View and Download to a read-only user', async () => {
         hasPermission.mockReturnValue(false);
-        renderWithProviders(<AssetsList />);
+        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
         expect(await screen.findByText('logo.png')).toBeInTheDocument();
-        // View + Download remain (read-only), Delete is gone.
         expect(screen.getByRole('link', { name: /download/i })).toBeInTheDocument();
-        expect(screen.queryByLabelText(/delete/i)).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Edit logo.png' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Delete logo.png' })).not.toBeInTheDocument();
     });
 });

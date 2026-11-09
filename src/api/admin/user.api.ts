@@ -40,6 +40,7 @@ export const AdminUserApi = {
     if (params.search) searchParams.append('search', params.search);
     if (params.status) searchParams.append('status', params.status);
     if (params.id_groups) searchParams.append('id_groups', params.id_groups.toString());
+    if (params.id_roles) searchParams.append('id_roles', params.id_roles.toString());
     if (params.sort) searchParams.append('sort', params.sort);
     if (params.sortDirection) searchParams.append('sortDirection', params.sortDirection);
 
@@ -125,6 +126,7 @@ export const AdminUserApi = {
     if (params.search) query['search'] = params.search;
     if (params.status) query['status'] = params.status;
     if (params.id_groups) query['id_groups'] = params.id_groups.toString();
+    if (params.id_roles) query['id_roles'] = params.id_roles.toString();
 
     const response = await permissionAwareApiClient.get<Blob>(
       API_CONFIG.ENDPOINTS.ADMIN_USERS_EXPORT_CSV,

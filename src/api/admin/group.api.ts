@@ -9,15 +9,12 @@ import type {
   IGroupsListResponse,
   IGroupsListParams,
   IGroupDetails,
-  IGroupPageAcl,
-  IGroupMember,
-  IGroupAssetAclsResponse
+  IGroupPageAcl
 } from '../../types/responses/admin/groups.types';
 import type {
   ICreateGroupRequest,
   IUpdateGroupRequest,
-  IUpdateGroupAclsRequest,
-  IUpdateGroupAssetAclsRequest
+  IUpdateGroupAclsRequest
 } from '../../types/requests/admin/groups.types';
 
 export const AdminGroupApi = {
@@ -36,17 +33,6 @@ export const AdminGroupApi = {
     const response = await permissionAwareApiClient.get<IBaseApiResponse<IGroupsListResponse>>(
       API_CONFIG.ENDPOINTS.ADMIN_GROUPS_GET_ALL,
       { params: Object.fromEntries(searchParams) }
-    );
-    return response.data.data;
-  },
-
-  /**
-   * List the users who belong to a group ("View members").
-   */
-  async getGroupMembers(groupId: number): Promise<IGroupMember[]> {
-    const response = await permissionAwareApiClient.get<IBaseApiResponse<IGroupMember[]>>(
-      API_CONFIG.ENDPOINTS.ADMIN_GROUPS_MEMBERS_GET,
-      groupId
     );
     return response.data.data;
   },
@@ -117,29 +103,5 @@ export const AdminGroupApi = {
       groupId
     );
     return response.data.data;
-  },
-
-  /**
-   * Get a group's asset-folder ACLs (which folders it may read/manage).
-   */
-  async getGroupAssetAcls(groupId: number): Promise<IGroupAssetAclsResponse> {
-    const response = await permissionAwareApiClient.get<IBaseApiResponse<IGroupAssetAclsResponse>>(
-      API_CONFIG.ENDPOINTS.ADMIN_GROUPS_ASSET_ACLS_GET,
-      groupId
-    );
-    return response.data.data;
-  },
-
-  /**
-   * Full-replace a group's asset-folder ACLs. An empty `acls` array clears all
-   * of the group's folder access.
-   */
-  async updateGroupAssetAcls(groupId: number, data: IUpdateGroupAssetAclsRequest): Promise<IGroupAssetAclsResponse> {
-    const response = await permissionAwareApiClient.put<IBaseApiResponse<IGroupAssetAclsResponse>>(
-      API_CONFIG.ENDPOINTS.ADMIN_GROUPS_ASSET_ACLS_UPDATE,
-      data,
-      groupId
-    );
-    return response.data.data;
   }
-}; 
+};

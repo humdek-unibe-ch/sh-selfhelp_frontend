@@ -36,6 +36,9 @@ vi.mock('../../../../../hooks/useAdminPages', () => ({
     }),
 }));
 
+const { showNotification } = vi.hoisted(() => ({ showNotification: vi.fn() }));
+vi.mock('@mantine/notifications', () => ({ notifications: { show: showNotification } }));
+
 vi.mock('../../../contexts/LanguageContext', () => ({
     useLanguageContext: () => ({ currentLanguageId: 1 }),
 }));
@@ -178,6 +181,19 @@ describe('AddMenuItemModal required fields', () => {
         expect(addButton()).toBeEnabled();
         fireEvent.click(addButton());
         await waitFor(() => expect(createMenuItem).toHaveBeenCalledTimes(1));
+    });
+
+    // L6: adding an item closed the modal without any confirmation.
+    it('confirms a successful add with a notification', async () => {
+        createMenuItem.mockResolvedValue({ item: menuItem({ id: 99 }), children: [] });
+        showNotification.mockReset();
+        renderFooterAdd();
+        selectItemType('Group heading');
+        fireEvent.change(screen.getByRole('textbox', { name: /Label/ }), { target: { value: 'Legal' } });
+
+        fireEvent.click(addButton());
+
+        await waitFor(() => expect(showNotification).toHaveBeenCalledWith(expect.objectContaining({ color: 'green' })));
     });
 
     it('blocks Add for an external URL until both URL and label are entered', () => {

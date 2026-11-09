@@ -138,7 +138,7 @@ function AdminPagesContent() {
       return (
         <Stack align="center" py="xl">
           <IconInfoCircle size="3rem" color="var(--mantine-color-gray-5)" />
-          <Title order={3} c="dimmed">Select a Page</Title>
+          <Title order={1} size="h3" c="dimmed">Select a Page</Title>
           <Text c="dimmed" ta="center">
             Choose a page from the navigation to start editing its content and sections.
           </Text>

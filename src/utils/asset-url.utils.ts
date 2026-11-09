@@ -7,8 +7,8 @@ SPDX-License-Identifier: MPL-2.0
  *
  * Files moved out of the document root, so `uploads/assets/...` is no longer
  * fetchable: every byte now goes through the backend's
- * `GET /cms-api/v1/assets/{folder}/{file}`, which authorizes the request
- * against the folder ACLs.
+ * `GET /cms-api/v1/assets/{uuid}`, which authorizes the request against the
+ * asset's groups.
  *
  * We address it through the BFF (`/api/assets/...`), NOT the backend path
  * directly. Symfony authorizes from the `Authorization: Bearer` header, and the
@@ -16,8 +16,8 @@ SPDX-License-Identifier: MPL-2.0
  * httpOnly `sh_auth`/`sh_impersonate` cookie server-side). A plain rewrite to
  * `/cms-api/v1/...` reaches Symfony ANONYMOUS — admins see nothing and granted
  * users see nothing, because the identity never arrives. The proxy also drops
- * the header cleanly when there is no session, so anonymous reads of
- * open-access folders keep working.
+ * the header cleanly when there is no session, so anonymous reads of public
+ * assets (no groups) keep working.
  */
 const DELIVERY_PREFIX = '/api/assets/';
 

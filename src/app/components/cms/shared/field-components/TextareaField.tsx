@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { Textarea, Input } from '@mantine/core';
+import { useFieldLabel } from '../../../shared/common/field-label-context';
 
 interface ITextareaFieldProps {
     fieldId: number;
@@ -33,6 +34,7 @@ export function TextareaField({
     required = false,
     useMantineStyle = true
 }: ITextareaFieldProps) {
+    const fieldLabel = useFieldLabel();
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
     // Use Mantine styling with Input.Wrapper when enabled
@@ -45,7 +47,7 @@ export function TextareaField({
                 required={required}
                 error={errorMessage}
             >
-                <Textarea
+                <Textarea aria-labelledby={fieldLabel?.id}
                     placeholder={placeholder || ''}
                     value={value}
                     onChange={(event) => {

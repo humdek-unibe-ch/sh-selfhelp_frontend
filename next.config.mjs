@@ -167,8 +167,8 @@ const createNextConfig = (phase) => {
          * NOTE: asset bytes deliberately have NO rewrite here.
          *
          * Since core 0.1.41 they come from the ACL-enforced
-         * `GET /cms-api/v1/assets/{folder}/{filename}`, which authorizes against
-         * the folder ACLs using the `Authorization: Bearer` header. A rewrite
+         * `GET /cms-api/v1/assets/{uuid}`, which authorizes against the asset's
+         * groups using the `Authorization: Bearer` header. A rewrite
          * straight to Symfony would forward the request ANONYMOUS (only the
          * `/api/*` BFF catch-all turns the httpOnly auth cookie into that
          * header), so admins and granted users would both see nothing.

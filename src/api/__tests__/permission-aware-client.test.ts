@@ -83,6 +83,12 @@ describe('permissionAwareApiClient argument handling', () => {
         expect(configArg(post.mock.calls[0])._permissionMetadata).toEqual({ permissions: [] });
     });
 
+    it('treats a trailing `{ responseType }` as config so binary downloads arrive as a Blob', async () => {
+        await permissionAwareApiClient.post({ route: '/admin/assets/export', permissions: [] }, {}, { responseType: 'blob' });
+
+        expect(configArg(post.mock.calls[0]).responseType).toBe('blob');
+    });
+
     it('treats a DELETE `{ data }` argument as config (body), not a route param', async () => {
         await permissionAwareApiClient.delete({ route: '/x', permissions: [] }, { data: { ids: [1] } });
 

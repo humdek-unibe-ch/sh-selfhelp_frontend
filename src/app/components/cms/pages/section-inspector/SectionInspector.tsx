@@ -103,9 +103,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         onSuccess: () => {
             setFormValues({ ...useSectionFormStore.getState() }); // Update store to reflect changes
             if (pageId) {
-                void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
                 void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) });
-                void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) });
                 void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SECTION_DETAILS(pageId, sectionId) });
                 void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
                 void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
@@ -553,7 +551,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                         To confirm deletion, please type the section name: <strong>{section.name}</strong>
                     </Text>
 
-                    <TextInput
+                    <TextInput aria-label="Section name to confirm"
                         placeholder="Enter section name to confirm"
                         value={deleteConfirmText}
                         onChange={(e) => setDeleteConfirmText(e.currentTarget.value)}

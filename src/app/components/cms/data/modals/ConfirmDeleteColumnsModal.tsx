@@ -51,7 +51,7 @@ export function ConfirmDeleteColumnsModal({ open, onClose, tableDisplayName, col
             <List.Item key={c}>{c}</List.Item>
           ))}
         </List>
-        <TextInput value={confirm} onChange={(e) => setConfirm(e.currentTarget.value)} placeholder={tableDisplayName} />
+        <TextInput aria-label="Table name to confirm" value={confirm} onChange={(e) => setConfirm(e.currentTarget.value)} placeholder={tableDisplayName} />
       </Stack>
     </ModalWrapper>
   );

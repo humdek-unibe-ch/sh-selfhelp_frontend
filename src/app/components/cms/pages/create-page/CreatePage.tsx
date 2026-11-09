@@ -611,7 +611,7 @@ function CreatePageWizard({
                                     label={form.values.customUrlEdit ? 'Lock URL editing' : 'Enable URL editing'}
                                     position="left"
                                 >
-                                    <ActionIcon
+                                    <ActionIcon aria-label={form.values.customUrlEdit ? 'Lock URL editing' : 'Enable URL editing'}
                                         variant={form.values.customUrlEdit ? 'filled' : 'subtle'}
                                         color={form.values.customUrlEdit ? 'blue' : 'gray'}
                                         onClick={toggleCustomUrlEdit}

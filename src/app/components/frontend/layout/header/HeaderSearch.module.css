@@ -102,12 +102,14 @@ SPDX-License-Identifier: MPL-2.0
 }
 
 .searchItem:hover,
-.searchItem:focus-visible {
+.searchItem:focus-visible,
+.searchItem[data-active] {
   background-color: var(--mantine-color-gray-0);
 }
 
 [data-mantine-color-scheme='dark'] .searchItem:hover,
-[data-mantine-color-scheme='dark'] .searchItem:focus-visible {
+[data-mantine-color-scheme='dark'] .searchItem:focus-visible,
+[data-mantine-color-scheme='dark'] .searchItem[data-active] {
   background-color: var(--mantine-color-dark-6);
 }
 

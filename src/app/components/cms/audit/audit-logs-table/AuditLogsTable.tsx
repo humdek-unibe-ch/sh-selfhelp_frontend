@@ -31,7 +31,7 @@ import {
   IconAlertCircle,
 } from '@tabler/icons-react';
 import { EmptyState } from '../../../shared/common/EmptyState';
-import { AdminTableFooter, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { AdminTableFooter, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
 import type { IAuditLogDetails } from '../../../../../types/responses/admin/audit.types';
 
 interface AuditLogsTableProps {
@@ -243,7 +243,7 @@ export function AuditLogsTable({
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableTr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableTh key={header.id} className={tableStyles.tableHeader} style={{ width: header.getSize() }}>
+                    <TableTh key={header.id} aria-sort={ariaSort(header.column)} className={tableStyles.tableHeader} style={{ width: header.getSize() }}>
                       {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableTh>
                   ))}

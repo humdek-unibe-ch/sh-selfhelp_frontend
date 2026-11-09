@@ -18,10 +18,39 @@ No engineering diary, no implementation detail — that belongs in
 
 ## v0.1.69 — 2026-08-03
 
-Requires core **>=0.1.43** for the navigation warning tags. The rest of the
-release works against any core in range.
+Requires core **>=0.1.43** for the navigation warning tags and the asset
+rework. The rest of the release works against any core in range.
 
 ### Added
+- **Assets: edit and replace.** Each asset has an Edit action: change its
+  name, default alt text, folder, who can see it and who can manage it, or drop
+  in a new file. A replaced file keeps the asset's address, so every page using
+  it shows the new file. Upload and edit share one form.
+- **Assets: default alt text.** Set an alt text once on the asset; image
+  sections that leave their own alt empty use it. A section's own alt still
+  wins.
+- **Assets: bulk actions.** Select assets to add groups, remove groups they all
+  share, move them to another folder, delete them after a confirmation, or
+  export only those.
+- **Assets: nested folders.** The asset page is a folder browser: open a folder
+  to see its subfolders and its own assets (paged like the other lists), go
+  back up with the breadcrumbs, and upload straight into the open folder.
+  Search and the group filter look in every folder and link each result to its
+  folder. The header counts every asset. The **Folders** button creates,
+  renames, moves and deletes folders. Folders only organise; they do not change
+  who can see an asset.
+- **Assets: who can manage them.** "Who can manage it" picks the roles that
+  may see, edit and delete an asset in the CMS; left empty on upload, your own
+  roles get it. Researchers on one instance do not see each other's assets.
+- **Users: role filter.** The users list and its CSV export can be filtered
+  by role, next to group and status. Requires core **>=0.1.43**.
+- **Groups and Roles: searchable members.** "View members" can search, filter
+  by status and page through the members, like the users list. It needs
+  `admin.user.read`. Requires core **>=0.1.43**.
+- **Form uploads in Admin → Data.** File cells show the file name with View
+  and Download buttons instead of the raw storage path. A cell with several
+  files opens a list with "Download all (zip)", and the export menu downloads
+  the files of the shown rows as one zip. Requires core **>=0.1.43**.
 - **Warning tags in the navigation builder.** Menu items now show, per row,
   why they will not appear the way you expect. A "Not in public menu" tag
   marks items the public menu drops — a headless page, a page type that is
@@ -35,6 +64,24 @@ release works against any core in range.
   that exists only in another language no longer hides an empty panel entry.
 
 ### Changed
+- **Assets: public unless restricted.** An asset with no groups is public;
+  "Who can see it" restricts it to members of the chosen groups. New uploads
+  have no groups and the form says **THIS ASSET IS PUBLIC** until you pick
+  some. The folder access panel and the "Asset Folders" tab in the Groups ACL
+  modal are removed. The Assets page uses the same header, filters (Apply /
+  Reset / Refresh) and footer as the other admin lists.
+- **Assets: no more overwrite.** Uploading a file with an existing name adds a
+  second asset instead of replacing one, and import skips assets that already
+  exist.
+- **Assets are stored under their id, with a separate name.** Each asset's
+  generated id replaces its file name (no extension). A **Name** without
+  extension, editable on upload and edit and set to the uploaded file name by
+  default, is what the list shows, with the id beneath it; pickers show
+  `name.extension`. Downloads are saved as `<id>.<extension>`.
+- **Groups: researcher instead of therapist, no admin group.** Page import and
+  navigation import mention subject and researcher; the page import group
+  picker no longer hides an "admin" group (admin rights come from the role).
+
 - **Child-page navigation styling.** The left sidebar gains a divider on its
   right edge matching the admin navbar, and each entry shows its route path
   under the label. The previous/next pager uses equal-width cards with
@@ -46,6 +93,65 @@ release works against any core in range.
 - The public-menu exclusion rule is now read from the backend rather than
   reproduced in the frontend, so the builder's verdict cannot drift from what
   the public menu actually renders.
+
+### Fixed
+- **Accessibility (screen readers and keyboard).**
+  - Every icon-only button has a name, including the close button of every
+    dialog, alert and notification and the pagination arrows. The section
+    drag handle (mouse only) is no longer a dead keyboard stop.
+  - Form fields are named by their label: every field in the CMS inspectors,
+    the admin search and filter boxes, and the public form inputs (text area,
+    radio options, sliders, combobox, rich text).
+  - The CMS select pickers and the public combobox can be reached and opened
+    from the keyboard.
+  - The per-field language switch (DE/EN) is made of buttons you can tab to
+    and press; it also says which languages are translated.
+  - Each admin screen has one main heading; sortable columns announce their
+    sort order.
+  - The site and admin searches announce how many results were found, and
+    their results are links (open in a new tab works).
+  - A test fails the build if a new icon button or input has no name.
+- **Admin messages say what happened.** Saving or deleting a page names the
+  page by its keyword instead of its id (`Page "477"`). Errors in groups,
+  roles, permissions, versions, cache, actions, sections and registration codes
+  show the server's reason (e.g. "Group name already exists") instead of
+  "Conflict" or "Bad Request". Creating, editing or deleting a group or role,
+  and saving a configuration page, show one toast instead of two.
+- **Publishing panel before the first publish.** A page that was never
+  published says "Not published yet" instead of "Changes detected since last
+  publish", and no longer offers "Compare Draft vs Published", which opened an
+  empty comparison.
+- **Assets: Export downloads the zip again.** The request option asking for a
+  binary response was ignored, so the download failed with
+  "Failed to execute 'createObjectURL' on 'URL'".
+- **Signing in from "Page not found" returns you to the page.** A guest who
+  opens a protected page and uses the Sign in button now lands back on that
+  page after login (including after the 2FA step) instead of on home.
+- **CMS app templates: "Add new" no longer opens a dialog titled "Edit …".**
+  Each template's single add/edit form page now has a neutral title (e.g.
+  "Question" instead of "Edit question"). Applies to new imports; existing
+  apps keep their title until it is changed in the page editor.
+- **Compare Versions dialog.** Escape now closes it, the side-by-side diff
+  renders as a table instead of stripped raw text (added/removed lines in
+  green/red), and JSON Patch / Summary show pretty-printed JSON instead of
+  `""`. Comparing a version with itself (including draft vs draft) shows
+  "No differences" instead of a blank pane or an error, and the draft always
+  sits in Version 2 so the labels match the diff direction.
+- **Add to menu adds the page.** In the page editor, "Add to menu → <menu>"
+  now adds the page to that menu (menus it is already in are disabled) instead
+  of only opening the menu builder. Adding an item in the menu builder now
+  shows a confirmation.
+- **Header search** waits for a typing pause instead of sending a request per
+  keystroke, and the arrow keys and Enter move through and open results.
+- **Clearer empty states.** Data Browser says "No data tables selected" (with
+  a hint) when tables exist but none are picked, and Actions only suggests
+  adjusting filters when filters are actually applied.
+- The color scheme button is labelled with the current scheme
+  ("Color scheme: Dark") instead of "Toggle color scheme".
+- The CMS Apps page points editors at "Manage content" instead of the
+  `/cms/<app>` URL, which does not exist.
+- Admin edits no longer refetch pages, sections, versions and languages twice
+  after each change, and section-only changes no longer reload the page list.
 
 ---
 

@@ -124,7 +124,7 @@ export function DebugMenu() {
     return (
         <>
             <Tooltip label="Debug Menu" position="right">
-                <ActionIcon
+                <ActionIcon aria-label="Debug Menu"
                     onClick={toggle}
                     variant="subtle"
                     size="lg"

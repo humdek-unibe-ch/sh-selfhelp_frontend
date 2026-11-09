@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useId } from 'react';
 import { Textarea, Input } from '@mantine/core';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { type ITextareaStyle } from '../../../../../../types/common/styles.types';
@@ -53,6 +53,7 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
 
     // Use form value if available, otherwise use initial value from style
     const [value, setValue] = useState<string | Array<{ language_id: number; value: string }> | null>(formValue || initialValue || '');
+    const inputId = useId();
 
     // Keep state in sync with the (async) form value via a render-phase update
     // instead of an effect; the sentinel initial runs it on first render too.
@@ -86,6 +87,7 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
 
         return (
             <Input.Wrapper
+                id={translatable ? undefined : inputId}
                 label={translatable ? undefined : DOMPurify.sanitize(label || '', { ALLOWED_TAGS: [] })}
                 description={translatable ? undefined : parse(sanitizeHtmlForParsing(description))}
                 required={required}
@@ -93,6 +95,7 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
                 {...(translatable ? undefined : { ...styleProps, ...spacingProps })}
             >
                 <Textarea
+                    id={translatable ? undefined : inputId}
                     placeholder={placeholder}
                     required={required}
                     value={currentValue}

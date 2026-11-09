@@ -49,8 +49,6 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
             // refreshes the publish-state reader so the "Publish Changes" button
             // reflects the removed child section immediately.
             const invalidationPromises = [
-                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
-                queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(cachePageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_UNUSED }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_SECTIONS_REF_CONTAINERS }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId) }),
@@ -65,11 +63,6 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
             }
 
             await Promise.all(invalidationPromises);
-
-            // Also directly refetch the page sections query as a backup
-            if (cachePageId) {
-                await queryClient.refetchQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(cachePageId) });
-            }
             
             if (showNotifications) {
                 notifications.show({

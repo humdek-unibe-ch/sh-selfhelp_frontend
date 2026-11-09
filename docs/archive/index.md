@@ -17,3 +17,4 @@ Historical notes, implementation summaries, and superseded guides. Kept for cont
 - [style-migration-summary.md](style-migration-summary.md) - Style migration summary.
 - [why-did-you-update-enhancement.md](why-did-you-update-enhancement.md) - Render-tracing enhancement notes.
 - [ux-improvements-recommendations.md](ux-improvements-recommendations.md) - UX improvement recommendations.
+- [asset-folder-acls-contract.md](asset-folder-acls-contract.md) - Superseded folder-based asset ACL contract (replaced by per-asset groups in core 0.1.43).

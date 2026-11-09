@@ -24,6 +24,7 @@ Technical documentation for the Next.js frontend. See [../README.md](../README.m
 - [plugins.md](plugins.md) - Frontend plugin runtime integration.
 - [mobile-preview-panel.md](mobile-preview-panel.md) - The page-editor Mobile preview panel, its protected mint route, the iframe URL builder, and live-reload dev.
 - [system-maintenance-admin.md](system-maintenance-admin.md) - The `/admin/system` maintenance, health, and connected-update screen.
+- [asset-management.md](asset-management.md) - Admin assets: uuid identity, edit/replace, default alt, and per-asset group access.
 
 ## Operations and debugging
 

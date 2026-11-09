@@ -5,7 +5,6 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { MemberListModal } from '../../shared/member-list-modal';
-import { useRoleMembers } from '../../../../../hooks/useRoles';
 
 interface IRoleMembersModalProps {
   opened: boolean;
@@ -14,19 +13,15 @@ interface IRoleMembersModalProps {
   role: { id: number; name: string } | null;
 }
 
-/** "View members" for a role. Fetches lazily when a role is set, then hands the
- *  result to the shared member-list renderer. */
+/** "View members" for a role: the Users list filtered to the role. */
 export function RoleMembersModal({ opened, onClose, role }: IRoleMembersModalProps) {
-  const { data: members, isLoading, isError } = useRoleMembers(role?.id ?? null);
-
   return (
     <MemberListModal
+      key={role?.id ?? 0}
       opened={opened}
       onClose={onClose}
       title={role ? `Members of ${role.name}` : 'Members'}
-      members={members}
-      isLoading={isLoading}
-      isError={isError}
+      filter={role ? { id_roles: role.id } : null}
       containerNoun="role"
     />
   );

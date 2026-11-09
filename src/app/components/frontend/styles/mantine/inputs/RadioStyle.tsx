@@ -196,19 +196,20 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
 
         if (labelPosition === 'left') {
             return (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>{radioLabel}</span>
                     {radioComponent}
-                </div>
+                </label>
             );
         }
 
         // Default right position
+        // A <label> around the radio names it and makes the text clickable.
         return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {radioComponent}
                 <span>{radioLabel}</span>
-            </div>
+            </label>
         );
     };
 

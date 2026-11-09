@@ -6,6 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
+import { notifications } from '@mantine/notifications';
 import {
     Alert,
     Checkbox,
@@ -404,6 +405,7 @@ function AddMenuItemModalContent({
         mutationFn: (payload: ICreateNavigationMenuItemRequest) =>
             AdminNavigationApi.createMenuItem(menuKey, payload),
         onSuccess: () => {
+            notifications.show({ title: 'Menu item added', message: `Added to ${menuKey.replaceAll('_', ' ')}.`, color: 'green' });
             setSubmitError(null);
             onCreated();
             onClose();

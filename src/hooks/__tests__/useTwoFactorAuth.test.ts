@@ -22,6 +22,8 @@ vi.mock('@mantine/notifications', () => ({ notifications: { show: vi.fn() } }));
 vi.mock('../../api/auth.api', () => ({ AuthApi: { verifyTwoFactor: vi.fn() } }));
 
 import { useTwoFactorAuth, TWO_FACTOR_CONSTANTS } from '../useTwoFactorAuth';
+import { AuthApi } from '../../api/auth.api';
+import { notifications } from '@mantine/notifications';
 
 const { TIMER_KEY, TIMER_LAST_UPDATE_KEY, TIMER_FRESH_LOGIN_KEY, USER_ID_KEY } = TWO_FACTOR_CONSTANTS;
 
@@ -54,5 +56,24 @@ describe('useTwoFactorAuth', () => {
         expect(sessionStorage.getItem(TIMER_LAST_UPDATE_KEY)).toBeNull();
         expect(sessionStorage.getItem(TIMER_FRESH_LOGIN_KEY)).toBeNull();
         expect(pushMock).toHaveBeenCalledWith('/login');
+    });
+
+    it('shows the wait time instead of "Invalid code" when 2FA attempts are rate-limited (429)', async () => {
+        sessionStorage.setItem(USER_ID_KEY, '42');
+        vi.mocked(AuthApi.verifyTwoFactor).mockRejectedValueOnce({
+            response: { status: 429, data: { data: { retry_after: 120 } } },
+        });
+        const { result } = renderHook(() =>
+            useTwoFactorAuth({ rateLimitMessage: 'Zu viele Versuche. Bitte in {minutes} Min. erneut versuchen.' }),
+        );
+
+        await act(async () => {
+            await result.current.submitCode(['1', '2', '3', '4', '5', '6']);
+        });
+
+        expect(result.current.errorMessage).toBe('Zu viele Versuche. Bitte in 2 Min. erneut versuchen.');
+        expect(vi.mocked(notifications.show)).toHaveBeenCalledWith(
+            expect.objectContaining({ message: 'Zu viele Versuche. Bitte in 2 Min. erneut versuchen.', color: 'orange' }),
+        );
     });
 });

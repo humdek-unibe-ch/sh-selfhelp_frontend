@@ -20,21 +20,31 @@ const { hasPermission } = vi.hoisted(() => ({ hasPermission: vi.fn() }));
 vi.mock('../../../../../../hooks/useUserData', () => ({
     useAuthUser: () => ({ permissionChecker: { hasPermission }, user: null, isLoading: false, error: null }),
 }));
+vi.mock('../../../../../../hooks/useGroups', () => ({
+    useGroups: () => ({ data: { groups: [] }, isLoading: false }),
+}));
 
-const asset = (id: number, file_name: string, asset_type: string) => ({
+/** Only the photo and the GIF record a MIME type: the rest must be typed by the extension in their name. */
+const asset = (id: number, name: string, asset_type: string, mime_type: string | null = null) => ({
     id,
-    file_name,
+    uuid: `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`,
+    name,
     asset_type,
-    file_path: `uploads/assets/mixed/${file_name}`,
-    url: `/cms-api/v1/assets/mixed/${file_name}`,
-    folder: 'mixed',
+    file_path: `uploads/assets/00000000-0000-4000-8000-${String(id).padStart(12, '0')}`,
+    url: `/cms-api/v1/assets/00000000-0000-4000-8000-${String(id).padStart(12, '0')}`,
+    mime_type,
+    size: 1,
+    alt: null,
+    groups: [],
+    created_at: '2026-11-03T10:00:00+00:00',
+    updated_at: '2026-11-03T10:00:00+00:00',
 });
 
 vi.mock('../../../../../../hooks/useAssets', () => ({
     useAssets: () => ({
         data: {
             assets: [
-                asset(1, 'photo.webp', 'asset'),
+                asset(1, 'photo.webp', 'asset', 'image/webp'),
                 asset(2, 'clip.mp4', 'asset'),
                 asset(3, 'theme.css', 'css'),
                 asset(4, 'report.pdf', 'asset'),
@@ -45,14 +55,23 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
                 asset(9, 'notes.txt', 'asset'),
                 asset(10, 'mystery.xyz', 'asset'),
                 asset(11, 'README', 'asset'),
+                asset(12, 'animation', 'asset', 'image/gif'),
             ],
-            pagination: { page: 1, pageSize: 100, total: 11, totalPages: 1 },
+            pagination: { page: 1, pageSize: 100, total: 12, totalPages: 1 },
         },
         isLoading: false,
         error: null,
     }),
     useDeleteAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
-    useAssetFolders: () => ({ data: { folders: [{ folder: 'mixed', is_open_access: false }] } }),
+    useBulkAssetGroups: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useBulkDeleteAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useBulkMoveAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useAssetFolders: () => ({ data: [] }),
+    useSaveAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useDeleteAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useCreateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useCreateMultipleAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useUpdateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 import { AssetsList } from '../AssetsList';
@@ -64,7 +83,7 @@ describe('AssetsList file type column', () => {
     });
 
     it('shows the concrete extension rather than the broad category', () => {
-        renderWithProviders(<AssetsList />);
+        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
 
         // `WEBP`/`MP4` carry information `Image`/`Video` do not — the icon
         // already conveys the category.
@@ -82,7 +101,7 @@ describe('AssetsList file type column', () => {
     });
 
     it('shows the extension even for files it cannot categorise', () => {
-        renderWithProviders(<AssetsList />);
+        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
         // The unknown .xyz file is still more usefully labelled than "Other";
         // only the extensionless README falls back to the category label.
         expect(screen.getByText('XYZ')).toBeInTheDocument();
@@ -90,19 +109,24 @@ describe('AssetsList file type column', () => {
     });
 
     it('still honours asset_type "css", which an extension alone cannot convey', () => {
-        renderWithProviders(<AssetsList />);
+        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
         // The CSS category drives the icon; the label shows the extension.
         expect(screen.getByText('CSS')).toBeInTheDocument();
     });
 
     it('falls back to the category label when the file has no extension', () => {
-        renderWithProviders(<AssetsList />);
+        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
         // `README` has no extension, so the cell must not render empty.
         expect(screen.getByText('Other')).toBeInTheDocument();
     });
 
+    it('labels a file whose name has no extension by its MIME subtype', () => {
+        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        expect(screen.getByText('GIF')).toBeInTheDocument();
+    });
+
     it('renders a thumbnail only for previewable images', () => {
-        renderWithProviders(<AssetsList />);
+        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
         expect(screen.getByAltText('photo.webp')).toBeInTheDocument();
         expect(screen.queryByAltText('clip.mp4')).not.toBeInTheDocument();
     });

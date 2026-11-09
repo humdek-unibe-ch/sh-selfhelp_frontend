@@ -56,9 +56,6 @@ export function useRemoveBulkSectionsFromPageMutation(
                 queryClient.invalidateQueries({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId),
                 }),
-                queryClient.refetchQueries({
-                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(variables.pageId),
-                }),
                 queryClient.invalidateQueries({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.UNPUBLISHED_CHANGES(variables.pageId),
                 }),

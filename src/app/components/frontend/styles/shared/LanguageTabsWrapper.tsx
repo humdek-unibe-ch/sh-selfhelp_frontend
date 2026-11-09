@@ -152,6 +152,7 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
     const localeSwitcher = (
         <SegmentedControl
             size="xs"
+            name={`section-locale-${name}`}
             value={resolvedActiveTab}
             onChange={(next) => setActiveTab(next)}
             data={publicLanguages.map((lang) => ({

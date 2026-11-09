@@ -16,11 +16,11 @@ import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../api/admin';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import { type IUpdatePageRequest } from '../../types/requests/admin/update-page.types';
-import { type IAdminPage } from '../../types/responses/admin/admin.types';
+import { type IPageFieldsData } from '../../types/common/pages.type';
 import { parseApiError } from '../../utils/mutation-error-handler';
 
 interface IUpdatePageMutationOptions {
-    onSuccess?: (data: IAdminPage, pageId: number) => void;
+    onSuccess?: (data: IPageFieldsData, pageId: number) => void;
     onError?: (error: unknown, pageId: number) => void;
     showNotifications?: boolean;
 }
@@ -43,7 +43,7 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
         mutationFn: ({ pageId, updateData }: IUpdatePageMutationVariables) => 
             AdminApi.updatePage(pageId, updateData),
         
-        onSuccess: async (updatedPage: IAdminPage, { pageId }: IUpdatePageMutationVariables) => {
+        onSuccess: async (updatedPage: IPageFieldsData, { pageId }: IUpdatePageMutationVariables) => {
 
             // Invalidate the caches the read hooks subscribe to (keys from the
             // central registry to prevent drift). `invalidateQueries` already
@@ -59,7 +59,7 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
             if (showNotifications) {
                 notifications.show({
                     title: 'Page Updated Successfully',
-                    message: `Page "${pageId}" has been updated successfully with all changes saved!`,
+                    message: `Page "${updatedPage.page.keyword}" has been updated successfully with all changes saved!`,
                     icon: React.createElement(IconCheck, { size: '1rem' }),
                     color: 'green',
                     autoClose: 5000,
@@ -79,7 +79,7 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
             if (showNotifications) {
                 notifications.show({
                     title: errorTitle || 'Update Failed',
-                    message: errorMessage || `Failed to update page "${pageId}". Please try again.`,
+                    message: errorMessage || 'Failed to update the page. Please try again.',
                     icon: React.createElement(IconX, { size: '1rem' }),
                     color: 'red',
                     autoClose: 8000,

@@ -1,5 +1,7 @@
 # Asset Export/Import + Group Asset ACLs — Backend contract
 
+> **Superseded (2026-11-03, core 0.1.43 / frontend 0.1.69).** Folder ACLs were removed: folders now only organise, viewing is set per asset by its groups (no groups = public) and CMS management by role (`role_data_access`). Current docs: [`../developer/asset-management.md`](../developer/asset-management.md). Kept for history only.
+
 Audience: developers on `sh-selfhelp-fe` / `sh-selfhelp-be`
 Status: Export/import + group-scoped asset ACLs live. Closed-when-empty flip + backfill in progress on BE; FE aligned to the target behavior.
 Applies to: `sh-selfhelp-be` Admin Asset + Admin Group modules + this frontend

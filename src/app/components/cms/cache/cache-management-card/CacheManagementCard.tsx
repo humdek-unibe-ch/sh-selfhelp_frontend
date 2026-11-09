@@ -125,7 +125,7 @@ export function CacheManagementCard() {
                 {/* Clear Cache Category */}
                 <Stack gap="xs">
                     <Group>
-                        <Select
+                        <Select aria-label="Cache category"
                             placeholder="Select category"
                             data={CACHE_CATEGORIES}
                             value={selectedCategory}
@@ -134,7 +134,7 @@ export function CacheManagementCard() {
                             searchable
                             clearable
                             rightSection={selectedCategory ? (
-                                <ActionIcon
+                                <ActionIcon aria-label="Clear category"
                                     variant="subtle"
                                     color="gray"
                                     size="sm"
@@ -160,7 +160,7 @@ export function CacheManagementCard() {
                 {/* Clear User Cache */}
                 <Stack gap="xs">
                     <Group>
-                        <Select
+                        <Select aria-label="User"
                             placeholder="Select user"
                             data={userOptions}
                             value={selectedUserId}
@@ -169,7 +169,7 @@ export function CacheManagementCard() {
                             searchable
                             clearable
                             rightSection={selectedUserId ? (
-                                <ActionIcon
+                                <ActionIcon aria-label="Clear user"
                                     variant="subtle"
                                     color="gray"
                                     size="sm"

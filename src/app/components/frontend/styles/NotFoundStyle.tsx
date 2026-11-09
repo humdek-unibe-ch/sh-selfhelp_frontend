@@ -7,6 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 import { Container, Paper, ThemeIcon, Title, Text, Button, Group } from '@mantine/core';
 import { IconCompass, IconHome, IconLogin } from '@tabler/icons-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { type INotFoundStyle } from '../../../../shared';
 import { ROUTES } from '../../../../config/routes.config';
 import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
@@ -34,6 +35,9 @@ const NotFoundStyle: React.FC<INotFoundStyleProps> = ({ style, styleProps, cssCl
     const shadow = style.web_shadow?.content || undefined;
     const buttonVariant = style.variant?.content || (isAuthenticated ? 'filled' : 'light');
     const showIcon = style.show_icon?.content !== '0';
+    const pathname = usePathname();
+    // Return the guest to the page they opened once they sign in.
+    const loginHref = pathname ? `${ROUTES.LOGIN}?redirectTo=${encodeURIComponent(pathname)}` : ROUTES.LOGIN;
 
     return (
         <Container size="sm" py="xl">
@@ -61,7 +65,7 @@ const NotFoundStyle: React.FC<INotFoundStyleProps> = ({ style, styleProps, cssCl
                     {!isAuthenticated && (
                         <Button
                             component={Link}
-                            href={ROUTES.LOGIN}
+                            href={loginHref}
                             size="md"
                             color={color}
                             leftSection={<IconLogin size={16} />}

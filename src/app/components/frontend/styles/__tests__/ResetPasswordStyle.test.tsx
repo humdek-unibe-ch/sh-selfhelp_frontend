@@ -70,6 +70,43 @@ describe('ResetPasswordStyle', () => {
         await waitFor(() => expect(AuthApi.requestPasswordReset).toHaveBeenCalledWith('qa@example.test'));
     });
 
+    it('shows the CMS alert_rate_limited text instead of "email sent" when reset requests are rate-limited (429)', async () => {
+        withRouteParams(undefined);
+        vi.mocked(AuthApi.requestPasswordReset).mockRejectedValueOnce({
+            response: { status: 429, data: { data: { retry_after: 3000 } } },
+        });
+
+        renderWithProviders(
+            <ResetPasswordStyle
+                style={{ alert_rate_limited: { content: 'Zu viele Anfragen. Bitte in {minutes} Min. erneut versuchen.' } } as unknown as ResetPasswordField}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+
+        fireEvent.change(screen.getByLabelText(/Email Address/i), { target: { value: 'qa@example.test' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Send reset link' }));
+
+        expect(await screen.findByRole('alert')).toHaveTextContent('Zu viele Anfragen. Bitte in 50 Min. erneut versuchen.');
+        // Still on the request form: no "check your inbox" success screen.
+        expect(screen.getByRole('button', { name: 'Send reset link' })).toBeInTheDocument();
+    });
+
+    it('keeps the generic success screen for any other request error so accounts are not revealed', async () => {
+        withRouteParams(undefined);
+        vi.mocked(AuthApi.requestPasswordReset).mockRejectedValueOnce({ response: { status: 500, data: {} } });
+
+        renderWithProviders(
+            <ResetPasswordStyle style={{} as unknown as ResetPasswordField} styleProps={{}} cssClass="section-1" />,
+        );
+
+        fireEvent.change(screen.getByLabelText(/Email Address/i), { target: { value: 'qa@example.test' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Send reset link' }));
+
+        await waitFor(() => expect(screen.queryByRole('button', { name: 'Send reset link' })).not.toBeInTheDocument());
+        expect(screen.queryByText(/Bitte in|try again in/i)).not.toBeInTheDocument();
+    });
+
     it('shows the set-new-password form when route_params carry a user id and token', () => {
         withRouteParams({ user_id: '123', token: 'tok-abc' });
 

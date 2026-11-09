@@ -82,6 +82,17 @@ describe('CmsAppsPage', () => {
         expect(screen.getByRole('button', { name: /create app/i })).toBeInTheDocument();
     });
 
+    // L16: the intro pointed editors at /cms/<app>, which 404s; records are
+    // managed through the admin "Manage content" link.
+    it('points editors at Manage content instead of a dead /cms/<app> URL', () => {
+        useCmsAppsQuery.mockReturnValue({ data: [], isLoading: false, error: null });
+
+        renderWithProviders(<CmsAppsPage />);
+
+        expect(screen.queryByText('/cms/<app>')).not.toBeInTheDocument();
+        expect(screen.getByText(/Editors manage records via/)).toHaveTextContent('Manage content');
+    });
+
     it('shows an empty state when there are no apps', () => {
         useCmsAppsQuery.mockReturnValue({
             data: [],

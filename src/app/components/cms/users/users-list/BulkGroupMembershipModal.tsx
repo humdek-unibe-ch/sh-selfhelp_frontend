@@ -9,6 +9,12 @@ import { MultiSelect, Stack, Text } from '@mantine/core';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { useGroups } from '../../../../../hooks/useGroups';
 
+interface IBulkGroupCopy {
+  title: string;
+  action: string;
+  detail: string;
+}
+
 interface IBulkGroupMembershipModalProps {
   opened: boolean;
   onClose: () => void;
@@ -17,9 +23,12 @@ interface IBulkGroupMembershipModalProps {
   selectedCount: number;
   onConfirm: (groupIds: number[]) => void;
   isLoading: boolean;
+  copy?: Record<'add' | 'remove', IBulkGroupCopy>;
+  itemLabel?: string;
+  allowedGroupIds?: number[];
 }
 
-const COPY = {
+const COPY: Record<'add' | 'remove', IBulkGroupCopy> = {
   add: {
     title: 'Add users to group',
     action: 'Add to group',
@@ -31,10 +40,11 @@ const COPY = {
     detail:
       'will be removed from the groups you pick. Users who are not in a group are left unchanged.',
   },
-} as const;
+};
 
-/** Picks one or more groups to add the selected users to, or remove them from.
- *  One component for both: same picker, same payload, opposite verb. */
+/** Picks one or more groups to add the selected items to, or remove them from.
+ *  One component for both: same picker, same payload, opposite verb. Used for
+ *  users and (with `copy`/`itemLabel`) for asset access. */
 export function BulkGroupMembershipModal({
   opened,
   onClose,
@@ -42,10 +52,13 @@ export function BulkGroupMembershipModal({
   selectedCount,
   onConfirm,
   isLoading,
+  copy: copyOverride,
+  itemLabel = 'user',
+  allowedGroupIds,
 }: IBulkGroupMembershipModalProps) {
   const [groupIds, setGroupIds] = useState<string[]>([]);
   const { data: groupsData, isLoading: isLoadingGroups } = useGroups({ pageSize: 100 });
-  const copy = COPY[mode];
+  const copy = (copyOverride ?? COPY)[mode];
 
   // Reset the selection when the modal opens or the mode flips, not on close: a
   // successful submit closes the modal from the parent (setGroupMode(null))
@@ -74,13 +87,13 @@ export function BulkGroupMembershipModal({
     >
       <Stack gap="md">
         <Text size="sm" c="dimmed">
-          {selectedCount} selected user{selectedCount === 1 ? '' : 's'} {copy.detail}
+          {selectedCount} selected {itemLabel}{selectedCount === 1 ? '' : 's'} {copy.detail}
         </Text>
 
         <MultiSelect
           label="Groups"
           placeholder={groupIds.length === 0 ? 'Pick one or more groups' : undefined}
-          data={(groupsData?.groups ?? []).map((group) => ({
+          data={(groupsData?.groups ?? []).filter((group) => !allowedGroupIds || allowedGroupIds.includes(group.id)).map((group) => ({
             value: group.id.toString(),
             label: group.name,
           }))}

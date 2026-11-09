@@ -83,6 +83,8 @@ export interface IUsersListParams {
   status?: Exclude<TUserStatusFilter, 'all'>;
   /** Filter to members of this group. Omitted when no group is selected. */
   id_groups?: number;
+  /** Filter to holders of this role. */
+  id_roles?: number;
   sort?: 'id' | 'email' | 'name' | 'user_name' | 'last_login' | 'blocked' | 'status' | 'user_type';
   sortDirection?: 'asc' | 'desc';
 }

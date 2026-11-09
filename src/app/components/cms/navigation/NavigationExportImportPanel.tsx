@@ -584,7 +584,7 @@ export function NavigationExportImportPanel({
                                         ? undefined
                                         : 'Admins always have access — pick groups for embedded pages'
                                 }
-                                description="Groups granted access to pages imported with this bundle. Public pages also keep default subject and therapist read access."
+                                description="Groups granted access to pages imported with this bundle. Public pages also keep default subject and researcher read access."
                                 data={groupOptions}
                                 value={(importOptions.accessGroups ?? []).map(String)}
                                 onChange={(values) => {

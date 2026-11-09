@@ -17,7 +17,6 @@ import {
   Divider,
   LoadingOverlay,
 } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
 import { useCreateGroup, useUpdateGroup, useGroupDetails } from '../../../../../hooks/useGroups';
 import { AclManagement, type IAclPage } from '../advanced-acl-modal/AdvancedAclModal';
 import type { ICreateGroupRequest, IUpdateGroupRequest } from '../../../../../types/requests/admin/groups.types';
@@ -124,31 +123,17 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
           ...groupData,
         };
         await createGroupMutation.mutateAsync(createData);
-        notifications.show({
-          title: 'Success',
-          message: 'Group created successfully',
-          color: 'green',
-        });
       } else if (groupId) {
         const updateData: IUpdateGroupRequest = {
           ...groupData,
         };
         await updateGroupMutation.mutateAsync({ groupId, data: updateData });
-        notifications.show({
-          title: 'Success',
-          message: 'Group updated successfully',
-          color: 'green',
-        });
       }
 
       onClose();
-    } catch (error) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      notifications.show({
-        title: 'Error',
-        message: message || `Failed to ${mode} group`,
-        color: 'red',
-      });
+    } catch {
+      // The mutation hooks show the success and error toasts; the modal
+      // stays open so the name can be corrected.
     }
   };
 

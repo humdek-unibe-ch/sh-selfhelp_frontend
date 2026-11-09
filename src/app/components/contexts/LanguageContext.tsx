@@ -138,6 +138,16 @@ export function LanguageProvider({ children, initialLanguageId, initialLanguages
         }
     }, [user, languages, currentLanguageId, setCurrentLanguageId]);
 
+    // The server sets <html lang> only on full renders; keep it in sync on
+    // client-side switches (same rule as resolveLanguageSSR: primary subtag).
+    useEffect(() => {
+        const locale = languages.find((lang) => lang.id === currentLanguageId)?.locale;
+        const htmlLang = String(locale || '').split('-')[0];
+        if (htmlLang) {
+            document.documentElement.lang = htmlLang;
+        }
+    }, [currentLanguageId, languages]);
+
     const contextValue = useMemo<ILanguageContextValue>(
         () => ({
             currentLanguageId,

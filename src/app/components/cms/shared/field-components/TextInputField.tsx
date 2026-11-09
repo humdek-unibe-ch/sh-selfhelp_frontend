@@ -6,6 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { TextInput } from '@mantine/core';
 import type { ComponentProps } from 'react';
+import { useFieldLabel } from '../../../shared/common/field-label-context';
 
 interface ITextInputFieldProps {
     fieldId: number;
@@ -30,10 +31,11 @@ export function TextInputField({
     validator,
     sanitize
 }: ITextInputFieldProps) {
+    const fieldLabel = useFieldLabel();
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
     return (
-        <TextInput
+        <TextInput aria-labelledby={fieldLabel?.id}
             key={fieldId}
             type={inputType}
             step={step}

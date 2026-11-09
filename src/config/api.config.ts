@@ -399,9 +399,42 @@ export const API_CONFIG = {
             route: (assetId: number) => `/admin/assets/${assetId}`,
             permissions: [PERMISSIONS.ADMIN_ASSET_DELETE]
         },
+        // Multipart (optional replacement file), so a POST rather than a PUT.
+        ADMIN_ASSETS_UPDATE: {
+            route: (assetId: number) => `/admin/assets/${assetId}`,
+            permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
+        },
+        ADMIN_ASSETS_BULK_GROUPS: {
+            route: '/admin/assets/bulk-groups',
+            permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
+        },
+        ADMIN_ASSETS_BULK_FOLDER: {
+            route: '/admin/assets/bulk-folder',
+            permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
+        },
+        ADMIN_ASSETS_BULK_DELETE: {
+            route: '/admin/assets/bulk-delete',
+            permissions: [PERMISSIONS.ADMIN_ASSET_DELETE]
+        },
+        ADMIN_ASSET_FOLDERS_GET_ALL: {
+            route: '/admin/asset-folders',
+            permissions: [PERMISSIONS.ADMIN_ASSET_READ]
+        },
+        ADMIN_ASSET_FOLDERS_CREATE: {
+            route: '/admin/asset-folders',
+            permissions: [PERMISSIONS.ADMIN_ASSET_CREATE]
+        },
+        ADMIN_ASSET_FOLDERS_UPDATE: {
+            route: (folderId: number) => `/admin/asset-folders/${folderId}`,
+            permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
+        },
+        ADMIN_ASSET_FOLDERS_DELETE: {
+            route: (folderId: number) => `/admin/asset-folders/${folderId}`,
+            permissions: [PERMISSIONS.ADMIN_ASSET_DELETE]
+        },
         // Export assets as a downloadable zip bundle (binary files +
-        // manifest.json). POST with body { folders?: string[] } (empty/omitted
-        // = all readable folders); returns an `application/zip` blob.
+        // manifest.json). POST with body { asset_ids?: number[] } (empty/omitted
+        // = every readable asset); returns an `application/zip` blob.
         ADMIN_ASSETS_EXPORT: {
             route: '/admin/assets/export',
             permissions: [PERMISSIONS.ADMIN_ASSET_READ]
@@ -410,30 +443,6 @@ export const API_CONFIG = {
         ADMIN_ASSETS_IMPORT: {
             route: '/admin/assets/import',
             permissions: [PERMISSIONS.ADMIN_ASSET_CREATE]
-        },
-        // List every asset folder with its open-access flag. Folder-scoped —
-        // the sibling group-scoped grants live on ADMIN_GROUPS_ASSET_ACLS_*.
-        ADMIN_ASSETS_FOLDERS_GET: {
-            route: '/admin/assets/folders',
-            permissions: [PERMISSIONS.ADMIN_ASSET_READ]
-        },
-        // Toggle a folder's open-access (public read) flag. Gated on the
-        // group-ACL write permission, NOT an asset permission: making a folder
-        // world-readable is an access-control decision, so it matches backend
-        // enforcement and the permission that reveals the group-ACL editor.
-        ADMIN_ASSETS_FOLDER_OPEN_ACCESS_UPDATE: {
-            route: (folder: string) => `/admin/assets/folders/${encodeURIComponent(folder)}/open-access`,
-            permissions: [PERMISSIONS.ADMIN_GROUP_ACL]
-        },
-        ADMIN_GROUPS_ASSET_ACLS_GET: {
-            route: (groupId: number) => `/admin/groups/${groupId}/asset-acls`,
-            permissions: [PERMISSIONS.ADMIN_GROUP_ACL]
-        },
-        ADMIN_GROUPS_ASSET_ACLS_UPDATE: {
-            route: (groupId: number) => `/admin/groups/${groupId}/asset-acls`,
-            // Gated on the group-ACL write permission (same as the sibling page-ACL
-            // write), matching backend enforcement for the group asset-ACL editor.
-            permissions: [PERMISSIONS.ADMIN_GROUP_ACL]
         },
 
         // Admin users endpoints
@@ -560,10 +569,6 @@ export const API_CONFIG = {
             route: (groupId: number) => `/admin/groups/${groupId}`,
             permissions: [PERMISSIONS.ADMIN_GROUP_DELETE]
         },
-        ADMIN_GROUPS_MEMBERS_GET: {
-            route: (groupId: number) => `/admin/groups/${groupId}/users`,
-            permissions: [PERMISSIONS.ADMIN_GROUP_READ]
-        },
         ADMIN_GROUPS_ACLS_GET: {
             route: (groupId: number) => `/admin/groups/${groupId}/acls`,
             permissions: [PERMISSIONS.ADMIN_GROUP_READ]
@@ -580,10 +585,6 @@ export const API_CONFIG = {
         },
         ADMIN_ROLES_GET_ONE: {
             route: (roleId: number) => `/admin/roles/${roleId}`,
-            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
-        },
-        ADMIN_ROLES_MEMBERS_GET: {
-            route: (roleId: number) => `/admin/roles/${roleId}/users`,
             permissions: [PERMISSIONS.ADMIN_ROLE_READ]
         },
         ADMIN_ROLES_CREATE: {
@@ -945,6 +946,12 @@ export const API_CONFIG = {
             route: '/admin/data/tables/bulk-export',
             permissions: [PERMISSIONS.ADMIN_DATA_READ]
         },
+        // Zip of the uploaded files of the given (shown) records (core 0.1.43).
+        ADMIN_DATA_TABLE_FILES_ZIP: {
+            route: (tableName: string, recordIds: number[]) =>
+                `/admin/data/tables/${encodeURIComponent(tableName)}/files?record_ids=${recordIds.join(',')}`,
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
         ADMIN_DATA_QUERY_PREVIEW: {
             route: '/admin/data/query-preview',
             permissions: [PERMISSIONS.ADMIN_DATA_READ]
@@ -961,6 +968,16 @@ export const API_CONFIG = {
         },
         FORMS_DELETE: {
             route: '/forms/delete',
+            permissions: []
+        },
+        // Read-only; the backend checks owner / data-table READ per record (core 0.1.43).
+        FORMS_FILE: {
+            route: (recordId: number, field: string) => `/forms/files/${recordId}/${encodeURIComponent(field)}`,
+            permissions: []
+        },
+        // Every file of a multi-file field as one zip; same per-record check.
+        FORMS_FILE_ZIP: {
+            route: (recordId: number, field: string) => `/forms/files/${recordId}/${encodeURIComponent(field)}/zip`,
             permissions: []
         },
 

@@ -76,7 +76,7 @@ export function UnusedSectionTab({
                 !unusedError &&
                 unusedSections.length > 0 && (
                     <>
-                        <TextInput
+                        <TextInput aria-label="Search unused sections"
                             placeholder="Search by name, ID, or style..."
                             leftSection={<IconSearch size={16} />}
                             value={searchQuery}

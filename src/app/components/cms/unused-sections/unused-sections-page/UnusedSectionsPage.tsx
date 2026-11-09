@@ -114,12 +114,12 @@ export function UnusedSectionsPage() {
 
                     {/* Search */}
                     <Group gap="md">
-                        <TextInput
+                        <TextInput aria-label="Search unused sections"
                             placeholder="Search by name, ID, or style..."
                             leftSection={<IconSearch size={16} />}
                             rightSection={
                                 searchQuery && (
-                                    <ActionIcon
+                                    <ActionIcon aria-label="Clear search"
                                         variant="subtle"
                                         color="gray"
                                         size="sm"
@@ -197,7 +197,7 @@ export function UnusedSectionsPage() {
                                                         ID: {section.id}
                                                     </Text>
                                                 </Box>
-                                                <ActionIcon
+                                                <ActionIcon aria-label={`Delete section ${section.id}`}
                                                     color="red"
                                                     variant="subtle"
                                                     size="sm"

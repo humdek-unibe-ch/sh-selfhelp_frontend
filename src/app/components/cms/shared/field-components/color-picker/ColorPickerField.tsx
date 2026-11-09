@@ -8,6 +8,7 @@ import React, { useState, useMemo } from 'react';
 import { ColorSwatch, Group, CheckIcon, UnstyledButton, Popover, ColorPicker as MantineColorPicker, TextInput, rem, Checkbox } from '@mantine/core';
 import classes from './ColorPickerField.module.css';
 import { type IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
+import { useFieldLabel } from '../../../../shared/common/field-label-context';
 
 
 export function ColorWheelIcon() {
@@ -84,6 +85,7 @@ export function ColorPickerField({
     config,
     disabled = false
 }: IColorPickerFieldProps) {
+    const fieldLabel = useFieldLabel();
 
 
     // Extract colors from config options
@@ -230,6 +232,7 @@ export function ColorPickerField({
                                 format="rgba"
                             />
                             <TextInput
+                                aria-labelledby={fieldLabel?.id}
                                 value={colorPickerColor}
                                 onChange={(event) => {
                                     handleColorPickerInteraction();

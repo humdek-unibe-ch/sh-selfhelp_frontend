@@ -9,6 +9,7 @@ import { Select, Group, Text, Box, type ComboboxItem, type ComboboxLikeRenderOpt
 import * as LucideIcons from 'lucide-react';
 import { MOBILE_ICON_SET } from '@selfhelp/shared';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+import { useFieldLabel } from '../../../shared/common/field-label-context';
 
 /**
  * Mobile menu-icon picker. The option list is the curated lucide set from
@@ -40,6 +41,7 @@ export function SelectIconMobileField({
     disabled = false,
     iconSize = 16,
 }: ISelectIconMobileFieldProps) {
+    const fieldLabel = useFieldLabel();
     const options = useMemo(
         () =>
             MOBILE_ICON_SET.map((entry) => ({
@@ -70,7 +72,7 @@ export function SelectIconMobileField({
     const SelectedIcon = value ? iconMap[value] : undefined;
 
     return (
-        <Select
+        <Select aria-labelledby={fieldLabel?.id}
             key={fieldId}
             data={options}
             value={value || ''}

@@ -175,14 +175,12 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
         [keywordPrefix, routePrefix, skipConflictingRoutes, activateRoutes, accessGroups]
     );
 
-    // Groups available as importer-selected "viewer" groups. Admin is always
-    // granted full access by the backend; hide it from this picker so operators
-    // cannot (and need not) select it. Remaining groups get read (public) /
-    // full CRUD (cms-app) so imported pages are visible to real users.
+    // Groups available as importer-selected "viewer" groups: read (public) /
+    // full CRUD (cms-app) so imported pages are visible to real users. Admins
+    // need no group: the admin role bypasses page ACLs.
     const { data: groupsData } = useGroups({ pageSize: 1000 });
     const groupOptions = useMemo(
         () => (groupsData?.groups ?? [])
-            .filter((group) => group.name.trim().toLowerCase() !== 'admin')
             .map((group) => ({
                 value: String(group.id),
                 label: group.name,

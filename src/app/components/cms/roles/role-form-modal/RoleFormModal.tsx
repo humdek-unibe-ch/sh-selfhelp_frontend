@@ -16,7 +16,6 @@ import {
   LoadingOverlay,
   MultiSelect,
 } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
 import { useCreateRole, useUpdateRole, useRoleDetails } from '../../../../../hooks/useRoles';
 import { usePermissions } from '../../../../../hooks/usePermissions';
 import type { ICreateRoleRequest, IUpdateRoleRequest } from '../../../../../types/requests/admin/roles.types';
@@ -111,31 +110,17 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
           ...roleData,
         };
         await createRoleMutation.mutateAsync(createData);
-        notifications.show({
-          title: 'Success',
-          message: 'Role created successfully',
-          color: 'green',
-        });
       } else if (roleId) {
         const updateData: IUpdateRoleRequest = {
           ...roleData,
         };
         await updateRoleMutation.mutateAsync({ roleId, data: updateData });
-        notifications.show({
-          title: 'Success',
-          message: 'Role updated successfully',
-          color: 'green',
-        });
       }
 
       onClose();
-    } catch (error) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      notifications.show({
-        title: 'Error',
-        message: message || `Failed to ${mode} role`,
-        color: 'red',
-      });
+    } catch {
+      // The mutation hooks show the success and error toasts; the modal
+      // stays open so the name can be corrected.
     }
   };
 

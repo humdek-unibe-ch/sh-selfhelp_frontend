@@ -12,9 +12,9 @@ import type {
 import type {
   ICreateGroupRequest,
   IUpdateGroupRequest,
-  IUpdateGroupAclsRequest,
-  IUpdateGroupAssetAclsRequest
+  IUpdateGroupAclsRequest
 } from '../types/requests/admin/groups.types';
+import { getApiErrorText } from '../utils/mutation-error-handler';
 
 // Query keys
 const GROUPS_QUERY_KEYS = {
@@ -24,8 +24,6 @@ const GROUPS_QUERY_KEYS = {
   details: () => [...GROUPS_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: number) => [...GROUPS_QUERY_KEYS.details(), id] as const,
   acls: (id: number) => [...GROUPS_QUERY_KEYS.all, 'acls', id] as const,
-  assetAcls: (id: number) => [...GROUPS_QUERY_KEYS.all, 'asset-acls', id] as const,
-  members: (id: number) => [...GROUPS_QUERY_KEYS.all, 'members', id] as const,
 };
 
 // Get paginated groups
@@ -42,17 +40,6 @@ export function useGroupDetails(groupId: number) {
   return useQuery({
     queryKey: GROUPS_QUERY_KEYS.detail(groupId),
     queryFn: () => AdminGroupApi.getGroupById(groupId),
-    enabled: !!groupId,
-    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
-  });
-}
-
-// List a group's members. Enabled only when a group is selected so the
-// "View members" modal fetches lazily on open, not on every list render.
-export function useGroupMembers(groupId: number | null) {
-  return useQuery({
-    queryKey: GROUPS_QUERY_KEYS.members(groupId ?? 0),
-    queryFn: () => AdminGroupApi.getGroupMembers(groupId as number),
     enabled: !!groupId,
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
   });
@@ -85,7 +72,7 @@ export function useCreateGroup() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to create group',
+        message: getApiErrorText(error) || 'Failed to create group',
         color: 'red',
       });
     },
@@ -111,7 +98,7 @@ export function useUpdateGroup() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update group',
+        message: getApiErrorText(error) || 'Failed to update group',
         color: 'red',
       });
     },
@@ -135,48 +122,13 @@ export function useDeleteGroup() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to delete group',
+        message: getApiErrorText(error) || 'Failed to delete group',
         color: 'red',
       });
     },
   });
 }
 
-// Get a group's asset-folder ACLs. Enabled only when a group is selected so
-// the group ACL modal fetches lazily on open.
-export function useGroupAssetAcls(groupId: number | null) {
-  return useQuery({
-    queryKey: GROUPS_QUERY_KEYS.assetAcls(groupId ?? 0),
-    queryFn: () => AdminGroupApi.getGroupAssetAcls(groupId as number),
-    enabled: !!groupId,
-    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
-  });
-}
-
-// Update a group's asset-folder ACLs (full replacement).
-export function useUpdateGroupAssetAcls() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ groupId, data }: { groupId: number; data: IUpdateGroupAssetAclsRequest }) =>
-      AdminGroupApi.updateGroupAssetAcls(groupId, data),
-    onSuccess: (_, { groupId }) => {
-      void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.assetAcls(groupId) });
-      notifications.show({
-        title: 'Success',
-        message: 'Group asset access updated successfully',
-        color: 'green',
-      });
-    },
-    onError: (error: unknown) => {
-      notifications.show({
-        title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update group asset access',
-        color: 'red',
-      });
-    },
-  });
-}
 
 // Update group ACLs mutation
 export function useUpdateGroupAcls() {
@@ -199,7 +151,7 @@ export function useUpdateGroupAcls() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update group ACLs',
+        message: getApiErrorText(error) || 'Failed to update group ACLs',
         color: 'red',
       });
     },

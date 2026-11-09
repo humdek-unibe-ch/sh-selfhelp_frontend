@@ -16,6 +16,7 @@ import type {
   IAddPermissionsToRoleRequest,
   IRemovePermissionsFromRoleRequest
 } from '../types/requests/admin/roles.types';
+import { getApiErrorText } from '../utils/mutation-error-handler';
 
 // Query keys
 const ROLES_QUERY_KEYS = {
@@ -25,7 +26,6 @@ const ROLES_QUERY_KEYS = {
   details: () => [...ROLES_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: number) => [...ROLES_QUERY_KEYS.details(), id] as const,
   permissions: (id: number) => [...ROLES_QUERY_KEYS.all, 'permissions', id] as const,
-  members: (id: number) => [...ROLES_QUERY_KEYS.all, 'members', id] as const,
 };
 
 // Get paginated roles
@@ -42,17 +42,6 @@ export function useRoleDetails(roleId: number) {
   return useQuery({
     queryKey: ROLES_QUERY_KEYS.detail(roleId),
     queryFn: () => AdminRoleApi.getRoleById(roleId),
-    enabled: !!roleId,
-    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
-  });
-}
-
-// List a role's members. Enabled only when a role is selected so the
-// "View users" modal fetches lazily on open, not on every list render.
-export function useRoleMembers(roleId: number | null) {
-  return useQuery({
-    queryKey: ROLES_QUERY_KEYS.members(roleId ?? 0),
-    queryFn: () => AdminRoleApi.getRoleMembers(roleId as number),
     enabled: !!roleId,
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
   });
@@ -85,7 +74,7 @@ export function useCreateRole() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to create role',
+        message: getApiErrorText(error) || 'Failed to create role',
         color: 'red',
       });
     },
@@ -99,9 +88,9 @@ export function useUpdateRole() {
   return useMutation({
     mutationFn: ({ roleId, data }: { roleId: number; data: IUpdateRoleRequest }) =>
       AdminRoleApi.updateRole(roleId, data),
-    onSuccess: (_, { roleId }) => {
+    onSuccess: () => {
+      // The ['roles'] prefix also covers this role's detail key.
       void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.all });
-      void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.detail(roleId) });
       notifications.show({
         title: 'Success',
         message: 'Role updated successfully',
@@ -111,7 +100,7 @@ export function useUpdateRole() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update role',
+        message: getApiErrorText(error) || 'Failed to update role',
         color: 'red',
       });
     },
@@ -135,7 +124,7 @@ export function useDeleteRole() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to delete role',
+        message: getApiErrorText(error) || 'Failed to delete role',
         color: 'red',
       });
     },
@@ -161,7 +150,7 @@ export function useUpdateRolePermissions() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update role permissions',
+        message: getApiErrorText(error) || 'Failed to update role permissions',
         color: 'red',
       });
     },
@@ -187,7 +176,7 @@ export function useAddPermissionsToRole() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to add permissions to role',
+        message: getApiErrorText(error) || 'Failed to add permissions to role',
         color: 'red',
       });
     },
@@ -213,7 +202,7 @@ export function useRemovePermissionsFromRole() {
     onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to remove permissions from role',
+        message: getApiErrorText(error) || 'Failed to remove permissions from role',
         color: 'red',
       });
     },

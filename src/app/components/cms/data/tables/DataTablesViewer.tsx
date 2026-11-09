@@ -67,10 +67,17 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
   if (selectedTables.length === 0) {
     return (
       <Card withBorder shadow="sm" radius="md">
-        <EmptyState
-          title="No data tables available"
-          description=""
-        />
+        {tables.length > 0 ? (
+          <EmptyState
+            title="No data tables selected"
+            description='Pick one or more data tables above and click "Apply Filters".'
+          />
+        ) : (
+          <EmptyState
+            title="No data tables available"
+            description=""
+          />
+        )}
       </Card>
     );
   }

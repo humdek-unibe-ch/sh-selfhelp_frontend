@@ -165,8 +165,12 @@ SPDX-License-Identifier: MPL-2.0
 
 /* Section name truncation */
 .sectionName {
-    max-width: 100%;
+    /* 10ch stub sets the row's min-content (tree scrolls below it); grows to
+       full text first, before the drop hint. */
+    width: 10ch;
+    max-width: max-content;
     min-width: 0;
+    flex: 999 1 auto;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -182,6 +186,7 @@ SPDX-License-Identifier: MPL-2.0
     font-weight: 700;
     letter-spacing: 0.03em;
     padding: 0 6px !important;
+    flex-shrink: 0;
     text-transform: uppercase;
     background-color: var(--section-tint) !important;
     color: var(--section-fg) !important;
@@ -199,6 +204,7 @@ SPDX-License-Identifier: MPL-2.0
     height: 16px !important;
     min-width: 18px;
     padding: 0 5px !important;
+    flex-shrink: 0;
 }
 
 
@@ -219,8 +225,10 @@ SPDX-License-Identifier: MPL-2.0
    gap between the style badge and the id/pos meta while a drag is active. Dashed
    at rest; its border goes solid on the row currently targeted for the drop. */
 .firstChildHint {
-    flex: 1;
-    min-width: 40px;
+    /* Grow into the free space but never shrink below the label: on long
+       section names the name ellipsizes instead of the label spilling out of
+       the pill and over the style badge. */
+    flex: 1 0 auto;
     height: 22px;
     justify-content: center;
     white-space: nowrap;
@@ -298,6 +306,41 @@ SPDX-License-Identifier: MPL-2.0
 
     .actionButtons {
         opacity: 1;
+    }
+}
+
+/* Narrow tree panel: hide id/pos and float the actions over the row end
+   (hover, focus, selected or menu open) instead of reserving their width. */
+@container sections-tree (max-width: 460px) {
+    .sectionMeta {
+        display: none;
+    }
+
+    .compactGroup {
+        position: relative;
+    }
+
+    .actionButtons,
+    .actionButtons:has(.actionButtonActive) {
+        position: absolute;
+        top: 50%;
+        right: 6px;
+        z-index: 1;
+        transform: translateY(-50%);
+        padding: 2px;
+        border-radius: var(--mantine-radius-sm);
+        background: var(--mantine-color-body);
+        box-shadow: 0 1px 4px light-dark(rgba(15, 23, 42, 0.18), rgba(0, 0, 0, 0.5));
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .sectionItem:hover .actionButtons,
+    .sectionItem:focus-within .actionButtons,
+    .sectionItem.selected .actionButtons,
+    .actionButtonsPinned {
+        opacity: 1;
+        pointer-events: auto;
     }
 }
 

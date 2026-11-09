@@ -45,6 +45,8 @@ interface FieldLabelWithTooltipProps {
     iconOnly?: boolean;
     /** Popover heading when `iconOnly` is true */
     helpTitle?: string;
+    /** Id of the label text, for the field control's `aria-labelledby`. */
+    labelId?: string;
 }
 
 /**
@@ -68,6 +70,7 @@ export function FieldLabelWithTooltip({
     exampleLanguage = 'text',
     iconOnly = false,
     helpTitle,
+    labelId,
 }: FieldLabelWithTooltipProps) {
     const [opened, setOpened] = useState(false);
 
@@ -177,7 +180,7 @@ export function FieldLabelWithTooltip({
                 w="100%"
             >
                 <Group gap={6} wrap="nowrap">
-                    <Text size="sm" fw={500}>
+                    <Text size="sm" fw={500} id={labelId}>
                         {label}
                         {required && <Text span c="red"> *</Text>}
                     </Text>

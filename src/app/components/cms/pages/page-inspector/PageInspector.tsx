@@ -616,7 +616,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
               </Text>
             </Text>
 
-            <TextInput
+            <TextInput aria-label="Page keyword to confirm"
               placeholder={`Type "${page.keyword}" to confirm`}
               value={deleteConfirmText}
               onChange={(e) => setDeleteConfirmText(e.target.value)}

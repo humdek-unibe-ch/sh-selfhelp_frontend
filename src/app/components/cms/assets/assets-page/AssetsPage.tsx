@@ -5,44 +5,53 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { useState } from 'react';
-import { Stack, Group, Button, Text, Title } from '@mantine/core';
-import { IconUpload, IconPhoto, IconTransferIn } from '@tabler/icons-react';
+import { Stack, Button } from '@mantine/core';
+import { IconUpload, IconTransferIn, IconFolders } from '@tabler/icons-react';
 import { AssetsList } from '../assets-list/AssetsList';
-import { UploadAssetModal } from '../upload-asset-modal/UploadAssetModal';
+import { AssetFormModal } from '../asset-form-modal/AssetFormModal';
 import { ExportImportAssetsModal } from '../export-import-assets-modal/ExportImportAssetsModal';
-import { FolderAccessPanel } from '../folder-access/FolderAccessPanel';
+import { AssetFolderModal } from '../asset-folder-modal/AssetFolderModal';
 import { useAuthUser } from '../../../../../hooks/useUserData';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 
 export function AssetsPage() {
   const [uploadModalOpened, setUploadModalOpened] = useState(false);
   const [exportImportOpened, setExportImportOpened] = useState(false);
+  // undefined = closed, null = open on a new folder, id = open on that folder.
+  const [folderModalId, setFolderModalId] = useState<number | null | undefined>(undefined);
+  const [exportAssetIds, setExportAssetIds] = useState<number[]>([]);
+  const [folderId, setFolderId] = useState<number | null>(null);
 
   const { permissionChecker } = useAuthUser();
   const canRead = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_READ) ?? false;
   // Upload + import both create assets; export only reads.
   const canCreate = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_CREATE) ?? false;
+  const canUpdate = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_UPDATE) ?? false;
+
+  const openExportImport = (assetIds: number[]) => {
+    setExportAssetIds(assetIds);
+    setExportImportOpened(true);
+  };
 
   return (
     <Stack gap="lg">
-      {/* Header */}
-      <Group justify="space-between" align="center">
-        <div>
-          <Group gap="sm" align="center">
-            <IconPhoto size={24} />
-            <Title order={2}>Assets Management</Title>
-          </Group>
-          <Text size="sm" c="dimmed" mt={4}>
-            Upload, manage, and organize your media files and documents
-          </Text>
-        </div>
-
-        <Group gap="sm">
+      <AssetsList
+        folderId={folderId}
+        onFolderChange={setFolderId}
+        onExportSelected={canRead ? openExportImport : undefined}
+        onEditFolder={setFolderModalId}
+        headerActions={
+          <>
+          {canUpdate && (
+            <Button variant="default" leftSection={<IconFolders size={16} />} onClick={() => setFolderModalId(null)}>
+              Folders
+            </Button>
+          )}
           {canRead && (
             <Button
               variant="default"
               leftSection={<IconTransferIn size={16} />}
-              onClick={() => setExportImportOpened(true)}
+              onClick={() => openExportImport([])}
             >
               Export / Import
             </Button>
@@ -55,27 +64,27 @@ export function AssetsPage() {
               Upload Asset
             </Button>
           )}
-        </Group>
-      </Group>
+          </>
+        }
+      />
 
-      {/* Per-folder public visibility (folder-scoped; the group-scoped folder
-          ACLs live in the Groups page Advanced ACL modal). Self-gates on
-          admin.group.acl and renders nothing without it. */}
-      <FolderAccessPanel />
-
-      {/* Assets List */}
-      <AssetsList />
-
-      {/* Upload Modal */}
-      <UploadAssetModal
+      <AssetFormModal
         opened={uploadModalOpened}
         onClose={() => setUploadModalOpened(false)}
+        defaultFolderId={folderId}
+      />
+
+      <AssetFolderModal
+        opened={folderModalId !== undefined}
+        initialFolderId={folderModalId}
+        onClose={() => setFolderModalId(undefined)}
       />
 
       {/* Export / Import Modal — import tab gated on create permission. */}
       <ExportImportAssetsModal
         opened={exportImportOpened}
         onClose={() => setExportImportOpened(false)}
+        assetIds={exportAssetIds}
         canImport={canCreate}
       />
     </Stack>

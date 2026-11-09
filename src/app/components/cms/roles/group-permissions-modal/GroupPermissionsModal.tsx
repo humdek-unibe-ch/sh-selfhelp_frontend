@@ -20,6 +20,7 @@ import {
   type ICrudPermissions,
   DEFAULT_CRUD_PERMISSIONS,
 } from '../../../../../utils/permissions.utils';
+import { getApiErrorText } from '../../../../../utils/mutation-error-handler';
 
 interface IGroupPermissionsModalProps {
   opened: boolean;
@@ -75,7 +76,7 @@ export function GroupPermissionsModal({ opened, onClose, roleId, roleName }: IGr
 
       setPermissionRows(rows);
     } catch (error) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const message = getApiErrorText(error);
       notifications.show({
         title: 'Error',
         message: message || 'Failed to load group permissions',
@@ -185,7 +186,7 @@ export function GroupPermissionsModal({ opened, onClose, roleId, roleName }: IGr
 
       onClose();
     } catch (error) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const message = getApiErrorText(error);
       notifications.show({
         title: 'Error',
         message: message || 'Failed to save group permissions',
