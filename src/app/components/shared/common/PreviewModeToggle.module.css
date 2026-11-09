@@ -1,0 +1,64 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/* A control strip, not a stray switch: quiet surface at rest, warm tint when
+   preview mode is on so it is obvious the CMS is showing unpublished content. */
+.root {
+  padding: 8px 10px;
+  border-radius: var(--mantine-radius-md);
+  border: 1px solid transparent;
+  background-color: var(--mantine-color-gray-0);
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+[data-mantine-color-scheme='dark'] .root {
+  background-color: var(--mantine-color-dark-6);
+}
+
+.root[data-active='true'] {
+  background-color: var(--mantine-color-orange-light);
+  border-color: var(--mantine-color-orange-light-hover);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--mantine-color-dimmed);
+  transition: color 150ms ease;
+}
+
+.root[data-active='true'] .icon {
+  color: var(--mantine-color-orange-light-color);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.label {
+  color: var(--mantine-color-text);
+}
+
+.status {
+  color: var(--mantine-color-dimmed);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.root[data-active='true'] .status {
+  color: var(--mantine-color-orange-light-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .icon {
+    transition: none;
+  }
+}

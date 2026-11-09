@@ -164,17 +164,17 @@ const createNextConfig = (phase) => {
           destination: `${SYMFONY_BACKEND_URL}/plugin-artifacts/:path*`,
         },
         /**
-         * Symfony-served user assets (`/uploads/...`). In production the
-         * backend is private and Traefik only exposes the frontend, so the
-         * browser reaches uploads same-origin through the frontend, which
-         * proxies to the internal backend (same pattern as plugin-artifacts).
-         * `getAssetUrl` emits same-origin `/uploads/...` paths when the API
-         * base is a path prefix (the production BFF mode).
+         * NOTE: asset bytes deliberately have NO rewrite here.
+         *
+         * Since core 0.1.41 they come from the ACL-enforced
+         * `GET /cms-api/v1/assets/{folder}/{filename}`, which authorizes against
+         * the folder ACLs using the `Authorization: Bearer` header. A rewrite
+         * straight to Symfony would forward the request ANONYMOUS (only the
+         * `/api/*` BFF catch-all turns the httpOnly auth cookie into that
+         * header), so admins and granted users would both see nothing.
+         * `getAssetUrl` therefore emits `/api/assets/...` and the bytes ride the
+         * normal BFF proxy. The pre-0.1.41 `/uploads/:path*` rewrite is retired.
          */
-        {
-          source: '/uploads/:path*',
-          destination: `${SYMFONY_BACKEND_URL}/uploads/:path*`,
-        },
       ];
     },
   };

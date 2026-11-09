@@ -67,7 +67,8 @@ export function SectionFieldPanels({
     dataVariables,
     hasMultipleLanguages: _hasMultipleLanguages,
 }: ISectionFieldPanelsProps) {
-    const globalFieldTypes: GlobalFieldType[] = ['condition', 'data_config', 'css', 'css_mobile', 'debug'];
+    // condition and data_config are now edited inline, not in the inspector.
+    const globalFieldTypes: GlobalFieldType[] = ['css', 'css_mobile', 'debug'];
     const [fieldSearch, setFieldSearch] = useState('');
 
     const stylePlatform = getStylePlatformByName(styleName ?? '');

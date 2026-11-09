@@ -6,13 +6,14 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { 
-  Box, 
-  Title, 
-  Text, 
-  Stack, 
+import {
+  Box,
+  Title,
+  Text,
+  Stack,
   Alert,
-  Loader
+  Loader,
+  Splitter
 } from '@mantine/core';
 import { 
   IconInfoCircle,
@@ -187,7 +188,7 @@ function AdminPagesContent() {
     }
 
     return (
-      <Box className={`max-h-screen transition-opacity duration-200 ${isFetching ? 'opacity-90' : 'opacity-100'}`}>
+      <Box className={`h-full overflow-hidden transition-opacity duration-200 ${isFetching ? 'opacity-90' : 'opacity-100'}`}>
         <PageSections 
           pageId={selectedPage.id_pages} 
           pageName={selectedPage.keyword}
@@ -198,9 +199,24 @@ function AdminPagesContent() {
     );
   };
 
+  // Tree + inspector are resizable siblings instead of a fixed-width
+  // `AppShell.Aside`. The inspector starts larger — it holds the fields.
   return (
-    <AdminShell aside={asideContent} asideWidth={420}>
-      {renderMainContent()}
+    <AdminShell fullHeightMain>
+      {asideContent ? (
+        <Splitter h="100%" style={{ minHeight: 0 }}>
+          <Splitter.Pane defaultSize={55} min={25}>
+            {renderMainContent()}
+          </Splitter.Pane>
+          <Splitter.Pane defaultSize={45} min={30}>
+            <Box h="100%" style={{ overflow: 'hidden' }}>
+              {asideContent}
+            </Box>
+          </Splitter.Pane>
+        </Splitter>
+      ) : (
+        renderMainContent()
+      )}
     </AdminShell>
   );
 }

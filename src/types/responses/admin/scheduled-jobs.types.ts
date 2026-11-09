@@ -103,6 +103,27 @@ export interface IScheduledJobsListData {
     totalPages: number;
 }
 
+/**
+ * Counts for the Scheduled Jobs page stat tiles.
+ *
+ * Scoped server-side to the jobs the calling admin can see and deliberately
+ * unfiltered: they describe that whole visible set, not the current
+ * search/date/status result, so the tiles stay stable while filtering.
+ *
+ * These are four independent status counts plus `total`. `deleted` jobs still
+ * count toward `total`, so the four are not a clean breakdown of the whole —
+ * never render them as parts of a whole (stacked bar, % of total).
+ */
+export interface IScheduledJobsStats {
+    total: number;
+    queued: number;
+    done: number;
+    failed: number;
+    deleted: number;
+}
+
+export type TScheduledJobsStatsResponse = IBaseApiResponse<IScheduledJobsStats>;
+
 export interface IScheduledJobRecipient {
     id: number | null;
     channel: string;

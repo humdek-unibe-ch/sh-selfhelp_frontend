@@ -28,6 +28,7 @@ describe('getUserStatusColor', () => {
         expect(getUserStatusColor('inactive')).toBe('red');
         expect(getUserStatusColor('pending')).toBe('yellow');
         expect(getUserStatusColor('invited')).toBe('yellow');
+        expect(getUserStatusColor('imported')).toBe('grape');
         expect(getUserStatusColor('interested')).toBe('blue');
         expect(getUserStatusColor('auto_created')).toBe('purple');
     });

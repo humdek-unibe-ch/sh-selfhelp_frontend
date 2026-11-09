@@ -4,10 +4,16 @@ SPDX-License-Identifier: MPL-2.0
 */
 
 .columnHeading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--mantine-color-text);
 }
 
 .link {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
   color: var(--mantine-color-text);
   text-decoration: none;
   transition: color 100ms ease, opacity 100ms ease;
@@ -16,6 +22,62 @@ SPDX-License-Identifier: MPL-2.0
 
 .link:hover {
   opacity: 1;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--mantine-color-blue-filled);
+  outline-offset: 3px;
+  border-radius: var(--mantine-radius-xs);
+  opacity: 1;
+}
+
+/* Centre the icon on the label's line box, so it stays put whether or not a
+   description follows. `sm` text is 14px at line-height 1.55 => ~21.7px. */
+/* Fixed-width gutter so labels line up whether or not a link has an icon —
+   a column of ragged left edges looks broken. */
+.linkIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 15px;
+  height: calc(var(--mantine-font-size-sm) * 1.55);
+  opacity: 0.7;
+}
+
+.link:hover .linkIcon {
+  opacity: 1;
+}
+
+/* Only reserves the gutter when a sibling in the same list has an icon, so a
+   column with no icons at all keeps its labels flush left. */
+.linkIconSpacer {
+  display: none;
+  flex-shrink: 0;
+  width: 15px;
+}
+
+.columnLinks:has(.linkIcon) .linkIconSpacer,
+.inlineRow:has(.linkIcon) .linkIconSpacer,
+.metaRow:has(.linkIcon) .linkIconSpacer {
+  display: inline-flex;
+}
+
+.linkBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+/* Pin the label's line box so .linkIcon's height calc matches it exactly. */
+.linkLabel {
+  line-height: 1.55;
+}
+
+.linkDescription {
+  line-height: 1.35;
+  max-width: 34ch;
 }
 
 .metaRow {
@@ -38,6 +100,13 @@ SPDX-License-Identifier: MPL-2.0
 
 .inlineRow {
   width: 100%;
+  align-items: center;
+}
+
+/* Inline is a single centred row of legal/meta links — descriptions would
+   break it into ragged blocks, so only the icon and label show there. */
+.inlineRow .linkDescription {
+  display: none;
 }
 
 @media (max-width: 48em) {

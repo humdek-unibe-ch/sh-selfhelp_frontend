@@ -133,6 +133,8 @@ export const USER_TYPES_ADMIN = 'admin'; // If exists
 export const USER_STATUS_INVITED = 'invited';
 export const USER_STATUS_ACTIVE = 'active';
 export const USER_STATUS_LOCKED = 'locked';
+/** Set by the CSV import; send-activation moves it to `invited`. */
+export const USER_STATUS_IMPORTED = 'imported';
 
 // pageActions
 export const PAGE_ACTIONS_BACKEND = 'backend';

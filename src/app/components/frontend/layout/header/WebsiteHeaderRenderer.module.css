@@ -86,6 +86,29 @@ SPDX-License-Identifier: MPL-2.0
     background-color: var(--mantine-color-default-hover);
 }
 
+/* Top utility row of double presets. The hierarchy comes from the smaller,
+   dimmed link type rather than a background tint. */
+.topRow {
+    flex-shrink: 0;
+    align-self: stretch;
+    padding-left: var(--mantine-spacing-md);
+    padding-bottom: var(--mantine-spacing-xs);
+}
+
+/* Boundary between the utility row and the main navigation row. */
+.doubleRowDivider {
+    margin-right: calc(var(--mantine-spacing-md) * -1);
+}
+
+/* Main navigation row of a double preset: takes the remaining height and
+   centres its items, so the two rows split the header cleanly. */
+.mainRow {
+    flex: 1;
+    align-items: center;
+    padding-top: var(--mantine-spacing-xs);
+    padding-left: var(--mantine-spacing-md);
+}
+
 /* Slim links in the top utility row of double presets. */
 .topRowLink {
     display: inline-flex;

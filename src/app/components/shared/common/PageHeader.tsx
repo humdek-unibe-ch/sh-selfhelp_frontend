@@ -10,15 +10,20 @@ import { type ReactNode } from 'react';
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
-  badge?: ReactNode;
+  /** Item count pilled next to the title. Shown even when 0; omit for no badge. */
+  badge?: number;
+  /** Names what `badge` counts for screen readers, e.g. "groups" reads as
+   *  "248 groups". Defaults to the title. */
+  badgeAriaLabel?: string;
   children?: ReactNode;
 }
 
-export function PageHeader({ 
-  title, 
-  subtitle, 
-  badge, 
-  children 
+export function PageHeader({
+  title,
+  subtitle,
+  badge,
+  badgeAriaLabel,
+  children
 }: PageHeaderProps) {
   return (
     <Group justify="space-between" align="center" wrap="wrap" gap="lg">
@@ -27,8 +32,14 @@ export function PageHeader({
         <Container pl={0}>
           <Group gap={8} align="center">
             <Title order={2}>{title}</Title>
-            {badge && (
-              <Badge variant="light" color="gray" size="sm">
+            {badge !== undefined && (
+              <Badge
+                variant="light"
+                color="blue"
+                size="lg"
+                radius="xl"
+                aria-label={`${badge} ${badgeAriaLabel ?? title}`}
+              >
                 {badge}
               </Badge>
             )}

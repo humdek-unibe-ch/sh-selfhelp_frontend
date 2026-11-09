@@ -41,6 +41,7 @@ import {
 import {
     MenuItemLabelTranslationsField,
     buildMenuItemTranslationsPayload,
+    hasAnyMenuItemLabel,
     translationsRecordFromItem,
     type TMenuItemTranslations,
 } from './MenuItemLabelTranslationsField';
@@ -90,6 +91,10 @@ function EditMenuItemModalContent({
     );
     const hasChildren = menuItems.some((row) => row.parent_item_id === item.id);
     const isHeaderRootItem = menuKey === 'web_header' && parentItemId === null;
+    // Group headings and external URLs carry their own label; page items take
+    // the page title, so only the former can be saved into an unlabelled state.
+    const labelRequired = item.item_type === 'group' || item.item_type === 'external_url';
+    const saveDisabled = labelRequired && !hasAnyMenuItemLabel(labelTranslations);
 
     const updateMutation = useMutation({
         mutationFn: (payload: Partial<IUpdateNavigationMenuItemRequest>) =>
@@ -104,6 +109,9 @@ function EditMenuItemModalContent({
     const menuLabel = menuKey.replaceAll('_', ' ');
 
     const handleSave = () => {
+        if (saveDisabled) {
+            return;
+        }
         const payload: Partial<IUpdateNavigationMenuItemRequest> = {
             icon: icon || null,
             mobile_icon: mobileIcon || null,
@@ -138,6 +146,7 @@ function EditMenuItemModalContent({
             onSave={handleSave}
             onCancel={onClose}
             isLoading={updateMutation.isPending}
+            disabled={saveDisabled}
             saveLabel="Save"
         >
             <Stack gap="md">
@@ -231,11 +240,11 @@ function EditMenuItemModalContent({
                                     Web icon for this page is configured separately in the web header or footer menu.
                                 </Text>
                             ) : null}
-                            {(item.item_type === 'group' || item.item_type === 'external_url') ? (
+                            {labelRequired ? (
                                 <MenuItemLabelTranslationsField
                                     value={labelTranslations}
                                     onChange={setLabelTranslations}
-                                    required
+                                    required={labelRequired}
                                     description="Shown in the public menu for this language. Falls back to the default CMS language when a translation is missing."
                                 />
                             ) : null}
@@ -331,11 +340,23 @@ function AddMenuItemModalContent({
         return ids;
     }, [menuItems]);
 
+    // Page types that can never appear in a public menu are dropped outright —
+    // unlike headless, an author cannot fix that from the CMS. `menu_eligible`
+    // is absent on cores < 0.1.43, where every page stays listed.
+    const ineligiblePageCount = useMemo(
+        () => (pages ?? []).filter((page) => page.menu_eligible === false).length,
+        [pages],
+    );
     const availablePages = useMemo(
-        () => (pages ?? []).filter((page) => !usedPageIds.has(page.id_pages)),
+        () => (pages ?? []).filter(
+            (page) => !usedPageIds.has(page.id_pages) && page.menu_eligible !== false,
+        ),
         [pages, usedPageIds],
     );
-    const hiddenPageCount = (pages?.length ?? 0) - availablePages.length;
+    const usedPageCount = (pages ?? []).filter(
+        (page) => usedPageIds.has(page.id_pages) && page.menu_eligible !== false,
+    ).length;
+    const hiddenPageCount = usedPageCount + ineligiblePageCount;
 
     // Options carry the localized title so authors can pick by what users see;
     // the label keeps the keyword so search matches both title and keyword.
@@ -413,11 +434,24 @@ function AddMenuItemModalContent({
         setSelectedChildPageIds(childPages.map((page) => page.id_pages));
     };
 
+    // Each item type has fields it cannot be created without; without this the
+    // Add button fires and the request only fails server-side. `labelRequired`
+    // must stay in sync with the `required` translations fields below, so the
+    // "label is required" message and a disabled Add always appear together.
+    const labelRequired = itemType === 'group' || itemType === 'external_url';
+    const hasLabel = hasAnyMenuItemLabel(labelTranslations);
+    const addDisabled = (labelRequired && !hasLabel)
+        || (itemType === 'page' && !pageId)
+        || (itemType === 'external_url' && externalUrl.trim() === '');
+
     const modalTitle = parentItemId
         ? `Add existing child page — ${menuKey.replaceAll('_', ' ')}`
         : `Add existing page — ${menuKey.replaceAll('_', ' ')}`;
 
     const handleAdd = () => {
+        if (addDisabled) {
+            return;
+        }
         setSubmitError(null);
         const payload: ICreateNavigationMenuItemRequest = {
             item_type: itemType,
@@ -480,6 +514,7 @@ function AddMenuItemModalContent({
                 <Stack gap={4}>
                     <Select
                         label="Page"
+                        required
                         searchable
                         data={pageOptions}
                         renderOption={renderPageOption}
@@ -487,20 +522,32 @@ function AddMenuItemModalContent({
                         onChange={handlePageChange}
                         nothingFoundMessage={
                             hiddenPageCount > 0 && pageOptions.length === 0
-                                ? 'All pages are already in this menu'
+                                ? 'No pages left to add to this menu'
                                 : 'No matching page'
                         }
                     />
                     {hiddenPageCount > 0 ? (
                         <Text size="xs" c="dimmed">
-                            {hiddenPageCount} page(s) already in this menu are not listed.
+                            {usedPageCount > 0
+                                ? `${usedPageCount} page(s) already in this menu are not listed.`
+                                : null}
+                            {usedPageCount > 0 && ineligiblePageCount > 0 ? ' ' : null}
+                            {ineligiblePageCount > 0
+                                ? `${ineligiblePageCount} system page(s) cannot appear in a public menu.`
+                                : null}
                         </Text>
                     ) : null}
                 </Stack>
             ) : null}
 
             {itemType === 'external_url' ? (
-                <TextInput label="URL" value={externalUrl} onChange={(e) => setExternalUrl(e.currentTarget.value)} />
+                <TextInput
+                    label="URL"
+                    required
+                    value={externalUrl}
+                    onChange={(e) => setExternalUrl(e.currentTarget.value)}
+                    error={externalUrl.trim() === '' ? 'URL is required' : undefined}
+                />
             ) : null}
         </Stack>
     );
@@ -511,7 +558,7 @@ function AddMenuItemModalContent({
                 <MenuItemLabelTranslationsField
                     value={labelTranslations}
                     onChange={setLabelTranslations}
-                    required
+                    required={labelRequired}
                     description="Link text shown in the menu for each language."
                 />
             ) : null}
@@ -520,7 +567,7 @@ function AddMenuItemModalContent({
                 <MenuItemLabelTranslationsField
                     value={labelTranslations}
                     onChange={setLabelTranslations}
-                    required
+                    required={labelRequired}
                     label="Group heading translations"
                     description="Non-clickable section title (for example a footer column heading)."
                 />
@@ -563,6 +610,7 @@ function AddMenuItemModalContent({
             onSave={handleAdd}
             onCancel={onClose}
             isLoading={createMutation.isPending}
+            disabled={addDisabled}
             saveLabel="Add"
         >
             <Stack gap="md">
