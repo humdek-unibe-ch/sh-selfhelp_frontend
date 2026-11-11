@@ -80,7 +80,14 @@ rework. The rest of the release works against any core in range.
   `name.extension`. Downloads are saved as `<id>.<extension>`.
 - **Groups: researcher instead of therapist, no admin group.** Page import and
   navigation import mention subject and researcher; the page import group
-  picker no longer hides an "admin" group (admin rights come from the role).
+  picker, the create-page dialog and the CMS app wizard no longer hide an
+  "admin" group (admin rights come from the role).
+- **Assets are addressed only by their delivery URL.** The asset type no
+  longer has `file_path`, and `getAssetUrl` keeps no mapping for old
+  `uploads/...` paths: backend asset URLs go through `/api/assets/...`, other
+  relative paths are served as they are.
+- Uses `@selfhelp/shared` 1.22.1 (rate-limit helpers for the login, 2FA and
+  password-reset messages; `files_public` on file-input).
 
 - **Child-page navigation styling.** The left sidebar gains a divider on its
   right edge matching the admin navbar, and each entry shows its route path
