@@ -39,7 +39,6 @@ const existing: IAsset = {
     id: 7,
     uuid: '22222222-2222-4222-8222-222222222222',
     name: 'team',
-    file_path: 'uploads/assets/22222222-2222-4222-8222-222222222222',
     url: '/cms-api/v1/assets/22222222-2222-4222-8222-222222222222',
     mime_type: 'image/png',
     size: 100,

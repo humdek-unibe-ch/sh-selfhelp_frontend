@@ -299,8 +299,7 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
   };
 
   const renderAssetRow = (asset: IAsset) => {
-    // `url` is the ACL-enforced delivery route and the only
-    // fetchable source; `file_path` is a logical key only.
+    // `url` is the access-checked delivery route, the only fetchable source.
     const deliveryUrl = getAssetUrl(asset.url);
     const typeInfo = getAssetTypeInfo(asset);
     const label = assetLabel(asset);

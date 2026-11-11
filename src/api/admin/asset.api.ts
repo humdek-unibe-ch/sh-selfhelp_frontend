@@ -20,14 +20,13 @@ export interface IAssetFolder {
 
 /**
  * An asset. `uuid` is also the stored file name; fetch the bytes only via
- * `url` (through `getAssetUrl`), never `file_path`. No `groups` = public;
+ * `url` (through `getAssetUrl`). No `groups` = public;
  * `roles` may manage it in the CMS.
  */
 export interface IAsset {
   id: number;
   uuid: string;
   name: string | null;
-  file_path: string;
   url: string;
   asset_type?: string;
   mime_type: string | null;

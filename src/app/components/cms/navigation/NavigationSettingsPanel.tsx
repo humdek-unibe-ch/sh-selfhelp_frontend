@@ -40,7 +40,6 @@ import { useAssets } from '../../../../hooks/useAssets';
 import { getAssetUrl } from '../../../../utils/asset-url.utils';
 import { assetFileLabel } from '../assets/assets.utils';
 
-const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|svg|webp|avif)$/i;
 
 
 
@@ -238,13 +237,12 @@ function NavigationSettingsForm({
 
         return assets
 
-            // Stored files have no extension, so prefer the recorded MIME type;
-            // the file name's extension covers folder-era assets.
-            .filter((asset) => (asset.mime_type ? asset.mime_type.startsWith('image/') : IMAGE_EXTENSIONS.test(asset.name ?? '')))
+            // Stored files have no extension; the recorded MIME type decides.
+            .filter((asset) => asset.mime_type?.startsWith('image/') ?? false)
 
             .map((asset) => ({
 
-                // Persist the delivery URL, not the (unfetchable) file_path key.
+                // Persist the delivery URL.
                 value: asset.url,
 
                 label: assetFileLabel(asset),

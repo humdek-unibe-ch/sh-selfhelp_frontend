@@ -10,11 +10,8 @@ import { PERMISSIONS } from '../../../../../../types/auth/jwt-payload.types';
 /**
  * Regression guard for asset delivery.
  *
- * Asset bytes must come from `url` (the ACL-enforced delivery route). Building
- * a URL from `file_path` produced the old static `/uploads/assets/` path, which
- * 404s now that files live outside the document root — so the fixture gives the
- * two fields DIFFERENT values, and the assertions fail if anything reverts to
- * `file_path`.
+ * Asset bytes must come from `url` (the access-checked delivery route),
+ * re-addressed onto the BFF so the request carries the user's identity.
  */
 const { hasPermission } = vi.hoisted(() => ({ hasPermission: vi.fn() }));
 
@@ -31,7 +28,6 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
                 id: 12,
                 uuid: '0b8f4c2e-7a1d-4e5f-9a3b-2c6d8e0f1a2b',
                 name: 'lamine-yamal-young.webp',
-                file_path: 'uploads/assets/0b8f4c2e-7a1d-4e5f-9a3b-2c6d8e0f1a2b',
                 url: '/cms-api/v1/assets/0b8f4c2e-7a1d-4e5f-9a3b-2c6d8e0f1a2b',
                 mime_type: 'image/webp',
                 size: 2048,
@@ -73,25 +69,19 @@ describe('AssetsList asset delivery URLs', () => {
         hasPermission.mockImplementation((p: string) => p === PERMISSIONS.ADMIN_ASSET_READ);
     });
 
-    it('builds the preview image from `url`, not `file_path`', async () => {
+    it('builds the preview image from `url`', async () => {
         renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
         const img = await screen.findByAltText('lamine-yamal-young.webp');
         expect(img).toHaveAttribute('src', DELIVERY_URL);
     });
 
-    it('builds the View and Download links from `url`, not `file_path`', async () => {
+    it('builds the View and Download links from `url`', async () => {
         renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
         expect(await screen.findByRole('link', { name: /view/i })).toHaveAttribute('href', DELIVERY_URL);
         const download = screen.getByRole('link', { name: /download/i });
         expect(download).toHaveAttribute('href', DELIVERY_URL);
         // No name forced: the server names the saved file `<uuid>.<extension>`.
         expect(download).toHaveAttribute('download', '');
-    });
-
-    it('never emits the unfetchable /uploads/assets path anywhere', async () => {
-        const { container } = renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
-        await screen.findByAltText('lamine-yamal-young.webp');
-        expect(container.innerHTML).not.toContain('/uploads/assets/');
     });
 
     it('never points the browser straight at the backend delivery path', async () => {

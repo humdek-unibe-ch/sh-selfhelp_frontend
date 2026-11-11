@@ -32,7 +32,6 @@ const asset = (id: number, name: string, folderId: number | null) => ({
     id,
     uuid: `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`,
     name,
-    file_path: `uploads/assets/00000000-0000-4000-8000-${String(id).padStart(12, '0')}`,
     url: `/cms-api/v1/assets/00000000-0000-4000-8000-${String(id).padStart(12, '0')}`,
     mime_type: 'application/pdf',
     size: 1,

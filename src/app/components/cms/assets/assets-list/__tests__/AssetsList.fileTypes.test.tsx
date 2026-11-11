@@ -30,7 +30,6 @@ const asset = (id: number, name: string, asset_type: string, mime_type: string |
     uuid: `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`,
     name,
     asset_type,
-    file_path: `uploads/assets/00000000-0000-4000-8000-${String(id).padStart(12, '0')}`,
     url: `/cms-api/v1/assets/00000000-0000-4000-8000-${String(id).padStart(12, '0')}`,
     mime_type,
     size: 1,

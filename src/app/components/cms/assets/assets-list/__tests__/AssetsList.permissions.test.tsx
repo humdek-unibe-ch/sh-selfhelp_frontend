@@ -27,7 +27,6 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
                 id: 1,
                 uuid: '11111111-1111-4111-8111-111111111111',
                 name: 'logo.png',
-                file_path: 'uploads/assets/11111111-1111-4111-8111-111111111111',
                 url: '/cms-api/v1/assets/11111111-1111-4111-8111-111111111111',
                 mime_type: 'image/png',
                 size: 10,
