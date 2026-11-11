@@ -64,7 +64,6 @@ import {
     buildPageLookup,
     formatMenuItemLabel,
     getMenuSiblingsAtParent,
-    isSystemAdminGroup,
     resolveChildPageMenuContexts,
     resolveInitialMenuTab,
     resolveMenuInsertPosition,
@@ -183,7 +182,6 @@ function CreatePageWizard({
 
     const groupOptions = useMemo(
         () => (groupsData?.groups ?? [])
-            .filter((group) => !isSystemAdminGroup(group))
             .map((group) => ({
                 value: String(group.id),
                 label: group.name,

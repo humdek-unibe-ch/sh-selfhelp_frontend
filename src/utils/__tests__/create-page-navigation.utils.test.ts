@@ -13,7 +13,6 @@ import {
     buildInitialNavigationMenusState,
     buildMenuInsertPositionOptions,
     formatMenuItemLabel,
-    isSystemAdminGroup,
     resolveChildPageMenuContexts,
     resolveInitialMenuTab,
     resolveMenuInsertPosition,
@@ -65,14 +64,6 @@ function webHeaderOverview(items: IAdminNavigationMenuItem[]): IAdminNavigationO
     };
     return { menus: { web_header: webHeader }, settings: {} };
 }
-
-describe('isSystemAdminGroup', () => {
-    it('matches the seeded admin group name case-insensitively', () => {
-        expect(isSystemAdminGroup({ name: 'admin' })).toBe(true);
-        expect(isSystemAdminGroup({ name: 'Admin' })).toBe(true);
-        expect(isSystemAdminGroup({ name: 'therapist' })).toBe(false);
-    });
-});
 
 describe('formatMenuItemLabel', () => {
     const pageById = new Map<number, IAdminPage>([

@@ -152,7 +152,7 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
             skipConflictingRoutes,
             activateRoutes,
             importData,
-            // Never send admin here — createPage always grants full admin ACL.
+            // Admins reach every page through the admin role, so no group is needed for them.
             accessGroups: accessGroups.length > 0
                 ? accessGroups.map(Number).filter((id) => Number.isFinite(id) && id > 0)
                 : undefined,
@@ -561,7 +561,7 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
                         <MultiSelect
                             label="Viewer groups"
                             placeholder={accessGroups.length > 0 ? undefined : 'Optional — admins already have access'}
-                            description="Extra groups that should see the imported pages (read-only on public pages, full access on CMS-app pages). The admin group is always granted full access automatically and is not listed here."
+                            description="Extra groups that should see the imported pages (read-only on public pages, full access on CMS-app pages). Admins always have access through the admin role."
                             inputWrapperOrder={['label', 'input', 'description']}
                             data={groupOptions}
                             value={accessGroups}

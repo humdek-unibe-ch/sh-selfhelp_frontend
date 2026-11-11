@@ -33,7 +33,6 @@ import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
 import { adminTableClasses as tableStyles } from '../shared/admin-table';
 import { useDataTables } from '../../../../hooks/useData';
 import { useGroups } from '../../../../hooks/useGroups';
-import { isSystemAdminGroup } from '../../../../utils/create-page-navigation.utils';
 import { useScaffoldCmsAppMutation } from '../../../../hooks/useCmsApps';
 import {
     type ICmsAppFormField,
@@ -91,7 +90,6 @@ export function ScaffoldCmsAppModal({
 
     const { data: groupsData } = useGroups({ pageSize: 200, sort: 'name', sortDirection: 'asc' });
     const groupOptions = (groupsData?.groups ?? [])
-        .filter((group) => !isSystemAdminGroup(group))
         .map((group) => ({ value: String(group.id), label: group.name }));
 
     const form = useForm<IWizardFormValues>({
