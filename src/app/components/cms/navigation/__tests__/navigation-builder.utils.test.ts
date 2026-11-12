@@ -209,7 +209,7 @@ describe('getPublicMenuExclusionReason', () => {
             getPublicMenuExclusionReason(
                 makeItem({ id: 2, page_id: 8, public_visibility: { rendered: false, reason: 'page_type_excluded' } }),
             ),
-        ).toMatch(/core and experiment/i);
+        ).toMatch(/system page type/i);
 
         expect(
             getPublicMenuExclusionReason(

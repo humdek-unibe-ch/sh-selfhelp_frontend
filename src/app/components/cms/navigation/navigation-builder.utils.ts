@@ -262,10 +262,16 @@ function hasItemDescription(item: IAdminNavigationMenuItem, languageId?: number 
     return scoped.some((row) => (row.description ?? '').trim() !== '');
 }
 
-/** Builder wording for each backend public-visibility reason code. */
+/**
+ * Builder wording for each backend public-visibility reason code.
+ *
+ * The wording never names the page types the public menu accepts: that list
+ * belongs to the backend (`PageType::PUBLIC_NAVIGABLE_PAGE_TYPES`) and can grow,
+ * so a copy of it here would turn wrong without any test noticing.
+ */
 const PUBLIC_EXCLUSION_MESSAGES: Record<TPublicVisibilityReason, string> = {
     headless: 'This page is headless, so the public menu never renders it.',
-    page_type_excluded: 'Only core and experiment pages appear in the public menu.',
+    page_type_excluded: 'This page has a system page type, which cannot appear in a public menu.',
     page_not_accessible: 'Visitors without access to this page will not see this entry.',
 };
 
