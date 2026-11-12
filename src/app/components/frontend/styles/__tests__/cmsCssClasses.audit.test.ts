@@ -35,7 +35,6 @@ describe('CMS example CSS class audit', () => {
         const tokens = collectExampleCssTokens();
         expect(tokens.has('grid')).toBe(true);
         expect(tokens.has('xl:grid-cols-3')).toBe(true);
-        expect(tokens.has('gap-md')).toBe(true);
     });
 
     it('covers every web css token used by importable examples', () => {

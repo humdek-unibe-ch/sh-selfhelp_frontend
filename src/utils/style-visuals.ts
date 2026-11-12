@@ -205,6 +205,7 @@ const STYLE_FAMILIES: IStyleFamily[] = [
         styles: [
             { name: 'form-log', icon: IconForms },
             { name: 'form-record', icon: IconForms },
+            { name: 'entry-record-form', icon: IconForms },
             { name: 'input', icon: IconInputSearch },
             { name: 'text-input', icon: IconInputSearch },
             { name: 'textarea', icon: IconTextCaption },
@@ -250,7 +251,8 @@ const STYLE_FAMILIES: IStyleFamily[] = [
             { name: 'entry-list', icon: IconTable },
             { name: 'entry-record', icon: IconClipboardText },
             { name: 'entry-record-delete', icon: IconDatabaseCog },
-            { name: 'show-user-input', icon: IconTable },
+            // Renamed from `show-user-input` by backend migration Version20260710093048.
+            { name: 'entry-table', icon: IconTable },
             { name: 'loop', icon: IconRepeat },
         ],
     },

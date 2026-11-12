@@ -3,6 +3,7 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect } from 'vitest';
+import { BASE_STYLE_REGISTRY } from '@selfhelp/shared/registry';
 import { getStyleVisual, KNOWN_STYLE_NAMES } from '../style-visuals';
 
 // A representative slice of the catalog across every family, used to assert
@@ -62,6 +63,25 @@ describe('getStyleVisual', () => {
     it('is deterministic — the same style always yields the same hue', () => {
         expect(getStyleVisual('entry-list', false).hue).toBe(getStyleVisual('entry-list', false).hue);
         expect(getStyleVisual('input', true).hue).toBe(getStyleVisual('input', false).hue);
+    });
+
+    // The visuals are a hand-kept list; the shared registry is the catalog the
+    // backend, web and mobile agree on. They drifted once: the backend renamed
+    // `show-user-input` to `entry-table` and added `entry-record-form`, while the
+    // list kept the old name, so both new styles showed the neutral fallback
+    // colour and icon in the section tree and nothing failed.
+    describe('parity with the shared style registry', () => {
+        const registryNames = Object.keys(BASE_STYLE_REGISTRY);
+
+        it('gives every style of the registry its own visual', () => {
+            const withoutVisual = registryNames.filter((name) => !KNOWN_STYLE_NAMES.includes(name));
+            expect(withoutVisual).toEqual([]);
+        });
+
+        it('keeps no visual for a style the registry no longer has (a renamed or removed style)', () => {
+            const orphaned = KNOWN_STYLE_NAMES.filter((name) => !registryNames.includes(name));
+            expect(orphaned).toEqual([]);
+        });
     });
 
     it('falls back to a container-aware default for an unknown style', () => {
