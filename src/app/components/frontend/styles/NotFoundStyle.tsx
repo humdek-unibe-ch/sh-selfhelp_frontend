@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation';
 import { type INotFoundStyle } from '../../../../shared';
 import { ROUTES } from '../../../../config/routes.config';
 import { stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
+import { withRedirectTo } from '../../../../utils/login-redirect.utils';
 
 
 interface INotFoundStyleProps {
@@ -37,7 +38,7 @@ const NotFoundStyle: React.FC<INotFoundStyleProps> = ({ style, styleProps, cssCl
     const showIcon = style.show_icon?.content !== '0';
     const pathname = usePathname();
     // Return the guest to the page they opened once they sign in.
-    const loginHref = pathname ? `${ROUTES.LOGIN}?redirectTo=${encodeURIComponent(pathname)}` : ROUTES.LOGIN;
+    const loginHref = pathname ? withRedirectTo(ROUTES.LOGIN, pathname) : ROUTES.LOGIN;
 
     return (
         <Container size="sm" py="xl">

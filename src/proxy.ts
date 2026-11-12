@@ -71,6 +71,7 @@ import {
     randomHexToken,
     type IRefreshedTokens,
 } from './config/server.config';
+import { LOGIN_REDIRECT_PARAM } from './utils/login-redirect.utils';
 
 /**
  * Parse `Accept-Language` and return the caller's highest-priority locale
@@ -202,7 +203,7 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
         if (!req.cookies.get(AUTH_COOKIE)?.value) {
             const loginUrl = req.nextUrl.clone();
             loginUrl.pathname = '/login';
-            loginUrl.searchParams.set('redirect', pathname + req.nextUrl.search);
+            loginUrl.searchParams.set(LOGIN_REDIRECT_PARAM, pathname + req.nextUrl.search);
             const redirectResponse = NextResponse.redirect(loginUrl);
             if (sessionCleared) {
                 redirectResponse.cookies.set(AUTH_COOKIE, '', {

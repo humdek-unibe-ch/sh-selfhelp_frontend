@@ -26,6 +26,7 @@ import { subscribeAuthBroadcast } from '../utils/auth-broadcast';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { permissionManager } from '../api/permission-wrapper.api';
 import { ROUTES } from '../config/routes.config';
+import { withRedirectTo } from '../utils/login-redirect.utils';
 
 function shouldRedirectToLogin(pathname: string): boolean {
     if (!pathname.startsWith('/admin')) return false;
@@ -56,7 +57,7 @@ export function useAuthBroadcastSync(): void {
                     shouldRedirectToLogin(window.location.pathname)
                 ) {
                     const currentPath = window.location.pathname + window.location.search;
-                    router.replace(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(currentPath)}`);
+                    router.replace(withRedirectTo(ROUTES.LOGIN, currentPath));
                 }
             } else {
                 // logged-in elsewhere: refetch so this tab adopts the session.

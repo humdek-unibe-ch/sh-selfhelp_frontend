@@ -52,6 +52,7 @@ import { ROUTES } from '../config/routes.config';
 import { readCookieValue } from '../utils/auth.utils';
 import { CSRF_COOKIE } from '../config/cookie-names';
 import { isTransientApiError, transientRetryDelay } from '../utils/transient-error.utils';
+import { withRedirectTo } from '../utils/login-redirect.utils';
 
 declare module 'axios' {
     export interface InternalAxiosRequestConfig {
@@ -178,8 +179,7 @@ apiClientRaw.interceptors.response.use(
         ) {
             const path = window.location.pathname + window.location.search;
             if (shouldRedirectToLogin(window.location.pathname)) {
-                const loginUrl = `${ROUTES.LOGIN}?redirect=${encodeURIComponent(path)}`;
-                window.location.href = loginUrl;
+                window.location.href = withRedirectTo(ROUTES.LOGIN, path);
             }
         }
 

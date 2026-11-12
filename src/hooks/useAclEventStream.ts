@@ -62,6 +62,7 @@ import { useImpersonationStore } from '../app/store/impersonation.store';
 import { ROUTES } from '../config/routes.config';
 import { setAuthSseConnected } from './auth-sse-status';
 import { subscribeSharedSse } from '../utils/shared-sse';
+import { withRedirectTo } from '../utils/login-redirect.utils';
 
 /** React Query keys for the system-update views fed by the `system-update` SSE event. */
 const SYSTEM_UPDATE_STATUS_KEY = ['systemUpdateStatus'] as const;
@@ -144,7 +145,7 @@ export function useAclEventStream(): void {
 
                 const currentPath = window.location.pathname + window.location.search;
                 if (shouldRedirectToLogin(window.location.pathname)) {
-                    router.replace(`${ROUTES.LOGIN}?redirect=${encodeURIComponent(currentPath)}`);
+                    router.replace(withRedirectTo(ROUTES.LOGIN, currentPath));
                 }
                 return true;
             } catch {

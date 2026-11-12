@@ -14,6 +14,7 @@ import { type ILoginStyle } from '../../../../types/common/styles.types';
 import { AuthApi } from '../../../../api/auth.api';
 import { ROUTES } from '../../../../config/routes.config';
 import { useAuth } from '../../../../hooks/useAuth';
+import { LOGIN_REDIRECT_PARAM, safeRedirectTarget, withRedirectTo } from '../../../../utils/login-redirect.utils';
 
 interface ILoginStyleProps {
     style: ILoginStyle;
@@ -60,15 +61,15 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                 sessionStorage.removeItem('2fa_time_remaining');
                 sessionStorage.removeItem('2fa_last_update');
                 sessionStorage.setItem('2fa_fresh_login', 'true');
-                // Keep the post-login target across the 2FA step.
-                const redirectTo = searchParams.get('redirectTo');
-                router.push(redirectTo ? `${ROUTES.TWO_FACTOR_AUTH}?redirectTo=${encodeURIComponent(redirectTo)}` : ROUTES.TWO_FACTOR_AUTH);
+                // Keep the post-login target across the 2FA step. The target comes from
+                // the URL, so only a path on this site is carried or followed.
+                const redirectTo = safeRedirectTarget(searchParams.get(LOGIN_REDIRECT_PARAM));
+                router.push(redirectTo ? withRedirectTo(ROUTES.TWO_FACTOR_AUTH, redirectTo) : ROUTES.TWO_FACTOR_AUTH);
                 return;
             }
 
             notifications.show({ title: 'Success', message: 'Successfully logged in', color: 'green' });
-            const redirectTo = searchParams.get('redirectTo') || ROUTES.HOME;
-            router.push(redirectTo);
+            router.push(safeRedirectTarget(searchParams.get(LOGIN_REDIRECT_PARAM)) ?? ROUTES.HOME);
         } catch (err) {
             const retryAfter = getRateLimitRetryAfter(err);
             if (retryAfter !== null) {
@@ -89,7 +90,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     // it so the form is not bounced before auth resolves.
     useEffect(() => {
         if (!isAuthLoading && isAuthenticated) {
-            router.replace(searchParams.get('redirectTo') || ROUTES.HOME);
+            router.replace(safeRedirectTarget(searchParams.get(LOGIN_REDIRECT_PARAM)) ?? ROUTES.HOME);
         }
     }, [isAuthLoading, isAuthenticated, router, searchParams]);
 

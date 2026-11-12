@@ -12,11 +12,15 @@ import { renderHook, act } from '@testing-library/react';
  * PREVIOUS user's challenge on a later visit, and a stale timer makes the next
  * attempt start part-expired.
  */
-const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }));
+const { pushMock, searchParamsState } = vi.hoisted(() => ({
+    pushMock: vi.fn(),
+    searchParamsState: { redirectTo: null as string | null },
+}));
 
 vi.mock('next/navigation', () => ({
     useRouter: () => ({ push: pushMock, replace: vi.fn(), prefetch: vi.fn() }),
-    useSearchParams: () => ({ get: () => null }),
+    // Answers only to `redirectTo`, the one name the login URL is written with.
+    useSearchParams: () => ({ get: (name: string) => (name === 'redirectTo' ? searchParamsState.redirectTo : null) }),
 }));
 vi.mock('@mantine/notifications', () => ({ notifications: { show: vi.fn() } }));
 vi.mock('../../api/auth.api', () => ({ AuthApi: { verifyTwoFactor: vi.fn() } }));
@@ -30,6 +34,7 @@ const { TIMER_KEY, TIMER_LAST_UPDATE_KEY, TIMER_FRESH_LOGIN_KEY, USER_ID_KEY } =
 describe('useTwoFactorAuth', () => {
     beforeEach(() => {
         pushMock.mockClear();
+        searchParamsState.redirectTo = null;
         sessionStorage.clear();
     });
 
@@ -56,6 +61,44 @@ describe('useTwoFactorAuth', () => {
         expect(sessionStorage.getItem(TIMER_LAST_UPDATE_KEY)).toBeNull();
         expect(sessionStorage.getItem(TIMER_FRESH_LOGIN_KEY)).toBeNull();
         expect(pushMock).toHaveBeenCalledWith('/login');
+    });
+
+    it('sends a verified user to the same-site redirectTo target', async () => {
+        sessionStorage.setItem(USER_ID_KEY, '42');
+        searchParamsState.redirectTo = '/admin/pages?page=2';
+        vi.mocked(AuthApi.verifyTwoFactor).mockResolvedValueOnce(
+            {} as Awaited<ReturnType<typeof AuthApi.verifyTwoFactor>>,
+        );
+        const { result } = renderHook(() => useTwoFactorAuth());
+
+        await act(async () => {
+            await result.current.submitCode(['1', '2', '3', '4', '5', '6']);
+        });
+
+        expect(pushMock).toHaveBeenCalledWith('/admin/pages?page=2');
+    });
+
+    // Critical: a crafted `/two-factor-authentication?redirectTo=https://evil.example`
+    // link sent a user who had just entered their code to the attacker's site.
+    it.each([
+        ['an absolute URL', 'https://evil.example/phish'],
+        ['a protocol-relative URL', '//evil.example'],
+        ['a slash-backslash host', '/\\evil.example'],
+        ['a javascript: URL', 'javascript:alert(1)'],
+    ])('never follows %s after a verified code', async (_label, target) => {
+        sessionStorage.setItem(USER_ID_KEY, '42');
+        searchParamsState.redirectTo = target;
+        vi.mocked(AuthApi.verifyTwoFactor).mockResolvedValueOnce(
+            {} as Awaited<ReturnType<typeof AuthApi.verifyTwoFactor>>,
+        );
+        const { result } = renderHook(() => useTwoFactorAuth());
+
+        await act(async () => {
+            await result.current.submitCode(['1', '2', '3', '4', '5', '6']);
+        });
+
+        expect(pushMock).toHaveBeenCalledTimes(1);
+        expect(pushMock).toHaveBeenCalledWith('/home');
     });
 
     it('shows the wait time instead of "Invalid code" when 2FA attempts are rate-limited (429)', async () => {

@@ -10,6 +10,7 @@ import { notifications } from '@mantine/notifications';
 import { AuthApi } from '../api/auth.api';
 import { ROUTES } from '../config/routes.config';
 import { broadcastAuthChange } from '../utils/auth-broadcast';
+import { LOGIN_REDIRECT_PARAM, safeRedirectTarget } from '../utils/login-redirect.utils';
 import { formatRateLimitMessage, getRateLimitRetryAfter } from '@selfhelp/shared';
 import { type ITwoFactorVerifyRequest } from '../types/requests/auth/auth.types';
 
@@ -61,7 +62,8 @@ export function useTwoFactorAuth(options: UseTwoFactorAuthOptions = {}) {
 
     const router = useRouter();
     const searchParams = useSearchParams();
-    const redirectTo = searchParams.get('redirectTo') || ROUTES.HOME;
+    // The target comes from the URL: only a path on this site is ever followed.
+    const redirectTo = safeRedirectTarget(searchParams.get(LOGIN_REDIRECT_PARAM)) ?? ROUTES.HOME;
     const userIdFromUrl = searchParams.get('user') || '';
 
     // Derive the user id from URL → sessionStorage. Computed via `useMemo`
