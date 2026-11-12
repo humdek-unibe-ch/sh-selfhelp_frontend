@@ -67,7 +67,8 @@ export function SectionFieldPanels({
     dataVariables,
     hasMultipleLanguages: _hasMultipleLanguages,
 }: ISectionFieldPanelsProps) {
-    const globalFieldTypes: GlobalFieldType[] = ['condition', 'data_config', 'css', 'css_mobile', 'debug'];
+    // condition and data_config are now edited inline, not in the inspector.
+    const globalFieldTypes: GlobalFieldType[] = ['css', 'css_mobile', 'debug'];
     const [fieldSearch, setFieldSearch] = useState('');
 
     const stylePlatform = getStylePlatformByName(styleName ?? '');
@@ -143,7 +144,7 @@ export function SectionFieldPanels({
     return (
         <Stack gap="md">
             <Box>
-                <TextInput
+                <TextInput aria-label="Search fields"
                     placeholder="Search fields by name..."
                     value={fieldSearch}
                     onChange={(e) => setFieldSearch(e.currentTarget.value)}

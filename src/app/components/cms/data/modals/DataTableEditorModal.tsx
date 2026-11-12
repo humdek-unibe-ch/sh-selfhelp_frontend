@@ -242,7 +242,7 @@ export function DataTableEditorModal({ open, onClose, formId, tableName, display
           <Divider />
 
           <Title order={5}>Delete columns</Title>
-          <MultiSelect
+          <MultiSelect aria-label="Columns to delete"
             data={columnOptions}
             value={selectedColumns}
             onChange={setSelectedColumns}

@@ -2,61 +2,42 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { API_CONFIG } from '../config/api.config';
+/**
+ * Asset bytes are served only by the backend's access-checked delivery route
+ * `GET /cms-api/v1/assets/{uuid}`.
+ *
+ * The browser must reach it through the BFF (`/api/assets/...`), NOT the
+ * backend path directly. Symfony authorizes from the `Authorization: Bearer`
+ * header, and the ONLY thing that attaches it is the `/api/*` catch-all proxy
+ * (which reads the httpOnly `sh_auth`/`sh_impersonate` cookie server-side). The
+ * proxy drops the header cleanly when there is no session, so anonymous reads
+ * of public assets keep working.
+ */
+const DELIVERY_PREFIX = '/api/assets/';
+const BACKEND_PREFIX = 'cms-api/v1/assets/';
 
 /**
- * Utility function to construct proper asset URLs for the frontend
- * Handles different path formats including external URLs, data URLs, and local paths
+ * Turn an asset reference into a URL the browser can fetch.
  *
- * @param filePath - The raw file path from the backend API or external URL
- * @returns The full URL pointing to the Symfony backend server or the original URL if external
+ * - absolute `http(s)` and `data:` URLs pass through untouched;
+ * - the backend delivery URL (`asset.url`) is re-addressed onto the BFF;
+ * - any other relative path (an already-BFF `/api/assets/...` URL or frontend
+ *   static artwork under `/assets/...`) stays same-origin as-is.
  */
-export const getAssetUrl = (filePath: string): string => {
-    // Handle empty or null values
-    if (!filePath || typeof filePath !== 'string') {
+export const getAssetUrl = (value: string): string => {
+    if (!value || typeof value !== 'string') {
         return '';
     }
 
-    const trimmedPath = filePath.trim();
-
-    // If it's already a full HTTP/HTTPS URL, return as-is (external URLs)
-    if (trimmedPath.startsWith('http://') || trimmedPath.startsWith('https://')) {
-        return trimmedPath;
+    const trimmed = value.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+        return trimmed;
     }
 
-    // If it's a data URL (base64 encoded images), return as-is
-    if (trimmedPath.startsWith('data:')) {
-        return trimmedPath;
+    const path = trimmed.replace(/^\/+/, '');
+    if (path.startsWith(BACKEND_PREFIX)) {
+        return `${DELIVERY_PREFIX}${path.slice(BACKEND_PREFIX.length)}`;
     }
 
-    // Handle relative paths - these need to be processed through our backend
-    let cleanPath = trimmedPath;
-
-    // Remove any leading slashes
-    if (cleanPath.startsWith('/')) {
-        cleanPath = cleanPath.substring(1);
-    }
-
-    // Handle admin prefixes that might be in the path
-    if (cleanPath.startsWith('admin/uploads/')) {
-        cleanPath = cleanPath.replace('admin/uploads/', 'uploads/');
-    } else if (cleanPath.startsWith('admin/')) {
-        cleanPath = cleanPath.replace('admin/', '');
-    }
-
-    // Ensure it starts with uploads/ if it doesn't already (for local assets)
-    if (!cleanPath.startsWith('uploads/') && !cleanPath.startsWith('assets/')) {
-        cleanPath = `uploads/${cleanPath}`;
-    }
-
-    // Production (Docker/BFF) mode: BACKEND_URL is a same-origin path prefix
-    // (e.g. `/api`). The backend is private, so emit a same-origin URL and let
-    // the frontend proxy it: `uploads/*` is rewritten to the internal backend
-    // (see next.config.mjs), and `assets/*` is served by Next from `public/`.
-    if (API_CONFIG.BACKEND_URL.startsWith('/')) {
-        return `/${cleanPath}`;
-    }
-
-    // Dev mode: BACKEND_URL is the absolute Symfony origin.
-    return `${API_CONFIG.BACKEND_URL}/${cleanPath}`;
+    return `/${path}`;
 };

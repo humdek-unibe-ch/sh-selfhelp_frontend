@@ -517,7 +517,7 @@ export function ScheduledJobDetailsModal({
                                                             {logData.content.table_row_entry && (
                                                                 <Card withBorder p="sm">
                                                                     <Text size="sm" fw={500} mb="xs">Table Row Entry:</Text>
-                                                                    <JsonInput
+                                                                    <JsonInput aria-label="Table row entry"
                                                                         value={JSON.stringify(logData.content.table_row_entry, null, 2)}
                                                                         readOnly
                                                                         size="xs"

@@ -4,13 +4,17 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState } from 'react';
-import { TextInput, PasswordInput, Button, Paper, Title, Text, Anchor, Stack } from '@mantine/core';
+import { useEffect, useState } from 'react';
+import { TextInput, PasswordInput, Button, Paper, Title, Text, Anchor, Stack, Alert } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { IconLock } from '@tabler/icons-react';
+import { formatRateLimitMessage, getRateLimitRetryAfter } from '@selfhelp/shared';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type ILoginStyle } from '../../../../types/common/styles.types';
 import { AuthApi } from '../../../../api/auth.api';
 import { ROUTES } from '../../../../config/routes.config';
+import { useAuth } from '../../../../hooks/useAuth';
+import { LOGIN_REDIRECT_PARAM, safeRedirectTarget, withRedirectTo } from '../../../../utils/login-redirect.utils';
 
 interface ILoginStyleProps {
     style: ILoginStyle;
@@ -22,8 +26,10 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
     const labelUser = style.label_user?.content || 'Email/Username';
     const labelPassword = style.label_pw?.content || 'Password';
@@ -31,6 +37,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const labelPasswordReset = style.label_pw_reset?.content || 'Forgot password?';
     const labelRegister = style.label_register?.content ?? (style.fields?.label_register?.content as string | undefined) ?? 'Create account';
     const alertFail = style.alert_fail?.content || 'Invalid email or password.';
+    const alertRateLimited = style.alert_rate_limited?.content;
     const loginTitle = style.login_title?.content || 'Welcome back!';
     const subtitle = style.subtitle?.content?.trim();
     const mantineColor = style.color?.content || 'blue';
@@ -43,6 +50,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const handleSubmit = async (e: { preventDefault(): void }) => {
         e.preventDefault();
         setIsLoading(true);
+        setLockoutMessage(null);
 
         try {
             const response = await AuthApi.login({ email, password });
@@ -53,19 +61,42 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                 sessionStorage.removeItem('2fa_time_remaining');
                 sessionStorage.removeItem('2fa_last_update');
                 sessionStorage.setItem('2fa_fresh_login', 'true');
-                router.push(ROUTES.TWO_FACTOR_AUTH);
+                // Keep the post-login target across the 2FA step. The target comes from
+                // the URL, so only a path on this site is carried or followed.
+                const redirectTo = safeRedirectTarget(searchParams.get(LOGIN_REDIRECT_PARAM));
+                router.push(redirectTo ? withRedirectTo(ROUTES.TWO_FACTOR_AUTH, redirectTo) : ROUTES.TWO_FACTOR_AUTH);
                 return;
             }
 
             notifications.show({ title: 'Success', message: 'Successfully logged in', color: 'green' });
-            const redirectTo = searchParams.get('redirectTo') || ROUTES.HOME;
-            router.push(redirectTo);
+            router.push(safeRedirectTarget(searchParams.get(LOGIN_REDIRECT_PARAM)) ?? ROUTES.HOME);
         } catch (err) {
+            const retryAfter = getRateLimitRetryAfter(err);
+            if (retryAfter !== null) {
+                setLockoutMessage(formatRateLimitMessage(alertRateLimited, retryAfter));
+                return;
+            }
             notifications.show({ title: 'Error', message: (err as { message?: string })?.message || alertFail, color: 'red' });
         } finally {
             setIsLoading(false);
         }
     };
+
+    // An already-signed-in visitor must never see the login form: rendering it
+    // on top of a live session reads as a silent logout. Reachable by typing
+    // /login, a stale bookmark, or a flow that redirects here (e.g. finishing
+    // another account's activation link). Mirrors the RegisterStyle guard;
+    // `replace` keeps the login URL out of history, and `isAuthLoading` gates
+    // it so the form is not bounced before auth resolves.
+    useEffect(() => {
+        if (!isAuthLoading && isAuthenticated) {
+            router.replace(safeRedirectTarget(searchParams.get(LOGIN_REDIRECT_PARAM)) ?? ROUTES.HOME);
+        }
+    }, [isAuthLoading, isAuthenticated, router, searchParams]);
+
+    if (!isAuthLoading && isAuthenticated) {
+        return null;
+    }
 
     return (
         <Paper
@@ -111,6 +142,12 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
                         autoComplete="current-password"
                         suppressHydrationWarning
                     />
+
+                    {lockoutMessage ? (
+                        <Alert color="orange" icon={<IconLock size={18} />} role="alert">
+                            {lockoutMessage}
+                        </Alert>
+                    ) : null}
 
                     <Button
                         type="submit"

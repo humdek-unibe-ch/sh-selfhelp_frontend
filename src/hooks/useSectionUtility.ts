@@ -9,6 +9,7 @@ import { AdminSectionApi } from '../api/admin/section.api';
 import { AdminCacheApi } from '../api/admin/cache.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type { IUnusedSectionsData, IRefContainerSectionsData, ISectionPage } from '../types/responses/admin/section-utility.types';
+import { getApiErrorText } from '../utils/mutation-error-handler';
 
 /**
  * Hook to fetch unused sections (not in hierarchy and not assigned to pages)
@@ -87,7 +88,7 @@ export function useClearApiRoutesCacheMutation() {
 
             notifications.show({
                 title: 'Error',
-                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to clear API routes cache',
+                message: getApiErrorText(error) || 'Failed to clear API routes cache',
                 color: 'red',
             });
         },
@@ -116,7 +117,7 @@ export function useDeleteUnusedSectionMutation() {
 
             notifications.show({
                 title: 'Error',
-                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to delete section',
+                message: getApiErrorText(error) || 'Failed to delete section',
                 color: 'red',
                 autoClose: false,
             });
@@ -146,7 +147,7 @@ export function useDeleteAllUnusedSectionsMutation() {
 
             notifications.show({
                 title: 'Error',
-                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to delete all sections',
+                message: getApiErrorText(error) || 'Failed to delete all sections',
                 color: 'red',
                 autoClose: false,
             });

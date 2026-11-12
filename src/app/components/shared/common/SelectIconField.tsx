@@ -8,6 +8,7 @@ import React, { useMemo, useState } from 'react';
 import { Select, Group, Text, Box, type ComboboxItem, type ComboboxLikeRenderOptionInput } from '@mantine/core';
 import * as TablerIcons from '@tabler/icons-react';
 import type { IFieldConfig } from '../../../../types/requests/admin/fields.types';
+import { useFieldLabel } from './field-label-context';
 
 interface ISelectIconFieldProps {
     fieldId: number;
@@ -28,6 +29,7 @@ export function SelectIconField({
     disabled = false,
     iconSize = 16
 }: ISelectIconFieldProps) {
+    const fieldLabel = useFieldLabel();
     const [searchValue, setSearchValue] = useState('');
 
     // All icon component names (e.g., IconHome, IconUser, ...)
@@ -115,7 +117,7 @@ export function SelectIconField({
     const SelectedIcon = value ? (TablerIcons[value as keyof typeof TablerIcons] as React.ElementType) : undefined;
 
     return (
-        <Select
+        <Select aria-labelledby={fieldLabel?.id}
             key={fieldId}
             data={options}
             value={value || ''}

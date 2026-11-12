@@ -86,7 +86,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                     width={500}
                 >
                     <Popover.Target>
-                        <ActionIcon
+                        <ActionIcon aria-label="Show debug info"
                             variant='filled'
                             size='xs'
                             color="orange"
@@ -179,12 +179,12 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                             )}
 
                             <Group justify="space-between" align="center">
-                                <TextInput
+                                <TextInput aria-label="Search properties"
                                     placeholder="Search properties..."
                                     leftSection={<IconSearch size={16} />}
                                     rightSection={
                                         searchText ? (
-                                            <ActionIcon
+                                            <ActionIcon aria-label="Clear search"
                                                 variant="transparent"
                                                 size="sm"
                                                 color={conditionFailed ? 'red' : 'orange'}
@@ -204,7 +204,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                     className={styles.flex1}
                                 />
 
-                                <ActionIcon
+                                <ActionIcon aria-label={isExpanded ? 'Collapse all' : 'Expand all'}
                                     variant="light"
                                     size="sm"
                                     color={conditionFailed ? 'red' : 'orange'}

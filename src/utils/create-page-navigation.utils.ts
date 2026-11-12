@@ -11,13 +11,6 @@ import {
 } from '../types/forms/create-page.types';
 import type { IAdminPage } from '../types/responses/admin/admin.types';
 
-/** Matches backend `AdminPageService::GROUP_ADMIN` — always granted full access. */
-export const SYSTEM_ADMIN_GROUP_NAME = 'admin';
-
-export function isSystemAdminGroup(group: { name: string }): boolean {
-    return group.name.trim().toLowerCase() === SYSTEM_ADMIN_GROUP_NAME;
-}
-
 export function buildPageLookup(pages: IAdminPage[]): Map<number, IAdminPage> {
     const map = new Map<number, IAdminPage>();
     for (const page of pages) {

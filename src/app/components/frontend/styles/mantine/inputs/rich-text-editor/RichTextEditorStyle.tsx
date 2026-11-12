@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useId } from 'react';
 import { Input } from '@mantine/core';
 import { RichTextEditor as MantineRichTextEditor, Link, getTaskListExtension } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
@@ -82,8 +82,17 @@ const RichTextEditorField: React.FC<IRichTextEditorFieldProps> = ({
     spacingProps,
     cssClass,
 }) => {
+    const inputId = useId();
     // Create Tiptap editor instance for this language
     const languageEditor = useEditor({
+        // The contenteditable is the field: textbox role, named by the label.
+        editorProps: {
+            attributes: {
+                role: 'textbox',
+                'aria-multiline': 'true',
+                ...(label ? { 'aria-labelledby': `${inputId}-label` } : {}),
+            },
+        },
         extensions: [
             StarterKit.configure({ link: false }),
             Link,
@@ -135,6 +144,7 @@ const RichTextEditorField: React.FC<IRichTextEditorFieldProps> = ({
 
     return (
         <Input.Wrapper
+            id={inputId}
             label={label}
             description={parse(sanitizeHtmlForInline(description))}
             required={required}

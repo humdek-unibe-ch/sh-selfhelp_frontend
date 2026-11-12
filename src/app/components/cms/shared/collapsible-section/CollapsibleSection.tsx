@@ -61,7 +61,7 @@ export function CollapsibleSection({
                             </Box>
                         ) : null}
                     </Group>
-                    <ActionIcon variant="subtle">
+                    <ActionIcon aria-label={collapsed ? `Expand ${title}` : `Collapse ${title}`} aria-expanded={!collapsed} variant="subtle">
                         {collapsed ? <IconChevronDown size={16} /> : <IconChevronUp size={16} />}
                     </ActionIcon>
                 </Group>

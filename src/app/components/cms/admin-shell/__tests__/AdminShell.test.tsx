@@ -66,6 +66,32 @@ describe('AdminShell gate', () => {
         expect(replaceMock).toHaveBeenCalled();
     });
 
+    // The pages editor's Splitter sizes its panes with `height: 100%`, which
+    // needs a definite-height parent — `max-h-screen` alone is not one.
+    it('gives Main a definite height only when fullHeightMain is requested', () => {
+        const { unmount } = renderWithProviders(
+            <AdminShell fullHeightMain>
+                <div>admin-content</div>
+            </AdminShell>,
+        );
+
+        const fullHeightMain = screen.getByText('admin-content').closest('main');
+        expect(fullHeightMain).toHaveStyle({ height: '100dvh' });
+        expect(fullHeightMain?.className).not.toContain('max-h-screen');
+
+        unmount();
+
+        renderWithProviders(
+            <AdminShell>
+                <div>admin-content</div>
+            </AdminShell>,
+        );
+
+        const defaultMain = screen.getByText('admin-content').closest('main');
+        expect(defaultMain?.className).toContain('max-h-screen');
+        expect(defaultMain?.style.height).toBe('');
+    });
+
     it('stays put (renders children, no redirect) during a transient backend outage', () => {
         // Manager is restarting Symfony for a plugin/system operation: user-data
         // is briefly unavailable so `isAuthenticated` is false, but the outage is

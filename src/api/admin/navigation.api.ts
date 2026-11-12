@@ -22,6 +22,17 @@ export interface IAdminNavigationMenuItemTranslation {
     aria_label?: string | null;
 }
 
+/** Codes from `NavigationMenuService::PUBLIC_VISIBILITY_REASON_*`; wording is the frontend's. */
+export type TPublicVisibilityReason =
+    | 'headless'
+    | 'page_type_excluded'
+    | 'page_not_accessible';
+
+export interface IPublicVisibility {
+    rendered: boolean;
+    reason: TPublicVisibilityReason | null;
+}
+
 export interface IAdminNavigationMenuItem {
     id: number;
     parent_item_id: number | null;
@@ -40,6 +51,8 @@ export interface IAdminNavigationMenuItem {
     children_nav?: TNavigationChildrenNavMode | null;
     /** Per-parent override of the prev/next pager (`null` = inherit menu default). */
     show_pager?: boolean | null;
+    /** Optional: absent on cores older than 0.1.43, which is not the same as excluded. */
+    public_visibility?: IPublicVisibility;
 }
 
 export interface IAdminNavigationMenuDefinition {

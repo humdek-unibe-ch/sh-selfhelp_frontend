@@ -4,10 +4,11 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
+import { fetchAllPages } from '../../utils/fetch-all-pages.utils';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
-import type { 
-  IRolesListResponse, 
-  IRolesListParams, 
+import type {
+  IRolesListResponse,
+  IRolesListParams,
   IRoleDetails,
   IRolePermission
 } from '../../types/responses/admin/roles.types';
@@ -37,6 +38,17 @@ export const AdminRoleApi = {
       { params: Object.fromEntries(searchParams) }
     );
     return response.data.data;
+  },
+
+  /**
+   * Every role by name, for pickers (see `AdminGroupApi.getAllGroups`): the list
+   * endpoint serves at most 100 rows per request, so this reads all pages.
+   */
+  async getAllRoles(): Promise<IRoleDetails[]> {
+    return fetchAllPages(async (page, pageSize) => {
+      const result = await AdminRoleApi.getRoles({ page, pageSize, sort: 'name', sortDirection: 'asc' });
+      return { items: result.roles, totalPages: result.pagination.totalPages };
+    });
   },
 
   /**

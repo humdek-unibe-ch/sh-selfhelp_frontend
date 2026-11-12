@@ -51,6 +51,12 @@ export interface IDataTableColumn {
    * deleted (issue #56).
    */
   standard?: boolean;
+  /**
+   * True when the column holds uploaded files (it belongs to a `file-input`
+   * section of a core form). The SERVER decides this; the Data browser draws
+   * file links only for these columns and never guesses from a cell's value.
+   */
+  isFile: boolean;
 }
 
 export interface IDataTableColumnsResponse {

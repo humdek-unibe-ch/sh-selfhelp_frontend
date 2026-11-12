@@ -12,6 +12,7 @@ import { ACTION_SCHEDULE_TYPES, TIME_PERIOD, WEEKDAYS } from '../../../../../con
 import { AdminGroupApi } from '../../../../../api/admin/group.api';
 import { AdminDataApi } from '../../../../../api/admin/data.api';
 import { AdminAssetApi } from '../../../../../api/admin/asset.api';
+import { assetFileLabel } from '../../assets/assets.utils';
 import { ConditionBuilderField } from '../../shared/field-components/ConditionBuilderField';
 import dynamic from 'next/dynamic';
 import { DateTimePicker, TimeInput } from '@mantine/dates';
@@ -180,12 +181,13 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
     useEffect(() => {
         void (async () => {
-            const groups = await AdminGroupApi.getGroups({ page: 1, pageSize: 1000 });
-            setGroupsOptions(groups.groups.map(g => ({ value: String(g.id), label: g.name })));
+            const groups = await AdminGroupApi.getAllGroups();
+            setGroupsOptions(groups.map(g => ({ value: String(g.id), label: g.name })));
             const tables = await AdminDataApi.listDataTables();
             setFormOptions((tables.dataTables || []).map((t) => ({ value: String(t.id), label: t.displayName || t.name })));
             const assets = await AdminAssetApi.getAssets({ page: 1, pageSize: 1000 });
-            setAssetOptions(assets.assets.map(a => ({ value: a.file_path, label: a.original_name || a.file_name })));
+            // Persist the delivery URL.
+            setAssetOptions(assets.assets.map(a => ({ value: a.url, label: assetFileLabel(a) })));
         })();
     }, []);
 
@@ -1044,15 +1046,15 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     ))}
                                 </Tabs.List>
                                 <Group gap="xs">
-                                    <ActionIcon variant="light" onClick={addBlock} title="Add Block">
+                                    <ActionIcon aria-label="Add block" variant="light" onClick={addBlock} title="Add Block">
                                         <IconPlus size={16} />
                                     </ActionIcon>
                                     {blocks.length > 0 && (
                                         <>
-                                            <ActionIcon variant="subtle" color="blue" onClick={() => copyBlock(Number(activeBlock) || 0)} title="Copy Block">
+                                            <ActionIcon aria-label="Copy block" variant="subtle" color="blue" onClick={() => copyBlock(Number(activeBlock) || 0)} title="Copy Block">
                                                 <IconCopy size={16} />
                                             </ActionIcon>
-                                            <ActionIcon variant="subtle" color="red" onClick={() => removeBlock(Number(activeBlock) || 0)} title="Remove Block">
+                                            <ActionIcon aria-label="Remove block" variant="subtle" color="red" onClick={() => removeBlock(Number(activeBlock) || 0)} title="Remove Block">
                                                 <IconTrash size={16} />
                                             </ActionIcon>
                                         </>
@@ -1095,15 +1097,15 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                         ))}
                                                     </Tabs.List>
                                                     <Group gap="xs">
-                                                        <ActionIcon variant="light" onClick={() => addJob(bIndex)} title="Add Job">
+                                                        <ActionIcon aria-label="Add job" variant="light" onClick={() => addJob(bIndex)} title="Add Job">
                                                             <IconPlus size={16} />
                                                         </ActionIcon>
                                                         {ensureArray(block.jobs).length > 0 && (
                                                             <>
-                                                                <ActionIcon variant="subtle" color="blue" onClick={() => copyJob(bIndex, Number(activeJobByBlock[bIndex] || '0'))} title="Copy Job">
+                                                                <ActionIcon aria-label="Copy job" variant="subtle" color="blue" onClick={() => copyJob(bIndex, Number(activeJobByBlock[bIndex] || '0'))} title="Copy Job">
                                                                     <IconCopy size={16} />
                                                                 </ActionIcon>
-                                                                <ActionIcon variant="subtle" color="red" onClick={() => removeJob(bIndex, Number(activeJobByBlock[bIndex] || '0'))} title="Remove Job">
+                                                                <ActionIcon aria-label="Remove job" variant="subtle" color="red" onClick={() => removeJob(bIndex, Number(activeJobByBlock[bIndex] || '0'))} title="Remove Job">
                                                                     <IconTrash size={16} />
                                                                 </ActionIcon>
                                                             </>
@@ -1211,7 +1213,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                                     </Button>
                                                                                     {ensureArray(job.reminders).length > 0 && (
                                                                                         <>
-                                                                                            <ActionIcon
+                                                                                            <ActionIcon aria-label="Copy reminder"
                                                                                                 variant="subtle"
                                                                                                 color="blue"
                                                                                                 onClick={() => copyReminder(bIndex, jIndex, Number(activeReminderByJobAndBlock[`${bIndex}-${jIndex}`] || '0'))}
@@ -1219,7 +1221,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                                             >
                                                                                                 <IconCopy size={16} />
                                                                                             </ActionIcon>
-                                                                                            <ActionIcon
+                                                                                            <ActionIcon aria-label="Remove reminder"
                                                                                                 variant="subtle"
                                                                                                 color="red"
                                                                                                 onClick={() => removeReminder(bIndex, jIndex, Number(activeReminderByJobAndBlock[`${bIndex}-${jIndex}`] || '0'))}

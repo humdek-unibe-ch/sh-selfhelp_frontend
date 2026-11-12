@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-16.
+Last verified: 2026-11-11.
 Source of truth: Runtime code, configuration, and tests in this repository.
 
 This document explains **why** the SelfHelp frontend is structured the
@@ -225,7 +225,12 @@ Three interceptors do the entire heavy lift:
    - `401 logged_in: true` → the proxy just rotated cookies mid-flight;
      retry the request exactly once (`_retry` flag guards against loops).
    - `401 logged_in: false` on an `/admin/*` page → genuine session
-     expiry, redirect to `/auth/login?redirect=<current>`.
+     expiry, redirect to `/login?redirectTo=<current>`. Every writer of the
+     login URL (this interceptor, the `proxy.ts` admin gate, the cross-tab
+     logout and the ACL stream) uses the one parameter `redirectTo`
+     (`src/utils/login-redirect.utils.ts`), and the login and 2FA screens only
+     follow it when it is a path on this site (`safeRedirectTarget`), so a
+     crafted `?redirectTo=https://…` cannot send a signed-in user elsewhere.
    - `403 permission_denied` on an admin *non-data* operation → redirect
      to `/no-access` (data operations surface the error to the caller).
 

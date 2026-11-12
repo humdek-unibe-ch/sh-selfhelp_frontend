@@ -10,16 +10,33 @@ import { AdminRegistrationCodesApi } from '../api/admin/registration-codes.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type { IGenerateRegistrationCodesRequest } from '../types/requests/admin/registration-codes.types';
 import type { IRegistrationCodesListParams } from '../types/responses/admin/registration-codes.types';
+import { getApiErrorText } from '../utils/mutation-error-handler';
 
 const QUERY_KEYS = {
     all: ['registration-codes'] as const,
     list: (params: IRegistrationCodesListParams) => ['registration-codes', 'list', params] as const,
+    stats: () => ['registration-codes', 'stats'] as const,
 };
 
 export function useRegistrationCodes(params: IRegistrationCodesListParams = {}) {
     return useQuery({
         queryKey: QUERY_KEYS.list(params),
         queryFn: () => AdminRegistrationCodesApi.getAll(params),
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+    });
+}
+
+/**
+ * Fetch the registration-code counts for the stat tiles.
+ *
+ * Intentionally takes no params: the backend scopes them to the codes the
+ * caller can see, and they describe that whole visible set rather than the
+ * filtered result, so they must not refetch as filters change.
+ */
+export function useRegistrationCodesStats() {
+    return useQuery({
+        queryKey: QUERY_KEYS.stats(),
+        queryFn: () => AdminRegistrationCodesApi.getStats(),
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
     });
 }
@@ -32,7 +49,7 @@ export function useExportRegistrationCodes() {
         onError: (error: unknown) => {
             notifications.show({
                 title: 'Export Failed',
-                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to export registration codes',
+                message: getApiErrorText(error) || 'Failed to export registration codes',
                 color: 'red',
             });
         },
@@ -55,7 +72,7 @@ export function useGenerateRegistrationCodes() {
         onError: (error: unknown) => {
             notifications.show({
                 title: 'Error',
-                message: (error as { response?: { data?: { error?: string } } })?.response?.data?.error || (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to generate registration codes',
+                message: (error as { response?: { data?: { error?: string } } })?.response?.data?.error || getApiErrorText(error) || 'Failed to generate registration codes',
                 color: 'red',
             });
         },

@@ -399,6 +399,57 @@ export const API_CONFIG = {
             route: (assetId: number) => `/admin/assets/${assetId}`,
             permissions: [PERMISSIONS.ADMIN_ASSET_DELETE]
         },
+        // Multipart (optional replacement file), so a POST rather than a PUT.
+        ADMIN_ASSETS_UPDATE: {
+            route: (assetId: number) => `/admin/assets/${assetId}`,
+            permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
+        },
+        ADMIN_ASSETS_BULK_GROUPS: {
+            route: '/admin/assets/bulk-groups',
+            permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
+        },
+        ADMIN_ASSETS_BULK_FOLDER: {
+            route: '/admin/assets/bulk-folder',
+            permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
+        },
+        ADMIN_ASSETS_BULK_DELETE: {
+            route: '/admin/assets/bulk-delete',
+            permissions: [PERMISSIONS.ADMIN_ASSET_DELETE]
+        },
+        ADMIN_ASSET_FOLDERS_GET_ALL: {
+            route: '/admin/asset-folders',
+            permissions: [PERMISSIONS.ADMIN_ASSET_READ]
+        },
+        ADMIN_ASSET_FOLDERS_CREATE: {
+            route: '/admin/asset-folders',
+            permissions: [PERMISSIONS.ADMIN_ASSET_CREATE]
+        },
+        ADMIN_ASSET_FOLDERS_UPDATE: {
+            route: (folderId: number) => `/admin/asset-folders/${folderId}`,
+            permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
+        },
+        ADMIN_ASSET_FOLDERS_DELETE: {
+            route: (folderId: number) => `/admin/asset-folders/${folderId}`,
+            permissions: [PERMISSIONS.ADMIN_ASSET_DELETE]
+        },
+        // One-time apply of who sees / who manages to every asset in the folder
+        // and its subfolders (all or nothing). Core >= 0.1.43.
+        ADMIN_ASSET_FOLDERS_ACCESS: {
+            route: (folderId: number) => `/admin/asset-folders/${folderId}/access`,
+            permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
+        },
+        // Export assets as a downloadable zip bundle (binary files +
+        // manifest.json). POST with body { asset_ids?: number[] } (empty/omitted
+        // = every readable asset); returns an `application/zip` blob.
+        ADMIN_ASSETS_EXPORT: {
+            route: '/admin/assets/export',
+            permissions: [PERMISSIONS.ADMIN_ASSET_READ]
+        },
+        // Import an asset zip bundle previously produced by the export endpoint.
+        ADMIN_ASSETS_IMPORT: {
+            route: '/admin/assets/import',
+            permissions: [PERMISSIONS.ADMIN_ASSET_CREATE]
+        },
 
         // Admin users endpoints
         ADMIN_USERS_GET_ALL: {
@@ -408,6 +459,34 @@ export const API_CONFIG = {
         ADMIN_USERS_GET_ONE: {
             route: (userId: number) => `/admin/users/${userId}`,
             permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_STATS: {
+            route: '/admin/users/stats',
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_BULK_DELETE: {
+            route: '/admin/users/bulk-delete',
+            permissions: [PERMISSIONS.ADMIN_USER_DELETE]
+        },
+        ADMIN_USERS_BULK_ADD_TO_GROUP: {
+            route: '/admin/users/bulk-add-to-group',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_BULK_REMOVE_FROM_GROUP: {
+            route: '/admin/users/bulk-remove-from-group',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_BULK_SEND_ACTIVATION: {
+            route: '/admin/users/bulk-send-activation',
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_EXPORT_CSV: {
+            route: '/admin/users/export',
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_IMPORT_CSV: {
+            route: '/admin/users/import',
+            permissions: [PERMISSIONS.ADMIN_USER_CREATE]
         },
         ADMIN_USERS_CREATE: {
             route: '/admin/users',
@@ -430,7 +509,7 @@ export const API_CONFIG = {
             permissions: []
         },
         // NOTE: the user-management mutations below (group/role assignment,
-        // activation mail, clean-data) are enforced by the backend
+        // activation mail) are enforced by the backend
         // (admin.user.* on Symfony). Their client `permissions` arrays are
         // empty pending a backend-confirmed client mapping — do not assume a
         // permission here without coordination (see the "every mutating
@@ -459,9 +538,12 @@ export const API_CONFIG = {
             route: (userId: number) => `/admin/users/${userId}/send-activation-mail`,
             permissions: []
         },
+        // Destructive, but gated on `admin.user.update` to match the backend
+        // route permission for `admin_users_clean_data_v1` — a stricter client
+        // gate would hide the action from admins the backend still allows.
         ADMIN_USERS_CLEAN_DATA: {
             route: (userId: number) => `/admin/users/${userId}/clean-data`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
         },
         ADMIN_USERS_IMPERSONATE: {
             route: (userId: number) => `/admin/users/${userId}/impersonate`,
@@ -581,6 +663,10 @@ export const API_CONFIG = {
         // Admin scheduled jobs endpoints
         ADMIN_SCHEDULED_JOBS_GET_ALL: {
             route: '/admin/scheduled-jobs',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
+        ADMIN_SCHEDULED_JOBS_STATS: {
+            route: '/admin/scheduled-jobs/stats',
             permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
         },
         ADMIN_SCHEDULED_JOBS_GET_ONE: {
@@ -866,6 +952,12 @@ export const API_CONFIG = {
             route: '/admin/data/tables/bulk-export',
             permissions: [PERMISSIONS.ADMIN_DATA_READ]
         },
+        // Zip of the uploaded files of the given (shown) records (core 0.1.43).
+        ADMIN_DATA_TABLE_FILES_ZIP: {
+            route: (tableName: string, recordIds: number[]) =>
+                `/admin/data/tables/${encodeURIComponent(tableName)}/files?record_ids=${recordIds.join(',')}`,
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
         ADMIN_DATA_QUERY_PREVIEW: {
             route: '/admin/data/query-preview',
             permissions: [PERMISSIONS.ADMIN_DATA_READ]
@@ -882,6 +974,16 @@ export const API_CONFIG = {
         },
         FORMS_DELETE: {
             route: '/forms/delete',
+            permissions: []
+        },
+        // Read-only; the backend checks owner / data-table READ per record (core 0.1.43).
+        FORMS_FILE: {
+            route: (recordId: number, field: string) => `/forms/files/${recordId}/${encodeURIComponent(field)}`,
+            permissions: []
+        },
+        // Every file of a multi-file field as one zip; same per-record check.
+        FORMS_FILE_ZIP: {
+            route: (recordId: number, field: string) => `/forms/files/${recordId}/${encodeURIComponent(field)}/zip`,
             permissions: []
         },
 
@@ -980,6 +1082,10 @@ export const API_CONFIG = {
         },
         ADMIN_REGISTRATION_CODES_EXPORT: {
             route: '/admin/registration-codes/export',
+            permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]
+        },
+        ADMIN_REGISTRATION_CODES_STATS: {
+            route: '/admin/registration-codes/stats',
             permissions: [PERMISSIONS.ADMIN_REGISTRATION_CODE_READ]
         },
         // Admin audit management endpoints

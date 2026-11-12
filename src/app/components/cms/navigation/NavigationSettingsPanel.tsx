@@ -2,13 +2,6 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-/*
-
-SPDX-FileCopyrightText: 2026 Humdek, University of Bern
-
-SPDX-License-Identifier: MPL-2.0
-
-*/
 
 'use client';
 
@@ -45,8 +38,8 @@ import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { useAssets } from '../../../../hooks/useAssets';
 
 import { getAssetUrl } from '../../../../utils/asset-url.utils';
+import { assetFileLabel } from '../assets/assets.utils';
 
-const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|svg|webp|avif)$/i;
 
 
 
@@ -244,13 +237,15 @@ function NavigationSettingsForm({
 
         return assets
 
-            .filter((asset) => IMAGE_EXTENSIONS.test(asset.file_name))
+            // Stored files have no extension; the recorded MIME type decides.
+            .filter((asset) => asset.mime_type?.startsWith('image/') ?? false)
 
             .map((asset) => ({
 
-                value: asset.file_path,
+                // Persist the delivery URL.
+                value: asset.url,
 
-                label: asset.original_name && asset.original_name.trim() !== '' ? asset.original_name : asset.file_name,
+                label: assetFileLabel(asset),
 
             }));
 
@@ -290,17 +285,67 @@ function NavigationSettingsForm({
 
         <Stack gap="md">
 
-            <div>
+            <Group justify="space-between" align="flex-start">
 
-                <Title order={4}>Navigation settings</Title>
+                <div>
 
-                <Text size="sm" c="dimmed" mt={4}>
+                    <Title order={4}>Navigation settings</Title>
 
-                    Changes on this tab are not saved automatically. Review your updates, then click Save settings.
+                    <Text size="sm" c="dimmed" mt={4}>
 
-                </Text>
+                        Changes on this tab are not saved automatically. Review your updates, then click Save settings.
 
-            </div>
+                    </Text>
+
+                </div>
+
+                {!readOnly ? (
+
+                    <Group gap="sm" align="center">
+
+                        {isDirty ? (
+
+                            <Text size="sm" c="yellow.4">
+
+                                Unsaved changes
+
+                            </Text>
+
+                        ) : null}
+
+                        <Button
+
+                            variant="default"
+
+                            disabled={!isDirty || isSaving}
+
+                            onClick={() => setFormState(savedState)}
+
+                        >
+
+                            Discard
+
+                        </Button>
+
+                        <Button
+
+                            loading={isSaving}
+
+                            disabled={!isDirty}
+
+                            onClick={() => onSave(formStateToPayload(formState))}
+
+                        >
+
+                            Save settings
+
+                        </Button>
+
+                    </Group>
+
+                ) : null}
+
+            </Group>
 
 
 
@@ -747,68 +792,6 @@ function NavigationSettingsForm({
                         disabled={readOnly}
 
                     />
-
-
-
-                    {!readOnly ? (
-
-                        <Group
-
-                            justify="flex-end"
-
-                            align="center"
-
-                            gap="sm"
-
-                            pt="md"
-
-                            mt="xs"
-
-                            style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
-
-                        >
-
-                            {isDirty ? (
-
-                                <Text size="sm" c="yellow.4" mr="auto">
-
-                                    Unsaved changes
-
-                                </Text>
-
-                            ) : null}
-
-                            <Button
-
-                                variant="default"
-
-                                disabled={!isDirty || isSaving}
-
-                                onClick={() => setFormState(savedState)}
-
-                            >
-
-                                Discard
-
-                            </Button>
-
-                            <Button
-
-                                loading={isSaving}
-
-                                disabled={!isDirty}
-
-                                onClick={() => onSave(formStateToPayload(formState))}
-
-                            >
-
-                                Save settings
-
-                            </Button>
-
-                        </Group>
-
-                    ) : null}
 
                 </Stack>
 

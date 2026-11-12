@@ -4,19 +4,26 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminScheduledJobsApi } from '../api/admin/scheduled-jobs.api';
-import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { REACT_QUERY_CONFIG, refetchOnMountWhenInvalidated } from '../config/react-query.config';
 import { type IScheduledJobFilters, type IUpdateRunnerSettingsRequest } from '../types/responses/admin/scheduled-jobs.types';
 import { notifications } from '@mantine/notifications';
+
+// The roots of the list, the calendar's own all-pages list and the stat tiles are
+// registry keys: the clean-user-data erasure (a users mutation) refreshes them too.
+const QK = REACT_QUERY_CONFIG.QUERY_KEYS;
 
 /**
  * Hook to fetch scheduled jobs with filtering and pagination
  */
 export function useScheduledJobs(filters: IScheduledJobFilters = {}) {
     return useQuery({
-        queryKey: ['scheduledJobs', filters],
+        queryKey: [...QK.SCHEDULED_JOBS_ALL, filters],
         queryFn: () => AdminScheduledJobsApi.getScheduledJobs(filters),
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        // The Users page erases jobs with a user: refetch at the next mount when
+        // that invalidated this list while it was not on screen.
+        refetchOnMount: refetchOnMountWhenInvalidated,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
         enabled: true, // Always enabled to fetch data
@@ -29,7 +36,7 @@ export function useScheduledJobs(filters: IScheduledJobFilters = {}) {
 
 export function useScheduledJobsAll(filters: IScheduledJobFilters = {}) {
     return useQuery({
-        queryKey: ['scheduledJobsAll', filters],
+        queryKey: [...QK.SCHEDULED_JOBS_CALENDAR_ALL, filters],
         queryFn: () => AdminScheduledJobsApi.getScheduledJobs({
             ...filters,
             // Page undefined → backend returns all jobs (with safety limit)
@@ -37,6 +44,7 @@ export function useScheduledJobsAll(filters: IScheduledJobFilters = {}) {
         }),
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        refetchOnMount: refetchOnMountWhenInvalidated,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
         select: (response) => {
@@ -48,6 +56,25 @@ export function useScheduledJobsAll(filters: IScheduledJobFilters = {}) {
                 totalCount: data?.totalCount ?? 0,
             };
         },
+    });
+}
+
+/**
+ * Hook to fetch the scheduled-job counts for the stat tiles.
+ *
+ * Intentionally takes no params: the backend scopes them to the jobs the
+ * caller can see, and they describe that whole visible set rather than the
+ * filtered result, so they must not refetch as filters change.
+ */
+export function useScheduledJobsStats() {
+    return useQuery({
+        queryKey: QK.SCHEDULED_JOBS_STATS,
+        queryFn: () => AdminScheduledJobsApi.getScheduledJobsStats(),
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        refetchOnMount: refetchOnMountWhenInvalidated,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
+        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
     });
 }
 
@@ -100,9 +127,10 @@ export function useExecuteScheduledJobMutation() {
             });
 
             // Invalidate relevant queries
-            void queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
+            void queryClient.invalidateQueries({ queryKey: QK.SCHEDULED_JOBS_ALL });
             void queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
-            void queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
+            void queryClient.invalidateQueries({ queryKey: QK.SCHEDULED_JOBS_CALENDAR_ALL }); // For calendar view
+            void queryClient.invalidateQueries({ queryKey: QK.SCHEDULED_JOBS_STATS });
         },
         onError: (error, jobId) => {
 
@@ -218,8 +246,9 @@ export function useRunDueJobsNowMutation() {
                 color: 'green',
             });
             void queryClient.invalidateQueries({ queryKey: ['scheduledJobRunnerStatus'] });
-            void queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
-            void queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] });
+            void queryClient.invalidateQueries({ queryKey: QK.SCHEDULED_JOBS_ALL });
+            void queryClient.invalidateQueries({ queryKey: QK.SCHEDULED_JOBS_CALENDAR_ALL });
+            void queryClient.invalidateQueries({ queryKey: QK.SCHEDULED_JOBS_STATS });
         },
         onError: () => {
             notifications.show({
@@ -248,9 +277,10 @@ export function useDeleteScheduledJobMutation() {
             });
 
             // Invalidate relevant queries
-            void queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
+            void queryClient.invalidateQueries({ queryKey: QK.SCHEDULED_JOBS_ALL });
             void queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
-            void queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
+            void queryClient.invalidateQueries({ queryKey: QK.SCHEDULED_JOBS_CALENDAR_ALL }); // For calendar view
+            void queryClient.invalidateQueries({ queryKey: QK.SCHEDULED_JOBS_STATS });
         },
         onError: (error, jobId) => {
 

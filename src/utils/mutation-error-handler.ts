@@ -37,6 +37,16 @@ interface IApiErrorShape {
 }
 
 /**
+ * The backend's own error text (`data.error` in the API envelope), e.g.
+ * "Group name already exists". `data.message` is only the HTTP reason phrase
+ * ("Conflict", "Bad Request"), so it is never shown as the error.
+ */
+export function getApiErrorText(error: unknown): string | undefined {
+    const text = (error as IApiErrorShape | null | undefined)?.response?.data?.error;
+    return typeof text === 'string' && text.trim() !== '' ? text : undefined;
+}
+
+/**
  * Parses API errors into consistent format for user display
  * @param error - The error object from API call or mutation
  * @returns Parsed error with title and message

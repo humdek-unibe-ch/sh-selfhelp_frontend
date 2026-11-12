@@ -23,7 +23,6 @@ export const JOB_TYPES = 'jobTypes';
 export const PAGE_ACCESS_TYPES = 'pageAccessTypes';
 export const HOOK_TYPES = 'hookTypes';
 export const ASSET_TYPES = 'assetTypes';
-export const GROUP_TYPES = 'groupTypes';
 export const USER_TYPES = 'userTypes';
 export const USER_STATUS = 'userStatus';
 export const PAGE_ACTIONS = 'pageActions';
@@ -121,10 +120,6 @@ export const ASSET_TYPES_CSS = 'css';
 export const ASSET_TYPES_ASSET = 'asset';
 export const ASSET_TYPES_STATIC = 'static';
 
-// groupTypes
-export const GROUP_TYPES_DB_ROLE = 'db_role';
-export const GROUP_TYPES_GROUP = 'group';
-
 // userTypes
 export const USER_TYPES_USER = 'user';
 export const USER_TYPES_ADMIN = 'admin'; // If exists
@@ -133,6 +128,8 @@ export const USER_TYPES_ADMIN = 'admin'; // If exists
 export const USER_STATUS_INVITED = 'invited';
 export const USER_STATUS_ACTIVE = 'active';
 export const USER_STATUS_LOCKED = 'locked';
+/** Set by the CSV import; send-activation moves it to `invited`. */
+export const USER_STATUS_IMPORTED = 'imported';
 
 // pageActions
 export const PAGE_ACTIONS_BACKEND = 'backend';

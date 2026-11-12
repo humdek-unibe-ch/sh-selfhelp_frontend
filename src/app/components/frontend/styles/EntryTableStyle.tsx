@@ -6,9 +6,9 @@ SPDX-License-Identifier: MPL-2.0
 
 import React, { useMemo, useState } from 'react';
 import {
-    Table, Text, TextInput, Pagination, Group, ActionIcon, Button, Alert, ScrollArea, Title, Select
+    Table, Text, TextInput, Group, ActionIcon, Button, Alert, ScrollArea, Title, Select
 } from '@mantine/core';
-import { IconTrash, IconSearch, IconAlertCircle, IconChevronUp, IconChevronDown, IconSelector, IconDownload, IconPlus, IconPencil } from '@tabler/icons-react';
+import { IconTrash, IconSearch, IconAlertCircle, IconSortAscending, IconSortDescending, IconDownload, IconPlus, IconPencil } from '@tabler/icons-react';
 import { useDeleteFormMutation } from '../../../../hooks/useFormSubmission';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useLanguageContext } from '../../contexts/LanguageContext';
@@ -16,6 +16,10 @@ import type { IEntryTableStyle, IEntryTableEntry } from '../../../../shared';
 import { parseFieldsMapCatalog, parseFieldsMapLabels } from '@selfhelp/shared';
 import { useCmsAppAdminNav } from '../../cms/cms-apps/CmsAppAdminNavContext';
 import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
+// Shared CMS list-table look (bordered shell, quiet uppercase header row, footer
+// bar). The `web_table_*` CMS fields still customize the table itself; this only
+// aligns the surrounding chrome so an entry-table reads like every admin list.
+import { AdminTableFooter, adminTableClasses as tableStyles } from '../../cms/shared/admin-table';
 
 
 interface IColumn {
@@ -179,13 +183,9 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
     };
 
     const SortIcon: React.FC<{ colKey: string }> = ({ colKey }) => {
-        if (!sortable) return null;
-        if (sortCol !== colKey || sortDir === null) return <IconSelector size={14} />;
-        return sortDir === 'asc' ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />;
+        if (sortCol !== colKey || sortDir === null) return <IconSortAscending size={14} opacity={0.35} />;
+        return sortDir === 'asc' ? <IconSortAscending size={14} /> : <IconSortDescending size={14} />;
     };
-
-    const startEntry = paginate ? (page - 1) * PAGE_SIZE + 1 : 1;
-    const endEntry = paginate ? Math.min(page * PAGE_SIZE, sorted.length) : sorted.length;
 
     const handleExportCsv = () => {
         const header = allColumns.map(c => c.label).join(',');
@@ -214,16 +214,32 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
                         {allColumns.map(col => (
                             <Table.Th
                                 key={col.key}
-                                onClick={sortable ? () => handleSort(col.key) : undefined}
-                                style={sortable ? { cursor: 'pointer', userSelect: 'none' } : undefined}
+                                className={tableStyles.tableHeader}
+                                aria-sort={
+                                    sortable && sortCol === col.key && sortDir
+                                        ? sortDir === 'asc' ? 'ascending' : 'descending'
+                                        : undefined
+                                }
                             >
                                 <Group gap={4} wrap="nowrap">
-                                    <Text size="sm" fw={600}>{col.label}</Text>
-                                    <SortIcon colKey={col.key} />
+                                    <Text span inherit>{col.label}</Text>
+                                    {sortable && (
+                                        <ActionIcon
+                                            variant="transparent"
+                                            color="gray"
+                                            size="xs"
+                                            aria-label={`Sort by ${col.label}`}
+                                            onClick={() => handleSort(col.key)}
+                                        >
+                                            <SortIcon colKey={col.key} />
+                                        </ActionIcon>
+                                    )}
                                 </Group>
                             </Table.Th>
                         ))}
-                        {hasRowActions && <Table.Th style={{ width: 88 }}>Actions</Table.Th>}
+                        {hasRowActions && (
+                            <Table.Th className={tableStyles.tableHeader} style={{ width: 88 }}>Actions</Table.Th>
+                        )}
                     </Table.Tr>
                 </Table.Thead>
             )}
@@ -237,12 +253,12 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
                 ) : pageRows.map((row, idx) => (
                     <Table.Tr key={String(row['record_id'] ?? idx)}>
                         {allColumns.map(col => (
-                            <Table.Td key={col.key}>
+                            <Table.Td key={col.key} className={tableStyles.tableCell}>
                                 <Text size="sm">{String(row[col.key] ?? '')}</Text>
                             </Table.Td>
                         ))}
                         {hasRowActions && (
-                            <Table.Td>
+                            <Table.Td className={tableStyles.actionsCell}>
                                 <Group gap={4} wrap="nowrap">
                                     {(cmsAppNav || editUrl) && row._can_edit !== false && (
                                         cmsAppNav ? (
@@ -355,56 +371,55 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
                 />
             )}
 
-            {stickyHeader ? (
-                <Table.ScrollContainer minWidth={500}>
-                    <Table
-                        horizontalSpacing={spacing}
-                        verticalSpacing={spacing}
-                        striped={striped}
-                        highlightOnHover={highlightOnHover}
-                        withTableBorder={withTableBorder}
-                        withColumnBorders={withColumnBorders}
-                        withRowBorders={withRowBorders}
-                        stickyHeader
-                        captionSide={captionSide}
-                    >
-                        {tableContent}
-                    </Table>
-                </Table.ScrollContainer>
-            ) : (
-                <ScrollArea type="auto">
-                    <Table
-                        horizontalSpacing={spacing}
-                        verticalSpacing={spacing}
-                        striped={striped}
-                        highlightOnHover={highlightOnHover}
-                        withTableBorder={withTableBorder}
-                        withColumnBorders={withColumnBorders}
-                        withRowBorders={withRowBorders}
-                        captionSide={captionSide}
-                    >
-                        {tableContent}
-                    </Table>
-                </ScrollArea>
-            )}
+            {/* The shared bordered shell wraps table + footer. `withTableBorder`
+                stays editor-controlled and applies to the table inside it. */}
+            <div className={tableStyles.tableWrapper}>
+                {stickyHeader ? (
+                    <Table.ScrollContainer minWidth={500}>
+                        <Table
+                            horizontalSpacing={spacing}
+                            verticalSpacing={spacing}
+                            striped={striped}
+                            highlightOnHover={highlightOnHover}
+                            withTableBorder={withTableBorder}
+                            withColumnBorders={withColumnBorders}
+                            withRowBorders={withRowBorders}
+                            stickyHeader
+                            captionSide={captionSide}
+                        >
+                            {tableContent}
+                        </Table>
+                    </Table.ScrollContainer>
+                ) : (
+                    <ScrollArea type="auto" className={tableStyles.tableScrollContainer}>
+                        <Table
+                            horizontalSpacing={spacing}
+                            verticalSpacing={spacing}
+                            striped={striped}
+                            highlightOnHover={highlightOnHover}
+                            withTableBorder={withTableBorder}
+                            withColumnBorders={withColumnBorders}
+                            withRowBorders={withRowBorders}
+                            captionSide={captionSide}
+                        >
+                            {tableContent}
+                        </Table>
+                    </ScrollArea>
+                )}
 
-            {(info || paginate) && (
-                <Group justify="space-between" mt="sm">
-                    {info && sorted.length > 0 && (
-                        <Text size="xs" c="dimmed">
-                            Showing {startEntry}–{endEntry} of {sorted.length} entries
-                        </Text>
-                    )}
-                    {paginate && totalPages > 1 && (
-                        <Pagination
-                            value={page}
-                            onChange={setPage}
-                            total={totalPages}
-                            size="sm"
-                        />
-                    )}
-                </Group>
-            )}
+                {(info || paginate) && (
+                    <AdminTableFooter
+                        totalCount={sorted.length}
+                        itemLabel="entries"
+                        pagination={paginate ? {
+                            page,
+                            pageSize: PAGE_SIZE,
+                            totalPages,
+                            onPageChange: setPage,
+                        } : undefined}
+                    />
+                )}
+            </div>
 
             <ModalWrapper
                 opened={deleteTarget !== null}

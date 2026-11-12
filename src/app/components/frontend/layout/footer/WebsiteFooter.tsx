@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 import { Box, Container } from '@mantine/core';
 import styles from './WebsiteFooter.module.css';
 import { resolveLanguageSSR, getFooterMenuSSR } from '../../../../_lib/server-fetch';
-import { FooterLinks } from './FooterLinks';
+import { WebsiteFooterLinks } from './WebsiteFooterLinks';
 
 /**
  * Website Footer with optimized loading behavior.
@@ -26,7 +26,7 @@ export async function WebsiteFooter() {
     return (
         <Box component="footer" w="100%" py={{ base: 'lg', sm: 'xl' }} className={styles.footer}>
             <Container size="xl">
-                <FooterLinks footerMenu={footerMenu} />
+                <WebsiteFooterLinks initialFooterMenu={footerMenu} />
             </Container>
         </Box>
     );

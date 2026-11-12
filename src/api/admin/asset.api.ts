@@ -6,13 +6,65 @@ import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 
+interface IAssetGroupRef {
+  id: number;
+  name: string;
+}
+
+export interface IAssetFolder {
+  id: number;
+  name: string;
+  parent_id: number | null;
+  /** Assets directly in this folder that the caller may read. */
+  asset_count: number;
+  /**
+   * Assets in this folder and every folder below it that the caller may read.
+   * Absent on cores older than 0.1.43; the tree then counts `asset_count`.
+   */
+  subtree_asset_count?: number;
+}
+
+/** An identical file the caller manages, named in an upload response. */
+export interface IAssetDuplicate {
+  id: number;
+  name: string | null;
+  folder_id: number | null;
+}
+
+/**
+ * An asset. `uuid` is also the stored file name; fetch the bytes only via
+ * `url` (through `getAssetUrl`). No `groups` = public;
+ * `roles` may manage it in the CMS.
+ *
+ * `can_view` / `can_update` / `can_delete` are what the CALLER may do with this
+ * asset, decided by the server (`can_view` is the group rule of the delivery
+ * URL; the other two are the caller's grant on the asset). Draw from them: do
+ * not work the rule out from `groups` / `roles` or from the caller's global
+ * permission, which says nothing about an individual asset.
+ */
 export interface IAsset {
   id: number;
-  file_name: string;
-  original_name?: string;
-  file_path: string;
+  uuid: string;
+  name: string | null;
+  url: string;
   asset_type?: string;
-  folder: string | null;    
+  mime_type: string | null;
+  size: number | null;
+  /** Stored extension without the dot (`pdf`); null on assets uploaded before it was stored. */
+  extension?: string | null;
+  /** The name a download is saved under: `<name>-<uuid>.<extension>`. */
+  file_name?: string | null;
+  alt: string | null;
+  folder_id: number | null;
+  roles: IAssetGroupRef[];
+  groups: IAssetGroupRef[];
+  can_view: boolean;
+  can_update: boolean;
+  can_delete: boolean;
+  /** Identical files the caller manages. Only in an upload response, never in lists. */
+  duplicates?: IAssetDuplicate[];
+  created_at: string;
+  updated_at: string;
 }
 
 export interface IAssetsListResponse {
@@ -29,54 +81,84 @@ export interface IAssetsListParams {
   page?: number;
   pageSize?: number;
   search?: string;
-  sort?: string;
-  sortDirection?: 'asc' | 'desc';
-  folder?: string;
+  group_id?: number;
+  /** 0 = only assets in no folder. */
+  folder_id?: number;
 }
 
-export interface ICreateAssetRequest {
+/**
+ * Fields shared by create and edit; undefined = default (create) / unchanged
+ * (edit). `group_ids: []` = public. `role_ids` undefined on create = the
+ * uploader's roles. `folder_id: null` = top level.
+ */
+interface IAssetFields {
+  name?: string;
+  alt?: string;
+  group_ids?: number[];
+  role_ids?: number[];
+  folder_id?: number | null;
+}
+
+export interface ICreateAssetRequest extends IAssetFields {
   file: File;
-  folder?: string;
-  file_name?: string;
-  overwrite?: boolean;
 }
 
-export interface ICreateMultipleAssetsRequest {
-  files: File[];
-  folder?: string;
-  file_names?: string[];
-  overwrite?: boolean;
+export interface IUpdateAssetRequest extends IAssetFields {
+  file?: File;
 }
 
-// Removed unused export - IMultipleAssetsUploadResponse is available internally
-interface IMultipleAssetsUploadResponse {
-  successful_uploads: number;
-  failed_uploads: number;
-  total_files: number;
-  uploaded: IAsset[];
-  errors: {
-    file_name: string;
-    error: string;
-  }[];
+export interface IBulkAssetGroupsRequest {
+  asset_ids: number[];
+  group_ids: number[];
+  mode: 'add' | 'remove';
+}
+
+/** At least one key; a key left out is not changed. */
+export interface IFolderAccessRequest {
+  group_ids?: number[];
+  role_ids?: number[];
+}
+
+export interface IExportAssetsRequest {
+  asset_ids?: number[];
+}
+
+export interface IImportAssetsResponse {
+  imported: number;
+  skipped: number;
+  errors: { file: string; error: string }[];
+}
+
+const MULTIPART = { headers: { 'Content-Type': 'multipart/form-data' } };
+
+/**
+ * Append the shared create/edit fields. Id lists are sent comma-separated
+ * because multipart cannot express an empty list: an empty string means
+ * "none", an absent field means "default" / "unchanged".
+ */
+function appendAssetFields(formData: FormData, fields: IAssetFields): void {
+  if (fields.name !== undefined) formData.append('name', fields.name);
+  if (fields.alt !== undefined) formData.append('alt', fields.alt);
+  if (fields.group_ids !== undefined) formData.append('group_ids', fields.group_ids.join(','));
+  if (fields.role_ids !== undefined) formData.append('role_ids', fields.role_ids.join(','));
+  if (fields.folder_id !== undefined) formData.append('folder_id', fields.folder_id ? String(fields.folder_id) : '');
 }
 
 export const AdminAssetApi = {
   /**
-   * Get paginated list of assets with search and sorting
+   * Get a paginated list of the assets the caller can read
    */
   async getAssets(params: IAssetsListParams = {}): Promise<IAssetsListResponse> {
-    const searchParams = new URLSearchParams();
-    
-    if (params.page) searchParams.append('page', params.page.toString());
-    if (params.pageSize) searchParams.append('pageSize', params.pageSize.toString());
-    if (params.search) searchParams.append('search', params.search);
-    if (params.sort) searchParams.append('sort', params.sort);
-    if (params.sortDirection) searchParams.append('sortDirection', params.sortDirection);
-    if (params.folder) searchParams.append('folder', params.folder);
+    const query: Record<string, string> = {};
+    if (params.page) query.page = params.page.toString();
+    if (params.pageSize) query.pageSize = params.pageSize.toString();
+    if (params.search) query.search = params.search;
+    if (params.group_id) query.group_id = params.group_id.toString();
+    if (params.folder_id !== undefined) query.folder_id = params.folder_id.toString();
 
     const response = await permissionAwareApiClient.get<IBaseApiResponse<IAssetsListResponse>>(
       API_CONFIG.ENDPOINTS.ADMIN_ASSETS_GET_ALL,
-      { params: Object.fromEntries(searchParams) }
+      { params: query }
     );
     return response.data.data;
   },
@@ -90,68 +172,102 @@ export const AdminAssetApi = {
   },
 
   /**
-   * Create/upload a new asset (single file)
+   * Upload a new asset (single file). Stored under a fresh uuid — never
+   * overwrites an existing file with the same name.
    */
   async createAsset(assetData: ICreateAssetRequest): Promise<IAsset> {
     const formData = new FormData();
     formData.append('file', assetData.file);
-    
-    if (assetData.folder) {
-      formData.append('folder', assetData.folder);
-    }
-    if (assetData.file_name) {
-      formData.append('file_name', assetData.file_name);
-    }
-    if (assetData.overwrite !== undefined) {
-      formData.append('overwrite', assetData.overwrite.toString());
-    }
+    appendAssetFields(formData, assetData);
 
     const response = await permissionAwareApiClient.post<IBaseApiResponse<IAsset>>(
-      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_CREATE, 
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_CREATE,
       formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+      MULTIPART
     );
     return response.data.data;
   },
 
   /**
-   * Create/upload multiple assets (multiple files)
+   * Edit an asset; only the fields sent change. A `file` replaces the bytes
+   * under the same uuid, so every page using the asset shows the new file.
    */
-  async createMultipleAssets(assetData: ICreateMultipleAssetsRequest): Promise<IMultipleAssetsUploadResponse> {
+  async updateAsset(assetId: number, assetData: IUpdateAssetRequest): Promise<IAsset> {
     const formData = new FormData();
-    
-    // Append all files
-    assetData.files.forEach((file) => {
-      formData.append('files[]', file);
-    });
-    
-    if (assetData.folder) {
-      formData.append('folder', assetData.folder);
-    }
-    
-    // Append custom file names if provided
-    if (assetData.file_names && assetData.file_names.length > 0) {
-      assetData.file_names.forEach((fileName) => {
-        formData.append('file_names[]', fileName);
-      });
-    }
-    
-    if (assetData.overwrite !== undefined) {
-      formData.append('overwrite', assetData.overwrite.toString());
-    }
+    if (assetData.file) formData.append('file', assetData.file);
+    appendAssetFields(formData, assetData);
 
-    const response = await permissionAwareApiClient.post<IBaseApiResponse<IMultipleAssetsUploadResponse>>(
-      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_CREATE, 
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<IAsset>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_UPDATE,
       formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+      assetId,
+      MULTIPART
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Add or remove groups on several assets at once
+   */
+  async bulkUpdateGroups(request: IBulkAssetGroupsRequest): Promise<{ updated: number }> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<{ updated: number }>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_BULK_GROUPS,
+      request
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Move several assets into one folder (null = the top level)
+   */
+  async bulkMoveToFolder(assetIds: number[], folderId: number | null): Promise<{ moved: number }> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<{ moved: number }>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_BULK_FOLDER,
+      { asset_ids: assetIds, folder_id: folderId }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Delete several assets at once
+   */
+  async bulkDeleteAssets(assetIds: number[]): Promise<{ deleted: number }> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<{ deleted: number }>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_BULK_DELETE,
+      { asset_ids: assetIds }
+    );
+    return response.data.data;
+  },
+
+  async getFolders(): Promise<IAssetFolder[]> {
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IAssetFolder[]>>(API_CONFIG.ENDPOINTS.ADMIN_ASSET_FOLDERS_GET_ALL);
+    return response.data.data;
+  },
+
+  /** Create (no `folderId`) or rename/move a folder; returns all folders. */
+  async saveFolder(folder: { name: string; parent_id: number | null }, folderId?: number): Promise<IAssetFolder[]> {
+    const response = folderId
+      ? await permissionAwareApiClient.put<IBaseApiResponse<IAssetFolder[]>>(API_CONFIG.ENDPOINTS.ADMIN_ASSET_FOLDERS_UPDATE, folder, folderId)
+      : await permissionAwareApiClient.post<IBaseApiResponse<IAssetFolder[]>>(API_CONFIG.ENDPOINTS.ADMIN_ASSET_FOLDERS_CREATE, folder);
+    return response.data.data;
+  },
+
+  /** Delete an empty folder (no subfolders, no assets); a folder with content answers 409. */
+  async deleteFolder(folderId: number): Promise<IAssetFolder[]> {
+    const response = await permissionAwareApiClient.delete<IBaseApiResponse<IAssetFolder[]>>(API_CONFIG.ENDPOINTS.ADMIN_ASSET_FOLDERS_DELETE, folderId);
+    return response.data.data;
+  },
+
+  /**
+   * Apply who sees (`group_ids`, [] = public) and/or who manages (`role_ids`)
+   * to every asset in the folder and below. Only the keys sent change. All or
+   * nothing: a 403 names the asset the caller may not manage.
+   */
+  async setFolderAccess(folderId: number, access: IFolderAccessRequest): Promise<{ updated: number }> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<{ updated: number }>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSET_FOLDERS_ACCESS,
+      access,
+      folderId
     );
     return response.data.data;
   },
@@ -163,4 +279,36 @@ export const AdminAssetApi = {
     const response = await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_ASSETS_DELETE, assetId);
     return { success: response.status === 204 || response.status === 200 };
   },
-}; 
+
+  /**
+   * Export assets as a downloadable zip bundle (files + manifest.json).
+   * Omitting/empty `asset_ids` exports every asset the caller can read.
+   * Returns the raw zip blob for the caller to trigger a browser download.
+   */
+  async exportAssets(request: IExportAssetsRequest = {}): Promise<Blob> {
+    const body = request.asset_ids && request.asset_ids.length > 0 ? { asset_ids: request.asset_ids } : {};
+    const response = await permissionAwareApiClient.post<Blob>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_EXPORT,
+      body,
+      { responseType: 'blob' }
+    );
+    return response.data;
+  },
+
+  /**
+   * Import an asset zip bundle previously produced by `exportAssets`. Never
+   * overwrites: entries whose uuid already exists are skipped. Per-file
+   * failures come back in `errors[]`; the request still succeeds.
+   */
+  async importAssets(file: File): Promise<IImportAssetsResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<IImportAssetsResponse>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_IMPORT,
+      formData,
+      MULTIPART
+    );
+    return response.data.data;
+  },
+};

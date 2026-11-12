@@ -317,7 +317,7 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
                                     <div key={fieldIndex} className={classes.fieldArrayItem}>
                                         <Group justify="space-between" mb="sm">
                                             <Text size="sm" fw={500}>Field {fieldIndex + 1}</Text>
-                                            <ActionIcon
+                                            <ActionIcon aria-label={`Remove field ${fieldIndex + 1}`}
                                                 color="red"
                                                 variant="subtle"
                                                 size="sm"
@@ -402,7 +402,7 @@ export function DataSourceForm({ dataSource, onChange, index, dataVariables }: I
                                     <div key={mapFieldIndex} className={classes.fieldArrayItem}>
                                         <Group justify="space-between" mb="sm">
                                             <Text size="sm" fw={500}>Map Field {mapFieldIndex + 1}</Text>
-                                            <ActionIcon
+                                            <ActionIcon aria-label={`Remove map field ${mapFieldIndex + 1}`}
                                                 color="red"
                                                 variant="subtle"
                                                 size="sm"

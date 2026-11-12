@@ -9,11 +9,13 @@ import { useRouter } from 'next/navigation';
 import { UsersList } from '../users-list/UsersList';
 import { UserFormModal } from '../user-form-modal/UserFormModal';
 import { DeleteUserModal } from '../delete-user-modal/DeleteUserModal';
+import { CleanUserDataModal } from '../clean-user-data-modal/CleanUserDataModal';
 import {
   useDeleteUser,
   useToggleUserBlock,
   useSendActivationMail,
-  useImpersonateUser
+  useImpersonateUser,
+  useCleanUserData
 } from '../../../../../hooks/useUsers';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { ROUTES } from '../../../../../config/routes.config';
@@ -48,6 +50,7 @@ export function UsersPage() {
   const toggleBlockMutation = useToggleUserBlock();
   const sendActivationMailMutation = useSendActivationMail();
   const impersonateUserMutation = useImpersonateUser();
+  const cleanUserDataMutation = useCleanUserData();
 
   const [userFormModal, setUserFormModal] = useState<{
     opened: boolean;
@@ -60,6 +63,16 @@ export function UsersPage() {
   });
 
   const [deleteModal, setDeleteModal] = useState<{
+    opened: boolean;
+    userId?: number;
+    userEmail?: string;
+  }>({
+    opened: false,
+    userId: undefined,
+    userEmail: undefined,
+  });
+
+  const [cleanDataModal, setCleanDataModal] = useState<{
     opened: boolean;
     userId?: number;
     userEmail?: string;
@@ -152,6 +165,25 @@ export function UsersPage() {
     impersonateUserMutation.mutate(userId);
   };
 
+  // Handle clean user data
+  const handleCleanUserData = (userId: number, email: string) => {
+    setCleanDataModal({
+      opened: true,
+      userId,
+      userEmail: email,
+    });
+  };
+
+  const handleConfirmCleanUserData = () => {
+    if (cleanDataModal.userId) {
+      cleanUserDataMutation.mutate(cleanDataModal.userId, {
+        onSuccess: () => {
+          setCleanDataModal({ opened: false, userId: undefined, userEmail: undefined });
+        },
+      });
+    }
+  };
+
   return (
     <>
       <UsersList
@@ -161,6 +193,7 @@ export function UsersPage() {
         onToggleBlock={(canBlockUsers || canUnblockUsers) ? handleToggleBlock : undefined}
         onSendActivationMail={canUpdateUsers ? handleSendActivationMail : undefined}
         onImpersonateUser={canImpersonateUsers ? handleImpersonateUser : undefined}
+        onCleanUserData={canUpdateUsers ? handleCleanUserData : undefined}
         permissions={{
           canCreate: canCreateUsers,
           canUpdate: canUpdateUsers,
@@ -184,6 +217,14 @@ export function UsersPage() {
         onConfirm={handleConfirmDelete}
         userEmail={deleteModal.userEmail || ''}
         isLoading={deleteUserMutation.isPending}
+      />
+
+      <CleanUserDataModal
+        opened={cleanDataModal.opened}
+        onClose={() => setCleanDataModal({ opened: false, userId: undefined, userEmail: undefined })}
+        onConfirm={handleConfirmCleanUserData}
+        userEmail={cleanDataModal.userEmail || ''}
+        isLoading={cleanUserDataMutation.isPending}
       />
     </>
   );

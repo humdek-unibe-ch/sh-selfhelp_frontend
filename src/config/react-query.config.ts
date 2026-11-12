@@ -78,6 +78,21 @@ const CACHE_TIERS = {
     },
 } as const;
 
+/**
+ * `refetchOnMount` for a reader that ANOTHER page can invalidate: the users page
+ * changing memberships that a groups list counts, an asset write changing the
+ * pickers inside a section's details, an erasure emptying a data table.
+ *
+ * The global default is `refetchOnMount: false` (hydrated data must not refetch
+ * on mount). With it, an invalidation made while the reader was unmounted is
+ * ignored at the next mount, and the page shows the stale copy until a reload.
+ * This refetches on mount only when the cache was invalidated, so cached data is
+ * still used first in every other case.
+ */
+export function refetchOnMountWhenInvalidated(query: { state: { isInvalidated: boolean } }): boolean {
+    return query.state.isInvalidated;
+}
+
 export const REACT_QUERY_CONFIG = {
     DEFAULT_OPTIONS: {
         queries: {
@@ -200,6 +215,12 @@ export const REACT_QUERY_CONFIG = {
         // the section inspector after edits.
         SECTION_DETAILS: (pageId: number | null, sectionId: number | null) =>
             ['admin', 'sections', 'details', pageId, sectionId],
+        // Prefix base: the section details carry the picker option lists (images,
+        // videos, groups, data tables, page keywords) read per request, so a
+        // writer that changes one of those lists (asset create/rename/delete)
+        // refreshes every section's detail at once, as it cannot know which
+        // sections use the changed item.
+        SECTION_DETAILS_ALL: ['admin', 'sections', 'details'],
         // Context-aware interpolation variable picker (token => label) for the
         // unified `{{` system (issue #56 v2), read by `useInterpolationVariables`.
         // Keyed by context (section|page|action|global) + target id so each
@@ -207,6 +228,23 @@ export const REACT_QUERY_CONFIG = {
         // column added by a later form submission shows up without re-saving.
         INTERPOLATION_VARIABLES: (context: string, id: number | null) =>
             ['admin', 'interpolation', 'variables', context, id],
+
+        // ── Admin lists written from more than one hook ───────────────────
+        // Roots only. The key factories of `useGroups`, `useRoles`, `useAssets`,
+        // `useScheduledJobs` and `useData` extend these, so a writer in another
+        // file (a users mutation changing memberships, the clean-user-data
+        // erasure, an asset write refreshing the pickers) invalidates exactly the
+        // root its readers subscribe to.
+        GROUPS_ALL: ['groups'],
+        ROLES_ALL: ['roles'],
+        ASSETS_ALL: ['assets'],
+        SCHEDULED_JOBS_ALL: ['scheduledJobs'],
+        // The calendar view reads its own all-pages list under this root.
+        SCHEDULED_JOBS_CALENDAR_ALL: ['scheduledJobsAll'],
+        SCHEDULED_JOBS_STATS: ['scheduledJobsStats'],
+        ADMIN_DATA_ALL: ['admin', 'data'],
+        // The rows of every admin data table (all users / deleted variants).
+        ADMIN_DATA_ROWS_ALL: ['admin', 'data', 'rows'],
 
         // ── Admin cache management (read by useCacheStats/useCacheHealth,
         //    invalidated by the cache + section-utility clear mutations) ─────

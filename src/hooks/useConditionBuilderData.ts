@@ -22,20 +22,17 @@ import { type IBaseApiResponse } from '../types/responses/common/response-envelo
 import { usePublicLanguages } from './useLanguages';
 
 /**
- * Hook to get all groups for condition builder (requests large page size to get all)
+ * Hook to get all groups for condition builder (reads every page)
  */
 export function useConditionBuilderGroups() {
     return useQuery({
         queryKey: ['condition-builder', 'groups'],
         queryFn: async () => {
-            const response = await AdminGroupApi.getGroups({ 
-                page: 1, 
-                pageSize: 1000 // Large page size to get all groups
-            });
+            const groups = await AdminGroupApi.getAllGroups();
             
             // Convert to key-value format expected by React Query Builder
             const groupsMap: Record<string, string> = {};
-            response.groups.forEach(group => {
+            groups.forEach(group => {
                 groupsMap[group.id.toString()] = group.name;
             });
             

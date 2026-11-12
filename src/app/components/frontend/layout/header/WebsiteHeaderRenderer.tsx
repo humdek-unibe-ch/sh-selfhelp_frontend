@@ -431,7 +431,14 @@ function TopRow({ items, utilitySlot }: { items: INavigationMenuItem[]; utilityS
     }
 
     return (
-        <Group justify="space-between" gap="md" wrap="nowrap" w="100%" align="center">
+        <Group
+            justify="space-between"
+            gap="md"
+            wrap="nowrap"
+            w="100%"
+            align="center"
+            className={classes.topRow}
+        >
             {items.length > 0 ? (
                 <Box component="span" style={{ flex: '1 1 0', minWidth: 0 }}>
                     <HeaderNavOverflow
@@ -543,10 +550,14 @@ export function WebsiteHeaderRenderer({ menu, utilitySlot }: IWebsiteHeaderRende
     const mainNav = renderInnerPreset(innerPreset, main, atDepthLimit);
 
     return (
-        <Stack gap={4} style={{ flex: 1, minWidth: 0, width: '100%' }}>
+        <Stack gap={0} style={{ flex: 1, minWidth: 0, width: '100%' }}>
             <TopRow items={top} utilitySlot={utilitySlot} />
-            <Divider />
-            <nav aria-label="Main navigation" style={{ minWidth: 0, width: '100%', display: 'flex' }}>
+            <Divider className={classes.doubleRowDivider} />
+            <nav
+                aria-label="Main navigation"
+                className={classes.mainRow}
+                style={{ minWidth: 0, width: '100%', display: 'flex' }}
+            >
                 {mainNav}
             </nav>
         </Stack>

@@ -2,7 +2,8 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import type { IAdminNavigationMenuItem } from '../../../../api/admin/navigation.api';
+import { isMobileIconName } from '@selfhelp/shared';
+import type { IAdminNavigationMenuItem, TPublicVisibilityReason } from '../../../../api/admin/navigation.api';
 import type { IAdminPage } from '../../../../types/responses/admin/admin.types';
 import { isMobileMenuKey, type TMenuKey } from './navigation-builder.constants';
 
@@ -117,6 +118,176 @@ export function buildResolvedLabelByItemId(
         }
     }
     return labels;
+}
+
+export interface IPresetGap {
+    /** Chip text, e.g. "No description". */
+    label: string;
+    /** Tooltip explaining what the active preset does with it. */
+    reason: string;
+}
+
+/**
+ * Ways this item under-delivers for the active header preset — the fields the
+ * preset renders but the item leaves empty, so a preset switch looks like a
+ * no-op. Empty array when the item gives the preset everything it can use.
+ */
+export function getPresetGaps(
+    item: IAdminNavigationMenuItem,
+    preset: string,
+    childCount: number,
+    languageId?: number | null,
+    menuKey: TMenuKey = 'web_header',
+): IPresetGap[] {
+    if (item.item_type !== 'page' && item.item_type !== 'group') {
+        return [];
+    }
+
+    const isRoot = item.parent_item_id === null;
+    const hasDescription = hasItemDescription(item, languageId);
+    const gaps: IPresetGap[] = [];
+
+    if (menuKey === 'web_header') {
+        // Panel presets only differ from `simple` on root items that open a panel.
+        const isMega = preset === 'mega-menu' || preset === 'double-mega-menu';
+        const isPanel = isMega || preset === 'dropdown' || preset === 'double-dropdown';
+
+        if (isRoot && childCount === 0 && isPanel) {
+            gaps.push({
+                label: 'No children',
+                reason: 'This item opens no panel, so it renders exactly as it would in the Simple preset. Nest pages under it to see the dropdown or mega menu.',
+            });
+        }
+
+        // Panel entries render icon + label + description in both presets; the
+        // mega menu just shows them larger (tinted tile vs inline icon).
+        if (!isRoot && isPanel) {
+            if (!item.icon) {
+                gaps.push({
+                    label: 'No icon',
+                    reason: isMega
+                        ? 'The mega menu shows an icon tile for each entry. Without one it falls back to a plain dot.'
+                        : 'Dropdown rows show an icon beside the label. Without one they fall back to a plain dot.',
+                });
+            }
+            if (!hasDescription) {
+                gaps.push({
+                    label: 'No description',
+                    reason: isMega
+                        ? 'The mega menu shows a description under each entry. Without one the cell is just a label, which looks like a normal dropdown row.'
+                        : 'Dropdown rows show a description under the label when one is set.',
+                });
+            }
+        }
+        return gaps;
+    }
+
+    if (menuKey === 'web_footer') {
+        // Only a group heading becomes a column, so children nested under a
+        // page item are dropped entirely (footerColumnItems in @selfhelp/shared).
+        if (item.item_type !== 'group' && childCount > 0) {
+            gaps.push({
+                label: 'Children not shown',
+                reason: 'The footer only builds a column under a group heading. Children nested under a page link are not rendered — change this item to a group heading, or move them to one.',
+            });
+        }
+
+        if (preset === 'inline') {
+            if (hasDescription) {
+                gaps.push({
+                    label: 'Description not shown',
+                    reason: 'The inline footer is a single row of links — descriptions only show in the Columns preset.',
+                });
+            }
+            return gaps;
+        }
+
+        // Columns preset renders both, so an empty field is a missing field.
+        if (!item.icon) {
+            gaps.push({
+                label: 'No icon',
+                reason: 'Footer links show an icon beside the label when one is set.',
+            });
+        }
+        if (!hasDescription) {
+            gaps.push({
+                label: 'No description',
+                reason: 'Footer links show a description under the label when one is set.',
+            });
+        }
+        return gaps;
+    }
+
+    // Mobile drawer and bottom tabs draw `mobile_icon` and no description.
+    if (!item.mobile_icon) {
+        gaps.push({
+            label: 'No mobile icon',
+            reason: menuKey === 'mobile_bottom_tabs'
+                ? 'Bottom tabs are icon-first; without one the tab falls back to a letter glyph.'
+                : 'Drawer rows show an icon beside the label; without one they fall back to a letter glyph.',
+        });
+    } else if (!isMobileIconName(item.mobile_icon)) {
+        gaps.push({
+            label: 'Unknown mobile icon',
+            reason: `"${item.mobile_icon}" is not part of the mobile icon set, so it silently falls back to a letter glyph. Pick an icon from the list.`,
+        });
+    }
+
+    if (hasDescription) {
+        gaps.push({
+            label: 'Description not shown',
+            reason: 'Mobile menus render labels and icons only — this description will not appear.',
+        });
+    }
+
+    // The tab bar itself is flat, but children are not lost: opening the tab
+    // renders them as a top tab strip above the page content
+    // (`resolveMobileSegmentGroup` in @selfhelp/shared).
+    if (menuKey === 'mobile_bottom_tabs' && isRoot && childCount > 0) {
+        gaps.push({
+            label: 'Children as top tabs',
+            reason: 'The tab bar shows root items only. Opening this tab renders its child pages as a tab strip along the top of the screen, so the app shows two tab rows at once — keep the child list short, or move these pages to the drawer.',
+        });
+    }
+
+    return gaps;
+}
+
+/** True when the item has a non-empty description in any language. */
+function hasItemDescription(item: IAdminNavigationMenuItem, languageId?: number | null): boolean {
+    const rows = item.translations ?? [];
+    const scoped = languageId != null
+        ? rows.filter((row) => row.language_id === languageId)
+        : rows;
+    return scoped.some((row) => (row.description ?? '').trim() !== '');
+}
+
+/**
+ * Builder wording for each backend public-visibility reason code.
+ *
+ * The wording never names the page types the public menu accepts: that list
+ * belongs to the backend (`PageType::PUBLIC_NAVIGABLE_PAGE_TYPES`) and can grow,
+ * so a copy of it here would turn wrong without any test noticing.
+ */
+const PUBLIC_EXCLUSION_MESSAGES: Record<TPublicVisibilityReason, string> = {
+    headless: 'This page is headless, so the public menu never renders it.',
+    page_type_excluded: 'This page has a system page type, which cannot appear in a public menu.',
+    page_not_accessible: 'Visitors without access to this page will not see this entry.',
+};
+
+/**
+ * Why the public menu will drop this item, or `null` when it renders (or when
+ * the backend sends no verdict — absent is not the same as excluded).
+ */
+export function getPublicMenuExclusionReason(
+    item: IAdminNavigationMenuItem,
+): string | null {
+    const visibility = item.public_visibility;
+    if (!visibility || visibility.rendered || !visibility.reason) {
+        return null;
+    }
+
+    return PUBLIC_EXCLUSION_MESSAGES[visibility.reason] ?? null;
 }
 
 export function getMenuItemDisplay(
@@ -314,4 +485,37 @@ export function parentItemOptions(
                 label: display.primary,
             };
         });
+}
+
+/** Root-item capacity of a menu, from the backend's `item_limit`. */
+export interface IRootItemLimitState {
+    count: number;
+    limit: number | null;
+    atLimit: boolean;
+    overLimit: boolean;
+    blockedReason: string | null;
+}
+
+/**
+ * Root-item capacity for a menu. `item_limit` caps ROOT items only, so a menu
+ * at its limit still accepts children — nesting is the supported way to keep
+ * going. Adding a root past the cap creates an entry the app silently drops,
+ * so the builder blocks it rather than letting it be discovered in the app.
+ */
+export function getRootItemLimitState(
+    items: IAdminNavigationMenuItem[],
+    itemLimit: number | null | undefined,
+): IRootItemLimitState {
+    const limit = itemLimit ?? null;
+    const count = items.filter((item) => item.parent_item_id === null).length;
+    const atLimit = limit !== null && count >= limit;
+    return {
+        count,
+        limit,
+        atLimit,
+        overLimit: limit !== null && count > limit,
+        blockedReason: atLimit
+            ? `This menu renders at most ${limit} root items and already has ${count}. Remove one, or add the page under an existing item instead.`
+            : null,
+    };
 }

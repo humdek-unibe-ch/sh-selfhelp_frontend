@@ -46,6 +46,9 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
         },
         
         onSuccess: async (result, pageId: number) => {
+            // Read before the list refetch below drops the deleted page.
+            const keyword = pages.find((p) => p.id_pages === pageId)?.keyword;
+
             // Let the caller navigate away from `/admin/pages/{keyword}` before
             // touching shared caches so the deleted page editor does not wake
             // its detail readers one more time during the redirect.
@@ -69,7 +72,9 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
             if (showNotifications) {
                 notifications.show({
                     title: 'Page Deleted Successfully',
-                    message: `Page "${pageId}" was deleted successfully and removed from all menus!`,
+                    message: keyword
+                        ? `Page "${keyword}" was deleted successfully and removed from all menus!`
+                        : 'The page was deleted successfully and removed from all menus!',
                     icon: React.createElement(IconCheck, { size: '1rem' }),
                     color: 'green',
                     autoClose: 5000,

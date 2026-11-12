@@ -30,9 +30,9 @@ import {
 import { useForm } from '@mantine/form';
 import { IconInfoCircle, IconPlus, IconTrash, IconWand } from '@tabler/icons-react';
 import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
+import { adminTableClasses as tableStyles } from '../shared/admin-table';
 import { useDataTables } from '../../../../hooks/useData';
-import { useGroups } from '../../../../hooks/useGroups';
-import { isSystemAdminGroup } from '../../../../utils/create-page-navigation.utils';
+import { useAllGroups } from '../../../../hooks/useGroups';
 import { useScaffoldCmsAppMutation } from '../../../../hooks/useCmsApps';
 import {
     type ICmsAppFormField,
@@ -88,9 +88,8 @@ export function ScaffoldCmsAppModal({
         label: table.displayName || table.name,
     }));
 
-    const { data: groupsData } = useGroups({ pageSize: 200, sort: 'name', sortDirection: 'asc' });
+    const { data: groupsData } = useAllGroups();
     const groupOptions = (groupsData?.groups ?? [])
-        .filter((group) => !isSystemAdminGroup(group))
         .map((group) => ({ value: String(group.id), label: group.name }));
 
     const form = useForm<IWizardFormValues>({
@@ -260,7 +259,7 @@ export function ScaffoldCmsAppModal({
                                                 {...form.getInputProps(`form_fields.${index}.label`)}
                                             />
                                             <Tooltip label="Remove field">
-                                                <ActionIcon
+                                                <ActionIcon aria-label="Remove field"
                                                     color="red"
                                                     variant="subtle"
                                                     mt={4}
@@ -332,16 +331,16 @@ export function ScaffoldCmsAppModal({
                             <Table withTableBorder withColumnBorders>
                                 <Table.Thead>
                                     <Table.Tr>
-                                        <Table.Th>Role</Table.Th>
-                                        <Table.Th>Surface</Table.Th>
-                                        <Table.Th>Route</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Role</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Surface</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Route</Table.Th>
                                     </Table.Tr>
                                 </Table.Thead>
                                 <Table.Tbody>
                                     {plannedRoutes.map((route) => (
                                         <Table.Tr key={route.role}>
-                                            <Table.Td><Code>{route.role}</Code></Table.Td>
-                                            <Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{route.role}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>
                                                 <Badge
                                                     color={route.surface === 'cms' ? 'grape' : 'blue'}
                                                     variant="light"
@@ -349,7 +348,7 @@ export function ScaffoldCmsAppModal({
                                                     {route.surface}
                                                 </Badge>
                                             </Table.Td>
-                                            <Table.Td><Code>{route.pattern}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{route.pattern}</Code></Table.Td>
                                         </Table.Tr>
                                     ))}
                                 </Table.Tbody>

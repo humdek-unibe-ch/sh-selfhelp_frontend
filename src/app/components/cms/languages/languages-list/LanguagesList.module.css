@@ -1,0 +1,21 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/* Language identity cell: name over locale. Shared table shell/header styling
+   lives in cms/shared/admin-table/AdminTable.module.css. */
+.langText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.langName {
+  line-height: 1.2;
+}
+
+.langLocale {
+  line-height: 1.2;
+}

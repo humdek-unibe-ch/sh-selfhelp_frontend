@@ -25,7 +25,6 @@ import {
   Group,
   TextInput,
   Select,
-  Pagination,
   Badge,
   ActionIcon,
   Tooltip,
@@ -42,17 +41,20 @@ import {
   IconTrash,
   IconDots,
   IconPlus,
-  IconSortAscending,
-  IconSortDescending,
   IconShield,
   IconUsers,
   IconX,
 } from '@tabler/icons-react';
 import { useGroups } from '../../../../../hooks/useGroups';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import type { IGroupDetails, IGroupsListParams } from '../../../../../types/responses/admin/groups.types';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
+import { GroupMembersModal } from './GroupMembersModal';
+import classes from './GroupsList.module.css';
 
 interface IGroupsListProps {
   onCreateGroup?: () => void;
@@ -78,6 +80,14 @@ export function GroupsList({
 
   // Applied params (what is sent to the API)
   const [params, setParams] = useState<IGroupsListParams>(filterParams);
+
+  // The group whose members are being viewed, or null when the modal is closed.
+  const [membersOf, setMembersOf] = useState<{ id: number; name: string } | null>(null);
+
+  const { permissionChecker } = useAuthUser();
+  const canManageAcls = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_GROUP_ACL) ?? false;
+  // The members dialog reads the Users list.
+  const canViewMembers = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_USER_READ) ?? false;
 
   // Fetch groups data
   const { data: groupsData, isFetching, refetch, error } = useGroups(params);
@@ -161,62 +171,23 @@ export function GroupsList({
     () => [
       {
         accessorKey: "id",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>ID</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: () => <span className={tableStyles.colHeader}>ID</span>,
         cell: ({ row }) => (
-          <Text size="sm" fw={500}>
+          <Text size="sm" c="dimmed">
             {row.original.id}
           </Text>
         ),
-        enableSorting: true,
       },
       {
         accessorKey: "name",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Name</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Name" column={column} />,
         cell: ({ row }) => (
-          <div>
-            <Text size="sm" fw={500}>
+          <div className={classes.nameText}>
+            <Text size="sm" fw={600} className={classes.groupName}>
               {row.original.name}
             </Text>
             {row.original.description && (
-              <Text size="xs" c="dimmed">
+              <Text size="xs" c="dimmed" className={classes.groupDescription}>
                 {row.original.description}
               </Text>
             )}
@@ -226,97 +197,63 @@ export function GroupsList({
       },
       {
         accessorKey: "users_count",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Users</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: () => <span className={tableStyles.colHeader}>Users</span>,
         cell: ({ row }) => (
-          <Badge size="sm" variant="light" color="blue">
+          <Badge size="sm" variant="light" color="blue" radius="sm">
             {row.original.users_count}
           </Badge>
         ),
-        enableSorting: true,
       },
       {
         accessorKey: "requires2fa",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>2FA Required</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: () => <span className={tableStyles.colHeader}>2FA Required</span>,
         cell: ({ row }) => (
           <Badge
             variant="light"
             color={row.original.requires_2fa ? "orange" : "gray"}
             size="sm"
+            radius="sm"
           >
             {row.original.requires_2fa ? "Enabled" : "Disabled"}
           </Badge>
         ),
-        enableSorting: true,
       },
       {
         id: "actions",
-        header: "Actions",
+        header: () => <span className={tableStyles.colHeader}>Actions</span>,
         cell: ({ row }) => (
-          <Group gap="xs">
-            <Tooltip label="Edit Group">
+          <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
+            <Tooltip label="Edit group" withArrow>
               <ActionIcon
                 variant="subtle"
+                color="gray"
                 size="sm"
+                aria-label="Edit group"
                 onClick={() => onEditGroup?.(row.original.id)}
               >
                 <IconEdit size={16} />
               </ActionIcon>
             </Tooltip>
 
-            <Tooltip label="Manage ACLs">
-              <ActionIcon
-                variant="subtle"
-                size="sm"
-                color="blue"
-                onClick={() =>
-                  onManageAcls?.(row.original.id, row.original.name)
-                }
-              >
-                <IconShield size={16} />
-              </ActionIcon>
-            </Tooltip>
+            {canManageAcls && (
+              <Tooltip label="Manage ACLs" withArrow>
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  color="blue"
+                  aria-label="Manage ACLs"
+                  onClick={() =>
+                    onManageAcls?.(row.original.id, row.original.name)
+                  }
+                >
+                  <IconShield size={16} />
+                </ActionIcon>
+              </Tooltip>
+            )}
 
-            <Menu shadow="md" width={200}>
+            <Menu shadow="md" width={200} position="bottom-end" withArrow>
               <Menu.Target>
-                <ActionIcon variant="subtle" size="sm">
+                <ActionIcon variant="subtle" color="gray" size="sm" aria-label="More actions">
                   <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
@@ -324,11 +261,12 @@ export function GroupsList({
               <Menu.Dropdown>
                 <Menu.Item
                   leftSection={<IconUsers size={14} />}
-                  onClick={() => {
-                    /* Handle view members */
-                  }}
+                  disabled={!canViewMembers}
+                  onClick={() =>
+                    setMembersOf({ id: row.original.id, name: row.original.name })
+                  }
                 >
-                  View Members
+                  View members
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item
@@ -338,7 +276,7 @@ export function GroupsList({
                     onDeleteGroup?.(row.original.id, row.original.name)
                   }
                 >
-                  Delete Group
+                  Delete group
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
@@ -346,7 +284,7 @@ export function GroupsList({
         ),
       },
     ],
-    [onEditGroup, onDeleteGroup, onManageAcls],
+    [onEditGroup, onDeleteGroup, onManageAcls, canManageAcls, canViewMembers],
   );
 
   // Initialize table
@@ -381,6 +319,8 @@ export function GroupsList({
         <PageHeader
           title="Groups Management"
           subtitle="Manage user groups and their permissions"
+          badge={groupsData?.pagination.totalCount ?? 0}
+          badgeAriaLabel="groups"
         >
           <Button
             leftSection={<IconPlus size={16} />}
@@ -390,16 +330,16 @@ export function GroupsList({
           </Button>
         </PageHeader>
 
-        {/* Filters Card */}
+        {/* Filters Card — search + page size on the same row as the actions. */}
         <Card withBorder p="md">
-          <Stack gap="md">
-            <Group gap="md" align="flex-end">
-              <TextInput
+          <Group gap="md" align="flex-end" justify="space-between">
+            <Group gap="md" style={{ flex: 1 }}>
+              <TextInput aria-label="Search groups"
                 placeholder="Search groups..."
                 leftSection={<IconSearch size={16} />}
                 rightSection={
                   filterParams.search ? (
-                    <ActionIcon variant="subtle" color="gray" size="sm" onClick={handleClearSearch}>
+                    <ActionIcon aria-label="Clear search" variant="subtle" color="gray" size="sm" onClick={handleClearSearch}>
                       <IconX size={14} />
                     </ActionIcon>
                   ) : null
@@ -408,9 +348,11 @@ export function GroupsList({
                 onChange={(e) => handleSearch(e.currentTarget.value)}
                 style={{ flex: 1 }}
               />
+            </Group>
 
+            <Group justify="flex-end" gap="md" align="flex-end">
               <Select
-                placeholder="Per page"
+                label="Rows per page"
                 value={filterParams.pageSize?.toString() || "20"}
                 onChange={handlePageSizeChange}
                 data={[
@@ -419,12 +361,11 @@ export function GroupsList({
                   { value: "50", label: "50" },
                   { value: "100", label: "100" },
                 ]}
-                w={100}
+                withCheckIcon={false}
+                allowDeselect={false}
+                w={110}
               />
-            </Group>
 
-            {/* Filter Actions - Right aligned under the form */}
-            <Group justify="flex-end">
               <FilterActions
                 onApply={handleApplyFilters}
                 onReset={handleResetFilters}
@@ -433,20 +374,20 @@ export function GroupsList({
                 isApplyDisabled={filterParams === params}
               />
             </Group>
-          </Stack>
+          </Group>
         </Card>
 
         {/* Table */}
-        <div style={{ position: 'relative' }}>
+        <div className={tableStyles.tableWrapper}>
           <LoadingOverlay visible={isFetching} />
-          
-          <Box style={{ overflowX: 'auto' }}>
-            <Table striped highlightOnHover>
+
+          <Box className={tableStyles.tableScrollContainer}>
+            <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
               <TableThead>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableTr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableTh key={header.id}>
+                      <TableTh key={header.id} aria-sort={ariaSort(header.column)} className={tableStyles.tableHeader}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -462,7 +403,7 @@ export function GroupsList({
                 {table.getRowModel().rows.map((row) => (
                   <TableTr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableTd key={cell.id}>
+                      <TableTd key={cell.id} className={tableStyles.tableCell}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
@@ -486,26 +427,28 @@ export function GroupsList({
               }
             />
           )}
-        </div>
 
-        {/* Pagination */}
-        {groupsData?.pagination && groupsData.pagination.totalPages > 1 && (
-          <Group justify="space-between">
-            <Text size="sm" c="dimmed">
-              Showing {((groupsData.pagination.page - 1) * groupsData.pagination.pageSize) + 1} to{' '}
-              {Math.min(groupsData.pagination.page * groupsData.pagination.pageSize, groupsData.pagination.totalCount)} of{' '}
-              {groupsData.pagination.totalCount} groups
-            </Text>
-            
-            <Pagination
-              value={groupsData.pagination.page}
-              onChange={handlePageChange}
-              total={groupsData.pagination.totalPages}
-              size="sm"
+          {/* Footer — always visible when data is loaded. */}
+          {groupsData?.pagination && (
+            <AdminTableFooter
+              totalCount={groupsData.pagination.totalCount}
+              itemLabel="groups"
+              pagination={{
+                page: groupsData.pagination.page,
+                pageSize: groupsData.pagination.pageSize,
+                totalPages: groupsData.pagination.totalPages,
+                onPageChange: handlePageChange,
+              }}
             />
-          </Group>
-        )}
+          )}
+        </div>
       </Stack>
+
+      <GroupMembersModal
+        opened={membersOf !== null}
+        onClose={() => setMembersOf(null)}
+        group={membersOf}
+      />
     </Card>
   );
-} 
+}

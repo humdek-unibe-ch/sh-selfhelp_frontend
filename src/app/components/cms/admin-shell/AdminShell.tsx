@@ -18,9 +18,11 @@ interface AdminShellProps {
     children: React.ReactNode;
     aside?: React.ReactNode;
     asideWidth?: number;
+    /** Gives Main a definite height so `height: 100%` children resolve. */
+    fullHeightMain?: boolean;
 }
 
-export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProps) {
+export function AdminShell({ children, aside, asideWidth = 400, fullHeightMain = false }: AdminShellProps) {
     const [opened, { toggle: _toggle }] = useDisclosure();
     const isSidebarCollapsed = useIsSidebarCollapsed();
     // Derive auth from our SSR-hydrated `['user-data']` cache rather than
@@ -74,7 +76,12 @@ export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProp
                 <AppShell.Navbar>
                     <AdminNavbar />
                 </AppShell.Navbar>
-                <AppShell.Main className="max-h-screen">
+                {/* `100dvh` (not `h-screen`) — Mantine pads Main by the
+                    navbar/header offsets, which `h-screen` would overflow. */}
+                <AppShell.Main
+                    className={fullHeightMain ? 'flex flex-col overflow-hidden' : 'max-h-screen'}
+                    style={fullHeightMain ? { height: '100dvh' } : undefined}
+                >
                     {children}
                 </AppShell.Main>
                 {aside && (

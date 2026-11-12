@@ -20,6 +20,7 @@ import {
   type ICrudPermissions,
   DEFAULT_CRUD_PERMISSIONS,
 } from '../../../../../utils/permissions.utils';
+import { getApiErrorText } from '../../../../../utils/mutation-error-handler';
 
 interface IDataTablePermissionsModalProps {
   opened: boolean;
@@ -72,7 +73,7 @@ export function DataTablePermissionsModal({ opened, onClose, roleId, roleName }:
 
       setPermissionRows(rows);
     } catch (error) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const message = getApiErrorText(error);
       notifications.show({
         title: 'Error',
         message: message || 'Failed to load data table permissions',
@@ -182,7 +183,7 @@ export function DataTablePermissionsModal({ opened, onClose, roleId, roleName }:
 
       onClose();
     } catch (error) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const message = getApiErrorText(error);
       notifications.show({
         title: 'Error',
         message: message || 'Failed to save data table permissions',

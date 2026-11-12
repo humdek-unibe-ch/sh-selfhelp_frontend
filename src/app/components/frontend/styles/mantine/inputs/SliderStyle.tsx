@@ -156,6 +156,7 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style, styleProps, cssClass 
             inverted={inverted}
             showLabelOnHover={showLabelOnHover}
             labelAlwaysOn={labelsAlwaysOn}
+            thumbLabel={DOMPurify.sanitize(label || '', { ALLOWED_TAGS: [] }) || undefined}
             {...(hasWrapper ? {} : { ...styleProps, className: cssClass })}
         />
     );

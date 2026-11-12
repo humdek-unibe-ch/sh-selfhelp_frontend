@@ -182,3 +182,36 @@ describe('FooterLinks', () => {
         expect(screen.getByRole('button', { name: 'Support' })).toBeInTheDocument();
     });
 });
+
+describe('FooterLinks icons and descriptions', () => {
+    function menuWithRichLink(preset: 'columns' | 'inline'): INavigationMenu {
+        const menu = footerMenu(preset);
+        const group = menu.items[0];
+        const link = group.children?.[0];
+        if (link) {
+            link.icon = 'home';
+            link.description = 'Reach the support team';
+        }
+        return menu;
+    }
+
+    it('renders a link description in the columns preset', () => {
+        renderWithProviders(<FooterLinks footerMenu={menuWithRichLink('columns')} />);
+
+        expect(screen.getByText('Reach the support team')).toBeInTheDocument();
+    });
+
+    it('keeps the description out of the DOM-visible inline row', () => {
+        // Inline is one centred row; the description is hidden via CSS, so the
+        // link itself must still render.
+        renderWithProviders(<FooterLinks footerMenu={menuWithRichLink('inline')} />);
+
+        expect(screen.getByRole('link', { name: 'Contact' })).toBeInTheDocument();
+    });
+
+    it('still renders links that have neither icon nor description', () => {
+        renderWithProviders(<FooterLinks footerMenu={footerMenu('columns')} />);
+
+        expect(screen.getByRole('link', { name: 'FAQ' })).toBeInTheDocument();
+    });
+});

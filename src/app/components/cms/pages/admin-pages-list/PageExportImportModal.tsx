@@ -61,7 +61,7 @@ import { NAVIGATION_BUNDLE_FORMAT } from '@selfhelp/shared';
 import { AdminApi } from '../../../../../api/admin';
 import { AdminNavigationApi } from '../../../../../api/admin/navigation.api';
 import { useImportNavigationMutation, useImportPagesMutation } from '../../../../../hooks/mutations';
-import { useGroups } from '../../../../../hooks/useGroups';
+import { useAllGroups } from '../../../../../hooks/useGroups';
 import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import {
     type IPageBundle,
@@ -152,7 +152,7 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
             skipConflictingRoutes,
             activateRoutes,
             importData,
-            // Never send admin here — createPage always grants full admin ACL.
+            // Admins reach every page through the admin role, so no group is needed for them.
             accessGroups: accessGroups.length > 0
                 ? accessGroups.map(Number).filter((id) => Number.isFinite(id) && id > 0)
                 : undefined,
@@ -175,14 +175,12 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
         [keywordPrefix, routePrefix, skipConflictingRoutes, activateRoutes, accessGroups]
     );
 
-    // Groups available as importer-selected "viewer" groups. Admin is always
-    // granted full access by the backend; hide it from this picker so operators
-    // cannot (and need not) select it. Remaining groups get read (public) /
-    // full CRUD (cms-app) so imported pages are visible to real users.
-    const { data: groupsData } = useGroups({ pageSize: 1000 });
+    // Groups available as importer-selected "viewer" groups: read (public) /
+    // full CRUD (cms-app) so imported pages are visible to real users. Admins
+    // need no group: the admin role bypasses page ACLs.
+    const { data: groupsData } = useAllGroups();
     const groupOptions = useMemo(
         () => (groupsData?.groups ?? [])
-            .filter((group) => group.name.trim().toLowerCase() !== 'admin')
             .map((group) => ({
                 value: String(group.id),
                 label: group.name,
@@ -563,7 +561,7 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
                         <MultiSelect
                             label="Viewer groups"
                             placeholder={accessGroups.length > 0 ? undefined : 'Optional — admins already have access'}
-                            description="Extra groups that should see the imported pages (read-only on public pages, full access on CMS-app pages). The admin group is always granted full access automatically and is not listed here."
+                            description="Extra groups that should see the imported pages (read-only on public pages, full access on CMS-app pages). Admins always have access through the admin role."
                             inputWrapperOrder={['label', 'input', 'description']}
                             data={groupOptions}
                             value={accessGroups}

@@ -98,7 +98,7 @@ export function DeleteJobModal({
                     <Text size="sm" fw={700} c="red" mb="xs">
                         {expectedText}
                     </Text>
-                    <TextInput
+                    <TextInput aria-label="Confirmation text"
                         value={confirmText}
                         onChange={(e) => setConfirmText(e.currentTarget.value)}
                         placeholder="Type the confirmation text"

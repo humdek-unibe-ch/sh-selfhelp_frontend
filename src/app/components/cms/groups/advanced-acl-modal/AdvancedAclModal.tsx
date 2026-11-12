@@ -18,6 +18,7 @@ import {
     Checkbox,
     Badge,
     Tooltip,
+    Box,
 } from '@mantine/core';
 import {
     IconInfoCircle,
@@ -28,9 +29,11 @@ import {
     IconLock,
 } from '@tabler/icons-react';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
-import { useGroupDetails, useUpdateGroupAcls } from '../../../../../hooks/useGroups';
+import {
+    useGroupDetails,
+    useUpdateGroupAcls,
+} from '../../../../../hooks/useGroups';
 import { convertAclsToApiFormat, convertApiAclsToUiFormat } from '../../../../../utils/acl-conversion.utils';
-import { useQueryClient } from '@tanstack/react-query';
 import { ModalWrapper } from '../../../shared';
 
 export interface IAclPage {
@@ -280,7 +283,7 @@ export function AclManagement({
                             {selectedPages.length} pages selected
                         </Badge>
                     </Group>
-                    <ActionIcon
+                    <ActionIcon aria-label={isExpanded ? 'Collapse page list' : 'Expand page list'} aria-expanded={isExpanded}
                         variant="subtle"
                         onClick={() => setIsExpanded(!isExpanded)}
                         size="sm"
@@ -300,12 +303,12 @@ export function AclManagement({
                     </Alert>
 
                     {/* Search */}
-                    <TextInput
+                    <TextInput aria-label="Search pages"
                         placeholder="Search pages..."
                         leftSection={<IconSearch size="1rem" />}
                         rightSection={
                             searchTerm && (
-                                <ActionIcon
+                                <ActionIcon aria-label="Clear search"
                                     variant="subtle"
                                     color="gray"
                                     size="sm"
@@ -360,7 +363,6 @@ export function AdvancedAclModal({
     groupName
 }: IAdvancedAclModalProps) {
     const [selectedPages, setSelectedPages] = useState<IAclPage[]>([]);
-    const queryClient = useQueryClient();
 
     // Fetch group details (including ACLs) - with fresh data when modal opens
     const { data: groupDetails, isLoading: isLoadingGroup, refetch: refetchGroupDetails } = useGroupDetails(groupId);
@@ -368,17 +370,19 @@ export function AdvancedAclModal({
 
     // Extract ACLs from group details
     const existingAcls = groupDetails?.acls || [];
-    const isLoadingAcls = isLoadingGroup;
+    // Only block the body with the overlay on the FIRST load (no data yet). The
+    // open effect below refetches group details every time the modal opens;
+    // that background refetch must NOT re-show a full-body spinner.
+    const isLoadingAcls = isLoadingGroup && !groupDetails;
 
-    // Side effects on open (invalidate + refetch fresh data) stay in an effect.
+    // Side effect on open: read the ACLs fresh, never from a cached copy, because
+    // saving replaces the whole set. One refetch of the reader's own query is
+    // enough; it needs no key of its own.
     useEffect(() => {
         if (opened) {
-            // First invalidate to ensure we don't get cached data
-            void queryClient.invalidateQueries({ queryKey: ['groups', 'detail', groupId] });
-            // Then refetch to get fresh data
             void refetchGroupDetails();
         }
-    }, [opened, groupId, refetchGroupDetails, queryClient]);
+    }, [opened, groupId, refetchGroupDetails]);
 
     // Keep selectedPages in sync with open/close, group changes, and loaded ACLs
     // without a set-state-in-effect, tracking the previous inputs (this mirrors
@@ -410,21 +414,9 @@ export function AdvancedAclModal({
             // Convert to API format
             const aclsData = convertAclsToApiFormat(selectedPages);
 
-
-            // Execute the API call
-            await updateAclsMutation.mutateAsync({
-                groupId,
-                data: { acls: aclsData }
-            });
-
-            // Force invalidate and refetch all related queries using correct query keys
-            await queryClient.invalidateQueries({ queryKey: ['groups'] });
-            await queryClient.invalidateQueries({ queryKey: ['groups', 'acls', groupId] });
-            await queryClient.invalidateQueries({ queryKey: ['groups', 'detail', groupId] });
-
-            // Also refetch the group details to ensure fresh data immediately
-            await refetchGroupDetails();
-
+            // The mutation hook invalidates the group root on success, which
+            // refetches the lists, this group's ACLs and its details.
+            await updateAclsMutation.mutateAsync({ groupId, data: { acls: aclsData } });
 
             onClose();
         } catch {
@@ -451,15 +443,18 @@ export function AdvancedAclModal({
             cancelLabel="Cancel"
             scrollAreaHeight="calc(100dvh - 14rem)"
         >
-            <LoadingOverlay visible={isLoading} />
+            <Box pos="relative">
+                <LoadingOverlay visible={isLoading} zIndex={1} overlayProps={{ blur: 1 }} />
 
-            <AclManagement
-                selectedPages={selectedPages}
-                onChange={setSelectedPages}
-                showHeader={false}
-                maxHeight={500}
-                initiallyExpanded={true}
-            />
+                {/* Asset access is set per asset (its groups) on the Assets page. */}
+                <AclManagement
+                    selectedPages={selectedPages}
+                    onChange={setSelectedPages}
+                    showHeader={false}
+                    maxHeight={500}
+                    initiallyExpanded={true}
+                />
+            </Box>
         </ModalWrapper>
     );
 } 

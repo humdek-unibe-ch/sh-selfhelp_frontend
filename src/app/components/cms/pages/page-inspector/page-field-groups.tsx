@@ -22,8 +22,8 @@ import {
 } from '@mantine/core';
 import { IconInfoCircle, IconWorld, IconLayoutDashboard, IconChevronDown } from '@tabler/icons-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { notifications } from '@mantine/notifications';
 import { AdminNavigationApi } from '../../../../../api/admin/navigation.api';
-import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { invalidateAdminNavigationQueries } from '../../../../../utils/admin-navigation-cache.utils';
 import type { IAdminPage, INavigationMembershipBadge } from '../../../../../types/responses/admin/admin.types';
 import { usePageFormStore } from '../../../../store/pageFormStore';
@@ -50,42 +50,43 @@ export const PageInfoPanel = React.memo(function PageInfoPanel({
     isConfigurationPage
 }: IPageInfoPanelProps) {
     return (
-        <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
+        <Paper withBorder radius="md" className={styles.pageInfoCard}>
             <Box p="md">
-                <Group gap="xs" mb="sm">
-                    <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
-                    <Text size="sm" fw={500} c="blue">Page Information</Text>
+                <Group gap="xs" mb="md">
+                    <IconInfoCircle size={18} style={{ color: 'var(--mantine-color-blue-6)' }} />
+                    <Text size="sm" fw={600}>Page Information</Text>
                 </Group>
 
-                <Stack gap="xs">
-                    <Group gap="md" wrap="wrap">
-                        <Box>
-                            <Text size="xs" fw={500} c="dimmed">Keyword</Text>
-                            <Text size="sm" style={{ fontFamily: 'monospace', color: 'var(--mantine-color-text)' }}>{page.keyword}</Text>
+                <Stack gap="md">
+                    {/* Keyword / URL / Page ID as three bordered sub-cells. */}
+                    <Group gap="xs" grow wrap="nowrap" align="stretch">
+                        <Box className={styles.infoCell}>
+                            <Text size="xs" c="dimmed">Keyword</Text>
+                            <Text size="sm" fw={600} truncate className={styles.infoCellMono}>{page.keyword}</Text>
                         </Box>
-                        <Box>
-                            <Text size="xs" fw={500} c="dimmed">URL</Text>
-                            <Text size="sm" style={{ fontFamily: 'monospace', color: 'var(--mantine-color-text)' }}>{page.url}</Text>
+                        <Box className={styles.infoCell}>
+                            <Text size="xs" c="dimmed">URL</Text>
+                            <Text size="sm" fw={600} truncate className={styles.infoCellMono}>{page.url}</Text>
                         </Box>
-                        <Box>
-                            <Text size="xs" fw={500} c="dimmed">Page ID</Text>
-                            <Text size="sm" style={{ color: 'var(--mantine-color-text)' }}>{pageId || page.id_pages}</Text>
+                        <Box className={styles.infoCell}>
+                            <Text size="xs" c="dimmed">Page ID</Text>
+                            <Text size="sm" fw={600}>{pageId || page.id_pages}</Text>
                         </Box>
                     </Group>
 
-                    <Group gap="xs" mt="xs">
+                    <Group gap="xs" wrap="wrap">
                         {isConfigurationPage && (
-                            <Badge color="purple" variant="light" size="sm">
+                            <Badge color="purple" variant="light" radius="sm" size="sm">
                                 Configuration Page
                             </Badge>
                         )}
                         {page.is_headless && (
-                            <Badge color="orange" variant="light" size="sm">
+                            <Badge color="orange" variant="light" radius="sm" size="sm">
                                 Headless
                             </Badge>
                         )}
                         {page.id_parent_page !== null && (
-                            <Badge color="green" variant="light" size="sm">
+                            <Badge color="green" variant="light" radius="sm" size="sm">
                                 Child Page
                             </Badge>
                         )}
@@ -218,10 +219,27 @@ export const PageNavigationMembership = React.memo(function PageNavigationMember
         }));
     }, [pages, pageId]);
 
+    // Page types that can never be in a public menu (same rule as the menu builder).
+    const isMenuEligible = useMemo(
+        () => pages?.find((entry) => entry.id_pages === pageId)?.menu_eligible !== false,
+        [pages, pageId],
+    );
+
+    const addMutation = useMutation({
+        mutationFn: (menuKey: string) =>
+            AdminNavigationApi.createMenuItem(menuKey, { item_type: 'page', page_id: pageId, parent_item_id: null }),
+        onSuccess: async (_result, menuKey) => {
+            notifications.show({ title: 'Added to menu', message: `Page added to ${MENU_LABELS[menuKey] ?? menuKey}.`, color: 'green' });
+            await invalidateAdminNavigationQueries(queryClient);
+        },
+        onError: (error: Error) => {
+            notifications.show({ title: 'Could not add to menu', message: error.message, color: 'red' });
+        },
+    });
+
     const removeMutation = useMutation({
         mutationFn: (menuItemId: number) => AdminNavigationApi.deleteMenuItem(menuItemId),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
             await invalidateAdminNavigationQueries(queryClient);
         },
     });
@@ -235,7 +253,7 @@ export const PageNavigationMembership = React.memo(function PageNavigationMember
                         {canUpdateNavigation ? (
                         <Menu withinPortal position="bottom-end">
                             <Menu.Target>
-                                <Button variant="default" size="xs" rightSection={<IconChevronDown size={14} />}>
+                                <Button variant="default" size="xs" rightSection={<IconChevronDown size={14} />} disabled={!isMenuEligible}>
                                     Add to menu
                                 </Button>
                             </Menu.Target>
@@ -243,8 +261,8 @@ export const PageNavigationMembership = React.memo(function PageNavigationMember
                                 {ALL_MENU_KEYS.map((menuKey) => (
                                     <Menu.Item
                                         key={menuKey}
-                                        component="a"
-                                        href={`/admin/navigation?menu=${encodeURIComponent(menuKey)}`}
+                                        disabled={addMutation.isPending || memberships.some((entry) => entry.explicit && entry.key === menuKey)}
+                                        onClick={() => addMutation.mutate(menuKey)}
                                     >
                                         {MENU_LABELS[menuKey]}
                                     </Menu.Item>
@@ -327,7 +345,7 @@ export const PageSettings = React.memo(function PageSettings() {
                         multiline
                         w={300}
                     >
-                        <ActionIcon variant="subtle" size="xs" color="gray">
+                        <ActionIcon aria-label="About Page Settings" variant="subtle" size="xs" color="gray">
                             <IconInfoCircle size="0.75rem" />
                         </ActionIcon>
                     </Tooltip>
@@ -414,7 +432,7 @@ export const PageAdditionalProperties = React.memo(function PageAdditionalProper
                         multiline
                         w={300}
                     >
-                        <ActionIcon variant="subtle" size="xs" color="gray">
+                        <ActionIcon aria-label="About Additional Properties" variant="subtle" size="xs" color="gray">
                             <IconInfoCircle size="0.75rem" />
                         </ActionIcon>
                     </Tooltip>

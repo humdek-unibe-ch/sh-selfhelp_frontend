@@ -24,7 +24,6 @@ import {
   Group,
   TextInput,
   Select,
-  Pagination,
   Badge,
   ActionIcon,
   LoadingOverlay,
@@ -42,13 +41,12 @@ import {
   IconSearch,
   IconTrash,
   IconDots,
-  IconSortAscending,
-  IconSortDescending,
   IconX,
   IconPlus,
   IconMinus,
 } from '@tabler/icons-react';
-import { useScheduledJobs } from '../../../../../hooks/useScheduledJobs';
+import { useScheduledJobs, useScheduledJobsStats } from '../../../../../hooks/useScheduledJobs';
+import { ScheduledJobsStatsTiles } from '../scheduled-jobs-stats-tiles/ScheduledJobsStatsTiles';
 import { useLookups } from '../../../../../hooks/useLookups';
 import { getScheduledJobStatuses, getScheduledJobTypes, getScheduledJobSearchDateTypes } from '../../../../../utils/lookup-filters.utils';
 import { type IScheduledJobFilters, type IScheduledJob, type IScheduledJobTransaction } from '../../../../../types/responses/admin/scheduled-jobs.types';
@@ -58,6 +56,7 @@ import { ScheduledJobActionsMenuItems } from '../utils/ScheduledJobActionsMenuIt
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { PageHeader } from '../../../shared/common/PageHeader';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
 interface IScheduledJobsListProps {
     onViewJob?: (jobId: number) => void;
     onExecuteJob?: (jobId: number) => void;
@@ -170,6 +169,7 @@ export function ScheduledJobsList({
 
     // Real API calls
     const { data: scheduledJobsData, isFetching, error, refetch } = useScheduledJobs(params);
+    const { data: statsData, isLoading: isStatsLoading, isError: isStatsError } = useScheduledJobsStats();
     const { data: lookupsData } = useLookups();
 
     // Process lookups for filters
@@ -337,7 +337,7 @@ export function ScheduledJobsList({
             }
 
             return (
-              <ActionIcon
+              <ActionIcon aria-label={isExpanded ? 'Hide job details' : 'Show job details'} aria-expanded={isExpanded}
                 variant="subtle"
                 size="sm"
                 onClick={() => handleToggleExpand(row.original.id)}
@@ -373,23 +373,9 @@ export function ScheduledJobsList({
         },
         {
           accessorKey: "id",
-          header: ({ column }) => (
-            <Group
-              gap="xs"
-              style={{ cursor: "pointer", userSelect: "none" }}
-              onClick={() => column.toggleSorting()}
-            >
-              <Text fw={500}>ID</Text>
-              {{
-                asc: <IconSortAscending size={14} />,
-                desc: <IconSortDescending size={14} />,
-              }[column.getIsSorted() as string] || (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </Group>
-          ),
+          header: ({ column }) => <SortHeader label="ID" column={column} />,
           cell: ({ row }) => (
-            <Text size="sm" fw={500}>
+            <Text size="sm" c="dimmed">
               {row.original.id}
             </Text>
           ),
@@ -397,26 +383,7 @@ export function ScheduledJobsList({
         },
         {
           accessorKey: "date_created",
-          header: ({ column }) => (
-            <Group gap="xs">
-              <Text fw={500}>Entry Date</Text>
-              <ActionIcon
-                variant="transparent"
-                size="xs"
-                onClick={() =>
-                  column.toggleSorting(column.getIsSorted() === "asc")
-                }
-              >
-                {column.getIsSorted() === "asc" ? (
-                  <IconSortAscending size={14} />
-                ) : column.getIsSorted() === "desc" ? (
-                  <IconSortDescending size={14} />
-                ) : (
-                  <IconSortAscending size={14} opacity={0.5} />
-                )}
-              </ActionIcon>
-            </Group>
-          ),
+          header: ({ column }) => <SortHeader label="Entry Date" column={column} />,
           cell: ({ row }) => (
             <Text size="sm">{formatDate(row.original.date_created)}</Text>
           ),
@@ -424,26 +391,7 @@ export function ScheduledJobsList({
         },
         {
           accessorKey: "date_to_be_executed",
-          header: ({ column }) => (
-            <Group gap="xs">
-              <Text fw={500}>Date to be Executed</Text>
-              <ActionIcon
-                variant="transparent"
-                size="xs"
-                onClick={() =>
-                  column.toggleSorting(column.getIsSorted() === "asc")
-                }
-              >
-                {column.getIsSorted() === "asc" ? (
-                  <IconSortAscending size={14} />
-                ) : column.getIsSorted() === "desc" ? (
-                  <IconSortDescending size={14} />
-                ) : (
-                  <IconSortAscending size={14} opacity={0.5} />
-                )}
-              </ActionIcon>
-            </Group>
-          ),
+          header: ({ column }) => <SortHeader label="Date to be Executed" column={column} />,
           cell: ({ row }) => (
             <Text size="sm">
               {formatDate(row.original.date_to_be_executed)}
@@ -487,26 +435,7 @@ export function ScheduledJobsList({
         },
         {
           accessorKey: "date_executed",
-          header: ({ column }) => (
-            <Group gap="xs">
-              <Text fw={500}>Execution Date</Text>
-              <ActionIcon
-                variant="transparent"
-                size="xs"
-                onClick={() =>
-                  column.toggleSorting(column.getIsSorted() === "asc")
-                }
-              >
-                {column.getIsSorted() === "asc" ? (
-                  <IconSortAscending size={14} />
-                ) : column.getIsSorted() === "desc" ? (
-                  <IconSortDescending size={14} />
-                ) : (
-                  <IconSortAscending size={14} opacity={0.5} />
-                )}
-              </ActionIcon>
-            </Group>
-          ),
+          header: ({ column }) => <SortHeader label="Execution Date" column={column} />,
           cell: ({ row }) => (
             <Text size="sm">
               {row.original.date_executed
@@ -596,7 +525,7 @@ export function ScheduledJobsList({
           cell: ({ row }) => (
             <Menu shadow="md" width={200}>
               <Menu.Target>
-                <ActionIcon variant="subtle" size="sm">
+                <ActionIcon aria-label="Job actions" variant="subtle" size="sm">
                   <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
@@ -659,7 +588,8 @@ export function ScheduledJobsList({
             <PageHeader
             title="Scheduled Jobs"
             subtitle="Manage and monitor scheduled jobs"
-            badge={pagination.totalCount > 0 ? pagination.totalCount : undefined}
+            badge={pagination.totalCount}
+            badgeAriaLabel="jobs"
             >
             {selectedJobs.size > 0 && (
                 <Button
@@ -672,6 +602,15 @@ export function ScheduledJobsList({
             )}
             </PageHeader>
 
+          {/* Status count tiles. Filter-independent: they describe the whole
+              visible set and reflect (not drive) the applied Status filter. */}
+          <ScheduledJobsStatsTiles
+            stats={statsData}
+            isLoading={isStatsLoading}
+            isError={isStatsError}
+            activeStatus={params.status}
+          />
+
           {/* Advanced Filters */}
           <Paper p="md" withBorder>
             <Stack gap="md">
@@ -682,7 +621,7 @@ export function ScheduledJobsList({
                   leftSection={<IconSearch size={16} />}
                   rightSection={
                     filterParams.search ? (
-                      <ActionIcon
+                      <ActionIcon aria-label="Clear search"
                         variant="subtle"
                         size="sm"
                         onClick={handleClearSearch}
@@ -782,11 +721,13 @@ export function ScheduledJobsList({
                   value={filterParams.pageSize?.toString() || "20"}
                   onChange={handlePageSizeChange}
                   data={[
-                    { value: "10", label: "10 per page" },
-                    { value: "20", label: "20 per page" },
-                    { value: "50", label: "50 per page" },
-                    { value: "100", label: "100 per page" },
+                    { value: "10", label: "10" },
+                    { value: "20", label: "20" },
+                    { value: "50", label: "50" },
+                    { value: "100", label: "100" },
                   ]}
+                  withCheckIcon={false}
+                  allowDeselect={false}
                   className={classes.pageSizeSelect}
                 />
               </Group>
@@ -801,23 +742,20 @@ export function ScheduledJobsList({
           </Paper>
 
           {/* Table Section */}
-          <div
-            className={classes.tableWrapper}
-            style={{ position: "relative", minHeight: 400 }}
-          >
+          <div className={tableStyles.tableWrapper}>
             <LoadingOverlay
               visible={isFetching}
               overlayProps={{ blur: 2, backgroundOpacity: 0.6 }}
               loaderProps={{ size: "lg" }}
             />
 
-            <Box className={classes.tableScrollContainer}>
-              <Table striped highlightOnHover>
+            <Box className={tableStyles.tableScrollContainer}>
+              <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
                 <TableThead>
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableTr key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
-                        <TableTh key={header.id}>
+                        <TableTh key={header.id} aria-sort={ariaSort(header.column)} className={tableStyles.tableHeader}>
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -834,7 +772,7 @@ export function ScheduledJobsList({
                     <React.Fragment key={row.id}>
                       <TableTr>
                         {row.getVisibleCells().map((cell) => (
-                          <TableTd key={cell.id}>
+                          <TableTd key={cell.id} className={tableStyles.tableCell}>
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext(),
@@ -857,54 +795,39 @@ export function ScheduledJobsList({
                         )}
                     </React.Fragment>
                   ))}
-
-                  {/* No Results Empty State */}
-                  {!isFetching && scheduledJobs.length === 0 && (
-                    <Table.Tr>
-                      <Table.Td
-                        colSpan={table.getAllColumns().length}
-                        style={{ padding: "80px 20px", textAlign: "center" }}
-                      >
-                        <EmptyState
-                          title="No scheduled jobs found"
-                          description={
-                            params.search
-                              ? "Try adjusting your search criteria"
-                              : params.status ||
-                                  params.jobType ||
-                                  params.dateFrom !== params.dateTo
-                                ? "No jobs match your current filters"
-                                : "No jobs are currently scheduled in the selected period"
-                          }
-                        />
-                      </Table.Td>
-                    </Table.Tr>
-                  )}
                 </TableTbody>
               </Table>
             </Box>
-          </div>
 
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <Group justify="center">
-              <Pagination
-                total={pagination.totalPages}
-                value={pagination.page}
-                onChange={handlePageChange}
+            {/* Empty state — rendered below the table (headers stay visible,
+                matching the other admin lists). */}
+            {!isFetching && scheduledJobs.length === 0 && (
+              <EmptyState
+                title="No scheduled jobs found"
+                description={
+                  params.search
+                    ? "Try adjusting your search criteria"
+                    : params.status ||
+                        params.jobType ||
+                        params.dateFrom !== params.dateTo
+                      ? "No jobs match your current filters"
+                      : "No jobs are currently scheduled in the selected period"
+                }
               />
-            </Group>
-          )}
+            )}
 
-          {/* Results info */}
-          <Text size="sm" c="dimmed" ta="center">
-            {pagination.totalCount === 0
-              ? "Showing 0 entries"
-              : `Showing ${(pagination.page - 1) * pagination.pageSize + 1} to ${Math.min(
-                  pagination.page * pagination.pageSize,
-                  pagination.totalCount,
-                )} of ${pagination.totalCount} entries`}
-          </Text>
+            {/* Footer — always visible. */}
+            <AdminTableFooter
+              totalCount={pagination.totalCount}
+              itemLabel="jobs"
+              pagination={{
+                page: pagination.page,
+                pageSize: pagination.pageSize,
+                totalPages: pagination.totalPages,
+                onPageChange: handlePageChange,
+              }}
+            />
+          </div>
         </Stack>
       </Card>
     );

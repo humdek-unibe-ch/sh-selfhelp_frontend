@@ -4,13 +4,12 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   flexRender,
   getCoreRowModel,
   useReactTable,
   type ColumnDef,
-  type SortingState,
 } from '@tanstack/react-table';
 import {
   Table,
@@ -19,22 +18,20 @@ import {
   TableThead,
   TableTh,
   TableTr,
-  Pagination,
   Text,
   Badge,
   Group,
-  Center,
   Box,
   ActionIcon,
   Tooltip,
   Alert,
 } from '@mantine/core';
 import {
-  IconSortAscending,
-  IconSortDescending,
   IconEye,
   IconAlertCircle,
 } from '@tabler/icons-react';
+import { EmptyState } from '../../../shared/common/EmptyState';
+import { AdminTableFooter, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
 import type { IAuditLogDetails } from '../../../../../types/responses/admin/audit.types';
 
 interface AuditLogsTableProps {
@@ -59,10 +56,6 @@ export function AuditLogsTable({
   loading,
   error,
 }: AuditLogsTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: 'createdAt', desc: true } // Default sort by date descending
-  ]);
-
   // Format CRUD permissions bit flags
   const formatCrudPermissions = (permissions: number | null): string => {
     if (permissions === null) return '-';
@@ -203,13 +196,15 @@ export function AuditLogsTable({
       },
       {
         id: 'actions',
-        header: '',
+        header: 'Actions',
         cell: ({ row }) => (
-          <Group gap="xs">
-            <Tooltip label="View Details">
+          <Group gap={2} wrap="nowrap" justify="flex-end" className={tableStyles.actionsCell}>
+            <Tooltip label="View details" withArrow>
               <ActionIcon
-                variant="light"
+                variant="subtle"
+                color="gray"
                 size="sm"
+                aria-label="View details"
                 onClick={() => onViewDetails?.(row.original.id)}
               >
                 <IconEye size={16} />
@@ -218,7 +213,6 @@ export function AuditLogsTable({
           </Group>
         ),
         size: 60,
-        enableSorting: false,
       },
     ],
     [onViewDetails]
@@ -229,11 +223,7 @@ export function AuditLogsTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    state: {
-      sorting,
-    },
-    onSortingChange: setSorting,
-    manualSorting: true, // We're not implementing server-side sorting yet
+    enableSorting: false, // Sorting is server-side driven by the parent; the table renders rows as received.
   });
 
   if (error) {
@@ -244,72 +234,58 @@ export function AuditLogsTable({
     );
   }
 
-  if (!loading && data.length === 0) {
-    return (
-      <Center py="xl">
-        <Text c="dimmed">No audit logs found</Text>
-      </Center>
-    );
-  }
-
   return (
     <div className="space-y-4">
-      <Box style={{ overflowX: 'auto' }}>
-        <Table striped highlightOnHover withTableBorder>
-          <TableThead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableTr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableTh key={header.id} style={{ width: header.getSize() }}>
-                    {header.isPlaceholder ? null : (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          cursor: header.column.getCanSort() ? 'pointer' : 'default',
-                        }}
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                        {{
-                          asc: <IconSortAscending size={14} style={{ marginLeft: 4 }} />,
-                          desc: <IconSortDescending size={14} style={{ marginLeft: 4 }} />,
-                        }[header.column.getIsSorted() as string] ?? null}
-                      </div>
-                    )}
-                  </TableTh>
-                ))}
-              </TableTr>
-            ))}
-          </TableThead>
-          <TableTbody>
-            {table.getRowModel().rows.map((row) => (
-              <TableTr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableTd key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableTd>
-                ))}
-              </TableTr>
-            ))}
-          </TableTbody>
-        </Table>
-      </Box>
+      <div className={tableStyles.tableWrapper}>
+        <Box className={tableStyles.tableScrollContainer}>
+          <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
+            <TableThead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableTr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableTh key={header.id} aria-sort={ariaSort(header.column)} className={tableStyles.tableHeader} style={{ width: header.getSize() }}>
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableTh>
+                  ))}
+                </TableTr>
+              ))}
+            </TableThead>
+            <TableTbody>
+              {table.getRowModel().rows.map((row) => (
+                <TableTr key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableTd key={cell.id} className={tableStyles.tableCell}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableTd>
+                  ))}
+                </TableTr>
+              ))}
+            </TableTbody>
+          </Table>
+        </Box>
 
-      {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
-        <Group justify="center">
-          <Pagination
-            total={pagination.totalPages}
-            value={pagination.page}
-            onChange={onPageChange}
-            size="sm"
+        {/* Empty state — inside the shell, below the header row. */}
+        {!loading && data.length === 0 && (
+          <EmptyState
+            title="No audit logs found"
+            description="Try adjusting your filters."
           />
-          <Text size="sm" c="dimmed">
-            Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
-          </Text>
-        </Group>
-      )}
+        )}
+
+        {/* Footer — always visible when data is loaded. */}
+        {pagination && (
+          <AdminTableFooter
+            totalCount={pagination.total}
+            itemLabel="audit logs"
+            pagination={{
+              page: pagination.page,
+              pageSize: pagination.pageSize,
+              totalPages: pagination.totalPages,
+              onPageChange,
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }

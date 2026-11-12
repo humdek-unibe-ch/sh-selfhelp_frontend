@@ -232,6 +232,22 @@ export function buildUpstreamUrl(pathOrSegments: string | string[], search: stri
 }
 
 /**
+ * Visitor address for the backend's per-address auth throttle (F76 / F79).
+ *
+ * Returns the same `X-Forwarded-For` value the catch-all proxy would send:
+ * whatever arrived on the request (Traefik / the reverse proxy, or Next.js
+ * when the frontend is reached directly). Does not invent a chain or fall
+ * back to a socket address — when the header is absent the backend counts
+ * only the peer (the frontend container), matching the catch-all.
+ */
+export function forwardedForHeader(req: NextRequest): string | null {
+    const value = req.headers.get('x-forwarded-for');
+    if (value === null) return null;
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
+}
+
+/**
  * Fully-materialised view of an incoming request so the catch-all proxy
  * can replay it verbatim after a silent refresh. The body is buffered as
  * an `ArrayBuffer` (or `null` for GET/HEAD) — `fetch` accepts both on Node.

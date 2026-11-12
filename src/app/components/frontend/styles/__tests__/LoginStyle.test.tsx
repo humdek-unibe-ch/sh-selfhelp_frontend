@@ -2,8 +2,9 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
 import { renderWithProviders } from '../../../../../test-utils/renderWithProviders';
 
@@ -11,10 +12,25 @@ import { renderWithProviders } from '../../../../../test-utils/renderWithProvide
  * The login page must offer a discoverable path to self-registration. This test
  * pins that the "Create account" link is rendered and points at the public
  * /register route so users without an account can reach the registration form.
+ *
+ * It also pins the already-authenticated guard: the login form must never
+ * render on top of a live session.
  */
+const { pushMock, replaceMock, authState, searchParamsState } = vi.hoisted(() => ({
+    pushMock: vi.fn(),
+    replaceMock: vi.fn(),
+    authState: { value: { isAuthenticated: false, isLoading: false } },
+    searchParamsState: { redirectTo: null as string | null },
+}));
+
 vi.mock('next/navigation', () => ({
-    useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
-    useSearchParams: () => ({ get: () => null }),
+    useRouter: () => ({ push: pushMock, replace: replaceMock, prefetch: vi.fn() }),
+    // Answers only to `redirectTo`: the one name every writer of the login URL
+    // uses (see utils/login-redirect.utils.ts). A reader of any other name sees nothing.
+    useSearchParams: () => ({ get: (name: string) => (name === 'redirectTo' ? searchParamsState.redirectTo : null) }),
+}));
+vi.mock('../../../../../hooks/useAuth', () => ({
+    useAuth: () => authState.value,
 }));
 vi.mock('@mantine/notifications', () => ({
     notifications: { show: vi.fn() },
@@ -24,10 +40,19 @@ vi.mock('../../../../../api/auth.api', () => ({
 }));
 
 import LoginStyle from '../LoginStyle';
+import { AuthApi } from '../../../../../api/auth.api';
+import { notifications } from '@mantine/notifications';
 
 type LoginStyleField = ComponentProps<typeof LoginStyle>['style'];
 
 describe('LoginStyle', () => {
+    beforeEach(() => {
+        pushMock.mockClear();
+        replaceMock.mockClear();
+        authState.value = { isAuthenticated: false, isLoading: false };
+        searchParamsState.redirectTo = null;
+    });
+
     it('renders a "Create account" link pointing at the public register route', () => {
         renderWithProviders(
             <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
@@ -91,5 +116,190 @@ describe('LoginStyle', () => {
             <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
         );
         expect(screen.queryByText('Sign in to continue')).not.toBeInTheDocument();
+    });
+
+    describe('already-authenticated guard', () => {
+        // Regression: reaching /login while signed in (typed URL, stale bookmark,
+        // or a redirect from another flow such as finishing a different account's
+        // activation link) rendered the login form on top of the live session,
+        // which reads as a silent logout.
+        it('redirects away instead of rendering the form when a session is already active', () => {
+            authState.value = { isAuthenticated: true, isLoading: false };
+
+            renderWithProviders(
+                <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+            );
+
+            expect(replaceMock).toHaveBeenCalledWith('/home');
+            expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
+        });
+
+        it('honours an explicit redirectTo target for an already-authenticated visitor', () => {
+            authState.value = { isAuthenticated: true, isLoading: false };
+            searchParamsState.redirectTo = '/admin/pages';
+
+            renderWithProviders(
+                <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+            );
+
+            expect(replaceMock).toHaveBeenCalledWith('/admin/pages');
+        });
+
+        // The return address comes from the URL, so anybody can craft a login link
+        // that sends a signed-in visitor to another site.
+        it.each([
+            ['an absolute URL', 'https://evil.example/phish'],
+            ['a protocol-relative URL', '//evil.example'],
+            ['a slash-backslash host', '/\\evil.example'],
+            ['a javascript: URL', 'javascript:alert(1)'],
+        ])('never follows %s for an already-authenticated visitor', (_label, target) => {
+            authState.value = { isAuthenticated: true, isLoading: false };
+            searchParamsState.redirectTo = target;
+
+            renderWithProviders(
+                <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+            );
+
+            expect(replaceMock).toHaveBeenCalledTimes(1);
+            expect(replaceMock).toHaveBeenCalledWith('/home');
+        });
+
+        it('still renders the form for an anonymous visitor', () => {
+            renderWithProviders(
+                <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+            );
+
+            expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+            expect(replaceMock).not.toHaveBeenCalled();
+        });
+
+        it('does not bounce the visitor while the auth state is still resolving', () => {
+            // Guarding on `isAuthenticated` alone would redirect on first paint,
+            // before useUserData has answered, and flash away a valid login form.
+            authState.value = { isAuthenticated: false, isLoading: true };
+
+            renderWithProviders(
+                <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+            );
+
+            expect(replaceMock).not.toHaveBeenCalled();
+            expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+        });
+    });
+
+    // Regression: the 2FA hop dropped redirectTo, so 2FA users always landed on
+    // home instead of the page that sent them to log in.
+    it('carries the redirectTo target through to the 2FA step', async () => {
+        searchParamsState.redirectTo = '/profile';
+        vi.mocked(AuthApi.login).mockResolvedValueOnce({
+            data: { requires_2fa: true, id_users: 7 },
+        } as unknown as Awaited<ReturnType<typeof AuthApi.login>>);
+        const user = userEvent.setup();
+        renderWithProviders(
+            <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+        );
+
+        await user.type(screen.getByLabelText(/Email\/Username/), 'qa.user@selfhelp.test');
+        await user.type(screen.getByLabelText(/^Password/), 'qa-password');
+        await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+        expect(pushMock).toHaveBeenCalledWith('/two-factor-authentication?redirectTo=%2Fprofile');
+    });
+
+    it('sends a successful login to the same-site redirectTo target', async () => {
+        searchParamsState.redirectTo = '/admin/pages?page=2';
+        vi.mocked(AuthApi.login).mockResolvedValueOnce({
+            data: { requires_2fa: false },
+        } as unknown as Awaited<ReturnType<typeof AuthApi.login>>);
+        const user = userEvent.setup();
+        renderWithProviders(
+            <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+        );
+
+        await user.type(screen.getByLabelText(/Email\/Username/), 'qa.user@selfhelp.test');
+        await user.type(screen.getByLabelText(/^Password/), 'qa-password');
+        await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+        expect(pushMock).toHaveBeenCalledWith('/admin/pages?page=2');
+    });
+
+    // Critical: `/login?redirectTo=https://evil.example` used to send a user who
+    // had just typed their password to the attacker's site.
+    it.each([
+        ['an absolute URL', 'https://evil.example/phish'],
+        ['a protocol-relative URL', '//evil.example'],
+        ['a slash-backslash host', '/\\evil.example'],
+        ['a javascript: URL', 'javascript:alert(1)'],
+    ])('never follows %s after a successful login', async (_label, target) => {
+        searchParamsState.redirectTo = target;
+        vi.mocked(AuthApi.login).mockResolvedValueOnce({
+            data: { requires_2fa: false },
+        } as unknown as Awaited<ReturnType<typeof AuthApi.login>>);
+        const user = userEvent.setup();
+        renderWithProviders(
+            <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+        );
+
+        await user.type(screen.getByLabelText(/Email\/Username/), 'qa.user@selfhelp.test');
+        await user.type(screen.getByLabelText(/^Password/), 'qa-password');
+        await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+        expect(pushMock).toHaveBeenCalledTimes(1);
+        expect(pushMock).toHaveBeenCalledWith('/home');
+    });
+
+    it('does not carry an off-site redirectTo through to the 2FA step', async () => {
+        searchParamsState.redirectTo = 'https://evil.example/phish';
+        vi.mocked(AuthApi.login).mockResolvedValueOnce({
+            data: { requires_2fa: true, id_users: 7 },
+        } as unknown as Awaited<ReturnType<typeof AuthApi.login>>);
+        const user = userEvent.setup();
+        renderWithProviders(
+            <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+        );
+
+        await user.type(screen.getByLabelText(/Email\/Username/), 'qa.user@selfhelp.test');
+        await user.type(screen.getByLabelText(/^Password/), 'qa-password');
+        await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+        expect(pushMock).toHaveBeenCalledWith('/two-factor-authentication');
+    });
+
+    it('warns inline how long to wait when the backend rate-limits the login (429)', async () => {
+        vi.mocked(AuthApi.login).mockRejectedValueOnce({
+            response: { status: 429, data: { data: { retry_after: 896 } } },
+        });
+        const user = userEvent.setup();
+        renderWithProviders(
+            <LoginStyle style={{} as unknown as LoginStyleField} styleProps={{}} cssClass="section-1" />,
+        );
+
+        await user.type(screen.getByLabelText(/Email\/Username/), 'qa.guest@selfhelp.test');
+        await user.type(screen.getByLabelText(/^Password/), 'qa-wrong-password');
+        await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+        const alert = await screen.findByRole('alert');
+        expect(alert).toHaveTextContent('Too many failed attempts. Please try again in 15 min.');
+        expect(vi.mocked(notifications.show)).not.toHaveBeenCalled();
+    });
+
+    it('shows the CMS alert_rate_limited text with the wait filled in', async () => {
+        vi.mocked(AuthApi.login).mockRejectedValueOnce({
+            response: { status: 429, data: { data: { retry_after: 120 } } },
+        });
+        const user = userEvent.setup();
+        renderWithProviders(
+            <LoginStyle
+                style={{ alert_rate_limited: { content: 'Zu viele Versuche. Bitte in {minutes} Min. erneut versuchen.' } } as unknown as LoginStyleField}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+
+        await user.type(screen.getByLabelText(/Email\/Username/), 'qa.guest@selfhelp.test');
+        await user.type(screen.getByLabelText(/^Password/), 'qa-wrong-password');
+        await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+        expect(await screen.findByRole('alert')).toHaveTextContent('Zu viele Versuche. Bitte in 2 Min. erneut versuchen.');
     });
 });

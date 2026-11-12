@@ -4,14 +4,16 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Anchor, Box, Paper, TextInput, PasswordInput, Button, Alert, Text, Title } from '@mantine/core';
-import { IconCheck, IconMail, IconX } from '@tabler/icons-react';
+import { IconCheck, IconLock, IconMail, IconX } from '@tabler/icons-react';
+import { formatRateLimitMessage, getRateLimitRetryAfter } from '@selfhelp/shared';
 import { useRouter } from 'next/navigation';
 import { type IResetPasswordStyle } from '../../../../types/common/styles.types';
 import { ROUTES } from '../../../../config/routes.config';
 import { AuthApi } from '../../../../api/auth.api';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
+import { useAuth } from '../../../../hooks/useAuth';
 import DOMPurify from 'isomorphic-dompurify';
 
 interface IResetPasswordStyleProps {
@@ -19,6 +21,9 @@ interface IResetPasswordStyleProps {
     styleProps: Record<string, unknown>;
     cssClass: string;
 }
+
+/** Seconds shown in the post-reset countdown before navigating away. */
+const REDIRECT_SECONDS = 3;
 
 type TResetPasswordStyleFields = IResetPasswordStyle & {
     reset_title?: { content?: string };
@@ -33,6 +38,16 @@ type TResetPasswordStyleFields = IResetPasswordStyle & {
     reset_error_invalid_token?: { content?: string };
     reset_error_pw_short?: { content?: string };
     reset_error_pw_mismatch?: { content?: string };
+    // Request-link mode copy. These were hardcoded English while the
+    // set-password mode above was fully localisable; they read from the
+    // dynamically typed `fields` bag so a backend seed can supply them
+    // without a shared-type change.
+    request_title?: { content?: string };
+    request_subtitle?: { content?: string };
+    request_label_email?: { content?: string };
+    request_success_title?: { content?: string };
+    label_back_to_login?: { content?: string };
+    label_back_home?: { content?: string };
 };
 
 const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, styleProps, cssClass }) => {
@@ -45,6 +60,15 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     const userId = Number.parseInt(pageContent?.route_params?.user_id ?? '', 10) || 0;
     const token = pageContent?.route_params?.token ?? '';
     const isSetMode = userId > 0 && token !== '';
+
+    // A reset link can be opened in a browser that already holds a session
+    // (another account, or the same one). Sending an authenticated visitor to
+    // the login form would render a sign-in page on top of a live session, so
+    // the post-reset destination and the "back" links follow the session.
+    // Unlike /login and /register this page stays reachable while signed in —
+    // setting a new password from an emailed link is legitimate either way.
+    const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+    const backRoute = !isAuthLoading && isAuthenticated ? ROUTES.HOME : ROUTES.LOGIN;
 
     const mantineColor = ((style as { color?: { content?: string } }).color?.content as string | undefined) || 'blue';
     const labelPwReset = style.label_pw_reset?.content || 'Send reset link';
@@ -64,31 +88,68 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
         || 'This reset link is invalid or has expired. Please request a new one.';
     const resetErrorPwShort = resetStyle.reset_error_pw_short?.content || 'Your new password must be at least 8 characters long.';
     const resetErrorPwMismatch = resetStyle.reset_error_pw_mismatch?.content || 'The two passwords do not match.';
+    const requestTitle = resetStyle.request_title?.content || 'Reset password';
+    const requestSubtitle = resetStyle.request_subtitle?.content || 'Enter your email address and we will send you a reset link.';
+    const requestLabelEmail = resetStyle.request_label_email?.content || 'Email Address';
+    const requestSuccessTitle = resetStyle.request_success_title?.content || 'Email Sent';
+    // The "back" link follows the session: an authenticated visitor is offered
+    // the way home, not a sign-in page they are already past.
+    const backLabel = !isAuthLoading && isAuthenticated
+        ? (resetStyle.label_back_home?.content || 'Back to home')
+        : (resetStyle.label_back_to_login?.content || 'Back to sign in');
 
     // "request a reset link" mode
     const [email, setEmail] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
 
     // "set a new password" mode (reached from the emailed link)
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
     const [resetDone, setResetDone] = useState(false);
-    const [redirectCountdown, setRedirectCountdown] = useState(3);
+    const [redirectCountdown, setRedirectCountdown] = useState(REDIRECT_SECONDS);
+
+    // Post-reset countdown. Lives in an effect so navigating away mid-countdown
+    // cancels it, instead of firing a stray push that yanks the user off the
+    // page they moved to. The tick updater stays pure (no navigation inside it)
+    // so a StrictMode double-invoke cannot double-navigate.
+    useEffect(() => {
+        if (!resetDone) {
+            return undefined;
+        }
+        const interval = setInterval(() => {
+            setRedirectCountdown((count) => Math.max(0, count - 1));
+        }, 1000);
+        const redirect = setTimeout(() => {
+            router.push(backRoute);
+        }, REDIRECT_SECONDS * 1000);
+        return () => {
+            clearInterval(interval);
+            clearTimeout(redirect);
+        };
+    }, [resetDone, backRoute, router]);
 
     const handleRequestSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setLockoutMessage(null);
         setSubmitting(true);
         try {
             await AuthApi.requestPasswordReset(email);
-        } catch {
-            // Intentionally ignored: the response is always generic so the form
-            // can never reveal whether the email belongs to a known account.
+            setIsSubmitted(true);
+        } catch (err) {
+            // A 429 is counted per address whether or not the account exists,
+            // so showing it reveals nothing; any other error stays generic.
+            const retryAfter = getRateLimitRetryAfter(err);
+            if (retryAfter !== null) {
+                setLockoutMessage(formatRateLimitMessage(style.alert_rate_limited?.content, retryAfter));
+            } else {
+                setIsSubmitted(true);
+            }
         } finally {
             setSubmitting(false);
-            setIsSubmitted(true);
         }
     };
 
@@ -108,18 +169,10 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
         setSubmitting(true);
         try {
             await AuthApi.resetPassword(userId, token, password);
+            // Starts the countdown effect below; the token is now consumed so
+            // revisiting this link would fail, hence we always navigate away.
             setResetDone(true);
-
-            let count = 3;
-            setRedirectCountdown(count);
-            const interval = setInterval(() => {
-                count -= 1;
-                setRedirectCountdown(count);
-                if (count <= 0) {
-                    clearInterval(interval);
-                    router.push(ROUTES.LOGIN);
-                }
-            }, 1000);
+            setRedirectCountdown(REDIRECT_SECONDS);
         } catch (err) {
             setError((err as { message?: string })?.message || resetErrorInvalidToken);
         } finally {
@@ -194,11 +247,11 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     if (isSubmitted) {
         return cardShell(
             <>
-                <Alert icon={<IconCheck size={16} />} color="green" title="Email Sent">
+                <Alert icon={<IconCheck size={16} />} color="green" title={requestSuccessTitle}>
                     {alertSuccess}
                 </Alert>
-                <Anchor ta="center" display="block" size="sm" mt="md" c={mantineColor} href={ROUTES.LOGIN}>
-                    Back to sign in
+                <Anchor ta="center" display="block" size="sm" mt="md" c={mantineColor} href={backRoute}>
+                    {backLabel}
                 </Anchor>
             </>,
         );
@@ -208,10 +261,10 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     return cardShell(
         <form onSubmit={handleRequestSubmit}>
             <Title order={2} ta="center" mb="xs">
-                Reset password
+                {requestTitle}
             </Title>
             <Text c="dimmed" ta="center" size="sm" mb="lg">
-                Enter your email address and we will send you a reset link.
+                {requestSubtitle}
             </Text>
 
             {error && (
@@ -220,8 +273,14 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
                 </Alert>
             )}
 
+            {lockoutMessage ? (
+                <Alert color="orange" icon={<IconLock size={18} />} mb="md" role="alert">
+                    {lockoutMessage}
+                </Alert>
+            ) : null}
+
             <TextInput
-                label="Email Address"
+                label={requestLabelEmail}
                 placeholder={placeholder}
                 leftSection={<IconMail size={16} />}
                 type="email"
@@ -236,8 +295,8 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
                 {labelPwReset}
             </Button>
 
-            <Anchor ta="center" display="block" size="sm" mt="md" c={mantineColor} href={ROUTES.LOGIN}>
-                Back to sign in
+            <Anchor ta="center" display="block" size="sm" mt="md" c={mantineColor} href={backRoute}>
+                {backLabel}
             </Anchor>
         </form>,
     );

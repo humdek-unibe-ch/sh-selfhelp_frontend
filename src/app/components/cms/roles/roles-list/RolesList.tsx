@@ -25,7 +25,6 @@ import {
   Group,
   TextInput,
   Select,
-  Pagination,
   Badge,
   ActionIcon,
   Tooltip,
@@ -42,8 +41,6 @@ import {
   IconTrash,
   IconDots,
   IconPlus,
-  IconSortAscending,
-  IconSortDescending,
   IconUsers,
   IconX,
   IconFileText,
@@ -51,10 +48,15 @@ import {
   IconUserCheck,
 } from '@tabler/icons-react';
 import { useRoles } from '../../../../../hooks/useRoles';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import type { IRoleDetails, IRolesListParams } from '../../../../../types/responses/admin/roles.types';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
+import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
+import { RoleMembersModal } from './RoleMembersModal';
+import classes from './RolesList.module.css';
 
 interface IRolesListProps {
   onCreateRole?: () => void;
@@ -88,6 +90,12 @@ export function RolesList({
 
   // Applied params (what is sent to the API)
   const [params, setParams] = useState<IRolesListParams>(filterParams);
+
+  // The role whose users are being viewed, or null when the modal is closed.
+  const [membersOf, setMembersOf] = useState<{ id: number; name: string } | null>(null);
+  // The members dialog reads the Users list.
+  const { permissionChecker } = useAuthUser();
+  const canViewMembers = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_USER_READ) ?? false;
 
   // Fetch roles data
   const { data: rolesData, refetch, isFetching, error } = useRoles(params);
@@ -175,72 +183,33 @@ export function RolesList({
     () => [
       {
         accessorKey: "id",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>ID</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: () => <span className={tableStyles.colHeader}>ID</span>,
         cell: ({ row }) => (
-          <Text size="sm" fw={500}>
+          <Text size="sm" c="dimmed">
             {row.original.id}
           </Text>
         ),
-        enableSorting: true,
       },
       {
         accessorKey: "name",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Name</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Name" column={column} />,
         cell: ({ row }) => {
           const adminRole = isAdminRole(row.original.name);
 
           return (
-            <div>
-              <Group gap="xs" align="center">
-                <Text size="sm" fw={500}>
+            <div className={classes.nameText}>
+              <Group gap="xs" align="center" wrap="nowrap">
+                <Text size="sm" fw={600} className={classes.roleName}>
                   {row.original.name}
                 </Text>
                 {adminRole && (
-                  <Badge size="xs" color="red" variant="light">
+                  <Badge size="xs" color="red" variant="light" radius="sm">
                     Admin
                   </Badge>
                 )}
               </Group>
               {row.original.description && (
-                <Text size="xs" c="dimmed">
+                <Text size="xs" c="dimmed" className={classes.roleDescription}>
                   {row.original.description}
                 </Text>
               )}
@@ -251,28 +220,9 @@ export function RolesList({
       },
       {
         accessorKey: "permissions_count",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Permissions</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Permissions" column={column} />,
         cell: ({ row }) => (
-          <Badge size="sm" variant="light" color="blue">
+          <Badge size="sm" variant="light" color="blue" radius="sm">
             {row.original.permissions_count}
           </Badge>
         ),
@@ -280,28 +230,9 @@ export function RolesList({
       },
       {
         accessorKey: "users_count",
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Users</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {column.getIsSorted() === "asc" ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === "desc" ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
+        header: ({ column }) => <SortHeader label="Users" column={column} />,
         cell: ({ row }) => (
-          <Badge size="sm" variant="light" color="blue">
+          <Badge size="sm" variant="light" color="blue" radius="sm">
             {row.original.users_count}
           </Badge>
         ),
@@ -309,20 +240,23 @@ export function RolesList({
       },
       {
         id: "actions",
-        header: "Actions",
+        header: () => <span className={tableStyles.colHeader}>Actions</span>,
         cell: ({ row }) => {
           const adminRole = isAdminRole(row.original.name);
 
           return (
-            <Group gap="xs">
+            <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
               <Tooltip
+                withArrow
                 label={
-                  adminRole ? "Admin role cannot be modified" : "Edit Role"
+                  adminRole ? "Admin role cannot be modified" : "Edit role"
                 }
               >
                 <ActionIcon
                   variant="subtle"
+                  color="gray"
                   size="sm"
+                  aria-label="Edit role"
                   disabled={adminRole}
                   onClick={() => !adminRole && onEditRole?.(row.original.id)}
                 >
@@ -338,7 +272,9 @@ export function RolesList({
                     : "Manage Page Permissions"
                 }
               >
-                <ActionIcon
+                <ActionIcon aria-label={adminRole
+                    ? "Admin role permissions cannot be modified"
+                    : "Manage Page Permissions"}
                   variant="subtle"
                   size="sm"
                   color="blue"
@@ -362,7 +298,9 @@ export function RolesList({
                     : "Manage Data Table Permissions"
                 }
               >
-                <ActionIcon
+                <ActionIcon aria-label={adminRole
+                    ? "Admin role permissions cannot be modified"
+                    : "Manage Data Table Permissions"}
                   variant="subtle"
                   size="sm"
                   color="green"
@@ -386,7 +324,9 @@ export function RolesList({
                     : "Manage Group Permissions"
                 }
               >
-                <ActionIcon
+                <ActionIcon aria-label={adminRole
+                    ? "Admin role permissions cannot be modified"
+                    : "Manage Group Permissions"}
                   variant="subtle"
                   size="sm"
                   color="purple"
@@ -403,9 +343,9 @@ export function RolesList({
                 </ActionIcon>
               </Tooltip>
 
-              <Menu shadow="md" width={200}>
+              <Menu shadow="md" width={200} position="bottom-end" withArrow>
                 <Menu.Target>
-                  <ActionIcon variant="subtle" size="sm">
+                  <ActionIcon variant="subtle" color="gray" size="sm" aria-label="More actions">
                     <IconDots size={16} />
                   </ActionIcon>
                 </Menu.Target>
@@ -413,11 +353,12 @@ export function RolesList({
                 <Menu.Dropdown>
                   <Menu.Item
                     leftSection={<IconUsers size={14} />}
-                    onClick={() => {
-                      /* Handle view users */
-                    }}
+                    disabled={!canViewMembers}
+                    onClick={() =>
+                      setMembersOf({ id: row.original.id, name: row.original.name })
+                    }
                   >
-                    View Users
+                    View members
                   </Menu.Item>
                   <Menu.Divider />
                   <Menu.Item
@@ -444,6 +385,7 @@ export function RolesList({
       onManagePagePermissions,
       onManageDataTablePermissions,
       onManageGroupPermissions,
+      canViewMembers,
     ],
   );
 
@@ -479,22 +421,24 @@ export function RolesList({
         <PageHeader
           title="Roles Management"
           subtitle="Manage user roles and their permissions"
+          badge={rolesData?.pagination.totalCount ?? 0}
+          badgeAriaLabel="roles"
         >
           <Button leftSection={<IconPlus size={16} />} onClick={onCreateRole}>
             Create Role
           </Button>
         </PageHeader>
 
-        {/* Filters Card */}
+        {/* Filters Card — search + page size on the same row as the actions. */}
         <Card withBorder p="md">
-          <Stack gap="md">
-            <Group gap="md" align="flex-end">
-              <TextInput
+          <Group gap="md" align="flex-end" justify="space-between">
+            <Group gap="md" style={{ flex: 1 }}>
+              <TextInput aria-label="Search roles"
                 placeholder="Search roles..."
                 leftSection={<IconSearch size={16} />}
                 rightSection={
                   filterParams.search ? (
-                    <ActionIcon
+                    <ActionIcon aria-label="Clear search"
                       variant="subtle"
                       color="gray"
                       size="sm"
@@ -508,9 +452,11 @@ export function RolesList({
                 onChange={(e) => handleSearch(e.currentTarget.value)}
                 style={{ flex: 1 }}
               />
+            </Group>
 
+            <Group justify="flex-end" gap="md" align="flex-end">
               <Select
-                placeholder="Per page"
+                label="Rows per page"
                 value={filterParams.pageSize?.toString() || "20"}
                 onChange={handlePageSizeChange}
                 data={[
@@ -519,12 +465,11 @@ export function RolesList({
                   { value: "50", label: "50" },
                   { value: "100", label: "100" },
                 ]}
-                w={100}
+                withCheckIcon={false}
+                allowDeselect={false}
+                w={110}
               />
-            </Group>
 
-            {/* Filter Actions - Right aligned under the form */}
-            <Group justify="flex-end">
               <FilterActions
                 onApply={handleApplyFilters}
                 onReset={handleResetFilters}
@@ -533,20 +478,20 @@ export function RolesList({
                 isApplyDisabled={filterParams === params}
               />
             </Group>
-          </Stack>
+          </Group>
         </Card>
 
         {/* Table */}
-        <div style={{ position: "relative" }}>
+        <div className={tableStyles.tableWrapper}>
           <LoadingOverlay visible={isFetching} />
 
-          <Box style={{ overflowX: "auto" }}>
-            <Table striped highlightOnHover>
+          <Box className={tableStyles.tableScrollContainer}>
+            <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
               <TableThead>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableTr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableTh key={header.id}>
+                      <TableTh key={header.id} aria-sort={ariaSort(header.column)} className={tableStyles.tableHeader}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -562,7 +507,7 @@ export function RolesList({
                 {table.getRowModel().rows.map((row) => (
                   <TableTr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableTd key={cell.id}>
+                      <TableTd key={cell.id} className={tableStyles.tableCell}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
@@ -586,32 +531,28 @@ export function RolesList({
               }
             />
           )}
-        </div>
 
-        {/* Pagination */}
-        {rolesData?.pagination && rolesData.pagination.totalPages > 1 && (
-          <Group justify="space-between">
-            <Text size="sm" c="dimmed">
-              Showing{" "}
-              {(rolesData.pagination.page - 1) * rolesData.pagination.pageSize +
-                1}{" "}
-              to{" "}
-              {Math.min(
-                rolesData.pagination.page * rolesData.pagination.pageSize,
-                rolesData.pagination.totalCount,
-              )}{" "}
-              of {rolesData.pagination.totalCount} roles
-            </Text>
-
-            <Pagination
-              value={rolesData.pagination.page}
-              onChange={handlePageChange}
-              total={rolesData.pagination.totalPages}
-              size="sm"
+          {/* Footer — always visible when data is loaded. */}
+          {rolesData?.pagination && (
+            <AdminTableFooter
+              totalCount={rolesData.pagination.totalCount}
+              itemLabel="roles"
+              pagination={{
+                page: rolesData.pagination.page,
+                pageSize: rolesData.pagination.pageSize,
+                totalPages: rolesData.pagination.totalPages,
+                onPageChange: handlePageChange,
+              }}
             />
-          </Group>
-        )}
+          )}
+        </div>
       </Stack>
+
+      <RoleMembersModal
+        opened={membersOf !== null}
+        onClose={() => setMembersOf(null)}
+        role={membersOf}
+      />
     </Card>
   );
-} 
+}

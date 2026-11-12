@@ -5,44 +5,77 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { useState } from 'react';
-import { Stack, Group, Button, Text, Title } from '@mantine/core';
-import { IconUpload, IconPhoto } from '@tabler/icons-react';
+import { Stack, Button } from '@mantine/core';
+import { IconUpload, IconTransferIn } from '@tabler/icons-react';
 import { AssetsList } from '../assets-list/AssetsList';
-import { UploadAssetModal } from '../upload-asset-modal/UploadAssetModal';
+import { AssetFormModal } from '../asset-form-modal/AssetFormModal';
+import { ExportImportAssetsModal } from '../export-import-assets-modal/ExportImportAssetsModal';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 
 export function AssetsPage() {
   const [uploadModalOpened, setUploadModalOpened] = useState(false);
+  // The folder the upload form opens on: set by a folder's "Upload here", null from the header button.
+  const [uploadFolderId, setUploadFolderId] = useState<number | null>(null);
+  const [exportImportOpened, setExportImportOpened] = useState(false);
+  const [exportAssetIds, setExportAssetIds] = useState<number[]>([]);
+
+  const { permissionChecker } = useAuthUser();
+  const canRead = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_READ) ?? false;
+  // Upload + import both create assets; export only reads.
+  const canCreate = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_CREATE) ?? false;
+
+  const openExportImport = (assetIds: number[]) => {
+    setExportAssetIds(assetIds);
+    setExportImportOpened(true);
+  };
+
+  const openUpload = (folderId: number | null) => {
+    setUploadFolderId(folderId);
+    setUploadModalOpened(true);
+  };
 
   return (
     <Stack gap="lg">
-      {/* Header */}
-      <Group justify="space-between" align="center">
-        <div>
-          <Group gap="sm" align="center">
-            <IconPhoto size={24} />
-            <Title order={2}>Assets Management</Title>
-          </Group>
-          <Text size="sm" c="dimmed" mt={4}>
-            Upload, manage, and organize your media files and documents
-          </Text>
-        </div>
-        
-        <Button
-          leftSection={<IconUpload size={16} />}
-          onClick={() => setUploadModalOpened(true)}
-        >
-          Upload Asset
-        </Button>
-      </Group>
+      <AssetsList
+        onExportSelected={canRead ? openExportImport : undefined}
+        onUploadToFolder={canCreate ? openUpload : undefined}
+        headerActions={
+          <>
+          {canRead && (
+            <Button
+              variant="default"
+              leftSection={<IconTransferIn size={16} />}
+              onClick={() => openExportImport([])}
+            >
+              Export / Import
+            </Button>
+          )}
+          {canCreate && (
+            <Button
+              leftSection={<IconUpload size={16} />}
+              onClick={() => openUpload(null)}
+            >
+              Upload Asset
+            </Button>
+          )}
+          </>
+        }
+      />
 
-      {/* Assets List */}
-      <AssetsList />
-
-      {/* Upload Modal */}
-      <UploadAssetModal
+      <AssetFormModal
         opened={uploadModalOpened}
         onClose={() => setUploadModalOpened(false)}
+        defaultFolderId={uploadFolderId}
+      />
+
+      {/* Export / Import Modal — import tab gated on create permission. */}
+      <ExportImportAssetsModal
+        opened={exportImportOpened}
+        onClose={() => setExportImportOpened(false)}
+        assetIds={exportAssetIds}
+        canImport={canCreate}
       />
     </Stack>
   );
-} 
+}

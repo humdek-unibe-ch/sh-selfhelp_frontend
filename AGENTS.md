@@ -164,6 +164,7 @@ CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` t
 - Reuse existing query keys and cache tiers from `REACT_QUERY_CONFIG`.
 - React Query keys that are shared across a reader/writer boundary — a hook reads a key and a *different* hook or component invalidates it — must come from `REACT_QUERY_CONFIG.QUERY_KEYS`, so a writer's invalidation key can never drift from the reader's key. This covers the page list, public page content (`PAGE_BY_KEYWORD*`), page sections/fields, page versions, unpublished changes, and the admin section utility caches (`ADMIN_SECTIONS_*`, `SECTION_DETAILS`). Do not invalidate ad-hoc literals (e.g. a camelCase `['adminPages']` when the read hook uses `['admin-pages']`); if a shared key is missing from the registry, add it there first and reference it from both sides. Keys defined and invalidated inside a single hook may stay local, but promote them to the registry the moment a second file needs them.
 - After a mutation, prefer a single `invalidateQueries` per affected registry key — it already refetches active observers. Do not stack `invalidateQueries` + `refetchQueries` + `removeQueries` for the same key "to be safe"; that discards freshly fetched data and causes loading flashes.
+- The global default is `refetchOnMount: false` (`REACT_QUERY_CONFIG.DEFAULT_OPTIONS`), so an invalidation made while its reader is **not mounted** is ignored the next time the reader mounts: the screen shows the old data until a reload. A reader whose key another screen or hook invalidates (the group and role lists and pickers with their member counts, section details with their pickers, scheduled jobs, data rows) sets `refetchOnMount: refetchOnMountWhenInvalidated` (exported from `react-query.config.ts`), and writers invalidate the registry **root** (`GROUPS_ALL`, `ROLES_ALL`, `ASSETS_ALL`, `SECTION_DETAILS_ALL`, …) so every variant of the key goes stale. Prove it with a test next to the hook; see `src/hooks/__tests__/refetchOnMountWhenInvalidated.test.tsx`.
 - Avoid `useEffect` data fetching when React Query or Server Components already own the data.
 - Use optimistic updates only where existing flows already support them safely.
 - Prefer targeted invalidation over refetch-all patterns.
@@ -264,6 +265,20 @@ Linting is mandatory whenever code is changed. ESLint uses the flat config in `e
 - The final response for a change must mention the lint/tsc/test commands run and their result.
 - CI enforces this gate as blocking: `npm run lint -- --max-warnings=0`, the TypeScript check, and `npm test` must pass on every PR/push to `main` (`plugin-runtime-check.yml` runs headers/tsc/lint/build; `frontend-tests.yml` runs the Vitest suite) and again before any tagged Docker publish/GitHub release (`frontend-release.yml`, `publish-verify.yml`). Generated output (`coverage/**`, `.next/**`, `dist/**`, `test-results/**`, `playwright-report/**`) is ignored by the flat config so `--max-warnings=0` is deterministic. Never merge or release on a red gate, and do not weaken these workflows to go green.
 
+## Admin UI Consistency Rules
+- **The admin has one look** (workspace `concepts/rules.md`, rule 12.2).
+  Build every admin screen from the shared parts and add no second
+  style of something that exists: `ModalWrapper` for modals;
+  `PageHeader`, the filter card with `FilterActions`, the admin table
+  (`adminTableClasses`, `SortHeader`, `AdminTableFooter`) and
+  `EmptyState` for list screens; the same row action icons in the same
+  order (view, download, edit, delete), with the same sizes and
+  variants as the neighbouring screens.
+- If a screen needs something a shared part cannot do, extend the
+  shared part so every screen gets it; do not style a one-off copy.
+- Before finishing a UI change, open a neighbouring admin screen and
+  compare buttons, spacing, headers and wording.
+
 ## Modal Rules
 - **Always use the shared `ModalWrapper`** from
   `src/app/components/shared/common/CustomModal/CustomModal.tsx` for
@@ -278,6 +293,11 @@ Linting is mandatory whenever code is changed. ESLint uses the flat config in `e
   `ModalWrapper` with `onDelete` + the `deleteLabel` prop and a red
   alert in the body — see `PluginsPage` purge modal and
   `DeleteUserModal` for the canonical patterns.
+- **A modal does not scroll** (workspace `concepts/rules.md`, rule 12.1).
+  Make it wider and put fields side by side in grouped columns before
+  letting the body scroll. If a list inside can grow without limit
+  (files, rows), only that list scrolls in a fixed-height area; the
+  fields and the buttons stay in view.
 - Form modals (Add/Edit) use `onSave`/`onUpdate` and pass
   `isLoading={mutation.isPending}` so the primary button shows the
   loader during submission.

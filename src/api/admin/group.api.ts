@@ -4,10 +4,11 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
+import { fetchAllPages } from '../../utils/fetch-all-pages.utils';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
-import type { 
-  IGroupsListResponse, 
-  IGroupsListParams, 
+import type {
+  IGroupsListResponse,
+  IGroupsListParams,
   IGroupDetails,
   IGroupPageAcl
 } from '../../types/responses/admin/groups.types';
@@ -35,6 +36,18 @@ export const AdminGroupApi = {
       { params: Object.fromEntries(searchParams) }
     );
     return response.data.data;
+  },
+
+  /**
+   * Every group by name, for pickers. The list endpoint serves at most 100 rows
+   * per request (a larger `pageSize` is reset to 20, not clamped), so this reads
+   * all pages instead of asking for one big page.
+   */
+  async getAllGroups(): Promise<IGroupDetails[]> {
+    return fetchAllPages(async (page, pageSize) => {
+      const result = await AdminGroupApi.getGroups({ page, pageSize, sort: 'name', sortDirection: 'asc' });
+      return { items: result.groups, totalPages: result.pagination.totalPages };
+    });
   },
 
   /**
@@ -104,4 +117,4 @@ export const AdminGroupApi = {
     );
     return response.data.data;
   }
-}; 
+};

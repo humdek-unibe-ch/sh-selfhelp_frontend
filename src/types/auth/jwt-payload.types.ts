@@ -133,6 +133,7 @@ export const PERMISSIONS = {
     ADMIN_ASSET_CREATE: 'admin.asset.create',
     ADMIN_ASSET_DELETE: 'admin.asset.delete',
     ADMIN_ASSET_READ: 'admin.asset.read',
+    ADMIN_ASSET_UPDATE: 'admin.asset.update',
 
     // Audit
     ADMIN_AUDIT_VIEW: 'admin.audit.view',

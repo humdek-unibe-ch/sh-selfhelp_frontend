@@ -35,7 +35,7 @@ import { ModalWrapper } from '../../../shared';
 
 import { IconInfoCircle, IconEdit, IconLock, IconWorld, IconLayoutDashboard } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
-import { useGroups } from '../../../../../hooks/useGroups';
+import { useAllGroups } from '../../../../../hooks/useGroups';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import {
     PAGE_ACCESS_TYPES,
@@ -64,7 +64,6 @@ import {
     buildPageLookup,
     formatMenuItemLabel,
     getMenuSiblingsAtParent,
-    isSystemAdminGroup,
     resolveChildPageMenuContexts,
     resolveInitialMenuTab,
     resolveMenuInsertPosition,
@@ -75,7 +74,7 @@ const MENU_LABELS: Record<TCreatePageMenuKey, string> = {
     web_header: 'Web header',
     web_footer: 'Web footer',
     mobile_drawer: 'Mobile drawer',
-    mobile_bottom_tabs: 'Mobile bottom tabs',
+    mobile_bottom_tabs: 'Mobile tabs',
 };
 
 const WIZARD_LAST_STEP = 3;
@@ -90,8 +89,6 @@ const SURFACE_HELP_TEXT: Record<string, string> = {
     [PAGE_SURFACE_PUBLIC]: 'Shown to your normal audience under standard page access rules.',
     [PAGE_SURFACE_CMS]: 'Grouped separately; defaults to admin/editor-only access (e.g. /cms/team).',
 };
-
-const GROUPS_QUERY_PARAMS = { pageSize: 200, sort: 'name' as const, sortDirection: 'asc' as const };
 
 function buildWizardSessionKey(
     parentPage: IAdminPage | null | undefined,
@@ -177,13 +174,12 @@ function CreatePageWizard({
     });
 
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
-    const { data: groupsData } = useGroups(GROUPS_QUERY_PARAMS);
+    const { data: groupsData } = useAllGroups();
     const { pages: adminPages } = useAdminPages();
     const pageById = useMemo(() => buildPageLookup(adminPages ?? []), [adminPages]);
 
     const groupOptions = useMemo(
         () => (groupsData?.groups ?? [])
-            .filter((group) => !isSystemAdminGroup(group))
             .map((group) => ({
                 value: String(group.id),
                 label: group.name,
@@ -611,7 +607,7 @@ function CreatePageWizard({
                                     label={form.values.customUrlEdit ? 'Lock URL editing' : 'Enable URL editing'}
                                     position="left"
                                 >
-                                    <ActionIcon
+                                    <ActionIcon aria-label={form.values.customUrlEdit ? 'Lock URL editing' : 'Enable URL editing'}
                                         variant={form.values.customUrlEdit ? 'filled' : 'subtle'}
                                         color={form.values.customUrlEdit ? 'blue' : 'gray'}
                                         onClick={toggleCustomUrlEdit}

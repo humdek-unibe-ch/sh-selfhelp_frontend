@@ -1,0 +1,20 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/* Read-only count tiles. The outline marks which status the applied filter is
+   showing — it reflects the Status select, it is not a control itself. */
+.tile {
+  transition: border-color 150ms ease;
+}
+
+.tile[data-active] {
+  border-color: var(--mantine-color-blue-filled);
+}
+
+/* Let the number/label column shrink so long labels ellipsize instead of
+   pushing the icon out of the card. */
+.tileText {
+  min-width: 0;
+}

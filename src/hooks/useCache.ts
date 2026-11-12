@@ -12,6 +12,7 @@ import { notifications } from '@mantine/notifications';
 import { AdminCacheApi } from '../api/admin/cache.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type { IClearCacheCategoryRequest, IClearUserCacheRequest } from '../types/requests/admin/cache.types';
+import { getApiErrorText } from '../utils/mutation-error-handler';
 
 /**
  * Fetch cache statistics
@@ -66,7 +67,7 @@ export function useClearAllCachesMutation() {
         onError: (error: unknown) => {
             notifications.show({
                 title: 'Error',
-                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to clear all caches',
+                message: getApiErrorText(error) || 'Failed to clear all caches',
                 color: 'red',
                 autoClose: 5000,
             });
@@ -97,7 +98,7 @@ export function useClearCacheCategoryMutation() {
         onError: (error: unknown) => {
             notifications.show({
                 title: 'Error',
-                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to clear cache category',
+                message: getApiErrorText(error) || 'Failed to clear cache category',
                 color: 'red',
                 autoClose: 5000,
             });
@@ -128,7 +129,7 @@ export function useClearUserCacheMutation() {
         onError: (error: unknown) => {
             notifications.show({
                 title: 'Error',
-                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to clear user cache',
+                message: getApiErrorText(error) || 'Failed to clear user cache',
                 color: 'red',
                 autoClose: 5000,
             });
@@ -159,7 +160,7 @@ export function useResetCacheStatsMutation() {
         onError: (error: unknown) => {
             notifications.show({
                 title: 'Error',
-                message: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to reset cache statistics',
+                message: getApiErrorText(error) || 'Failed to reset cache statistics',
                 color: 'red',
                 autoClose: 5000,
             });

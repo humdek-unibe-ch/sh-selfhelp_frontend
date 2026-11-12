@@ -10,8 +10,8 @@ import type { IDataTableColumn } from '../../../../../../types/responses/admin/d
 describe('column-option.utils', () => {
     it('shows display label and field key for duplicate-looking labels', () => {
         const columns: IDataTableColumn[] = [
-            { id: 1, fieldKey: 'section_10', displayName: 'Name', locked: false },
-            { id: 2, fieldKey: 'section_11', displayName: 'Name', locked: false },
+            { id: 1, fieldKey: 'section_10', displayName: 'Name', locked: false, isFile: false },
+            { id: 2, fieldKey: 'section_11', displayName: 'Name', locked: false, isFile: false },
         ];
 
         const options = buildColumnSelectOptions(columns);

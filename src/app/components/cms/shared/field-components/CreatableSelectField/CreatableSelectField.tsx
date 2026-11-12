@@ -23,6 +23,7 @@ import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react
 import React, { useState, useCallback, useMemo } from 'react';
 import { type IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
 import { resolveTokenLabel } from '../../../../../../config/mentions.config';
+import { useFieldLabel } from '../../../../shared/common/field-label-context';
 
 // Shared configuration types for different CreatableSelectField variants
 export interface ICreatableSelectConfig {
@@ -182,6 +183,7 @@ export function CreatableSelectField({
     validationErrorMessage = CREATABLE_SELECT_CONFIGS.default.validationErrorMessage,
     dataVariables
 }: ICreatableSelectFieldProps) {
+    const fieldLabel = useFieldLabel();
     const [showMultiInput, setShowMultiInput] = useState(false);
     const [multiValues, setMultiValues] = useState('');
     const [search, setSearch] = useState('');
@@ -310,9 +312,12 @@ export function CreatableSelectField({
                         combobox.closeDropdown();
                     }}
                 >
-                    <Combobox.Target>
+                    <Combobox.Target targetType="button">
                         <Input
                             component="div"
+                            role="combobox"
+                            tabIndex={disabled || isLoading ? -1 : 0}
+                            aria-labelledby={fieldLabel?.id}
                             pointer
                             rightSection={<IconChevronDown size={18} />}
                             onClick={() => combobox.toggleDropdown()}
@@ -338,7 +343,7 @@ export function CreatableSelectField({
 
                     <Combobox.Dropdown>
                         {searchable && (
-                            <Combobox.Search
+                            <Combobox.Search aria-label="Search options"
                                 value={search}
                                 onChange={(event) => setSearch(event.currentTarget.value)}
                                 placeholder={searchPlaceholder}
@@ -405,7 +410,7 @@ export function CreatableSelectField({
                                         }}
                                     />
                                 </div>
-                                <ActionIcon
+                                <ActionIcon aria-label="Add values"
                                     variant="light"
                                     color="green"
                                     size="sm"
@@ -414,7 +419,7 @@ export function CreatableSelectField({
                                 >
                                     <IconPlus size={14} />
                                 </ActionIcon>
-                                <ActionIcon
+                                <ActionIcon aria-label="Cancel"
                                     variant="light"
                                     color="gray"
                                     size="sm"
@@ -441,9 +446,12 @@ export function CreatableSelectField({
                 withinPortal
                 onOptionSubmit={handleToggleValue}
             >
-                <Combobox.Target>
+                <Combobox.Target targetType="button">
                     <Input
                         component="div"
+                        role="combobox"
+                        tabIndex={disabled || isLoading ? -1 : 0}
+                        aria-labelledby={fieldLabel?.id}
                         pointer
                         rightSection={
                             isLoading ? (
@@ -494,7 +502,7 @@ export function CreatableSelectField({
                 </Combobox.Target>
 
                 <Combobox.Dropdown>
-                    <Combobox.Search
+                    <Combobox.Search aria-label="Search options"
                         value={search}
                         onChange={(event) => setSearch(event.currentTarget.value)}
                         placeholder={searchPlaceholder}
@@ -560,7 +568,7 @@ export function CreatableSelectField({
                                     }}
                                 />
                             </div>
-                            <ActionIcon
+                            <ActionIcon aria-label="Add values"
                                 variant="light"
                                 color="green"
                                 size="sm"
@@ -569,7 +577,7 @@ export function CreatableSelectField({
                             >
                                 <IconPlus size={14} />
                             </ActionIcon>
-                            <ActionIcon
+                            <ActionIcon aria-label="Cancel"
                                 variant="light"
                                 color="gray"
                                 size="sm"

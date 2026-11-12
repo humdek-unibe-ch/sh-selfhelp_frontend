@@ -269,7 +269,7 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
 
     return (
         <Stack gap="sm">
-            <TextInput
+            <TextInput aria-label="Search pages"
                 placeholder="Search pages..."
                 leftSection={<IconSearch size="1rem" />}
                 value={searchQuery}

@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
     TextInput,
     Stack,
@@ -14,10 +14,12 @@ import {
     Box,
     ScrollArea,
     Highlight,
-    Badge,
-    UnstyledButton
+    UnstyledButton,
+    VisuallyHidden
 } from '@mantine/core';
+import { useClickOutside } from '@mantine/hooks';
 import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, IconPhoto, IconPlayerPlay, IconFileText, IconLanguage, IconPuzzle } from '@tabler/icons-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './NavigationSearch.module.css';
 import { useNavigationStore } from '../../../../../../store/navigation.store';
@@ -75,6 +77,12 @@ interface INavigationSearchProps {
 
 export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSearchProps) {
     const [searchQuery, setSearchQuery] = useState('');
+    // Dismissal is tracked separately from the query so clicking away or
+    // pressing Escape closes the panel without wiping what was typed —
+    // focusing or clicking the input opens it again.
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const clickOutsideRef = useClickOutside(() => setIsPanelOpen(false));
     const router = useRouter();
     const { setActiveItem } = useNavigationStore();
     const { permissionChecker, hasPermission } = useAuth();
@@ -432,46 +440,82 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
             .map(({ item }) => item);
     }, [searchableItems, searchQuery]);
 
-    const handleItemClick = (item: ISearchableItem, e?: React.MouseEvent) => {
-        // Support middle click and ctrl+click for new tab
-        if (e && (e.button === 1 || e.ctrlKey || e.metaKey)) {
-            window.open(item.href, '_blank');
+    const handleItemClick = (item: ISearchableItem, e: React.MouseEvent<HTMLAnchorElement>) => {
+        // Results are links: new-tab / new-window clicks are the browser's.
+        if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) {
             setSearchQuery('');
+            setIsPanelOpen(false);
             onItemSelect?.();
             return;
         }
 
+        e.preventDefault();
         setActiveItem(item.href);
         router.push(item.href);
         setSearchQuery('');
+        setIsPanelOpen(false);
         onItemSelect?.();
     };
 
     const clearSearch = () => {
         setSearchQuery('');
+        setIsPanelOpen(false);
+        inputRef.current?.focus();
     };
 
+    const isPanelVisible = Boolean(searchQuery) && isPanelOpen;
+    const resultStatus = !searchQuery
+        ? ''
+        : filteredItems.length === 0
+            ? 'No results'
+            : `${filteredItems.length} ${filteredItems.length === 1 ? 'result' : 'results'}`;
+
     return (
-        <Box>
-            <TextInput
-                placeholder="Search functions and pages..."
+        <Box className={styles.root} ref={clickOutsideRef}>
+            {/* Always mounted so result-count changes are announced. */}
+            <VisuallyHidden role="status" aria-live="polite">
+                {resultStatus}
+            </VisuallyHidden>
+            <TextInput aria-label="Search functions and pages"
+                ref={inputRef}
+                placeholder="Search functions & pages"
                 value={searchQuery}
-                onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                leftSection={<IconSearch size={14} />}
+                onChange={(event) => {
+                    setSearchQuery(event.currentTarget.value);
+                    setIsPanelOpen(true);
+                }}
+                onFocus={() => setIsPanelOpen(true)}
+                // Escape leaves focus on the input, so a plain click (which
+                // fires no new focus event) must reopen the results too.
+                onClick={() => setIsPanelOpen(true)}
+                onKeyDown={(event) => {
+                    if (event.key === 'Escape' && isPanelVisible) {
+                        // Stop the admin shell / any parent overlay from also
+                        // reacting; Escape here means "close the results".
+                        event.stopPropagation();
+                        setIsPanelOpen(false);
+                    }
+                }}
+                // Squares off the bottom corners while the panel is docked
+                // underneath, so input + results read as one surface.
+                data-panel-open={isPanelVisible || undefined}
+                leftSection={<IconSearch size={16} stroke={1.6} />}
                 rightSection={
                     searchQuery && (
                         <ActionIcon
                             variant="subtle"
                             color="gray"
-                            size="xs"
+                            size="sm"
                             onClick={clearSearch}
+                            aria-label="Clear search"
                         >
-                            <IconX size={12} />
+                            <IconX size={14} />
                         </ActionIcon>
                     )
                 }
-                size="xs"
-                mb="xs"
+                size="sm"
+                radius="md"
+                classNames={{ input: styles.input }}
                 // Autofill / form-helper extensions (SharkID, 1Password,
                 // Bitwarden, Dashlane, …) decorate <input> elements with
                 // custom data-* attributes (e.g. `data-sharkid`) before
@@ -481,57 +525,59 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                 suppressHydrationWarning
             />
 
-            {/* Search Results */}
-            {searchQuery && (
-                <Box mb="xs">
+            {/* Results panel — an elevated surface docked flush to the bottom
+                edge of the input, so the two read as one connected control
+                instead of a detached floating card. */}
+            {isPanelVisible && (
+                <Box className={styles.panel}>
                     {filteredItems.length > 0 ? (
-                        <ScrollArea.Autosize mah={200}>
-                            <Stack gap={1}>
-                                <Text size="xs" c="dimmed" fw={500} tt="uppercase" px="xs" mb={2}>
-                                    Search Results ({filteredItems.length})
+                        <>
+                            <Box className={styles.panelHeader}>
+                                <Text component="span" className={styles.panelHeaderLabel}>
+                                    Results
                                 </Text>
-                                {filteredItems.map((item) => (
-                                    <UnstyledButton
-                                        key={item.id}
-                                        onClick={(e) => handleItemClick(item, e)}
-                                        onMouseDown={(e: React.MouseEvent) => {
-                                            // Handle middle click
-                                            if (e.button === 1) {
-                                                e.preventDefault();
-                                                window.open(item.href, '_blank');
-                                                setSearchQuery('');
-                                                onItemSelect?.();
-                                            }
-                                        }}
-                                        onContextMenu={(e: React.MouseEvent) => {
-                                            // Allow right-click context menu for "open in new tab"
-                                            e.stopPropagation();
-                                        }}
-                                        className={styles.searchItem}
-                                        px="xs"
-                                        py={4}
-                                    >
-                                        <Group gap="xs" wrap="nowrap">
-                                            {item.icon}
-                                            <Box className={styles.searchItemText}>
-                                                <Text size="xs" fw={500} truncate>
-                                                    <Highlight highlight={searchQuery} component="span">
-                                                        {item.label}
-                                                    </Highlight>
-                                                </Text>
-                                                <Badge size="xs" variant="light" color="gray" mt={1}>
-                                                    {item.category}
-                                                </Badge>
-                                            </Box>
-                                        </Group>
-                                    </UnstyledButton>
-                                ))}
-                            </Stack>
-                        </ScrollArea.Autosize>
+                                <Text component="span" className={styles.panelHeaderCount}>
+                                    {filteredItems.length}
+                                </Text>
+                            </Box>
+
+                            <ScrollArea.Autosize mah={280} type="hover">
+                                <Stack gap={2} className={styles.panelList} component="nav" aria-label="Search results">
+                                    {filteredItems.map((item) => (
+                                        <UnstyledButton
+                                            key={item.id}
+                                            component={Link}
+                                            href={item.href}
+                                            onClick={(e: React.MouseEvent<HTMLAnchorElement>) => handleItemClick(item, e)}
+                                            onAuxClick={(e: React.MouseEvent<HTMLAnchorElement>) => handleItemClick(item, e)}
+                                            className={styles.searchItem}
+                                        >
+                                            <Group gap="sm" wrap="nowrap">
+                                                <Box className={styles.searchItemIcon}>{item.icon}</Box>
+                                                <Box className={styles.searchItemText}>
+                                                    <Text size="sm" fw={500} truncate>
+                                                        <Highlight highlight={searchQuery} component="span">
+                                                            {item.label}
+                                                        </Highlight>
+                                                    </Text>
+                                                    <Text size="xs" truncate className={styles.searchItemCategory}>
+                                                        {item.category}
+                                                    </Text>
+                                                </Box>
+                                            </Group>
+                                        </UnstyledButton>
+                                    ))}
+                                </Stack>
+                            </ScrollArea.Autosize>
+                        </>
                     ) : (
-                        <Box p="xs" ta="center">
-                            <Text size="xs" c="dimmed">
-                                No results found for &quot;{searchQuery}&quot;
+                        <Box className={styles.emptyState}>
+                            <IconSearch size={20} stroke={1.5} className={styles.emptyStateIcon} />
+                            <Text size="sm" fw={500}>
+                                No results
+                            </Text>
+                            <Text size="xs" c="dimmed" truncate>
+                                Nothing matches &quot;{searchQuery}&quot;
                             </Text>
                         </Box>
                     )}

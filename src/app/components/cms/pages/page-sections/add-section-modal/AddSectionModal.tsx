@@ -599,7 +599,7 @@ export function AddSectionModal({
 
           {/* Search Input - only for new-section tab */}
           {activeTab === ADD_SECTION_TAB.NEW_SECTION && (
-            <TextInput
+            <TextInput aria-label="Search styles"
               placeholder="Search styles..."
               leftSection={<IconSearch size={16} />}
               value={searchQuery}
@@ -658,7 +658,7 @@ export function AddSectionModal({
                     </Group>
 
                     <Group gap="xs">
-                      <NumberInput
+                      <NumberInput aria-label={`Number of ${item.style.name} sections`}
                         size="xs"
                         min={1}
                         max={10}
@@ -669,7 +669,7 @@ export function AddSectionModal({
                         style={{ width: 70 }}
                       />
 
-                      <ActionIcon
+                      <ActionIcon aria-label={`Remove ${item.style.name}`}
                         size="sm"
                         variant="filled"
                         onClick={() =>

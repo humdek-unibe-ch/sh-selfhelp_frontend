@@ -150,9 +150,39 @@ QUERY_KEYS: {
 }
 ```
 
-Keys defined **and** invalidated inside a single hook (e.g. `useAssets`,
-`useCache`, `useScheduledJobs`) can't drift, so they may stay local — promote
-them to the registry the moment a second file needs them.
+Keys defined **and** invalidated inside a single hook (e.g. `useCache`) can't
+drift, so they may stay local — promote them to the registry the moment a second
+file needs them. The group, role, asset, scheduled-job, data-table and section
+detail lists already were: other screens change what they show, so their `*_ALL`
+roots (`GROUPS_ALL`, `ROLES_ALL`, `ASSETS_ALL`, `SCHEDULED_JOBS_ALL`,
+`ADMIN_DATA_ALL`, `SECTION_DETAILS_ALL`, …) live in the registry.
+
+## Invalidating a Reader That Is Not Mounted
+
+The client default is `refetchOnMount: false` (`DEFAULT_OPTIONS`): hydrated data
+must not refetch on mount. `invalidateQueries` refetches only *active*
+observers. For a reader that is not mounted it just marks the data invalidated,
+and the next mount then ignores that mark and shows the old data until a reload.
+So a group picker opened after a bulk membership change on another screen, or a
+member count on a groups list reopened after users were added, would show the
+state from before the change. (A reader that sets its own `refetchOnMount`, like
+the asset lists, is not affected.)
+
+A reader that another screen or hook invalidates sets
+`refetchOnMount: refetchOnMountWhenInvalidated` (exported from
+`react-query.config.ts`). It refetches on mount only when the cache was
+invalidated and keeps the default behaviour in every other case. Writers
+invalidate the registry root, so every variant of the key goes stale. The
+behaviour is proved in `src/hooks/__tests__/refetchOnMountWhenInvalidated.test.tsx`.
+
+```typescript
+// useGroups.ts — GROUPS_QUERY_KEYS.all is the registry's GROUPS_ALL; the list key extends it
+useQuery({
+    queryKey: GROUPS_QUERY_KEYS.list(params),
+    queryFn: () => AdminGroupApi.getGroups(params),
+    refetchOnMount: refetchOnMountWhenInvalidated,
+});
+```
 
 ---
 

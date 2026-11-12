@@ -12,7 +12,6 @@ import { DeleteGroupModal } from '../delete-group-modal/DeleteGroupModal';
 import { AdvancedAclModal } from '../advanced-acl-modal/AdvancedAclModal';
 import { useDeleteGroup } from '../../../../../hooks/useGroups';
 import { useCanReadGroups } from '../../../../../hooks/usePermissionChecks';
-import { notifications } from '@mantine/notifications';
 import { ROUTES } from '../../../../../config/routes.config';
 import { useAuth } from '../../../../../hooks/useAuth';
 
@@ -59,23 +58,11 @@ export function GroupsPage() {
   // Handle confirm delete
   const handleConfirmDelete = () => {
     if (deletingGroup) {
+      // useDeleteGroup shows the success and error toasts.
       deleteGroupMutation.mutate(deletingGroup.id, {
         onSuccess: () => {
-          notifications.show({
-            title: 'Success',
-            message: 'Group deleted successfully',
-            color: 'green',
-          });
           setDeleteModalOpened(false);
           setDeletingGroup(null);
-        },
-        onError: (error: unknown) => {
-          const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-          notifications.show({
-            title: 'Error',
-            message: message || 'Failed to delete group',
-            color: 'red',
-          });
         },
       });
     }

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 "use client";
 
 import { useCallback, useMemo, useState } from 'react';
-import { Button, Group, Stack, TextInput, ActionIcon, Card, Table, Pagination, Paper, Select, LoadingOverlay } from '@mantine/core';
+import { Button, Group, Stack, TextInput, ActionIcon, Card, Table, Paper, Select, LoadingOverlay, Tooltip, Box } from '@mantine/core';
 import { IconPlus, IconX, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useActions, useDeleteAction } from '../../../../../hooks/useActions';
 import type { IActionsListParams, IActionDetails } from '../../../../../types/responses/admin/actions.types';
@@ -16,6 +16,7 @@ import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { PageHeader } from '../../../shared/common/PageHeader';
+import { AdminTableFooter, adminTableClasses as tableStyles } from '../../shared/admin-table';
 
 export function ActionsPage() {
   const [filterParams, setFilterParams] = useState<IActionsListParams>({
@@ -30,6 +31,7 @@ export function ActionsPage() {
   const [params, setParams] = useState<IActionsListParams>(filterParams);
 
   const { data, isFetching, refetch } = useActions(params);
+  const hasAppliedFilters = !!params.search || !!params.triggerTypeId || !!params.dataTableId;
   const deleteMutation = useDeleteAction();
   const triggerTypes = useLookupsByType('actionTriggerTypes');
   const { data: dataTablesData } = useDataTables();
@@ -82,14 +84,18 @@ const dataTableOptions = useMemo(() => {
     if (!data) return null;
     return data.actions.map((action) => (
       <Table.Tr key={action.id}>
-        <Table.Td>{action.id}</Table.Td>
-        <Table.Td>{action.name}</Table.Td>
-        <Table.Td>{action.action_trigger_type?.lookup_value || action.action_trigger_type?.lookup_code || String(action.id_actionTriggerTypes ?? '')}</Table.Td>
-        <Table.Td>{action.data_table?.displayName || action.data_table?.name || ''}</Table.Td>
-        <Table.Td>
-          <Group gap="xs" justify="right">
-            <ActionIcon variant="subtle" color="blue" onClick={() => setEditAction(action)}><IconEdit size={16} /></ActionIcon>
-            <ActionIcon variant="subtle" color="red" onClick={() => setDeleteTarget(action)}><IconTrash size={16} /></ActionIcon>
+        <Table.Td className={tableStyles.tableCell}>{action.id}</Table.Td>
+        <Table.Td className={tableStyles.tableCell}>{action.name}</Table.Td>
+        <Table.Td className={tableStyles.tableCell}>{action.action_trigger_type?.lookup_value || action.action_trigger_type?.lookup_code || String(action.id_actionTriggerTypes ?? '')}</Table.Td>
+        <Table.Td className={tableStyles.tableCell}>{action.data_table?.displayName || action.data_table?.name || ''}</Table.Td>
+        <Table.Td className={tableStyles.tableCell}>
+          <Group gap={2} wrap="nowrap" justify="flex-end" className={tableStyles.actionsCell}>
+            <Tooltip label="Edit action" withArrow>
+              <ActionIcon variant="subtle" color="gray" size="sm" aria-label="Edit action" onClick={() => setEditAction(action)}><IconEdit size={16} /></ActionIcon>
+            </Tooltip>
+            <Tooltip label="Delete action" withArrow>
+              <ActionIcon variant="subtle" color="red" size="sm" aria-label="Delete action" onClick={() => setDeleteTarget(action)}><IconTrash size={16} /></ActionIcon>
+            </Tooltip>
           </Group>
         </Table.Td>
       </Table.Tr>
@@ -103,7 +109,8 @@ const dataTableOptions = useMemo(() => {
         <PageHeader
           title="Actions"
           subtitle="Manage and monitor actions"
-          badge={data?.actions?.length || 0}
+          badge={data?.pagination?.totalCount ?? 0}
+          badgeAriaLabel="actions"
         >
           <Button
             leftSection={<IconPlus size={16} />}
@@ -113,21 +120,20 @@ const dataTableOptions = useMemo(() => {
           </Button>
         </PageHeader>
 
-        {/* Search */}
-        <Card withBorder>
-          <Stack gap="md">
-            {/* Filters row */}
-            <Group gap="md" wrap="nowrap">
-              <TextInput
-                label="Search"
+        {/* Filters Card — search + selects on the same row as the actions. */}
+        <Card withBorder p="md">
+          <Group gap="md" align="flex-end" justify="space-between">
+            <Group gap="md" style={{ flex: 1 }}>
+              <TextInput aria-label="Search actions"
                 value={filterParams.search || ""}
                 onChange={(e) => handleSearch(e.currentTarget.value)}
                 placeholder="Search actions"
                 style={{ flex: 1 }}
                 rightSection={
                   filterParams.search ? (
-                    <ActionIcon
+                    <ActionIcon aria-label="Clear search"
                       variant="subtle"
+                      color="gray"
                       size="sm"
                       onClick={clearSearch}
                     >
@@ -137,26 +143,22 @@ const dataTableOptions = useMemo(() => {
                 }
               />
 
-              <Select
-                label="Trigger"
+              <Select aria-label="Filter by trigger"
                 placeholder="Trigger"
                 data={triggerOptions}
                 value={filterParams.triggerTypeId ? String(filterParams.triggerTypeId) : null}
                 onChange={(value) =>
-                  {
-                    console.warn(triggerOptions);
-                    console.warn(value);
-                    setFilterParams((prev) => ({
+                  setFilterParams((prev) => ({
                     ...prev,
                     triggerTypeId: value || undefined,
                     page: 1,
-                  }))}
+                  }))
                 }
                 clearable
+                w={180}
               />
 
-              <Select
-                label="Data table"
+              <Select aria-label="Filter by data table"
                 placeholder="Data table"
                 data={dataTableOptions}
                 value={filterParams.dataTableId ? String(filterParams.dataTableId) : null}
@@ -168,37 +170,39 @@ const dataTableOptions = useMemo(() => {
                   }))
                 }
                 clearable
+                w={180}
               />
             </Group>
 
-            {/* Actions row (same pattern as ScheduledJobsList) */}
-            <FilterActions
-              onApply={handleApplyFilters}
-              onReset={handleResetFilters}
-              onRefresh={() => refetch()}
-              isFetching={isFetching}
-              isApplyDisabled={filterParams === params}
-            />
-          </Stack>
+            <Group justify="flex-end">
+              <FilterActions
+                onApply={handleApplyFilters}
+                onReset={handleResetFilters}
+                onRefresh={() => refetch()}
+                isFetching={isFetching}
+                isApplyDisabled={filterParams === params}
+              />
+            </Group>
+          </Group>
         </Card>
 
         {/* Actions table */}
-        <div style={{ position: "relative" }}>
+        <div className={tableStyles.tableWrapper}>
           <LoadingOverlay
             visible={isFetching}
             overlayProps={{ blur: 0, backgroundOpacity: 0.35 }}
             loaderProps={{ size: "md" }}
           />
 
-          <Card withBorder>
-            <Table striped highlightOnHover style={{ fontSize: 14 }}>
+          <Box className={tableStyles.tableScrollContainer}>
+            <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>ID</Table.Th>
-                  <Table.Th>Name</Table.Th>
-                  <Table.Th>Trigger</Table.Th>
-                  <Table.Th>Data table</Table.Th>
-                  <Table.Th style={{ width: 120 }} />
+                  <Table.Th className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>ID</span></Table.Th>
+                  <Table.Th className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>Name</span></Table.Th>
+                  <Table.Th className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>Trigger</span></Table.Th>
+                  <Table.Th className={tableStyles.tableHeader}><span className={tableStyles.colHeader}>Data table</span></Table.Th>
+                  <Table.Th className={tableStyles.tableHeader} style={{ width: 120 }}><span className={tableStyles.colHeader}>Actions</span></Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -215,9 +219,11 @@ const dataTableOptions = useMemo(() => {
                           isFetching ? "Loading actions..." : "No actions found"
                         }
                         description={
-                          !isFetching
-                            ? "Try adjusting your search or filter criteria"
-                            : undefined
+                          isFetching
+                            ? undefined
+                            : hasAppliedFilters
+                              ? "Try adjusting your search or filter criteria"
+                              : "Create an action to get started"
                         }
                       />
                     </Table.Td>
@@ -225,19 +231,22 @@ const dataTableOptions = useMemo(() => {
                 )}
               </Table.Tbody>
             </Table>
-          </Card>
-        </div>
+          </Box>
 
-        {/* Pagination */}
-        {data?.pagination && (
-          <Group justify="center" mt="md">
-            <Pagination
-              value={params.page || 1}
-              total={data.pagination.totalPages}
-              onChange={(page) => setParams((prev) => ({ ...prev, page }))}
+          {/* Footer — always visible when data is loaded. */}
+          {data?.pagination && (
+            <AdminTableFooter
+              totalCount={data.pagination.totalCount}
+              itemLabel="actions"
+              pagination={{
+                page: params.page ?? 1,
+                pageSize: params.pageSize ?? 20,
+                totalPages: data.pagination.totalPages,
+                onPageChange: (page) => setParams((prev) => ({ ...prev, page })),
+              }}
             />
-          </Group>
-        )}
+          )}
+        </div>
 
         {/* Modals */}
         <ActionFormModal

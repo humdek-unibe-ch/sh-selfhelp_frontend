@@ -16,6 +16,295 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.70 — 2026-11-11
+
+Requires core **>=0.1.43** for the navigation warning tags and the asset
+rework. The rest of the release works against any core in range.
+(0.1.69 was never tagged; this is the first published build of the wave.)
+
+### Added
+- **Assets: edit and replace.** Each asset has an Edit action: change its
+  name, default alt text, folder, who can see it and who can manage it, or drop
+  in a new file. A replaced file keeps the asset's address, so every page using
+  it shows the new file. Upload and edit share one form.
+- **Assets: default alt text.** Set an alt text once on the asset; image
+  sections that leave their own alt empty use it. A section's own alt still
+  wins.
+- **Assets: bulk actions.** Select assets to add groups, remove groups they all
+  share, move them to another folder, delete them after a confirmation, or
+  export only those.
+- **Assets: nested folders.** The asset page is a folder tree: open several
+  folders at once to see their subfolders and assets (paged inside each
+  folder). Folders show how many folders and assets they hold. Create, rename
+  (in place), move and delete folders from the page itself, or drag assets and
+  folders onto a folder; every drag also has a menu or bulk-bar equivalent. A
+  folder can only be deleted when it is empty. Search and the group filter look
+  in every folder and link each result to its folder. The header counts every
+  asset. Requires core **>=0.1.43**.
+- **Assets: change access for a whole folder.** A folder's menu has **Set
+  access...**: apply who can see and/or who can manage to every asset in the
+  folder and its subfolders. It is a one-time change to the assets (new uploads
+  are not affected), all or nothing, and refused with a message if any asset is
+  not yours to change.
+- **Assets: upload many files at once.** The upload form lists the chosen
+  files with an editable name and alt text each and their upload status. The
+  folder is typed as a path (`Team/Photos`); missing folders are created only
+  when the upload starts. A file identical to one already stored is still
+  uploaded, with a warning that names the existing asset. Files that fail stay
+  in the list for a retry. The form fits a laptop screen without a scrolling
+  dialog; only the file list scrolls.
+- **Assets: real file names and types.** The stored extension decides the type
+  column (a CSV shows as CSV) and downloads are named
+  `<name>-<id>.<extension>`.
+- **Assets: who can manage them.** "Who can manage it" picks the roles that
+  may see, edit and delete an asset in the CMS; left empty on upload, your own
+  roles get it. Researchers on one instance do not see each other's assets.
+- **Users: role filter.** The users list and its CSV export can be filtered
+  by role, next to group and status. Requires core **>=0.1.43**.
+- **Groups and Roles: searchable members.** "View members" can search, filter
+  by status and page through the members, like the users list. It needs
+  `admin.user.read`. Requires core **>=0.1.43**.
+- **Form uploads in Admin → Data.** File cells show the file name with View
+  and Download buttons instead of the raw storage path. A cell with several
+  files opens a list with "Download all (zip)", and the export menu downloads
+  the files of the shown rows as one zip. Only the columns of a file-upload
+  field are file columns: the server says which, so a text answer that happens
+  to look like a stored path stays plain text. Requires core **>=0.1.43**.
+- **Assets: only the actions you may use.** Edit and Delete show on an asset
+  only when your roles may update or delete it, and the lock marks an asset you
+  may not view. A thumbnail that fails to load for any other reason says
+  "Preview unavailable" instead of "No access". Requires core **>=0.1.43**.
+- **Warning tags in the navigation builder.** Menu items now show, per row,
+  why they will not appear the way you expect. A "Not in public menu" tag
+  marks items the public menu drops — a headless page, a system page type, or
+  a page the visitor cannot access — each with the reason in a tooltip. Separate tags flag what the selected header preset
+  renders but the item leaves empty: a root item with no children (which
+  makes Dropdown and Mega menu look identical to Simple), and a missing icon
+  or description on entries shown in mega-menu panels and dropdown rows.
+  Previously a preset change could appear to do nothing with no explanation.
+- Description tags respect the language you are editing, so a description
+  that exists only in another language no longer hides an empty panel entry.
+
+### Changed
+- **Assets: clearer drag and drop.** Dragging on the asset page scrolls the
+  page by itself near the top and bottom edge, and the mouse wheel scrolls
+  while you drag. Grab an asset or folder anywhere on its name, not only the
+  grip. Folders that can take the drag are outlined; the one under the pointer
+  turns solid blue with "Drop to move here" and what it holds is tinted. The
+  "All assets" strip grows into a big drop area while you drag, and a "Top
+  level" target floats at the side of the screen when the strip has scrolled
+  out of view. A line at the bottom says what a drop would do, and the drag
+  shows the name of what you move.
+- **Assets: public unless restricted.** An asset with no groups is public;
+  "Who can see it" restricts it to members of the chosen groups. New uploads
+  have no groups and the form says **THIS ASSET IS PUBLIC** until you pick
+  some. The folder access panel and the "Asset Folders" tab in the Groups ACL
+  modal are removed. The Assets page uses the same header, filters (Apply /
+  Reset / Refresh) and footer as the other admin lists.
+- **Assets: no more overwrite.** Uploading a file with an existing name adds a
+  second asset instead of replacing one, and import skips assets that already
+  exist.
+- **Assets are stored under their id, with a separate name.** Each asset's
+  generated id replaces its file name (no extension). A **Name** without
+  extension, editable on upload and edit and set to the uploaded file name by
+  default, is what the list shows, with the id beneath it; pickers show
+  `name.extension`. Downloads are saved as `<name>-<id>.<extension>`.
+- **Assets: the Folders button and its dialog are gone.** Folders are managed
+  in the tree itself. The admin role no longer appears in "Who can manage it":
+  admins can always manage every asset.
+- **Groups: researcher instead of therapist, no admin group.** Page import and
+  navigation import mention subject and researcher; the page import group
+  picker, the create-page dialog and the CMS app wizard no longer hide an
+  "admin" group (admin rights come from the role).
+- **Groups: no group type.** A group only decides who sees a page or an asset,
+  so `id_group_types`, the `groupTypes` lookup constants and the "Type N" badge
+  in the role's group permissions are gone. Group requests and responses carry
+  `add_to_new_pages` instead (a new public page gives that group `select`); the
+  admin checkbox for it is still to come. Requires core **>=0.1.43**.
+- **Assets are addressed only by their delivery URL.** The asset type no
+  longer has `file_path`, and `getAssetUrl` keeps no mapping for old
+  `uploads/...` paths: backend asset URLs go through `/api/assets/...`, other
+  relative paths are served as they are.
+- **Assets: who can manage it, on edit.** The edit form shows the roles that
+  manage the asset by name, even when you may not list all roles, and sends the
+  roles only when you change them. An emptied list is not saved: the field asks
+  for at least one role ("Choose admin to keep this asset admin-only").
+- **Assets: import says why an asset was skipped.** The import dialog explains
+  that groups are matched by name and that an asset naming a group missing on
+  this instance is not imported (it would become public); it is listed as
+  failed with the group names. Requires core **>=0.1.43**.
+- **Group and role pickers show every group and role.** The pickers of the
+  users list and form, bulk membership, registration codes, assets, page and
+  navigation import, new page and the CMS app wizard read all pages of the list
+  instead of one, so a long list is no longer cut off.
+- **Cleaning a user's data** also lists "all files uploaded by this user".
+  Requires core **>=0.1.43**.
+- Uses `@selfhelp/shared` 1.22.1 (rate-limit helpers for the login, 2FA and
+  password-reset messages; `files_public` on file-input).
+
+- **Child-page navigation styling.** The left sidebar gains a divider on its
+  right edge matching the admin navbar, and each entry shows its route path
+  under the label. The previous/next pager uses equal-width cards with
+  "Previous"/"Next" labels and a divider separating it from page content.
+  Keyboard focus outlines were added to sidebar entries, pills, and pager
+  cards, which previously had no visible focus state.
+- The floating "Edit page" admin shortcut moves from below the site header to
+  the bottom-right of the viewport.
+- The public-menu exclusion rule is now read from the backend rather than
+  reproduced in the frontend, so the builder's verdict cannot drift from what
+  the public menu actually renders.
+
+### Fixed
+- **Web logins count per visitor address.** The dedicated login route forwards
+  `X-Forwarded-For` to the backend the same way the catch-all proxy does, so
+  the per-address rate limit (core 0.1.43) also covers sign-in from the site.
+- **Accessibility (screen readers and keyboard).**
+  - Every icon-only button has a name, including the close button of every
+    dialog, alert and notification and the pagination arrows. The section
+    drag handle (mouse only) is no longer a dead keyboard stop.
+  - Form fields are named by their label: every field in the CMS inspectors,
+    the admin search and filter boxes, and the public form inputs (text area,
+    radio options, sliders, combobox, rich text).
+  - The CMS select pickers and the public combobox can be reached and opened
+    from the keyboard.
+  - The per-field language switch (DE/EN) is made of buttons you can tab to
+    and press; it also says which languages are translated.
+  - Each admin screen has one main heading; sortable columns announce their
+    sort order.
+  - The site and admin searches announce how many results were found, and
+    their results are links (open in a new tab works).
+  - A test fails the build if a new icon button or input has no name.
+- **Admin messages say what happened.** Saving or deleting a page names the
+  page by its keyword instead of its id (`Page "477"`). Errors in groups,
+  roles, permissions, versions, cache, actions, sections and registration codes
+  show the server's reason (e.g. "Group name already exists") instead of
+  "Conflict" or "Bad Request". Creating, editing or deleting a group or role,
+  and saving a configuration page, show one toast instead of two.
+- **Publishing panel before the first publish.** A page that was never
+  published says "Not published yet" instead of "Changes detected since last
+  publish", and no longer offers "Compare Draft vs Published", which opened an
+  empty comparison.
+- **Assets: Export downloads the zip again.** The request option asking for a
+  binary response was ignored, so the download failed with
+  "Failed to execute 'createObjectURL' on 'URL'".
+- **Signing in from "Page not found" returns you to the page.** A guest who
+  opens a protected page and uses the Sign in button now lands back on that
+  page after login (including after the 2FA step) instead of on home.
+- **Sign-in only returns you to pages of this site.** Every sign-in link (the
+  guard on protected pages, an expired session, another tab signing out, the
+  "Page not found" button) now carries the return address in one parameter,
+  `redirectTo`, and the login form and the 2FA step follow it only when it is a
+  path on this site. An address on another site is ignored, so a crafted login
+  link can no longer send you somewhere else after signing in.
+- **Admin screens no longer show old data after a change.** After adding or
+  removing users from groups, sending activation mails, deleting users,
+  cleaning a user's data, or changing groups, roles, scheduled jobs, data rows
+  or assets, the affected lists and counts refresh. The group and role lists,
+  scheduled jobs, data rows and the pickers of the section inspector also
+  refresh when their screen was closed at the time. The user edit dialog opens
+  with the current groups and roles, so saving it can no longer undo a bulk
+  membership change.
+- **CMS style icons.** The "entry table" and "entry record form" styles have
+  their own icons in the style picker, and a test fails when a style of the
+  shared registry has none.
+- **CMS app templates: "Add new" no longer opens a dialog titled "Edit …".**
+  Each template's single add/edit form page now has a neutral title (e.g.
+  "Question" instead of "Edit question"). Applies to new imports; existing
+  apps keep their title until it is changed in the page editor.
+- **Compare Versions dialog.** Escape now closes it, the side-by-side diff
+  renders as a table instead of stripped raw text (added/removed lines in
+  green/red), and JSON Patch / Summary show pretty-printed JSON instead of
+  `""`. Comparing a version with itself (including draft vs draft) shows
+  "No differences" instead of a blank pane or an error, and the draft always
+  sits in Version 2 so the labels match the diff direction.
+- **Add to menu adds the page.** In the page editor, "Add to menu → <menu>"
+  now adds the page to that menu (menus it is already in are disabled) instead
+  of only opening the menu builder. Adding an item in the menu builder now
+  shows a confirmation.
+- **Header search** waits for a typing pause instead of sending a request per
+  keystroke, and the arrow keys and Enter move through and open results.
+- **Clearer empty states.** Data Browser says "No data tables selected" (with
+  a hint) when tables exist but none are picked, and Actions only suggests
+  adjusting filters when filters are actually applied.
+- The color scheme button is labelled with the current scheme
+  ("Color scheme: Dark") instead of "Toggle color scheme".
+- The CMS Apps page points editors at "Manage content" instead of the
+  `/cms/<app>` URL, which does not exist.
+- Admin edits no longer refetch pages, sections, versions and languages twice
+  after each change, and section-only changes no longer reload the page list.
+
+---
+
+## v0.1.68 — 2026-07-29
+
+Requires core **>=0.1.42**. Both sides must land: the backend pins
+`supports.frontend >=0.1.68`, and the registry resolver refuses an
+incompatible pair.
+
+### Added
+- **Clean user data (restored from SelfHelp v1).** Users Management gains a
+  "Clean user data" row action that removes everything a user produced —
+  activity logs, submitted input data, and scheduled actions — while keeping
+  the user account itself. It is the erasure path for a GDPR request, as
+  distinct from deleting the account. Because the row stays in the list
+  afterwards, the confirmation modal names what will be destroyed and requires
+  typing the user's email address.
+- Cleaning reports what was removed; the admin Users list "Activity" column
+  drops to 0 for the cleaned user.
+
+### Changed
+- The `clean-data` endpoint's client-side permission gate moves from unset to
+  `admin.user.update`, matching the backend route permission. The backend
+  additionally requires delete-level access to the specific user, which is a
+  resource-side check the client gate deliberately does not mirror.
+
+### Fixed
+- **Cleaning user data now actually erases it.** Core versions before 0.1.42
+  answered `200 {"cleaned": true}` from a stub that deleted nothing. The action
+  was unreachable from the UI until this release, so no erasure was ever
+  silently lost — but the `supports.core` floor is raised to 0.1.42 so this
+  release cannot pair with a core where confirming an irreversible erasure
+  reports a success that did not happen.
+
+---
+
+## v0.1.67 — 2026-07-28
+
+Requires core **>=0.1.41**. Both sides must land: the backend pins
+`supports.frontend >=0.1.67`, and the registry resolver refuses an
+incompatible pair.
+
+### Changed
+- **Asset bytes are fetched from `url`, never `file_path` (breaking).** Core
+  0.1.41 moved asset files out of the backend document root, so the old static
+  `/uploads/assets/...` URLs now 404. Every image, video, preview, download and
+  link is built from the asset's `url` (`/cms-api/v1/assets/<folder>/<name>`),
+  which authorizes each request against the folder ACLs. `file_path` remains a
+  logical key for display and identity only. The bytes ride the existing BFF
+  (`/api/assets/...`) so the proxy attaches the caller's token; addressing the
+  backend route directly would send the request anonymously, hiding every
+  image from admins and from users who have been granted the folder.
+- Asset pickers (navigation logo, action config) now persist the delivery URL.
+- `getAssetUrl` maps legacy `uploads/assets/...` paths onto the delivery route
+  so previously stored references still render. The frontend's own static
+  artwork under `public/assets/` (the app logos) is a different directory
+  from the backend's `uploads/assets/` and is unaffected — it stays served
+  by Next.
+
+### Added
+- **Per-folder "Public — anyone can view" toggle** on the Assets page. Public
+  folders are readable by everyone, including logged-out visitors, which keeps
+  logos and public-page imagery working. Enabling asks for confirmation and
+  names the folder; disabling does not. Open access grants view access only —
+  uploading and deleting still follow group permissions.
+  This is folder-scoped and separate from the group-scoped folder-ACL editor in
+  the Groups page; both are needed.
+- The toggle is gated on `admin.group.acl` because it is an access-control
+  decision. Users without it see the current state read-only rather than hidden.
+- **"No access" placeholder** in the asset manager. A `403` on an image is an
+  expected state now, so a lock placeholder is shown instead of a broken image,
+  with no error toast.
+
 ## v0.1.63 — 2026-07-09
 
 ### Changed

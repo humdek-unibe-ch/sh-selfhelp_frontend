@@ -48,7 +48,7 @@ export function ConfirmDeleteTableModal({ open, onClose, displayName, onConfirm,
             To confirm, type the table display name exactly: <Text span fw={600}>{displayName}</Text>
           </Text>
         </Alert>
-        <TextInput value={confirm} onChange={(e) => setConfirm(e.currentTarget.value)} placeholder={displayName} />
+        <TextInput aria-label="Table name to confirm" value={confirm} onChange={(e) => setConfirm(e.currentTarget.value)} placeholder={displayName} />
       </Stack>
     </ModalWrapper>
   );
