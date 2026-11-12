@@ -12,6 +12,7 @@ import {
   type ICreateAssetRequest,
   type ICreateMultipleAssetsRequest,
   type IExportAssetsRequest,
+  type IFolderAccessRequest,
   type IUpdateAssetRequest,
 } from '../api/admin/asset.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
@@ -171,6 +172,20 @@ export function useDeleteAssetFolder() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ASSETS_KEY });
     },
+  });
+}
+
+/**
+ * Hook to apply who sees / who manages to every asset of a folder and below.
+ * Groups decide who may view, so the pickers change too: refresh both.
+ */
+export function useSetAssetFolderAccess() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ folderId, access }: { folderId: number; access: IFolderAccessRequest }) =>
+      AdminAssetApi.setFolderAccess(folderId, access),
+    onSuccess: () => refreshAssetsAndPickers(queryClient),
   });
 }
 

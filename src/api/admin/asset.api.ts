@@ -15,7 +15,20 @@ export interface IAssetFolder {
   id: number;
   name: string;
   parent_id: number | null;
+  /** Assets directly in this folder that the caller may read. */
   asset_count: number;
+  /**
+   * Assets in this folder and every folder below it that the caller may read.
+   * Absent on cores older than 0.1.43; the tree then counts `asset_count`.
+   */
+  subtree_asset_count?: number;
+}
+
+/** An identical file the caller manages, named in an upload response. */
+export interface IAssetDuplicate {
+  id: number;
+  name: string | null;
+  folder_id: number | null;
 }
 
 /**
@@ -37,6 +50,10 @@ export interface IAsset {
   asset_type?: string;
   mime_type: string | null;
   size: number | null;
+  /** Stored extension without the dot (`pdf`); null on assets uploaded before it was stored. */
+  extension?: string | null;
+  /** The name a download is saved under: `<name>-<uuid>.<extension>`. */
+  file_name?: string | null;
   alt: string | null;
   folder_id: number | null;
   roles: IAssetGroupRef[];
@@ -44,6 +61,8 @@ export interface IAsset {
   can_view: boolean;
   can_update: boolean;
   can_delete: boolean;
+  /** Identical files the caller manages. Only in an upload response, never in lists. */
+  duplicates?: IAssetDuplicate[];
   created_at: string;
   updated_at: string;
 }
@@ -107,6 +126,12 @@ interface IMultipleAssetsUploadResponse {
     file: string;
     error: string;
   }[];
+}
+
+/** At least one key; a key left out is not changed. */
+export interface IFolderAccessRequest {
+  group_ids?: number[];
+  role_ids?: number[];
 }
 
 export interface IExportAssetsRequest {
@@ -260,9 +285,23 @@ export const AdminAssetApi = {
     return response.data.data;
   },
 
-  /** Delete a folder and its subfolders; their assets move to the top level. */
+  /** Delete an empty folder (no subfolders, no assets); a folder with content answers 409. */
   async deleteFolder(folderId: number): Promise<IAssetFolder[]> {
     const response = await permissionAwareApiClient.delete<IBaseApiResponse<IAssetFolder[]>>(API_CONFIG.ENDPOINTS.ADMIN_ASSET_FOLDERS_DELETE, folderId);
+    return response.data.data;
+  },
+
+  /**
+   * Apply who sees (`group_ids`, [] = public) and/or who manages (`role_ids`)
+   * to every asset in the folder and below. Only the keys sent change. All or
+   * nothing: a 403 names the asset the caller may not manage.
+   */
+  async setFolderAccess(folderId: number, access: IFolderAccessRequest): Promise<{ updated: number }> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<{ updated: number }>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSET_FOLDERS_ACCESS,
+      access,
+      folderId
+    );
     return response.data.data;
   },
 

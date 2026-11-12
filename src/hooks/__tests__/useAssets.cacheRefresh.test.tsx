@@ -15,6 +15,7 @@ import {
     useDeleteAsset,
     useDeleteAssetFolder,
     useImportAssets,
+    useSetAssetFolderAccess,
     useUpdateAsset,
 } from '../useAssets';
 import { AdminAssetApi, type IAsset } from '../../api/admin/asset.api';
@@ -136,6 +137,14 @@ describe('writes that change what an image or video picker offers', () => {
     it('deleting assets in bulk refreshes the asset lists and every cached section', async () => {
         vi.spyOn(AdminAssetApi, 'bulkDeleteAssets').mockResolvedValue({ deleted: 2 });
         const keys = await runAndGetKeys(() => useBulkDeleteAssets(), [5, 6]);
+
+        expect(hasKey(keys, QK.ASSETS_ALL)).toBe(true);
+        expect(hasKey(keys, QK.SECTION_DETAILS_ALL)).toBe(true);
+    });
+
+    it('setting the access of a folder refreshes the asset lists and every cached section', async () => {
+        vi.spyOn(AdminAssetApi, 'setFolderAccess').mockResolvedValue({ updated: 3 });
+        const keys = await runAndGetKeys(() => useSetAssetFolderAccess(), { folderId: 3, access: { group_ids: [1] } });
 
         expect(hasKey(keys, QK.ASSETS_ALL)).toBe(true);
         expect(hasKey(keys, QK.SECTION_DETAILS_ALL)).toBe(true);

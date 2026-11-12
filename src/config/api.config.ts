@@ -432,6 +432,12 @@ export const API_CONFIG = {
             route: (folderId: number) => `/admin/asset-folders/${folderId}`,
             permissions: [PERMISSIONS.ADMIN_ASSET_DELETE]
         },
+        // One-time apply of who sees / who manages to every asset in the folder
+        // and its subfolders (all or nothing). Core >= 0.1.43.
+        ADMIN_ASSET_FOLDERS_ACCESS: {
+            route: (folderId: number) => `/admin/asset-folders/${folderId}/access`,
+            permissions: [PERMISSIONS.ADMIN_ASSET_UPDATE]
+        },
         // Export assets as a downloadable zip bundle (binary files +
         // manifest.json). POST with body { asset_ids?: number[] } (empty/omitted
         // = every readable asset); returns an `application/zip` blob.
