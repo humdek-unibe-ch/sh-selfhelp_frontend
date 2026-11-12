@@ -16,10 +16,11 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
-## v0.1.69 — 2026-08-03
+## v0.1.70 — 2026-11-11
 
 Requires core **>=0.1.43** for the navigation warning tags and the asset
 rework. The rest of the release works against any core in range.
+(0.1.69 was never tagged; this is the first published build of the wave.)
 
 ### Added
 - **Assets: edit and replace.** Each asset has an Edit action: change its
@@ -50,12 +51,17 @@ rework. The rest of the release works against any core in range.
 - **Form uploads in Admin → Data.** File cells show the file name with View
   and Download buttons instead of the raw storage path. A cell with several
   files opens a list with "Download all (zip)", and the export menu downloads
-  the files of the shown rows as one zip. Requires core **>=0.1.43**.
+  the files of the shown rows as one zip. Only the columns of a file-upload
+  field are file columns: the server says which, so a text answer that happens
+  to look like a stored path stays plain text. Requires core **>=0.1.43**.
+- **Assets: only the actions you may use.** Edit and Delete show on an asset
+  only when your roles may update or delete it, and the lock marks an asset you
+  may not view. A thumbnail that fails to load for any other reason says
+  "Preview unavailable" instead of "No access". Requires core **>=0.1.43**.
 - **Warning tags in the navigation builder.** Menu items now show, per row,
   why they will not appear the way you expect. A "Not in public menu" tag
-  marks items the public menu drops — a headless page, a page type that is
-  not core/experiment, or a page the visitor cannot access — each with the
-  reason in a tooltip. Separate tags flag what the selected header preset
+  marks items the public menu drops — a headless page, a system page type, or
+  a page the visitor cannot access — each with the reason in a tooltip. Separate tags flag what the selected header preset
   renders but the item leaves empty: a root item with no children (which
   makes Dropdown and Mega menu look identical to Simple), and a missing icon
   or description on entries shown in mega-menu panels and dropdown rows.
@@ -82,10 +88,29 @@ rework. The rest of the release works against any core in range.
   navigation import mention subject and researcher; the page import group
   picker, the create-page dialog and the CMS app wizard no longer hide an
   "admin" group (admin rights come from the role).
+- **Groups: no group type.** A group only decides who sees a page or an asset,
+  so `id_group_types`, the `groupTypes` lookup constants and the "Type N" badge
+  in the role's group permissions are gone. Group requests and responses carry
+  `add_to_new_pages` instead (a new public page gives that group `select`); the
+  admin checkbox for it is still to come. Requires core **>=0.1.43**.
 - **Assets are addressed only by their delivery URL.** The asset type no
   longer has `file_path`, and `getAssetUrl` keeps no mapping for old
   `uploads/...` paths: backend asset URLs go through `/api/assets/...`, other
   relative paths are served as they are.
+- **Assets: who can manage it, on edit.** The edit form shows the roles that
+  manage the asset by name, even when you may not list all roles, and sends the
+  roles only when you change them. An emptied list is not saved: the field asks
+  for at least one role ("Choose admin to keep this asset admin-only").
+- **Assets: import says why an asset was skipped.** The import dialog explains
+  that groups are matched by name and that an asset naming a group missing on
+  this instance is not imported (it would become public); it is listed as
+  failed with the group names. Requires core **>=0.1.43**.
+- **Group and role pickers show every group and role.** The pickers of the
+  users list and form, bulk membership, registration codes, assets, page and
+  navigation import, new page and the CMS app wizard read all pages of the list
+  instead of one, so a long list is no longer cut off.
+- **Cleaning a user's data** also lists "all files uploaded by this user".
+  Requires core **>=0.1.43**.
 - Uses `@selfhelp/shared` 1.22.1 (rate-limit helpers for the login, 2FA and
   password-reset messages; `files_public` on file-input).
 
@@ -102,6 +127,9 @@ rework. The rest of the release works against any core in range.
   the public menu actually renders.
 
 ### Fixed
+- **Web logins count per visitor address.** The dedicated login route forwards
+  `X-Forwarded-For` to the backend the same way the catch-all proxy does, so
+  the per-address rate limit (core 0.1.43) also covers sign-in from the site.
 - **Accessibility (screen readers and keyboard).**
   - Every icon-only button has a name, including the close button of every
     dialog, alert and notification and the pagination arrows. The section
@@ -134,6 +162,23 @@ rework. The rest of the release works against any core in range.
 - **Signing in from "Page not found" returns you to the page.** A guest who
   opens a protected page and uses the Sign in button now lands back on that
   page after login (including after the 2FA step) instead of on home.
+- **Sign-in only returns you to pages of this site.** Every sign-in link (the
+  guard on protected pages, an expired session, another tab signing out, the
+  "Page not found" button) now carries the return address in one parameter,
+  `redirectTo`, and the login form and the 2FA step follow it only when it is a
+  path on this site. An address on another site is ignored, so a crafted login
+  link can no longer send you somewhere else after signing in.
+- **Admin screens no longer show old data after a change.** After adding or
+  removing users from groups, sending activation mails, deleting users,
+  cleaning a user's data, or changing groups, roles, scheduled jobs, data rows
+  or assets, the affected lists and counts refresh. The group and role lists,
+  scheduled jobs, data rows and the pickers of the section inspector also
+  refresh when their screen was closed at the time. The user edit dialog opens
+  with the current groups and roles, so saving it can no longer undo a bulk
+  membership change.
+- **CMS style icons.** The "entry table" and "entry record form" styles have
+  their own icons in the style picker, and a test fails when a style of the
+  shared registry has none.
 - **CMS app templates: "Add new" no longer opens a dialog titled "Edit …".**
   Each template's single add/edit form page now has a neutral title (e.g.
   "Question" instead of "Edit question"). Applies to new imports; existing

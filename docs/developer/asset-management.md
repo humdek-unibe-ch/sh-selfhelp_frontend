@@ -2,7 +2,7 @@
 
 Audience: frontend developers.
 Status: active.
-Applies to: frontend 0.1.69 with core 0.1.43 and later.
+Applies to: frontend 0.1.70 with core 0.1.43 and later.
 Last verified: 2026-11-04.
 Source of truth: `src/api/admin/asset.api.ts`, `src/hooks/useAssets.ts`, `src/app/components/cms/assets/`, and the backend contract in `sh-selfhelp_backend/docs/reference/api/06-admin-assets.md`.
 

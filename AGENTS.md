@@ -164,6 +164,7 @@ CMS styles are a cross-repo contract (backend field seeds + `@selfhelp/shared` t
 - Reuse existing query keys and cache tiers from `REACT_QUERY_CONFIG`.
 - React Query keys that are shared across a reader/writer boundary — a hook reads a key and a *different* hook or component invalidates it — must come from `REACT_QUERY_CONFIG.QUERY_KEYS`, so a writer's invalidation key can never drift from the reader's key. This covers the page list, public page content (`PAGE_BY_KEYWORD*`), page sections/fields, page versions, unpublished changes, and the admin section utility caches (`ADMIN_SECTIONS_*`, `SECTION_DETAILS`). Do not invalidate ad-hoc literals (e.g. a camelCase `['adminPages']` when the read hook uses `['admin-pages']`); if a shared key is missing from the registry, add it there first and reference it from both sides. Keys defined and invalidated inside a single hook may stay local, but promote them to the registry the moment a second file needs them.
 - After a mutation, prefer a single `invalidateQueries` per affected registry key — it already refetches active observers. Do not stack `invalidateQueries` + `refetchQueries` + `removeQueries` for the same key "to be safe"; that discards freshly fetched data and causes loading flashes.
+- The global default is `refetchOnMount: false` (`REACT_QUERY_CONFIG.DEFAULT_OPTIONS`), so an invalidation made while its reader is **not mounted** is ignored the next time the reader mounts: the screen shows the old data until a reload. A reader whose key another screen or hook invalidates (the group and role lists and pickers with their member counts, section details with their pickers, scheduled jobs, data rows) sets `refetchOnMount: refetchOnMountWhenInvalidated` (exported from `react-query.config.ts`), and writers invalidate the registry **root** (`GROUPS_ALL`, `ROLES_ALL`, `ASSETS_ALL`, `SECTION_DETAILS_ALL`, …) so every variant of the key goes stale. Prove it with a test next to the hook; see `src/hooks/__tests__/refetchOnMountWhenInvalidated.test.tsx`.
 - Avoid `useEffect` data fetching when React Query or Server Components already own the data.
 - Use optimistic updates only where existing flows already support them safely.
 - Prefer targeted invalidation over refetch-all patterns.
@@ -278,6 +279,11 @@ Linting is mandatory whenever code is changed. ESLint uses the flat config in `e
   `ModalWrapper` with `onDelete` + the `deleteLabel` prop and a red
   alert in the body — see `PluginsPage` purge modal and
   `DeleteUserModal` for the canonical patterns.
+- **A modal does not scroll** (workspace `concepts/rules.md`, rule 12.1).
+  Make it wider and put fields side by side in grouped columns before
+  letting the body scroll. If a list inside can grow without limit
+  (files, rows), only that list scrolls in a fixed-height area; the
+  fields and the buttons stay in view.
 - Form modals (Add/Edit) use `onSave`/`onUpdate` and pass
   `isLoading={mutation.isPending}` so the primary button shows the
   loader during submission.
