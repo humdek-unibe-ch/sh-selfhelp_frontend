@@ -265,6 +265,20 @@ Linting is mandatory whenever code is changed. ESLint uses the flat config in `e
 - The final response for a change must mention the lint/tsc/test commands run and their result.
 - CI enforces this gate as blocking: `npm run lint -- --max-warnings=0`, the TypeScript check, and `npm test` must pass on every PR/push to `main` (`plugin-runtime-check.yml` runs headers/tsc/lint/build; `frontend-tests.yml` runs the Vitest suite) and again before any tagged Docker publish/GitHub release (`frontend-release.yml`, `publish-verify.yml`). Generated output (`coverage/**`, `.next/**`, `dist/**`, `test-results/**`, `playwright-report/**`) is ignored by the flat config so `--max-warnings=0` is deterministic. Never merge or release on a red gate, and do not weaken these workflows to go green.
 
+## Admin UI Consistency Rules
+- **The admin has one look** (workspace `concepts/rules.md`, rule 12.2).
+  Build every admin screen from the shared parts and add no second
+  style of something that exists: `ModalWrapper` for modals;
+  `PageHeader`, the filter card with `FilterActions`, the admin table
+  (`adminTableClasses`, `SortHeader`, `AdminTableFooter`) and
+  `EmptyState` for list screens; the same row action icons in the same
+  order (view, download, edit, delete), with the same sizes and
+  variants as the neighbouring screens.
+- If a screen needs something a shared part cannot do, extend the
+  shared part so every screen gets it; do not style a one-off copy.
+- Before finishing a UI change, open a neighbouring admin screen and
+  compare buttons, spacing, headers and wording.
+
 ## Modal Rules
 - **Always use the shared `ModalWrapper`** from
   `src/app/components/shared/common/CustomModal/CustomModal.tsx` for
