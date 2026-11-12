@@ -114,6 +114,13 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
     return map;
   }, [columnsResp?.columns]);
 
+  // Which columns hold uploaded files is the server's call (`isFile`); the cell's
+  // value is never used to guess it, so a text answer that looks like a path stays text.
+  const fileColumnKeys = useMemo(
+    () => new Set((columnsResp?.columns ?? []).filter((col) => col.isFile && col.fieldKey).map((col) => col.fieldKey as string)),
+    [columnsResp?.columns],
+  );
+
   const rows = useMemo(() => data?.rows || [], [data?.rows]);
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
     // Prefer the table's declared columns so the header row renders even with
@@ -132,7 +139,7 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
       accessorFn: (row) => getDataCellDisplayValue(key, row, optionLabelMaps),
       header: ({ column }) => <SortHeader label={labelByKey[key] ?? key} column={column} />,
       cell: ({ row }) => {
-        const filePaths = getFormFilePaths(row.original[key]);
+        const filePaths = fileColumnKeys.has(key) ? getFormFilePaths(row.original[key]) : [];
         if (filePaths.length > 0) {
           return <FormFileCell recordId={Number(row.original.record_id)} fieldKey={key} paths={filePaths} />;
         }
@@ -172,7 +179,7 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
         },
       },
     ];
-  }, [rows, displayName, labelByKey, optionLabelMaps, columnsResp?.columns]);
+  }, [rows, displayName, labelByKey, optionLabelMaps, columnsResp?.columns, fileColumnKeys]);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by design; React Compiler intentionally skips memoizing here
   const table = useReactTable({
@@ -189,7 +196,7 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
     },
   });
   // Rows the admin currently sees (after search) that hold uploads.
-  const shownRecordIdsWithFiles = getRecordIdsWithFiles(table.getFilteredRowModel().rows.map((row) => row.original));
+  const shownRecordIdsWithFiles = getRecordIdsWithFiles(table.getFilteredRowModel().rows.map((row) => row.original), fileColumnKeys);
 
   return (
     <Card withBorder style={{ position: 'relative' }}>

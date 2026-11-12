@@ -12,7 +12,13 @@ import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 /** Logical prefix the backend stores for form uploads (not a URL). */
 const FORM_FILE_PREFIX = 'uploads/form-files/';
 
-/** Stored form-upload keys in a data cell: one path or a JSON array of paths. */
+/**
+ * Reads the stored form-upload keys out of ONE cell of a column the server
+ * flagged `isFile`: one path or a JSON array of paths. This only parses the
+ * stored shape; whether a column holds files is the server's call (`isFile`),
+ * so never call it for a column that is not flagged: a text answer that merely
+ * looks like a path must stay text.
+ */
 export function getFormFilePaths(value: unknown): string[] {
   if (typeof value !== 'string') return [];
   if (value.startsWith(FORM_FILE_PREFIX)) return [value];
@@ -27,10 +33,13 @@ export function getFormFilePaths(value: unknown): string[] {
   }
 }
 
-/** Ids of the given rows that hold at least one form upload (for the table zip). */
-export function getRecordIdsWithFiles(rows: Record<string, unknown>[]): number[] {
+/**
+ * Ids of the given rows that hold at least one form upload (for the table zip),
+ * looking only in the columns the server flagged `isFile`.
+ */
+export function getRecordIdsWithFiles(rows: Record<string, unknown>[], fileColumnKeys: ReadonlySet<string>): number[] {
   return rows
-    .filter((row) => Object.values(row).some((value) => getFormFilePaths(value).length > 0))
+    .filter((row) => Array.from(fileColumnKeys).some((key) => getFormFilePaths(row[key]).length > 0))
     .map((row) => Number(row.record_id))
     .filter((id) => Number.isInteger(id) && id > 0);
 }

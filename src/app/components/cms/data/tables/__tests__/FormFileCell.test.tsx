@@ -11,6 +11,9 @@ import { FormFileCell, getFormFilePaths, getRecordIdsWithFiles } from '../FormFi
 /**
  * D5: Admin → Data showed form uploads only as a raw path. File cells now offer
  * view/download links to the access-checked route, never the raw storage path.
+ *
+ * Which columns hold files is the server's call (`isFile`); these helpers only
+ * read the stored shape of a cell in such a column.
  */
 const SINGLE = 'uploads/form-files/user_1/section_4113/field_file/1793113614_5a2aa377_report.pdf';
 const MULTI = JSON.stringify([
@@ -29,13 +32,24 @@ describe('getFormFilePaths', () => {
 });
 
 describe('getRecordIdsWithFiles', () => {
-  it('keeps only the shown rows that hold uploads, for the table zip', () => {
+  it('keeps only the shown rows that hold uploads in a file column, for the table zip', () => {
     const rows = [
       { record_id: 165, section_4115: MULTI },
       { record_id: 164, section_4114: 'note only' },
       { record_id: 163, section_4115: SINGLE },
     ];
-    expect(getRecordIdsWithFiles(rows)).toEqual([165, 163]);
+    expect(getRecordIdsWithFiles(rows, new Set(['section_4115']))).toEqual([165, 163]);
+  });
+
+  it('ignores a path-looking value in a column the server did not flag as a file column', () => {
+    const rows = [
+      { record_id: 165, section_4115: SINGLE, section_4116: SINGLE },
+      { record_id: 164, section_4116: SINGLE },
+    ];
+    // Only section_4115 is a file column: record 164 holds just a text answer
+    // that happens to look like a path, so it must not enter the zip request.
+    expect(getRecordIdsWithFiles(rows, new Set(['section_4115']))).toEqual([165]);
+    expect(getRecordIdsWithFiles(rows, new Set())).toEqual([]);
   });
 });
 
