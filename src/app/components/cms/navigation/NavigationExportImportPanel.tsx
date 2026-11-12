@@ -35,7 +35,7 @@ import {
     useCanImportNavigation,
 } from '../../../../hooks/usePermissionChecks';
 import { useImportNavigationMutation } from '../../../../hooks/mutations/useImportNavigationMutation';
-import { useGroups } from '../../../../hooks/useGroups';
+import { useAllGroups } from '../../../../hooks/useGroups';
 import { downloadJsonFile } from '../../../../utils/export-import.utils';
 import { parseApiError } from '../../../../utils/mutation-error-handler';
 import type {
@@ -78,7 +78,7 @@ export function NavigationExportImportPanel({
     const canExport = useCanExportNavigation();
     const canImport = useCanImportNavigation();
     const { pages } = useAdminPages();
-    const { data: groupsData } = useGroups({ pageSize: 1000 });
+    const { data: groupsData } = useAllGroups();
     const groupOptions = useMemo(
         () => (groupsData?.groups ?? []).map((group) => ({
             value: String(group.id),

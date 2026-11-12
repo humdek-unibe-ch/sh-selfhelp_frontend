@@ -34,7 +34,7 @@ vi.mock('../../../../../hooks/usePermissionChecks', () => ({
     useCanCreateRegistrationCodes: () => state.canCreate,
 }));
 vi.mock('../../../../../hooks/useGroups', () => ({
-    useGroups: () => ({ data: { groups: [{ id: 1, name: 'QA Group' }] } }),
+    useAllGroups: () => ({ data: { groups: [{ id: 1, name: 'QA Group' }] } }),
 }));
 vi.mock('../../../../../hooks/useRegistrationCodes', () => ({
     useRegistrationCodes: () => ({

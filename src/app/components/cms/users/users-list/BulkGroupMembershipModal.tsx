@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 import { useState } from 'react';
 import { MultiSelect, Stack, Text } from '@mantine/core';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
-import { useGroups } from '../../../../../hooks/useGroups';
+import { useAllGroups } from '../../../../../hooks/useGroups';
 
 interface IBulkGroupCopy {
   title: string;
@@ -57,7 +57,7 @@ export function BulkGroupMembershipModal({
   allowedGroupIds,
 }: IBulkGroupMembershipModalProps) {
   const [groupIds, setGroupIds] = useState<string[]>([]);
-  const { data: groupsData, isLoading: isLoadingGroups } = useGroups({ pageSize: 100 });
+  const { data: groupsData, isLoading: isLoadingGroups } = useAllGroups();
   const copy = (copyOverride ?? COPY)[mode];
 
   // Reset the selection when the modal opens or the mode flips, not on close: a

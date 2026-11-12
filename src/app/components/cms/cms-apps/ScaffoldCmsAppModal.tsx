@@ -32,7 +32,7 @@ import { IconInfoCircle, IconPlus, IconTrash, IconWand } from '@tabler/icons-rea
 import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
 import { adminTableClasses as tableStyles } from '../shared/admin-table';
 import { useDataTables } from '../../../../hooks/useData';
-import { useGroups } from '../../../../hooks/useGroups';
+import { useAllGroups } from '../../../../hooks/useGroups';
 import { useScaffoldCmsAppMutation } from '../../../../hooks/useCmsApps';
 import {
     type ICmsAppFormField,
@@ -88,7 +88,7 @@ export function ScaffoldCmsAppModal({
         label: table.displayName || table.name,
     }));
 
-    const { data: groupsData } = useGroups({ pageSize: 200, sort: 'name', sortDirection: 'asc' });
+    const { data: groupsData } = useAllGroups();
     const groupOptions = (groupsData?.groups ?? [])
         .map((group) => ({ value: String(group.id), label: group.name }));
 

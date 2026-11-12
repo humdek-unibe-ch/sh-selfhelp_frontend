@@ -44,7 +44,7 @@ vi.mock('../../../../../hooks/useAdminPages', () => ({
 }));
 
 vi.mock('../../../../../hooks/useGroups', () => ({
-    useGroups: () => ({
+    useAllGroups: () => ({
         data: { groups: [] },
         isLoading: false,
     }),

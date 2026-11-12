@@ -61,8 +61,8 @@ import {
   useExportUsersCsv,
   useImportUsersCsv,
 } from '../../../../../hooks/useUsers';
-import { useGroups } from '../../../../../hooks/useGroups';
-import { useRoles } from '../../../../../hooks/useRoles';
+import { useAllGroups } from '../../../../../hooks/useGroups';
+import { useAllRoles } from '../../../../../hooks/useRoles';
 import type {
   IUserBasic,
   IUsersListParams,
@@ -137,8 +137,8 @@ export function UsersList({
   } = useUsersStats();
 
   // Groups drive the Group filter dropdown.
-  const { data: groupsData } = useGroups({ pageSize: 100 });
-  const { data: rolesData } = useRoles({ pageSize: 100 });
+  const { data: groupsData } = useAllGroups();
+  const { data: rolesData } = useAllRoles();
 
   const bulkAddToGroup = useBulkAddUsersToGroup();
   const bulkRemoveFromGroup = useBulkRemoveUsersFromGroup();

@@ -45,7 +45,7 @@ import {
 import { notifications } from '@mantine/notifications';
 import { downloadBlobFile, generateExportFilename } from '../../../../utils/export-import.utils';
 import { useRegistrationCodes, useRegistrationCodesStats, useExportRegistrationCodes, useGenerateRegistrationCodes } from '../../../../hooks/useRegistrationCodes';
-import { useGroups } from '../../../../hooks/useGroups';
+import { useAllGroups } from '../../../../hooks/useGroups';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useCanReadRegistrationCodes, useCanCreateRegistrationCodes } from '../../../../hooks/usePermissionChecks';
 import { ROUTES } from '../../../../config/routes.config';
@@ -94,7 +94,7 @@ export function RegistrationCodesPage() {
     const canReadRegistrationCodes = useCanReadRegistrationCodes();
     const canCreateRegistrationCodes = useCanCreateRegistrationCodes();
 
-    const { data: groupsData } = useGroups({ page: 1, pageSize: 1000 });
+    const { data: groupsData } = useAllGroups();
     const exportCodes = useExportRegistrationCodes();
     const generateCodes = useGenerateRegistrationCodes();
 

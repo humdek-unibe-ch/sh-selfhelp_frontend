@@ -43,11 +43,11 @@ vi.mock('../../../../../../hooks/mutations', () => ({
 }));
 
 vi.mock('../../../../../../hooks/useGroups', () => ({
-    useGroups: () => ({
+    useAllGroups: () => ({
         data: {
             groups: [
-                { id: 2, name: 'subject', description: null, id_group_types: null, requires_2fa: false, users_count: 1, acls: [] },
-                { id: 3, name: 'researcher', description: null, id_group_types: null, requires_2fa: false, users_count: 1, acls: [] },
+                { id: 2, name: 'subject', description: null, add_to_new_pages: true, requires_2fa: false, users_count: 1, acls: [] },
+                { id: 3, name: 'researcher', description: null, add_to_new_pages: false, requires_2fa: false, users_count: 1, acls: [] },
             ],
         },
         isLoading: false,

@@ -61,7 +61,7 @@ import { NAVIGATION_BUNDLE_FORMAT } from '@selfhelp/shared';
 import { AdminApi } from '../../../../../api/admin';
 import { AdminNavigationApi } from '../../../../../api/admin/navigation.api';
 import { useImportNavigationMutation, useImportPagesMutation } from '../../../../../hooks/mutations';
-import { useGroups } from '../../../../../hooks/useGroups';
+import { useAllGroups } from '../../../../../hooks/useGroups';
 import { type IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import {
     type IPageBundle,
@@ -178,7 +178,7 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
     // Groups available as importer-selected "viewer" groups: read (public) /
     // full CRUD (cms-app) so imported pages are visible to real users. Admins
     // need no group: the admin role bypasses page ACLs.
-    const { data: groupsData } = useGroups({ pageSize: 1000 });
+    const { data: groupsData } = useAllGroups();
     const groupOptions = useMemo(
         () => (groupsData?.groups ?? [])
             .map((group) => ({

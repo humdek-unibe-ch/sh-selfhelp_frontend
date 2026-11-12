@@ -18,11 +18,11 @@ import {
     LoadingOverlay,
 } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCreateUser, useUpdateUser, useUser } from '../../../../../hooks/useUsers';
+import { USER_QUERY_KEYS, useCreateUser, useUpdateUser, useUser } from '../../../../../hooks/useUsers';
 import { showErrorNotification, showSuccessNotification } from '../../../../../utils/mutation-error-handler';
 import type { ICreateUserRequest, IUpdateUserRequest } from '../../../../../types/requests/admin/users.types';
-import { useGroups } from '../../../../../hooks/useGroups';
-import { useRoles } from '../../../../../hooks/useRoles';
+import { useAllGroups } from '../../../../../hooks/useGroups';
+import { useAllRoles } from '../../../../../hooks/useRoles';
 import { validateName, validateValidationCode } from '../../../../../utils/name-validation.utils';
 import { ModalWrapper } from '../../../shared';
 
@@ -51,8 +51,8 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
     const createUserMutation = useCreateUser();
     const updateUserMutation = useUpdateUser();
     const { data: userDetails, isLoading: isLoadingUser } = useUser(userId || 0);
-    const { data: groups, isLoading: isLoadingGroups } = useGroups();
-    const { data: roles, isLoading: isLoadingRoles } = useRoles();
+    const { data: groups, isLoading: isLoadingGroups } = useAllGroups();
+    const { data: roles, isLoading: isLoadingRoles } = useAllRoles();
 
     // Form
     const form = useForm<IUserFormValues>({
@@ -115,8 +115,10 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
         if (!opened) {
             form.reset();
         } else if (mode === 'edit' && userId) {
-            // Invalidate user details query to ensure fresh data
-            void queryClient.invalidateQueries({ queryKey: ['adminUserDetails', userId] });
+            // Invalidate the user's details (the key `useUser` reads) so the form
+            // never prefills from a cached copy that a bulk action has outdated:
+            // saving would then overwrite the new group membership.
+            void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional reset/invalidate on open-close; `form` is a fresh object each render, so depending on it would re-run every render. `form.reset` is stable.
     }, [opened, mode, userId, queryClient]);

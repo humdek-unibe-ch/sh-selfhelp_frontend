@@ -181,8 +181,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
     useEffect(() => {
         void (async () => {
-            const groups = await AdminGroupApi.getGroups({ page: 1, pageSize: 1000 });
-            setGroupsOptions(groups.groups.map(g => ({ value: String(g.id), label: g.name })));
+            const groups = await AdminGroupApi.getAllGroups();
+            setGroupsOptions(groups.map(g => ({ value: String(g.id), label: g.name })));
             const tables = await AdminDataApi.listDataTables();
             setFormOptions((tables.dataTables || []).map((t) => ({ value: String(t.id), label: t.displayName || t.name })));
             const assets = await AdminAssetApi.getAssets({ page: 1, pageSize: 1000 });

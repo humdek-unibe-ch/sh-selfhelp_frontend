@@ -12,8 +12,8 @@ import { AdminGroupApi } from '../../../../../../api/admin/group.api';
 function mockGroups() {
     vi.spyOn(AdminGroupApi, 'getGroups').mockResolvedValue({
         groups: [
-            { id: 1, name: 'Editors', description: null, id_group_types: null, requires_2fa: false, users_count: 0, acls: [] },
-            { id: 2, name: 'Viewers', description: null, id_group_types: null, requires_2fa: false, users_count: 0, acls: [] },
+            { id: 1, name: 'Editors', description: null, add_to_new_pages: false, requires_2fa: false, users_count: 0, acls: [] },
+            { id: 2, name: 'Viewers', description: null, add_to_new_pages: false, requires_2fa: false, users_count: 0, acls: [] },
         ],
         pagination: { page: 1, pageSize: 100, totalCount: 2, totalPages: 1, hasNext: false, hasPrevious: false },
     });

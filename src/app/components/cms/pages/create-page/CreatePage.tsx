@@ -35,7 +35,7 @@ import { ModalWrapper } from '../../../shared';
 
 import { IconInfoCircle, IconEdit, IconLock, IconWorld, IconLayoutDashboard } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
-import { useGroups } from '../../../../../hooks/useGroups';
+import { useAllGroups } from '../../../../../hooks/useGroups';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import {
     PAGE_ACCESS_TYPES,
@@ -89,8 +89,6 @@ const SURFACE_HELP_TEXT: Record<string, string> = {
     [PAGE_SURFACE_PUBLIC]: 'Shown to your normal audience under standard page access rules.',
     [PAGE_SURFACE_CMS]: 'Grouped separately; defaults to admin/editor-only access (e.g. /cms/team).',
 };
-
-const GROUPS_QUERY_PARAMS = { pageSize: 200, sort: 'name' as const, sortDirection: 'asc' as const };
 
 function buildWizardSessionKey(
     parentPage: IAdminPage | null | undefined,
@@ -176,7 +174,7 @@ function CreatePageWizard({
     });
 
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
-    const { data: groupsData } = useGroups(GROUPS_QUERY_PARAMS);
+    const { data: groupsData } = useAllGroups();
     const { pages: adminPages } = useAdminPages();
     const pageById = useMemo(() => buildPageLookup(adminPages ?? []), [adminPages]);
 
