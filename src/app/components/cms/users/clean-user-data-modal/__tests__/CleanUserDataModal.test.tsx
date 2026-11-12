@@ -29,6 +29,8 @@ describe('CleanUserDataModal', () => {
         setup();
         expect(screen.getByText('all activity logs')).toBeInTheDocument();
         expect(screen.getByText('all input data entered by this user')).toBeInTheDocument();
+        // The backend also deletes the user's uploaded form files from disk.
+        expect(screen.getByText('all files uploaded by this user')).toBeInTheDocument();
         expect(screen.getByText('all scheduled actions for this user')).toBeInTheDocument();
         expect(screen.getByText(/The user account itself is kept/)).toBeInTheDocument();
         expect(screen.getByText(/cannot be undone/)).toBeInTheDocument();

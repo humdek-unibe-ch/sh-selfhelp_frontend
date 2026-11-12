@@ -60,6 +60,7 @@ export function CleanUserDataModal({
           <List size="sm" spacing={2}>
             <List.Item>all activity logs</List.Item>
             <List.Item>all input data entered by this user</List.Item>
+            <List.Item>all files uploaded by this user</List.Item>
             <List.Item>all scheduled actions for this user</List.Item>
           </List>
           <Text size="sm" c="dimmed" mt={4}>

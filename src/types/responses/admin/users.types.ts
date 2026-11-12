@@ -133,7 +133,10 @@ export interface ICleanUserDataResult {
     | 'scheduled_jobs'
     | 'data_cells'
     | 'data_rows'
-    | 'transactions',
+    | 'transactions'
+    | 'data_access_audits'
+    | 'api_request_logs'
+    | 'form_files',
     number
   >>;
 }
