@@ -72,7 +72,6 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
     useSaveAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useDeleteAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useCreateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
-    useCreateMultipleAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useUpdateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
@@ -85,7 +84,7 @@ describe('AssetsList file type column', () => {
     });
 
     it('shows the concrete extension rather than the broad category', () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
 
         // `WEBP`/`MP4` carry information `Image`/`Video` do not — the icon
         // already conveys the category.
@@ -103,7 +102,7 @@ describe('AssetsList file type column', () => {
     });
 
     it('shows the extension even for files it cannot categorise', () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
         // The unknown .xyz file is still more usefully labelled than "Other";
         // only the extensionless README falls back to the category label.
         expect(screen.getByText('XYZ')).toBeInTheDocument();
@@ -111,24 +110,24 @@ describe('AssetsList file type column', () => {
     });
 
     it('still honours asset_type "css", which an extension alone cannot convey', () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
         // The CSS category drives the icon; the label shows the extension.
         expect(screen.getByText('CSS')).toBeInTheDocument();
     });
 
     it('falls back to the category label when the file has no extension', () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
         // `README` has no extension, so the cell must not render empty.
         expect(screen.getByText('Other')).toBeInTheDocument();
     });
 
     it('labels a file whose name has no extension by its MIME subtype', () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
         expect(screen.getByText('GIF')).toBeInTheDocument();
     });
 
     it('renders a thumbnail only for previewable images', () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
         expect(screen.getByAltText('photo.webp')).toBeInTheDocument();
         expect(screen.queryByAltText('clip.mp4')).not.toBeInTheDocument();
     });

@@ -52,7 +52,6 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
     useSaveAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useDeleteAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useCreateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
-    useCreateMultipleAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useUpdateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
@@ -73,13 +72,13 @@ describe('AssetsList asset delivery URLs', () => {
     });
 
     it('builds the preview image from `url`', async () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
         const img = await screen.findByAltText('lamine-yamal-young.webp');
         expect(img).toHaveAttribute('src', DELIVERY_URL);
     });
 
     it('builds the View and Download links from `url`', async () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
         expect(await screen.findByRole('link', { name: /view/i })).toHaveAttribute('href', DELIVERY_URL);
         const download = screen.getByRole('link', { name: /download/i });
         expect(download).toHaveAttribute('href', DELIVERY_URL);
@@ -90,7 +89,7 @@ describe('AssetsList asset delivery URLs', () => {
     it('never points the browser straight at the backend delivery path', async () => {
         // That request would arrive anonymous (no bearer header), so an admin
         // would see nothing despite bypassing asset groups.
-        const { container } = renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        const { container } = renderWithProviders(<AssetsList />);
         await screen.findByAltText('lamine-yamal-young.webp');
         expect(container.innerHTML).not.toContain('/cms-api/v1/assets/');
     });
@@ -112,7 +111,7 @@ describe('AssetsList asset delivery URLs', () => {
     });
 
     it('says "preview unavailable", not "no access", when an image the caller may view fails to load', async () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
         const img = await screen.findByAltText('lamine-yamal-young.webp');
 
         // A missing file, a decode failure or a network error surfaces to an <img>

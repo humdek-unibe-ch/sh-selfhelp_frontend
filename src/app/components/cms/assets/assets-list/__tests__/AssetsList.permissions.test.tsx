@@ -45,7 +45,6 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
     useSaveAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useDeleteAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useCreateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
-    useCreateMultipleAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useUpdateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
@@ -80,7 +79,7 @@ describe('AssetsList action gating', () => {
 
     it('shows Edit and Delete when the user may update and delete assets', async () => {
         hasPermission.mockImplementation(mayUpdateAndDelete);
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
         expect(await screen.findByText('logo.png')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Edit logo.png' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Delete logo.png' })).toBeInTheDocument();
@@ -88,7 +87,7 @@ describe('AssetsList action gating', () => {
 
     it('offers only View and Download to a read-only user', async () => {
         hasPermission.mockReturnValue(false);
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
         expect(await screen.findByText('logo.png')).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /download/i })).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Edit logo.png' })).not.toBeInTheDocument();
@@ -105,7 +104,7 @@ describe('AssetsList action gating', () => {
                 asset(1, 'mine.png'),
                 asset(2, 'theirs.png', { can_update: false, can_delete: false }),
             ];
-            renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+            renderWithProviders(<AssetsList />);
             await screen.findByText('theirs.png');
 
             expect(screen.getByRole('button', { name: 'Edit mine.png' })).toBeInTheDocument();
@@ -116,7 +115,7 @@ describe('AssetsList action gating', () => {
 
         it('draws update and delete independently', async () => {
             assetsState.assets = [asset(1, 'edit-only.png', { can_delete: false }), asset(2, 'delete-only.png', { can_update: false })];
-            renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+            renderWithProviders(<AssetsList />);
             await screen.findByText('edit-only.png');
 
             expect(screen.getByRole('button', { name: 'Edit edit-only.png' })).toBeInTheDocument();
@@ -127,7 +126,7 @@ describe('AssetsList action gating', () => {
 
         it('offers no View or Download for an asset the caller may not view, and shows the lock instead of requesting it', async () => {
             assetsState.assets = [asset(1, 'private.png', { can_view: false })];
-            renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+            renderWithProviders(<AssetsList />);
             await screen.findByText('private.png');
 
             expect(screen.queryByRole('link', { name: /view private/i })).not.toBeInTheDocument();
@@ -139,7 +138,7 @@ describe('AssetsList action gating', () => {
         it('offers a bulk action only when it holds for every selected asset', async () => {
             assetsState.assets = [asset(1, 'mine.png'), asset(2, 'theirs.png', { can_update: false, can_delete: false })];
             const user = userEvent.setup();
-            renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+            renderWithProviders(<AssetsList />);
             await screen.findByText('theirs.png');
 
             await user.click(screen.getByRole('checkbox', { name: 'Select mine.png' }));

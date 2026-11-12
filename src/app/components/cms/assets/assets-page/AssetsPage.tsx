@@ -6,47 +6,42 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useState } from 'react';
 import { Stack, Button } from '@mantine/core';
-import { IconUpload, IconTransferIn, IconFolders } from '@tabler/icons-react';
+import { IconUpload, IconTransferIn } from '@tabler/icons-react';
 import { AssetsList } from '../assets-list/AssetsList';
 import { AssetFormModal } from '../asset-form-modal/AssetFormModal';
 import { ExportImportAssetsModal } from '../export-import-assets-modal/ExportImportAssetsModal';
-import { AssetFolderModal } from '../asset-folder-modal/AssetFolderModal';
 import { useAuthUser } from '../../../../../hooks/useUserData';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 
 export function AssetsPage() {
   const [uploadModalOpened, setUploadModalOpened] = useState(false);
+  // The folder the upload form opens on: set by a folder's "Upload here", null from the header button.
+  const [uploadFolderId, setUploadFolderId] = useState<number | null>(null);
   const [exportImportOpened, setExportImportOpened] = useState(false);
-  // undefined = closed, null = open on a new folder, id = open on that folder.
-  const [folderModalId, setFolderModalId] = useState<number | null | undefined>(undefined);
   const [exportAssetIds, setExportAssetIds] = useState<number[]>([]);
-  const [folderId, setFolderId] = useState<number | null>(null);
 
   const { permissionChecker } = useAuthUser();
   const canRead = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_READ) ?? false;
   // Upload + import both create assets; export only reads.
   const canCreate = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_CREATE) ?? false;
-  const canUpdate = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_UPDATE) ?? false;
 
   const openExportImport = (assetIds: number[]) => {
     setExportAssetIds(assetIds);
     setExportImportOpened(true);
   };
 
+  const openUpload = (folderId: number | null) => {
+    setUploadFolderId(folderId);
+    setUploadModalOpened(true);
+  };
+
   return (
     <Stack gap="lg">
       <AssetsList
-        folderId={folderId}
-        onFolderChange={setFolderId}
         onExportSelected={canRead ? openExportImport : undefined}
-        onEditFolder={setFolderModalId}
+        onUploadToFolder={canCreate ? openUpload : undefined}
         headerActions={
           <>
-          {canUpdate && (
-            <Button variant="default" leftSection={<IconFolders size={16} />} onClick={() => setFolderModalId(null)}>
-              Folders
-            </Button>
-          )}
           {canRead && (
             <Button
               variant="default"
@@ -59,7 +54,7 @@ export function AssetsPage() {
           {canCreate && (
             <Button
               leftSection={<IconUpload size={16} />}
-              onClick={() => setUploadModalOpened(true)}
+              onClick={() => openUpload(null)}
             >
               Upload Asset
             </Button>
@@ -71,13 +66,7 @@ export function AssetsPage() {
       <AssetFormModal
         opened={uploadModalOpened}
         onClose={() => setUploadModalOpened(false)}
-        defaultFolderId={folderId}
-      />
-
-      <AssetFolderModal
-        opened={folderModalId !== undefined}
-        initialFolderId={folderModalId}
-        onClose={() => setFolderModalId(undefined)}
+        defaultFolderId={uploadFolderId}
       />
 
       {/* Export / Import Modal — import tab gated on create permission. */}

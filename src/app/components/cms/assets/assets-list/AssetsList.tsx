@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useState, useMemo, type ReactNode } from 'react';
+import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react';
 import {
   Table,
   Text,
@@ -14,56 +14,61 @@ import {
   Select,
   Stack,
   Paper,
-  Tooltip,
   Card,
-  Badge,
   Checkbox,
   Button,
   Box,
   LoadingOverlay,
-  UnstyledButton,
-  Breadcrumbs,
-  Anchor,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
   IconTrash,
-  IconDownload,
-  IconEye,
   IconSearch,
   IconX,
-  IconPencil,
   IconUsersGroup,
   IconFileZip,
-  IconFolder,
-  IconHome,
+  IconFolderPlus,
   IconFolderShare,
 } from '@tabler/icons-react';
-import { useAssets, useDeleteAsset, useBulkAssetGroups, useBulkDeleteAssets, useBulkMoveAssets, useAssetFolders } from '../../../../../hooks/useAssets';
+import {
+  useAssets,
+  useDeleteAsset,
+  useBulkAssetGroups,
+  useBulkDeleteAssets,
+  useBulkMoveAssets,
+  useAssetFolders,
+  useSaveAssetFolder,
+  useDeleteAssetFolder,
+} from '../../../../../hooks/useAssets';
 import { useAllGroups } from '../../../../../hooks/useGroups';
 import { DeleteAssetModal } from '../delete-asset-modal';
 import { AssetFormModal } from '../asset-form-modal/AssetFormModal';
-import { AssetThumbnail } from './AssetThumbnail';
+import { AssetFolderAccessModal } from '../asset-folder-access-modal/AssetFolderAccessModal';
 import { BulkGroupMembershipModal } from '../../users/users-list/BulkGroupMembershipModal';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import type { IAsset, IAssetFolder } from '../../../../../api/admin/asset.api';
-import { getAssetUrl } from '../../../../../utils/asset-url.utils';
 import { AdminTableFooter, adminTableClasses as tableStyles } from '../../shared/admin-table';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { useAuthUser } from '../../../../../hooks/useUserData';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import { parseApiError } from '../../../../../utils/mutation-error-handler';
-import { assetLabel, folderOptions, folderTrail, getAssetTypeInfo, isImageAsset } from '../assets.utils';
+import { assetLabel, childFolders, folderDescendantIds, folderPathLabel, folderTrail } from '../assets.utils';
+import { AssetRow } from './AssetRow';
+import { FolderNode } from './FolderTree';
+import { NewFolderRow } from './FolderNameField';
+import { MoveToFolderModal, TOP_LEVEL } from './MoveToFolderModal';
+import { DragStatusBar, TopLevelDropZone } from './TopLevelDropZone';
+import { useAssetDropMonitor, type IAssetDrop } from './assets-dnd';
+import { AssetTreeProvider, type IAssetTreeContext } from './assets-tree.context';
 
 interface IAssetsListProps {
-  folderId: number | null;
-  onFolderChange: (folderId: number | null) => void;
   onAssetSelect?: (asset: IAsset) => void;
   onExportSelected?: (assetIds: number[]) => void;
   headerActions?: ReactNode;
-  onEditFolder?: (folderId: number) => void;
+  /** Opens the upload form on a folder ("Upload here" in a folder's menu). */
+  onUploadToFolder?: (folderId: number) => void;
 }
 
 const BULK_COPY = {
@@ -81,81 +86,77 @@ const BULK_COPY = {
 
 const DEFAULT_FILTERS = { search: '', groupId: null as string | null, pageSize: 20 };
 
-/** Select value for "no folder" in the move dialog (Select values cannot be null). */
-const TOP_LEVEL = 'top';
-
-/** Who can see an asset: one badge per group; no groups = public. */
-function AccessBadges({ asset }: { asset: IAsset }) {
-  if (asset.groups.length === 0) {
-    return <Badge variant="light" color="orange" size="sm">Public</Badge>;
-  }
-
-  return (
-    <Group gap={4}>
-      {asset.groups.map((group) => (
-        <Badge key={group.id} variant="light" color="blue" size="sm">{group.name}</Badge>
-      ))}
-    </Group>
-  );
-}
+const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
 /**
- * The assets table as a folder browser: it shows one folder at a time (its
- * subfolders, then its assets, paged), with breadcrumbs back up. A search or
- * group filter searches every folder instead and shows each result's folder.
+ * The assets table as a folder tree. Folders open and close in place, several
+ * at once; a folder's assets load the first time it is opened. A search or
+ * group filter replaces the tree with flat results from every folder, each
+ * with a link that shows its folder in the tree again.
  */
-export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSelected, headerActions, onEditFolder }: IAssetsListProps) {
+export function AssetsList({ onAssetSelect, onExportSelected, headerActions, onUploadToFolder }: IAssetsListProps) {
   const [page, setPage] = useState(1);
   const [draft, setDraft] = useState(DEFAULT_FILTERS);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const { pageSize } = filters;
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selected, setSelected] = useState<ReadonlyMap<number, IAsset>>(new Map());
+  const selectedRef = useRef<ReadonlyMap<number, IAsset>>(selected);
+  useEffect(() => {
+    selectedRef.current = selected;
+  });
+  const [expanded, setExpanded] = useState<ReadonlySet<number>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<IAsset | null>(null);
   const [editTarget, setEditTarget] = useState<IAsset | null>(null);
   const [bulkMode, setBulkMode] = useState<'add' | 'remove' | null>(null);
   // null = move dialog closed.
-  const [moveTarget, setMoveTarget] = useState<string | null>(null);
+  const [moveAssetsTarget, setMoveAssetsTarget] = useState<string | null>(null);
+  const [moveFolderTarget, setMoveFolderTarget] = useState<{ folder: IAssetFolder; value: string } | null>(null);
+  const [accessFolder, setAccessFolder] = useState<IAssetFolder | null>(null);
+  const [deleteFolderTarget, setDeleteFolderTarget] = useState<IAssetFolder | null>(null);
+  const [deleteFolderError, setDeleteFolderError] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<number | null>(null);
+  // undefined = no new folder is being named; null = at the top level; id = inside that folder.
+  const [creatingIn, setCreatingIn] = useState<number | null | undefined>(undefined);
 
   const deleteAssetMutation = useDeleteAsset();
   const bulkGroupsMutation = useBulkAssetGroups();
   const bulkDeleteMutation = useBulkDeleteAssets();
   const bulkMoveMutation = useBulkMoveAssets();
+  const saveFolderMutation = useSaveAssetFolder();
+  const deleteFolderMutation = useDeleteAssetFolder();
   const { data: folders = [] } = useAssetFolders();
 
   const searching = filters.search !== '' || filters.groupId !== null;
 
-  const openFolder = (id: number | null) => {
-    onFolderChange(id);
-    setPage(1);
-    setSelectedIds([]);
-  };
+  const clearSelection = () => setSelected(new Map());
   const applyFilters = () => {
     setFilters(draft);
     setPage(1);
-    setSelectedIds([]);
+    clearSelection();
   };
   const resetFilters = () => {
     setDraft(DEFAULT_FILTERS);
     setFilters(DEFAULT_FILTERS);
     setPage(1);
-    setSelectedIds([]);
+    clearSelection();
   };
   const { permissionChecker } = useAuthUser();
-  const canDelete = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_DELETE) ?? false;
-  const canUpdate = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_UPDATE) ?? false;
-
-  // A folder id that no longer exists (deleted meanwhile) falls back to the top level.
-  const knownFolderId = folderId !== null && folders.some((folder) => folder.id === folderId) ? folderId : null;
+  const permissions = {
+    canCreate: permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_CREATE) ?? false,
+    canUpdate: permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_UPDATE) ?? false,
+    canDelete: permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ASSET_DELETE) ?? false,
+  };
 
   const queryParams = useMemo(() => ({
     page,
     pageSize,
     search: filters.search || undefined,
     group_id: filters.groupId ? Number(filters.groupId) : undefined,
-    // 0 = assets in no folder; searching looks in every folder.
-    folder_id: searching ? undefined : knownFolderId ?? 0,
-  }), [page, pageSize, filters, searching, knownFolderId]);
+    // 0 = assets in no folder; searching looks in every folder. Folders open on
+    // their own (each loads its first page when it opens).
+    folder_id: searching ? undefined : 0,
+  }), [page, pageSize, filters, searching]);
 
   const { data: assetsData, isLoading, isFetching, error, refetch } = useAssets(queryParams);
   const { data: allAssetsData } = useAssets({ page: 1, pageSize: 1 });
@@ -167,44 +168,149 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
     label: group.name,
   }));
 
-  const subfolders = searching || page > 1
-    ? []
-    : folders.filter((folder) => folder.parent_id === knownFolderId).sort((a, b) => a.name.localeCompare(b.name));
-  const trail = folderTrail(folders, knownFolderId);
-  const folderPath = (id: number | null) => folderTrail(folders, id).map((folder) => folder.name).join(' / ');
+  const rootFolders = searching || page > 1 ? [] : childFolders(folders, null);
 
-  const pageIds = assets.map((asset) => asset.id);
-  const selectedAssets = assets.filter((asset) => selectedIds.includes(asset.id));
+  const notifyError = (err: unknown) => {
+    const { errorTitle, errorMessage } = parseApiError(err);
+    notifications.show({ title: errorTitle, message: errorMessage, color: 'red' });
+  };
+
+  // ---- selection -------------------------------------------------------
+  const selectedAssets = Array.from(selected.values());
+  const selectedIds = Array.from(selected.keys());
   // The global permission says the caller may update/delete assets at all; the
   // server says per asset whether THIS caller may (`can_update` / `can_delete`),
   // so a bulk action is only offered when it holds for every asset selected.
-  const canBulkUpdate = canUpdate && selectedAssets.every((asset) => asset.can_update);
-  const canBulkDelete = canDelete && selectedAssets.every((asset) => asset.can_delete);
+  // `selected` holds the assets of every open folder, not only of this page.
+  const canBulkUpdate = permissions.canUpdate && selectedAssets.every((asset) => asset.can_update);
+  const canBulkDelete = permissions.canDelete && selectedAssets.every((asset) => asset.can_delete);
   const sharedGroupIds = selectedAssets
     .map((asset) => asset.groups.map((group) => group.id))
     .reduce<number[] | null>((shared, ids) => (shared === null ? ids : shared.filter((id) => ids.includes(id))), null) ?? [];
-  const allOnPageSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.includes(id));
-  const someOnPageSelected = pageIds.some((id) => selectedIds.includes(id));
+  const pageIds = assets.map((asset) => asset.id);
+  const allOnPageSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
+  const someOnPageSelected = pageIds.some((id) => selected.has(id));
 
-  const toggleSelected = (id: number) =>
-    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const toggleSelected = (asset: IAsset) =>
+    setSelected((prev) => {
+      const next = new Map(prev);
+      if (next.has(asset.id)) next.delete(asset.id);
+      else next.set(asset.id, asset);
+      return next;
+    });
 
   const toggleAllOnPage = () =>
-    setSelectedIds((prev) =>
-      allOnPageSelected ? prev.filter((id) => !pageIds.includes(id)) : Array.from(new Set([...prev, ...pageIds]))
-    );
+    setSelected((prev) => {
+      const next = new Map(prev);
+      for (const asset of assets) {
+        if (allOnPageSelected) next.delete(asset.id);
+        else next.set(asset.id, asset);
+      }
+      return next;
+    });
 
+  const dropFromSelection = (ids: number[]) =>
+    setSelected((prev) => {
+      const next = new Map(prev);
+      ids.forEach((id) => next.delete(id));
+      return next;
+    });
+
+  // ---- tree ------------------------------------------------------------
+  const expand = (ids: number[]) => setExpanded((prev) => new Set([...prev, ...ids]));
+  const toggleExpanded = (folderId: number) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(folderId)) next.delete(folderId);
+      else next.add(folderId);
+      return next;
+    });
+
+  /** Leaves the search and opens every folder on the way to `folderId`. */
+  const showInTree = (folderId: number | null) => {
+    resetFilters();
+    expand(folderTrail(folders, folderId).map((folder) => folder.id));
+  };
+
+  const createFolder = async (parentId: number | null, name: string) => {
+    await saveFolderMutation.mutateAsync({ folder: { name, parent_id: parentId } });
+    if (parentId !== null) expand([parentId]);
+    setCreatingIn(undefined);
+    notifications.show({ title: 'Success', message: 'Folder created', color: 'green' });
+  };
+
+  const renameFolder = async (folder: IAssetFolder, name: string) => {
+    await saveFolderMutation.mutateAsync({ folder: { name, parent_id: folder.parent_id }, folderId: folder.id });
+    setRenamingId(null);
+  };
+
+  /** Moves a folder under another one (null = top level). Errors are shown as a notification. */
+  const moveFolder = async (folder: IAssetFolder, targetId: number | null) => {
+    try {
+      await saveFolderMutation.mutateAsync({ folder: { name: folder.name, parent_id: targetId }, folderId: folder.id });
+      if (targetId !== null) expand([targetId]);
+      notifications.show({ title: 'Success', message: `Moved ${folder.name}`, color: 'green' });
+      return true;
+    } catch (err) {
+      notifyError(err);
+      return false;
+    }
+  };
+
+  /** Moves assets into a folder (null = top level). Errors are shown as a notification. */
+  const moveAssets = async (assetIds: number[], targetId: number | null) => {
+    try {
+      const result = await bulkMoveMutation.mutateAsync({ assetIds, folderId: targetId });
+      notifications.show({ title: 'Success', message: `${plural(result.moved, 'asset')} moved`, color: 'green' });
+      dropFromSelection(assetIds);
+      if (targetId !== null) expand([targetId]);
+      return true;
+    } catch (err) {
+      notifyError(err);
+      return false;
+    }
+  };
+
+  const dragState = useAssetDropMonitor((drop: IAssetDrop) => {
+    if (drop.drag.type === 'asset-selection') {
+      void moveAssets(drop.drag.assetIds, drop.targetFolderId);
+      return;
+    }
+    const { folderId } = drop.drag;
+    const folder = folders.find((candidate) => candidate.id === folderId);
+    if (folder) void moveFolder(folder, drop.targetFolderId);
+  }, permissions.canUpdate);
+  const dragging = dragState.drag !== null;
+  // The folder under the pointer and everything inside it: the area a drop would land in.
+  const dropInsideIds = useMemo<ReadonlySet<number>>(() => {
+    const target = dragState.targetFolderId;
+    return typeof target === 'number' ? new Set([target, ...folderDescendantIds(folders, target)]) : new Set<number>();
+  }, [dragState.targetFolderId, folders]);
+
+  // ---- single asset and folder actions ------------------------------------
   const confirmDeleteAsset = async () => {
     if (!deleteTarget) return;
 
     try {
       await deleteAssetMutation.mutateAsync(deleteTarget.id);
       notifications.show({ title: 'Success', message: 'Asset deleted successfully', color: 'green' });
-      setSelectedIds((prev) => prev.filter((id) => id !== deleteTarget.id));
+      dropFromSelection([deleteTarget.id]);
       setDeleteTarget(null);
     } catch (err) {
-      const { errorTitle, errorMessage } = parseApiError(err);
-      notifications.show({ title: errorTitle, message: errorMessage, color: 'red' });
+      notifyError(err);
+    }
+  };
+
+  const confirmDeleteFolder = async () => {
+    if (!deleteFolderTarget) return;
+
+    try {
+      await deleteFolderMutation.mutateAsync(deleteFolderTarget.id);
+      notifications.show({ title: 'Success', message: 'Folder deleted', color: 'green' });
+      setDeleteFolderTarget(null);
+    } catch (err) {
+      // 409: the folder is not empty (something was added meanwhile, or the caller cannot see all of it).
+      setDeleteFolderError(parseApiError(err).errorMessage);
     }
   };
 
@@ -213,226 +319,76 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
 
     try {
       const result = await bulkGroupsMutation.mutateAsync({ asset_ids: selectedIds, group_ids: groupIds, mode: bulkMode });
-      notifications.show({
-        title: 'Success',
-        message: `${result.updated} asset${result.updated === 1 ? '' : 's'} updated`,
-        color: 'green',
-      });
+      notifications.show({ title: 'Success', message: `${plural(result.updated, 'asset')} updated`, color: 'green' });
       setBulkMode(null);
+      // The selection holds the assets as they were when ticked; their groups just changed.
+      clearSelection();
     } catch (err) {
-      const { errorTitle, errorMessage } = parseApiError(err);
-      notifications.show({ title: errorTitle, message: errorMessage, color: 'red' });
+      notifyError(err);
     }
   };
 
   const confirmBulkMove = async () => {
-    if (moveTarget === null) return;
-
-    try {
-      const result = await bulkMoveMutation.mutateAsync({
-        assetIds: selectedIds,
-        folderId: moveTarget === TOP_LEVEL ? null : Number(moveTarget),
-      });
-      notifications.show({ title: 'Success', message: `${result.moved} asset${result.moved === 1 ? '' : 's'} moved`, color: 'green' });
-      setSelectedIds([]);
-      setMoveTarget(null);
-    } catch (err) {
-      const { errorTitle, errorMessage } = parseApiError(err);
-      notifications.show({ title: errorTitle, message: errorMessage, color: 'red' });
+    if (moveAssetsTarget === null) return;
+    if (await moveAssets(selectedIds, moveAssetsTarget === TOP_LEVEL ? null : Number(moveAssetsTarget))) {
+      setMoveAssetsTarget(null);
     }
+  };
+
+  const confirmFolderMove = async () => {
+    if (!moveFolderTarget) return;
+    const targetId = moveFolderTarget.value === TOP_LEVEL ? null : Number(moveFolderTarget.value);
+    if (await moveFolder(moveFolderTarget.folder, targetId)) setMoveFolderTarget(null);
   };
 
   const confirmBulkDelete = async () => {
     try {
       const result = await bulkDeleteMutation.mutateAsync(selectedIds);
-      notifications.show({ title: 'Success', message: `${result.deleted} asset${result.deleted === 1 ? '' : 's'} deleted`, color: 'green' });
-      setSelectedIds([]);
+      notifications.show({ title: 'Success', message: `${plural(result.deleted, 'asset')} deleted`, color: 'green' });
+      clearSelection();
       setBulkDeleteOpen(false);
     } catch (err) {
-      const { errorTitle, errorMessage } = parseApiError(err);
-      notifications.show({ title: errorTitle, message: errorMessage, color: 'red' });
+      notifyError(err);
     }
   };
 
-  const renderFolderRow = (folder: IAssetFolder) => {
-    const childCount = folders.filter((child) => child.parent_id === folder.id).length;
-    const contents = [
-      childCount > 0 ? `${childCount} folder${childCount === 1 ? '' : 's'}` : null,
-      `${folder.asset_count} asset${folder.asset_count === 1 ? '' : 's'}`,
-    ].filter(Boolean).join(' · ');
-    return (
-      <Table.Tr
-        key={`folder-${folder.id}`}
-        onClick={() => openFolder(folder.id)}
-        style={{ cursor: 'pointer' }}
-      >
-        <Table.Td className={tableStyles.tableCell} />
-        <Table.Td className={tableStyles.tableCell}>
-          <UnstyledButton
-            onClick={(e) => {
-              e.stopPropagation();
-              openFolder(folder.id);
-            }}
-            aria-label={`Open folder ${folder.name}`}
-          >
-            <Group gap="sm" wrap="nowrap">
-              <IconFolder size={22} color="var(--mantine-color-yellow-6)" aria-hidden />
-              <div>
-                <Text size="sm" fw={600}>{folder.name}</Text>
-                <Text size="xs" c="dimmed">{contents}</Text>
-              </div>
-            </Group>
-          </UnstyledButton>
-        </Table.Td>
-        <Table.Td className={tableStyles.tableCell}>
-          <Text size="sm" c="dimmed">Folder</Text>
-        </Table.Td>
-        <Table.Td className={tableStyles.tableCell} />
-        <Table.Td className={tableStyles.tableCell} onClick={(e) => e.stopPropagation()}>
-          {canUpdate && onEditFolder && (
-            <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
-              <Tooltip label="Edit folder">
-                <ActionIcon variant="subtle" color="gray" aria-label={`Edit folder ${folder.name}`} onClick={() => onEditFolder(folder.id)}>
-                  <IconPencil size={16} />
-                </ActionIcon>
-              </Tooltip>
-            </Group>
-          )}
-        </Table.Td>
-      </Table.Tr>
-    );
-  };
-
-  const renderAssetRow = (asset: IAsset) => {
-    // `url` is the access-checked delivery route, the only fetchable source.
-    const deliveryUrl = getAssetUrl(asset.url);
-    const typeInfo = getAssetTypeInfo(asset);
-    const label = assetLabel(asset);
-    const path = searching ? folderPath(asset.folder_id) : '';
-    return (
-      <Table.Tr
-        key={asset.id}
-        className={onAssetSelect ? 'cursor-pointer' : 'cursor-default'}
-        onClick={() => onAssetSelect?.(asset)}
-      >
-        <Table.Td className={tableStyles.tableCell} onClick={(e) => e.stopPropagation()}>
-          <Checkbox
-            aria-label={`Select ${label}`}
-            checked={selectedIds.includes(asset.id)}
-            onChange={() => toggleSelected(asset.id)}
-          />
-        </Table.Td>
-        <Table.Td className={tableStyles.tableCell}>
-          <Group gap="sm" wrap="nowrap">
-            {isImageAsset(asset) && <AssetThumbnail src={deliveryUrl} alt={asset.alt || label} canView={asset.can_view} />}
-            <div style={{ minWidth: 0 }}>
-              <Text size="sm" fw={500} truncate>{label}</Text>
-              {label !== asset.uuid && (
-                <Text size="xs" c="dimmed" ff="monospace" truncate>{asset.uuid}</Text>
-              )}
-              {asset.alt && (
-                <Text size="xs" c="dimmed" truncate>Alt: {asset.alt}</Text>
-              )}
-              {searching && (
-                <Anchor
-                  component="button"
-                  type="button"
-                  size="xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    resetFilters();
-                    onFolderChange(path ? asset.folder_id : null);
-                  }}
-                >
-                  <Group gap={4} wrap="nowrap">
-                    <IconFolder size={12} aria-hidden />
-                    {path || 'No folder'}
-                  </Group>
-                </Anchor>
-              )}
-            </div>
-          </Group>
-        </Table.Td>
-        <Table.Td className={tableStyles.tableCell}>
-          <Group gap="xs" wrap="nowrap">
-            <div style={{ color: `var(--mantine-color-${typeInfo.color}-6)`, display: 'flex' }} aria-hidden>
-              {typeInfo.icon}
-            </div>
-            <Text size="sm" c="dimmed">{typeInfo.label}</Text>
-          </Group>
-        </Table.Td>
-        <Table.Td className={tableStyles.tableCell}>
-          <AccessBadges asset={asset} />
-        </Table.Td>
-        <Table.Td className={tableStyles.tableCell}>
-          <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
-            {/* A manager who is in none of the asset's groups may not open the file:
-                the delivery URL would answer 403, so the links are not offered. */}
-            {asset.can_view && (
-              <>
-                <Tooltip label="View">
-                  <ActionIcon
-                    variant="subtle"
-                    color="blue"
-                    component="a"
-                    href={deliveryUrl}
-                    target="_blank"
-                    aria-label={`View ${label}`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <IconEye size={16} />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label="Download">
-                  <ActionIcon
-                    variant="subtle"
-                    color="green"
-                    component="a"
-                    href={deliveryUrl}
-                    download
-                    aria-label={`Download ${label}`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <IconDownload size={16} />
-                  </ActionIcon>
-                </Tooltip>
-              </>
-            )}
-            {canUpdate && asset.can_update && (
-              <Tooltip label="Edit">
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  aria-label={`Edit ${label}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditTarget(asset);
-                  }}
-                >
-                  <IconPencil size={16} />
-                </ActionIcon>
-              </Tooltip>
-            )}
-            {canDelete && asset.can_delete && (
-              <Tooltip label="Delete">
-                <ActionIcon
-                  variant="subtle"
-                  color="red"
-                  aria-label={`Delete ${label}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteTarget(asset);
-                  }}
-                  loading={deleteAssetMutation.isPending && deleteTarget?.id === asset.id}
-                >
-                  <IconTrash size={16} />
-                </ActionIcon>
-              </Tooltip>
-            )}
-          </Group>
-        </Table.Td>
-      </Table.Tr>
-    );
+  const tree: IAssetTreeContext = {
+    folders,
+    permissions,
+    expanded,
+    toggleExpanded,
+    selected,
+    selectedRef,
+    toggleSelected,
+    onAssetSelect,
+    onEditAsset: setEditTarget,
+    onDeleteAsset: setDeleteTarget,
+    deletingAssetId: deleteAssetMutation.isPending ? deleteTarget?.id ?? null : null,
+    renamingId,
+    onRename: renameFolder,
+    onCancelRename: () => setRenamingId(null),
+    creatingIn,
+    onCreateFolder: createFolder,
+    onCancelCreate: () => setCreatingIn(undefined),
+    onStartRename: (folder) => {
+      setCreatingIn(undefined);
+      setRenamingId(folder.id);
+    },
+    onNewSubfolder: (folder) => {
+      setRenamingId(null);
+      expand([folder.id]);
+      setCreatingIn(folder.id);
+    },
+    onUploadHere: (folder) => onUploadToFolder?.(folder.id),
+    onMoveFolder: (folder) => setMoveFolderTarget({ folder, value: folder.parent_id === null ? TOP_LEVEL : String(folder.parent_id) }),
+    onSetAccess: setAccessFolder,
+    onDeleteFolder: (folder) => {
+      setDeleteFolderError(null);
+      setDeleteFolderTarget(folder);
+    },
+    dragEnabled: permissions.canUpdate,
+    dragState,
+    dropInsideIds,
   };
 
   if (error) {
@@ -443,10 +399,15 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
     );
   }
 
-  const isEmpty = !isLoading && assets.length === 0 && subfolders.length === 0;
+  const isEmpty = !isLoading && assets.length === 0 && rootFolders.length === 0 && creatingIn !== null;
+  const folderLinkFor = (asset: IAsset) => ({
+    label: folderPathLabel(folders, asset.folder_id) || 'No folder',
+    onShow: () => showInTree(asset.folder_id),
+  });
 
   return (
     <Card>
+      <AssetTreeProvider value={tree}>
       <Stack gap="md">
         <PageHeader
           title="Assets Management"
@@ -454,6 +415,18 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
           badge={allAssetsData?.pagination.total ?? 0}
           badgeAriaLabel="assets"
         >
+          {permissions.canCreate && (
+            <Button
+              variant="default"
+              leftSection={<IconFolderPlus size={16} />}
+              onClick={() => {
+                setRenamingId(null);
+                setCreatingIn(null);
+              }}
+            >
+              New folder
+            </Button>
+          )}
           {headerActions}
         </PageHeader>
 
@@ -511,32 +484,14 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
         {searching ? (
           <Text size="sm" c="dimmed">Results from all folders. Reset the filters to browse folders again.</Text>
         ) : (
-          <nav aria-label="Folder path">
-            <Breadcrumbs separatorMargin={6}>
-              <Anchor component="button" type="button" size="sm" onClick={() => openFolder(null)} c={trail.length === 0 ? 'inherit' : undefined}>
-                <Group gap={4} wrap="nowrap">
-                  <IconHome size={14} aria-hidden />
-                  All assets
-                </Group>
-              </Anchor>
-              {trail.map((folder, index) =>
-                index === trail.length - 1 ? (
-                  <Text key={folder.id} size="sm" fw={600} aria-current="location">{folder.name}</Text>
-                ) : (
-                  <Anchor key={folder.id} component="button" type="button" size="sm" onClick={() => openFolder(folder.id)}>
-                    {folder.name}
-                  </Anchor>
-                )
-              )}
-            </Breadcrumbs>
-          </nav>
+          <TopLevelDropZone />
         )}
 
-        {selectedIds.length > 0 && (
+        {selected.size > 0 && (
           <Paper withBorder p="sm" role="region" aria-label="Bulk actions">
             <Group justify="space-between">
               <Text size="sm" fw={500}>
-                {selectedIds.length} asset{selectedIds.length === 1 ? '' : 's'} selected
+                {plural(selected.size, 'asset')} selected
               </Text>
               <Group gap="xs">
                 {canBulkUpdate && (
@@ -547,7 +502,15 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
                     <Button size="xs" variant="light" color="gray" leftSection={<IconUsersGroup size={14} />} onClick={() => setBulkMode('remove')}>
                       Remove groups
                     </Button>
-                    <Button size="xs" variant="light" leftSection={<IconFolderShare size={14} />} onClick={() => setMoveTarget(knownFolderId === null ? TOP_LEVEL : String(knownFolderId))}>
+                    <Button
+                      size="xs"
+                      variant="light"
+                      leftSection={<IconFolderShare size={14} />}
+                      onClick={() => {
+                        const firstFolder = selectedAssets[0]?.folder_id ?? null;
+                        setMoveAssetsTarget(firstFolder === null ? TOP_LEVEL : String(firstFolder));
+                      }}
+                    >
                       Move to folder
                     </Button>
                   </>
@@ -562,7 +525,7 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
                     Export selected
                   </Button>
                 )}
-                <Button size="xs" variant="subtle" color="gray" onClick={() => setSelectedIds([])}>
+                <Button size="xs" variant="subtle" color="gray" onClick={clearSelection}>
                   Clear selection
                 </Button>
               </Group>
@@ -570,7 +533,9 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
           </Paper>
         )}
 
-        <div className={tableStyles.tableWrapper}>
+        <DragStatusBar />
+
+        <div className={tableStyles.tableWrapper} data-dragging={dragging || undefined}>
           <LoadingOverlay visible={isFetching} />
           <Box className={tableStyles.tableScrollContainer}>
               <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
@@ -592,15 +557,22 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {subfolders.map(renderFolderRow)}
-                  {assets.map(renderAssetRow)}
+                  {searching ? (
+                    assets.map((asset) => <AssetRow key={asset.id} asset={asset} depth={null} folderLink={folderLinkFor(asset)} />)
+                  ) : (
+                    <>
+                      {creatingIn === null && page === 1 && <NewFolderRow parentId={null} depth={0} />}
+                      {rootFolders.map((folder) => <FolderNode key={folder.id} folder={folder} depth={0} />)}
+                      {assets.map((asset) => <AssetRow key={asset.id} asset={asset} depth={0} />)}
+                    </>
+                  )}
                 </Table.Tbody>
               </Table>
           </Box>
 
           {isEmpty && (
             <EmptyState
-              title={searching ? 'No assets found' : trail.length > 0 ? 'This folder is empty' : 'No assets yet'}
+              title={searching ? 'No assets found' : 'No assets yet'}
               description={searching ? 'Try adjusting your filters' : 'Upload an asset to get started'}
             />
           )}
@@ -619,6 +591,7 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
           )}
         </div>
       </Stack>
+      </AssetTreeProvider>
 
       <DeleteAssetModal
         opened={deleteTarget !== null}
@@ -628,13 +601,18 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
         isLoading={deleteAssetMutation.isPending}
       />
 
-      <AssetFormModal opened={editTarget !== null} onClose={() => setEditTarget(null)} asset={editTarget} />
+      <AssetFormModal
+        opened={editTarget !== null}
+        onClose={() => setEditTarget(null)}
+        onEdited={(edited) => dropFromSelection([edited.id])}
+        asset={editTarget}
+      />
 
       <BulkGroupMembershipModal
         opened={bulkMode !== null}
         onClose={() => setBulkMode(null)}
         mode={bulkMode ?? 'add'}
-        selectedCount={selectedIds.length}
+        selectedCount={selected.size}
         onConfirm={(groupIds) => void confirmBulkGroups(groupIds)}
         isLoading={bulkGroupsMutation.isPending}
         copy={BULK_COPY}
@@ -642,29 +620,53 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
         allowedGroupIds={bulkMode === 'remove' ? sharedGroupIds : undefined}
       />
 
-      <ModalWrapper
-        opened={moveTarget !== null}
-        onClose={() => setMoveTarget(null)}
-        title={`Move ${selectedIds.length} asset${selectedIds.length === 1 ? '' : 's'}`}
-        size="sm"
-        onSave={() => void confirmBulkMove()}
-        saveLabel="Move"
+      <MoveToFolderModal
+        opened={moveAssetsTarget !== null}
+        onClose={() => setMoveAssetsTarget(null)}
+        title={`Move ${plural(selected.size, 'asset')}`}
+        value={moveAssetsTarget ?? TOP_LEVEL}
+        onChange={setMoveAssetsTarget}
+        onMove={() => void confirmBulkMove()}
         isLoading={bulkMoveMutation.isPending}
+        folders={folders}
+      />
+
+      <MoveToFolderModal
+        opened={moveFolderTarget !== null}
+        onClose={() => setMoveFolderTarget(null)}
+        title={moveFolderTarget ? `Move folder ${moveFolderTarget.folder.name}` : 'Move folder'}
+        value={moveFolderTarget?.value ?? TOP_LEVEL}
+        onChange={(value) => setMoveFolderTarget((prev) => (prev ? { ...prev, value } : prev))}
+        onMove={() => void confirmFolderMove()}
+        isLoading={saveFolderMutation.isPending}
+        folders={folders}
+        excludeIds={moveFolderTarget
+          ? new Set([moveFolderTarget.folder.id, ...folderDescendantIds(folders, moveFolderTarget.folder.id)])
+          : undefined}
+        hint="A folder cannot go into itself or one of its own subfolders."
+      />
+
+      {accessFolder && (
+        <AssetFolderAccessModal opened onClose={() => setAccessFolder(null)} onApplied={clearSelection} folder={accessFolder} />
+      )}
+
+      <ModalWrapper
+        opened={deleteFolderTarget !== null}
+        onClose={() => setDeleteFolderTarget(null)}
+        title={deleteFolderTarget ? `Delete folder ${deleteFolderTarget.name}?` : 'Delete folder?'}
+        size="sm"
+        onDelete={() => void confirmDeleteFolder()}
+        deleteLabel="Delete folder"
+        isLoading={deleteFolderMutation.isPending}
       >
-        <Select
-          label="Move to"
-          data={[{ value: TOP_LEVEL, label: 'No folder (top level)' }, ...folderOptions(folders)]}
-          value={moveTarget}
-          onChange={(value) => value && setMoveTarget(value)}
-          allowDeselect={false}
-          searchable
-        />
+        <Text size="sm">Only an empty folder can be deleted. The folder is removed; no asset is touched.</Text>
+        {deleteFolderError && <Text size="sm" c="red" mt="sm" role="alert">{deleteFolderError}</Text>}
       </ModalWrapper>
 
       <ModalWrapper
         opened={bulkDeleteOpen}
         onClose={() => setBulkDeleteOpen(false)}
-        title={`Delete ${selectedIds.length} asset${selectedIds.length === 1 ? '' : 's'}?`}
+        title={`Delete ${plural(selected.size, 'asset')}?`}
         size="sm"
         onDelete={() => void confirmBulkDelete()}
         deleteLabel="Delete"

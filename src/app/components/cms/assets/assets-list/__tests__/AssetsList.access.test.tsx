@@ -50,7 +50,6 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
     useSaveAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useDeleteAssetFolder: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useCreateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
-    useCreateMultipleAssets: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useUpdateAsset: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
@@ -78,7 +77,7 @@ describe('AssetsList access', () => {
     });
 
     it('shows who can see each asset', () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
 
         const row = (name: string) => screen.getByText(name).closest('tr') as HTMLElement;
         // No groups = public; otherwise one tag per group.
@@ -89,7 +88,7 @@ describe('AssetsList access', () => {
     });
 
     it('shows the name as the label with the uuid beneath it, and the uuid alone without a name', () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
 
         const row = screen.getByText('Team photo').closest('tr') as HTMLElement;
         expect(within(row).getByText('00000000-0000-4000-8000-000000000005')).toBeInTheDocument();
@@ -100,7 +99,7 @@ describe('AssetsList access', () => {
     });
 
     it('filters the list by group once the filters are applied', async () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
 
         fireEvent.click(screen.getByPlaceholderText('All groups'));
         fireEvent.click(await screen.findByRole('option', { name: 'subject' }));
@@ -111,7 +110,7 @@ describe('AssetsList access', () => {
     });
 
     it('offers bulk group actions for the selected assets', async () => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
 
         fireEvent.click(screen.getByRole('checkbox', { name: 'Select public.pdf' }));
         fireEvent.click(screen.getByRole('checkbox', { name: 'Select private.pdf' }));
@@ -129,7 +128,7 @@ describe('AssetsList access', () => {
         // A public asset shares no group with it: nothing to remove.
         { selected: ['shared.pdf', 'public.pdf'], expected: [] },
     ])('offers to remove only the groups every selected asset has ($selected)', async ({ selected, expected }) => {
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
         selected.forEach((name) => fireEvent.click(screen.getByRole('checkbox', { name: `Select ${name}` })));
 
         fireEvent.click(within(screen.getByRole('region', { name: 'Bulk actions' })).getByRole('button', { name: 'Remove groups' }));
@@ -145,7 +144,7 @@ describe('AssetsList access', () => {
 
     it('hides bulk group actions without admin.asset.update', () => {
         hasPermission.mockImplementation((p: string) => p === PERMISSIONS.ADMIN_ASSET_READ);
-        renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
+        renderWithProviders(<AssetsList />);
 
         fireEvent.click(screen.getByRole('checkbox', { name: 'Select public.pdf' }));
 
