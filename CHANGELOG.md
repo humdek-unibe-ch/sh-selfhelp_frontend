@@ -33,13 +33,29 @@ rework. The rest of the release works against any core in range.
 - **Assets: bulk actions.** Select assets to add groups, remove groups they all
   share, move them to another folder, delete them after a confirmation, or
   export only those.
-- **Assets: nested folders.** The asset page is a folder browser: open a folder
-  to see its subfolders and its own assets (paged like the other lists), go
-  back up with the breadcrumbs, and upload straight into the open folder.
-  Search and the group filter look in every folder and link each result to its
-  folder. The header counts every asset. The **Folders** button creates,
-  renames, moves and deletes folders. Folders only organise; they do not change
-  who can see an asset.
+- **Assets: nested folders.** The asset page is a folder tree: open several
+  folders at once to see their subfolders and assets (paged inside each
+  folder). Folders show how many folders and assets they hold. Create, rename
+  (in place), move and delete folders from the page itself, or drag assets and
+  folders onto a folder; every drag also has a menu or bulk-bar equivalent. A
+  folder can only be deleted when it is empty. Search and the group filter look
+  in every folder and link each result to its folder. The header counts every
+  asset. Requires core **>=0.1.43**.
+- **Assets: change access for a whole folder.** A folder's menu has **Set
+  access...**: apply who can see and/or who can manage to every asset in the
+  folder and its subfolders. It is a one-time change to the assets (new uploads
+  are not affected), all or nothing, and refused with a message if any asset is
+  not yours to change.
+- **Assets: upload many files at once.** The upload form lists the chosen
+  files with an editable name and alt text each and their upload status. The
+  folder is typed as a path (`Team/Photos`); missing folders are created only
+  when the upload starts. A file identical to one already stored is still
+  uploaded, with a warning that names the existing asset. Files that fail stay
+  in the list for a retry. The form fits a laptop screen without a scrolling
+  dialog; only the file list scrolls.
+- **Assets: real file names and types.** The stored extension decides the type
+  column (a CSV shows as CSV) and downloads are named
+  `<name>-<id>.<extension>`.
 - **Assets: who can manage them.** "Who can manage it" picks the roles that
   may see, edit and delete an asset in the CMS; left empty on upload, your own
   roles get it. Researchers on one instance do not see each other's assets.
@@ -70,6 +86,15 @@ rework. The rest of the release works against any core in range.
   that exists only in another language no longer hides an empty panel entry.
 
 ### Changed
+- **Assets: clearer drag and drop.** Dragging on the asset page scrolls the
+  page by itself near the top and bottom edge, and the mouse wheel scrolls
+  while you drag. Grab an asset or folder anywhere on its name, not only the
+  grip. Folders that can take the drag are outlined; the one under the pointer
+  turns solid blue with "Drop to move here" and what it holds is tinted. The
+  "All assets" strip grows into a big drop area while you drag, and a "Top
+  level" target floats at the side of the screen when the strip has scrolled
+  out of view. A line at the bottom says what a drop would do, and the drag
+  shows the name of what you move.
 - **Assets: public unless restricted.** An asset with no groups is public;
   "Who can see it" restricts it to members of the chosen groups. New uploads
   have no groups and the form says **THIS ASSET IS PUBLIC** until you pick
@@ -83,7 +108,10 @@ rework. The rest of the release works against any core in range.
   generated id replaces its file name (no extension). A **Name** without
   extension, editable on upload and edit and set to the uploaded file name by
   default, is what the list shows, with the id beneath it; pickers show
-  `name.extension`. Downloads are saved as `<id>.<extension>`.
+  `name.extension`. Downloads are saved as `<name>-<id>.<extension>`.
+- **Assets: the Folders button and its dialog are gone.** Folders are managed
+  in the tree itself. The admin role no longer appears in "Who can manage it":
+  admins can always manage every asset.
 - **Groups: researcher instead of therapist, no admin group.** Page import and
   navigation import mention subject and researcher; the page import group
   picker, the create-page dialog and the CMS app wizard no longer hide an
