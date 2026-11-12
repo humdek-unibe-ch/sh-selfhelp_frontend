@@ -12,6 +12,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import {
     SYMFONY_API_PREFIX,
     SYMFONY_INTERNAL_URL,
+    forwardedForHeader,
     setAuthCookies,
     stripTokensFromBody,
     validateCsrf,
@@ -25,13 +26,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const body = await req.text();
 
+    const headers: Record<string, string> = {
+        'Content-Type': req.headers.get('content-type') || 'application/json',
+        'Accept': 'application/json',
+        'X-Client-Type': 'web',
+    };
+    const forwardedFor = forwardedForHeader(req);
+    if (forwardedFor !== null) {
+        headers['X-Forwarded-For'] = forwardedFor;
+    }
+
     const upstream = await fetch(`${SYMFONY_INTERNAL_URL}${SYMFONY_API_PREFIX}/auth/login`, {
         method: 'POST',
-        headers: {
-            'Content-Type': req.headers.get('content-type') || 'application/json',
-            'Accept': 'application/json',
-            'X-Client-Type': 'web',
-        },
+        headers,
         body,
         cache: 'no-store',
     });
