@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { AdminUserApi } from '../api/admin/user.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type {
@@ -34,6 +34,72 @@ export const USER_QUERY_KEYS = {
   groups: (id: number) => [...USER_QUERY_KEYS.all, 'groups', id] as const,
   roles: (id: number) => [...USER_QUERY_KEYS.all, 'roles', id] as const,
 };
+
+/**
+ * What a change of group membership touches besides the users list: each
+ * affected user's own details and group list (the edit form prefills from the
+ * cached details, so a stale copy would overwrite the new membership on the next
+ * save) and the group lists (they show the member count).
+ */
+function refreshMembership(queryClient: QueryClient, userIds: number[]): void {
+  userIds.forEach((id) => {
+    void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(id) });
+    void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.groups(id) });
+  });
+  void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+  void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.GROUPS_ALL });
+}
+
+/**
+ * The user form can change both group and role membership (and a new user starts
+ * with some): the group and role lists show member counts.
+ */
+function refreshMemberCounts(queryClient: QueryClient): void {
+  void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.GROUPS_ALL });
+  void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ROLES_ALL });
+}
+
+/**
+ * An activation mail writes a new validation code and an activity entry for the
+ * user, so the users list (code, activity count) and the user's details refresh.
+ */
+function refreshActivated(queryClient: QueryClient, userIds: number[]): void {
+  userIds.forEach((id) => {
+    void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(id) });
+  });
+  void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+}
+
+/**
+ * The data rows and scheduled jobs of a user are erased with the user and by
+ * "clean user data": refresh every screen that lists them (the Data browser's
+ * rows, the scheduled-jobs list, its calendar and its stat tiles).
+ */
+function refreshErasedUserData(queryClient: QueryClient): void {
+  const keys = REACT_QUERY_CONFIG.QUERY_KEYS;
+  void queryClient.invalidateQueries({ queryKey: keys.ADMIN_DATA_ROWS_ALL });
+  void queryClient.invalidateQueries({ queryKey: keys.SCHEDULED_JOBS_ALL });
+  void queryClient.invalidateQueries({ queryKey: keys.SCHEDULED_JOBS_CALENDAR_ALL });
+  void queryClient.invalidateQueries({ queryKey: keys.SCHEDULED_JOBS_STATS });
+}
+
+/**
+ * Deleting users also takes them out of their groups and roles (member counts)
+ * and erases their data. Only users the backend really deleted lose their cached
+ * details: a rejected user still exists and its cached copies stay valid.
+ */
+function forgetDeletedUsers(queryClient: QueryClient, deletedIds: number[]): void {
+  deletedIds.forEach((id) => {
+    queryClient.removeQueries({ queryKey: USER_QUERY_KEYS.detail(id) });
+    queryClient.removeQueries({ queryKey: USER_QUERY_KEYS.groups(id) });
+    queryClient.removeQueries({ queryKey: USER_QUERY_KEYS.roles(id) });
+  });
+  void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+  void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.stats() });
+  void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.GROUPS_ALL });
+  void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ROLES_ALL });
+  refreshErasedUserData(queryClient);
+}
 
 // Common error handler
 const handleMutationError = (error: unknown) => {
@@ -122,12 +188,8 @@ export function useBulkDeleteUsers() {
 
   return useMutation({
     mutationFn: (userIds: number[]) => AdminUserApi.bulkDeleteUsers({ user_ids: userIds }),
-    onSuccess: (result, userIds) => {
-      userIds.forEach((id) =>
-        queryClient.removeQueries({ queryKey: USER_QUERY_KEYS.detail(id) }),
-      );
-      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
-      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.stats() });
+    onSuccess: (result) => {
+      forgetDeletedUsers(queryClient, result.succeeded);
 
       notifyBulkResult(result, 'deleted');
     },
@@ -145,7 +207,7 @@ export function useBulkAddUsersToGroup() {
     mutationFn: ({ userIds, groupIds }: { userIds: number[]; groupIds: number[] }) =>
       AdminUserApi.bulkAddUsersToGroup({ user_ids: userIds, group_ids: groupIds }),
     onSuccess: (result) => {
-      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      refreshMembership(queryClient, result.succeeded);
 
       notifyBulkResult(result, 'added to the group');
     },
@@ -163,7 +225,7 @@ export function useBulkRemoveUsersFromGroup() {
     mutationFn: ({ userIds, groupIds }: { userIds: number[]; groupIds: number[] }) =>
       AdminUserApi.bulkRemoveUsersFromGroup({ user_ids: userIds, group_ids: groupIds }),
     onSuccess: (result) => {
-      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      refreshMembership(queryClient, result.succeeded);
 
       notifyBulkResult(result, 'removed from the group');
     },
@@ -175,9 +237,13 @@ export function useBulkRemoveUsersFromGroup() {
  * Send activation mail to one or more users.
  */
 export function useBulkSendActivation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (userIds: number[]) => AdminUserApi.bulkSendActivation({ user_ids: userIds }),
     onSuccess: (result) => {
+      refreshActivated(queryClient, result.succeeded);
+
       notifyBulkResult(result, 'sent an activation mail');
     },
     onError: handleMutationError,
@@ -285,6 +351,7 @@ export function useCreateUser() {
       // Invalidate users list to refresh data
       void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
       void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.stats() });
+      refreshMemberCounts(queryClient);
 
       notifications.show({
         title: 'User Created',
@@ -313,6 +380,7 @@ export function useUpdateUser() {
       queryClient.setQueryData(USER_QUERY_KEYS.detail(userId), data);
       // Invalidate users list to refresh data
       void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
+      refreshMemberCounts(queryClient);
       
       notifications.show({
         title: 'User Updated',
@@ -336,11 +404,7 @@ export function useDeleteUser() {
   return useMutation({
     mutationFn: (userId: number) => AdminUserApi.deleteUser(userId),
     onSuccess: (_, userId) => {
-      // Remove user from cache
-      queryClient.removeQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
-      // Invalidate users list to refresh data
-      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
-      void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.stats() });
+      forgetDeletedUsers(queryClient, [userId]);
 
       notifications.show({
         title: 'User Deleted',
@@ -503,9 +567,13 @@ export function useRemoveRolesFromUser() {
  * Hook to send activation mail
  */
 export function useSendActivationMail() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (userId: number) => AdminUserApi.sendActivationMail(userId),
-    onSuccess: () => {
+    onSuccess: (_, userId) => {
+      refreshActivated(queryClient, [userId]);
+
       notifications.show({
         title: 'Activation Mail Sent',
         message: 'Activation mail was sent successfully!',
@@ -535,6 +603,9 @@ const CLEANED_ENTITY_LABELS: Record<string, [singular: string, plural: string]> 
   data_cells: ['data field', 'data fields'],
   scheduled_jobs: ['scheduled action', 'scheduled actions'],
   scheduled_job_recipients: ['scheduled recipient', 'scheduled recipients'],
+  api_request_logs: ['request log entry', 'request log entries'],
+  // Files the user uploaded through forms, deleted from disk after the rows went.
+  form_files: ['uploaded file', 'uploaded files'],
 };
 
 function summarizeCleanedData(removed: ICleanUserDataResult['removed']): string {
@@ -565,6 +636,9 @@ export function useCleanUserData() {
     onSuccess: (result, userId) => {
       void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.lists() });
       void queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(userId) });
+      // The erasure also emptied the user's rows in the Data browser and their
+      // scheduled jobs (list, calendar, stat tiles).
+      refreshErasedUserData(queryClient);
 
       notifications.show({
         title: 'User Data Cleaned',

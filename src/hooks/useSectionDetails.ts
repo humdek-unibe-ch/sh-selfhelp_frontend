@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { useQuery } from '@tanstack/react-query';
 import { AdminSectionApi } from '../api/admin/section.api';
-import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { REACT_QUERY_CONFIG, refetchOnMountWhenInvalidated } from '../config/react-query.config';
 import { type ISectionDetailsData } from '../types/responses/admin/admin.types';
 
 /**
@@ -42,6 +42,10 @@ export function useSectionDetails(pageId: number | null, sectionId: number | nul
         enabled: isEnabled,
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
+        // The picker option lists inside the details change when assets are
+        // written on another page: refetch at the next mount when that
+        // invalidated this section while its inspector was not on screen.
+        refetchOnMount: refetchOnMountWhenInvalidated,
         retry: 2,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });

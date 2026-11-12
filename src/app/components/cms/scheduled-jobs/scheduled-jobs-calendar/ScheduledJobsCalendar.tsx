@@ -27,6 +27,7 @@ import "@mantine/schedule/styles.css";
 import dayjs from "dayjs";
 import { useQueryClient } from "@tanstack/react-query";
 import { useScheduledJobsAll } from "../../../../../hooks/useScheduledJobs";
+import { REACT_QUERY_CONFIG } from "../../../../../config/react-query.config";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { type IScheduledJobFilters } from "../../../../../types/responses/admin/scheduled-jobs.types";
 import { STATUS_LEGEND } from "../utils/job-status";
@@ -213,11 +214,11 @@ export default function ScheduledJobsCalendar() {
   }, []);
 
   /**
-   * Invalidates the `scheduledJobsAll` query to force a fresh fetch.
+   * Invalidates the calendar's all-pages jobs query to force a fresh fetch.
    * Used by the Refresh button as a clean alternative to mutating params.
    */
   const handleRefresh = useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey: ["scheduledJobsAll"] });
+    void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SCHEDULED_JOBS_CALENDAR_ALL });
   }, [queryClient]);
 
   /**

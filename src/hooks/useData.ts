@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { AdminDataApi } from '../api/admin/data.api';
-import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { REACT_QUERY_CONFIG, refetchOnMountWhenInvalidated } from '../config/react-query.config';
 import type {
   IDataTablesListResponse,
   IDataRowsResponse,
@@ -24,12 +24,13 @@ import type {
 } from '../types/responses/admin/data.types';
 import { downloadBlobFile, generateExportFilename } from '../utils/export-import.utils';
 
+// The root and the rows prefix are registry keys: the erasure of a user's data (a
+// users mutation) refreshes the rows of every table too.
 export const DATA_QUERY_KEYS = {
-  all: ['admin', 'data'] as const,
+  all: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_DATA_ALL,
   tables: () => [...DATA_QUERY_KEYS.all, 'tables'] as const,
   rows: (tableName: string, userId?: number, excludeDeleted: boolean = true, languageId?: number) => [
-    ...DATA_QUERY_KEYS.all,
-    'rows',
+    ...REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_DATA_ROWS_ALL,
     { tableName, userId: userId ?? -1, excludeDeleted, languageId: languageId ?? 1 },
   ] as const,
   columns: (tableName: string) => [...DATA_QUERY_KEYS.all, 'columns', tableName] as const,
@@ -55,6 +56,9 @@ export function useDataRows(params: { table_name: string; user_id?: number; excl
     enabled: !!table_name,
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.REAL_TIME.staleTime,
     gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.REAL_TIME.gcTime,
+    // Erasing a user (Users page) empties rows here: refetch at the next mount
+    // when that invalidated them while this table was not on screen.
+    refetchOnMount: refetchOnMountWhenInvalidated,
     placeholderData: keepPreviousData,
   });
 }

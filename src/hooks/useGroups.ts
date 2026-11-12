@@ -4,10 +4,11 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminGroupApi } from '../api/admin/group.api';
-import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { REACT_QUERY_CONFIG, refetchOnMountWhenInvalidated } from '../config/react-query.config';
 import { notifications } from '@mantine/notifications';
 import type { 
-  IGroupsListParams
+  IGroupsListParams,
+  IGroupsListResponse
 } from '../types/responses/admin/groups.types';
 import type {
   ICreateGroupRequest,
@@ -16,9 +17,11 @@ import type {
 } from '../types/requests/admin/groups.types';
 import { getApiErrorText } from '../utils/mutation-error-handler';
 
-// Query keys
+// Query keys. The root is the registry's `GROUPS_ALL`: other hooks (the users
+// mutations that change memberships) invalidate it too.
 const GROUPS_QUERY_KEYS = {
-  all: ['groups'] as const,
+  all: REACT_QUERY_CONFIG.QUERY_KEYS.GROUPS_ALL,
+  everyGroup: () => [...GROUPS_QUERY_KEYS.all, 'every'] as const,
   lists: () => [...GROUPS_QUERY_KEYS.all, 'list'] as const,
   list: (params: IGroupsListParams) => [...GROUPS_QUERY_KEYS.lists(), params] as const,
   details: () => [...GROUPS_QUERY_KEYS.all, 'detail'] as const,
@@ -26,12 +29,37 @@ const GROUPS_QUERY_KEYS = {
   acls: (id: number) => [...GROUPS_QUERY_KEYS.all, 'acls', id] as const,
 };
 
-// Get paginated groups
+// Get paginated groups. The member counts change when the Users page edits
+// memberships, so an invalidation made while this list was unmounted still
+// refetches it at the next mount.
 export function useGroups(params: IGroupsListParams = {}) {
   return useQuery({
     queryKey: GROUPS_QUERY_KEYS.list(params),
     queryFn: () => AdminGroupApi.getGroups(params),
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.staleTime,
+    refetchOnMount: refetchOnMountWhenInvalidated,
+  });
+}
+
+/**
+ * EVERY group by name, for pickers: a picker that offers only the first page
+ * hides the other groups from the admin with no hint. The list endpoint serves at
+ * most 100 rows per request, so this reads all pages; a screen that shows one
+ * page at a time uses `useGroups`. Shares the `groups` key root, so every group
+ * mutation that invalidates `GROUPS_QUERY_KEYS.all` refreshes it too.
+ *
+ * A dialog that is always mounted but mostly closed passes `enabled: opened`, so
+ * the list is read when someone needs it rather than on every page visit.
+ */
+export function useAllGroups({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: GROUPS_QUERY_KEYS.everyGroup(),
+    queryFn: async (): Promise<Pick<IGroupsListResponse, 'groups'>> => ({
+      groups: await AdminGroupApi.getAllGroups(),
+    }),
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.staleTime,
+    refetchOnMount: refetchOnMountWhenInvalidated,
+    enabled,
   });
 }
 

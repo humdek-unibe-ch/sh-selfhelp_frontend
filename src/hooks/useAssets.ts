@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import {
   AdminAssetApi,
   type IAssetsListResponse,
@@ -16,6 +16,22 @@ import {
 } from '../api/admin/asset.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 
+const ASSETS_KEY = REACT_QUERY_CONFIG.QUERY_KEYS.ASSETS_ALL;
+const ASSET_FOLDERS_KEY = [...ASSETS_KEY, 'folders'] as const;
+
+/**
+ * An asset write changes the asset lists and details, and also the image and
+ * video pickers of the section inspector: those option lists are part of the
+ * section details, read per request, so a cached section would keep offering a
+ * deleted or renamed file. Every section detail is refreshed because the writer
+ * cannot know which sections use the changed asset (only the open one is
+ * refetched at once).
+ */
+function refreshAssetsAndPickers(queryClient: QueryClient): void {
+  void queryClient.invalidateQueries({ queryKey: ASSETS_KEY });
+  void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SECTION_DETAILS_ALL });
+}
+
 /**
  * Hook to fetch paginated assets
  *
@@ -25,7 +41,7 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
  */
 export function useAssets(params: IAssetsListParams = {}, options: { fresh?: boolean } = {}) {
   return useQuery<IAssetsListResponse>({
-    queryKey: ['assets', params],
+    queryKey: [...ASSETS_KEY, params],
     queryFn: () => AdminAssetApi.getAssets(params),
     staleTime: options.fresh ? 0 : REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
     refetchOnMount: options.fresh ? 'always' : true,
@@ -38,7 +54,7 @@ export function useAssets(params: IAssetsListParams = {}, options: { fresh?: boo
  */
 export function useAssetDetails(assetId: number) {
   return useQuery<IAsset>({
-    queryKey: ['assets', 'details', assetId],
+    queryKey: [...ASSETS_KEY, 'details', assetId],
     queryFn: () => AdminAssetApi.getAssetById(assetId),
     enabled: assetId > 0,
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
@@ -54,9 +70,7 @@ export function useCreateAsset() {
 
   return useMutation({
     mutationFn: (assetData: ICreateAssetRequest) => AdminAssetApi.createAsset(assetData),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['assets'] });
-    },
+    onSuccess: () => refreshAssetsAndPickers(queryClient),
   });
 }
 
@@ -68,9 +82,7 @@ export function useCreateMultipleAssets() {
 
   return useMutation({
     mutationFn: (assetData: ICreateMultipleAssetsRequest) => AdminAssetApi.createMultipleAssets(assetData),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['assets'] });
-    },
+    onSuccess: () => refreshAssetsAndPickers(queryClient),
   });
 }
 
@@ -83,28 +95,26 @@ export function useUpdateAsset() {
   return useMutation({
     mutationFn: ({ assetId, data }: { assetId: number; data: IUpdateAssetRequest }) =>
       AdminAssetApi.updateAsset(assetId, data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['assets'] });
-    },
+    onSuccess: () => refreshAssetsAndPickers(queryClient),
   });
 }
 
 /**
- * Hook to add or remove groups on several assets at once.
+ * Hook to add or remove groups on several assets at once. Groups decide who may
+ * view an asset, so the pickers (which list what the caller may use) change too.
  */
 export function useBulkAssetGroups() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (request: IBulkAssetGroupsRequest) => AdminAssetApi.bulkUpdateGroups(request),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['assets'] });
-    },
+    onSuccess: () => refreshAssetsAndPickers(queryClient),
   });
 }
 
 /**
- * Hook to move several assets into one folder.
+ * Hook to move several assets into one folder. Folders do not change what a
+ * picker offers, so only the asset caches refresh.
  */
 export function useBulkMoveAssets() {
   const queryClient = useQueryClient();
@@ -113,7 +123,7 @@ export function useBulkMoveAssets() {
     mutationFn: ({ assetIds, folderId }: { assetIds: number[]; folderId: number | null }) =>
       AdminAssetApi.bulkMoveToFolder(assetIds, folderId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['assets'] });
+      void queryClient.invalidateQueries({ queryKey: ASSETS_KEY });
     },
   });
 }
@@ -126,9 +136,7 @@ export function useBulkDeleteAssets() {
 
   return useMutation({
     mutationFn: (assetIds: number[]) => AdminAssetApi.bulkDeleteAssets(assetIds),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['assets'] });
-    },
+    onSuccess: () => refreshAssetsAndPickers(queryClient),
   });
 }
 
@@ -138,7 +146,7 @@ export function useBulkDeleteAssets() {
  */
 export function useAssetFolders() {
   return useQuery({
-    queryKey: ['assets', 'folders'],
+    queryKey: ASSET_FOLDERS_KEY,
     queryFn: () => AdminAssetApi.getFolders(),
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
   });
@@ -150,7 +158,7 @@ export function useSaveAssetFolder() {
   return useMutation({
     mutationFn: ({ folder, folderId }: { folder: { name: string; parent_id: number | null }; folderId?: number }) =>
       AdminAssetApi.saveFolder(folder, folderId),
-    onSuccess: (folders) => queryClient.setQueryData(['assets', 'folders'], folders),
+    onSuccess: (folders) => queryClient.setQueryData(ASSET_FOLDERS_KEY, folders),
   });
 }
 
@@ -161,7 +169,7 @@ export function useDeleteAssetFolder() {
     mutationFn: (folderId: number) => AdminAssetApi.deleteFolder(folderId),
     // Assets of deleted folders move to the top level: refresh lists too.
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['assets'] });
+      void queryClient.invalidateQueries({ queryKey: ASSETS_KEY });
     },
   });
 }
@@ -174,9 +182,7 @@ export function useDeleteAsset() {
 
   return useMutation({
     mutationFn: (assetId: number) => AdminAssetApi.deleteAsset(assetId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['assets'] });
-    },
+    onSuccess: () => refreshAssetsAndPickers(queryClient),
   });
 }
 
@@ -191,15 +197,14 @@ export function useExportAssets() {
 }
 
 /**
- * Hook to import an asset zip bundle. Invalidates the assets list on success.
+ * Hook to import an asset zip bundle. Refreshes the asset lists and the
+ * section pickers on success.
  */
 export function useImportAssets() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (file: File) => AdminAssetApi.importAssets(file),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['assets'] });
-    },
+    onSuccess: () => refreshAssetsAndPickers(queryClient),
   });
 }

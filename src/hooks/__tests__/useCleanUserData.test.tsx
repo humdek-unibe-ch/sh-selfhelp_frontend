@@ -63,6 +63,28 @@ describe('useCleanUserData', () => {
         expect(message).toContain('The user account was kept');
     });
 
+    it('reports the uploaded files and request-log rows the backend erased, and not the rows it only detaches', async () => {
+        const { message } = await cleanWith({
+            cleaned: true,
+            removed: {
+                data_rows: 2,
+                form_files: 5,
+                api_request_logs: 1,
+                // Kept as the audit trail (only unlinked from the user): not "removed".
+                data_access_audits: 9,
+            },
+        });
+
+        expect(message).toContain('5 uploaded files');
+        expect(message).toContain('1 request log entry');
+        expect(message).not.toContain('audit');
+    });
+
+    it('counts a single erased upload in the singular', async () => {
+        const { message } = await cleanWith({ cleaned: true, removed: { form_files: 1 } });
+        expect(message).toContain('1 uploaded file.');
+    });
+
     it('says plainly when there was nothing to remove, rather than a bare success', async () => {
         const { message } = await cleanWith({ cleaned: true, removed: {} });
         expect(message).toBe('This user had no data to remove. The account is unchanged.');
