@@ -103,10 +103,6 @@ export interface ICreateAssetRequest extends IAssetFields {
   file: File;
 }
 
-export interface ICreateMultipleAssetsRequest extends IAssetFields {
-  files: File[];
-}
-
 export interface IUpdateAssetRequest extends IAssetFields {
   file?: File;
 }
@@ -115,17 +111,6 @@ export interface IBulkAssetGroupsRequest {
   asset_ids: number[];
   group_ids: number[];
   mode: 'add' | 'remove';
-}
-
-interface IMultipleAssetsUploadResponse {
-  successful_uploads: number;
-  failed_uploads: number;
-  total_files: number;
-  uploaded: IAsset[];
-  errors: {
-    file: string;
-    error: string;
-  }[];
 }
 
 /** At least one key; a key left out is not changed. */
@@ -196,24 +181,6 @@ export const AdminAssetApi = {
     appendAssetFields(formData, assetData);
 
     const response = await permissionAwareApiClient.post<IBaseApiResponse<IAsset>>(
-      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_CREATE,
-      formData,
-      MULTIPART
-    );
-    return response.data.data;
-  },
-
-  /**
-   * Upload several assets in one request
-   */
-  async createMultipleAssets(assetData: ICreateMultipleAssetsRequest): Promise<IMultipleAssetsUploadResponse> {
-    const formData = new FormData();
-    assetData.files.forEach((file) => {
-      formData.append('files[]', file);
-    });
-    appendAssetFields(formData, assetData);
-
-    const response = await permissionAwareApiClient.post<IBaseApiResponse<IMultipleAssetsUploadResponse>>(
       API_CONFIG.ENDPOINTS.ADMIN_ASSETS_CREATE,
       formData,
       MULTIPART

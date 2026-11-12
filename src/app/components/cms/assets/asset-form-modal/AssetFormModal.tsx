@@ -4,42 +4,77 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { useState } from 'react';
-import {
-  Stack,
-  Select,
-  TextInput,
-  Textarea,
-  MultiSelect,
-  Group,
-  Text,
-  Paper,
-  Badge,
-  Button,
-  Alert,
-} from '@mantine/core';
+import { useRef, useState } from 'react';
+import { Alert, Grid, Group, Stack, Text } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { Dropzone, type FileWithPath } from '@mantine/dropzone';
-import { IconCloudUpload, IconFile, IconX, IconReplace, IconWorld } from '@tabler/icons-react';
+import { IconCloudUpload, IconReplace, IconX } from '@tabler/icons-react';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
-import { useAssetFolders, useCreateAsset, useCreateMultipleAssets, useUpdateAsset } from '../../../../../hooks/useAssets';
-import { useAllGroups } from '../../../../../hooks/useGroups';
-import { useAllRoles } from '../../../../../hooks/useRoles';
-import type { IAsset } from '../../../../../api/admin/asset.api';
+import { useAssetFolders, useCreateAsset, useSaveAssetFolder, useUpdateAsset } from '../../../../../hooks/useAssets';
+import { AdminAssetApi, type IAsset } from '../../../../../api/admin/asset.api';
 import { parseApiError } from '../../../../../utils/mutation-error-handler';
-import { assetLabel, folderOptions, formatFileSize, sameIds, withCurrentOptions } from '../assets.utils';
+import {
+  assetLabel,
+  fileBaseName,
+  findChildFolder,
+  folderPathLabel,
+  formatFileSize,
+  getAssetTypeInfo,
+  isImageAsset,
+  parseFolderPath,
+  resolveFolderPath,
+  sameIds,
+} from '../assets.utils';
+import {
+  PublicWarning,
+  WhoCanManageField,
+  WhoCanSeeField,
+  useAccessLists,
+} from '../asset-access-fields/AssetAccessFields';
+import { FolderPathCombobox } from './FolderPathCombobox';
+import { UploadFileTable, type IUploadRow, type TRowStatus } from './UploadFileTable';
 
 interface IAssetFormModalProps {
   opened: boolean;
   onClose: () => void;
+  /** Called after an edit was saved (not on cancel), before the modal closes. */
+  onEdited?: (asset: IAsset) => void;
   asset?: IAsset | null;
   defaultFolderId?: number | null;
 }
 
+/** A file waiting to be uploaded, with the name and alt text its asset will get. */
+interface IFileRow {
+  key: string;
+  file: File;
+  name: string;
+  alt: string;
+  status: TRowStatus;
+  message?: string;
+}
+
+/** Same name, size and modified time = the same file picked twice. */
+const fileKey = (file: File) => `${file.name}|${file.size}|${file.lastModified}`;
+
+const extensionOf = (fileName: string) => (fileName.includes('.') ? fileName.split('.').pop()?.toLowerCase() ?? '' : '');
+
+const looksLikeImage = (file: File) =>
+  isImageAsset({ mime_type: file.type || null, name: file.name, extension: extensionOf(file.name) });
+
+/** Height of the file table (header and six rows fit, 303px at the default size); a longer list scrolls inside it. */
+const TABLE_MAX_HEIGHT = 320;
+
+const isConflict = (error: unknown) => (error as { response?: { status?: number } } | null)?.response?.status === 409;
+
 /**
- * Upload (one or more files) or edit one asset. No groups = public; no roles
- * picked on upload = the uploader's roles. Edit can replace the file under the
- * same uuid.
+ * Upload files or edit one asset. Upload is one table: every file has its own
+ * Name and Alt text and goes up in its own request, so one bad file does not
+ * stop the others; failed rows stay for a retry. The folder is picked as a path
+ * and may be new: missing levels are made when the upload starts. No groups =
+ * public; no roles picked on upload = the uploader's roles; the admin role
+ * always manages and is not offered. Edit changes one asset and can replace its
+ * file under the same uuid.
  *
  * On edit the groups and roles are sent ONLY when the admin changed them: the
  * backend replaces the whole set when the field is present, so re-sending an
@@ -47,24 +82,29 @@ interface IAssetFormModalProps {
  * groups and roles always show by name, even when the list of all of them cannot
  * be read, and in that case that picker is read-only.
  */
-export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null }: IAssetFormModalProps) {
+export function AssetFormModal({ opened, onClose, onEdited, asset, defaultFolderId = null }: IAssetFormModalProps) {
   const isEdit = !!asset;
   const createAsset = useCreateAsset();
-  const createMultiple = useCreateMultipleAssets();
   const updateAsset = useUpdateAsset();
+  const saveFolder = useSaveAssetFolder();
   // The modal is always mounted (the page opens it for create and edit), so the
-  // two lists are read when it opens, not on every visit of the assets page.
-  const { data: groupsData, isLoading: groupsLoading, isError: groupsFailed } = useAllGroups({ enabled: opened });
-  const groups = groupsData?.groups ?? [];
-  const { data: rolesData, isLoading: rolesLoading, isError: rolesFailed } = useAllRoles({ enabled: opened });
+  // lists are read when it opens, not on every visit of the assets page.
+  const lists = useAccessLists(opened, { groups: asset?.groups, roles: asset?.roles });
   const { data: folders = [] } = useAssetFolders();
+  const wide = useMediaQuery('(min-width: 62em)');
 
-  const [files, setFiles] = useState<FileWithPath[]>([]);
-  const [name, setName] = useState('');
-  const [alt, setAlt] = useState('');
+  const [rows, setRows] = useState<IFileRow[]>([]);
+  // Edit: the row is the asset; a dropped file replaces its bytes.
+  const [replacement, setReplacement] = useState<File | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editAlt, setEditAlt] = useState('');
   const [groupIds, setGroupIds] = useState<string[]>([]);
   const [roleIds, setRoleIds] = useState<string[]>([]);
-  const [folderId, setFolderId] = useState<string | null>(null);
+  // null = not touched: the folder the form opened on.
+  const [folderPath, setFolderPath] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const uploadingRef = useRef(false);
 
   // Reset the form whenever the modal opens or switches asset (React's
   // documented alternative to a state-syncing effect).
@@ -72,268 +112,311 @@ export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null 
   const [prevResetKey, setPrevResetKey] = useState<string | null>(null);
   if (prevResetKey !== resetKey) {
     setPrevResetKey(resetKey);
-    setFiles([]);
-    setName(asset?.name ?? '');
-    setAlt(asset?.alt ?? '');
+    setRows([]);
+    setReplacement(null);
+    setEditName(asset?.name ?? '');
+    setEditAlt(asset?.alt ?? '');
     setGroupIds((asset?.groups ?? []).map((group) => String(group.id)));
     setRoleIds((asset?.roles ?? []).map((role) => String(role.id)));
-    const initialFolderId = asset ? asset.folder_id : defaultFolderId;
-    setFolderId(initialFolderId ? String(initialFolderId) : null);
+    setFolderPath(null);
+    setFormError(null);
+    setBusy(false);
   }
 
-  const groupOptions = withCurrentOptions(
-    groups.map((group) => ({ value: String(group.id), label: group.name })),
-    asset?.groups ?? [],
-  );
-  const roleOptions = withCurrentOptions(
-    (rolesData?.roles ?? []).map((role) => ({ value: String(role.id), label: role.name })),
-    asset?.roles ?? [],
-  );
-  // The picker can only change what it can list.
-  const groupsPickerLocked = groupsLoading || groupsFailed;
-  const rolesPickerLocked = rolesLoading || rolesFailed;
+  const initialFolderId = asset ? asset.folder_id : defaultFolderId;
+  const chosenPath = folderPath ?? folderPathLabel(folders, initialFolderId);
 
   const groupsChanged = isEdit && !sameIds(groupIds, (asset?.groups ?? []).map((group) => String(group.id)));
   const rolesChanged = isEdit && !sameIds(roleIds, (asset?.roles ?? []).map((role) => String(role.id)));
-  // An emptied set is refused rather than guessed: nobody picked means no role
-  // manages the asset but the admin role. Say so by picking admin.
-  const rolesEmptied = rolesChanged && roleIds.length === 0;
+  // An emptied set is refused rather than guessed: only an admin may leave an
+  // asset with no managing role (then only admins manage it).
+  const rolesEmptied = rolesChanged && roleIds.length === 0 && !lists.callerIsAdmin;
 
-  const isPending = createAsset.isPending || createMultiple.isPending || updateAsset.isPending;
-  const hasMultipleFiles = files.length > 1;
-
-  const handleDrop = (dropped: FileWithPath[]) => {
-    setFiles(isEdit ? dropped.slice(0, 1) : [...files, ...dropped]);
-  };
-
-  const removeFile = (index: number) => {
-    setFiles(files.filter((_, i) => i !== index));
-  };
+  const isPending = busy || updateAsset.isPending;
+  const pendingRows = rows.filter((row) => row.status !== 'done');
 
   const showError = (error: unknown) => {
     const { errorTitle, errorMessage } = parseApiError(error);
     notifications.show({ title: errorTitle, message: errorMessage, color: 'red' });
   };
 
-  const selectedGroupIds = groupIds.map(Number);
-  // On create, no roles picked = the uploader's roles (field omitted).
-  const createRoleIds = roleIds.length > 0 ? roleIds.map(Number) : undefined;
-  const selectedFolderId = folderId ? Number(folderId) : null;
+  const handleDrop = (dropped: FileWithPath[]) => {
+    if (isEdit) {
+      setReplacement(dropped[0] ?? null);
+      return;
+    }
+    const known = new Set(rows.map((row) => row.key));
+    const added: IFileRow[] = [];
+    const skipped: string[] = [];
+    for (const file of dropped) {
+      const key = fileKey(file);
+      if (known.has(key)) {
+        skipped.push(file.name);
+        continue;
+      }
+      known.add(key);
+      added.push({ key, file, name: fileBaseName(file.name), alt: '', status: 'idle' });
+    }
+    if (added.length > 0) setRows((prev) => [...prev, ...added]);
+    if (skipped.length > 0) {
+      notifications.show({
+        title: 'Already in the list',
+        message: `Not added twice: ${skipped.join(', ')}`,
+        color: 'yellow',
+      });
+    }
+  };
+
+  const patchRow = (key: string, patch: Partial<IFileRow>) =>
+    setRows((prev) => prev.map((row) => (row.key === key ? { ...row, ...patch } : row)));
+
+  /**
+   * The id of the folder the path names, making the levels that do not exist
+   * yet, top down. A 409 means someone made it meanwhile: use theirs.
+   */
+  const ensureFolder = async (path: string): Promise<number | null> => {
+    const resolved = resolveFolderPath(folders, parseFolderPath(path));
+    let parentId = resolved.existingId;
+    for (const name of resolved.missing) {
+      try {
+        const all = await saveFolder.mutateAsync({ folder: { name, parent_id: parentId } });
+        const made = findChildFolder(all, parentId, name);
+        if (!made) throw new Error(`Folder ${name} was not created.`);
+        parentId = made.id;
+      } catch (error) {
+        if (!isConflict(error)) throw error;
+        const existing = findChildFolder(await AdminAssetApi.getFolders(), parentId, name);
+        if (!existing) throw error;
+        parentId = existing.id;
+      }
+    }
+    return parentId;
+  };
+
+  const announceDuplicates = (rowName: string, duplicates: NonNullable<IAsset['duplicates']>) => {
+    const first = duplicates[0];
+    const where = folderPathLabel(folders, first.folder_id) || 'the top level';
+    const more = duplicates.length > 1 ? ` (and ${duplicates.length - 1} more)` : '';
+    notifications.show({
+      title: 'Identical file',
+      message: `${rowName} is identical to ${first.name ?? `asset #${first.id}`} in ${where}${more}.`,
+      color: 'yellow',
+      autoClose: false,
+    });
+  };
 
   const handleCreate = async () => {
-    if (files.length === 0) return;
+    if (pendingRows.length === 0 || uploadingRef.current) return;
+    uploadingRef.current = true;
+    setBusy(true);
+    setFormError(null);
+
+    let folderId: number | null;
     try {
-      if (files.length === 1) {
-        await createAsset.mutateAsync({
-          file: files[0],
-          name: name.trim() || undefined,
-          alt: alt.trim() || undefined,
-          group_ids: selectedGroupIds,
-          role_ids: createRoleIds,
-          folder_id: selectedFolderId,
-        });
-        notifications.show({ title: 'Success', message: 'Asset uploaded', color: 'green' });
-      } else {
-        const result = await createMultiple.mutateAsync({
-          files,
-          alt: alt.trim() || undefined,
-          group_ids: selectedGroupIds,
-          role_ids: createRoleIds,
-          folder_id: selectedFolderId,
-        });
-        notifications.show({
-          title: result.failed_uploads === 0 ? 'Success' : 'Partial upload',
-          message: `${result.successful_uploads} uploaded${result.failed_uploads ? `, ${result.failed_uploads} failed` : ''}`,
-          color: result.failed_uploads === 0 ? 'green' : 'yellow',
-        });
-        result.errors.forEach((error) =>
-          notifications.show({ title: `Failed: ${error.file}`, message: error.error, color: 'red', autoClose: false }),
-        );
-      }
-      onClose();
+      folderId = await ensureFolder(chosenPath);
     } catch (error) {
-      showError(error);
+      setFormError(parseApiError(error).errorMessage);
+      uploadingRef.current = false;
+      setBusy(false);
+      return;
+    }
+
+    const batch = pendingRows;
+    setRows((prev) => prev.map((row) => (batch.some((item) => item.key === row.key) ? { ...row, status: 'waiting', message: undefined } : row)));
+    // On create, no roles picked = the uploader's roles (field omitted).
+    const createRoleIds = roleIds.length > 0 ? roleIds.map(Number) : undefined;
+    let failed = 0;
+    for (const row of batch) {
+      patchRow(row.key, { status: 'uploading' });
+      try {
+        const created = await createAsset.mutateAsync({
+          file: row.file,
+          name: row.name.trim() || undefined,
+          alt: looksLikeImage(row.file) ? row.alt.trim() || undefined : undefined,
+          group_ids: groupIds.map(Number),
+          role_ids: createRoleIds,
+          folder_id: folderId,
+        });
+        patchRow(row.key, { status: 'done' });
+        if (created.duplicates && created.duplicates.length > 0) {
+          announceDuplicates(created.name ?? row.name ?? row.file.name, created.duplicates);
+        }
+      } catch (error) {
+        failed += 1;
+        patchRow(row.key, { status: 'failed', message: parseApiError(error).errorMessage });
+      }
+    }
+
+    uploadingRef.current = false;
+    setBusy(false);
+    // Failed rows stay for a retry; the form closes when everything went up.
+    if (failed === 0) {
+      notifications.show({
+        title: 'Success',
+        message: batch.length === 1 ? 'Asset uploaded' : `${batch.length} assets uploaded`,
+        color: 'green',
+      });
+      onClose();
     }
   };
 
   const handleUpdate = async () => {
     if (!asset || rolesEmptied) return;
+    setFormError(null);
     try {
+      const folderId = await ensureFolder(chosenPath);
       await updateAsset.mutateAsync({
         assetId: asset.id,
         data: {
-          file: files[0],
-          name: name.trim() || undefined,
-          alt: alt.trim(),
+          file: replacement ?? undefined,
+          name: editName.trim() || undefined,
+          alt: editAlt.trim(),
           // Absent = unchanged (see the component note).
-          group_ids: groupsChanged ? selectedGroupIds : undefined,
+          group_ids: groupsChanged ? groupIds.map(Number) : undefined,
           role_ids: rolesChanged ? roleIds.map(Number) : undefined,
-          folder_id: selectedFolderId,
+          folder_id: folderId,
         },
       });
       notifications.show({
         title: 'Success',
-        message: files.length > 0 ? 'Asset updated and file replaced' : 'Asset updated',
+        message: replacement ? 'Asset updated and file replaced' : 'Asset updated',
         color: 'green',
       });
+      onEdited?.(asset);
       onClose();
     } catch (error) {
       showError(error);
     }
   };
+
+  const typeIcon = (info: ReturnType<typeof getAssetTypeInfo>) => (
+    <div style={{ color: `var(--mantine-color-${info.color}-6)`, display: 'flex' }} aria-hidden>{info.icon}</div>
+  );
+
+  const tableRows: IUploadRow[] = asset
+    ? [{
+        key: `asset-${asset.id}`,
+        // The type of the file that will be there after saving.
+        icon: typeIcon(getAssetTypeInfo(replacement
+          ? { asset_type: undefined, mime_type: replacement.type, name: replacement.name, extension: extensionOf(replacement.name) }
+          : asset)),
+        fileName: assetLabel(asset),
+        name: editName,
+        alt: editAlt,
+        isImage: replacement ? looksLikeImage(replacement) : isImageAsset(asset),
+        sizeLabel: formatFileSize(replacement ? replacement.size : asset.size ?? 0),
+        note: replacement ? `Replaced by ${replacement.name}` : undefined,
+        status: 'idle',
+        canRemove: replacement !== null,
+      }]
+    : rows.map((row) => {
+        const info = getAssetTypeInfo({ asset_type: undefined, mime_type: row.file.type, name: row.file.name, extension: extensionOf(row.file.name) });
+        return {
+          key: row.key,
+          icon: typeIcon(info),
+          fileName: row.file.name,
+          name: row.name,
+          alt: row.alt,
+          isImage: looksLikeImage(row.file),
+          sizeLabel: formatFileSize(row.file.size),
+          status: row.status,
+          message: row.message,
+          canRemove: true,
+        };
+      });
+
+  const onName = (key: string, value: string) => (isEdit ? setEditName(value) : patchRow(key, { name: value }));
+  const onAlt = (key: string, value: string) => (isEdit ? setEditAlt(value) : patchRow(key, { alt: value }));
+  const onRemove = (key: string) => (isEdit ? setReplacement(null) : setRows((prev) => prev.filter((row) => row.key !== key)));
 
   return (
     <ModalWrapper
       opened={opened}
       onClose={() => !isPending && onClose()}
       title={isEdit ? `Edit asset: ${assetLabel(asset)}` : 'Upload assets'}
-      size="lg"
+      size={1100}
+      // The form fits the screen, so the modal itself does not scroll; only the file table does.
+      disableScroll={wide === true}
       onSave={isEdit ? undefined : () => void handleCreate()}
       onUpdate={isEdit ? () => void handleUpdate() : undefined}
-      saveLabel={hasMultipleFiles ? `Upload ${files.length} assets` : 'Upload asset'}
+      saveLabel={pendingRows.length > 1 ? `Upload ${pendingRows.length} assets` : 'Upload asset'}
       updateLabel="Save asset"
       isLoading={isPending}
-      disabled={isEdit ? rolesEmptied : files.length === 0}
+      disabled={isEdit ? rolesEmptied : pendingRows.length === 0}
       closeOnClickOutside={!isPending}
       closeOnEscape={!isPending}
     >
-      <Stack gap="md">
-        <Dropzone
-          onDrop={handleDrop}
-          multiple={!isEdit}
-          disabled={isPending}
-          aria-label={isEdit ? 'Choose a replacement file' : 'Choose files to upload'}
-        >
-          <Group justify="center" gap="lg" mih={isEdit ? 70 : 110} style={{ pointerEvents: 'none' }}>
-            <Dropzone.Reject>
-              <IconX size={40} stroke={1.5} />
-            </Dropzone.Reject>
-            <Dropzone.Idle>
-              {isEdit ? <IconReplace size={36} stroke={1.5} /> : <IconCloudUpload size={44} stroke={1.5} />}
-            </Dropzone.Idle>
-            <div>
-              <Text size="md" inline>
-                {isEdit ? 'Drop a file here to replace the current one (optional)' : 'Drag files here or click to select'}
-              </Text>
-              <Text size="sm" c="dimmed" inline mt={7} display="block">
-                {isEdit
-                  ? 'The asset keeps its address, so every page using it shows the new file.'
-                  : 'Each upload is named by its own generated id, so files never overwrite each other.'}
-              </Text>
-            </div>
-          </Group>
-        </Dropzone>
+      <Grid gap="lg" align="flex-start">
+        <Grid.Col span={{ base: 12, md: 7 }}>
+          <Stack gap="sm">
+            <Dropzone
+              onDrop={handleDrop}
+              multiple={!isEdit}
+              disabled={isPending}
+              aria-label={isEdit ? 'Choose a replacement file' : 'Choose files to upload'}
+            >
+              <Group justify="center" gap="md" mih={56} wrap="nowrap" style={{ pointerEvents: 'none' }}>
+                <Dropzone.Reject>
+                  <IconX size={30} stroke={1.5} />
+                </Dropzone.Reject>
+                <Dropzone.Idle>
+                  {isEdit ? <IconReplace size={30} stroke={1.5} /> : <IconCloudUpload size={32} stroke={1.5} />}
+                </Dropzone.Idle>
+                <div>
+                  <Text size="sm" inline>
+                    {isEdit ? 'Drop a file here to replace the current one (optional)' : 'Drag files here or click to select'}
+                  </Text>
+                  <Text size="xs" c="dimmed" inline mt={6} display="block">
+                    {isEdit
+                      ? 'The asset keeps its address, so every page using it shows the new file.'
+                      : 'Each file becomes its own asset; name them in the table.'}
+                  </Text>
+                </div>
+              </Group>
+            </Dropzone>
 
-        {files.length > 0 && (
-          <Stack gap="xs">
-            {files.map((file, index) => (
-              <Paper key={`${file.name}-${index}`} withBorder p="sm">
-                <Group justify="space-between" wrap="nowrap">
-                  <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
-                    <IconFile size={16} aria-hidden />
-                    <Text size="sm" truncate>{file.name}</Text>
-                    <Badge size="xs" variant="light">{formatFileSize(file.size)}</Badge>
-                  </Group>
-                  <Button
-                    variant="subtle"
-                    color="red"
-                    size="xs"
-                    onClick={() => removeFile(index)}
-                    disabled={isPending}
-                    aria-label={`Remove ${file.name}`}
-                  >
-                    <IconX size={14} />
-                  </Button>
-                </Group>
-              </Paper>
-            ))}
+            {tableRows.length > 0 && (
+              <UploadFileTable
+                rows={tableRows}
+                showStatus={!isEdit}
+                disabled={isPending}
+                onName={onName}
+                onAlt={onAlt}
+                onRemove={onRemove}
+                maxHeight={TABLE_MAX_HEIGHT}
+              />
+            )}
           </Stack>
-        )}
+        </Grid.Col>
 
-        {!hasMultipleFiles && (
-          <TextInput
-            label="Name"
-            description={
-              isEdit
-                ? `Helps you find the asset. The file itself is named ${asset.uuid}.`
-                : 'Helps you find the asset. Leave empty to use the file name; the stored file is named by its id.'
-            }
-            placeholder={files[0]?.name ?? asset?.name ?? ''}
-            value={name}
-            onChange={(event) => setName(event.currentTarget.value)}
-            disabled={isPending}
-            maxLength={255}
-          />
-        )}
+        <Grid.Col span={{ base: 12, md: 5 }}>
+          <Stack gap="sm">
+            <FolderPathCombobox
+              folders={folders}
+              value={chosenPath}
+              onChange={setFolderPath}
+              disabled={isPending}
+            />
 
-        <Textarea
-          label="Default alt text"
-          description="Describes the image for screen readers. Used on every page where this image's section leaves its own Alt empty; a section's Alt overrides it on that page only."
-          value={alt}
-          onChange={(event) => setAlt(event.currentTarget.value)}
-          disabled={isPending}
-          maxLength={500}
-          autosize
-          minRows={2}
-        />
+            <WhoCanSeeField lists={lists} value={groupIds} onChange={setGroupIds} disabled={isPending} />
+            {groupIds.length === 0 && <PublicWarning />}
 
-        <Select
-          label="Folder"
-          description="Only for organising your assets; it does not change who can see them."
-          placeholder="Top level"
-          data={folderOptions(folders)}
-          value={folderId}
-          onChange={setFolderId}
-          clearable
-          searchable
-          disabled={isPending}
-        />
+            <WhoCanManageField
+              lists={lists}
+              value={roleIds}
+              onChange={setRoleIds}
+              disabled={isPending}
+              description={isEdit
+                ? 'Roles that can see, edit and delete this asset in the CMS.'
+                : 'Roles that can see, edit and delete it in the CMS. Leave empty to give your own roles access.'}
+              placeholder={roleIds.length === 0 && !isEdit && !lists.callerIsAdmin ? 'Your roles' : undefined}
+              emptyError={rolesEmptied}
+            />
 
-        <MultiSelect
-          label="Who can see it"
-          description="Only members of the selected groups can open the file on the website and app. Leave empty to make it public."
-          placeholder={groupIds.length === 0 ? 'Everyone (public)' : undefined}
-          data={groupOptions}
-          value={groupIds}
-          onChange={setGroupIds}
-          searchable
-          clearable
-          disabled={isPending || groupsPickerLocked}
-        />
-        {groupsFailed && (
-          <Text size="xs" c="dimmed">
-            You are not allowed to list the groups, so who can see this asset cannot be chosen here.
-          </Text>
-        )}
-
-        {groupIds.length === 0 && (
-          <Alert variant="filled" color="orange" icon={<IconWorld size={20} />} title="THIS ASSET IS PUBLIC" role="status">
-            Anyone can open it, including visitors who are not logged in. To restrict it, select the groups that may see it above.
-          </Alert>
-        )}
-
-        <MultiSelect
-          label="Who can manage it"
-          description={
-            isEdit
-              ? 'Roles that can see, edit and delete this asset in the CMS.'
-              : 'Roles that can see, edit and delete it in the CMS. Leave empty to give your own roles access.'
-          }
-          placeholder={roleIds.length === 0 && !isEdit ? 'Your roles' : undefined}
-          data={roleOptions}
-          value={roleIds}
-          onChange={setRoleIds}
-          searchable
-          clearable
-          disabled={isPending || rolesPickerLocked}
-          error={rolesEmptied ? 'Pick at least one role. Choose admin to keep this asset admin-only.' : undefined}
-        />
-        {rolesFailed && (
-          <Text size="xs" c="dimmed">
-            You are not allowed to list the roles, so who can manage this asset cannot be chosen here.
-          </Text>
-        )}
-      </Stack>
+            {formError && <Alert color="red" role="alert">{formError}</Alert>}
+          </Stack>
+        </Grid.Col>
+      </Grid>
     </ModalWrapper>
   );
 }

@@ -11,7 +11,6 @@ import {
     useBulkDeleteAssets,
     useBulkMoveAssets,
     useCreateAsset,
-    useCreateMultipleAssets,
     useDeleteAsset,
     useDeleteAssetFolder,
     useImportAssets,
@@ -95,16 +94,6 @@ describe('writes that change what an image or video picker offers', () => {
     it('uploading a file refreshes the asset lists and every cached section', async () => {
         vi.spyOn(AdminAssetApi, 'createAsset').mockResolvedValue(ASSET);
         const keys = await runAndGetKeys(() => useCreateAsset(), { file: FILE });
-
-        expect(hasKey(keys, QK.ASSETS_ALL)).toBe(true);
-        expect(hasKey(keys, QK.SECTION_DETAILS_ALL)).toBe(true);
-    });
-
-    it('uploading several files refreshes the asset lists and every cached section', async () => {
-        vi.spyOn(AdminAssetApi, 'createMultipleAssets').mockResolvedValue({
-            successful_uploads: 1, failed_uploads: 0, total_files: 1, uploaded: [ASSET], errors: [],
-        });
-        const keys = await runAndGetKeys(() => useCreateMultipleAssets(), { files: [FILE] });
 
         expect(hasKey(keys, QK.ASSETS_ALL)).toBe(true);
         expect(hasKey(keys, QK.SECTION_DETAILS_ALL)).toBe(true);

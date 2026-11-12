@@ -10,7 +10,6 @@ import {
   type IAsset,
   type IBulkAssetGroupsRequest,
   type ICreateAssetRequest,
-  type ICreateMultipleAssetsRequest,
   type IExportAssetsRequest,
   type IFolderAccessRequest,
   type IUpdateAssetRequest,
@@ -71,18 +70,6 @@ export function useCreateAsset() {
 
   return useMutation({
     mutationFn: (assetData: ICreateAssetRequest) => AdminAssetApi.createAsset(assetData),
-    onSuccess: () => refreshAssetsAndPickers(queryClient),
-  });
-}
-
-/**
- * Hook to create/upload multiple assets (multiple files)
- */
-export function useCreateMultipleAssets() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (assetData: ICreateMultipleAssetsRequest) => AdminAssetApi.createMultipleAssets(assetData),
     onSuccess: () => refreshAssetsAndPickers(queryClient),
   });
 }
