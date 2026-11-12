@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 export interface ICreateGroupRequest {
   name: string;
   description?: string;
-  id_group_types?: number;
+  add_to_new_pages?: boolean;
   requires_2fa?: boolean;
   acls?: IAclRequest[];
 }
@@ -13,7 +13,7 @@ export interface ICreateGroupRequest {
 export interface IUpdateGroupRequest {
   name?: string;
   description?: string;
-  id_group_types?: number;
+  add_to_new_pages?: boolean;
   requires_2fa?: boolean;
   acls?: IAclRequest[];
 }

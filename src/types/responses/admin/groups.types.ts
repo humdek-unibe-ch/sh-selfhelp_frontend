@@ -6,7 +6,8 @@ export interface IGroupDetails {
   id: number;
   name: string;
   description: string | null;
-  id_group_types: number | null;
+  /** A new public page gives this group `select`. */
+  add_to_new_pages: boolean;
   requires_2fa: boolean;
   users_count: number;
   acls: IGroupPageAcl[];

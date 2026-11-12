@@ -23,7 +23,6 @@ export const JOB_TYPES = 'jobTypes';
 export const PAGE_ACCESS_TYPES = 'pageAccessTypes';
 export const HOOK_TYPES = 'hookTypes';
 export const ASSET_TYPES = 'assetTypes';
-export const GROUP_TYPES = 'groupTypes';
 export const USER_TYPES = 'userTypes';
 export const USER_STATUS = 'userStatus';
 export const PAGE_ACTIONS = 'pageActions';
@@ -120,10 +119,6 @@ export const HOOK_TYPES_HOOK_ON_FUNCTION_EXECUTE = 'hook_on_function_execute';
 export const ASSET_TYPES_CSS = 'css';
 export const ASSET_TYPES_ASSET = 'asset';
 export const ASSET_TYPES_STATIC = 'static';
-
-// groupTypes
-export const GROUP_TYPES_DB_ROLE = 'db_role';
-export const GROUP_TYPES_GROUP = 'group';
 
 // userTypes
 export const USER_TYPES_USER = 'user';

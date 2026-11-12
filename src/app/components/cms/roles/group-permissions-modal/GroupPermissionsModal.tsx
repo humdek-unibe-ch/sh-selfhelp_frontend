@@ -209,7 +209,6 @@ export function GroupPermissionsModal({ opened, onClose, roleId, roleName }: IGr
       permissions: row.permissions,
       hasChanges: row.hasChanges,
       badges: [
-        ...(row.id_group_types ? [{ label: `Type ${row.id_group_types}`, color: 'blue', variant: 'light' as const }] : []),
         ...(row.requires_2fa ? [{ label: '2FA', color: 'orange', variant: 'light' as const }] : []),
       ],
       extraInfo: (
