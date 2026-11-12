@@ -36,6 +36,28 @@ export function folderOptions(folders: IAssetFolder[]): { value: string; label: 
     .sort((a, b) => a.label.localeCompare(b.label));
 }
 
+/**
+ * Picker options: everything the list offers plus the values already selected
+ * on the asset, so a selected group or role shows its NAME even when the list
+ * is unavailable (no permission to read it) or lacks it. Mantine's MultiSelect
+ * rejects duplicate option values, so a value is listed once.
+ */
+export function withCurrentOptions(
+  listed: { value: string; label: string }[],
+  current: { id: number; name: string }[],
+): { value: string; label: string }[] {
+  const known = new Set(listed.map((option) => option.value));
+  const missing = current
+    .filter((item) => !known.has(String(item.id)))
+    .map((item) => ({ value: String(item.id), label: item.name }));
+  return [...listed, ...missing];
+}
+
+/** Whether two id lists hold the same ids, whatever their order. */
+export function sameIds(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((id) => b.includes(id));
+}
+
 /** What admins see an asset as: its name (no extension), else its uuid. */
 export function assetLabel(asset: Pick<IAsset, 'name' | 'uuid'>): string {
   return asset.name || asset.uuid;

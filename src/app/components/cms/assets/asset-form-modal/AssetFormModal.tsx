@@ -23,11 +23,11 @@ import { Dropzone, type FileWithPath } from '@mantine/dropzone';
 import { IconCloudUpload, IconFile, IconX, IconReplace, IconWorld } from '@tabler/icons-react';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { useAssetFolders, useCreateAsset, useCreateMultipleAssets, useUpdateAsset } from '../../../../../hooks/useAssets';
-import { useGroups } from '../../../../../hooks/useGroups';
-import { useRoles } from '../../../../../hooks/useRoles';
+import { useAllGroups } from '../../../../../hooks/useGroups';
+import { useAllRoles } from '../../../../../hooks/useRoles';
 import type { IAsset } from '../../../../../api/admin/asset.api';
 import { parseApiError } from '../../../../../utils/mutation-error-handler';
-import { assetLabel, folderOptions, formatFileSize } from '../assets.utils';
+import { assetLabel, folderOptions, formatFileSize, sameIds, withCurrentOptions } from '../assets.utils';
 
 interface IAssetFormModalProps {
   opened: boolean;
@@ -40,15 +40,23 @@ interface IAssetFormModalProps {
  * Upload (one or more files) or edit one asset. No groups = public; no roles
  * picked on upload = the uploader's roles. Edit can replace the file under the
  * same uuid.
+ *
+ * On edit the groups and roles are sent ONLY when the admin changed them: the
+ * backend replaces the whole set when the field is present, so re-sending an
+ * unchanged set would rewrite who manages the asset on every rename. The current
+ * groups and roles always show by name, even when the list of all of them cannot
+ * be read, and in that case that picker is read-only.
  */
 export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null }: IAssetFormModalProps) {
   const isEdit = !!asset;
   const createAsset = useCreateAsset();
   const createMultiple = useCreateMultipleAssets();
   const updateAsset = useUpdateAsset();
-  const { data: groupsData } = useGroups({ pageSize: 1000 });
+  // The modal is always mounted (the page opens it for create and edit), so the
+  // two lists are read when it opens, not on every visit of the assets page.
+  const { data: groupsData, isLoading: groupsLoading, isError: groupsFailed } = useAllGroups({ enabled: opened });
   const groups = groupsData?.groups ?? [];
-  const { data: rolesData } = useRoles({ pageSize: 1000 });
+  const { data: rolesData, isLoading: rolesLoading, isError: rolesFailed } = useAllRoles({ enabled: opened });
   const { data: folders = [] } = useAssetFolders();
 
   const [files, setFiles] = useState<FileWithPath[]>([]);
@@ -73,10 +81,23 @@ export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null 
     setFolderId(initialFolderId ? String(initialFolderId) : null);
   }
 
-  const groupOptions = groups.map((group) => ({
-    value: String(group.id),
-    label: group.name,
-  }));
+  const groupOptions = withCurrentOptions(
+    groups.map((group) => ({ value: String(group.id), label: group.name })),
+    asset?.groups ?? [],
+  );
+  const roleOptions = withCurrentOptions(
+    (rolesData?.roles ?? []).map((role) => ({ value: String(role.id), label: role.name })),
+    asset?.roles ?? [],
+  );
+  // The picker can only change what it can list.
+  const groupsPickerLocked = groupsLoading || groupsFailed;
+  const rolesPickerLocked = rolesLoading || rolesFailed;
+
+  const groupsChanged = isEdit && !sameIds(groupIds, (asset?.groups ?? []).map((group) => String(group.id)));
+  const rolesChanged = isEdit && !sameIds(roleIds, (asset?.roles ?? []).map((role) => String(role.id)));
+  // An emptied set is refused rather than guessed: nobody picked means no role
+  // manages the asset but the admin role. Say so by picking admin.
+  const rolesEmptied = rolesChanged && roleIds.length === 0;
 
   const isPending = createAsset.isPending || createMultiple.isPending || updateAsset.isPending;
   const hasMultipleFiles = files.length > 1;
@@ -96,7 +117,7 @@ export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null 
 
   const selectedGroupIds = groupIds.map(Number);
   // On create, no roles picked = the uploader's roles (field omitted).
-  const selectedRoleIds = isEdit || roleIds.length > 0 ? roleIds.map(Number) : undefined;
+  const createRoleIds = roleIds.length > 0 ? roleIds.map(Number) : undefined;
   const selectedFolderId = folderId ? Number(folderId) : null;
 
   const handleCreate = async () => {
@@ -108,7 +129,7 @@ export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null 
           name: name.trim() || undefined,
           alt: alt.trim() || undefined,
           group_ids: selectedGroupIds,
-          role_ids: selectedRoleIds,
+          role_ids: createRoleIds,
           folder_id: selectedFolderId,
         });
         notifications.show({ title: 'Success', message: 'Asset uploaded', color: 'green' });
@@ -117,7 +138,7 @@ export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null 
           files,
           alt: alt.trim() || undefined,
           group_ids: selectedGroupIds,
-          role_ids: selectedRoleIds,
+          role_ids: createRoleIds,
           folder_id: selectedFolderId,
         });
         notifications.show({
@@ -136,7 +157,7 @@ export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null 
   };
 
   const handleUpdate = async () => {
-    if (!asset) return;
+    if (!asset || rolesEmptied) return;
     try {
       await updateAsset.mutateAsync({
         assetId: asset.id,
@@ -144,8 +165,9 @@ export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null 
           file: files[0],
           name: name.trim() || undefined,
           alt: alt.trim(),
-          group_ids: selectedGroupIds,
-          role_ids: selectedRoleIds,
+          // Absent = unchanged (see the component note).
+          group_ids: groupsChanged ? selectedGroupIds : undefined,
+          role_ids: rolesChanged ? roleIds.map(Number) : undefined,
           folder_id: selectedFolderId,
         },
       });
@@ -171,7 +193,7 @@ export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null 
       saveLabel={hasMultipleFiles ? `Upload ${files.length} assets` : 'Upload asset'}
       updateLabel="Save asset"
       isLoading={isPending}
-      disabled={!isEdit && files.length === 0}
+      disabled={isEdit ? rolesEmptied : files.length === 0}
       closeOnClickOutside={!isPending}
       closeOnEscape={!isPending}
     >
@@ -276,8 +298,13 @@ export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null 
           onChange={setGroupIds}
           searchable
           clearable
-          disabled={isPending}
+          disabled={isPending || groupsPickerLocked}
         />
+        {groupsFailed && (
+          <Text size="xs" c="dimmed">
+            You are not allowed to list the groups, so who can see this asset cannot be chosen here.
+          </Text>
+        )}
 
         {groupIds.length === 0 && (
           <Alert variant="filled" color="orange" icon={<IconWorld size={20} />} title="THIS ASSET IS PUBLIC" role="status">
@@ -293,13 +320,19 @@ export function AssetFormModal({ opened, onClose, asset, defaultFolderId = null 
               : 'Roles that can see, edit and delete it in the CMS. Leave empty to give your own roles access.'
           }
           placeholder={roleIds.length === 0 && !isEdit ? 'Your roles' : undefined}
-          data={(rolesData?.roles ?? []).map((role) => ({ value: String(role.id), label: role.name }))}
+          data={roleOptions}
           value={roleIds}
           onChange={setRoleIds}
           searchable
           clearable
-          disabled={isPending}
+          disabled={isPending || rolesPickerLocked}
+          error={rolesEmptied ? 'Pick at least one role. Choose admin to keep this asset admin-only.' : undefined}
         />
+        {rolesFailed && (
+          <Text size="xs" c="dimmed">
+            You are not allowed to list the roles, so who can manage this asset cannot be chosen here.
+          </Text>
+        )}
       </Stack>
     </ModalWrapper>
   );

@@ -25,7 +25,7 @@ vi.mock('../../../../../../hooks/useUserData', () => ({
     useAuthUser: () => ({ permissionChecker: { hasPermission }, user: null, isLoading: false, error: null }),
 }));
 vi.mock('../../../../../../hooks/useGroups', () => ({
-    useGroups: () => ({ data: { groups: [] }, isLoading: false }),
+    useAllGroups: () => ({ data: { groups: [] }, isLoading: false }),
 }));
 
 const asset = (id: number, name: string, folderId: number | null) => ({
@@ -39,6 +39,9 @@ const asset = (id: number, name: string, folderId: number | null) => ({
     folder_id: folderId,
     roles: [],
     groups: [],
+    can_view: true,
+    can_update: true,
+    can_delete: true,
     created_at: '2026-11-03T10:00:00+00:00',
     updated_at: '2026-11-03T10:00:00+00:00',
 });

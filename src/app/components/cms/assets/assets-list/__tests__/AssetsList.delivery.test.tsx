@@ -19,7 +19,7 @@ vi.mock('../../../../../../hooks/useUserData', () => ({
     useAuthUser: () => ({ permissionChecker: { hasPermission }, user: null, isLoading: false, error: null }),
 }));
 vi.mock('../../../../../../hooks/useGroups', () => ({
-    useGroups: () => ({ data: { groups: [] }, isLoading: false }),
+    useAllGroups: () => ({ data: { groups: [] }, isLoading: false }),
 }));
 vi.mock('../../../../../../hooks/useAssets', () => ({
     useAssets: () => ({
@@ -33,6 +33,9 @@ vi.mock('../../../../../../hooks/useAssets', () => ({
                 size: 2048,
                 alt: null,
                 groups: [{ id: 4, name: 'subject' }],
+                can_view: true,
+                can_update: false,
+                can_delete: false,
                 created_at: '2026-11-03T10:00:00+00:00',
                 updated_at: '2026-11-03T10:00:00+00:00',
             }],
@@ -95,29 +98,39 @@ describe('AssetsList asset delivery URLs', () => {
     it('recovers from the placeholder when the same row gets a readable src', async () => {
         // Rows are keyed by `asset.id`, so this component is REUSED across
         // refetches. A bare boolean would latch the placeholder on forever —
-        // e.g. after the asset is shared with the viewer the image must come back.
+        // e.g. after the file is replaced the image must come back.
         const { rerender } = renderWithProviders(
-            <AssetThumbnail src="/api/assets/x" alt="x.webp" />
+            <AssetThumbnail src="/api/assets/x" alt="x.webp" canView />
         );
         fireEvent.error(screen.getByAltText('x.webp'));
-        expect(await screen.findByRole('img', { name: /no access/i })).toBeInTheDocument();
+        expect(await screen.findByRole('img', { name: /preview unavailable/i })).toBeInTheDocument();
 
-        rerender(<AssetThumbnail src="/api/assets/x?v=2" alt="x.webp" />);
+        rerender(<AssetThumbnail src="/api/assets/x?v=2" alt="x.webp" canView />);
 
         expect(screen.getByAltText('x.webp')).toBeInTheDocument();
-        expect(screen.queryByRole('img', { name: /no access/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('img', { name: /preview unavailable/i })).not.toBeInTheDocument();
     });
 
-    it('shows a no-access placeholder instead of erroring when the image 403s', async () => {
+    it('says "preview unavailable", not "no access", when an image the caller may view fails to load', async () => {
         renderWithProviders(<AssetsList folderId={null} onFolderChange={vi.fn()} />);
         const img = await screen.findByAltText('lamine-yamal-young.webp');
 
-        // A 403 surfaces to an <img> only as an error event.
+        // A missing file, a decode failure or a network error surfaces to an <img>
+        // only as an error event; the server said the caller may view it, so this
+        // cannot be a permission problem.
         fireEvent.error(img);
 
-        expect(await screen.findByRole('img', { name: /no access/i })).toBeInTheDocument();
+        expect(await screen.findByRole('img', { name: /preview unavailable/i })).toBeInTheDocument();
+        expect(screen.queryByRole('img', { name: /no access/i })).not.toBeInTheDocument();
         expect(screen.queryByAltText('lamine-yamal-young.webp')).not.toBeInTheDocument();
-        // The row itself must survive — a denied image is expected, not a failure.
+        // The row itself must survive — a failed preview is not a failure of the list.
         expect(screen.getByText('lamine-yamal-young.webp')).toBeInTheDocument();
+    });
+
+    it('shows the "no access" lock, without requesting the image, only when the server says the caller may not view it', () => {
+        renderWithProviders(<AssetThumbnail src="/api/assets/x" alt="x.webp" canView={false} />);
+
+        expect(screen.getByRole('img', { name: /no access/i })).toBeInTheDocument();
+        expect(screen.queryByAltText('x.webp')).not.toBeInTheDocument();
     });
 });

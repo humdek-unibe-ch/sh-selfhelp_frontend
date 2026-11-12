@@ -22,6 +22,12 @@ export interface IAssetFolder {
  * An asset. `uuid` is also the stored file name; fetch the bytes only via
  * `url` (through `getAssetUrl`). No `groups` = public;
  * `roles` may manage it in the CMS.
+ *
+ * `can_view` / `can_update` / `can_delete` are what the CALLER may do with this
+ * asset, decided by the server (`can_view` is the group rule of the delivery
+ * URL; the other two are the caller's grant on the asset). Draw from them: do
+ * not work the rule out from `groups` / `roles` or from the caller's global
+ * permission, which says nothing about an individual asset.
  */
 export interface IAsset {
   id: number;
@@ -35,6 +41,9 @@ export interface IAsset {
   folder_id: number | null;
   roles: IAssetGroupRef[];
   groups: IAssetGroupRef[];
+  can_view: boolean;
+  can_update: boolean;
+  can_delete: boolean;
   created_at: string;
   updated_at: string;
 }

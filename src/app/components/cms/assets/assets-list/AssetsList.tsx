@@ -40,7 +40,7 @@ import {
   IconFolderShare,
 } from '@tabler/icons-react';
 import { useAssets, useDeleteAsset, useBulkAssetGroups, useBulkDeleteAssets, useBulkMoveAssets, useAssetFolders } from '../../../../../hooks/useAssets';
-import { useGroups } from '../../../../../hooks/useGroups';
+import { useAllGroups } from '../../../../../hooks/useGroups';
 import { DeleteAssetModal } from '../delete-asset-modal';
 import { AssetFormModal } from '../asset-form-modal/AssetFormModal';
 import { AssetThumbnail } from './AssetThumbnail';
@@ -159,7 +159,7 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
 
   const { data: assetsData, isLoading, isFetching, error, refetch } = useAssets(queryParams);
   const { data: allAssetsData } = useAssets({ page: 1, pageSize: 1 });
-  const { data: groupsData } = useGroups({ pageSize: 1000 });
+  const { data: groupsData } = useAllGroups();
   const assets = useMemo(() => assetsData?.assets ?? [], [assetsData]);
 
   const groupFilterOptions = (groupsData?.groups ?? []).map((group) => ({
@@ -174,8 +174,13 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
   const folderPath = (id: number | null) => folderTrail(folders, id).map((folder) => folder.name).join(' / ');
 
   const pageIds = assets.map((asset) => asset.id);
-  const sharedGroupIds = assets
-    .filter((asset) => selectedIds.includes(asset.id))
+  const selectedAssets = assets.filter((asset) => selectedIds.includes(asset.id));
+  // The global permission says the caller may update/delete assets at all; the
+  // server says per asset whether THIS caller may (`can_update` / `can_delete`),
+  // so a bulk action is only offered when it holds for every asset selected.
+  const canBulkUpdate = canUpdate && selectedAssets.every((asset) => asset.can_update);
+  const canBulkDelete = canDelete && selectedAssets.every((asset) => asset.can_delete);
+  const sharedGroupIds = selectedAssets
     .map((asset) => asset.groups.map((group) => group.id))
     .reduce<number[] | null>((shared, ids) => (shared === null ? ids : shared.filter((id) => ids.includes(id))), null) ?? [];
   const allOnPageSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.includes(id));
@@ -319,7 +324,7 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
         </Table.Td>
         <Table.Td className={tableStyles.tableCell}>
           <Group gap="sm" wrap="nowrap">
-            {isImageAsset(asset) && <AssetThumbnail src={deliveryUrl} alt={asset.alt || label} />}
+            {isImageAsset(asset) && <AssetThumbnail src={deliveryUrl} alt={asset.alt || label} canView={asset.can_view} />}
             <div style={{ minWidth: 0 }}>
               <Text size="sm" fw={500} truncate>{label}</Text>
               {label !== asset.uuid && (
@@ -361,33 +366,39 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
         </Table.Td>
         <Table.Td className={tableStyles.tableCell}>
           <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
-            <Tooltip label="View">
-              <ActionIcon
-                variant="subtle"
-                color="blue"
-                component="a"
-                href={deliveryUrl}
-                target="_blank"
-                aria-label={`View ${label}`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <IconEye size={16} />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Download">
-              <ActionIcon
-                variant="subtle"
-                color="green"
-                component="a"
-                href={deliveryUrl}
-                download
-                aria-label={`Download ${label}`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <IconDownload size={16} />
-              </ActionIcon>
-            </Tooltip>
-            {canUpdate && (
+            {/* A manager who is in none of the asset's groups may not open the file:
+                the delivery URL would answer 403, so the links are not offered. */}
+            {asset.can_view && (
+              <>
+                <Tooltip label="View">
+                  <ActionIcon
+                    variant="subtle"
+                    color="blue"
+                    component="a"
+                    href={deliveryUrl}
+                    target="_blank"
+                    aria-label={`View ${label}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <IconEye size={16} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Download">
+                  <ActionIcon
+                    variant="subtle"
+                    color="green"
+                    component="a"
+                    href={deliveryUrl}
+                    download
+                    aria-label={`Download ${label}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <IconDownload size={16} />
+                  </ActionIcon>
+                </Tooltip>
+              </>
+            )}
+            {canUpdate && asset.can_update && (
               <Tooltip label="Edit">
                 <ActionIcon
                   variant="subtle"
@@ -402,7 +413,7 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
                 </ActionIcon>
               </Tooltip>
             )}
-            {canDelete && (
+            {canDelete && asset.can_delete && (
               <Tooltip label="Delete">
                 <ActionIcon
                   variant="subtle"
@@ -528,7 +539,7 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
                 {selectedIds.length} asset{selectedIds.length === 1 ? '' : 's'} selected
               </Text>
               <Group gap="xs">
-                {canUpdate && (
+                {canBulkUpdate && (
                   <>
                     <Button size="xs" variant="light" leftSection={<IconUsersGroup size={14} />} onClick={() => setBulkMode('add')}>
                       Add groups
@@ -541,7 +552,7 @@ export function AssetsList({ folderId, onFolderChange, onAssetSelect, onExportSe
                     </Button>
                   </>
                 )}
-                {canDelete && (
+                {canBulkDelete && (
                   <Button size="xs" variant="light" color="red" leftSection={<IconTrash size={14} />} onClick={() => setBulkDeleteOpen(true)}>
                     Delete
                   </Button>

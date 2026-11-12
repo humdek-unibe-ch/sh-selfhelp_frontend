@@ -213,6 +213,11 @@ export function ExportImportAssetsModal({ opened, onClose, assetIds = [], canImp
             <Text size="xs" c="dimmed">
               Import never replaces existing files: assets that already exist here (same id) are skipped.
             </Text>
+            <Text size="xs" c="dimmed">
+              Groups are matched by name. An asset that names a group which does not exist here is not
+              imported, because without its groups it would become public. It is listed as failed with the
+              missing group names: create the group and import the bundle again.
+            </Text>
           </Stack>
         </Tabs.Panel>
       </Tabs>

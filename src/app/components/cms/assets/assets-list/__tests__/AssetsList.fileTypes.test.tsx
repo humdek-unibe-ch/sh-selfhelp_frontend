@@ -21,7 +21,7 @@ vi.mock('../../../../../../hooks/useUserData', () => ({
     useAuthUser: () => ({ permissionChecker: { hasPermission }, user: null, isLoading: false, error: null }),
 }));
 vi.mock('../../../../../../hooks/useGroups', () => ({
-    useGroups: () => ({ data: { groups: [] }, isLoading: false }),
+    useAllGroups: () => ({ data: { groups: [] }, isLoading: false }),
 }));
 
 /** Only the photo and the GIF record a MIME type: the rest must be typed by the extension in their name. */
@@ -35,6 +35,9 @@ const asset = (id: number, name: string, asset_type: string, mime_type: string |
     size: 1,
     alt: null,
     groups: [],
+    can_view: true,
+    can_update: true,
+    can_delete: true,
     created_at: '2026-11-03T10:00:00+00:00',
     updated_at: '2026-11-03T10:00:00+00:00',
 });
