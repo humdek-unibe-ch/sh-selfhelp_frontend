@@ -1,0 +1,170 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/* ---- rows while something is dragged ------------------------------------ */
+
+.row {
+  transition: background-color 120ms ease, opacity 120ms ease, outline-color 120ms ease;
+}
+
+/* The row(s) being dragged: faded, so the pointer's pill is the thing that moves. */
+.rowDragged {
+  opacity: 0.4;
+}
+
+/* A folder that cannot take this drag (itself, its own subfolders, where it already is). */
+.rowBlocked {
+  opacity: 0.55;
+}
+
+/* A folder that can take this drag: a quiet dashed frame says "you may drop here". */
+.rowAvailable {
+  outline: 1px dashed var(--mantine-color-blue-4);
+  outline-offset: -1px;
+}
+
+/* The folder under the pointer: unmistakable. */
+.rowTarget {
+  background-color: var(--mantine-color-blue-light-hover) !important;
+  outline: 2px solid var(--mantine-color-blue-filled);
+  outline-offset: -2px;
+}
+
+.rowTarget > td:first-child {
+  box-shadow: inset 5px 0 0 var(--mantine-color-blue-filled);
+}
+
+/* What the target folder holds (its subfolders and assets): tinted with a bar, so the whole block reads as "inside". */
+.rowInside {
+  background-color: color-mix(in srgb, var(--mantine-color-blue-filled) 7%, transparent);
+}
+
+.rowInside > td:first-child {
+  box-shadow: inset 3px 0 0 var(--mantine-color-blue-4);
+}
+
+/* The label that appears on the target folder. */
+.dropHint {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* A grabbable area: the cursor says so, and text under it is not selected by the press. */
+.grab {
+  cursor: grab;
+  user-select: none;
+}
+
+.grab:active {
+  cursor: grabbing;
+}
+
+/* ---- the "All assets" drop strip ---------------------------------------- */
+
+.rootZone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--mantine-radius-sm);
+  border: 1px dashed var(--mantine-color-default-border);
+  transition: background-color 120ms ease, border-color 120ms ease, min-height 120ms ease, opacity 120ms ease;
+}
+
+/* A drag is on and the top level can take it. */
+.rootZoneActive {
+  min-height: 56px;
+  justify-content: center;
+  border: 2px dashed var(--mantine-color-blue-5);
+  background-color: color-mix(in srgb, var(--mantine-color-blue-filled) 6%, transparent);
+  color: var(--mantine-color-blue-filled);
+}
+
+.rootZoneTarget {
+  border-style: solid;
+  border-color: var(--mantine-color-blue-filled);
+  background-color: var(--mantine-color-blue-filled);
+  color: var(--mantine-color-white);
+}
+
+/* A drag is on but everything dragged is already at the top level. */
+.rootZoneBlocked {
+  opacity: 0.55;
+}
+
+/* ---- the floating top-level target, for when the strip is scrolled out of view ---- */
+
+.dock {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 400;
+  width: 190px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  text-align: center;
+  border-radius: var(--mantine-radius-md);
+  border: 2px dashed var(--mantine-color-blue-5);
+  background-color: var(--mantine-color-body);
+  color: var(--mantine-color-blue-filled);
+  box-shadow: var(--mantine-shadow-lg);
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.dockTarget {
+  border-style: solid;
+  border-color: var(--mantine-color-blue-filled);
+  background-color: var(--mantine-color-blue-filled);
+  color: var(--mantine-color-white);
+}
+
+/* ---- status line and drag preview ---------------------------------------- */
+
+.status {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 500;
+  max-width: min(640px, 90vw);
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 999px;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  color: var(--mantine-color-white);
+  background-color: var(--mantine-color-dark-8);
+  box-shadow: var(--mantine-shadow-lg);
+  pointer-events: none;
+  transition: background-color 120ms ease;
+}
+
+.statusReady {
+  background-color: var(--mantine-color-blue-filled);
+}
+
+.dragPreview {
+  display: inline-block;
+  max-width: 280px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #fff;
+  background-color: #1c7ed6;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
