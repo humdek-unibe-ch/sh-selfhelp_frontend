@@ -84,6 +84,25 @@ rework. The rest of the release works against any core in range.
   Previously a preset change could appear to do nothing with no explanation.
 - Description tags respect the language you are editing, so a description
   that exists only in another language no longer hides an empty panel entry.
+- **About this platform.** The `version` section draws one designed card: title
+  and SelfHelp version badge, tabs per non-empty group with counts, a filter
+  box, and a table of name / licence badge / version. The website list is
+  generated from the installed packages at build time, never typed. Visitors see
+  names and licences; exact versions show only for people who may read the
+  system page. Filter and empty-state labels are style fields (`label_filter`,
+  `label_no_match`).
+  Every heading is an editable field of the section. Requires core
+  **>=0.1.43**.
+- **System page: every component with its exact version.** New cards list the
+  backend's frameworks and libraries and the website's own libraries, each with
+  version and licence. Requires core **>=0.1.43**.
+- **Referrers analytics.** A visitor who arrives from another site is counted
+  under that site's host in the admin Referrers card. Only the host is sent,
+  once per visit (the server render sends it; the browser keeps a fallback only
+  when that render did not deliver the landing page, and dismisses it once the
+  SSR-seeded query hydrates so a language switch or refetch cannot double-count);
+  clicking through the site, a hover prefetch and visits from the site itself
+  send nothing.
 
 ### Changed
 - **Assets: clearer drag and drop.** Dragging on the asset page scrolls the
@@ -153,6 +172,8 @@ rework. The rest of the release works against any core in range.
 - The public-menu exclusion rule is now read from the backend rather than
   reproduced in the frontend, so the builder's verdict cannot drift from what
   the public menu actually renders.
+- Uses `@selfhelp/shared` 1.23.0 (the types of the about-the-platform block
+  and of the extended system version).
 
 ### Fixed
 - **Web logins count per visitor address.** The dedicated login route forwards
@@ -232,6 +253,10 @@ rework. The rest of the release works against any core in range.
   `/cms/<app>` URL, which does not exist.
 - Admin edits no longer refetch pages, sections, versions and languages twice
   after each change, and section-only changes no longer reload the page list.
+
+### Removed
+- The unused `hookTypes` lookup constants. The backend dropped that lookup
+  type.
 
 ---
 
