@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
 import { useIsFetching } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -20,6 +20,7 @@ import { useRecordLastVisitedPage } from '../../hooks/useRecordLastVisitedPage';
 import { useAuth } from '../../hooks/useAuth';
 import { shouldOpenPageInWebModal } from './pageModalPolicy';
 import { stripHtmlTags } from '../../utils/html-sanitizer.utils';
+import { dismissLandingReferrerHost } from '../../utils/referrer-host.utils';
 import { type TStyle } from '../../types/common/styles.types';
 import { PageContextProvider } from '../components/contexts/PageContext';
 import { PageModalProvider } from '../components/contexts/PageModalContext';
@@ -107,6 +108,17 @@ export default function DynamicPageClient({
 
     const pageId = pageContent?.id ?? initialPageId;
     const isHeadless = Boolean(pageContent?.is_headless);
+
+    // The slug layout's SSR prefetch already sent `X-Referrer-Host` and seeded
+    // this path into the React Query cache. Drop the browser landing snapshot
+    // before any later fetch of the same path (language switch, invalidation)
+    // can consume it and double-count the referrer. Layout effect so it runs
+    // before paint and before user-driven refetches.
+    useLayoutEffect(() => {
+        if (path && pageContent) {
+            dismissLandingReferrerHost(path);
+        }
+    }, [path, pageContent]);
 
     // In-page branch navigation from the resolved public menu tree.
     const { navigation: liveNavigation } = useAppNavigation();
