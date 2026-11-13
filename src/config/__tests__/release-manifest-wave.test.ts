@@ -21,9 +21,9 @@ describe('release-manifest wave floors', () => {
         expect(manifest.supports.core).toBe('>=0.1.43 <0.2.0');
     });
 
-    it('pins @selfhelp/shared to 1.22.1 (rate-limit helpers + files_public; not staged 2.x/3.x)', () => {
+    it('pins @selfhelp/shared to 1.23.0 (about-the-platform types + rate-limit helpers + files_public; not staged 2.x/3.x)', () => {
         expect(pkg.dependencies['@selfhelp/shared'] ?? pkg.devDependencies?.['@selfhelp/shared']).toBe(
-            '1.22.1',
+            '1.23.0',
         );
     });
 
