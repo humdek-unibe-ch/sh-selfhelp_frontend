@@ -12,7 +12,8 @@ SPDX-License-Identifier: MPL-2.0
  * three frontend-only legacy styles (`ref-container`, `data-container`,
  * `version`) and the tightened `style_name: TStyleName` discriminator
  * stay in-tree because they're either admin-only or strictly narrower
- * than the shared `string` union.
+ * than the shared `string` union. (`version` keeps only the legacy base
+ * locally; its `about` block and headings are picked from shared.)
  *
  * Migration history:
  *   - 2026-05-06: bulk migration. Per-style interfaces, base shape,
@@ -423,7 +424,19 @@ export interface IDataContainerStyle extends IBaseStyle {
     style_name: 'data-container';
 }
 
-export interface IVersionStyle extends IBaseStyle {
+/**
+ * `version` ("about the platform"). The platform block (`about`) and the
+ * translatable headings belong to `@selfhelp/shared`, because the mobile app
+ * draws the same block. They are picked from the shared type, not copied, so
+ * this shape cannot drift from the contract. Only the legacy base (`fields`
+ * accessor) is local.
+ */
+export interface IVersionStyle
+    extends IBaseStyle,
+        Pick<
+            ISharedVersionStyle,
+            'about' | 'title' | 'label_frameworks' | 'label_plugins' | 'label_libraries' | 'label_web' | 'label_app' | 'label_filter' | 'label_no_match'
+        > {
     style_name: 'version';
 }
 
@@ -434,6 +447,7 @@ export interface IVersionStyle extends IBaseStyle {
 // Imports are resolved through this file's own re-exports above.
 import type {
     IContentField as ISharedContentField,
+    IVersionStyle as ISharedVersionStyle,
     ILoginStyle,
     IRegisterStyle,
     IValidateStyle,
