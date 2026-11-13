@@ -29,6 +29,7 @@ import {
 } from '@tabler/icons-react';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { PlatformInventoryCards } from './PlatformInventoryCards';
 import { useAuth } from '../../../../../hooks/useAuth';
 import {
     useSystemVersion, useSystemHealth, useSystemAdvisories, useUpdatePreflight, useUpdateStatus,
@@ -650,6 +651,11 @@ export function SystemMaintenancePage() {
                         </Paper>
                     </Grid.Col>
                 </Grid>
+
+                {/* Everything the platform runs on, with exact versions: the
+                    backend's frameworks and libraries plus the website's own
+                    generated library list. */}
+                <PlatformInventoryCards frameworks={versionData?.frameworks} libraries={versionData?.libraries} />
 
                 {/* Update availability — at a glance: is a newer signed release
                     published, and what is the newest version this instance could

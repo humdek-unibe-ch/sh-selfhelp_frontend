@@ -8,7 +8,7 @@ Audience: Frontend developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
 Last verified: 2026-06-23.
-Source of truth: `src/app/admin/system/page.tsx`, `src/app/components/cms/system/system-maintenance-page/SystemMaintenancePage.tsx`, `src/hooks/useSystem.ts`, `src/hooks/useAclEventStream.ts`, `src/hooks/auth-sse-status.ts`, `src/app/api/auth/events/route.ts`, `src/types/responses/admin/system.types.ts`, `src/app/components/cms/system/system-maintenance-page/__tests__/SystemMaintenancePage.test.tsx`.
+Source of truth: `src/app/admin/system/page.tsx`, `src/app/components/cms/system/system-maintenance-page/SystemMaintenancePage.tsx`, `src/app/components/cms/system/system-maintenance-page/PlatformInventoryCards.tsx`, `scripts/generate-web-libraries.mjs`, `src/hooks/useSystem.ts`, `src/hooks/useAclEventStream.ts`, `src/hooks/auth-sse-status.ts`, `src/app/api/auth/events/route.ts`, `src/types/responses/admin/system.types.ts`, `src/app/components/cms/system/system-maintenance-page/__tests__/SystemMaintenancePage.test.tsx`.
 
 The **System Maintenance** screen (`/admin/system`) is the admin UI over the
 backend's instance-scoped system layer. It shows this instance's version and
@@ -47,6 +47,16 @@ instance.
   that ships independently of the core (see [Mobile preview](#mobile-preview)).
 - **Installed plugins** — each plugin's version and whether it is compatible with
   the running core.
+- **Platform components** — the backend's frameworks and libraries (the
+  `frameworks` and `libraries` of `GET /admin/system/version`) and the website's
+  own libraries, each with its exact version and licence
+  (`PlatformInventoryCards`). The website list is generated, not typed:
+  `scripts/generate-web-libraries.mjs` reads the `dependencies` of
+  `package.json` and the installed versions into
+  `src/generated/web-libraries.json` before `dev`, `build` and `tsc`; the file
+  is not committed. Visitors see the same lists without versions in the public
+  "about this platform" block (`VersionStyle`); the server decides that
+  (`about.detail`), never this screen.
 - **System health** — aggregated component status (`healthy` / `degraded` /
   `down`), refreshed from the live event stream (and on a short fallback poll
   only while the stream is disconnected).
