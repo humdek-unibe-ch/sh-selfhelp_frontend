@@ -21,7 +21,6 @@ export const TRANSACTION_TYPES = 'transactionTypes';
 export const TRANSACTION_BY = 'transactionBy';
 export const JOB_TYPES = 'jobTypes';
 export const PAGE_ACCESS_TYPES = 'pageAccessTypes';
-export const HOOK_TYPES = 'hookTypes';
 export const ASSET_TYPES = 'assetTypes';
 export const USER_TYPES = 'userTypes';
 export const USER_STATUS = 'userStatus';
@@ -110,10 +109,6 @@ export const PAGE_ACCESS_TYPES_MOBILE_AND_WEB = 'mobile_and_web';
 export const PAGE_SURFACE = 'pageSurface';
 export const PAGE_SURFACE_PUBLIC = 'public';
 export const PAGE_SURFACE_CMS = 'cms';
-
-// hookTypes
-export const HOOK_TYPES_HOOK_OVERWRITE_RETURN = 'hook_overwrite_return';
-export const HOOK_TYPES_HOOK_ON_FUNCTION_EXECUTE = 'hook_on_function_execute';
 
 // assetTypes
 export const ASSET_TYPES_CSS = 'css';
