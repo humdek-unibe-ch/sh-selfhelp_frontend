@@ -2,8 +2,17 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+
+// `src/generated/web-libraries.json` is written by
+// `scripts/generate-web-libraries.mjs` (npm runs it before dev, build and tsc)
+// and is not committed. On a fresh checkout the file is not there yet, so tests
+// read an empty list instead of failing to resolve the import.
+const generatedWebLibraries = fileURLToPath(new URL('./src/generated/web-libraries.json', import.meta.url));
+const emptyWebLibraries = fileURLToPath(new URL('./src/test-utils/web-libraries.empty.json', import.meta.url));
 
 /**
  * Vitest config for the SelfHelp frontend (Slice 6).
@@ -18,6 +27,11 @@ import react from '@vitejs/plugin-react';
  */
 export default defineConfig({
     plugins: [react()],
+    resolve: {
+        alias: existsSync(generatedWebLibraries)
+            ? []
+            : [{ find: /^.*generated\/web-libraries\.json$/, replacement: emptyWebLibraries }],
+    },
     test: {
         environment: 'jsdom',
         globals: true,
