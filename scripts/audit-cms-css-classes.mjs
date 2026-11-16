@@ -3,8 +3,12 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 /**
- * Audit CMS `css` / `css_mobile` tokens in importable examples against the
- * Tailwind v4 safelist in `src/globals.css`.
+ * Audit CMS `css` / `css_mobile` tokens (and the `list_row_css` property of a
+ * data view) in importable examples against the Tailwind v4 safelist in
+ * `src/globals.css`. The classes of the compact and spacious presets documented in
+ * `examples/cms-in-cms/README.md` are audited too, and strictly: a preset class must be
+ * in the CMS class catalogue or already used by a bundle (the web build scans both),
+ * because the README itself gives no class CSS.
  *
  * Coverage model:
  * 1. @source on examples JSON — bundle/section JSON is scanned at build.
@@ -27,6 +31,9 @@ const REPO_ROOT = join(HERE, '..');
 const GLOBALS_CSS = join(REPO_ROOT, 'src', 'globals.css');
 const EXAMPLES_DIR = join(REPO_ROOT, 'examples');
 const CATALOG = join(REPO_ROOT, 'src', 'config', 'cms-tailwind-classes.json');
+const PRESET_README = join(EXAMPLES_DIR, 'cms-in-cms', 'README.md');
+const PRESET_START = '<!-- class-presets:start -->';
+const PRESET_END = '<!-- class-presets:end -->';
 
 const MOBILE_TOKEN = /^(px|py|p|m|mx|my|mt|mb|ml|mr|gap)-(xs|sm|md|lg|xl|2xl)$/;
 
@@ -90,6 +97,22 @@ function walkJsonFiles(dir) {
     return files;
 }
 
+/**
+ * The class text a bundle field holds, or null when the entry is not a class field.
+ * `css` / `css_mobile` are plain strings (global fields); `list_row_css`, the classes
+ * of the element around the records of a data view, is a property field
+ * (`{ all: { content } }`).
+ */
+function classesOf(key, value) {
+    if ((key === 'css' || key === 'css_mobile') && typeof value === 'string' && value.trim()) {
+        return value.trim();
+    }
+    if (key === 'list_row_css' && typeof value?.all?.content === 'string' && value.all.content.trim()) {
+        return value.all.content.trim();
+    }
+    return null;
+}
+
 export function collectExampleCssTokens(examplesDir = EXAMPLES_DIR) {
     const byClass = new Map();
 
@@ -100,8 +123,9 @@ export function collectExampleCssTokens(examplesDir = EXAMPLES_DIR) {
             return;
         }
         for (const [key, value] of Object.entries(node)) {
-            if ((key === 'css' || key === 'css_mobile') && typeof value === 'string' && value.trim()) {
-                for (const token of value.trim().split(/\s+/).filter(Boolean)) {
+            const classes = classesOf(key, value);
+            if (classes !== null) {
+                for (const token of classes.split(/\s+/).filter(Boolean)) {
                     if (!byClass.has(token)) byClass.set(token, new Set());
                     byClass.get(token).add(relative(REPO_ROOT, file));
                 }
@@ -122,16 +146,46 @@ export function collectExampleCssTokens(examplesDir = EXAMPLES_DIR) {
     return byClass;
 }
 
+/**
+ * The classes of the presets in the template README: the code spans in the Default, Compact and
+ * Spacious cells of the table between the two markers (the first columns name the template and the
+ * section, which are not classes).
+ */
+export function collectPresetCssTokens(readmePath = PRESET_README) {
+    const text = readFileSync(readmePath, 'utf8').replace(/\r\n/g, '\n');
+    const start = text.indexOf(PRESET_START);
+    const end = text.indexOf(PRESET_END);
+    const tokens = new Set();
+    if (start === -1 || end === -1 || end < start) return tokens;
+
+    for (const line of text.slice(start, end).split('\n')) {
+        if (!line.startsWith('|')) continue;
+        const cells = line.split('|').map((cell) => cell.trim());
+        // cells: ['', template, section, default, compact, spacious, '']
+        for (const cell of cells.slice(3, 6)) {
+            for (const span of cell.matchAll(/`([^`]+)`/g)) {
+                for (const token of span[1].split(/\s+/).filter(Boolean)) tokens.add(token);
+            }
+        }
+    }
+
+    return tokens;
+}
+
 export function auditCmsCssClasses({
     globalsCssPath = GLOBALS_CSS,
     examplesDir = EXAMPLES_DIR,
     catalogPath = CATALOG,
+    presetReadmePath = PRESET_README,
 } = {}) {
     const cssText = readFileSync(globalsCssPath, 'utf8');
     const { safelist, examplesSource, catalogSource } = parseGlobalsCss(cssText);
     const catalogValues = loadCmsCssCatalog(catalogPath);
     const catalog = new Set(catalogValues);
     const tokens = collectExampleCssTokens(examplesDir);
+    const presetTokens = collectPresetCssTokens(presetReadmePath);
+    // A preset class has CSS when the catalogue holds it or a bundle already uses it (the build scans both).
+    const presetsMissing = [...presetTokens].filter((token) => !catalog.has(token) && !safelist.has(token) && !tokens.has(token)).sort();
 
     const mobileTokens = [];
     const covered = [];
@@ -167,6 +221,8 @@ export function auditCmsCssClasses({
         mobileTokens,
         coveredCount: covered.length,
         missing,
+        presetCount: presetTokens.size,
+        presetsMissing,
     };
 }
 
@@ -177,6 +233,7 @@ function main() {
     console.log(`Safelist patterns expanded to ${result.safelistSize} classes`);
     console.log(`Found ${result.totalTokens} unique css/css_mobile tokens in examples/`);
     console.log(`Mobile Uniwind tokens (web Tailwind gate skipped): ${result.mobileTokens.join(', ') || '(none)'}`);
+    console.log(`Found ${result.presetCount} unique classes in the compact/spacious presets of the template README`);
 
     if (!result.examplesSource) {
         console.error('Missing @source "../examples/**/*.json" in src/globals.css');
@@ -191,6 +248,18 @@ function main() {
         process.exitCode = 1;
     }
 
+    if (result.presetCount === 0) {
+        console.error('The template README has no class presets between its class-presets markers');
+        process.exitCode = 1;
+    }
+    if (result.presetsMissing.length > 0) {
+        console.error(`\n${result.presetsMissing.length} preset class(es) of the template README are not in the CMS class catalogue:`);
+        for (const token of result.presetsMissing) {
+            console.error(`  ${token}`);
+        }
+        process.exitCode = 1;
+    }
+
     if (result.missing.length > 0) {
         console.error(`\n${result.missing.length} web class(es) are not covered:`);
         for (const item of result.missing) {
@@ -200,6 +269,9 @@ function main() {
         return;
     }
 
+    if (result.presetsMissing.length === 0 && result.presetCount > 0) {
+        console.log('All preset classes of the template README have CSS (the CMS class catalogue or a bundle).');
+    }
     console.log('All example web CSS tokens are covered.');
 }
 

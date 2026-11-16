@@ -48,26 +48,29 @@ for the per-file catalog and the prompt contract.
 Full **page bundles** that scaffold a working CMS-in-CMS application. All six
 are surfaced in the admin UI as the **"Start from template" gallery** (Pages →
 Import dialog) for one-click prefixed import, ship translated de-CH/en-GB
-content plus sample rows (`options.importData=true`), and share the same
-portable pattern: the public pages bind data through `@section:<form>` tokens,
-the admin page is an `entry-table` CRUD grid (search/sort/pagination/CSV,
-built-in delete), and one modal form page carries two routes — `.../form`
-(create) and `.../{record_id}` (edit via `load_record_from`).
+content plus sample rows (`options.importData=true`), and share one pattern:
+**one dataset, defined once**. The CMS page (`/cms/<slug>`) is a single
+`entry-form-list` whose inline form owns the data table and adds, edits,
+deletes and restores records; the public page is a read-only `data-view` or an
+`entry-list` composition of the same table (bound by an `@section:<form>` token),
+with a detail page where it makes sense. Each template has its own public layout
+and a domain-specific feature. See [`cms-in-cms/README.md`](./cms-in-cms/README.md).
 
 | Bundle | Demonstrates |
 | --- | --- |
-| `team-members.bundle.json` | **Flagship.** Public card grid with avatar initials, role badges and contact links (`/team-members`), a shareable profile detail page (`/team-members/{record_id}`), an admin CRUD grid, and a translatable bio field. |
-| `news.bundle.json` | News/blog: category select input, date, summary + translatable body; public list/detail pair with category badges. |
-| `faq.bundle.json` | FAQ: public accordion with **one accordion item per data row** (entry-list hydration inside a Mantine accordion); list-only public surface. |
-| `events.bundle.json` | Events: date badges with icons, location line, teaser clamp; public list/detail pair. |
-| `contact-directory.bundle.json` | Contact directory (compact 3-page variant, no public detail): tap-to-call `tel:` and `mailto:` links per card. |
-| `testimonials.bundle.json` | Testimonials wall (3-page variant): blockquote cards with avatar + author line, translatable quote. |
+| `team-members.bundle.json` | **Flagship.** Card grid with portraits (public file input), role badges and contact links, a profile page, a role filter and translatable bio. |
+| `news.bundle.json` | News/blog: category and tags with translated labels, date, translatable title/summary/body; list/detail pair. |
+| `faq.bundle.json` | FAQ: public accordion with **one item per data row**, category label per language; list-only public surface. |
+| `events.bundle.json` | Events: filterable `data-view` cards, a detail page, **quick actions** Cancel/Reopen. |
+| `contact-directory.bundle.json` | Contact directory: searchable and sortable `data-view` table, translatable department, no detail page. |
+| `testimonials.bundle.json` | Testimonials wall: moderation — the public view only shows `status = Approved`; Approve/Hide quick actions in the CMS list. |
 
-Every bundle is import-guarded in backend CI
-(`tests/Golden/CmsInCmsTemplateBundlesImportTest.php` imports each one with
-keyword + route prefixes and asserts the hydrated public render), with fixture
-copies under `sh-selfhelp_backend/tests/fixtures/examples/`. If you edit a
-bundle here, sync the fixture copy.
+The six files are written by `scripts/build-cms-example-bundles.mjs` (`--check`,
+`--backend`; edit the script, not the JSON). Every bundle is import-guarded in backend CI
+(`tests/Golden/CmsInCmsTemplateBundlesImportTest.php`, the portability round trip
+and the manager workflow `tests/Golden/CmsInCmsTemplateWorkflowTest.php`), with
+fixture copies under `sh-selfhelp_backend/tests/fixtures/examples/`
+(`--backend` keeps them identical).
 
 To import: **Admin → Pages**, open the **Export / Import** dialog (the transfer
 icon next to the page search), switch to **Import**, pick a template from the
