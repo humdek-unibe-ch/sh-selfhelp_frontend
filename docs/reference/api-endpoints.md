@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Developers and integrators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-03.
+Last verified: 2026-11-13.
 Source of truth: Controllers, JSON schemas, route definitions, and exported types in this repository.
 
 > **Routing.** All endpoints are reached by the browser through the
@@ -99,6 +99,22 @@ Browse and manage form-submission data per table under **Data Management** in th
 Permissions: `admin.data.read`, `admin.data.delete`, `admin.data.delete_columns`. Export endpoints reuse `admin.data.read`.
 
 > **Blob contract:** the two export endpoints (and `/admin/registration-codes/export`) are the data endpoints that bypass the Symfony `{status,message,data,...}` envelope. The browser reads them with axios `responseType: 'blob'` and triggers the download via `downloadBlobFile()` in `src/utils/export-import.utils.ts`. Do not try to unwrap `response.data.data` for these.
+
+## Entry Lists and Data Views
+
+Core 0.1.44 and later. Used by the `entry-form-list` and `data-view` styles; the server decides access per request (page, section, ownership, table grant), so the BFF routes need no route permission. Writes go through the ordinary form endpoints (`POST /forms/submit`, `PUT /forms/update` with `update_based_on.record_id` and `expected_version`, `DELETE /forms/delete`). Contract: backend `docs/reference/api/22-form-lists.md`; helpers and types: `@selfhelp/shared` `API_ENDPOINTS.LISTS`, `formListState`, `formListErrors`.
+
+| Method | Endpoint (Symfony) | Description |
+| --- | --- | --- |
+| GET | `/lists/{section_id}/state` | The list for the URL state (`<key>.page`, `.q`, `.sort`, `.f.<id>`, `.record`, `.mode`), plus `page_id` and `language_id`. A refusal carries a stable `data.reason` (`login_required`, `operation_disabled`, `invalid_list_parameter`, ...) the list explains (`getFormListFailure`). |
+| POST | `/lists/{section_id}/records/{record}/actions/{action}` | Runs one configured quick action on one record. |
+| GET | `/lists/{section_id}/records/{record}/history` | Saved versions of a record (paged). |
+| GET | `/lists/{section_id}/records/{record}/versions/{version}` | One saved version. |
+| GET | `/lists/{section_id}/records/{record}/compare` | Field by field difference of two versions. |
+| POST | `/lists/{section_id}/records/{record}/restore` | Restores an older version as a new one; `422 restore_blocked` names what blocks it. |
+| GET | `/lists/{section_id}/records/{record}/versions/{version}/files/{field_key}` | Downloads a file an earlier version held (opened as a link, not fetched as JSON). |
+
+A stale update, delete, quick action or restore answers `409`; the envelope's `data` is `{ reason: 'stale_version', record_id, expected_version, current_version }` (`getFormStaleVersion`).
 
 ## Asset Management
 
