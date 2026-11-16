@@ -27,3 +27,5 @@ export { DataTableColumnSelectField } from './DataTableColumnSelectField';
 export { useResolvedDataTableName } from './useResolvedDataTableName';
 export { ColorPickerField } from './color-picker/ColorPickerField';
 export { SpacingField } from './spacing-field/SpacingField';
+export { FormListFieldEditor, isFormListEditorField } from './form-list/FormListFieldEditor';
+export { FormListSourceProvider, useFormListSource } from './form-list/FormListSourceContext';

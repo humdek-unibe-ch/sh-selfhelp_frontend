@@ -28,6 +28,8 @@ import {
     ColorPickerField,
     SpacingField,
     MonacoEditorField,
+    FormListFieldEditor,
+    isFormListEditorField,
 } from '../field-components';
 import { FieldLabelContext, useFieldLabel } from '../../../shared/common/field-label-context';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
@@ -360,6 +362,19 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     
 
     
+    // The JSON fields of an entry list / data view are edited as rows, with the fields of the
+    // list's table offered by name (a list stores immutable column keys nobody can know by heart).
+    if (field.type === 'json' && isFormListEditorField(styleName, field.name)) {
+        return renderFieldWithBadge(
+            <FormListFieldEditor
+                fieldName={field.name}
+                value={fieldValue}
+                onChange={onChange}
+                disabled={disabled}
+            />,
+        );
+    }
+
     // JSON field - use Monaco Editor with `{{` variable completion (issue #56 v2)
     if (field.type === 'json') {
         return renderFieldWithBadge(
