@@ -13,6 +13,7 @@ import {
     Button,
     Group,
     Loader,
+    NumberInput,
     Paper,
     Select,
     Stack,
@@ -99,6 +100,72 @@ function buildNavigationUrl(pathname: string, tab: TNavigationTab, itemId?: numb
         params.set('item', String(itemId));
     }
     return `${pathname}?${params.toString()}`;
+}
+
+function maxRootItemsHint(menuKey: TMenuKey): string {
+    if (menuKey === 'web_header') {
+        return 'Blank = unlimited. Recommended: 8';
+    }
+    if (menuKey === 'mobile_bottom_tabs') {
+        return 'Blank = unlimited. Recommended: 5';
+    }
+    return 'Blank = unlimited. Unlimited is fine';
+}
+
+/** Draft-aware Max root items control — Mantine NumberInput needs local state while focused. */
+function MaxRootItemsInput({
+    menuKey,
+    itemLimit,
+    disabled,
+    onCommit,
+}: {
+    menuKey: TMenuKey;
+    itemLimit: number | null;
+    disabled: boolean;
+    onCommit: (next: number | null) => void;
+}): React.ReactElement {
+    const [draft, setDraft] = useState<number | ''>(itemLimit ?? '');
+
+    useEffect(() => {
+        setDraft(itemLimit ?? '');
+    }, [itemLimit]);
+
+    return (
+        <NumberInput
+            w={200}
+            label="Max root items"
+            description={maxRootItemsHint(menuKey)}
+            inputWrapperOrder={['label', 'input', 'description']}
+            min={1}
+            max={50}
+            allowDecimal={false}
+            allowNegative={false}
+            clampBehavior="blur"
+            value={draft}
+            disabled={disabled}
+            onChange={(value) => {
+                if (value === '' || value === undefined || value === null) {
+                    setDraft('');
+                    return;
+                }
+                const numeric = typeof value === 'number' ? value : Number(value);
+                if (Number.isFinite(numeric)) {
+                    setDraft(numeric);
+                }
+            }}
+            onBlur={() => {
+                const next = draft === '' ? null : draft;
+                if (next !== null && (!Number.isInteger(next) || next < 1 || next > 50)) {
+                    setDraft(itemLimit ?? '');
+                    return;
+                }
+                if (next === itemLimit) {
+                    return;
+                }
+                onCommit(next);
+            }}
+        />
+    );
 }
 
 export function NavigationBuilderPage(): React.ReactElement {
@@ -219,8 +286,14 @@ export function NavigationBuilderPage(): React.ReactElement {
 
     const menuDefinitionMutation = useMutation({
         mutationFn: ({ menuKey, payload }: {
-            menuKey: 'web_header' | 'web_footer';
-            payload: { preset?: string; children_nav?: TNavigationChildrenNavMode | null; show_breadcrumbs?: boolean; show_pager?: boolean };
+            menuKey: TMenuKey;
+            payload: {
+                preset?: string;
+                item_limit?: number | null;
+                children_nav?: TNavigationChildrenNavMode | null;
+                show_breadcrumbs?: boolean;
+                show_pager?: boolean;
+            };
         }) => AdminNavigationApi.updateMenuDefinition(menuKey, payload),
         onMutate: ({ menuKey, payload }) => {
             applyOverviewPatch((current) => {
@@ -410,103 +483,118 @@ export function NavigationBuilderPage(): React.ReactElement {
                                                         variant="light"
                                                         color={atItemLimit ? 'orange' : 'gray'}
                                                         title={overItemLimit
-                                                            ? 'Extra root items are not shown; only the first ones up to the limit render.'
+                                                            ? 'Extra root items stay stored but are not shown; only the first ones up to the limit render. Raise Max root items to show more.'
                                                             : atItemLimit
-                                                                ? 'This menu is full — remove a root item, or nest new pages under an existing one.'
+                                                                ? 'This menu is full — remove a root item, nest under an existing one, or raise Max root items.'
                                                                 : 'Root items rendered by this menu.'}
                                                     >
                                                         {rootItemCount} / {itemLimit} root items
+                                                        {overItemLimit ? ' (over limit)' : ''}
                                                     </Badge>
                                                 ) : null}
                                             </Group>
                                         </div>
-                                        {tab.key === 'web_header' ? (
-                                            <Group gap="lg" align="flex-start" wrap="wrap">
+                                        <Group gap="lg" align="flex-start" wrap="wrap">
+                                            {tab.key === 'web_header' ? (
+                                                <>
+                                                    <Select
+                                                        w={220}
+                                                        label="Header preset"
+                                                        description="Row layout and panel style"
+                                                        inputWrapperOrder={['label', 'input', 'description']}
+                                                        data={WEB_HEADER_PRESET_OPTIONS.map((opt) => ({
+                                                            value: opt.value,
+                                                            label: opt.label,
+                                                        }))}
+                                                        renderOption={renderPresetOption(WEB_HEADER_PRESET_OPTIONS)}
+                                                        value={headerPreset}
+                                                        disabled={!canUpdateNavigation}
+                                                        onChange={(value) => {
+                                                            if (value) menuDefinitionMutation.mutate({ menuKey: 'web_header', payload: { preset: value } });
+                                                        }}
+                                                    />
+                                                    <Select
+                                                        w={220}
+                                                        label="Child pages navigation"
+                                                        description="Default for pages with children"
+                                                        inputWrapperOrder={['label', 'input', 'description']}
+                                                        data={[
+                                                            { value: 'sidebar', label: 'Left sidebar' },
+                                                            { value: 'pills', label: 'Pill strip' },
+                                                            { value: 'none', label: 'Hidden' },
+                                                        ]}
+                                                        value={tabMenu?.children_nav ?? 'sidebar'}
+                                                        disabled={!canUpdateNavigation}
+                                                        onChange={(value) => {
+                                                            if (value) {
+                                                                menuDefinitionMutation.mutate({
+                                                                    menuKey: 'web_header',
+                                                                    payload: { children_nav: value as TNavigationChildrenNavMode },
+                                                                });
+                                                            }
+                                                        }}
+                                                    />
+                                                    <div>
+                                                        <Text size="sm" fw={500} lh="var(--mantine-line-height-sm)" mb={7}>
+                                                            Child page extras
+                                                        </Text>
+                                                        <Stack gap={8}>
+                                                            <Switch
+                                                                size="sm"
+                                                                label="Breadcrumbs"
+                                                                checked={tabMenu?.show_breadcrumbs ?? false}
+                                                                disabled={!canUpdateNavigation}
+                                                                onChange={(event) => {
+                                                                    menuDefinitionMutation.mutate({
+                                                                        menuKey: 'web_header',
+                                                                        payload: { show_breadcrumbs: event.currentTarget.checked },
+                                                                    });
+                                                                }}
+                                                            />
+                                                            <Switch
+                                                                size="sm"
+                                                                label="Prev / next pager"
+                                                                checked={tabMenu?.show_pager ?? true}
+                                                                disabled={!canUpdateNavigation}
+                                                                onChange={(event) => {
+                                                                    menuDefinitionMutation.mutate({
+                                                                        menuKey: 'web_header',
+                                                                        payload: { show_pager: event.currentTarget.checked },
+                                                                    });
+                                                                }}
+                                                            />
+                                                        </Stack>
+                                                    </div>
+                                                </>
+                                            ) : null}
+                                            {tab.key === 'web_footer' ? (
                                                 <Select
-                                                    w={220}
-                                                    label="Header preset"
-                                                    description="Row layout and panel style"
-                                                    inputWrapperOrder={['label', 'input', 'description']}
-                                                    data={WEB_HEADER_PRESET_OPTIONS.map((opt) => ({
+                                                    w={260}
+                                                    label="Footer layout"
+                                                    data={WEB_FOOTER_PRESET_OPTIONS.map((opt) => ({
                                                         value: opt.value,
                                                         label: opt.label,
                                                     }))}
-                                                    renderOption={renderPresetOption(WEB_HEADER_PRESET_OPTIONS)}
-                                                    value={headerPreset}
+                                                    renderOption={renderPresetOption(WEB_FOOTER_PRESET_OPTIONS)}
+                                                    value={footerPreset}
                                                     disabled={!canUpdateNavigation}
                                                     onChange={(value) => {
-                                                        if (value) menuDefinitionMutation.mutate({ menuKey: 'web_header', payload: { preset: value } });
+                                                        if (value) menuDefinitionMutation.mutate({ menuKey: 'web_footer', payload: { preset: value } });
                                                     }}
                                                 />
-                                                <Select
-                                                    w={220}
-                                                    label="Child pages navigation"
-                                                    description="Default for pages with children"
-                                                    inputWrapperOrder={['label', 'input', 'description']}
-                                                    data={[
-                                                        { value: 'sidebar', label: 'Left sidebar' },
-                                                        { value: 'pills', label: 'Pill strip' },
-                                                        { value: 'none', label: 'Hidden' },
-                                                    ]}
-                                                    value={tabMenu?.children_nav ?? 'sidebar'}
-                                                    disabled={!canUpdateNavigation}
-                                                    onChange={(value) => {
-                                                        if (value) {
-                                                            menuDefinitionMutation.mutate({
-                                                                menuKey: 'web_header',
-                                                                payload: { children_nav: value as TNavigationChildrenNavMode },
-                                                            });
-                                                        }
-                                                    }}
-                                                />
-                                                <div>
-                                                    <Text size="sm" fw={500} lh="var(--mantine-line-height-sm)" mb={7}>
-                                                        Child page extras
-                                                    </Text>
-                                                    <Stack gap={8}>
-                                                        <Switch
-                                                            size="sm"
-                                                            label="Breadcrumbs"
-                                                            checked={tabMenu?.show_breadcrumbs ?? false}
-                                                            disabled={!canUpdateNavigation}
-                                                            onChange={(event) => {
-                                                                menuDefinitionMutation.mutate({
-                                                                    menuKey: 'web_header',
-                                                                    payload: { show_breadcrumbs: event.currentTarget.checked },
-                                                                });
-                                                            }}
-                                                        />
-                                                        <Switch
-                                                            size="sm"
-                                                            label="Prev / next pager"
-                                                            checked={tabMenu?.show_pager ?? true}
-                                                            disabled={!canUpdateNavigation}
-                                                            onChange={(event) => {
-                                                                menuDefinitionMutation.mutate({
-                                                                    menuKey: 'web_header',
-                                                                    payload: { show_pager: event.currentTarget.checked },
-                                                                });
-                                                            }}
-                                                        />
-                                                    </Stack>
-                                                </div>
-                                            </Group>
-                                        ) : tab.key === 'web_footer' ? (
-                                            <Select
-                                                w={260}
-                                                label="Footer layout"
-                                                data={WEB_FOOTER_PRESET_OPTIONS.map((opt) => ({
-                                                    value: opt.value,
-                                                    label: opt.label,
-                                                }))}
-                                                renderOption={renderPresetOption(WEB_FOOTER_PRESET_OPTIONS)}
-                                                value={footerPreset}
+                                            ) : null}
+                                            <MaxRootItemsInput
+                                                menuKey={tab.key}
+                                                itemLimit={itemLimit}
                                                 disabled={!canUpdateNavigation}
-                                                onChange={(value) => {
-                                                    if (value) menuDefinitionMutation.mutate({ menuKey: 'web_footer', payload: { preset: value } });
+                                                onCommit={(next) => {
+                                                    menuDefinitionMutation.mutate({
+                                                        menuKey: tab.key,
+                                                        payload: { item_limit: next },
+                                                    });
                                                 }}
                                             />
-                                        ) : null}
+                                        </Group>
                                     </Group>
                                     {tab.key === 'web_header' && !headerLayerMode && topLayerCount > 0 ? (
                                         <Alert color="blue" variant="light" mt="sm" p="xs">
