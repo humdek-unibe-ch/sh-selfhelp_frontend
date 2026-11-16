@@ -42,8 +42,11 @@ import {
 import { MaintenanceClient } from '../MaintenanceClient';
 import { MAINTENANCE_KEYWORD, hasRenderableMaintenancePage, isMaintenanceStatus } from '../maintenance';
 import DynamicPageClient from './DynamicPageClient';
+import { FormListSsrProvider } from '../components/frontend/styles/form-list/FormListSsrContext';
 import { shouldStaticFallback } from './shouldStaticFallback';
 import { buildStaticFallbackPath, pathFromSlug } from './slug-routing';
+import { pickFormListQuery } from '../../shared';
+import { buildFormListSsrValue, searchParamsToQueryString } from '../../utils/form-list.utils';
 
 export async function generateMetadata({
     params,
@@ -91,18 +94,25 @@ export async function generateMetadata({
 
 export default async function SlugPage({
     params,
+    searchParams,
 }: {
     params: Promise<{ slug?: string[] }>;
+    searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
     const { slug } = await params;
     const path = pathFromSlug(slug);
+    // The page URL's query string drives the form lists on the page
+    // (`?news.q=sleep&news.page=2`). The server renders each list for exactly
+    // that state, so the first paint already shows the right rows.
+    const search = searchParamsToQueryString(await searchParams);
+    const listQuery = pickFormListQuery(search);
     const [{ id: languageId }, preview] = await Promise.all([
         resolveLanguageSSR(),
         resolvePreviewSSR(),
     ]);
 
     const [{ status, data: envelope }, initialNavigation] = await Promise.all([
-        resolvePageByPathSSRStatus(path, languageId, preview),
+        resolvePageByPathSSRStatus(path, languageId, preview, listQuery),
         getNavigationSSR(languageId),
     ]);
 
@@ -147,12 +157,14 @@ export default async function SlugPage({
     }
 
     return (
-        <DynamicPageClient
-            keyword={page.keyword}
-            initialPageId={page.id}
-            path={path}
-            routeParams={page.route_params}
-            initialNavigation={initialNavigation}
-        />
+        <FormListSsrProvider value={buildFormListSsrValue(page.sections, search)}>
+            <DynamicPageClient
+                keyword={page.keyword}
+                initialPageId={page.id}
+                path={path}
+                routeParams={page.route_params}
+                initialNavigation={initialNavigation}
+            />
+        </FormListSsrProvider>
     );
 }

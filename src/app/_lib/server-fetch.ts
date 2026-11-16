@@ -554,9 +554,13 @@ export const resolvePageByPathSSRStatus = cache(
     async (
         path: string,
         languageId: number,
-        preview = false
+        preview = false,
+        listQuery = ''
     ): Promise<{ status: number | null; data: IGetPageResponse | null }> => {
-        return fetchJsonWithStatus(buildPagesResolvePath({ path, languageId, preview }), {
+        // `listQuery`: the raw `<key>.*` pairs of the page URL (`pickFormListQuery`).
+        // The server renders every form list of the page for exactly that URL state.
+        const resolvePath = buildPagesResolvePath({ path, languageId, preview });
+        return fetchJsonWithStatus(listQuery === '' ? resolvePath : `${resolvePath}&${listQuery}`, {
             headers: await pageReferrerHeaders(),
         });
     }
@@ -574,17 +578,17 @@ export const resolvePageByPathSSRStatus = cache(
  * eliminates the published → preview double round-trip admins previously
  * saw on every page load.
  *
- * ## Preview requires a session (core >= 0.1.18)
+ * ## Preview requires edit rights (core form-list fix-2)
  *
- * Preview serves the unpublished draft, which the backend now returns ONLY to
- * an authenticated caller — an anonymous `preview=true` is rejected with 401.
- * The `sh_preview` cookie is long-lived and admin-set, so it can outlive the
- * session (admin enables preview, then logs out or the session expires). Left
- * ungated, that stale cookie would make every anonymous SSR render request the
- * draft and 401, never reaching the published view. We therefore gate preview
- * on a live session cookie here: with no auth/refresh cookie we fall back to
- * the published view and never emit `preview=true` for an anonymous request.
- * Mirrors the mobile client's preview-policy gate (`services/previewPolicy.ts`).
+ * Preview serves the unpublished draft only to a caller who may edit the page
+ * (`admin.page.update` plus the update grant; admin passes). Guests get 401;
+ * signed-in callers without those rights get 403. The `sh_preview` cookie is
+ * long-lived and admin-set (CMS / live preview), so it can outlive the session.
+ * Left ungated, that stale cookie would make every anonymous SSR render request
+ * the draft and 401. We therefore gate preview on a live session cookie here:
+ * with no auth/refresh cookie we fall back to the published view and never emit
+ * `preview=true` for an anonymous request. The server still decides; clients
+ * only show the 403 reason. Mirrors the mobile preview-policy gate.
  *
  * Wrapped in `cache()` so the slug layout prefetch, `generateMetadata`,
  * and the slug page body share a single cookie read per request.
