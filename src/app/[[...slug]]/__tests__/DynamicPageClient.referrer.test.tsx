@@ -60,6 +60,7 @@ vi.mock('../../components/contexts/LanguageContext', () => ({
 
 vi.mock('../../components/contexts/PreviewModeContext', () => ({
     usePreviewMode: () => ({ isPreviewMode: false }),
+    PreviewModeProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 vi.mock('../../components', () => ({
