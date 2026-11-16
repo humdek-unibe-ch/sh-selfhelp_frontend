@@ -27,6 +27,7 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { permissionManager } from '../api/permission-wrapper.api';
 import { ROUTES } from '../config/routes.config';
 import { withRedirectTo } from '../utils/login-redirect.utils';
+import { clearFormListCaches } from '../utils/form-list-cache.utils';
 
 function shouldRedirectToLogin(pathname: string): boolean {
     if (!pathname.startsWith('/admin')) return false;
@@ -52,6 +53,7 @@ export function useAuthBroadcastSync(): void {
                 queryClient.removeQueries({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION_ALL,
                 });
+                clearFormListCaches(queryClient);
                 if (
                     typeof window !== 'undefined' &&
                     shouldRedirectToLogin(window.location.pathname)
@@ -71,6 +73,8 @@ export function useAuthBroadcastSync(): void {
                 void queryClient.invalidateQueries({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION_ALL,
                 });
+                // Another account may have signed in: its lists are not this tab's cached ones.
+                clearFormListCaches(queryClient);
             }
         });
     }, [queryClient, router]);

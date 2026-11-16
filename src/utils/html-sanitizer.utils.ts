@@ -4,6 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import DOMPurify from 'isomorphic-dompurify';
 import { createElement, type ReactNode } from 'react';
+import { getAssetUrl } from './asset-url.utils';
 
 /**
  * Utility functions for sanitizing HTML content to prevent hydration errors and XSS attacks.
@@ -193,7 +194,7 @@ export function sanitizeHtmlForParsing(htmlContent: string): string {
     });
 
     // Then apply inline sanitization to prevent hydration errors
-    return sanitizeHtmlForInline(purified);
+    return rewriteListFileHrefs(sanitizeHtmlForInline(purified));
 }
 
 /** True when the value is a string that contains at least one HTML tag. */
@@ -218,10 +219,22 @@ export function sanitizeHtmlForBlock(htmlContent: string): string {
         return htmlContent || '';
     }
 
-    return DOMPurify.sanitize(htmlContent, {
+    return rewriteListFileHrefs(DOMPurify.sanitize(htmlContent, {
         ALLOWED_TAGS: ['p', 'div', 'span', 'strong', 'em', 'b', 'i', 'u', 's', 'br', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr', 'mark'],
         ALLOWED_ATTR: ['href', 'target', 'rel', 'style']
-    });
+    }));
+}
+
+/**
+ * Server-built `__links` HTML uses the same `/lists/.../files/...` URLs as
+ * `__url` / `__files`. The browser must hit them through the BFF (`/api/lists/...`)
+ * so the httpOnly auth cookie is attached — same rewrite as {@link getAssetUrl}.
+ */
+function rewriteListFileHrefs(html: string): string {
+    return html.replace(
+        /href=(["'])(\/?lists\/\d+\/records\/\d+\/files\/[^"']+)\1/gi,
+        (_full, quote: string, path: string) => `href=${quote}${getAssetUrl(path)}${quote}`,
+    );
 }
 
 /**
