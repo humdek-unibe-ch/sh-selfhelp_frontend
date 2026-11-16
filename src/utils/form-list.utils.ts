@@ -117,7 +117,9 @@ const DATE_ONLY = /^(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2})(?::\d{2})?)?/;
  * hydration never disagrees with the server render.
  */
 export function formatListCell(value: TFormListCellValue | undefined, format: IFormListColumn['format']): string {
-    if (value === null || value === undefined || isFileCell(value)) {
+    // File / image cells are drawn by FormListCell from the `{ files }` wrapper;
+    // never stringify them (a bare array or object would become "[object Object]").
+    if (value === null || value === undefined || format === 'file' || format === 'image' || isFileCell(value)) {
         return '';
     }
     const text = String(value);
