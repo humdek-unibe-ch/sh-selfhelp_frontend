@@ -16,6 +16,107 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## Unreleased
+
+**Added**
+
+- Menus builder: **Max root items** on every menu tab (header, footer, drawer,
+  bottom tabs); blank clears to unlimited. Badge and blocked-add copy mention
+  raising the limit; soft over-limit keeps extras stored. User guide:
+  [docs/user/menus.md](docs/user/menus.md).
+
+## v0.1.71 — 2026-11-13
+
+**CMS app media and publish (F165–F166):** `FileInputStyle` shows stored files
+with Replace/Remove and sends contract-4 ops; list cells use `{files:[…]}` with
+`image` thumbnails; history shows image thumbnails and file downloads from
+server historical-file URLs; scaffold wizard offers `with_status` and
+`image`/`files`; news public cards/detail use `__url`/`__links` (HTML download
+list drawn by the `text` style; list-file hrefs rewritten through the BFF;
+nested `<a>` use the theme anchor colour and underline); public
+surfaces use typed `fixed_filter` / published filters (not condition text);
+admin data browser History lists/restores record revisions (contract 6).
+`?list.mode=history` opens the history tab of a record (deep link). Only the
+news and team-members templates carry a published-status filter; the other
+four stay as before.
+
+
+Requires core **>=0.1.44** for the entry-list styles, their routes and the
+record history. Pairs with `@selfhelp/shared` 1.24.0: `package.json` and the
+lockfile pin it. A registry-backed `npm ci` therefore needs 1.24.0 to be
+published first (order of the release: shared, then the consumers, then the
+tags); until then the build is verified against the local packed artifact
+described in the shared repository (`docs/developer/release-and-versioning.md`).
+
+### Added
+- **Entry lists.** The new `entry-form-list` style shows a person's own
+  entries as a table or as cards and lets them add, view, edit and delete one
+  without leaving the page, in a dialog or on the page itself. The first paint
+  is drawn by the server and the page reads nothing again after it loads.
+  Search (2 to 100 characters), sort and paging live in the address bar, so a
+  reload, Back, Forward or a shared link show the same list; two lists on one
+  page do not disturb each other or the rest of the page. Rows can carry the
+  quick actions the editor configured, each asking for confirmation when the
+  editor asked for it. Everything the person may do is decided by the server;
+  the list only shows what it was told.
+- **Data views.** The new `data-view` style shows records of a data table
+  read-only, as a table or as cards, with search, sort, paging and a link from
+  each row to its own page (`detail_url`). It can be public. It has no add,
+  edit or delete control, and a forged write is refused by the server.
+- **Your own design for each record.** A data view can use the layout *Custom*:
+  the sections placed inside it (a card, a title, a badge, a button ...) are the
+  design of one record, and the column names in double braces (`{{title}}`,
+  `{{record_id}}`) show each record's values. Search, filters and paging work as
+  before. *Record container classes* place the records on the page (a responsive
+  grid) on the web; the phone stacks them.
+- **History of an entry.** A person who may see the history opens the list of
+  saved versions of an entry, reads one, compares two versions field by field,
+  and restores an older one (files that are no longer available are named, not
+  silently dropped).
+- **Visual list editors in the section editor.** Columns, default order,
+  controls (search and filters), fixed filter and quick actions are edited as
+  rows with labels, reordering and the data table's own column names: no JSON
+  and no SQL. A problem in the configuration is shown next to the field before
+  it is saved.
+- **Unsaved input is protected.** In an entry form, Cancel, the close button,
+  Escape and the browser's Back button ask "Discard your changes?" when
+  something was typed or a file was chosen; "Keep editing" keeps the form and
+  the typed text. Double-clicking Save writes the entry once.
+- **A save over somebody else's change keeps your text.** When the entry was
+  changed by someone else after it was opened, the save is refused and the
+  dialog keeps what was typed. The person reloads the entry, compares, or
+  chooses to save over it.
+- **Six redesigned CMS-in-CMS templates.** Team members, News, FAQ, Events,
+  Contact directory and Testimonials each come with their own public design and
+  one list in the CMS that holds the form: add, edit, delete and restore
+  records, search and filter, a portrait upload for team members, Cancel /
+  Reopen for events, Approve / Hide for testimonials. Events, contacts and
+  testimonials are drawn from a card of your own (event cards, contact cards,
+  a quote wall). Select values carry a short code with a label per language,
+  and sample records come in German and English. Imported pages stay private
+  until an editor opens them. The template guide lists a compact and a spacious
+  set of classes for each.
+
+### Changed
+- **The CMS app wizard builds one list.** Scaffold now creates the CMS list
+  (`/cms/<name>`, with the form inside it), a read-only public list and a
+  public detail page over the same data; the preview says what each page does,
+  a new form needs the CMS list, and an existing data table gets a list that
+  shows and deletes its records.
+- A form shown inside an entry list is saved through the normal form
+  endpoints and sends the version it started from; it does not reload the whole
+  page payload after a save, only its own list.
+- Signing in or out, switching account, impersonation, and a change of the
+  person's roles drop the cached lists and histories, so the same address never
+  shows another person's records or buttons.
+- Table lists scroll sideways inside their own box on a phone, and the text
+  that explains a list (counts, labels, hints) is one step darker for contrast.
+- Very long labels and values (a questionnaire's sentence-long question, an
+  unbroken string) break inside a list, its dialog and its form: the dialog no
+  longer grows past the screen, at 390 px and at 1366 px.
+
+---
+
 ## v0.1.70 — 2026-11-11
 
 Requires core **>=0.1.43** for the navigation warning tags and the asset
