@@ -271,6 +271,7 @@ export type TStyleName =
     | 'datepicker'
     | 'typography'
     | 'entry-table'
+    | 'entry-form-list' | 'data-view'
     | 'timeline-item'
     // system / error surfaces
     | 'no-access' | 'missing' | 'not-found';
@@ -409,6 +410,9 @@ export type {
     ILoopStyle,
     IEntryTableStyle,
     IEntryTableEntry,
+    IFormListBaseStyle,
+    IEntryFormListStyle,
+    IDataViewStyle,
 } from '../../shared';
 
 // ===== Frontend-only legacy styles =====
@@ -532,6 +536,8 @@ import type {
     IEntryRecordDeleteStyle,
     ILoopStyle,
     IEntryTableStyle,
+    IEntryFormListStyle,
+    IDataViewStyle,
     INoAccessStyle,
     IMissingStyle,
     INotFoundStyle,
@@ -570,6 +576,7 @@ export type TStyle =
     | ITimelineStyle | ITimelineItemStyle | IListStyle | IListItemStyle
     | IEntryListStyle | IEntryRecordStyle | IEntryRecordDeleteStyle
     | ILoopStyle | IVersionStyle | IEntryTableStyle
+    | IEntryFormListStyle | IDataViewStyle
     // system / error surfaces
     | INoAccessStyle | IMissingStyle | INotFoundStyle;
 

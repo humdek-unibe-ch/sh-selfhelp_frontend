@@ -49,7 +49,10 @@ export type TCmsAppFormFieldStyle =
     | 'select'
     | 'checkbox'
     | 'radio'
-    | 'number-input';
+    | 'number-input'
+    | 'image'
+    | 'files'
+    | 'file-input';
 
 export interface ICmsAppFormField {
     name: string;
@@ -64,6 +67,8 @@ export interface IScaffoldCmsAppRequest {
     form_field_name?: string;
     form_field_label?: string;
     form_fields?: ICmsAppFormField[];
+    /** Draft/published status field + publish quick actions + public filter. Default true on the server. */
+    with_status?: boolean;
     create_public?: boolean;
     create_admin?: boolean;
     record_id_param?: string;

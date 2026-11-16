@@ -25,11 +25,9 @@ export class FormSubmissionApi {
      * Creates a new form record
      */
     static async submitForm(data: IFormSubmitRequest | FormData): Promise<IFormSubmitResponse> {
-        const config = data instanceof FormData ? {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        } : undefined;
-        
-        const response = await permissionAwareApiClient.post<IFormSubmitResponse>(API_CONFIG.ENDPOINTS.FORMS_SUBMIT, data, config);
+        // FormData: leave Content-Type alone — `base.api` strips the default
+        // `application/json` so the browser sets multipart + boundary (F173).
+        const response = await permissionAwareApiClient.post<IFormSubmitResponse>(API_CONFIG.ENDPOINTS.FORMS_SUBMIT, data);
         return response.data;
     }
 
@@ -38,11 +36,7 @@ export class FormSubmissionApi {
      * Updates an existing form record based on criteria
      */
     static async updateForm(data: IFormUpdateRequest | FormData): Promise<IFormUpdateResponse> {
-        const config = data instanceof FormData ? {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        } : undefined;
-        
-        const response = await permissionAwareApiClient.put<IFormUpdateResponse>(API_CONFIG.ENDPOINTS.FORMS_UPDATE, data, config);
+        const response = await permissionAwareApiClient.put<IFormUpdateResponse>(API_CONFIG.ENDPOINTS.FORMS_UPDATE, data);
         return response.data;
     }
 

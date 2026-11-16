@@ -131,10 +131,38 @@ export interface ISectionDataTableInfo {
     locked: boolean;
 }
 
+/** One column an entry list may name: the immutable key to store, its readable name and value type. */
+export interface IFormListSourceColumn {
+    field: string;
+    label: string;
+    type: string;
+}
+
+/** A field every record has (entry date, record number, who wrote it) and where a list may use it. */
+export interface IFormListSourceRowField extends IFormListSourceColumn {
+    column: boolean;
+    sort: boolean;
+    filter: boolean;
+}
+
+/**
+ * What the editor of an entry list or data view may offer its author, computed by
+ * the server (never cached): the table the list reads and its fields. A list stores
+ * columns by immutable key (`section_<input id>`), which nobody can know by heart.
+ */
+export interface IFormListSource {
+    data_table: { id: number; name: string } | null;
+    form_section_id: number | null;
+    columns: IFormListSourceColumn[];
+    row_fields: IFormListSourceRowField[];
+}
+
 export interface ISectionDetailsData {
     section: ISectionDetails;
     fields: ISectionField[];
     data_table?: ISectionDataTableInfo;
+    /** Only for `entry-form-list` and `data-view` sections whose table can be found. */
+    list_source?: IFormListSource;
 }
 
 export type TSectionDetailsResponse = IBaseApiResponse<ISectionDetailsData>;

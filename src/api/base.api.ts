@@ -97,6 +97,13 @@ apiClientRaw.interceptors.request.use(
                 config.headers.set('X-CSRF-Token', csrf);
             }
         }
+        // FormData must carry its own multipart boundary. The default
+        // `Content-Type: application/json` (and any forced `multipart/form-data`
+        // without a boundary) makes the BFF/PHP drop later parts — F173: news
+        // `status` after file parts arrived empty while the select showed Draft.
+        if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+            config.headers.delete('Content-Type');
+        }
         return config;
     },
     (error) => Promise.reject(error)

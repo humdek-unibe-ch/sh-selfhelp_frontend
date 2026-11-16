@@ -987,6 +987,78 @@ export const API_CONFIG = {
             permissions: []
         },
 
+        // Form lists (`entry-form-list` / `data-view`, core 0.1.44). Participants
+        // and guests use them: the server decides access per request (page,
+        // section, ownership, table grant), so no route permission is declared.
+        // The routes come from the shared map so web and mobile cannot drift.
+        FORM_LIST_STATE: {
+            route: (sectionId: number) => strip(SHARED_ENDPOINTS.LISTS.STATE(sectionId)),
+            permissions: []
+        },
+        FORM_LIST_QUICK_ACTION: {
+            route: (sectionId: number, recordId: number, actionId: string) =>
+                strip(SHARED_ENDPOINTS.LISTS.QUICK_ACTION(sectionId, recordId, actionId)),
+            permissions: []
+        },
+        FORM_LIST_HISTORY: {
+            route: (sectionId: number, recordId: number) =>
+                strip(SHARED_ENDPOINTS.LISTS.HISTORY(sectionId, recordId)),
+            permissions: []
+        },
+        FORM_LIST_VERSION: {
+            route: (sectionId: number, recordId: number, version: number) =>
+                strip(SHARED_ENDPOINTS.LISTS.VERSION(sectionId, recordId, version)),
+            permissions: []
+        },
+        FORM_LIST_COMPARE: {
+            route: (sectionId: number, recordId: number) =>
+                strip(SHARED_ENDPOINTS.LISTS.COMPARE(sectionId, recordId)),
+            permissions: []
+        },
+        FORM_LIST_RESTORE: {
+            route: (sectionId: number, recordId: number) =>
+                strip(SHARED_ENDPOINTS.LISTS.RESTORE(sectionId, recordId)),
+            permissions: []
+        },
+        // Download of a file an earlier version held (opened as a link, never fetched as JSON).
+        FORM_LIST_VERSION_FILE: {
+            route: (sectionId: number, recordId: number, version: number, fieldKey: string) =>
+                strip(SHARED_ENDPOINTS.LISTS.VERSION_FILE(sectionId, recordId, version, fieldKey)),
+            permissions: []
+        },
+        FORM_LIST_CURRENT_FILE: {
+            route: (sectionId: number, recordId: number, fieldKey: string) =>
+                strip(SHARED_ENDPOINTS.LISTS.CURRENT_FILE(sectionId, recordId, fieldKey)),
+            permissions: []
+        },
+
+        // Admin data-browser record history (contract 6)
+        ADMIN_DATA_RECORD_HISTORY: {
+            route: (tableName: string, recordId: number) =>
+                strip(SHARED_ENDPOINTS.ADMIN_DATA_HISTORY.HISTORY(tableName, recordId)),
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
+        ADMIN_DATA_RECORD_VERSION: {
+            route: (tableName: string, recordId: number, version: number) =>
+                strip(SHARED_ENDPOINTS.ADMIN_DATA_HISTORY.VERSION(tableName, recordId, version)),
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
+        ADMIN_DATA_RECORD_COMPARE: {
+            route: (tableName: string, recordId: number) =>
+                strip(SHARED_ENDPOINTS.ADMIN_DATA_HISTORY.COMPARE(tableName, recordId)),
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
+        ADMIN_DATA_RECORD_RESTORE: {
+            route: (tableName: string, recordId: number) =>
+                strip(SHARED_ENDPOINTS.ADMIN_DATA_HISTORY.RESTORE(tableName, recordId)),
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
+        ADMIN_DATA_RECORD_VERSION_FILE: {
+            route: (tableName: string, recordId: number, version: number, fieldKey: string) =>
+                strip(SHARED_ENDPOINTS.ADMIN_DATA_HISTORY.VERSION_FILE(tableName, recordId, version, fieldKey)),
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
+
         // Admin section creation endpoints
         ADMIN_PAGES_CREATE_SECTION: {
             route: (pageId: number) => `/admin/pages/${pageId}/sections/create`,
