@@ -249,6 +249,8 @@ const STYLE_FAMILIES: IStyleFamily[] = [
         styles: [
             { name: 'data-container', icon: IconDatabase },
             { name: 'entry-list', icon: IconTable },
+            { name: 'entry-form-list', icon: IconTable },
+            { name: 'data-view', icon: IconListDetails },
             { name: 'entry-record', icon: IconClipboardText },
             { name: 'entry-record-delete', icon: IconDatabaseCog },
             // Renamed from `show-user-input` by backend migration Version20260710093048.
