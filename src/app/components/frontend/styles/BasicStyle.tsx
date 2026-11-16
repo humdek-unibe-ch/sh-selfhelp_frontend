@@ -26,7 +26,8 @@ import {
     UnknownStyle,
     FormStyle,
     ProfileStyle,
-    EntryTableStyle
+    EntryTableStyle,
+    FormListStyle
 } from './SelfHelpStyles';
 import NoAccessStyle from './NoAccessStyle';
 import MissingStyle from './MissingStyle';
@@ -41,6 +42,7 @@ import VersionStyle from './VersionStyle';
 import DebugWrapper from './shared/debug-wrapper/DebugWrapper';
 import {
     type ILoginStyle, type IProfileStyle, type IValidateStyle, type IRegisterStyle, type IResetPasswordStyle, type ITwoFactorAuthStyle, type IEntryTableStyle,
+    type IEntryFormListStyle, type IDataViewStyle,
     type IContainerStyle, type IRefContainerStyle, type ICenterStyle, type IDividerStyle, type IPaperStyle, type IAlertStyle, type IHtmlTagStyle,
     type IFormStyle, type IInputStyle, type ITextInputStyle, type ITextareaStyle, type IRichTextEditorStyle,
     type ISelectStyle, type IRadioStyle, type ISliderStyle, type ICheckboxStyle, type IDatePickerStyle,
@@ -416,6 +418,11 @@ const styleImpls: Record<string, TStyleRenderer> = {
     // ===== data display =====
     'entry-table': ({ style, styleProps, cssClass }) =>
         <EntryTableStyle style={style as IEntryTableStyle} styleProps={styleProps} cssClass={cssClass} />,
+    // Entry List with Form and its read-only sibling: one renderer, told apart by style_name.
+    'entry-form-list': ({ style, styleProps, cssClass }) =>
+        <FormListStyle style={style as IEntryFormListStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'data-view': ({ style, styleProps, cssClass }) =>
+        <FormListStyle style={style as IDataViewStyle} styleProps={styleProps} cssClass={cssClass} />,
 
     // ===== system / diagnostic =====
     version: ({ style, cssClass }) =>

@@ -7,6 +7,7 @@ import { Button, Group, Modal, Text } from '@mantine/core';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useDeleteFormMutation } from '../../../../hooks/useFormSubmission';
 import { type IEntryRecordDeleteStyle } from '../../../../types/common/styles.types';
+import { offeredRecordVersion } from '../../../../utils/form-write.utils';
 
 interface IEntryRecordDeleteStyleProps {
     style: IEntryRecordDeleteStyle;
@@ -15,7 +16,7 @@ interface IEntryRecordDeleteStyleProps {
 
 /**
  * Read a hydrated CMS content field off the (untyped) style. The backend
- * injects `record_id` plus the confirmation labels into the `entry-record-delete`
+ * injects `record_id`, `record_version` plus the confirmation labels into the `entry-record-delete`
  * subtree during entry hydration; they are not part of the static interface, so
  * we read them defensively from the top-level field-shaped props (and a `fields`
  * bag fallback), matching the mobile `readField` contract.
@@ -54,10 +55,13 @@ const EntryRecordDeleteStyle: React.FC<IEntryRecordDeleteStyleProps> = ({ style,
 
     const recordIdRaw = fieldText(style, 'record_id');
     const recordId = recordIdRaw !== undefined ? Number.parseInt(recordIdRaw, 10) : Number.NaN;
+    // The version the page was built with: the server refuses a delete that does not name the
+    // version of the record (and one based on an old version). No version, no delete.
+    const recordVersion = offeredRecordVersion(fieldText(style, 'record_version'));
     const pageId = pageContent?.id;
     const sectionId = style.id;
 
-    const canDelete = Number.isFinite(recordId) && typeof pageId === 'number';
+    const canDelete = Number.isFinite(recordId) && recordVersion !== null && typeof pageId === 'number';
 
     const onConfirm = async (): Promise<void> => {
         setConfirmOpen(false);
@@ -68,6 +72,7 @@ const EntryRecordDeleteStyle: React.FC<IEntryRecordDeleteStyleProps> = ({ style,
                 record_id: recordId,
                 page_id: pageId as number,
                 section_id: sectionId,
+                expected_version: recordVersion as number,
             });
         } catch {
             // useDeleteFormMutation already surfaces an error notification.

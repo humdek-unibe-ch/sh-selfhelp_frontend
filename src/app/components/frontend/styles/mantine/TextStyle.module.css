@@ -1,0 +1,12 @@
+/*
+ * Nested anchors (author rich text and server-built `__links`) must look like
+ * links even when the Text root sets text-decoration: none (that inherits).
+ */
+.root :global(a) {
+    color: var(--mantine-color-anchor);
+    text-decoration: underline;
+}
+
+.root :global(a:hover) {
+    text-decoration: underline;
+}
