@@ -9,6 +9,11 @@ SPDX-License-Identifier: MPL-2.0
  * CMS-surface roles (`cms_list`, `cms_detail`, `form`) are admin-only snippets.
  * Public roles (`public_list`, `public_detail`) stay on the public site and in
  * Content Pages for structure editing.
+ *
+ * An app made by the scaffold wizard (or a shipped template) has one CMS page,
+ * the `cms_list`: an `entry-form-list` that holds the form and adds, edits,
+ * deletes and restores the records itself. `cms_detail` and `form` pages remain
+ * valid roles for apps that were assembled by hand or imported from older bundles.
  */
 
 import type { IAdminPage } from '../../../../types/responses/admin/admin.types';
@@ -46,7 +51,7 @@ export function isContentPagesCandidate(
     return !isCmsSurfaceAdminPage(page);
 }
 
-/** Admin URL that hosts the CMS list (entry-table) inside AdminShell. */
+/** Admin URL that hosts the CMS list (an entry-form-list, or an older entry-table) inside AdminShell. */
 export function cmsAppContentPath(slug: string): string {
     return `/admin/cms-apps/${encodeURIComponent(slug)}/content`;
 }
@@ -59,6 +64,71 @@ export function cmsAppContentFormPath(slug: string): string {
 /** Admin URL for edit (record form) inside the app content host. */
 export function cmsAppContentRecordPath(slug: string, recordId: string | number): string {
     return `${cmsAppContentPath(slug)}/${encodeURIComponent(String(recordId))}`;
+}
+
+/** One page the scaffold wizard creates, as shown in its preview table. */
+export interface IScaffoldRoutePlan {
+    role: TCmsAppRole;
+    surface: 'public' | 'cms';
+    pattern: string;
+    /** What the page does, in a few plain words. */
+    description: string;
+}
+
+export interface IScaffoldRouteChoices {
+    base: string;
+    recordIdParam: string;
+    createForm: boolean;
+    createPublic: boolean;
+    createAdmin: boolean;
+}
+
+/**
+ * The pages the scaffold wizard creates for a set of choices; it mirrors
+ * `CmsAppWizardService` of the backend, which stays the authority.
+ *
+ *  - the CMS list `/cms/<base>`: one entry list. With a new form it also adds, edits,
+ *    deletes and restores records; over an existing table it shows and deletes them;
+ *  - the public list `/<base>`: a read-only data view of the same records;
+ *  - the public detail page `/<base>/{param}`: one record.
+ */
+export function plannedScaffoldRoutes(choices: IScaffoldRouteChoices): IScaffoldRoutePlan[] {
+    const base = choices.base.trim();
+    if (base === '') {
+        return [];
+    }
+    const param = choices.recordIdParam || 'record_id';
+    const routes: IScaffoldRoutePlan[] = [];
+    if (choices.createAdmin) {
+        routes.push({
+            role: 'cms_list',
+            surface: 'cms',
+            pattern: `/cms/${base}`,
+            description: choices.createForm
+                ? 'Entry list with its form: add, edit, delete and restore records'
+                : 'Entry list of the table: view and delete records',
+        });
+    }
+    if (choices.createPublic) {
+        routes.push({
+            role: 'public_list',
+            surface: 'public',
+            pattern: `/${base}`,
+            description: 'Read-only list of the same records',
+        });
+        routes.push({
+            role: 'public_detail',
+            surface: 'public',
+            pattern: `/${base}/{${param}}`,
+            description: 'One record',
+        });
+    }
+    return routes;
+}
+
+/** A new form lives inside the CMS list, so it cannot be created without that list. */
+export function scaffoldFormNeedsCmsList(choices: Pick<IScaffoldRouteChoices, 'createForm' | 'createAdmin'>): boolean {
+    return choices.createForm && !choices.createAdmin;
 }
 
 /** Admin URL for app structure / metadata config. */

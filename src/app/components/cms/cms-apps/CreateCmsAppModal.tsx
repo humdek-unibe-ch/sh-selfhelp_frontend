@@ -11,6 +11,7 @@ SPDX-License-Identifier: MPL-2.0
 import { TextInput, Stack } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useRouter } from 'next/navigation';
+import { useRef } from 'react';
 import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
 import { useCreateCmsAppShellMutation } from '../../../../hooks/useCmsApps';
 
@@ -30,6 +31,9 @@ function slugify(value: string): string {
 export function CreateCmsAppModal({ opened, onClose }: ICreateCmsAppModalProps) {
     const router = useRouter();
     const createMutation = useCreateCmsAppShellMutation();
+    // Mantine form v9 marks a field touched on every setFieldValue (touchTrigger: "change").
+    // Track a real user edit of slug separately so name→slug auto-fill keeps working.
+    const slugEditedByUser = useRef(false);
 
     const form = useForm({
         initialValues: { name: '', slug: '', description: '' },
@@ -41,6 +45,7 @@ export function CreateCmsAppModal({ opened, onClose }: ICreateCmsAppModalProps) 
     });
 
     const handleClose = () => {
+        slugEditedByUser.current = false;
         form.reset();
         createMutation.reset();
         onClose();
@@ -85,7 +90,7 @@ export function CreateCmsAppModal({ opened, onClose }: ICreateCmsAppModalProps) 
                     onChange={(event) => {
                         const name = event.currentTarget.value;
                         form.setFieldValue('name', name);
-                        if (!form.isTouched('slug') || !form.values.slug) {
+                        if (!slugEditedByUser.current) {
                             form.setFieldValue('slug', slugify(name));
                         }
                     }}
@@ -97,8 +102,8 @@ export function CreateCmsAppModal({ opened, onClose }: ICreateCmsAppModalProps) 
                     withAsterisk
                     {...form.getInputProps('slug')}
                     onChange={(event) => {
+                        slugEditedByUser.current = true;
                         form.setFieldValue('slug', slugify(event.currentTarget.value));
-                        form.setTouched({ slug: true });
                     }}
                 />
                 <TextInput

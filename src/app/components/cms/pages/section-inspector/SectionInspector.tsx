@@ -28,6 +28,7 @@ import { useSectionPages } from '../../../../../hooks/useSectionUtility';
 import { exportSection } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
+import { formListFieldLabel, getFormListConfigProblems, type IFormListConfigProblem } from '../../../../../utils/form-list-config-problems.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { OPTION_STYLE_CONFIGS, type TOptionStyleName } from '@selfhelp/shared';
@@ -38,6 +39,7 @@ import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { SectionInfoPanel } from './section-field-groups';
 import { SectionFieldPanels } from './SectionFieldPanels';
 import { validateSerializedOptionConfiguration } from '../../shared/field-components/option-catalog-editor.utils';
+import { FormListSourceProvider } from '../../shared/field-components/form-list/FormListSourceContext';
 
 interface ISectionInspectorProps {
     pageId: number | null;
@@ -63,6 +65,8 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
+    // What the server refused when a list section was saved (nothing was stored).
+    const [listProblems, setListProblems] = useState<IFormListConfigProblem[]>([]);
 
     // Actions don't trigger re-renders, only used for updating
     const setFormValues = useSectionFormStore((state) => state.setFormValues);
@@ -100,7 +104,11 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     const updateSectionMutation = useUpdateSectionMutation({
         showNotifications: true,
         pageId: pageId || undefined,
+        onError: (error) => {
+            setListProblems(getFormListConfigProblems(error));
+        },
         onSuccess: () => {
+            setListProblems([]);
             setFormValues({ ...useSectionFormStore.getState() }); // Update store to reflect changes
             if (pageId) {
                 void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS(pageId) });
@@ -437,19 +445,33 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 {/* Section Information */}
                 <SectionInfoPanel section={section} dataTable={sectionDetailsData.data_table} />
 
-                {/* Searchable field panels */}
-                <SectionFieldPanels
-                    key={sectionId}
-                    sectionId={sectionId}
-                    fields={fields}
-                    styleName={section.style.name}
-                    ownedDataTable={sectionDetailsData.data_table}
-                    languagesData={languagesData}
-                    activeLanguageTab={activeLanguageTab}
-                    onLanguageTabChange={setActiveLanguageTab}
-                    dataVariables={dataVariables}
-                    hasMultipleLanguages={hasMultipleLanguages}
-                />
+                {listProblems.length > 0 && (
+                    <Alert color="red" variant="light" title="This list was not saved" role="alert" mb="sm">
+                        <List size="sm" spacing={4}>
+                            {listProblems.map((problem, index) => (
+                                <List.Item key={`${problem.field}-${index}`}>
+                                    <b>{formListFieldLabel(problem.field)}:</b> {problem.message}
+                                </List.Item>
+                            ))}
+                        </List>
+                    </Alert>
+                )}
+
+                {/* Searchable field panels. An entry list's editors pick its columns by name from `list_source`. */}
+                <FormListSourceProvider source={sectionDetailsData.list_source ?? null}>
+                    <SectionFieldPanels
+                        key={sectionId}
+                        sectionId={sectionId}
+                        fields={fields}
+                        styleName={section.style.name}
+                        ownedDataTable={sectionDetailsData.data_table}
+                        languagesData={languagesData}
+                        activeLanguageTab={activeLanguageTab}
+                        onLanguageTabChange={setActiveLanguageTab}
+                        dataVariables={dataVariables}
+                        hasMultipleLanguages={hasMultipleLanguages}
+                    />
+                </FormListSourceProvider>
             </InspectorLayout>
 
             {/* Delete Modal */}

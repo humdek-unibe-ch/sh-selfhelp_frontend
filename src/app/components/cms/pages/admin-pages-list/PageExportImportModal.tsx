@@ -23,7 +23,7 @@ SPDX-License-Identifier: MPL-2.0
  * @module app/components/cms/pages/admin-pages-list/PageExportImportModal
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Alert,
     Badge,
@@ -46,6 +46,7 @@ import {
     TextInput,
     ThemeIcon,
 } from '@mantine/core';
+import { useRouter } from 'next/navigation';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import {
     IconAlertTriangle,
@@ -67,6 +68,7 @@ import {
     type IPageBundle,
     type IPageExampleBundle,
     type IPageImportOptions,
+    type IPageImportResult,
     type IPageImportValidationReport,
 } from '../../../../../types/requests/admin/page-export-import.types';
 import {
@@ -74,6 +76,7 @@ import {
     type INavigationImportOptions,
 } from '../../../../../types/requests/admin/navigation-export-import.types';
 import { parseApiError } from '../../../../../utils/mutation-error-handler';
+import { cmsAppContentPath } from '../../cms-apps/cmsAppPages.utils';
 
 interface IPageExportImportModalProps {
     opened: boolean;
@@ -93,6 +96,7 @@ function isNavigationBundle(candidate: TImportableBundle | null): candidate is I
 }
 
 export function PageExportImportModal({ opened, onClose, pages, initialTab = 'export' }: IPageExportImportModalProps) {
+    const router = useRouter();
     const [userSelectedTab, setUserSelectedTab] = useState<string | null>(null);
     const activeTab = userSelectedTab ?? initialTab;
 
@@ -122,9 +126,12 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
     const [report, setReport] = useState<IPageImportValidationReport | null>(null);
     const [validateError, setValidateError] = useState<string | null>(null);
 
+    // Keep the latest closer+redirect for mutation callbacks without reordering hooks.
+    const finishImportRef = useRef<(result?: IPageImportResult) => void>(() => {});
+
     const importMutation = useImportPagesMutation({
-        onSuccess: () => {
-            handleClose();
+        onSuccess: (result) => {
+            finishImportRef.current(result);
         },
     });
 
@@ -132,7 +139,7 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
     // importer so the imported pages end up wrapped in the menu structure.
     const importNavigationMutation = useImportNavigationMutation({
         onSuccess: () => {
-            handleClose();
+            finishImportRef.current();
         },
     });
 
@@ -276,6 +283,15 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
         setUserSelectedTab(null);
         onClose();
     }
+
+    finishImportRef.current = (result?: IPageImportResult) => {
+        const slug = result?.cms_app?.slug?.trim();
+        handleClose();
+        // CMS-in-CMS templates land on the content list; plain page imports stay put.
+        if (slug) {
+            router.push(cmsAppContentPath(slug));
+        }
+    };
 
     async function handleSuggest() {
         if (selectedExportIds.length === 0) return;
