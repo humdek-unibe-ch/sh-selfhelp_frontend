@@ -63,7 +63,7 @@ import {
 } from '../../../../types/common/styles.types';
 import { type INoAccessStyle, type IMissingStyle, type INotFoundStyle } from '../../../../shared';
 import { usePluginRuntime, usePluginStyleComponent } from '../plugin-runtime';
-import { usePageModal } from '../../contexts/PageModalContext';
+import PluginStyleHost, { type IPluginStyleProps } from './PluginStyleHost';
 import { isStyleSupportedOnPlatform, type TStylePlatform } from '@selfhelp/shared/registry';
 
 /**
@@ -460,9 +460,6 @@ interface IBasicStyleProps {
 const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childIndex, parentColor }) => {
     const pluginRenderer = usePluginStyleComponent(style?.style_name ?? '');
     const { isLoading: isPluginRuntimeLoading } = usePluginRuntime();
-    // Plugin styles get the popup the page is shown in, so they can close it
-    // like the core form does (`IPluginStyleProps.pageModal` in the plugin SDK).
-    const pageModal = usePageModal();
 
     if (!style || !style.style_name) {
         return null;
@@ -494,24 +491,17 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
     }
 
     if (pluginRenderer) {
-        const PluginComponent = pluginRenderer as unknown as React.ComponentType<{
-            style: TStyle;
-            styleProps: Record<string, string>;
-            cssClass: string;
-            parentActive?: number;
-            childIndex?: number;
-            parentColor?: string;
-            pageModal: { inModal: boolean; closeModal: () => void };
-        }>;
+        // The host wrapper adds the popup and the page the section is on
+        // (`IPluginStyleProps.pageModal` / `page` in the plugin SDK).
         return wrapWithDebug(
-            <PluginComponent
-                style={style}
+            <PluginStyleHost
+                component={pluginRenderer as unknown as React.ComponentType<IPluginStyleProps>}
+                style={style as unknown as Record<string, unknown>}
                 styleProps={styleProps}
                 cssClass={cssClass}
                 parentActive={parentActive}
                 childIndex={childIndex}
                 parentColor={parentColor}
-                pageModal={pageModal}
             />,
         );
     }

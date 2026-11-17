@@ -17,6 +17,11 @@ No engineering diary, no implementation detail — that belongs in
 ### Added
 - **Excel export of data tables.** The data screen's export menu and the bulk
   export offer Excel next to CSV and JSON (needs a backend with `format=xlsx`).
+- **Plugin styles know their page.** `BasicStyle` draws plugin styles through
+  `PluginStyleHost`, which passes `page` (`id`, `languageId`, `preview`,
+  `routeParams`) next to `pageModal`. A plugin names page and section in its
+  calls so the server checks access and reads the section's settings (rule
+  7.7). Only plugin sections run these hooks.
 - **Plugin styles can close their popup.** `BasicStyle` passes `pageModal`
   (`inModal`, `closeModal`) to plugin style components, the way the core form
   closes its popup with `close_modal_on_save`.
