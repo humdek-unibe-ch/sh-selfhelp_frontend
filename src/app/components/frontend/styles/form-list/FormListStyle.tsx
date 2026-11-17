@@ -48,25 +48,20 @@ interface IFormListStyleProps {
     cssClass?: string;
 }
 
-/** The inline form of a list: the section whose id the server named, searched breadth-first in the list's children. */
-function findFormChild(children: TStyle[] | undefined, formSectionId: number | null): TStyle | null {
-    if (formSectionId === null) {
+/**
+ * When the server says the list is its own form (`form_section_id === list.id`),
+ * synthesize a form-record-shaped section so BasicStyle → FormStyle runs with
+ * `section_id = <list id>` and the list's children as the form body. One model:
+ * no nested form-section lookup.
+ */
+function formOfList(style: IEntryFormListStyle | IDataViewStyle, formSectionId: number | null): TStyle | null {
+    if (formSectionId === null || formSectionId !== style.id || style.style_name !== 'entry-form-list') {
         return null;
     }
-    let level: TStyle[] = children ?? [];
-    while (level.length > 0) {
-        const next: TStyle[] = [];
-        for (const child of level) {
-            if (child && child.id === formSectionId) {
-                return child;
-            }
-            if (child?.children) {
-                next.push(...child.children);
-            }
-        }
-        level = next;
-    }
-    return null;
+    return {
+        ...style,
+        style_name: 'form-record',
+    } as TStyle;
 }
 
 interface IDeleteTarget {
@@ -90,8 +85,8 @@ interface IQuickTarget {
  * access, conditions or filters. The page URL is the list's state
  * (`<key>.page`, `<key>.q`, `<key>.record`, ...), so refresh, Back/Forward
  * and a shared link all land on the same view, and two lists on one page
- * never touch each other's parameters. Create and edit use the list's inline
- * form section through the ordinary form endpoints.
+ * never touch each other's parameters. Create and edit use the list itself as
+ * the form (when `form_section_id` is the list id) through FormStyle.
  */
 const FormListStyle: React.FC<IFormListStyleProps> = ({ style, cssClass }) => {
     const queryClient = useQueryClient();
@@ -187,8 +182,8 @@ const FormListStyle: React.FC<IFormListStyleProps> = ({ style, cssClass }) => {
 
     const panelKind = panel?.kind ?? null;
     const formChild = useMemo(
-        () => findFormChild(style.children, state?.list.form_section_id ?? null),
-        [style.children, state?.list.form_section_id],
+        () => formOfList(style, state?.list.form_section_id ?? null),
+        [style, state?.list.form_section_id],
     );
     const presentation = state?.list.form_presentation ?? (style.style_name === 'entry-form-list' ? (style.form_presentation?.content ?? 'modal') : 'modal');
     const historyOffered = isEntryList && style.style_name === 'entry-form-list' && style.show_history?.content === '1' && Boolean(state?.capabilities.history);
