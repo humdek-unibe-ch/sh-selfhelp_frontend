@@ -73,7 +73,9 @@ jobs:
 
       # --- BLOCKING: TypeScript is sound -----------------------------------
       - name: Type-check (tsc --noEmit)
-        run: npx tsc --noEmit
+        # Must use `npm run tsc` (not `npx tsc`) so `pretsc` generates
+        # `src/generated/web-libraries.json` before the type check.
+        run: npm run tsc
 
       # --- BLOCKING: lint (no errors, no warnings) -------------------------
       - name: ESLint
