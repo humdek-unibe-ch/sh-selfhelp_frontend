@@ -2,6 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+import { RESTORE_TEXT } from '../../../shared/history/restore-preview';
 
 /**
  * The words a form list draws around the author's content.
@@ -70,13 +71,13 @@ export const FORM_LIST_TEXT = {
     historyCompare: 'Compare selected',
     historyCompareCurrent: 'Compare with current',
     historyRestore: 'Restore this version',
-    historyRestorePreview: 'What a restore would change',
-    historyRestoreConfirm: 'Restore',
-    historyRestoreOnlyPossible: 'Restore only what can be restored',
-    historyBlockedTitle: 'Some fields cannot be restored',
-    historyNothingToRestore: 'The entry already matches this version.',
+    historyRestorePreview: RESTORE_TEXT.preview,
+    historyRestoreConfirm: RESTORE_TEXT.confirm,
+    historyRestoreOnlyPossible: RESTORE_TEXT.onlyPossible,
+    historyBlockedTitle: RESTORE_TEXT.blockedTitle,
+    historyNothingToRestore: RESTORE_TEXT.nothing,
     historyChecks: 'Select two versions to compare',
-    historyAvailableNo: 'file no longer available',
+    historyAvailableNo: RESTORE_TEXT.fileUnavailable,
     historyDenied: 'The history of this entry is not available to you.',
 } as const;
 
