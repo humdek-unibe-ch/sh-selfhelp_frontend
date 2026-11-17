@@ -140,7 +140,7 @@ describe('the shell around every editor', () => {
     it('tells the author when the table is not known yet instead of showing empty pickers', () => {
         renderWithProviders(<Harness fieldName="list_columns" initial="[]" source={null} onText={vi.fn()} />);
 
-        expect(screen.getByText(/add the form this list shows records of/i)).toBeInTheDocument();
+        expect(screen.getByText(/put the inputs directly inside this list/i)).toBeInTheDocument();
     });
 
     it('shows a value the rows cannot read as text, with the reason, and never hides it', () => {
