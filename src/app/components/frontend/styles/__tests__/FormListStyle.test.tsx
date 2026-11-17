@@ -182,7 +182,7 @@ function selected(id: number, title: string, overrides: Partial<IFormListSelecte
 
 function listState(overrides: Partial<IFormListState> = {}): IFormListState {
     return {
-        list: { section_id: 21, page_id: 11, key: 'news', style: 'entry-form-list', layout: 'table', form_presentation: 'modal', form_section_id: 22, table_exists: true, labels: {}, row_css: '', has_template: false },
+        list: { section_id: 21, page_id: 11, key: 'news', style: 'entry-form-list', layout: 'table', form_presentation: 'modal', form_section_id: 21, table_exists: true, labels: {}, row_css: '', has_template: false },
         columns: [
             { field: 'title', label: 'Title', format: 'text', sortable: true, searchable: true },
             { field: 'status', label: 'Status', format: 'text', sortable: true, searchable: false },
@@ -207,7 +207,10 @@ function entryListStyle(overrides: Record<string, unknown> = {}): IEntryFormList
         title: { content: 'News' },
         show_history: { content: '0' },
         form_presentation: { content: 'modal' },
-        children: [{ id: 22, style_name: 'form-record', children: [] }],
+        children: [
+            { id: 31, style_name: 'text-input', name: { content: 'title' }, children: [] },
+            { id: 32, style_name: 'text-input', name: { content: 'status' }, children: [] },
+        ],
         ...overrides,
     } as unknown as IEntryFormListStyle;
 }
