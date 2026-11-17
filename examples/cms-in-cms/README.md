@@ -8,7 +8,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: developers / operators importing Host Admin templates  
 Status: active  
 Applies to: frontend `examples/cms-in-cms` + backend `tests/fixtures/examples` mirrors  
-Last verified: 2026-11-13  
+Last verified: 2026-11-17  
 Source of truth: runtime `PageExportImportService` + `/admin/cms-apps` APIs
 
 These bundles are **first-class CMS app** templates. There is **no dual format** and
@@ -100,13 +100,13 @@ The CMS list and the public data view bind a table through **property fields**:
 ```json
 "fields": {
   "list_key":   { "all": { "content": "events" } },
-  "data_table": { "all": { "content": "@section:events-form" } },
+  "data_table": { "all": { "content": "@section:events-cms-list" } },
   "detail_url": { "all": { "content": "/events/{record_id}" } }
 }
 ```
 
-A CMS list needs no `data_table`: it reads the table of its own inline form. `@section:<form name>` names
-the form that owns the table; the importer replaces it by the id of the imported form.
+A CMS list needs no `data_table`: it **is** the form (inputs sit directly inside it) and owns the table.
+`@section:<slug>-cms-list` names that owner; the importer replaces it by the id of the imported list.
 
 `entry-list` and `entry-record` compositions bind rows the same way (`data_table`, `own_entries_only`,
 `scope`, `load_record_from`; `entry-list` keeps an optional `filter`). A `data_config` block with `table`
