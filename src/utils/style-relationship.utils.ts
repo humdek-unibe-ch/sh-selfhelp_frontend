@@ -2,7 +2,19 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+import { FORM_SECTION_STYLE_NAMES } from '@selfhelp/shared';
 import { type IStyle } from '../types/responses/admin/styles.types';
+
+const FORM_SECTION_STYLE_NAME_SET = new Set<string>(FORM_SECTION_STYLE_NAMES);
+
+/**
+ * An Entry List with Form is already a form: form-style sections must not sit under it.
+ * The dialog only knows the direct parent; the backend refuses deeper nesting.
+ */
+function isFormSectionUnderEntryFormList(childStyle: IStyle, parentStyle: IStyle | null): boolean {
+    return parentStyle?.name === 'entry-form-list'
+        && FORM_SECTION_STYLE_NAME_SET.has(childStyle.name);
+}
 
 /**
  * Checks if a style is allowed as a child of a parent style based on relationships
@@ -14,6 +26,10 @@ export function isStyleAllowedAsChildOfParent(childStyle: IStyle, parentStyle: I
     // If no parent style, allow all styles (adding to page)
     if (!parentStyle) {
         return true;
+    }
+
+    if (isFormSectionUnderEntryFormList(childStyle, parentStyle)) {
+        return false;
     }
 
     // If parent has no relationships defined, it has no restrictions.
@@ -40,6 +56,10 @@ export function isStyleAllowedAsChildOfParent(childStyle: IStyle, parentStyle: I
  * @returns true if the relationship is allowed, false otherwise
  */
 export function isStyleRelationshipValid(childStyle: IStyle, parentStyle: IStyle | null): boolean {
+    if (isFormSectionUnderEntryFormList(childStyle, parentStyle)) {
+        return false;
+    }
+
     // First check if the child is allowed as a child of the parent
     const isAllowedAsChild = isStyleAllowedAsChildOfParent(childStyle, parentStyle);
 
