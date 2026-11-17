@@ -25,7 +25,7 @@ interface IFormListRecordProps {
     sectionId: number;
     state: IFormListState;
     panel: TFormListPanel;
-    /** The inline form section of the list, or null when the list has none. */
+    /** The list synthesized as a form (or null when the list has no form). */
     formChild: TStyle | null;
     /** What the inline form needs (record, prefill, version, callbacks); null outside create/edit. */
     formContext: IFormListFormContext | null;
