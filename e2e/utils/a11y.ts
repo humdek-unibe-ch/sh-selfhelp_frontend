@@ -44,9 +44,9 @@ const CONTENT_SELECTOR = 'main';
  */
 const NON_BLOCKING_RULE_IDS = new Set(['color-contrast']);
 
-export async function expectNoSeriousA11yViolations(page: Page, label: string): Promise<void> {
+async function audit(page: Page, selector: string, label: string): Promise<void> {
     const results = await new AxeBuilder({ page })
-        .include(CONTENT_SELECTOR)
+        .include(selector)
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
         .analyze();
 
@@ -72,4 +72,16 @@ export async function expectNoSeriousA11yViolations(page: Page, label: string): 
         .join('\n');
 
     expect(blocking, `Serious/critical accessibility violations on ${label}:\n${summary}`).toHaveLength(0);
+}
+
+export async function expectNoSeriousA11yViolations(page: Page, label: string): Promise<void> {
+    await audit(page, CONTENT_SELECTOR, label);
+}
+
+/**
+ * The same gate for one region instead of `main`: a dialog is rendered in a
+ * portal outside the main landmark, so it needs its own check.
+ */
+export async function expectNoSeriousA11yViolationsIn(page: Page, selector: string, label: string): Promise<void> {
+    await audit(page, selector, label);
 }

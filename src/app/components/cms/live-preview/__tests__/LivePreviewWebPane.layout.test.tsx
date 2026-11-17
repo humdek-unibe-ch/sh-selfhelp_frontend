@@ -40,6 +40,7 @@ vi.mock('../../../../../hooks/useAppNavigation', () => ({
 
 vi.mock('../../../contexts/PreviewModeContext', () => ({
     usePreviewMode: () => ({ isPreviewMode: false }),
+    PreviewModeProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 describe('LivePreviewWebPane layout', () => {

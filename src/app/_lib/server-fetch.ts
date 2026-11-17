@@ -38,7 +38,7 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { cache } from 'react';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import type { MantineColorScheme } from '@mantine/core';
 import {
     ADMIN_SESSION_ROUTE_PREFIXES,
@@ -56,6 +56,7 @@ import {
     selectProfilePages,
     transformNavigationPages,
 } from '../../utils/navigation.utils';
+import { REFERRER_HOST_HEADER, externalReferrerHost } from '../../utils/referrer-host.utils';
 import type { IPageItem, IGetPageResponse, IPageContent, ILanguage, INavigationPayload } from '../../shared';
 import { buildPagesResolvePath } from '@selfhelp/shared';
 
@@ -130,6 +131,42 @@ async function fetchJsonWithStatus<T>(
         return { status: res.status, data: (await res.json()) as T };
     } catch {
         return { status: null, data: null };
+    }
+}
+
+/**
+ * Whether this request's referrer has already been given to a page fetch.
+ *
+ * Rendering the slug route makes several page-content fetches (metadata, layout
+ * prefetch, page body, status check) and Symfony records a page view for each
+ * one. The outside referrer belongs to the visit, so only the first fetch
+ * carries it. `cache()` gives every server request its own object.
+ */
+const referrerGate = cache(() => ({ claimed: false }));
+
+/**
+ * `X-Referrer-Host` for a page-content fetch: the host of the outside site the
+ * visitor came from (the incoming `Referer`), for the first page fetch of the
+ * request only. Empty when there is no outside referrer, for every later fetch
+ * of the same request, and outside a request (build time).
+ *
+ * The gate is claimed before the first `await`, so concurrent fetches of one
+ * request cannot both take the referrer.
+ */
+async function pageReferrerHeaders(): Promise<Record<string, string>> {
+    const gate = referrerGate();
+    if (gate.claimed) return {};
+    gate.claimed = true;
+
+    try {
+        const incoming = await headers();
+        const host = externalReferrerHost(
+            incoming.get('referer'),
+            incoming.get('x-forwarded-host') ?? incoming.get('host'),
+        );
+        return host ? { [REFERRER_HOST_HEADER]: host } : {};
+    } catch {
+        return {};
     }
 }
 
@@ -268,7 +305,9 @@ async function getPageByKeywordSSR(
 ): Promise<IGetPageResponse | null> {
     const params = new URLSearchParams({ language_id: String(languageId) });
     if (preview) params.set('preview', '1');
-    return fetchJson(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`);
+    return fetchJson(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`, {
+        headers: await pageReferrerHeaders(),
+    });
 }
 
 /**
@@ -482,7 +521,9 @@ export const getPageByKeywordSSRStatus = cache(
     ): Promise<{ status: number | null; data: IGetPageResponse | null }> => {
         const params = new URLSearchParams({ language_id: String(languageId) });
         if (preview) params.set('preview', '1');
-        return fetchJsonWithStatus(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`);
+        return fetchJsonWithStatus(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`, {
+            headers: await pageReferrerHeaders(),
+        });
     }
 );
 
@@ -498,7 +539,9 @@ export const getPageByKeywordSSRStatus = cache(
  */
 export const resolvePageByPathSSRCached = cache(
     async (path: string, languageId: number, preview = false): Promise<IGetPageResponse | null> => {
-        return fetchJson(buildPagesResolvePath({ path, languageId, preview }));
+        return fetchJson(buildPagesResolvePath({ path, languageId, preview }), {
+            headers: await pageReferrerHeaders(),
+        });
     }
 );
 
@@ -511,9 +554,15 @@ export const resolvePageByPathSSRStatus = cache(
     async (
         path: string,
         languageId: number,
-        preview = false
+        preview = false,
+        listQuery = ''
     ): Promise<{ status: number | null; data: IGetPageResponse | null }> => {
-        return fetchJsonWithStatus(buildPagesResolvePath({ path, languageId, preview }));
+        // `listQuery`: the raw `<key>.*` pairs of the page URL (`pickFormListQuery`).
+        // The server renders every form list of the page for exactly that URL state.
+        const resolvePath = buildPagesResolvePath({ path, languageId, preview });
+        return fetchJsonWithStatus(listQuery === '' ? resolvePath : `${resolvePath}&${listQuery}`, {
+            headers: await pageReferrerHeaders(),
+        });
     }
 );
 
@@ -529,17 +578,17 @@ export const resolvePageByPathSSRStatus = cache(
  * eliminates the published → preview double round-trip admins previously
  * saw on every page load.
  *
- * ## Preview requires a session (core >= 0.1.18)
+ * ## Preview requires edit rights (core form-list fix-2)
  *
- * Preview serves the unpublished draft, which the backend now returns ONLY to
- * an authenticated caller — an anonymous `preview=true` is rejected with 401.
- * The `sh_preview` cookie is long-lived and admin-set, so it can outlive the
- * session (admin enables preview, then logs out or the session expires). Left
- * ungated, that stale cookie would make every anonymous SSR render request the
- * draft and 401, never reaching the published view. We therefore gate preview
- * on a live session cookie here: with no auth/refresh cookie we fall back to
- * the published view and never emit `preview=true` for an anonymous request.
- * Mirrors the mobile client's preview-policy gate (`services/previewPolicy.ts`).
+ * Preview serves the unpublished draft only to a caller who may edit the page
+ * (`admin.page.update` plus the update grant; admin passes). Guests get 401;
+ * signed-in callers without those rights get 403. The `sh_preview` cookie is
+ * long-lived and admin-set (CMS / live preview), so it can outlive the session.
+ * Left ungated, that stale cookie would make every anonymous SSR render request
+ * the draft and 401. We therefore gate preview on a live session cookie here:
+ * with no auth/refresh cookie we fall back to the published view and never emit
+ * `preview=true` for an anonymous request. The server still decides; clients
+ * only show the 403 reason. Mirrors the mobile preview-policy gate.
  *
  * Wrapped in `cache()` so the slug layout prefetch, `generateMetadata`,
  * and the slug page body share a single cookie read per request.

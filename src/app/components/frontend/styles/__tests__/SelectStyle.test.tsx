@@ -3,7 +3,8 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
 import { renderWithProviders } from '../../../../../test-utils/renderWithProviders';
 import SelectStyle from '../SelectStyle';
@@ -63,5 +64,106 @@ describe('SelectStyle', () => {
             />,
         );
         expect(screen.getByPlaceholderText('Choose many')).toBeInTheDocument();
+    });
+
+    it('keeps a non-clearable default in the hidden field (F173)', () => {
+        renderWithProviders(
+            <SelectStyle
+                style={makeStyle({
+                    name: { content: 'status' },
+                    label: { content: 'Status' },
+                    value: { content: 'draft' },
+                    clearable: { content: '0' },
+                    options: {
+                        content: JSON.stringify([
+                            { value: 'draft', sort: 1 },
+                            { value: 'published', sort: 2 },
+                        ]),
+                    },
+                    option_labels: {
+                        content: JSON.stringify({ draft: 'Draft', published: 'Published' }),
+                    },
+                })}
+                cssClass="section-1"
+            />,
+        );
+
+        const hidden = document.querySelector('input[name="status"]') as HTMLInputElement;
+        expect(hidden.value).toBe('draft');
+        // clearable=0 also sets allowDeselect=false on the Mantine Select so
+        // re-choosing Draft cannot empty the hidden value while the label stays.
+        expect(screen.queryByRole('button', { name: /clear/i })).not.toBeInTheDocument();
+    });
+
+    it('re-clicking the already selected Draft option keeps status=draft (F173)', async () => {
+        // Fails before the fix when allowDeselect stays at Mantine's default
+        // (true): clicking Draft again clears the value while the label still
+        // reads "Draft", so the multipart body posts an empty status.
+        const user = userEvent.setup();
+        renderWithProviders(
+            <SelectStyle
+                style={makeStyle({
+                    name: { content: 'status' },
+                    label: { content: 'Status' },
+                    value: { content: 'draft' },
+                    clearable: { content: '0' },
+                    searchable: { content: '0' },
+                    options: {
+                        content: JSON.stringify([
+                            { value: 'draft', sort: 1 },
+                            { value: 'published', sort: 2 },
+                        ]),
+                    },
+                    option_labels: {
+                        content: JSON.stringify({ draft: 'Draft', published: 'Published' }),
+                    },
+                })}
+                cssClass="section-1"
+            />,
+        );
+
+        const hidden = document.querySelector('input[name="status"]') as HTMLInputElement;
+        expect(hidden.value).toBe('draft');
+
+        // Mantine schedules scrollIntoView on the option list; jsdom has none.
+        Element.prototype.scrollIntoView = () => {};
+
+        await user.click(screen.getByRole('combobox', { name: 'Status' }));
+        // Mantine portals options; wait for the Draft option node then re-click it
+        // (the bug path: allowDeselect clears the already-selected value).
+        await waitFor(() => {
+            expect(
+                Array.from(document.querySelectorAll('[role="option"]')).some((el) =>
+                    (el.textContent ?? '').includes('Draft'),
+                ),
+            ).toBe(true);
+        });
+        const draftOption = Array.from(document.querySelectorAll('[role="option"]')).find((el) =>
+            (el.textContent ?? '').includes('Draft'),
+        ) as HTMLElement;
+        await user.click(draftOption);
+
+        expect(hidden.value).toBe('draft');
+    });
+
+    it('maps an empty string value to null so Mantine shows the placeholder', () => {
+        // value={selectedValue || null}: Mantine treats "" as a selected empty
+        // option; null shows the placeholder instead.
+        renderWithProviders(
+            <SelectStyle
+                style={makeStyle({
+                    name: { content: 'category' },
+                    placeholder: { content: 'Choose category' },
+                    value: { content: '' },
+                    options: {
+                        content: JSON.stringify([{ value: 'a', label: 'Apple' }]),
+                    },
+                })}
+                cssClass="section-1"
+            />,
+        );
+        expect(screen.getByPlaceholderText('Choose category')).toBeInTheDocument();
+        const hidden = document.querySelector('input[name="category"]') as HTMLInputElement;
+        expect(hidden.value).toBe('');
     });
 });

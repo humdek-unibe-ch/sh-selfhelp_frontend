@@ -54,6 +54,10 @@ vi.mock('../../../../../../hooks/useGroups', () => ({
     }),
 }));
 
+vi.mock('next/navigation', () => ({
+    useRouter: () => ({ push: vi.fn() }),
+}));
+
 import { PageExportImportModal } from '../PageExportImportModal';
 
 const navigationBundle: INavigationBundle = {

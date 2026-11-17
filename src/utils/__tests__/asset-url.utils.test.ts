@@ -44,4 +44,19 @@ describe('getAssetUrl', () => {
         expect(getAssetUrl('https://cdn.example.com/a.png')).toBe('https://cdn.example.com/a.png');
         expect(getAssetUrl('data:image/png;base64,AAAA')).toBe('data:image/png;base64,AAAA');
     });
+
+    it('re-addresses section-scoped list file URLs onto the BFF', () => {
+        expect(getAssetUrl('/lists/385/records/24/files/cover?page_id=107&index=0')).toBe(
+            '/api/lists/385/records/24/files/cover?page_id=107&index=0',
+        );
+        expect(getAssetUrl('/api/lists/385/records/24/files/cover?page_id=107&index=0')).toBe(
+            '/api/lists/385/records/24/files/cover?page_id=107&index=0',
+        );
+    });
+
+    it('undoes HTML-escaped ampersands in list file query strings', () => {
+        expect(getAssetUrl('/lists/385/records/24/files/cover?page_id=107&amp;index=0')).toBe(
+            '/api/lists/385/records/24/files/cover?page_id=107&index=0',
+        );
+    });
 });

@@ -515,7 +515,7 @@ export function getRootItemLimitState(
         atLimit,
         overLimit: limit !== null && count > limit,
         blockedReason: atLimit
-            ? `This menu renders at most ${limit} root items and already has ${count}. Remove one, or add the page under an existing item instead.`
+            ? `This menu renders at most ${limit} root items and already has ${count}. Remove one, nest under an existing item, or raise Max root items.`
             : null,
     };
 }

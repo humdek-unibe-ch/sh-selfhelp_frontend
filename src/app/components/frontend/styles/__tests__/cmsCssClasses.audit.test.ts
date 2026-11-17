@@ -6,7 +6,13 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { auditCmsCssClasses, collectExampleCssTokens, loadCmsCssCatalog, parseGlobalsCss } from '../../../../../../scripts/audit-cms-css-classes.mjs';
+import {
+    auditCmsCssClasses,
+    collectExampleCssTokens,
+    collectPresetCssTokens,
+    loadCmsCssCatalog,
+    parseGlobalsCss,
+} from '../../../../../../scripts/audit-cms-css-classes.mjs';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../../../../..');
 
@@ -40,5 +46,21 @@ describe('CMS example CSS class audit', () => {
     it('covers every web css token used by importable examples', () => {
         const result = auditCmsCssClasses();
         expect(result.missing, result.missing.map((m) => m.token).join(', ')).toEqual([]);
+    });
+
+    it('reads the compact and spacious presets of the template README: classes only, not names', () => {
+        const presets = collectPresetCssTokens();
+        expect(presets.has('gap-3')).toBe(true);
+        expect(presets.has('max-w-2xl')).toBe(true);
+        expect(presets.has('xl:grid-cols-4')).toBe(true);
+        // The template and section columns name things; they are not classes.
+        expect(presets.has('events-view')).toBe(false);
+        expect(presets.has('events-view-card')).toBe(false);
+    });
+
+    it('gives every preset class CSS: it is in the class catalogue or a bundle already uses it', () => {
+        const result = auditCmsCssClasses();
+        expect(result.presetCount).toBeGreaterThan(30);
+        expect(result.presetsMissing).toEqual([]);
     });
 });

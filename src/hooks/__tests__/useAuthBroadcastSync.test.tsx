@@ -13,6 +13,7 @@ import { type ReactNode } from 'react';
 import { act, renderHook } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createTestQueryClient } from '../../test-utils/renderWithProviders';
+import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 
 const { router, broadcast } = vi.hoisted(() => ({
     router: { replace: vi.fn() },
@@ -34,10 +35,16 @@ import { useAuthBroadcastSync } from '../useAuthBroadcastSync';
 
 function renderSync() {
     const client = createTestQueryClient();
+    // What an entry list and its history cached for the person of this tab.
+    client.setQueryData([...REACT_QUERY_CONFIG.QUERY_KEYS.FORM_LIST_ALL, 'account-5', 21, ''], { rows: ['mine'] });
+    client.setQueryData([...REACT_QUERY_CONFIG.QUERY_KEYS.FORM_LIST_HISTORY_ALL, 'account-5', 21, 1], { versions: [1] });
+    client.setQueryData(['unrelated'], 'keep');
     const wrapper = ({ children }: { children: ReactNode }) => (
         <QueryClientProvider client={client}>{children}</QueryClientProvider>
     );
     renderHook(() => useAuthBroadcastSync(), { wrapper });
+
+    return client;
 }
 
 describe('useAuthBroadcastSync', () => {
@@ -65,5 +72,24 @@ describe('useAuthBroadcastSync', () => {
         act(() => broadcast.listener?.({ type: 'logged-out' }));
 
         expect(router.replace).not.toHaveBeenCalled();
+    });
+
+    it('drops the cached entry lists and their histories when another tab signs out', () => {
+        const client = renderSync();
+
+        act(() => broadcast.listener?.({ type: 'logged-out' }));
+
+        expect(client.getQueriesData({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FORM_LIST_ALL })).toEqual([]);
+        expect(client.getQueriesData({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FORM_LIST_HISTORY_ALL })).toEqual([]);
+        expect(client.getQueryData(['unrelated'])).toBe('keep');
+    });
+
+    it('drops them when another tab signs in too, since another account may now be the one in use', () => {
+        const client = renderSync();
+
+        act(() => broadcast.listener?.({ type: 'logged-in' }));
+
+        expect(client.getQueriesData({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FORM_LIST_ALL })).toEqual([]);
+        expect(client.getQueriesData({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FORM_LIST_HISTORY_ALL })).toEqual([]);
     });
 });

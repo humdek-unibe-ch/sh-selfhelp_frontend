@@ -107,13 +107,20 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
                     className={cssClass}
                     label={label}
                     data={data}
-                    value={selectedValue as string}
+                    // Empty string is not a real option: Mantine treats it as
+                    // "nothing selected". Keep null so the placeholder shows.
+                    value={(selectedValue as string) || null}
                     onChange={handleChange}
                     placeholder={placeholder}
                     disabled={disabled}
                     required={required}
                     searchable={searchable}
                     clearable={clearable}
+                    // F173: with the default allowDeselect, clicking the already
+                    // selected option (e.g. Draft) clears the value while the
+                    // searchable input still shows the label — the form then
+                    // posts an empty status with the files.
+                    allowDeselect={clearable}
                 />
             )}
             {name ? (

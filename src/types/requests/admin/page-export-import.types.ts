@@ -67,6 +67,8 @@ export interface IPageImportValidationReport {
 /** Result of a successful import. */
 export interface IPageImportResult {
     created: Array<{ keyword: string; page_id: number }>;
+    /** Present when the bundle created or filled a CMS app shell. */
+    cms_app?: { id: number; slug: string } | null;
 }
 
 /**

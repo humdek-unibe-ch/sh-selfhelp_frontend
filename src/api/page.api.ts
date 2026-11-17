@@ -20,6 +20,7 @@ import { buildPagesResolvePath } from '@selfhelp/shared';
 import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { type IBaseApiResponse, type IPageContent } from '../shared';
+import { REFERRER_HOST_HEADER, consumeLandingReferrerHost } from '../utils/referrer-host.utils';
 
 export const PageApi = {
     /**
@@ -46,12 +47,26 @@ export const PageApi = {
      * `buildPagesResolvePath` contract (issue #30). Unlike
      * {@link getPageByKeyword} this carries the matched `route_params`
      * (snake_case) on the returned page.
+     *
+     * `X-Referrer-Host` is sent from the browser only when the landing
+     * snapshot is still open: that means the server render did not deliver
+     * the landing page, so this is the one chance to count the outside
+     * referrer. A normal visit dismisses the snapshot when the SSR-seeded
+     * query hydrates (`dismissLandingReferrerHost`), so a later language
+     * switch or invalidation refetch of the same path carries none.
      */
     async resolvePageByPath(path: string, languageId?: number, preview?: boolean): Promise<IPageContent> {
-        const response = await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>({
+        const route = {
             route: buildPagesResolvePath({ path, languageId, preview }),
             permissions: [],
-        });
+        };
+        const referrerHost = consumeLandingReferrerHost(path);
+
+        const response = referrerHost
+            ? await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>(route, {
+                  headers: { [REFERRER_HOST_HEADER]: referrerHost },
+              })
+            : await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>(route);
         return response.data.data.page;
     },
 };

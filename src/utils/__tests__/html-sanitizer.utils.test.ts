@@ -111,6 +111,18 @@ describe('html-sanitizer: sanitizeHtmlForBlock (keeps block structure)', () => {
         expect(out.toLowerCase()).not.toContain('<script');
         expect(out).not.toContain('alert');
     });
+
+    it('rewrites section-scoped list file hrefs onto the BFF (server __links)', () => {
+        const out = sanitizeHtmlForBlock(
+            '<a href="/lists/12/records/34/files/attachments?page_id=5&index=0">note.pdf</a>'
+            + '<br><a href="/lists/12/records/34/files/attachments?page_id=5&index=1">other.pdf</a>',
+        );
+        expect(out).toContain('href="/api/lists/12/records/34/files/attachments?page_id=5&index=0"');
+        expect(out).toContain('href="/api/lists/12/records/34/files/attachments?page_id=5&index=1"');
+        expect(out).toContain('>note.pdf</a>');
+        expect(out).toContain('>other.pdf</a>');
+        expect(out).not.toMatch(/href="\/lists\//);
+    });
 });
 
 describe('html-sanitizer: renderRichBlock (hydration-safe rich block)', () => {

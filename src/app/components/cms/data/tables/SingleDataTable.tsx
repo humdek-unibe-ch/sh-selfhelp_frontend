@@ -36,7 +36,8 @@ import {
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { SortHeader, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
-import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconRefresh, IconDownload, IconFileTypeCsv, IconJson, IconFileZip } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconRefresh, IconDownload, IconFileTypeCsv, IconJson, IconFileZip, IconHistory } from '@tabler/icons-react';
+import { AdminDataHistoryModal } from '../modals/AdminDataHistoryModal';
 import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable, useTableColumns } from '../../../../../hooks/useData';
 import { useDataTableOptionLabelMaps } from '../../../../../hooks/useDataTableOptionLabelMaps';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
@@ -65,6 +66,7 @@ interface ISingleDataTableProps {
 export default function SingleDataTable({ formId, tableName, displayName, locked = false, selectedUserId, showDeleted, selectedLanguageId }: ISingleDataTableProps) {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isDeleteRowOpen, setIsDeleteRowOpen] = useState<null | { id: number; label: string }>(null);
+  const [historyRecord, setHistoryRecord] = useState<null | { id: number; version?: number }>(null);
   const [isDeleteTableOpen, setIsDeleteTableOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
@@ -167,8 +169,19 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
           const isDeleted = (typeof triggerTypeRaw === 'string' && triggerTypeRaw.toLowerCase() === 'deleted') || isDeletedFlag === true;
           const recordId = Number(row.original.record_id ?? 0);
           if (!recordId || isDeleted) return null;
+          const version = Number(row.original.version ?? row.original._version ?? 0) || undefined;
           return (
             <Group gap={2} wrap="nowrap" justify="flex-end" className={tableStyles.actionsCell}>
+              <Tooltip label="History" withArrow>
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  aria-label="Record history"
+                  onClick={() => setHistoryRecord({ id: recordId, version })}
+                >
+                  <IconHistory size={16} />
+                </ActionIcon>
+              </Tooltip>
               <Tooltip label="Delete row" withArrow>
                 <ActionIcon variant="subtle" color="red" size="sm" aria-label="Delete row" onClick={() => setIsDeleteRowOpen({ id: recordId, label: `${displayName} #${recordId}` })}>
                   <IconTrash size={16} />
@@ -344,6 +357,16 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
           setIsDeleteTableOpen(false);
         }}
       />
+
+      {historyRecord && (
+        <AdminDataHistoryModal
+          opened={!!historyRecord}
+          onClose={() => setHistoryRecord(null)}
+          tableName={tableName}
+          recordId={historyRecord.id}
+          expectedVersion={historyRecord.version}
+        />
+      )}
     </Card>
   );
 }

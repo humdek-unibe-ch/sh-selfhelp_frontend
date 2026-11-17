@@ -14,6 +14,7 @@ import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useLanguageContext } from '../../contexts/LanguageContext';
 import type { IEntryTableStyle, IEntryTableEntry } from '../../../../shared';
 import { parseFieldsMapCatalog, parseFieldsMapLabels } from '@selfhelp/shared';
+import { offeredRecordVersion } from '../../../../utils/form-write.utils';
 import { useCmsAppAdminNav } from '../../cms/cms-apps/CmsAppAdminNavContext';
 import { ModalWrapper } from '../../shared/common/CustomModal/CustomModal';
 // Shared CMS list-table look (bordered shell, quiet uppercase header row, footer
@@ -97,7 +98,7 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
     // never breaks an existing mapping.
     const fieldLabels: Record<string, string> = style.field_labels ?? {};
     const rawDataKeys = Object.keys(rows[0] ?? {})
-        .filter(k => k !== 'entry_date' && k !== 'record_id' && k !== '_can_delete' && k !== '_can_edit' && k !== 'id_users');
+        .filter(k => k !== 'entry_date' && k !== 'record_id' && k !== '_can_delete' && k !== '_can_edit' && k !== '_version' && k !== 'id_users');
 
     const dataKeys = cmsAppNav
         ? rawDataKeys.filter((k) => !CMS_ADMIN_HIDDEN_KEYS.has(k))
@@ -128,7 +129,8 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
     const [sortDir, setSortDir] = useState<TSortDir>(defaultOrderCol ? (defaultOrderDir as TSortDir) : null);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
-    const [deleteTarget, setDeleteTarget] = useState<{ record_id: number } | null>(null);
+    // The record to delete and the version the row offered: the server refuses a delete without it.
+    const [deleteTarget, setDeleteTarget] = useState<{ record_id: number; version: number } | null>(null);
 
     const languageOptions = useMemo(
         () => languages
@@ -177,7 +179,7 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
     const handleDeleteConfirm = () => {
         if (!deleteTarget || !pageContent?.id) return;
         deleteMutation.mutate(
-            { record_id: deleteTarget.record_id, page_id: pageContent.id, section_id: style.id },
+            { record_id: deleteTarget.record_id, page_id: pageContent.id, section_id: style.id, expected_version: deleteTarget.version },
             { onSettled: () => setDeleteTarget(null) }
         );
     };
@@ -282,13 +284,16 @@ const EntryTableStyle: React.FC<IEntryTableStyleProps> = ({ style, styleProps, c
                                             </ActionIcon>
                                         )
                                     )}
-                                    {deleteEntry && row._can_delete && (
+                                    {deleteEntry && row._can_delete && offeredRecordVersion(row._version) !== null && (
                                         <ActionIcon
                                             color="red"
                                             variant="subtle"
                                             size="sm"
                                             aria-label={`Delete record ${row['record_id']}`}
-                                            onClick={() => setDeleteTarget({ record_id: Number(row['record_id']) })}
+                                            onClick={() => setDeleteTarget({
+                                                record_id: Number(row['record_id']),
+                                                version: offeredRecordVersion(row._version) as number,
+                                            })}
                                         >
                                             <IconTrash size={14} />
                                         </ActionIcon>

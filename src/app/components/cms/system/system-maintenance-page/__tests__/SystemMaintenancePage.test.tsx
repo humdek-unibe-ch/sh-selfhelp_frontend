@@ -99,6 +99,15 @@ vi.mock('../../../../shared/common/PageHeader', () => ({
     ),
 }));
 
+// The website list is generated from the build's own dependencies; pin it so the
+// page's rendering of it is deterministic.
+vi.mock('../../../../../../utils/web-libraries.utils', () => ({
+    WEB_LIBRARIES: [
+        { name: '@mantine/core', version: '9.5.0', license: 'MIT' },
+        { name: 'next', version: '16.2.6', license: 'MIT' },
+    ],
+}));
+
 import { SystemMaintenancePage } from '../SystemMaintenancePage';
 
 function version(): ISystemVersion {
@@ -114,6 +123,11 @@ function version(): ISystemVersion {
         safe_mode: false,
         maintenance_mode: false,
         installed_plugins: [],
+        frameworks: [
+            { name: 'PHP', version: '8.4.2', license: 'PHP-3.01' },
+            { name: 'Symfony', version: '7.4.1', license: 'MIT' },
+        ],
+        libraries: [{ name: 'doctrine/orm', version: '3.3.1', license: 'MIT' }],
     };
 }
 
@@ -260,6 +274,46 @@ describe('SystemMaintenancePage', () => {
         // plus an explanation of where the backend value would come from.
         expect(screen.getByText(/self-reported/i)).toBeInTheDocument();
         expect(screen.getByText(/SELFHELP_FRONTEND_VERSION/)).toBeInTheDocument();
+    });
+
+    it('lists the backend frameworks and libraries with their exact versions', () => {
+        renderWithProviders(<SystemMaintenancePage />);
+
+        const frameworks = within(screen.getByTestId('system-backend-frameworks'));
+        expect(within(frameworks.getByText('PHP').closest('tr')!).getByText('8.4.2')).toBeInTheDocument();
+        expect(within(frameworks.getByText('Symfony').closest('tr')!).getByText('7.4.1')).toBeInTheDocument();
+        expect(within(frameworks.getByText('Symfony').closest('tr')!).getByText('MIT')).toBeInTheDocument();
+
+        const libraries = within(screen.getByTestId('system-backend-libraries'));
+        expect(within(libraries.getByText('doctrine/orm').closest('tr')!).getByText('3.3.1')).toBeInTheDocument();
+    });
+
+    it('lists the website libraries generated from the build with their exact versions', () => {
+        renderWithProviders(<SystemMaintenancePage />);
+
+        const website = within(screen.getByTestId('system-web-libraries'));
+        expect(within(website.getByText('next').closest('tr')!).getByText('16.2.6')).toBeInTheDocument();
+        expect(within(website.getByText('@mantine/core').closest('tr')!).getByText('9.5.0')).toBeInTheDocument();
+    });
+
+    it('says so when the backend reports an empty list instead of an empty table', () => {
+        state.version = { ...version(), frameworks: [], libraries: [] };
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(within(screen.getByTestId('system-backend-frameworks')).getByText(/reported no frameworks/i)).toBeInTheDocument();
+        expect(within(screen.getByTestId('system-backend-libraries')).getByText(/reported no libraries/i)).toBeInTheDocument();
+    });
+
+    it('keeps the website list and hides the backend lists on a backend that does not report them yet', () => {
+        const { frameworks: _frameworks, libraries: _libraries, ...older } = version();
+        state.version = older as unknown as ISystemVersion;
+
+        renderWithProviders(<SystemMaintenancePage />);
+
+        expect(screen.queryByTestId('system-backend-frameworks')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('system-backend-libraries')).not.toBeInTheDocument();
+        expect(screen.getByTestId('system-web-libraries')).toBeInTheDocument();
     });
 
     it('feeds the target-version picker from the registry releases and excludes the current version', () => {

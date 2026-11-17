@@ -60,7 +60,9 @@ jobs:
         run: npm run headers:check
 
       - name: Type-check (tsc --noEmit)
-        run: npx tsc --noEmit
+        # Must use `npm run tsc` (not `npx tsc`) so `pretsc` generates
+        # `src/generated/web-libraries.json` before the type check.
+        run: npm run tsc
 
       - name: ESLint
         run: npm run lint -- --max-warnings=0

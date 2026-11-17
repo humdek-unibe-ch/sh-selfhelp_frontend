@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-03.
+Last verified: 2026-11-13.
 Source of truth: Runtime code, configuration, and tests in this repository.
 
 ## Client factory: `getQueryClient()`
@@ -61,6 +61,7 @@ const CACHE_TIERS = {
     LANGUAGES:      { staleTime: Infinity,    gcTime: Infinity },
     USER_DATA:      { staleTime: 30_000,      gcTime: 5 * MINUTE, refetchOnWindowFocus: true },
     REAL_TIME:      { staleTime: 0,           gcTime: 30_000 },
+    FORM_LIST:      { staleTime: 15_000,      gcTime: 2 * MINUTE, refetchOnWindowFocus: true },
 } as const;
 ```
 
@@ -76,6 +77,7 @@ Pick the tier that matches the data's volatility:
 - **`LOOKUPS` / `STATIC` (30m / 1h)** — practically immutable enums/config.
 - **`LANGUAGES` (∞ / ∞)** — manual invalidation only.
 - **`REAL_TIME` (0s / 30s)** — opt-in, always refetch on mount.
+- **`FORM_LIST` (15s / 2m, focus-refetch)** — the state and history reads of an `entry-form-list` / `data-view`; keys carry the account, so a cached list is never shown to another person (see [../form-lists.md](../form-lists.md)).
 
 ## Custom Hooks Pattern
 

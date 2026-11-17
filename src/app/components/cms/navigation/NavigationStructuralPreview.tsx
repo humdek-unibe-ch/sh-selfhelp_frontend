@@ -103,8 +103,24 @@ export function NavigationStructuralPreview({
     let body: React.ReactElement;
 
     if (menuKey === 'web_header') {
-        const topRow = roots.filter((item) => item.layer === 'top');
-        const mainRow = roots.filter((item) => item.layer !== 'top');
+        // Match public truncate: first N roots by position; overflow muted.
+        const limit = itemLimit ?? roots.length;
+        const shownRoots = roots.slice(0, limit);
+        const hiddenRoots = roots.slice(limit);
+        const topRow = shownRoots.filter((item) => item.layer === 'top');
+        const mainRow = shownRoots.filter((item) => item.layer !== 'top');
+        const overflowPills = hiddenRoots.length > 0 ? (
+            <Group gap={6} wrap="wrap">
+                {hiddenRoots.map((item) => (
+                    <Pill
+                        key={item.id}
+                        label={labelOf(item)}
+                        variant="muted"
+                        title="Over Max root items — not rendered publicly"
+                    />
+                ))}
+            </Group>
+        ) : null;
         const mainPills = (row: IAdminNavigationMenuItem[]) => (
             <Group gap={6} wrap="wrap">
                 {row.map((item) => {
@@ -138,13 +154,17 @@ export function NavigationStructuralPreview({
                     <Text size="xs" c="dimmed" w={64} style={{ flexShrink: 0 }}>Main row</Text>
                     {mainPills(mainRow)}
                 </Group>
+                {overflowPills}
             </Stack>
         ) : (
-            <Group gap="xs" wrap="nowrap" align="center">
-                <Text size="xs" c="dimmed" w={64} style={{ flexShrink: 0 }}>One row</Text>
-                {/* Single presets append top-row assignments after the main items. */}
-                {mainPills([...mainRow, ...roots.filter((item) => item.layer === 'top')])}
-            </Group>
+            <Stack gap={6}>
+                <Group gap="xs" wrap="nowrap" align="center">
+                    <Text size="xs" c="dimmed" w={64} style={{ flexShrink: 0 }}>One row</Text>
+                    {/* Single presets append top-row assignments after the main items. */}
+                    {mainPills([...mainRow, ...shownRoots.filter((item) => item.layer === 'top')])}
+                </Group>
+                {overflowPills}
+            </Stack>
         );
     } else if (menuKey === 'web_footer') {
         const groups = roots.filter((item) => item.item_type === 'group');
@@ -245,10 +265,13 @@ export function NavigationStructuralPreview({
             </Stack>
         );
     } else {
-        // mobile_drawer: nested list.
+        // mobile_drawer: nested list; mute roots past Max root items.
+        const limit = itemLimit ?? roots.length;
+        const shownRoots = roots.slice(0, limit);
+        const hiddenRoots = roots.slice(limit);
         body = (
             <Stack gap={2}>
-                {roots.map((item) => (
+                {shownRoots.map((item) => (
                     <Box key={item.id}>
                         <Pill label={labelOf(item)} variant={item.item_type === 'group' ? 'group' : 'link'} />
                         {(childrenOf.get(item.id) ?? []).map((child) => (
@@ -256,6 +279,15 @@ export function NavigationStructuralPreview({
                                 <Pill label={labelOf(child)} />
                             </Box>
                         ))}
+                    </Box>
+                ))}
+                {hiddenRoots.map((item) => (
+                    <Box key={item.id}>
+                        <Pill
+                            label={labelOf(item)}
+                            variant="muted"
+                            title="Over Max root items — not rendered publicly"
+                        />
                     </Box>
                 ))}
             </Stack>

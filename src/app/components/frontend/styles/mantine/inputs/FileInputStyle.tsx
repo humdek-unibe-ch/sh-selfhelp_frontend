@@ -2,14 +2,16 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import React, { useState, useCallback, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
-import { FileInput, Text, Alert, Box, rem, Paper, Group, Button, Stack, Badge } from '@mantine/core';
+import React, { useState, useCallback, useRef, useEffect, useImperativeHandle, forwardRef, useMemo } from 'react';
+import { FileInput, Text, Alert, Box, rem, Paper, Group, Button, Stack, Badge, Image, Anchor } from '@mantine/core';
+import { asFilesCell, type IFormFileFieldOp, type IFormListFileValue } from '@selfhelp/shared';
 import { IconComponent } from '../../../../shared';
 import { type IFileInputStyle } from '../../../../../../types/common/styles.types';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconCheck, IconX, IconUpload, IconFile, IconTrash, IconClearAll } from '@tabler/icons-react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
-import { FileInputRegistrationContext } from '../../FormStyle';
+import { FileInputRegistrationContext, FormFieldValueContext } from '../../FormStyle';
+import { FormListApi } from '../../../../../../api/frontend/form-list.api';
 import { castMantineRadius, castMantineSize } from '../../../../../../utils/style-field-extractor';
 import { debug } from '../../../../../../utils/debug-logger';
 import DOMPurify from 'isomorphic-dompurify';
@@ -33,6 +35,10 @@ export interface IFileInputStyleRef {
     /** For the form's required check. */
     isRequired: () => boolean;
     getLabel: () => string;
+    /** Explicit keep/remove instruction for an update (contract 4); null when untouched. */
+    getFileOp: () => IFormFileFieldOp | null;
+    /** How many stored files remain after removals (for required checks on edit). */
+    getKeptExistingCount: () => number;
 }
 
 /**
@@ -60,9 +66,13 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     // State for drag and drop zone
     const [isDragOver, setIsDragOver] = useState(false);
+    /** Indexes of stored files the editor removed; `true` clears every stored file. */
+    const [removedIndexes, setRemovedIndexes] = useState<number[]>([]);
+    const [removedAll, setRemovedAll] = useState(false);
 
     // Get the registration context from form
     const fileInputRegistrationContext = React.useContext(FileInputRegistrationContext);
+    const fieldValueContext = React.useContext(FormFieldValueContext);
 
     // Refs for controlling the input elements
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -91,6 +101,29 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
     // Parse numeric values
     const maxSize = maxSizeStr ? parseInt(maxSizeStr, 10) : undefined;
     const maxFiles = maxFilesStr ? parseInt(maxFilesStr, 10) : undefined;
+
+    const existingFiles = useMemo((): IFormListFileValue[] => {
+        const raw = fieldValueContext?.getFileFieldValue(name) ?? null;
+        return asFilesCell(raw)?.files ?? [];
+    }, [fieldValueContext, name]);
+
+    const keptExisting = useMemo(() => {
+        if (removedAll) {
+            return [];
+        }
+        const drop = new Set(removedIndexes);
+        return existingFiles.filter((file) => !drop.has(file.index));
+    }, [existingFiles, removedAll, removedIndexes]);
+
+    const fileOp = useMemo((): IFormFileFieldOp | null => {
+        if (removedAll) {
+            return { remove: true };
+        }
+        if (removedIndexes.length > 0) {
+            return { remove_indexes: [...removedIndexes].sort((a, b) => a - b) };
+        }
+        return null;
+    }, [removedAll, removedIndexes]);
 
     // Handle CSS field - use direct property from API response
 
@@ -211,9 +244,23 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
         setSelectedFiles(newFiles); // Directly update state to trigger useEffect
     }, [selectedFiles]);
 
-    // Clear all files
+    // Clear all newly picked files
     const clearAllFiles = useCallback(() => {
-        setSelectedFiles([]); // Directly update state to trigger useEffect
+        setSelectedFiles([]);
+    }, []);
+
+    const removeExistingFile = useCallback((index: number) => {
+        if (!multiple) {
+            setRemovedAll(true);
+            setRemovedIndexes([]);
+            return;
+        }
+        setRemovedIndexes((prev) => (prev.includes(index) ? prev : [...prev, index]));
+    }, [multiple]);
+
+    const removeAllExisting = useCallback(() => {
+        setRemovedAll(true);
+        setRemovedIndexes([]);
     }, []);
 
     // Expose methods to parent component via ref
@@ -222,8 +269,10 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
         getFieldName: () => name,
         clearFiles: clearAllFiles,
         isRequired: () => isRequired,
-        getLabel: () => label || name
-    }), [selectedFiles, name, clearAllFiles, isRequired, label]);
+        getLabel: () => label || name,
+        getFileOp: () => fileOp,
+        getKeptExistingCount: () => keptExisting.length,
+    }), [selectedFiles, name, clearAllFiles, isRequired, label, fileOp, keptExisting.length]);
 
     // Register with form context when component mounts
     useEffect(() => {
@@ -234,7 +283,9 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
                 getFieldName: () => name,
                 clearFiles: clearAllFiles,
                 isRequired: () => isRequired,
-                getLabel: () => label || name
+                getLabel: () => label || name,
+                getFileOp: () => fileOp,
+                getKeptExistingCount: () => keptExisting.length,
             };
             
             fileInputRegistrationContext.registerFileInputRef(fieldName, fileInputRef);
@@ -245,7 +296,7 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
             };
         }
         return undefined;
-    }, [fileInputRegistrationContext, name, selectedFiles, clearAllFiles, isRequired, label]);
+    }, [fileInputRegistrationContext, name, selectedFiles, clearAllFiles, isRequired, label, fileOp, keptExisting.length]);
 
     // Format file size helper
     const formatFileSize = useCallback((bytes: number): string => {
@@ -378,6 +429,67 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
                         {isRequired && <Text size="xs" c="red" mt="xs">* Required</Text>}
                     </Box>
 
+                    {keptExisting.length > 0 && (
+                        <Paper withBorder p="md" data-testid="file-input-existing">
+                            <Group justify="space-between" mb="sm">
+                                <Text size="sm" fw={500}>Current file{keptExisting.length === 1 ? '' : 's'} ({keptExisting.length})</Text>
+                                <Button
+                                    variant="subtle"
+                                    size="xs"
+                                    color="red"
+                                    leftSection={<IconTrash size={14} />}
+                                    onClick={removeAllExisting}
+                                    disabled={disabled}
+                                >
+                                    Remove
+                                </Button>
+                            </Group>
+                            <Stack gap="xs">
+                                {keptExisting.map((file) => {
+                                    const href = FormListApi.fileHref(file.url);
+                                    const isImage = (file.mime ?? '').startsWith('image/');
+                                    return (
+                                        <Paper key={`existing-${file.index}`} withBorder p="sm">
+                                            <Group justify="space-between" wrap="nowrap">
+                                                <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+                                                    {isImage ? (
+                                                        <Anchor href={href} target="_blank" rel="noopener noreferrer">
+                                                            <Image src={href} alt={file.name} h={40} w={56} fit="cover" radius="sm" />
+                                                        </Anchor>
+                                                    ) : (
+                                                        <IconFile size={16} />
+                                                    )}
+                                                    <div style={{ minWidth: 0 }}>
+                                                        <Anchor href={href} target="_blank" rel="noopener noreferrer" size="sm" lineClamp={1}>{file.name}</Anchor>
+                                                        <Group gap="xs">
+                                                            {file.size != null && (
+                                                                <Badge size="xs" variant="light">{formatFileSize(file.size)}</Badge>
+                                                            )}
+                                                            {file.mime && (
+                                                                <Badge size="xs" variant="outline">{file.mime}</Badge>
+                                                            )}
+                                                        </Group>
+                                                    </div>
+                                                </Group>
+                                                <Button
+                                                    variant="subtle"
+                                                    size="xs"
+                                                    color="red"
+                                                    onClick={() => removeExistingFile(file.index)}
+                                                    disabled={disabled}
+                                                    aria-label={`Remove ${file.name}`}
+                                                >
+                                                    <IconTrash size={14} />
+                                                </Button>
+                                            </Group>
+                                        </Paper>
+                                    );
+                                })}
+                            </Stack>
+                            <Text size="xs" c="dimmed" mt="xs">{multiple ? 'Pick files to add, or remove current ones.' : 'Pick a file to replace, or remove the current one.'}</Text>
+                        </Paper>
+                    )}
+
                     {/* Selected Files List */}
                     {selectedFiles.length > 0 && (
                         <Paper withBorder p="md">
@@ -479,7 +591,68 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
                     error={validationError}
                 />
 
-                {/* Selected Files Display for Standard Input */}
+                {keptExisting.length > 0 && (
+                        <Paper withBorder p="md" data-testid="file-input-existing">
+                            <Group justify="space-between" mb="sm">
+                                <Text size="sm" fw={500}>Current file{keptExisting.length === 1 ? '' : 's'} ({keptExisting.length})</Text>
+                                <Button
+                                    variant="subtle"
+                                    size="xs"
+                                    color="red"
+                                    leftSection={<IconTrash size={14} />}
+                                    onClick={removeAllExisting}
+                                    disabled={disabled}
+                                >
+                                    Remove
+                                </Button>
+                            </Group>
+                            <Stack gap="xs">
+                                {keptExisting.map((file) => {
+                                    const href = FormListApi.fileHref(file.url);
+                                    const isImage = (file.mime ?? '').startsWith('image/');
+                                    return (
+                                        <Paper key={`existing-${file.index}`} withBorder p="sm">
+                                            <Group justify="space-between" wrap="nowrap">
+                                                <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+                                                    {isImage ? (
+                                                        <Anchor href={href} target="_blank" rel="noopener noreferrer">
+                                                            <Image src={href} alt={file.name} h={40} w={56} fit="cover" radius="sm" />
+                                                        </Anchor>
+                                                    ) : (
+                                                        <IconFile size={16} />
+                                                    )}
+                                                    <div style={{ minWidth: 0 }}>
+                                                        <Anchor href={href} target="_blank" rel="noopener noreferrer" size="sm" lineClamp={1}>{file.name}</Anchor>
+                                                        <Group gap="xs">
+                                                            {file.size != null && (
+                                                                <Badge size="xs" variant="light">{formatFileSize(file.size)}</Badge>
+                                                            )}
+                                                            {file.mime && (
+                                                                <Badge size="xs" variant="outline">{file.mime}</Badge>
+                                                            )}
+                                                        </Group>
+                                                    </div>
+                                                </Group>
+                                                <Button
+                                                    variant="subtle"
+                                                    size="xs"
+                                                    color="red"
+                                                    onClick={() => removeExistingFile(file.index)}
+                                                    disabled={disabled}
+                                                    aria-label={`Remove ${file.name}`}
+                                                >
+                                                    <IconTrash size={14} />
+                                                </Button>
+                                            </Group>
+                                        </Paper>
+                                    );
+                                })}
+                            </Stack>
+                            <Text size="xs" c="dimmed" mt="xs">{multiple ? 'Pick files to add, or remove current ones.' : 'Pick a file to replace, or remove the current one.'}</Text>
+                        </Paper>
+                    )}
+
+                                    {/* Selected Files Display for Standard Input */}
                 {selectedFiles.length > 0 && (
                     <Paper withBorder p="sm">
                         <Group justify="space-between" mb="xs">

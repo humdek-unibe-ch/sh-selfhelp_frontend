@@ -29,6 +29,7 @@ import { isTransientApiError } from '../utils/transient-error.utils';
 import { broadcastAuthChange } from '../utils/auth-broadcast';
 import { getQueryClient } from './query-client';
 import { NavigationApi } from '../api/navigation.api';
+import { clearFormListCaches } from '../utils/form-list-cache.utils';
 
 const PENDING_2FA_KEY = 'pending_2fa_user_id';
 
@@ -88,6 +89,9 @@ export const authProvider: AuthProvider = {
             qc.removeQueries({
                 queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION_ALL,
             });
+            // The same list URL shows other records, actions and versions to
+            // the person who just signed in.
+            clearFormListCaches(qc);
             try {
                 const me = await qc.fetchQuery({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
@@ -166,6 +170,8 @@ export const authProvider: AuthProvider = {
         // Permission-filtered menus must not leak across logout.
         qc.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
         qc.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION_ALL });
+        // Entry lists and their histories are per account: none may outlive the session.
+        clearFormListCaches(qc);
         // Tell sibling tabs of this browser to drop the session NOW (shared
         // cookies are already cleared) instead of discovering it on a later 401.
         broadcastAuthChange({ type: 'logged-out' });

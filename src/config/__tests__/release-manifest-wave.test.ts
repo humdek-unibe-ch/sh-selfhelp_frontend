@@ -16,14 +16,23 @@ const manifest = JSON.parse(
 const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'));
 
 describe('release-manifest wave floors', () => {
-    it('requires core >=0.1.43 for this frontend', () => {
+    it('requires core >=0.1.44 for this frontend', () => {
         expect(manifest.kind).toBe('frontend');
-        expect(manifest.supports.core).toBe('>=0.1.43 <0.2.0');
+        expect(manifest.supports.core).toBe('>=0.1.44 <0.2.0');
     });
 
-    it('pins @selfhelp/shared to 1.22.1 (rate-limit helpers + files_public; not staged 2.x/3.x)', () => {
+    it('pins @selfhelp/shared to 1.24.0 (entry-list styles + DTOs + strict record versions; not staged 2.x/3.x)', () => {
         expect(pkg.dependencies['@selfhelp/shared'] ?? pkg.devDependencies?.['@selfhelp/shared']).toBe(
-            '1.22.1',
+            '1.24.0',
+        );
+    });
+
+    it('names the same shared version in the lockfile as in package.json', () => {
+        const lock = JSON.parse(readFileSync(join(process.cwd(), 'package-lock.json'), 'utf8'));
+        expect(lock.packages[''].dependencies['@selfhelp/shared']).toBe(pkg.dependencies['@selfhelp/shared']);
+        expect(lock.packages['node_modules/@selfhelp/shared'].version).toBe(pkg.dependencies['@selfhelp/shared']);
+        expect(lock.packages['node_modules/@selfhelp/shared'].resolved).toBe(
+            `https://registry.npmjs.org/@selfhelp/shared/-/shared-${pkg.dependencies['@selfhelp/shared']}.tgz`,
         );
     });
 
@@ -31,10 +40,10 @@ describe('release-manifest wave floors', () => {
         // Avoid importing `semver` (no @types in this package); mirror the
         // wave's `>=X.Y.Z <0.2.0` range with version_compare-style checks.
         const range = manifest.supports.core as string;
-        expect(range).toBe('>=0.1.43 <0.2.0');
+        expect(range).toBe('>=0.1.44 <0.2.0');
         const floorOk = (v: string) => {
             const [maj, min, pat] = v.split('.').map(Number);
-            const [fMaj, fMin, fPat] = [0, 1, 43];
+            const [fMaj, fMin, fPat] = [0, 1, 44];
             const [cMaj, cMin] = [0, 2];
             const geFloor =
                 maj > fMaj ||
@@ -43,7 +52,7 @@ describe('release-manifest wave floors', () => {
             const ltCap = maj < cMaj || (maj === cMaj && min < cMin);
             return geFloor && ltCap;
         };
-        expect(floorOk('0.1.43')).toBe(true);
-        expect(floorOk('0.1.42')).toBe(false);
+        expect(floorOk('0.1.44')).toBe(true);
+        expect(floorOk('0.1.43')).toBe(false);
     });
 });

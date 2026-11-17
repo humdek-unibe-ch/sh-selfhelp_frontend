@@ -421,6 +421,7 @@ describe('getRootItemLimitState', () => {
         expect(state.overLimit).toBe(false);
         expect(state.blockedReason).toContain('at most 5 root items');
         expect(state.blockedReason).toContain('under an existing item');
+        expect(state.blockedReason).toContain('raise Max root items');
     });
 
     it('still reports over-limit when the menu is past the cap', () => {

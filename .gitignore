@@ -145,3 +145,6 @@ dist
 .windsurfrules
 
 AGENTS.local.md
+
+# Generated before dev/build/tsc by scripts/generate-web-libraries.mjs (not committed)
+/src/generated/

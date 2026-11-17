@@ -5,7 +5,8 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 /**
- * Scaffold list/detail/form pages into an existing CMS app (uses app id).
+ * Scaffold the pages of an existing CMS app (uses the app id): one CMS list that holds the
+ * form and manages the records, and a public read-only list with a detail page.
  */
 
 import { useMemo, useState } from 'react';
@@ -39,6 +40,7 @@ import {
     type IScaffoldCmsAppRequest,
     type TCmsAppFormFieldStyle,
 } from '../../../../types/requests/admin/cms-app.types';
+import { plannedScaffoldRoutes, scaffoldFormNeedsCmsList } from './cmsAppPages.utils';
 
 const FORM_FIELD_STYLE_OPTIONS: Array<{ value: TCmsAppFormFieldStyle; label: string }> = [
     { value: 'text-input', label: 'Text' },
@@ -47,6 +49,8 @@ const FORM_FIELD_STYLE_OPTIONS: Array<{ value: TCmsAppFormFieldStyle; label: str
     { value: 'checkbox', label: 'Checkbox' },
     { value: 'radio', label: 'Radio' },
     { value: 'number-input', label: 'Number' },
+    { value: 'image', label: 'Image' },
+    { value: 'files', label: 'Files (downloads)' },
 ];
 
 interface IScaffoldCmsAppModalProps {
@@ -60,6 +64,7 @@ interface IWizardFormValues {
     base_name: string;
     create_form: boolean;
     form_fields: ICmsAppFormField[];
+    with_status: boolean;
     data_table: string;
     create_public: boolean;
     create_admin: boolean;
@@ -67,12 +72,6 @@ interface IWizardFormValues {
     list_title: string;
     detail_title: string;
     access_groups: string[];
-}
-
-interface IPlannedRoute {
-    role: string;
-    surface: 'public' | 'cms';
-    pattern: string;
 }
 
 export function ScaffoldCmsAppModal({
@@ -97,6 +96,7 @@ export function ScaffoldCmsAppModal({
             base_name: defaultBaseName,
             create_form: true,
             form_fields: [{ name: 'title', style: 'text-input', label: '' }],
+            with_status: true,
             data_table: '',
             create_public: true,
             create_admin: true,
@@ -125,26 +125,23 @@ export function ScaffoldCmsAppModal({
 
     const scaffoldMutation = useScaffoldCmsAppMutation(appId);
 
-    const plannedRoutes = useMemo<IPlannedRoute[]>(() => {
-        const base = form.values.base_name.trim();
-        if (!base) return [];
-        const param = form.values.record_id_param || 'record_id';
-        const routes: IPlannedRoute[] = [];
-        if (form.values.create_form) {
-            routes.push({ role: 'form', surface: 'cms', pattern: `/cms/${base}/form` });
-        }
-        if (form.values.create_public) {
-            routes.push({ role: 'public_list', surface: 'public', pattern: `/${base}` });
-            routes.push({ role: 'public_detail', surface: 'public', pattern: `/${base}/{${param}}` });
-        }
-        if (form.values.create_admin) {
-            routes.push({ role: 'cms_list', surface: 'cms', pattern: `/cms/${base}` });
-            routes.push({ role: 'cms_detail', surface: 'cms', pattern: `/cms/${base}/{${param}}` });
-        }
-        return routes;
-    }, [form.values]);
+    const plannedRoutes = useMemo(
+        () =>
+            plannedScaffoldRoutes({
+                base: form.values.base_name,
+                recordIdParam: form.values.record_id_param,
+                createForm: form.values.create_form,
+                createPublic: form.values.create_public,
+                createAdmin: form.values.create_admin,
+            }),
+        [form.values],
+    );
 
     const noSurfaceSelected = !form.values.create_public && !form.values.create_admin;
+    const formNeedsCmsList = scaffoldFormNeedsCmsList({
+        createForm: form.values.create_form,
+        createAdmin: form.values.create_admin,
+    });
 
     const handleClose = () => {
         form.reset();
@@ -154,7 +151,7 @@ export function ScaffoldCmsAppModal({
     };
 
     const handleGenerate = () => {
-        if (noSurfaceSelected) return;
+        if (noSurfaceSelected || formNeedsCmsList) return;
         if (form.validate().hasErrors) return;
 
         const values = form.values;
@@ -166,6 +163,7 @@ export function ScaffoldCmsAppModal({
             record_id_param: values.record_id_param,
             access_groups: values.access_groups.map(Number),
         };
+        payload.with_status = values.with_status;
         if (values.create_form) {
             payload.form_fields = values.form_fields
                 .map((field) => ({
@@ -187,24 +185,27 @@ export function ScaffoldCmsAppModal({
         <ModalWrapper
             opened={opened}
             onClose={handleClose}
-            title="Scaffold list + detail pages"
+            title="Scaffold the pages of this app"
             size="xl"
             onSave={done ? undefined : handleGenerate}
             saveLabel={done ? 'Done' : 'Generate pages'}
             onCancel={handleClose}
             cancelLabel={done ? 'Close' : 'Cancel'}
             isLoading={scaffoldMutation.isPending}
-            disabled={done ? false : noSurfaceSelected}
+            disabled={done ? false : noSurfaceSelected || formNeedsCmsList}
         >
             {done ? (
                 <Alert color="green" icon={<IconInfoCircle size="1rem" />} title="Pages scaffolded">
-                    Pages were assigned to this CMS app with strict roles. Use Manage content to open the CMS list.
+                    Pages were assigned to this CMS app with strict roles. Use Manage content to open the
+                    CMS list, where records are added, edited and deleted.
                 </Alert>
             ) : (
                 <Stack gap="md">
                     <Alert color="blue" icon={<IconInfoCircle size="1rem" />}>
-                        Scaffolds pages into this CMS app (id {appId}). Editors manage records at{' '}
-                        <Code>/cms/&lt;base&gt;</Code> — not in Host Admin.
+                        Scaffolds pages into this CMS app (id {appId}). Editors manage the records in one CMS
+                        list at <Code>/cms/&lt;base&gt;</Code> (it holds the form: add, edit, delete, restore),
+                        not in Host Admin. Visitors read the same records in a read-only public list with a
+                        detail page.
                     </Alert>
 
                     <TextInput
@@ -215,8 +216,16 @@ export function ScaffoldCmsAppModal({
 
                     <Switch
                         label="Create a new form + data table"
+                        description="The form is defined once, inside the CMS list, and owns the data table. Without it the CMS list only shows and deletes the records of an existing table."
                         checked={form.values.create_form}
                         onChange={(event) => form.setFieldValue('create_form', event.currentTarget.checked)}
+                    />
+
+                    <Switch
+                        label="Draft / published status"
+                        description="Adds a status field (default draft), publish and unpublish actions on the CMS list, and shows only published records on the public list and detail."
+                        checked={form.values.with_status}
+                        onChange={(event) => form.setFieldValue('with_status', event.currentTarget.checked)}
                     />
 
                     {form.values.create_form ? (
@@ -304,14 +313,14 @@ export function ScaffoldCmsAppModal({
 
                     <Group gap="xl">
                         <Switch
-                            label="Create public pages"
+                            label="Create the public list and detail pages"
                             checked={form.values.create_public}
                             onChange={(event) =>
                                 form.setFieldValue('create_public', event.currentTarget.checked)
                             }
                         />
                         <Switch
-                            label="Create CMS (admin) pages"
+                            label="Create the CMS list (manage records)"
                             checked={form.values.create_admin}
                             onChange={(event) =>
                                 form.setFieldValue('create_admin', event.currentTarget.checked)
@@ -321,7 +330,13 @@ export function ScaffoldCmsAppModal({
 
                     {noSurfaceSelected && (
                         <Alert color="red" variant="light">
-                            Select at least one of public / CMS pages.
+                            Select at least one of the public pages / the CMS list.
+                        </Alert>
+                    )}
+
+                    {formNeedsCmsList && (
+                        <Alert color="red" variant="light">
+                            A new form lives inside the CMS list. Turn on the CMS list or turn off the new form.
                         </Alert>
                     )}
 
@@ -334,6 +349,7 @@ export function ScaffoldCmsAppModal({
                                         <Table.Th className={tableStyles.tableHeader}>Role</Table.Th>
                                         <Table.Th className={tableStyles.tableHeader}>Surface</Table.Th>
                                         <Table.Th className={tableStyles.tableHeader}>Route</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>What it does</Table.Th>
                                     </Table.Tr>
                                 </Table.Thead>
                                 <Table.Tbody>
@@ -349,6 +365,7 @@ export function ScaffoldCmsAppModal({
                                                 </Badge>
                                             </Table.Td>
                                             <Table.Td className={tableStyles.tableCell}><Code>{route.pattern}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{route.description}</Table.Td>
                                         </Table.Tr>
                                     ))}
                                 </Table.Tbody>

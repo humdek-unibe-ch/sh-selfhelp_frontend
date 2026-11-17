@@ -31,6 +31,9 @@ SPDX-License-Identifier: MPL-2.0
  *   `acl_version` rotations are picked up promptly.
  * - REAL_TIME: 0s stale / 30s gc. Opt-in for queries that must always
  *   re-fetch on mount (e.g. freshly-edited admin data tables).
+ * - FORM_LIST: 15s stale / 2m gc with `refetchOnWindowFocus`. The state of an
+ *   `entry-form-list` / `data-view` (records other people change); the list's
+ *   own writes invalidate it immediately.
  *
  * Global defaults disable `refetchOnWindowFocus` and `refetchOnReconnect`;
  * the per-query `USER_DATA` config opts into focus refetches.
@@ -75,6 +78,14 @@ const CACHE_TIERS = {
     REAL_TIME: {
         staleTime: 0,
         gcTime: 30_000,
+    },
+    // `entry-form-list` / `data-view` state. A list shows records that other
+    // people and other tabs change, so it is only briefly fresh; every write the
+    // list itself makes invalidates it at once, and a returning tab refetches.
+    FORM_LIST: {
+        staleTime: 15_000,
+        gcTime: 2 * MINUTE,
+        refetchOnWindowFocus: true,
     },
 } as const;
 
@@ -156,6 +167,26 @@ export const REACT_QUERY_CONFIG = {
         PAGE_BY_PATH: (path: string, languageId: number, preview = false) =>
             ['page-by-keyword', '__path__', path, languageId, preview ? 'preview' : 'published'] as const,
         PAGE_BY_PATH_ALL: ['page-by-keyword', '__path__'],
+
+        // ── Form lists (`entry-form-list` / `data-view`) ───────────────────
+        // A list's state is keyed by `formListCacheKey` from `@selfhelp/shared`:
+        // ['form-list', apiBase, account|'guest', languageId, platform, pageId,
+        //  sectionId, normalizedOwnParams]. Never share an entry across accounts:
+        // the same URL shows different records to different people. Login,
+        // logout and impersonation drop the whole root (`FORM_LIST_ALL`);
+        // writers refresh one list through `invalidateFormList` (useFormList).
+        FORM_LIST_ALL: ['form-list'],
+        // History, version and comparison reads of a record (own root so a
+        // list refresh does not drop an open history panel).
+        FORM_LIST_HISTORY_ALL: ['form-list-history'],
+        // The last element says which version of the page the read acts on: the draft (preview mode)
+        // and the published one can allow different things, so they never share an entry.
+        FORM_LIST_HISTORY: (authScope: string, sectionId: number, recordId: number, page: number, preview = false) =>
+            ['form-list-history', authScope, sectionId, recordId, 'history', page, preview ? 'preview' : 'published'] as const,
+        FORM_LIST_VERSION: (authScope: string, sectionId: number, recordId: number, version: number, preview = false) =>
+            ['form-list-history', authScope, sectionId, recordId, 'version', version, preview ? 'preview' : 'published'] as const,
+        FORM_LIST_COMPARE: (authScope: string, sectionId: number, recordId: number, from: number, to: number, preview = false) =>
+            ['form-list-history', authScope, sectionId, recordId, 'compare', from, to, preview ? 'preview' : 'published'] as const,
 
         // ── Admin page list ───────────────────────────────────────────────
         ADMIN_PAGES: ['admin-pages'],

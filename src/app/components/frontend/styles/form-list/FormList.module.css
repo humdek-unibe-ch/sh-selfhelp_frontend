@@ -1,0 +1,97 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+/*
+ * Layout rules of the form lists. Everything here keeps a list inside its
+ * container: long labels and values wrap, tables scroll inside their own box,
+ * and nothing makes the page wider than the screen.
+ */
+.root {
+    min-width: 0;
+    max-width: 100%;
+    /* The visually hidden captions and status lines are absolutely positioned; with no positioned
+       ancestor they reach out of a scrolling table and widen the whole page. */
+    position: relative;
+}
+
+.scroller {
+    position: relative;
+    max-width: 100%;
+}
+
+/* The theme's dimmed grey reads at about 3.3:1 on white. The lists use it for counts, labels and hints,
+   so inside a list (and its dialog) it is one step darker, which is above the 4.5:1 that AA asks for. */
+[data-mantine-color-scheme='light'] .root,
+[data-mantine-color-scheme='light'] .record {
+    --mantine-color-dimmed: var(--mantine-color-gray-7);
+}
+
+.cell {
+    overflow-wrap: anywhere;
+    vertical-align: top;
+}
+
+.headButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font: inherit;
+    font-weight: inherit;
+    text-align: start;
+    overflow-wrap: anywhere;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    justify-content: flex-end;
+}
+
+.cardLabel {
+    overflow-wrap: anywhere;
+}
+
+/* The records of a data view with the layout `custom`. With no classes of its own the holder is a
+   column; with the author's classes (a grid, for instance) it is exactly what they describe. */
+.customStack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mantine-spacing-md);
+    min-width: 0;
+}
+
+.customHolder {
+    min-width: 0;
+}
+
+/* A grid item may not grow past its track because of a long word inside the record. */
+.customRow {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* The record of a list: the form, the view and the history, in a dialog or on the page.
+   A label can be as long as a sentence of a questionnaire and hold a word that has no break in it (a
+   reference number, a long compound word of a translation). `anywhere` lowers the smallest width such a
+   text asks for, so it wraps inside the record instead of widening the dialog and being cut off at its
+   edge (the plain `break-word` keeps the width of the longest word). */
+.record {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+/* Mantine sets `overflow-wrap: break-word` on a label, a hint and an error itself, which wins over the
+   value the record passes down. */
+.record label,
+.record [class*='mantine-'][class*='-description'],
+.record [class*='mantine-'][class*='-error'] {
+    overflow-wrap: anywhere;
+}
+
+.changeValue {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}

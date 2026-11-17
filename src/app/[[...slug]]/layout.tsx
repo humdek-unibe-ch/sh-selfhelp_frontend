@@ -34,6 +34,7 @@ import SlugShell from './SlugLayout/SlugShell';
 import { WebsiteHeader } from '../components/frontend/layout/header/WebsiteHeader';
 import { WebsiteFooter } from '../components/frontend/layout/footer/WebsiteFooter';
 import { pathFromSlug } from './slug-routing';
+import { stripFormListState } from '../../utils/form-list.utils';
 
 export default async function SlugRouteLayout({
     children,
@@ -82,7 +83,9 @@ export default async function SlugRouteLayout({
             queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_PATH(path, languageId, preview),
             queryFn: async () => {
                 const raw = await resolvePageByPathSSRCached(path, languageId, preview);
-                return extractSsrPage(raw);
+                // The lists the server rendered travel once, with the page (see
+                // `FormListSsrProvider`); the dehydrated payload does not repeat them.
+                return stripFormListState(extractSsrPage(raw));
             },
         }).then(() =>
             queryClient.getQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_PATH(path, languageId, preview))

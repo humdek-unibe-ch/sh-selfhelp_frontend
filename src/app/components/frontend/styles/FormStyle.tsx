@@ -8,7 +8,14 @@ import { Button, Alert, LoadingOverlay, Group, Modal, Stack, Text, Title } from 
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { parseFormRecordPrefill, type TFormRecordPrefillFieldValue } from '@selfhelp/shared';
+import {
+    asFilesCell,
+    getFormInvalidData,
+    getFormStaleVersion,
+    parseFormRecordPrefill,
+    type IFormFileFieldOp,
+    type TFormRecordPrefillFieldValue,
+} from '@selfhelp/shared';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
 import { usePageModal } from '../../contexts/PageModalContext';
@@ -16,6 +23,7 @@ import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { type IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
 import { type IFormLogStyle, type IFormRecordStyle, type IEntryRecordFormStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline, stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
+import { useFormListForm } from './form-list/FormListFormContext';
 import parse from 'html-react-parser';
 
 /** All fields of a single form record keyed by field name (shared prefill shape). */
@@ -39,6 +47,7 @@ const FileInputRegistrationContext = React.createContext<{
  */
 const FormFieldValueContext = React.createContext<{
     getFieldValue: (fieldName: string) => string | Array<{ language_id: number; value: string }> | null;
+    getFileFieldValue: (fieldName: string) => TFormRecordPrefillFieldValue | null;
 } | null>(null);
 
 export { FileInputRegistrationContext, FormFieldValueContext };
@@ -52,11 +61,26 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    // The record was changed by someone else after this form read it: nothing was saved and the input is still here.
+    const [staleConflict, setStaleConflict] = useState(false);
+    // The version a save of this record returned last: the next save of the same page load is based on it,
+    // so two quick saves in a row do not collide with each other before the page has been read again.
+    const savedVersionRef = useRef<{ recordId: number; version: number } | null>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const formRef = useRef<HTMLFormElement | null>(null);
     const fileInputRefs = useRef<Map<string, IFileInputStyleRef>>(new Map());
     const hasInitializedForm = useRef<boolean>(false);
     const confirmedRef = useRef<boolean>(false);
+    // Set synchronously when a submit starts. `isSubmitting` state is only
+    // visible after the next render, so a double click would otherwise run the
+    // handler twice and write the record twice.
+    const submittingRef = useRef<boolean>(false);
+    // The list that draws this form (`entry-form-list`), if any: it decides
+    // which record is edited and receives the result of the save.
+    const listForm = useFormListForm();
+    // Unsaved-input tracking for a form inside a list (see `isDirty`).
+    const dirtyBaselineRef = useRef<string | null>(null);
+    const userTouchedRef = useRef<boolean>(false);
 
     // Extract form configuration from style
     const _name = style.name?.content || 'default_form';
@@ -101,26 +125,150 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const isRecord = style.style_name === 'form-record' || style.style_name === 'entry-record-form';
     const isLogType = style.style_name === 'form-log';
 
-    // React Query hooks
-    const submitFormMutation = useSubmitFormMutation();
-    const updateFormMutation = useUpdateFormMutation();
-    
-    // For record types, derive existing data from section_data of this style
-    const { existingRecordId, existingFormDataFromSection } = useMemo(() => {
-        if (!isRecord) return { existingRecordId: null as number | null, existingFormDataFromSection: null as TFormRecordGroup | null };
+    // React Query hooks. Inside a list the list reads its own state again after
+    // a write, so the whole page payload is not refreshed for it.
+    const submitFormMutation = useSubmitFormMutation({ refreshPageContent: listForm === null });
+    const updateFormMutation = useUpdateFormMutation({ refreshPageContent: listForm === null });
+
+    const listRecordId = listForm?.recordId ?? null;
+    const listPrefill = listForm?.prefill ?? null;
+    const insideList = listForm !== null;
+
+    // For record types, derive existing data from section_data of this style.
+    // Inside a list the list decides: the record it opened (with the values the
+    // server sent for it) or a new record, whatever style the form has and
+    // whatever record the page payload would have prefilled.
+    const { existingRecordId, existingFormDataFromSection, existingRecordVersion } = useMemo(() => {
+        if (insideList) {
+            if (listRecordId === null) {
+                return { existingRecordId: null as number | null, existingFormDataFromSection: null as TFormRecordGroup | null, existingRecordVersion: null as number | null };
+            }
+            // List `form_values` is either language rows (array) or one row object with
+            // file cells already shaped as `{ files: [...] }` (contract 4).
+            const sectionData = Array.isArray(listPrefill)
+                ? listPrefill
+                : listPrefill && typeof listPrefill === 'object'
+                  ? [{ record_id: listRecordId, id_languages: 1, ...(listPrefill as Record<string, unknown>) }]
+                  : [];
+            const prefill = parseFormRecordPrefill({
+                section_data: sectionData,
+                children: style.children as Parameters<typeof parseFormRecordPrefill>[0]['children'],
+            });
+            // When the server already sent a single row object, prefer it directly so
+            // file cells survive even if children metadata is incomplete.
+            let directValues: TFormRecordGroup | null = null;
+            if (!Array.isArray(listPrefill) && listPrefill && typeof listPrefill === 'object') {
+                const mapped: TFormRecordGroup = {};
+                for (const [key, value] of Object.entries(listPrefill as Record<string, unknown>)) {
+                    if (key === 'record_id' || key === '_version' || key === 'id_languages') {
+                        continue;
+                    }
+                    const files = asFilesCell(value);
+                    if (files !== null) {
+                        mapped[key] = files;
+                        continue;
+                    }
+                    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+                        mapped[key] = String(value);
+                    }
+                }
+                directValues = Object.keys(mapped).length > 0 ? mapped : null;
+            }
+            return {
+                existingRecordId: listRecordId,
+                existingFormDataFromSection:
+                    directValues && Object.keys(directValues).length > 0
+                        ? directValues
+                        : prefill.recordId === listRecordId
+                          ? prefill.values
+                          : null,
+                // The list names the version of the record it opened (`listForm.expectedVersion`).
+                existingRecordVersion: null as number | null,
+            };
+        }
+        if (!isRecord) return { existingRecordId: null as number | null, existingFormDataFromSection: null as TFormRecordGroup | null, existingRecordVersion: null as number | null };
 
         const prefill = parseFormRecordPrefill({
             section_data: style.section_data as unknown,
             children: style.children as Parameters<typeof parseFormRecordPrefill>[0]['children'],
         });
         if (prefill.recordId === null) {
-            return { existingRecordId: null, existingFormDataFromSection: null };
+            return { existingRecordId: null, existingFormDataFromSection: null, existingRecordVersion: null };
         }
         return {
             existingRecordId: prefill.recordId,
             existingFormDataFromSection: prefill.values,
+            // The version the page was built with: a save names it, the server refuses an old one.
+            existingRecordVersion: prefill.version ?? null,
         };
-    }, [isRecord, style]);
+    }, [isRecord, style, insideList, listRecordId, listPrefill]);
+
+    // Whether a save updates an existing record (record forms with a record,
+    // and any form a list opened on a record) or creates a new one.
+    const isUpdate = existingRecordId !== null && (isRecord || insideList);
+
+    // Serialized input of the form (values and chosen files), for `isDirty`.
+    const serializeForm = useCallback((): string => {
+        const form = formRef.current;
+        if (!form) {
+            return '';
+        }
+        const parts: string[] = [];
+        new FormData(form).forEach((value, key) => {
+            if (key === '__id_sections' || key === 'section_id' || key === 'page_id' || key === 'record_id') {
+                return;
+            }
+            parts.push(`${key}=${value instanceof File ? `file:${value.name}:${value.size}` : String(value)}`);
+        });
+        fileInputRefs.current.forEach((fileInputRef, fieldName) => {
+            const files = fileInputRef.getSelectedFiles();
+            if (files.length > 0) {
+                parts.push(`${fieldName}=files:${files.map((file) => `${file.name}:${file.size}`).join('|')}`);
+            }
+            const op = fileInputRef.getFileOp?.();
+            if (op) {
+                parts.push(`${fieldName}=file_op:${JSON.stringify(op)}`);
+            }
+        });
+        return parts.join('\n');
+    }, []);
+
+    // The first interaction records what the form looked like before the person
+    // touched it (after any prefill), so a later difference is unsaved input.
+    // A real user input or change event also marks the form as touched.
+    const captureDirtyBaseline = useCallback(() => {
+        if (dirtyBaselineRef.current === null) {
+            dirtyBaselineRef.current = serializeForm();
+        }
+    }, [serializeForm]);
+
+    const markUserTouched = useCallback((event: React.SyntheticEvent) => {
+        if (event.nativeEvent.isTrusted) {
+            userTouchedRef.current = true;
+        }
+    }, []);
+
+    const isDirty = useCallback((): boolean => {
+        if (userTouchedRef.current) {
+            return true;
+        }
+        return dirtyBaselineRef.current !== null && serializeForm() !== dirtyBaselineRef.current;
+    }, [serializeForm]);
+
+    const registerDirtyCheck = listForm?.registerDirtyCheck;
+    useEffect(() => {
+        if (!registerDirtyCheck) {
+            return undefined;
+        }
+        registerDirtyCheck(isDirty);
+        return () => registerDirtyCheck(null);
+    }, [registerDirtyCheck, isDirty]);
+
+    // A different record (or a new one) is a different form: forget the old baseline.
+    useEffect(() => {
+        dirtyBaselineRef.current = null;
+        userTouchedRef.current = false;
+    }, [existingRecordId, formKey]);
 
     // Function to collect files from all FileInput components
     const collectFilesFromInputs = useCallback((): Record<string, File[]> => {
@@ -162,7 +310,12 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
         });
 
         fileInputRefs.current.forEach((fileInputRef) => {
-            if (fileInputRef.isRequired() && fileInputRef.getSelectedFiles().length === 0) {
+            if (!fileInputRef.isRequired()) {
+                return;
+            }
+            const hasNew = fileInputRef.getSelectedFiles().length > 0;
+            const hasKept = (fileInputRef.getKeptExistingCount?.() ?? 0) > 0;
+            if (!hasNew && !hasKept) {
                 missingFields.push(fileInputRef.getLabel());
             }
         });
@@ -193,6 +346,12 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // One write per interaction: a second submit while one is in flight
+        // (double click, Enter held down) is ignored, not queued.
+        if (submittingRef.current) {
+            return;
+        }
+
         // Optional confirm-before-submit gate. When enabled, the first submit opens
         // the dialog; confirming sets confirmedRef and re-requests the form submit.
         if (confirmSubmit && !confirmedRef.current) {
@@ -215,8 +374,10 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             return;
         }
 
+        submittingRef.current = true;
         setIsSubmitting(true);
         setSubmitError(null);
+        setStaleConflict(false);
         setSubmitSuccess(false);
 
         const formData = new FormData(formElement);
@@ -263,12 +424,31 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             }
         });
 
+        // Contract 4: explicit remove / remove_indexes on update (omit = keep).
+        // Multipart: the JSON string lands in the request bag; UploadedFile parts
+        // stay in the files bag (Symfony keeps them separate even under the same name).
+        const fileOps: Record<string, IFormFileFieldOp> = {};
+        fileInputRefs.current.forEach((fileInputRef, fieldName) => {
+            const op = fileInputRef.getFileOp?.();
+            if (!op) {
+                return;
+            }
+            fileOps[fieldName] = op;
+            cleanFormData.append(fieldName, JSON.stringify(op));
+        });
+
         const formDataObject = Object.fromEntries(cleanFormData.entries());
 
         // Convert empty strings to null for better data handling, but keep files as-is
         const processedFormData: Record<string, string | File | null | Array<{ language_id: number; value: string }>> = {};
         Object.keys(formDataObject).forEach(key => {
             const value = formDataObject[key];
+            // An empty file part is a file input nobody picked a file for: it has no value to send. As JSON
+            // it would become `{}`, which the server accepts only for field names that contain "file", and
+            // an edit would be refused ("must contain a scalar value"). The stored file stays as it is.
+            if (value instanceof File && value.size === 0 && value.name === '') {
+                return;
+            }
             // Keep File objects as-is, convert empty strings to null for other fields
             let processedValue: string | File | null | Array<{ language_id: number; value: string }> = (value instanceof File) ? value : (value === '' ? null : value);
 
@@ -290,13 +470,39 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             processedFormData[key] = processedValue;
         });
 
+        // File ops as objects for the JSON update body (multipart already appended strings).
+        Object.entries(fileOps).forEach(([fieldName, op]) => {
+            if (!(fieldName in processedFormData) || typeof processedFormData[fieldName] === 'string') {
+                processedFormData[fieldName] = op as unknown as string;
+            }
+        });
+
         try {
             let response;
             
             // Determine if we have files to send
             const hasFiles = Object.keys(filesData).length > 0;
             
-            if (isRecord && existingRecordId) {
+            // The version the person started from, sent back so the server can
+            // refuse the save when somebody else changed the record meanwhile. A list names the
+            // version of the record it opened; a record form the version its page was built with,
+            // or the one the last save of this record returned when that is newer.
+            const offeredVersion = listForm?.expectedVersion ?? existingRecordVersion;
+            const lastSaved = savedVersionRef.current;
+            const expectedVersion = isUpdate
+                ? (lastSaved !== null && lastSaved.recordId === existingRecordId && lastSaved.version > (offeredVersion ?? 0)
+                    ? lastSaved.version
+                    : offeredVersion)
+                : null;
+
+            if (isUpdate && existingRecordId) {
+                // The server refuses an update that names no version. A page that offered none (an
+                // older server) cannot be saved from: say so instead of sending a request that fails.
+                if (expectedVersion === null) {
+                    setSubmitError('This entry cannot be saved because the page did not say which version of it you are editing. Reload the page and try again.');
+                    return;
+                }
+
                 // Update existing record
                 if (hasFiles) {
                     // Send as FormData for file uploads - add required fields to clean FormData.
@@ -306,6 +512,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                     cleanFormData.append('page_id', String(pageId));
                     cleanFormData.append('section_id', String(sectionId));
                     cleanFormData.append('update_based_on', JSON.stringify({ record_id: existingRecordId }));
+                    cleanFormData.append('expected_version', String(expectedVersion));
                     response = await updateFormMutation.mutateAsync(cleanFormData);
                 } else {
                     // Send as JSON for regular data
@@ -313,7 +520,8 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                         page_id: pageId,
                         section_id: sectionId,
                         form_data: processedFormData,
-                        update_based_on: { record_id: existingRecordId }
+                        update_based_on: { record_id: existingRecordId },
+                        expected_version: expectedVersion,
                     });
                 }
             } else {
@@ -331,6 +539,24 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                         form_data: processedFormData
                     });
                 }
+            }
+
+            const savedResult = (response as { data?: { record_id?: number; version?: number } } | undefined)?.data;
+            if (isUpdate && existingRecordId !== null && typeof savedResult?.version === 'number') {
+                savedVersionRef.current = { recordId: existingRecordId, version: savedResult.version };
+            }
+
+            // Inside a list the list owns what happens next: it closes the dialog,
+            // refreshes its rows and says the entry was saved. No alert, reset,
+            // redirect or page-modal close of the form's own.
+            if (listForm) {
+                const saved = savedResult;
+                listForm.onSaved({
+                    recordId: saved?.record_id ?? existingRecordId,
+                    version: typeof saved?.version === 'number' ? saved.version : null,
+                    created: !isUpdate,
+                });
+                return;
             }
 
             setSubmitSuccess(true);
@@ -363,6 +589,27 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             }
 
         } catch (error) {
+            // Someone else changed the record since it was opened: nothing was
+            // written. The list shows the conflict; the draft stays in the form.
+            const stale = getFormStaleVersion(error);
+            if (stale !== null && listForm) {
+                listForm.onStale(stale);
+                return;
+            }
+            if (stale !== null) {
+                // A record form on a page: nothing was written and the input stays in the form. The
+                // person decides, so the page is not read again behind their back.
+                setStaleConflict(true);
+                return;
+            }
+
+            // A value that breaks the rules of the form: name every problem, nothing was saved.
+            const invalid = getFormInvalidData(error);
+            if (invalid !== null) {
+                setSubmitError(invalid.errors.map((entry) => entry.message).join(' '));
+                return;
+            }
+
             // Extract error message from API response if available
             let errorMessage = alertError || 'Failed to submit form. Please try again.';
             const err = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
@@ -376,15 +623,18 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
 
             setSubmitError(errorMessage);
         } finally {
+            submittingRef.current = false;
             setIsSubmitting(false);
         }
     }, [
         validateForm,
         pageId,
         sectionId,
-        isRecord,
         isLogType,
+        isUpdate,
+        listForm,
         existingRecordId,
+        existingRecordVersion,
         alertSuccess,
         alertError,
         confirmSubmit,
@@ -400,6 +650,11 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     ]);
 
     const handleCancel = useCallback(() => {
+        // A list closes its own dialog (and asks first when input would be lost).
+        if (listForm) {
+            listForm.onCancel();
+            return;
+        }
         if (inModal) {
             closeModal();
             return;
@@ -409,11 +664,12 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             return;
         }
         window.history.back();
-    }, [inModal, closeModal, cancelUrl]);
+    }, [listForm, inModal, closeModal, cancelUrl]);
 
     // Helper function to render buttons in correct order
     const renderButtons = useCallback(() => {
-        const cancelButton = (cancelLabel || cancelUrl) ? (
+        // A form inside a list always offers Cancel: it is how a person leaves the dialog.
+        const cancelButton = (cancelLabel || cancelUrl || insideList) ? (
             <Button
                 key="cancel"
                 type="button"
@@ -437,9 +693,9 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                 size={buttonSize}
                 radius={buttonRadius}
                 variant={buttonVariant}
-                color={isRecord && existingRecordId ? updateColor : saveColor}
+                color={isUpdate ? updateColor : saveColor}
             >
-                {parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
+                {parse(sanitizeHtmlForInline(isUpdate ? updateLabel : saveLabel))}
             </Button>
         );
 
@@ -450,16 +706,24 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
         return ordered.filter(Boolean);
     }, [
         buttonSize, buttonRadius, buttonVariant, cancelColor, saveColor, updateColor,
-        isSubmitting, pageId, isRecord, existingRecordId, handleCancel, cancelLabel, cancelUrl,
+        isSubmitting, pageId, isUpdate, insideList, handleCancel, cancelLabel, cancelUrl,
         updateLabel, saveLabel, buttonsOrder
     ]);
 
     // Function to get field value from existing form data
     const getFieldValue = useCallback((fieldName: string): string | Array<{ language_id: number; value: string }> | null => {
-        if (!isRecord || !existingFormDataFromSection) return null;
+        if ((!isRecord && !insideList) || !existingFormDataFromSection) return null;
+        const value = existingFormDataFromSection[fieldName];
+        if (value === null || value === undefined) return null;
+        if (typeof value === 'string' || Array.isArray(value)) return value;
+        return null;
+    }, [isRecord, insideList, existingFormDataFromSection]);
+
+    const getFileFieldValue = useCallback((fieldName: string): TFormRecordPrefillFieldValue | null => {
+        if ((!isRecord && !insideList) || !existingFormDataFromSection) return null;
         const value = existingFormDataFromSection[fieldName];
         return value !== null && value !== undefined ? value : null;
-    }, [isRecord, existingFormDataFromSection]);
+    }, [isRecord, insideList, existingFormDataFromSection]);
 
     useEffect(() => {
         hasInitializedForm.current = false;
@@ -473,12 +737,14 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             hasInitializedForm.current = false;
         }
 
-        if (isRecord && existingFormDataFromSection && !hasInitializedForm.current) {
+        if ((isRecord || insideList) && existingFormDataFromSection && !hasInitializedForm.current) {
             const form = formRef.current as HTMLFormElement | null;
             if (form) {
                 Object.entries(existingFormDataFromSection).forEach(([fieldName, value]) => {
                     // Skip translatable fields (arrays) as they are handled by LanguageTabsWrapper
                     if (Array.isArray(value)) return;
+                    // File cells are drawn by FileInputStyle from FormFieldValueContext.
+                    if (value && typeof value === 'object' && 'files' in value) return;
 
                     const field = form.querySelector(`[name="${fieldName}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
                     if (field && value !== null && value !== undefined) {
@@ -506,7 +772,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                 hasInitializedForm.current = true;
             }
         }
-    }, [isRecord, existingFormDataFromSection, existingRecordId, formKey]);
+    }, [isRecord, insideList, existingFormDataFromSection, existingRecordId, formKey]);
 
     return (
         <div style={{ position: 'relative' }} className={cssClass}>
@@ -529,6 +795,31 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                     withCloseButton
                 >
                     {alertSuccess}
+                </Alert>
+            )}
+
+            {staleConflict && (
+                <Alert
+                    icon={<IconAlertCircle size={16} />}
+                    title="This entry was changed"
+                    color="yellow"
+                    mb="md"
+                    role="alert"
+                    data-testid="form-stale-conflict"
+                    onClose={() => setStaleConflict(false)}
+                    withCloseButton
+                >
+                    <Stack gap="xs">
+                        <Text size="sm">
+                            Someone else changed this entry after you opened it, so your changes were not saved. What you typed is
+                            still in the form. Copy it if you want to keep it, then reload the page to see the current version.
+                        </Text>
+                        <Group>
+                            <Button size="xs" variant="light" color="yellow" type="button" onClick={() => window.location.reload()}>
+                                Reload the page
+                            </Button>
+                        </Group>
+                    </Stack>
                 </Alert>
             )}
 
@@ -560,14 +851,24 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
               hydration checks. See React's documented escape-hatch:
               https://react.dev/reference/react-dom/client/hydrateRoot#suppressing-unavoidable-hydration-mismatch-errors
             */}
-            <form ref={formRef} key={`${formKey}-${existingRecordId ?? 'create'}`} onSubmit={handleSubmit} suppressHydrationWarning>
+            <form
+                ref={formRef}
+                key={`${formKey}-${existingRecordId ?? 'create'}`}
+                onSubmit={handleSubmit}
+                onFocusCapture={insideList ? captureDirtyBaseline : undefined}
+                onPointerDownCapture={insideList ? captureDirtyBaseline : undefined}
+                onKeyDownCapture={insideList ? captureDirtyBaseline : undefined}
+                onInputCapture={insideList ? markUserTouched : undefined}
+                onChangeCapture={insideList ? markUserTouched : undefined}
+                suppressHydrationWarning
+            >
                 <input type="hidden" name="__id_sections" value={style.id} />
-                {isRecord && existingRecordId ? (
+                {isUpdate && existingRecordId ? (
                     <input type="hidden" name="record_id" value={String(existingRecordId)} />
                 ) : null}
                 
                 <FileInputRegistrationContext.Provider value={{ registerFileInputRef }}>
-                    <FormFieldValueContext.Provider value={{ getFieldValue }}>
+                    <FormFieldValueContext.Provider value={{ getFieldValue, getFileFieldValue }}>
                         <div className={(style as { css?: { content?: string } }).css?.content || ''}>
                             {style.children?.map((child, index) => (
                                 child ? <BasicStyle key={index} style={child} /> : null
@@ -596,14 +897,14 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                             {cancelLabel || 'Cancel'}
                         </Button>
                         <Button
-                            color={isRecord && existingRecordId ? updateColor : saveColor}
+                            color={isUpdate ? updateColor : saveColor}
                             onClick={() => {
                                 confirmedRef.current = true;
                                 setConfirmOpen(false);
                                 formRef.current?.requestSubmit();
                             }}
                         >
-                            {parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
+                            {parse(sanitizeHtmlForInline(isUpdate ? updateLabel : saveLabel))}
                         </Button>
                     </Group>
                 </Stack>

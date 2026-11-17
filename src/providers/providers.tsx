@@ -52,6 +52,8 @@ import { useMemo, useState, useSyncExternalStore } from 'react';
 import { useAclVersionWatcher } from '../hooks/useAclVersionWatcher';
 import { useAclEventStream } from '../hooks/useAclEventStream';
 import { useAuthBroadcastSync } from '../hooks/useAuthBroadcastSync';
+// Evaluated for its side effect: the unsaved-changes guard must listen for `popstate` before the app router does.
+import '../hooks/useUnsavedChangesGuard';
 import { useAdminPluginsRealtime } from '../app/components/cms/plugins/hooks/useAdminPluginsRealtime';
 import type { ILanguage } from '../types/responses/admin/languages.types';
 import { getQueryClient } from './query-client';

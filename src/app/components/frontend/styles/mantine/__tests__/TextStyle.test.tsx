@@ -4,6 +4,8 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect } from 'vitest';
 import type { ComponentProps } from 'react';
+import fs from 'node:fs';
+import path from 'node:path';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 import TextStyle from '../TextStyle';
@@ -65,5 +67,33 @@ describe('TextStyle', () => {
         );
         expect(screen.getByText('9 STEF')).toBeInTheDocument();
         expect(document.querySelector('p p')).toBeNull();
+    });
+
+    it('draws nested download links with the theme anchor colour and underline', () => {
+        const { container } = renderWithProviders(
+            <TextStyle
+                style={makeTextStyle({
+                    text: {
+                        content:
+                            '<a href="/lists/1/records/2/files/doc?page_id=3&amp;index=0">one.pdf</a>',
+                    },
+                    web_text_text_decoration: { content: 'none' },
+                })}
+                styleProps={{}}
+                cssClass="section-1"
+            />,
+        );
+        expect(screen.getByRole('link', { name: 'one.pdf' })).toBeInTheDocument();
+        const host = container.querySelector('.section-1');
+        expect(host).not.toBeNull();
+        // CSS module `root` adds the nested-link rules (anchor colour + underline).
+        expect(host?.className.split(/\s+/).some((c) => c.includes('root'))).toBe(true);
+        expect(host?.className).toContain('section-1');
+        const css = fs.readFileSync(
+            path.join(__dirname, '..', 'TextStyle.module.css'),
+            'utf8',
+        );
+        expect(css).toContain('var(--mantine-color-anchor)');
+        expect(css).toContain('text-decoration: underline');
     });
 });

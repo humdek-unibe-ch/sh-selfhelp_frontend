@@ -21,6 +21,7 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthUser } from './useUserData';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { invalidateFormList } from '../utils/form-list-cache.utils';
 
 export function useAclVersionWatcher(): void {
     const queryClient = useQueryClient();
@@ -54,6 +55,11 @@ export function useAclVersionWatcher(): void {
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
+            // Entry lists carry what the viewer may do with each record
+            // (capabilities, quick actions, history): a new role changes both
+            // the rows and the buttons.
+            void invalidateFormList(queryClient);
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FORM_LIST_HISTORY_ALL });
         }
     }, [user?.id, user?.aclVersion, queryClient]);
 }

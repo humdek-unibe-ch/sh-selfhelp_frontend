@@ -3,7 +3,7 @@
 Audience: Frontend developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-03.
+Last verified: 2026-11-13.
 Source of truth: Frontend source code, configuration, and tests in this repository.
 
 Technical documentation for the Next.js frontend. See [../README.md](../README.md) for the whole-repo docs map.
@@ -25,6 +25,7 @@ Technical documentation for the Next.js frontend. See [../README.md](../README.m
 - [mobile-preview-panel.md](mobile-preview-panel.md) - The page-editor Mobile preview panel, its protected mint route, the iframe URL builder, and live-reload dev.
 - [system-maintenance-admin.md](system-maintenance-admin.md) - The `/admin/system` maintenance, health, and connected-update screen.
 - [asset-management.md](asset-management.md) - Admin assets: uuid identity, edit/replace, default alt, and per-asset group access.
+- [form-lists.md](form-lists.md) - The `entry-form-list` and `data-view` styles: server-rendered first paint, URL state, cache identity, writes, unsaved input, history and the visual list editors.
 
 ## Operations and debugging
 

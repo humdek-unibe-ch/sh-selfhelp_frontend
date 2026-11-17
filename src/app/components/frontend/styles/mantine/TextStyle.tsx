@@ -6,6 +6,7 @@ import React from 'react';
 import { Text } from '@mantine/core';
 import { type ITextStyle } from '../../../../../types/common/styles.types';
 import { renderRichBlock, hasHtmlMarkup } from '../../../../../utils/html-sanitizer.utils';
+import classes from './TextStyle.module.css';
 
 /**
  * Props interface for TextStyle component
@@ -96,7 +97,8 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) =
             lineClamp={lineClamp}
             inherit={inherit}
             {...componentProps}
-            {...styleProps} className={cssClass}
+            {...styleProps}
+            className={[cssClass, classes.root].filter(Boolean).join(' ')}
         >
             {text}
         </Text>
