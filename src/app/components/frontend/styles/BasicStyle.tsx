@@ -63,6 +63,7 @@ import {
 } from '../../../../types/common/styles.types';
 import { type INoAccessStyle, type IMissingStyle, type INotFoundStyle } from '../../../../shared';
 import { usePluginRuntime, usePluginStyleComponent } from '../plugin-runtime';
+import { usePageModal } from '../../contexts/PageModalContext';
 import { isStyleSupportedOnPlatform, type TStylePlatform } from '@selfhelp/shared/registry';
 
 /**
@@ -459,6 +460,9 @@ interface IBasicStyleProps {
 const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childIndex, parentColor }) => {
     const pluginRenderer = usePluginStyleComponent(style?.style_name ?? '');
     const { isLoading: isPluginRuntimeLoading } = usePluginRuntime();
+    // Plugin styles get the popup the page is shown in, so they can close it
+    // like the core form does (`IPluginStyleProps.pageModal` in the plugin SDK).
+    const pageModal = usePageModal();
 
     if (!style || !style.style_name) {
         return null;
@@ -497,6 +501,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             parentActive?: number;
             childIndex?: number;
             parentColor?: string;
+            pageModal: { inModal: boolean; closeModal: () => void };
         }>;
         return wrapWithDebug(
             <PluginComponent
@@ -506,6 +511,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
                 parentActive={parentActive}
                 childIndex={childIndex}
                 parentColor={parentColor}
+                pageModal={pageModal}
             />,
         );
     }

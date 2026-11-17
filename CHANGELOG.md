@@ -15,6 +15,11 @@ No engineering diary, no implementation detail — that belongs in
 ## Unreleased
 
 ### Added
+- **Excel export of data tables.** The data screen's export menu and the bulk
+  export offer Excel next to CSV and JSON (needs a backend with `format=xlsx`).
+- **Plugin styles can close their popup.** `BasicStyle` passes `pageModal`
+  (`inModal`, `closeModal`) to plugin style components, the way the core form
+  closes its popup with `close_modal_on_save`.
 - **Plugin resource types on the role screen.** When an enabled plugin adds a
   data-access resource type (for example surveys), each role's menu offers
   "<Type> permissions": the plugin's resources in the same view / create /
