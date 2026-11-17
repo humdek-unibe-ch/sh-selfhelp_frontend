@@ -40,6 +40,7 @@ import { SectionInfoPanel } from './section-field-groups';
 import { SectionFieldPanels } from './SectionFieldPanels';
 import { validateSerializedOptionConfiguration } from '../../shared/field-components/option-catalog-editor.utils';
 import { FormListSourceProvider } from '../../shared/field-components/form-list/FormListSourceContext';
+import { useLiveFormListSource } from '../../shared/field-components/form-list/useLiveFormListSource';
 
 interface ISectionInspectorProps {
     pageId: number | null;
@@ -238,6 +239,16 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     );
 
     const fields = sectionDetailsData?.fields || [];
+    const liveListSource = useLiveFormListSource(sectionDetailsData?.list_source);
+    const fieldErrors = useMemo(() => {
+        const map: Record<string, string> = {};
+        for (const problem of listProblems) {
+            if (map[problem.field] === undefined) {
+                map[problem.field] = problem.message;
+            }
+        }
+        return map;
+    }, [listProblems]);
 
     // Save handler
     const handleSave = useCallback(async () => {
@@ -457,8 +468,9 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                     </Alert>
                 )}
 
-                {/* Searchable field panels. An entry list's editors pick its columns by name from `list_source`. */}
-                <FormListSourceProvider source={sectionDetailsData.list_source ?? null}>
+                {/* Searchable field panels. An entry list's editors pick its columns by name from `list_source`
+                    (live when Data table is changed but not yet saved). */}
+                <FormListSourceProvider source={liveListSource}>
                     <SectionFieldPanels
                         key={sectionId}
                         sectionId={sectionId}
@@ -470,6 +482,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                         onLanguageTabChange={setActiveLanguageTab}
                         dataVariables={dataVariables}
                         hasMultipleLanguages={hasMultipleLanguages}
+                        fieldErrors={fieldErrors}
                     />
                 </FormListSourceProvider>
             </InspectorLayout>
