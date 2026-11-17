@@ -43,6 +43,7 @@ import { FormListChanges } from './FormListChanges';
 import { FormListConfirmDialog } from './FormListConfirmDialog';
 import { FORM_LIST_TEXT } from './form-list.constants';
 import styles from './FormList.module.css';
+import { RestoreBlockers, RestoreChanges, restorableFieldKeys } from '../../../shared/history';
 
 const OPERATION_WORDS: Record<IFormListRevision['operation'], string> = {
     create: 'Created',
@@ -61,12 +62,6 @@ const SOURCE_WORDS: Record<IFormListRevision['source'], string> = {
     system: 'system',
 };
 
-const BLOCKER_WORDS: Record<IFormListRestoreBlocker['reason'], string> = {
-    field_missing: 'the field no longer exists',
-    language_missing: 'the language no longer exists',
-    file_unavailable: 'the file is no longer available',
-    invalid_value: 'the value is no longer valid',
-};
 
 interface IFormListHistoryProps {
     pageId: number;
@@ -307,10 +302,6 @@ interface IRestoreDialogProps {
     onStale: () => void;
 }
 
-function blockerKey(fieldKey: string, languageId: number): string {
-    return `${fieldKey}:${languageId}`;
-}
-
 /** The dry run of a restore (what it would change, what blocks it) and the confirmed restore. */
 function RestoreDialog({ pageId, sectionId, recordId, version, currentVersion, onClose, onRestored, onStale }: IRestoreDialogProps) {
     const preview = useFormListRestoreMutation(pageId, sectionId);
@@ -325,12 +316,7 @@ function RestoreDialog({ pageId, sectionId, recordId, version, currentVersion, o
 
     const previewData: IFormListRestorePreview | null = preview.data && preview.data.dry_run ? preview.data : null;
     const blockers = blockedByServer ?? previewData?.blockers ?? [];
-    const blockedKeys = new Set(blockers.map((blocker) => blockerKey(blocker.field_key, blocker.language_id)));
-    const allowedFields = previewData
-        ? [...new Set(previewData.changes
-            .filter((change) => !blockedKeys.has(blockerKey(change.field_key, change.language_id)))
-            .map((change) => change.field_key))]
-        : [];
+    const allowedFields = previewData ? restorableFieldKeys(previewData.changes, blockers) : [];
     const partial = blockers.length > 0 && allowedFields.length > 0;
     const nothing = previewData !== null && previewData.changes.length === 0 && blockers.length === 0;
     const canConfirm = previewData !== null && !nothing && (blockers.length === 0 || partial);
@@ -384,17 +370,7 @@ function RestoreDialog({ pageId, sectionId, recordId, version, currentVersion, o
             notice={
                 <>
                     {notice !== null && <Alert color="orange">{notice}</Alert>}
-                    {blockers.length > 0 && (
-                        <Alert color="orange" title={FORM_LIST_TEXT.historyBlockedTitle}>
-                            <ul style={{ margin: 0, paddingInlineStart: '1.25rem' }}>
-                                {blockers.map((blocker) => (
-                                    <li key={blockerKey(blocker.field_key, blocker.language_id)}>
-                                        {blocker.field_label ?? blocker.field_key}: {BLOCKER_WORDS[blocker.reason]}
-                                    </li>
-                                ))}
-                            </ul>
-                        </Alert>
-                    )}
+                    <RestoreBlockers blockers={blockers} />
                 </>
             }
         >
@@ -404,20 +380,7 @@ function RestoreDialog({ pageId, sectionId, recordId, version, currentVersion, o
             {previewData !== null && previewData.changes.length > 0 && (
                 <Stack gap="xs">
                     <Text fw={600} size="sm">{FORM_LIST_TEXT.historyRestorePreview}</Text>
-                    <Stack gap="xs" component="ul" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                        {previewData.changes.map((change) => (
-                            <li key={blockerKey(change.field_key, change.language_id)}>
-                                <Text size="sm" fw={500} className={styles.changeValue}>{change.field_label ?? change.field_key}</Text>
-                                <Text size="sm" className={styles.changeValue}>
-                                    {change.action === 'remove'
-                                        ? 'Will be removed'
-                                        : `Will be set to: ${change.kind === 'file'
-                                            ? (change.after_files ?? []).map((file) => file.name).join(', ') || 'no file'
-                                            : (change.after ?? 'empty')}`}
-                                </Text>
-                            </li>
-                        ))}
-                    </Stack>
+                    <RestoreChanges changes={previewData.changes} data-testid="form-list-restore-changes" />
                 </Stack>
             )}
         </FormListConfirmDialog>

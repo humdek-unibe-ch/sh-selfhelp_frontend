@@ -9,15 +9,14 @@ SPDX-License-Identifier: MPL-2.0
  * One logical dataset, two surfaces, no duplicated input definition:
  *
  *  - CMS surface: one page `cms-<slug>` (role `cms_list`) holding an
- *    `entry-form-list`. The form (`form-record`) is a child of the list and is
- *    the only place the inputs are defined; the data table is the table of that
- *    form. The list adds, edits, deletes, acts (quick actions) and restores
- *    (history) the records.
+ *    `entry-form-list` that is itself the form: the inputs sit directly inside
+ *    it and it owns the data table. The list adds, edits, deletes, acts (quick
+ *    actions) and restores (history) the records.
  *  - Public surface: a read-only `data-view` with the layout `custom` (events,
  *    contacts, testimonials: its child sections are the card of ONE record, which
  *    the server draws once per record, so search, filters and paging stay the
  *    visitor's) or a composition of `entry-list` / `entry-record` sections (news,
- *    FAQ, team) that read the SAME table through the owner token `@section:<slug>-form`.
+ *    FAQ, team) that read the SAME table through the owner token `@section:<slug>-cms-list`.
  *
  * The script is idempotent: it reads the bundle on disk (sample rows, the
  * public composition and the inputs it does not redefine), writes it again in
@@ -153,14 +152,13 @@ function pageContainer(name, children) {
 }
 
 // ---------------------------------------------------------------------------
-// the CMS surface: one entry-form-list holding the form
+// the CMS surface: one entry-form-list that is the form
 // ---------------------------------------------------------------------------
 
 /**
- * The CMS page of an app: one `entry-form-list`; the form is its child and owns the table.
- * `form` is the `form-record` section (inputs inside).
+ * The CMS page of an app: one `entry-form-list` that holds the inputs and owns the table.
  */
-function cmsPage(t, form) {
+function cmsPage(t, inputs) {
     const list = section(
         `${t.slug}-cms-list`,
         'entry-form-list',
@@ -183,25 +181,14 @@ function cmsPage(t, form) {
             label_empty: tr(...t.cms.empty),
             label_search: tr(...t.cms.search),
             label_confirm_delete: tr(...t.cms.confirmDelete),
-        },
-        [form],
-    );
-
-    return page(`cms-${t.slug}`, 'cms', `/cms/${t.slug}`, 'cms_list', t.cms.pageTitle, [list]);
-}
-
-/** The inline form: `form-record` with the inputs of the template, in the order of the template. */
-function formSection(t, inputs) {
-    return section(
-        `${t.slug}-form`,
-        'form-record',
-        {
             alert_success: tr(...t.cms.saved),
             btn_save_label: tr('Speichern', 'Save'),
             btn_update_label: tr('Aktualisieren', 'Update'),
         },
         inputs,
     );
+
+    return page(`cms-${t.slug}`, 'cms', `/cms/${t.slug}`, 'cms_list', t.cms.pageTitle, [list]);
 }
 
 // ---------------------------------------------------------------------------
@@ -220,7 +207,7 @@ function dataViewPage(t, view) {
         own_entries_only: prop('0'),
         label_empty: tr(...view.empty),
         label_search: tr(...view.search),
-        data_table: prop(`@section:${t.slug}-form`),
+        data_table: prop(`@section:${t.slug}-cms-list`),
     };
     if (view.fixedFilter) fields.list_fixed_filter = prop(json(view.fixedFilter));
     if (view.detailUrl) fields.detail_url = prop(view.detailUrl);
@@ -444,15 +431,46 @@ function findPage(bundle, role) {
     return bundle.pages.find((p) => p.cms_app_role === role) ?? null;
 }
 
-/** The input sections of the form on disk, by input name (any earlier structure). */
+/** The input sections of the list (or of a leftover inner form), by input name. */
 function harvestInputs(bundle, slug) {
-    const form = findSection(bundle, `${slug}-form`);
+    const list = findSection(bundle, `${slug}-cms-list`);
+    const legacyForm = findSection(bundle, `${slug}-form`);
     const byName = new Map();
-    for (const child of form?.children ?? []) {
+    const sources = [
+        ...(list?.children ?? []),
+        ...(legacyForm?.children ?? []),
+    ];
+    for (const child of sources) {
+        if (child.style_name === 'form-record' || child.style_name === 'form-log' || child.style_name === 'entry-record-form') {
+            for (const nested of child.children ?? []) {
+                const name = nested.fields?.name?.all?.content;
+                if (typeof name === 'string') byName.set(name, nested);
+            }
+            continue;
+        }
         const name = child.fields?.name?.all?.content;
         if (typeof name === 'string') byName.set(name, child);
     }
     return byName;
+}
+
+/** Rewrite leftover `@section:<slug>-form` owner tokens to the list section. */
+function rewriteOwnerTokens(node, slug) {
+    if (!node || typeof node !== 'object') return node;
+    if (Array.isArray(node)) {
+        return node.map((item) => rewriteOwnerTokens(item, slug));
+    }
+    const out = {};
+    for (const [key, value] of Object.entries(node)) {
+        if (typeof value === 'string' && value === `@section:${slug}-form`) {
+            out[key] = `@section:${slug}-cms-list`;
+        } else if (value && typeof value === 'object') {
+            out[key] = rewriteOwnerTokens(value, slug);
+        } else {
+            out[key] = value;
+        }
+    }
+    return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -545,7 +563,7 @@ const TEMPLATES = [
         title: 'News & updates',
         description: 'Publish posts with category, date and a translatable body: an editorial list and article page for visitors, and a managed list (add, edit, delete, history) for editors.',
         tags: ['cms-in-cms', 'list + detail', 'blog', 'translatable'],
-        comment: 'CMS-in-CMS template: a News & Updates app in three pages. PUBLIC: /news lists posts as cards (category badge, date, summary) and /news/{record_id} renders the full article; both read the table of the form through the owner token "@section:news-form". CMS: /cms/news is ONE entry-form-list that holds the form: it lists, searches, sorts and filters the posts, adds and edits them in a dialog, deletes them and restores earlier versions. The inputs are defined once, in the form inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). Title, summary and body are translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
+        comment: 'CMS-in-CMS template: a News & Updates app in three pages. PUBLIC: /news lists posts as cards (category badge, date, summary) and /news/{record_id} renders the full article; both read the table of the form through the owner token "@section:news-cms-list". CMS: /cms/news is ONE entry-form-list that is the form: it lists, searches, sorts and filters the posts, adds and edits them in a dialog, deletes them and restores earlier versions. The inputs sit directly inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). Title, summary and body are translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
         appDescription: 'Editorial news with an article page and a managed list.',
         listKey: 'news',
         rowMap: (row) => ({ ...row, category: mapped(row.category, CODE_TEXT), status: row.status ?? 'published' }),
@@ -617,7 +635,7 @@ const TEMPLATES = [
         title: 'Events',
         description: 'Upcoming events with date, location and status: a filterable card list and a detail page for visitors, and a managed list with cancel/reopen actions for editors.',
         tags: ['cms-in-cms', 'list + detail', 'quick actions', 'translatable'],
-        comment: 'CMS-in-CMS template: an Events app in three pages. PUBLIC: /events is a read-only data view (cards, search, filters by location and date, paging) and /events/{record_id} renders the full event page; both read the table of the form through "@section:events-form". CMS: /cms/events is ONE entry-form-list that holds the form: add and edit events in a dialog, delete them, restore earlier versions, and cancel or reopen an event with one click (quick actions that change the status). The inputs are defined once, in the form inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). Title, location and description are translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
+        comment: 'CMS-in-CMS template: an Events app in three pages. PUBLIC: /events is a read-only data view (cards, search, filters by location and date, paging) and /events/{record_id} renders the full event page; both read the table of the form through "@section:events-cms-list". CMS: /cms/events is ONE entry-form-list that is the form: add and edit events in a dialog, delete them, restore earlier versions, and cancel or reopen an event with one click (quick actions that change the status). The inputs sit directly inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). Title, location and description are translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
         appDescription: 'Events with a filterable public list, detail pages and cancel/reopen actions.',
         listKey: 'events',
         rowMap: (row) => ({
@@ -710,7 +728,7 @@ const TEMPLATES = [
         title: 'FAQ accordion',
         description: 'Frequently asked questions as an accessible accordion for visitors, managed in a list with categories, search and history for editors.',
         tags: ['cms-in-cms', 'accordion', 'list only', 'translatable'],
-        comment: 'CMS-in-CMS template: an FAQ app in two pages. PUBLIC: /faq renders every question as an accordion item (one item per record through entry-list); the category label is translated through the option labels of the form. CMS: /cms/faq is ONE entry-form-list that holds the form: filter by category, search, add and edit questions in a dialog, delete them and restore earlier versions. The inputs are defined once, in the form inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). Question and answer are translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
+        comment: 'CMS-in-CMS template: an FAQ app in two pages. PUBLIC: /faq renders every question as an accordion item (one item per record through entry-list); the category label is translated through the option labels of the form. CMS: /cms/faq is ONE entry-form-list that is the form: filter by category, search, add and edit questions in a dialog, delete them and restore earlier versions. The inputs sit directly inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). Question and answer are translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
         appDescription: 'An accordion FAQ with categories and a managed list.',
         listKey: 'faq',
         rowMap: (row) => ({ ...row, category: mapped(row.category, CODE_TEXT) }),
@@ -755,7 +773,7 @@ const TEMPLATES = [
         title: 'Team members',
         description: 'A polished team directory: portrait cards and profile pages for visitors, and a managed list with portrait upload for editors.',
         tags: ['cms-in-cms', 'list + detail', 'file upload', 'translatable'],
-        comment: 'Flagship CMS-in-CMS template: a Team Members app in three pages. PUBLIC: /team-members renders a responsive card grid (portrait or initials, role badge, bio, contact links) and /team-members/{record_id} a shareable profile page; both read the table of the form through "@section:team-members-form". CMS: /cms/team-members is ONE entry-form-list that holds the form: search, filter by role, add and edit members in a dialog (including the portrait upload, which is public so the pages can show it), delete them and restore earlier versions. The inputs are defined once, in the form inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). The bio is translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
+        comment: 'Flagship CMS-in-CMS template: a Team Members app in three pages. PUBLIC: /team-members renders a responsive card grid (portrait or initials, role badge, bio, contact links) and /team-members/{record_id} a shareable profile page; both read the table of the list through "@section:team-members-cms-list". CMS: /cms/team-members is ONE entry-form-list that is the form: search, filter by role, add and edit members in a dialog (including the portrait upload, which is public so the pages can show it), delete them and restore earlier versions. The inputs sit directly inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). The bio is translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
         appDescription: 'Modern public team directory with profiles and portraits, managed in a list.',
         listKey: 'team',
         rowMap: (row) => ({ ...row, role: mapped(row.role, CODE_TEXT), status: row.status ?? 'published' }),
@@ -818,7 +836,7 @@ const TEMPLATES = [
         title: 'Contact directory',
         description: 'A searchable contact table for visitors (filter by department, tap to call or mail), and a managed list for editors.',
         tags: ['cms-in-cms', 'list only', 'directory', 'translatable'],
-        comment: 'CMS-in-CMS template: a Contact Directory in two pages (list only, no detail page). PUBLIC: /contacts is a read-only data view as a table (search in name, department and mail, sort, filter by department, paging) of the table of the form "@section:contacts-form". CMS: /cms/contacts is ONE entry-form-list that holds the form: add and edit contacts in a dialog, delete them and restore earlier versions. The inputs are defined once, in the form inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). The department is translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
+        comment: 'CMS-in-CMS template: a Contact Directory in two pages (list only, no detail page). PUBLIC: /contacts is a read-only data view as a table (search in name, department and mail, sort, filter by department, paging) of the table of the list "@section:contacts-cms-list". CMS: /cms/contacts is ONE entry-form-list that is the form: add and edit contacts in a dialog, delete them and restore earlier versions. The inputs sit directly inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). The department is translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
         appDescription: 'A searchable contact directory with a managed list.',
         listKey: 'contacts',
         rowMap: (row) => ({ ...row, department: mapped(row.department, DEPARTMENT_TEXT) }),
@@ -883,7 +901,7 @@ const TEMPLATES = [
         title: 'Testimonials',
         description: 'A quote wall: only approved quotes are public; editors review them in a managed list with approve and hide actions.',
         tags: ['cms-in-cms', 'list only', 'moderation', 'quick actions', 'translatable'],
-        comment: 'CMS-in-CMS template: a Testimonials wall in two pages (list only). PUBLIC: /testimonials is a read-only data view (cards) of the table of the form "@section:testimonials-form"; a fixed filter limits it to approved quotes, so a quote that is pending or hidden never reaches a visitor, whatever the address says. CMS: /cms/testimonials is ONE entry-form-list that holds the form: review the quotes, approve or hide one with a click (quick actions that change the status), add and edit quotes in a dialog, delete them and restore earlier versions. The inputs are defined once, in the form inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). The quote and the role are translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
+        comment: 'CMS-in-CMS template: a Testimonials wall in two pages (list only). PUBLIC: /testimonials is a read-only data view (cards) of the table of the list "@section:testimonials-cms-list"; a fixed filter limits it to approved quotes, so a quote that is pending or hidden never reaches a visitor, whatever the address says. CMS: /cms/testimonials is ONE entry-form-list that is the form: review the quotes, approve or hide one with a click (quick actions that change the status), add and edit quotes in a dialog, delete them and restore earlier versions. The inputs sit directly inside the list. data_tables[] carries the columns and sample rows (import with options.importData=true). The quote and the role are translatable. Content locales: de-CH + en-GB. Pages are not open to guests until you set their access. Import via Admin > CMS Apps > Import template. NOT auto-seeded.',
         appDescription: 'A moderated quote wall: only approved testimonials are public.',
         listKey: 'testimonials',
         rowMap: (row) => {
@@ -1101,20 +1119,19 @@ function build(t) {
     const old = read(t.file);
     const harvested = harvestInputs(old, t.slug);
     const inputs = t.inputs(harvested).filter(Boolean);
-    const form = formSection(t, inputs);
 
-    const pages = [cmsPage(t, form)];
+    const pages = [cmsPage(t, inputs)];
 
     if (t.public.kind === 'data-view') {
         pages.push(dataViewPage(t, t.public.view));
         if (t.public.view.detailUrl) {
-            pages.push(findPage(old, 'public_detail'));
+            pages.push(rewriteOwnerTokens(findPage(old, 'public_detail'), t.slug));
         }
     } else {
         const list = findPage(old, 'public_list');
         const detail = findPage(old, 'public_detail');
-        pages.push(withHero(list, t));
-        if (detail) pages.push(detail);
+        pages.push(rewriteOwnerTokens(withHero(list, t), t.slug));
+        if (detail) pages.push(rewriteOwnerTokens(detail, t.slug));
     }
 
 
@@ -1129,7 +1146,7 @@ function build(t) {
         description: t.description,
         tags: t.tags,
         _comment: t.comment,
-        data_tables: [{ owner_section_name: `${t.slug}-form`, columns: orderColumns(columns, inputs), rows }],
+        data_tables: [{ owner_section_name: `${t.slug}-cms-list`, columns: orderColumns(columns, inputs), rows }],
         pages,
         cms_app: { name: t.title, slug: t.slug, description: t.appDescription },
     };

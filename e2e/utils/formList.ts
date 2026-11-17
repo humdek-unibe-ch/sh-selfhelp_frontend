@@ -67,7 +67,7 @@ export function listRoot(page: Page, key: string): Locator {
     return page.locator(`[data-form-list="${key}"]`);
 }
 
-/** Where a list lives: its page, its own section and the form inside it (entry lists only). */
+/** Where a list lives: its page, its section, and the form section id (the list itself for entry-form-list). */
 export interface IListTarget {
     key: string;
     pageId: number;
@@ -156,7 +156,7 @@ interface ISectionNode {
     children?: ISectionNode[];
 }
 
-/** Find a list (and the form inside it) in the payload of a page. */
+/** Find a list in the payload of a page. An entry-form-list is its own form (`formId = listId`). */
 export async function listTarget(page: Page, keyword: string, key: string): Promise<IListTarget> {
     const result = await apiGet(page, `/api/pages/by-keyword/${encodeURIComponent(keyword)}`);
     expect(result.status, `GET page ${keyword}`).toBe(200);
@@ -176,9 +176,11 @@ export async function listTarget(page: Page, keyword: string, key: string): Prom
     };
     const list = find(payload.sections);
     expect(list, `list "${key}" on page ${keyword}`).not.toBeNull();
-    const form = (list as ISectionNode).children?.find((child) => child.style_name.startsWith('form-')) ?? null;
+    const listNode = list as ISectionNode;
+    // One model: the list writes as itself. A data-view has no form.
+    const formId = listNode.style_name === 'entry-form-list' ? listNode.id : null;
 
-    return { key, pageId: payload.id, listId: (list as ISectionNode).id, formId: form?.id ?? null };
+    return { key, pageId: payload.id, listId: listNode.id, formId };
 }
 
 /** The rows of a list as the server returns them, optionally narrowed by a search term. */

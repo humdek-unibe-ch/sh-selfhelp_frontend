@@ -54,6 +54,8 @@ interface ISectionFieldPanelsProps {
     onLanguageTabChange: (value: string) => void;
     dataVariables: Record<string, string>;
     hasMultipleLanguages: boolean;
+    /** Server field → message from a refused list save (shown next to that field). */
+    fieldErrors?: Record<string, string>;
 }
 
 export function SectionFieldPanels({
@@ -66,6 +68,7 @@ export function SectionFieldPanels({
     onLanguageTabChange: _onLanguageTabChange,
     dataVariables,
     hasMultipleLanguages: _hasMultipleLanguages,
+    fieldErrors,
 }: ISectionFieldPanelsProps) {
     // condition and data_config are now edited inline, not in the inspector.
     const globalFieldTypes: GlobalFieldType[] = ['css', 'css_mobile', 'debug'];
@@ -265,6 +268,7 @@ export function SectionFieldPanels({
                         sectionId={sectionId}
                         styleName={styleName}
                         ownedDataTable={ownedDataTable}
+                        fieldErrors={fieldErrors}
                     />
                 </CollapsibleSection>
             )}

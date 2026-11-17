@@ -14,7 +14,8 @@ import {
     memo,
     useMemo
 } from 'react';
-import { Box, Text, Paper } from '@mantine/core';
+import { Box, Button, Text, Paper } from '@mantine/core';
+import { IconPlus } from '@tabler/icons-react';
 import {
     draggable,
     dropTargetForElements,
@@ -70,6 +71,7 @@ interface ISectionsListProps {
     onToggleSelect?: (sectionId: number, selected: boolean) => void;
     selectionVersion: number;
     bulkMode: boolean;
+    onAddSection?: () => void;
 }
 
 interface ISectionItemProps {
@@ -810,7 +812,8 @@ const SectionsListComponent = function SectionsList({
     selectedIdsRef,
     onToggleSelect,
     selectionVersion,
-    bulkMode
+    bulkMode,
+    onAddSection
 }: ISectionsListProps) {
 
     // Helper function to flatten all sections including nested children
@@ -1009,6 +1012,17 @@ const SectionsListComponent = function SectionsList({
                                 <Text className={styles.emptyStateSubtitle}>
                                     Add your first section to get started
                                 </Text>
+                                {onAddSection && (
+                                    <Button
+                                        className={styles.emptyStateAction}
+                                        leftSection={<IconPlus size={16} />}
+                                        size="md"
+                                        variant="filled"
+                                        onClick={onAddSection}
+                                    >
+                                        Add Section
+                                    </Button>
+                                )}
                             </Paper>
                         ) : (
                             <div className={styles.sectionsList}>

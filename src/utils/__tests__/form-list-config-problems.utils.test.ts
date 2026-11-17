@@ -48,6 +48,8 @@ describe('the names of the fields a problem can name', () => {
     it('uses the words the editor shows, and the field itself when it has no name', () => {
         expect(formListFieldLabel('list_columns')).toBe('Columns');
         expect(formListFieldLabel('list_fixed_filter')).toBe('Fixed filter');
+        expect(formListFieldLabel('allow_create')).toBe('Allow add');
+        expect(formListFieldLabel('allow_update')).toBe('Allow edit');
         expect(formListFieldLabel('something_new')).toBe('something_new');
     });
 });

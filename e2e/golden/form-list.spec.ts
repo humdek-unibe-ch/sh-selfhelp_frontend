@@ -290,10 +290,11 @@ test.describe('golden: entry lists (web)', () => {
         expect(html).toContain(title);
 
         // The page shows it without a request for the list state.
+        // Prefer waitUntilSettled over networkidle: Mercure/SSE never goes idle on this stack.
         const states = watchRequests(page, /\/lists\/\d+\/state/);
         await page.goto(`${ENTRIES_PATH}?entries.q=${encodeURIComponent(title)}`);
         await expect(listRoot(page, 'entries').getByRole('row').filter({ hasText: title })).toHaveCount(1);
-        await page.waitForLoadState('networkidle');
+        await waitUntilSettled(page);
         expect(states.urls(), 'hydration must not fetch the first state again').toEqual([]);
 
         // A change in the list reads exactly once.

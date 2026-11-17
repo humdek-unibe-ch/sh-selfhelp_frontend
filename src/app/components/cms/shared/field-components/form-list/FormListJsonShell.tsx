@@ -59,8 +59,8 @@ export function FormListJsonShell<T>({ value, onChange, disabled = false, parse,
             {!hasSource && parsed !== null && !showText && (
                 <Alert color="blue" variant="light">
                     <Text size="sm">
-                        Add the form this list shows records of (inside the list), or choose a data table, then save the
-                        section: the fields of the table can then be picked by name here.
+                        Put the inputs directly inside this list (or choose a data table), then save the section: the
+                        fields can then be picked by name here.
                     </Text>
                 </Alert>
             )}

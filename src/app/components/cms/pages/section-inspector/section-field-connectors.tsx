@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import React, { useCallback, useState } from 'react';
+import { Stack, Text } from '@mantine/core';
 import { FieldRenderer, type IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { OptionCatalogEditor } from '../../shared/field-components/OptionCatalogEditor';
 import { FieldsMapField } from '../../shared/field-components/FieldsMapField';
@@ -111,6 +112,8 @@ interface ISectionPropertyFieldProps {
     sectionId?: number | null;
     styleName?: string;
     ownedDataTable?: ISectionDataTableInfo;
+    /** Refused-save message for this field (e.g. Allow add on a foreign-table list). */
+    error?: string;
 }
 
 /**
@@ -125,6 +128,7 @@ export const SectionPropertyField = React.memo(function SectionPropertyField({
     sectionId,
     styleName,
     ownedDataTable,
+    error,
 }: ISectionPropertyFieldProps) {
     // Granular selector - subscribes only to this specific property's value
     const value = useSectionFormStore(
@@ -161,17 +165,24 @@ export const SectionPropertyField = React.memo(function SectionPropertyField({
     };
 
     return (
-        <FieldRenderer
-            key={`${field.id}-property`}
-            field={fieldData}
-            value={value}
-            onChange={handleChange}
-            className={className}
-            dataVariables={dataVariables}
-            sectionId={sectionId}
-            styleName={styleName}
-            ownedDataTable={ownedDataTable}
-        />
+        <Stack gap={4}>
+            <FieldRenderer
+                key={`${field.id}-property`}
+                field={fieldData}
+                value={value}
+                onChange={handleChange}
+                className={className}
+                dataVariables={dataVariables}
+                sectionId={sectionId}
+                styleName={styleName}
+                ownedDataTable={ownedDataTable}
+            />
+            {error ? (
+                <Text size="xs" c="red" role="alert">
+                    {error}
+                </Text>
+            ) : null}
+        </Stack>
     );
 });
 
