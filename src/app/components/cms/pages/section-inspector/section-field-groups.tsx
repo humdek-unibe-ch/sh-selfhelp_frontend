@@ -56,6 +56,7 @@ interface IFieldGroupProps {
     sectionId?: number | null;
     styleName?: string;
     ownedDataTable?: ISectionDataTableInfo;
+    fieldErrors?: Record<string, string>;
 }
 
 /** Render a flat list of store-connected property fields. */
@@ -66,6 +67,7 @@ function PropertyFieldList({
     sectionId,
     styleName,
     ownedDataTable,
+    fieldErrors,
 }: IFieldGroupProps & { keySuffix: string }) {
     return (
         <Stack gap="md">
@@ -78,6 +80,7 @@ function PropertyFieldList({
                     sectionId={sectionId}
                     styleName={styleName}
                     ownedDataTable={ownedDataTable}
+                    error={fieldErrors?.[field.name]}
                 />
             ))}
         </Stack>
@@ -96,6 +99,7 @@ export const SectionProperties = React.memo(function SectionProperties({
     sectionId,
     styleName,
     ownedDataTable,
+    fieldErrors,
 }: IFieldGroupProps) {
     const propertyFields = fields.filter((f) => classifySectionField(f) === 'property');
     return (
@@ -106,6 +110,7 @@ export const SectionProperties = React.memo(function SectionProperties({
             sectionId={sectionId}
             styleName={styleName}
             ownedDataTable={ownedDataTable}
+            fieldErrors={fieldErrors}
         />
     );
 });
