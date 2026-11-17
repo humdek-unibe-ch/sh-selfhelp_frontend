@@ -125,10 +125,14 @@ function MaxRootItemsInput({
     onCommit: (next: number | null) => void;
 }): React.ReactElement {
     const [draft, setDraft] = useState<number | ''>(itemLimit ?? '');
+    const [prevItemLimit, setPrevItemLimit] = useState(itemLimit);
 
-    useEffect(() => {
+    // Sync draft when the committed prop changes (e.g. after save or tab switch).
+    // Adjust during render instead of an effect — avoids cascading renders.
+    if (itemLimit !== prevItemLimit) {
+        setPrevItemLimit(itemLimit);
         setDraft(itemLimit ?? '');
-    }, [itemLimit]);
+    }
 
     return (
         <NumberInput
