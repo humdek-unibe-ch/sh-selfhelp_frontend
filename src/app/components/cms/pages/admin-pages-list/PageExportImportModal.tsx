@@ -284,14 +284,18 @@ export function PageExportImportModal({ opened, onClose, pages, initialTab = 'ex
         onClose();
     }
 
-    finishImportRef.current = (result?: IPageImportResult) => {
-        const slug = result?.cms_app?.slug?.trim();
-        handleClose();
-        // CMS-in-CMS templates land on the content list; plain page imports stay put.
-        if (slug) {
-            router.push(cmsAppContentPath(slug));
-        }
-    };
+    // Keep mutation onSuccess callbacks pointing at the latest closer+redirect
+    // without reading/writing the ref during render.
+    useEffect(() => {
+        finishImportRef.current = (result?: IPageImportResult) => {
+            const slug = result?.cms_app?.slug?.trim();
+            handleClose();
+            // CMS-in-CMS templates land on the content list; plain page imports stay put.
+            if (slug) {
+                router.push(cmsAppContentPath(slug));
+            }
+        };
+    });
 
     async function handleSuggest() {
         if (selectedExportIds.length === 0) return;
