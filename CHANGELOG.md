@@ -12,6 +12,19 @@ No engineering diary, no implementation detail — that belongs in
 `dev_log.md`. Architectural rationale belongs in
 `docs/architecture/ssr-bff-architecture.md`.
 
+## Unreleased
+
+### Added
+- **Plugin resource types on the role screen.** When an enabled plugin adds a
+  data-access resource type (for example surveys), each role's menu offers
+  "<Type> permissions": the plugin's resources in the same view / create /
+  update / delete matrix as pages and data tables. Needs the backend routes
+  `/admin/data-access/plugin-resource-types` (raise `supports.core` at release).
+
+### Changed
+- The checkboxes of every role permission matrix have an accessible name
+  ("update <resource>").
+
 ---
 
 ---

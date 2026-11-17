@@ -11,6 +11,8 @@ import { DeleteRoleModal } from '../delete-role-modal/DeleteRoleModal';
 import { PagePermissionsModal } from '../page-permissions-modal/PagePermissionsModal';
 import { DataTablePermissionsModal } from '../datatable-permissions-modal/DataTablePermissionsModal';
 import { GroupPermissionsModal } from '../group-permissions-modal/GroupPermissionsModal';
+import { PluginResourcePermissionsModal } from '../plugin-resource-permissions-modal/PluginResourcePermissionsModal';
+import type { IPluginResourceType } from '../../../../../types/responses/admin/roles.types';
 import { useDeleteRole } from '../../../../../hooks/useRoles';
 
 export function RolesPage() {
@@ -25,6 +27,7 @@ export function RolesPage() {
   const [dataTablePermissionsModalOpened, setDataTablePermissionsModalOpened] = useState(false);
   const [groupPermissionsModalOpened, setGroupPermissionsModalOpened] = useState(false);
   const [managingPermissionsRole, setManagingPermissionsRole] = useState<{ id: number; name: string } | null>(null);
+  const [pluginPermissions, setPluginPermissions] = useState<{ roleId: number; roleName: string; resourceType: IPluginResourceType } | null>(null);
   
   const deleteRoleMutation = useDeleteRole();
 
@@ -116,6 +119,7 @@ export function RolesPage() {
         onManagePagePermissions={handleManagePagePermissions}
         onManageDataTablePermissions={handleManageDataTablePermissions}
         onManageGroupPermissions={handleManageGroupPermissions}
+        onManagePluginPermissions={(roleId, roleName, resourceType) => setPluginPermissions({ roleId, roleName, resourceType })}
       />
 
       {/* Create Role Modal */}
@@ -165,6 +169,17 @@ export function RolesPage() {
         roleId={managingPermissionsRole?.id || 0}
         roleName={managingPermissionsRole?.name || ''}
       />
+
+      {/* Plugin resource type permissions (e.g. surveys) */}
+      {pluginPermissions && (
+        <PluginResourcePermissionsModal
+          opened
+          onClose={() => setPluginPermissions(null)}
+          roleId={pluginPermissions.roleId}
+          roleName={pluginPermissions.roleName}
+          resourceType={pluginPermissions.resourceType}
+        />
+      )}
     </>
   );
 } 

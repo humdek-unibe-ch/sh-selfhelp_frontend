@@ -1142,6 +1142,15 @@ export const API_CONFIG = {
             route: (roleId: number) => `/admin/data-access/roles/${roleId}/permissions`,
             permissions: [PERMISSIONS.ADMIN_ROLE_READ, PERMISSIONS.ADMIN_ROLE_UPDATE]
         },
+        // Data-access resource types that enabled plugins add (e.g. surveys).
+        ADMIN_DATA_ACCESS_PLUGIN_RESOURCE_TYPES: {
+            route: '/admin/data-access/plugin-resource-types',
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
+        },
+        ADMIN_DATA_ACCESS_PLUGIN_RESOURCES: {
+            route: (typeCode: string) => `/admin/data-access/plugin-resource-types/${encodeURIComponent(typeCode)}/resources`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
+        },
 
         // Admin registration codes endpoints
         ADMIN_REGISTRATION_CODES_GET_ALL: {
