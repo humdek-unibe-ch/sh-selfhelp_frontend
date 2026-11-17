@@ -9,9 +9,9 @@ SPDX-License-Identifier: MPL-2.0
  * Everything the author does goes through the real page editor, nothing is seeded:
  *
  *   1. create a page for the group `subject` (the wizard of "Create page");
- *   2. add an Entry List with Form section, the form inside it and two inputs inside the form;
- *   3. save the list: the builders now know the fields of the form and offer them by name;
- *   4. a column the form does not have is refused by the server with a message that names it, and the
+ *   2. add an Entry List with Form section and two inputs directly inside it;
+ *   3. open the list: the builders offer the inputs by name (`list_source` from own children);
+ *   4. a column the list does not have is refused by the server with a message that names it, and the
  *      list is not saved;
  *   5. columns (header, sort, search), a filter control, a quick action that is offered only for records
  *      that match, the page size, the list name and the title are set with the builders, and saved;
@@ -28,6 +28,7 @@ import { qaEnv } from '../utils/env';
 import {
     apiDelete,
     apiGet,
+    apiPost,
     createRecord,
     expectNoPageOverflow,
     formListEnv,
@@ -52,11 +53,14 @@ const TAG = runTag();
 const BASE_URL = qaEnv().baseUrl;
 const LOCALE = 'en-GB';
 
-/** The Entry List with Form section, its form and the two inputs, by the names the author gives them. */
+/** The Entry List with Form section and the two inputs, by the names the author gives them. */
 const LIST_SECTION = 'qa-builder-list';
-const FORM_SECTION = 'qa-builder-form';
 const TITLE_INPUT = 'qa-builder-title';
 const STATUS_INPUT = 'qa-builder-status';
+const ADMIN_KEYWORD = `qa_e2e_builder_admin_${SUFFIX}`;
+const ADMIN_PATH = `/${ADMIN_KEYWORD}`;
+const ADMIN_LIST_SECTION = 'qa-builder-admin-list';
+const ADMIN_LIST_KEY = 'builder_admin';
 
 interface ISaved {
     status: number;
@@ -166,6 +170,7 @@ test.describe('golden: an entry list built with the builders (web)', () => {
     let adminContext: BrowserContext;
     let adminPage: Page;
     let pageId: number | null = null;
+    let adminPageId: number | null = null;
     let list: IListTarget | null = null;
 
     test.beforeAll(async ({ browser }) => {
@@ -185,6 +190,11 @@ test.describe('golden: an entry list built with the builders (web)', () => {
                     await participant.context.close();
                 }
             }
+            if (adminPageId !== null) {
+                await adminPage.goto('/admin/pages');
+                const removedAdmin = await apiDelete(adminPage, `/api/admin/pages/${adminPageId}`, undefined);
+                expect([200, 204, 404], `delete admin page: ${JSON.stringify(removedAdmin.json)}`).toContain(removedAdmin.status);
+            }
             if (pageId !== null) {
                 await adminPage.goto('/admin/pages');
                 const removed = await apiDelete(adminPage, `/api/admin/pages/${pageId}`, undefined);
@@ -199,34 +209,30 @@ test.describe('golden: an entry list built with the builders (web)', () => {
         test.setTimeout(240_000);
         const page = adminPage;
 
-        // 1-2. An empty page, the list, the form inside it and two inputs inside the form.
+        // 1-2. An empty page, the list, and two inputs directly inside the list.
         pageId = await createPage(page);
         await expect(page.getByText('No sections yet')).toBeVisible();
         await addSection(page, 'entry-form-list', LIST_SECTION, null);
-        await addSection(page, 'form-record', FORM_SECTION, LIST_SECTION);
         await expandTree(page);
-        await addSection(page, 'text-input', TITLE_INPUT, FORM_SECTION);
+        await addSection(page, 'text-input', TITLE_INPUT, LIST_SECTION);
         await authorInput(page, 'Title', 'builder_title', true);
         await expandTree(page);
-        await addSection(page, 'text-input', STATUS_INPUT, FORM_SECTION);
+        await addSection(page, 'text-input', STATUS_INPUT, LIST_SECTION);
         await authorInput(page, 'Status', 'builder_status', false);
         await expandTree(page);
 
-        // 3. Before the list is saved the builders cannot know the fields of the form; saving tells them.
+        // 3. With inputs already in the list, list_source offers them by name (reload so section details are fresh).
+        await page.reload();
+        await expandTree(page);
         await openSection(page, LIST_SECTION);
         const addColumn = page.getByRole('combobox', { name: 'Add a column' });
-        await expect(addColumn).toBeDisabled();
-        await expect(page.getByText('Add the form this list shows records of').first()).toBeVisible();
-        const first = await saveSection(page);
-        expect(first.status, `save the list: ${first.text}`).toBe(200);
         await expect(addColumn).toBeEnabled();
         await addColumn.click();
-        // The builders offer the fields of the form by the name each input stores under.
         await expect(page.getByRole('option', { name: 'builder_title', exact: true })).toBeVisible();
         await expect(page.getByRole('option', { name: 'builder_status', exact: true })).toBeVisible();
         await page.keyboard.press('Escape');
 
-        // 4. A column the form does not have: the server names it and does not save the list.
+        // 4. A column the list does not have: the server names it and does not save the list.
         const columns = page.getByRole('radiogroup', { name: 'Edit the columns as rows or as JSON' });
         await columns.getByText('JSON', { exact: true }).click();
         await page.getByRole('textbox', { name: 'Columns', exact: true }).fill('[{"field":"builder_nonexistent","label":"Nope"}]');
@@ -235,7 +241,8 @@ test.describe('golden: an entry list built with the builders (web)', () => {
         expect(refused.text).toContain('invalid_list_config');
         expect(refused.text).toContain('builder_nonexistent');
         await expect(page.getByText('This list was not saved')).toBeVisible();
-        await expect(page.getByText('The column "builder_nonexistent" is not a field of the table.')).toBeVisible();
+        // Shown in the top alert and next to the Columns field.
+        await expect(page.getByText('The column "builder_nonexistent" is not a field of the table.').first()).toBeVisible();
         // The rows show the same column, marked as not in the table; the author removes it.
         await columns.getByText('Rows', { exact: true }).click();
         await expect(columnsRows(page)).toHaveCount(1);
@@ -368,7 +375,148 @@ test.describe('golden: an entry list built with the builders (web)', () => {
             await participant.context.close();
         }
     });
+
+    test('an admin list over the participant table: Data table + Approve in one inspector save', async ({ browser }) => {
+        test.setTimeout(240_000);
+        const page = adminPage;
+        expect(list, 'participant list exists from the previous test').not.toBeNull();
+        const participantList = list as IListTarget;
+
+        // Table of list A (created by the first participant submit).
+        const details = await apiGet(page, `/api/admin/pages/${participantList.pageId}/sections/${participantList.listId}`);
+        expect(details.status).toBe(200);
+        const source = (details.json as { data?: { list_source?: { data_table?: { id?: number; name?: string } | null; columns?: Array<{ field: string; label: string }> } } })
+            ?.data?.list_source;
+        const tableId = source?.data_table?.id;
+        expect(tableId, 'list A has a table after the participant used it').toEqual(expect.any(Number));
+        const titleCol = source?.columns?.find((column) => column.label === 'builder_title');
+        const statusCol = source?.columns?.find((column) => column.label === 'builder_status');
+        expect(titleCol?.field).toBeTruthy();
+        expect(statusCol?.field).toBeTruthy();
+
+        // Page B + empty entry-form-list, configured only through the inspector Save.
+        adminPageId = await createPageWithKeyword(page, ADMIN_KEYWORD);
+        await expect(page.getByText('No sections yet')).toBeVisible();
+        await addSection(page, 'entry-form-list', ADMIN_LIST_SECTION, null);
+
+        const tableName = source?.data_table?.name ?? '';
+        await page.getByRole('combobox', { name: 'Data table' }).click();
+        // Prefer the table's name; fall back to an exact (#id) suffix so a short id
+        // does not match another option that merely contains the digits.
+        await page.getByRole('option', { name: tableName !== '' ? new RegExp(tableName) : new RegExp(`\\(${tableId}\\)\\s*$|#${tableId}\\b`) }).first().click();
+        // Wait until live list_source offers A's input names (before save).
+        const addColumn = page.getByRole('combobox', { name: 'Add a column' });
+        await expect(addColumn).toBeEnabled({ timeout: 20_000 });
+        await addColumn.click();
+        await expect(page.getByRole('option', { name: 'builder_title', exact: true })).toBeVisible({ timeout: 20_000 });
+        await page.keyboard.press('Escape');
+
+        await addColumn.click();
+        await page.getByRole('option', { name: 'builder_title', exact: true }).click();
+        await addColumn.click();
+        await page.getByRole('option', { name: 'builder_status', exact: true }).click();
+
+        await page.getByRole('button', { name: 'Add a quick action' }).click();
+        const action = page.getByRole('group', { name: /^Action [^:]+$/ });
+        await action.getByRole('textbox', { name: 'Button label' }).fill('Approve');
+        await action.getByRole('textbox', { name: 'Id', exact: true }).fill('approve');
+        await action.getByRole('combobox', { name: /field 1$/ }).click();
+        await page.getByRole('option', { name: 'builder_status', exact: true }).click();
+        await action.getByRole('textbox', { name: /value 1$/ }).fill('approved');
+
+        await page.getByRole('textbox', { name: 'List name', exact: true }).fill(ADMIN_LIST_KEY);
+        await fillBothLanguages(page, 'Title', 'Admin builder items');
+
+        // Shared admin list: everyone's records, no add/edit. Set these last so a
+        // mid-edit store reset cannot leave Own entries on (empty list for the admin).
+        const own = page.getByRole('checkbox', { name: /Own entries only/i });
+        const allowAdd = page.getByRole('checkbox', { name: /Allow add/i });
+        const allowEdit = page.getByRole('checkbox', { name: /Allow edit/i });
+        await own.scrollIntoViewIfNeeded();
+        await own.uncheck();
+        await allowAdd.uncheck();
+        await allowEdit.uncheck();
+        await expect(own).not.toBeChecked();
+        await expect(allowAdd).not.toBeChecked();
+        await expect(allowEdit).not.toBeChecked();
+
+        const saved = await saveSection(page);
+        expect(saved.status, `one-pass save of admin list B: ${saved.text}`).toBe(200);
+        await expect(page.getByText('This list was not saved')).toHaveCount(0);
+
+        const adminTarget = await listTarget(page, ADMIN_KEYWORD, ADMIN_LIST_KEY);
+        const storedB = await apiGet(page, `/api/admin/pages/${adminTarget.pageId}/sections/${adminTarget.listId}`);
+        expect(storedB.status).toBe(200);
+        const storedFields = ((storedB.json as { data?: { fields?: Array<{ name?: string; translations?: Array<{ content?: string | null }> }> } })
+            ?.data?.fields ?? []);
+        const storedProp = (name: string): string => {
+            const field = storedFields.find((candidate) => candidate.name === name);
+            return String(field?.translations?.[0]?.content ?? '');
+        };
+        expect(storedProp('data_table'), 'B is bound to A\'s table').toBe(String(tableId));
+        expect(storedProp('own_entries_only'), 'B has own entries off').toBe('0');
+        expect(storedProp('allow_create'), 'B has Allow add off').toBe('0');
+        expect(storedProp('allow_update'), 'B has Allow edit off').toBe('0');
+
+        const published = await apiPost(page, `/api/admin/pages/${adminPageId}/versions/publish`, { comment: 'builder admin list' });
+        expect([200, 201], `publish admin page: ${JSON.stringify(published.json)}`).toContain(published.status);
+        await apiPost(page, `/api/admin/pages/${participantList.pageId}/versions/publish`, { comment: 'builder list A' });
+
+        // Participant adds one more open record on A.
+        const participant = await signedInParticipant(browser);
+        try {
+            await participant.page.goto(PATH);
+            await waitUntilSettled(participant.page);
+            const rootA = listRoot(participant.page, LIST_KEY);
+            await rootA.getByRole('button', { name: 'Add entry' }).click();
+            const dialog = participant.page.getByRole('dialog', { name: 'Add entry' });
+            await dialog.getByRole('textbox', { name: 'Title' }).fill(`${TAG} admin-case`);
+            await dialog.getByRole('textbox', { name: 'Status' }).fill('open');
+            await dialog.getByRole('button', { name: 'Save', exact: true }).click();
+            await expect(participant.page.getByRole('dialog')).toHaveCount(0);
+        } finally {
+            await participant.context.close();
+        }
+
+        // Admin on B: sees the record, Approves, deletes one.
+        await page.goto(ADMIN_PATH);
+        await waitUntilSettled(page);
+        const rootB = listRoot(page, ADMIN_LIST_KEY);
+        const row = rootB.getByRole('row').filter({ hasText: `${TAG} admin-case` });
+        await expect(row).toBeVisible({ timeout: 20_000 });
+        await row.getByRole('button', { name: 'Approve' }).click();
+        await expect(row).toContainText('approved', { timeout: 15_000 });
+        await row.getByRole('button', { name: new RegExp(`^Delete ${TAG} admin-case$`) }).click();
+        const deleteDialog = page.getByRole('dialog', { name: 'Delete' });
+        await expect(deleteDialog).toContainText('Delete this entry?');
+        await deleteDialog.getByRole('button', { name: 'Delete', exact: true }).click();
+        await expect(rootB.getByRole('row').filter({ hasText: `${TAG} admin-case` })).toHaveCount(0);
+    });
 });
+
+/** Create page wizard with an explicit keyword (second page in the same suite). */
+async function createPageWithKeyword(page: Page, keyword: string): Promise<number> {
+    await page.goto('/admin/pages');
+    await page.getByRole('button', { name: /create page/i }).first().click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('textbox', { name: 'Keyword' }).fill(keyword);
+    await dialog.getByRole('button', { name: 'Next' }).click();
+    await dialog.getByRole('combobox', { name: 'Additional access groups' }).click();
+    await page.getByRole('option', { name: 'subject' }).click();
+    await page.keyboard.press('Escape');
+    await dialog.getByRole('button', { name: 'Next' }).click();
+    await dialog.getByRole('button', { name: 'Next' }).click();
+    const [response] = await Promise.all([
+        page.waitForResponse((candidate) => candidate.request().method() === 'POST' && /\/admin\/pages$/.test(candidate.url())),
+        dialog.getByRole('button', { name: 'Create Page' }).click(),
+    ]);
+    expect(response.status(), 'create the admin page').toBe(201);
+    const id = ((await response.json()) as { data?: { id?: number } }).data?.id;
+    expect(id, 'the admin page has an id').toEqual(expect.any(Number));
+    await page.waitForURL(`**/admin/pages/${keyword}`);
+    await expect(page.getByRole('heading', { level: 1, name: keyword })).toBeVisible();
+    return id as number;
+}
 
 async function signedInParticipant(browser: Browser): Promise<{ context: BrowserContext; page: Page }> {
     const context = await browser.newContext({ baseURL: BASE_URL, locale: LOCALE });
