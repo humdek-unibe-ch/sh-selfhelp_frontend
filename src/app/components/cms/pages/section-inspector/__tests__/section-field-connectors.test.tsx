@@ -16,10 +16,11 @@ SPDX-License-Identifier: MPL-2.0
  * (the contract the fix changes), not Mantine's internal clear-button DOM.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { IFieldData } from '../../../shared/field-renderer/FieldRenderer';
 import { useSectionFormStore } from '../../../../../store/sectionFormStore';
 import type { ISectionField } from '../../../../../../types/responses/admin/admin.types';
+import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 
 // Capture the config `FieldRenderer` receives from each connector.
 vi.mock('../../../shared/field-renderer/FieldRenderer', () => ({
@@ -61,20 +62,23 @@ describe('SectionPropertyField — overrides are always clearable', () => {
     });
 
     it('forces clearable:true on a property/override select seeded clearable:false', () => {
-        render(<SectionPropertyField field={selectField('web_variant')} />);
+        // SectionPropertyField wraps FieldRenderer in Mantine Stack (error slot).
+        renderWithProviders(<SectionPropertyField field={selectField('web_variant')} />);
         expect(screen.getByTestId('fr-web_variant').getAttribute('data-clearable')).toBe('true');
     });
 
     it('leaves a content field config untouched (no forced clearable)', () => {
         const field = selectField('label');
-        render(<SectionContentField field={field} languages={[{ id: 1, language: 'English', locale: 'en' }]} />);
+        renderWithProviders(
+            <SectionContentField field={field} languages={[{ id: 1, language: 'English', locale: 'en' }]} />,
+        );
         // Content path passes config straight through → stays clearable:false.
         expect(screen.getByTestId('fr-label').getAttribute('data-clearable')).toBe('false');
     });
 
     it('does not crash when a property field has no config', () => {
         const field = { ...selectField('plain'), config: undefined } as unknown as ISectionField;
-        render(<SectionPropertyField field={field} />);
+        renderWithProviders(<SectionPropertyField field={field} />);
         expect(screen.getByTestId('fr-plain').getAttribute('data-clearable')).toBe('undefined');
     });
 });
