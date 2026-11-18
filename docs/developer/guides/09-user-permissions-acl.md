@@ -143,7 +143,7 @@ sidebar link and a directly typed URL always resolve to the same decision.
 | `/admin/data-access` | `admin.audit.view` |
 | `/admin/cache` | `admin.cache.read` |
 | `/admin/plugins`, `/admin/plugins/[id]` | any of `admin.plugins.manage` / `.execute` / `.purge` |
-| `/admin/plugins-host/*` | `admin.access` (plugin nav entry gates its own declared permission) |
+| `/admin/plugins-host/*` | `admin.access`, plus the `permission` the plugin page declares (its menu entry uses the same one); without it the shell shows "No access" |
 
 ### Adding a new admin page
 
