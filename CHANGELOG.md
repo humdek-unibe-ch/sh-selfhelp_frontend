@@ -25,6 +25,20 @@ No engineering diary, no implementation detail — that belongs in
   raising the limit; soft over-limit keeps extras stored. User guide:
   [docs/user/menus.md](docs/user/menus.md).
 
+## v0.1.73 — 2026-11-18
+
+**Admin editor polish**
+
+- Page editor remembers the tree/inspector splitter width per device
+  (localStorage).
+- Shared field search at the top of the page and section inspectors (label,
+  name and help text; Esc clears; `/` and Ctrl/Cmd+K focus).
+- Admin sidebar header: SelfHelp logo on the left, compact preview and debug
+  icon buttons on the right (no floating bug over the logo).
+- CMS app scaffold wizard: mark Text / Text area fields as translatable, per-type
+  help, and a *Needs setup* hint for Select, Radio, Image and Files. Requires
+  core **>=0.1.46**.
+
 ## v0.1.72 — 2026-11-17
 
 **Entry List with Form is its own form:** `entry-form-list` carries the form
