@@ -29,8 +29,8 @@ describe('PluginResourcePermissionsModal', () => {
             users_with_role: 1,
             effective_permissions: [
                 // An existing grant on survey 1 (view) and a page grant that must survive the save.
-                { id_roles: 7, role_name: 'qa_role', id_resourceTypes: 90, resource_id: 1, resource_type_name: 'Surveys', unified_permissions: 2, individual_permissions: '' },
-                { id_roles: 7, role_name: 'qa_role', id_resourceTypes: 3, resource_id: 55, resource_type_name: 'Pages', unified_permissions: 15, individual_permissions: '' },
+                { id_roles: 7, role_name: 'qa_role', id_resource_types: 90, resource_id: 1, resource_type_name: 'Surveys', unified_permissions: 2, individual_permissions: '' },
+                { id_roles: 7, role_name: 'qa_role', id_resource_types: 3, resource_id: 55, resource_type_name: 'Pages', unified_permissions: 15, individual_permissions: '' },
             ],
         });
     });

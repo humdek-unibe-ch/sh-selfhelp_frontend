@@ -50,7 +50,7 @@ export function PluginResourcePermissionsModal({ opened, onClose, roleId, roleNa
   const storedPermissionsOf = useCallback(
     (permissions: IRoleEffectivePermissions | null, resourceId: number): ICrudPermissions => {
       const stored = permissions?.effective_permissions.find(
-        p => p.id_resourceTypes === resourceType.id && p.resource_id === resourceId
+        p => p.id_resource_types === resourceType.id && p.resource_id === resourceId
       );
       return stored && stored.unified_permissions > 0 ? parseCrudPermissions(stored.unified_permissions) : { ...DEFAULT_CRUD_PERMISSIONS };
     },
@@ -115,9 +115,9 @@ export function PluginResourcePermissionsModal({ opened, onClose, roleId, roleNa
       crud_permissions: stringifyCrudPermissions(row.permissions),
     }));
     (rolePermissions?.effective_permissions ?? [])
-      .filter(p => p.id_resourceTypes !== resourceType.id)
+      .filter(p => p.id_resource_types !== resourceType.id)
       .forEach(p => permissions.push({
-        resource_type_id: p.id_resourceTypes,
+        resource_type_id: p.id_resource_types,
         resource_id: p.resource_id,
         crud_permissions: p.unified_permissions,
       }));

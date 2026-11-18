@@ -61,7 +61,7 @@ export interface IRoleDataAccessPermissions {
 export interface IRoleEffectivePermissionDetails {
   id_roles: number;
   role_name: string;
-  id_resourceTypes: number;
+  id_resource_types: number;
   resource_id: number;
   resource_type_name: string;
   unified_permissions: number;

@@ -165,7 +165,7 @@ export function PagePermissionsModal({ opened, onClose, roleId, roleName }: IPag
         if (perm.resource_type_name === 'Pages') return;
 
         permissions.push({
-          resource_type_id: perm.id_resourceTypes,
+          resource_type_id: perm.id_resource_types,
           resource_id: perm.resource_id,
           crud_permissions: perm.unified_permissions,
         });
