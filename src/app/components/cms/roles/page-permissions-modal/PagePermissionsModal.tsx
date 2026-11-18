@@ -19,6 +19,7 @@ import {
   stringifyCrudPermissions,
   type ICrudPermissions,
   DEFAULT_CRUD_PERMISSIONS,
+  setCrudTick,
 } from '../../../../../utils/permissions.utils';
 import { getApiErrorText } from '../../../../../utils/mutation-error-handler';
 
@@ -96,7 +97,7 @@ export function PagePermissionsModal({ opened, onClose, roleId, roleName }: IPag
   const updatePermission = (pageId: number, permissionType: keyof ICrudPermissions, value: boolean) => {
     setPermissionRows(prev => prev.map(row => {
       if (row.id_pages === pageId) {
-        const newPermissions = { ...row.permissions, [permissionType]: value };
+        const newPermissions = setCrudTick(row.permissions, permissionType, value);
         const originalPermission = rolePermissions?.effective_permissions.find(p => p.resource_type_name === 'Pages' && p.resource_id === pageId);
         const originalPermissions = originalPermission && originalPermission.unified_permissions > 0
           ? parseCrudPermissions(originalPermission.unified_permissions)

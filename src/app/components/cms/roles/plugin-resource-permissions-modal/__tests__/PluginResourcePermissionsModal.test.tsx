@@ -64,7 +64,8 @@ describe('PluginResourcePermissionsModal', () => {
         expect(roleId).toBe(7);
         expect(request.permissions).toEqual(expect.arrayContaining([
             { resource_type_id: 90, resource_id: 1, crud_permissions: 2 },
-            { resource_type_id: 90, resource_id: 2, crud_permissions: 4 },
+            // Ticking update also ticks view (2 + 4).
+            { resource_type_id: 90, resource_id: 2, crud_permissions: 6 },
             { resource_type_id: 3, resource_id: 55, crud_permissions: 15 },
         ]));
         expect(request.permissions).toHaveLength(3);

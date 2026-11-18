@@ -49,6 +49,17 @@ export function parseCrudPermissions(permissionsNumber: number): ICrudPermission
 }
 
 /**
+ * Sets one tick of a grant. Any other right needs view, so ticking it also
+ * ticks view, and unticking view clears the rest.
+ */
+export function setCrudTick(permissions: ICrudPermissions, key: keyof ICrudPermissions, value: boolean): ICrudPermissions {
+  if (key === 'view' && !value) {
+    return { ...DEFAULT_CRUD_PERMISSIONS };
+  }
+  return { ...permissions, [key]: value, ...(value ? { view: true } : {}) };
+}
+
+/**
  * Convert CRUD permissions to bitwise number format
  */
 export function stringifyCrudPermissions(permissions: ICrudPermissions): number {

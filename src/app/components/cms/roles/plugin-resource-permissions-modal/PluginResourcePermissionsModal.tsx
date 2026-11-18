@@ -21,6 +21,7 @@ import {
   parseCrudPermissions,
   stringifyCrudPermissions,
   type ICrudPermissions,
+  setCrudTick,
 } from '../../../../../utils/permissions.utils';
 import { getApiErrorText } from '../../../../../utils/mutation-error-handler';
 
@@ -95,7 +96,7 @@ export function PluginResourcePermissionsModal({ opened, onClose, roleId, roleNa
       if (row.id !== rowId) {
         return row;
       }
-      const permissions = { ...row.permissions, [permission]: value };
+      const permissions = setCrudTick(row.permissions, permission, value);
       const stored = storedPermissionsOf(rolePermissions, Number(row.id));
       return { ...row, permissions, hasChanges: JSON.stringify(permissions) !== JSON.stringify(stored) };
     }));
