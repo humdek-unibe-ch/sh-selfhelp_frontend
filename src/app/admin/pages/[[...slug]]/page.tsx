@@ -13,7 +13,6 @@ import {
   Stack,
   Alert,
   Loader,
-  Splitter
 } from '@mantine/core';
 import { 
   IconInfoCircle,
@@ -28,6 +27,7 @@ import { useSyncDocumentMetadata } from '../../../../hooks/useSyncDocumentMetada
 
 import { PageInspector } from '../../../components/cms/pages/page-inspector/PageInspector';
 import { SectionInspector } from '../../../components/cms/sections';
+import { PageEditorSplitter } from './PageEditorSplitter';
 
 const ADMIN_TAB_SUFFIX = 'Pages · Admin · SelfHelp';
 
@@ -199,23 +199,18 @@ function AdminPagesContent() {
     );
   };
 
-  // Tree + inspector are resizable siblings instead of a fixed-width
-  // `AppShell.Aside`. The inspector starts larger — it holds the fields.
+  // Tree + inspector are resizable siblings; sizes live in PageEditorSplitter.
   return (
     <AdminShell fullHeightMain>
       {asideContent ? (
-        <Splitter h="100%" style={{ minHeight: 0 }}>
-          <Splitter.Pane defaultSize={55} min={25}>
-            {renderMainContent()}
-          </Splitter.Pane>
-          <Splitter.Pane defaultSize={45} min={30}>
-            <Box h="100%" style={{ overflow: 'hidden' }}>
-              {asideContent}
-            </Box>
-          </Splitter.Pane>
-        </Splitter>
+        <PageEditorSplitter
+          tree={renderMainContent()}
+          inspector={asideContent}
+        />
       ) : (
-        renderMainContent()
+        <Box h="100%" data-admin-page-editor>
+          {renderMainContent()}
+        </Box>
       )}
     </AdminShell>
   );
