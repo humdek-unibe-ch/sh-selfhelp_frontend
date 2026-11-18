@@ -22,7 +22,6 @@ import {
     Alert,
     Paper,
     Box,
-    Menu,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { 
@@ -49,6 +48,14 @@ import {
     getWarnings, 
     resetPerformanceMonitor
 } from '../../../../../utils/performance-monitor.utils';
+
+export interface IDebugMenuProps {
+    /**
+     * `inline` — sits in the admin navbar header (no fixed positioning).
+     * `floating` — public pages / collapsed sidebar fallback (fixed corner).
+     */
+    variant?: 'inline' | 'floating';
+}
 
 interface IDebugLogEntry {
     timestamp: string;
@@ -95,78 +102,49 @@ if (typeof window !== 'undefined') {
 
 
 /**
- * Lightweight outer shell — only renders the floating IconBug button and
- * the (currently target-less) bottom-right `Menu`. The heavy
+ * Lightweight outer shell — only renders the IconBug trigger. The heavy
  * `useAppNavigation` / `useAdminPages` subscriptions live in
  * `DebugMenuPanel`, which is conditionally mounted on `opened` so the
  * `/admin/pages` round-trip never fires on public pages where the user
- * never opens the debug menu. This was previously costing every
- * authenticated visitor an `/admin/pages` request on every public page
- * load (and an unrelated `/pages/language/{id}` refetch through the
- * same pull).
+ * never opens the debug menu.
  */
-export function DebugMenu() {
+export function DebugMenu({ variant = 'floating' }: IDebugMenuProps) {
     const [opened, { toggle, close }] = useDisclosure(false);
-    const { languages, setCurrentLanguageId } = useLanguageContext();
 
-    const handleLanguageTest = () => {
-        if (languages.length > 0) {
-            const randomLanguage = languages[Math.floor(Math.random() * languages.length)];
-            setCurrentLanguageId(randomLanguage.id);
-            notifications.show({
-                title: 'Debug: Language Changed',
-                message: `Switched to ${randomLanguage.language}`,
-                color: 'blue'
-            });
-        }
-    };
+    const floatingStyle =
+        variant === 'floating'
+            ? {
+                  position: 'fixed' as const,
+                  // Bottom-left: keeps the public-page trigger off the logo
+                  // and main content chrome (admin uses the navbar slot).
+                  bottom: 16,
+                  left: 16,
+                  zIndex: 1000,
+                  backgroundColor: 'var(--mantine-color-blue-6)',
+                  color: 'white',
+              }
+            : undefined;
 
     return (
         <>
-            <Tooltip label="Debug Menu" position="right">
-                <ActionIcon aria-label="Debug Menu"
+            <Tooltip
+                label="Debug Menu"
+                position={variant === 'floating' ? 'right' : 'bottom'}
+                withArrow
+            >
+                <ActionIcon
+                    aria-label="Debug Menu"
                     onClick={toggle}
                     variant="subtle"
-                    size="lg"
-                    style={{
-                        position: 'fixed',
-                        top: 16,
-                        left: 16,
-                        zIndex: 1000,
-                        backgroundColor: 'var(--mantine-color-blue-6)',
-                        color: 'white'
-                    }}
+                    size={variant === 'floating' ? 'lg' : 'md'}
+                    color={variant === 'inline' ? 'gray' : undefined}
+                    style={floatingStyle}
                 >
-                    <IconBug size={20} />
+                    <IconBug size={variant === 'floating' ? 20 : 18} />
                 </ActionIcon>
             </Tooltip>
 
             {opened && <DebugMenuPanel opened={opened} onClose={close} />}
-
-            <Menu shadow="md" width={300} position="bottom-end">
-                <Menu.Dropdown>
-                    <Menu.Item
-                        leftSection={<IconLanguage size={16} />}
-                        onClick={handleLanguageTest}
-                        disabled={languages.length === 0}
-                    >
-                        Test Random Language
-                    </Menu.Item>
-
-                    <Menu.Item
-                        leftSection={<IconInfoCircle size={16} />}
-                        onClick={() => {
-                            notifications.show({
-                                title: 'Language Debug Info',
-                                message: `Available: ${languages.length}`,
-                                color: 'blue'
-                            });
-                        }}
-                    >
-                        Show Language Info
-                    </Menu.Item>
-                </Menu.Dropdown>
-            </Menu>
         </>
     );
 }

@@ -11,7 +11,7 @@ SPDX-License-Identifier: MPL-2.0
   overflow: hidden;
 }
 
-/* Header — brand + preview toggle on one row, search below. Does not scroll.
+/* Header — brand + icon controls on one ~40px row, search below. Does not scroll.
    Sits above `.links` so the search results panel overlays the nav list. */
 .header {
   position: relative;
@@ -21,6 +21,10 @@ SPDX-License-Identifier: MPL-2.0
   flex-direction: column;
   gap: var(--mantine-spacing-sm);
   border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.headerRow {
+  min-height: 40px;
 }
 
 .links {

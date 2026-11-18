@@ -4,13 +4,14 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { AppShell } from "@mantine/core";
+import { AppShell, Group } from "@mantine/core";
 import { AdminNavbar } from "./admin-navbar/AdminNavbar";
 import { useDisclosure } from '@mantine/hooks';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { ROUTES } from "../../../../config/routes.config";
 import { DebugMenu } from "../../shared/common/debug";
+import { PreviewModeToggle } from "../../shared/common/PreviewModeToggle";
 import { useIsSidebarCollapsed } from "../../../store/ui.store";
 import { useAuthStatus } from "../../../../hooks/useUserData";
 
@@ -90,7 +91,24 @@ export function AdminShell({ children, aside, asideWidth = 400, fullHeightMain =
                     </AppShell.Aside>
                 )}
             </AppShell>
-            <DebugMenu />
+            {/* When the desktop navbar is collapsed it has no visible header.
+                Keep preview + debug reachable in a corner that does not cover
+                the logo (logo is hidden with the navbar) or the main chrome. */}
+            {isSidebarCollapsed ? (
+                <Group
+                    gap={4}
+                    wrap="nowrap"
+                    style={{
+                        position: 'fixed',
+                        top: 12,
+                        left: 12,
+                        zIndex: 1000,
+                    }}
+                >
+                    <PreviewModeToggle variant="icon" />
+                    <DebugMenu variant="inline" />
+                </Group>
+            ) : null}
         </>
     );
 }

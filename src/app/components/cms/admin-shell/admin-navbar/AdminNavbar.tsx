@@ -41,9 +41,10 @@ import {
     cmsAppContentPath,
     isCmsSurfaceAdminPage,
 } from '../../cms-apps/cmsAppPages.utils';
-import { SelfHelpLogo, PreviewModeToggle, AuthButton } from '../../../shared';
+import { AuthButton } from '../../../shared';
 import classes from './AdminNavbar.module.css';
 import { NavigationSearch } from './components';
+import { AdminNavbarHeader } from './AdminNavbarHeader';
 
 /** True only after the first client commit — keeps SSR and hydration markup aligned. */
 function useAdminNavMounted(): boolean {
@@ -478,11 +479,9 @@ export function AdminNavbar() {
 
     return (
         <nav className={classes.navbar}>
-            {/* Header: brand, then the preview-toggle control strip, then search. */}
+            {/* Header: one row [spider + SelfHelp | preview + debug], then search. */}
             <Box className={classes.header}>
-                <SelfHelpLogo variant="compact" />
-
-                <PreviewModeToggle />
+                <AdminNavbarHeader />
 
                 <NavigationSearch
                     adminPagesData={adminPagesData}
