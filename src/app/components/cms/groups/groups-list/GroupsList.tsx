@@ -236,12 +236,12 @@ export function GroupsList({
             </Tooltip>
 
             {canManageAcls && (
-              <Tooltip label="Manage ACLs" withArrow>
+              <Tooltip label="Page access" withArrow>
                 <ActionIcon
                   variant="subtle"
                   size="sm"
                   color="blue"
-                  aria-label="Manage ACLs"
+                  aria-label="Page access"
                   onClick={() =>
                     onManageAcls?.(row.original.id, row.original.name)
                   }

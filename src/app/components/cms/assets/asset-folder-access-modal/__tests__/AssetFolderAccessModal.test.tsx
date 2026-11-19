@@ -17,7 +17,7 @@ import type { IAssetFolder } from '../../../../../../api/admin/asset.api';
 const { setAccess, notify, caller } = vi.hoisted(() => ({
     setAccess: vi.fn(),
     notify: vi.fn(),
-    caller: { roles: [{ id: 5, name: 'qa_researcher', description: null }] as { id: number; name: string; description: null }[] },
+    caller: { roles: [{ id: 5, name: 'qa_researcher', description: null, is_superuser: false }] as { id: number; name: string; description: null; is_superuser: boolean }[] },
 }));
 
 vi.mock('@mantine/notifications', () => ({ notifications: { show: notify } }));
@@ -33,7 +33,7 @@ vi.mock('../../../../../../hooks/useGroups', () => ({
 }));
 vi.mock('../../../../../../hooks/useRoles', () => ({
     useAllRoles: () => ({
-        data: { roles: [{ id: 1, name: 'admin' }, { id: 5, name: 'qa_researcher' }, { id: 6, name: 'qa_editor' }] },
+        data: { roles: [{ id: 1, name: 'admin', is_superuser: true }, { id: 5, name: 'qa_researcher', is_superuser: false }, { id: 6, name: 'qa_editor', is_superuser: false }] },
         isLoading: false,
         isError: false,
     }),
@@ -57,7 +57,7 @@ describe('AssetFolderAccessModal', () => {
     beforeEach(() => {
         setAccess.mockReset().mockResolvedValue({ updated: 4 });
         notify.mockReset();
-        caller.roles = [{ id: 5, name: 'qa_researcher', description: null }];
+        caller.roles = [{ id: 5, name: 'qa_researcher', description: null, is_superuser: false }];
         Element.prototype.scrollIntoView = vi.fn();
     });
 
@@ -124,7 +124,7 @@ describe('AssetFolderAccessModal', () => {
     });
 
     it('lets an admin leave the managing roles empty', async () => {
-        caller.roles = [{ id: 1, name: 'admin', description: null }];
+        caller.roles = [{ id: 1, name: 'admin', description: null, is_superuser: true }];
         renderWithProviders(<AssetFolderAccessModal opened onClose={vi.fn()} folder={folder} />);
 
         await userEvent.click(switchFor('Change who can manage'));

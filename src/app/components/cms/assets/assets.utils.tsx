@@ -17,15 +17,13 @@ import {
 import type { IAsset, IAssetFolder } from '../../../../api/admin/asset.api';
 
 /**
- * The admin role. It is implicit: it manages every asset, is never offered in a
- * "who can manage it" picker and is never stored on an asset. The role has no
- * flag in the roles list, so it is found by name (concepts finding F10).
+ * Whether a role is the full-access (superuser) role. That role manages every
+ * asset implicitly, is never offered in a "who can manage it" picker and is
+ * never stored on an asset. It is found by its `is_superuser` flag, never by
+ * its name (rule 4.11, concepts finding F10).
  */
-export const ADMIN_ROLE_NAME = 'admin';
-
-/** Whether a role is the admin role (found by name, see {@link ADMIN_ROLE_NAME}). */
-export function isAdminRole(role: { name: string }): boolean {
-  return role.name === ADMIN_ROLE_NAME;
+export function isAdminRole(role: { is_superuser: boolean }): boolean {
+  return role.is_superuser;
 }
 
 /** The ids of a folder's subfolders at any depth (not the folder itself). */

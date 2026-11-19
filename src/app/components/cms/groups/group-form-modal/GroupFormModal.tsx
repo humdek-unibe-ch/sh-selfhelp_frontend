@@ -212,10 +212,10 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
 
           <Divider />
 
-          {/* ACL Management */}
+          {/* Page access (one right: can see) */}
           <div>
             <Text size="sm" fw={500} mb="xs">
-              Access Control Lists (ACLs)
+              Page access
             </Text>
             
             <AclManagement
@@ -227,7 +227,7 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
             />
             
             <Text size="xs" c="dimmed" mt="xs">
-              Configure page-based access control for this group. Members will inherit these permissions.
+              Members of this group can see these pages and use their forms.
             </Text>
           </div>
 

@@ -128,7 +128,7 @@ export function GroupsPage() {
         isLoading={deleteGroupMutation.isPending}
       />
 
-      {/* Advanced ACL Management Modal */}
+      {/* Page access modal */}
       {managingAclGroup && (
         <AdvancedAclModal
           opened={advancedAclModalOpened}

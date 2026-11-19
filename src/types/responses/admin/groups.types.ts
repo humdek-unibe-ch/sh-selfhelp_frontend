@@ -20,10 +20,8 @@ export interface IGroupPageAcl {
   page_type: number;
   is_system: boolean;
   is_configuration: boolean;
+  /** Members of this group can see the page and use its forms. */
   acl_select: boolean;
-  acl_insert: boolean;
-  acl_update: boolean;
-  acl_delete: boolean;
 }
 
 export interface IGroupsPagination {

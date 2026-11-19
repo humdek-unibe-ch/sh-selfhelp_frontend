@@ -22,10 +22,8 @@ export interface IUpdateGroupAclsRequest {
   acls: IAclRequest[];
 }
 
+/** One page the group's members can see. `acl_select: false` is omit/remove. */
 export interface IAclRequest {
   page_id: number;
   acl_select?: boolean;
-  acl_insert?: boolean;
-  acl_update?: boolean;
-  acl_delete?: boolean;
 }

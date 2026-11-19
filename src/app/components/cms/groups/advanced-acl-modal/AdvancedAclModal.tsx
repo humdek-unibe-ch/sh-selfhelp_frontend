@@ -45,9 +45,6 @@ export interface IAclPage {
     isConfiguration: boolean;
     permissions: {
         select: boolean;
-        insert: boolean;
-        update: boolean;
-        delete: boolean;
     };
 }
 
@@ -67,18 +64,6 @@ interface IAdvancedAclModalProps {
     groupName: string;
 }
 
-const _PAGE_TYPE_INFO = {
-    1: { label: 'Internal', color: 'gray', description: 'Internal system pages' },
-    2: { label: 'Core', color: 'blue', description: 'Core system functionality' },
-    3: { label: 'Experiment', color: 'green', description: 'User-accessible experiment pages' },
-    4: { label: 'Open', color: 'cyan', description: 'Public access pages' },
-    5: { label: 'Maintenance', color: 'orange', description: 'Maintenance pages' },
-    6: { label: 'Global Values', color: 'violet', description: 'Global configuration' },
-    7: { label: 'Emails', color: 'pink', description: 'Email templates' },
-    8: { label: 'Global CSS', color: 'indigo', description: 'Global styling' },
-    9: { label: 'Security', color: 'red', description: 'Security related pages' },
-} as const;
-
 // Reusable ACL Management Component
 export function AclManagement({
     selectedPages,
@@ -92,40 +77,19 @@ export function AclManagement({
 
     const { pages, isLoading } = useAdminPages();
 
-    useEffect(() => {
-
-    }, [selectedPages]);
-
-    useEffect(() => {
-        if (pages.length > 0) {
-
-        }
-    }, [pages]);
-
     // Transform pages and filter by search term
     const filteredPages = useMemo(() => {
-        const transformedPages = pages.map(page => {
-            const pagePermissions = {
+        const transformedPages = pages.map(page => ({
+            id: page.id_pages,
+            keyword: page.keyword,
+            title: page.keyword,
+            type: page.id_page_types || 3,
+            isSystem: page.is_system,
+            isConfiguration: (page.id_page_types || 0) > 3,
+            permissions: {
                 select: selectedPages.some(p => p.id === page.id_pages && p.permissions.select),
-                insert: selectedPages.some(p => p.id === page.id_pages && p.permissions.insert),
-                update: selectedPages.some(p => p.id === page.id_pages && p.permissions.update),
-                delete: selectedPages.some(p => p.id === page.id_pages && p.permissions.delete),
-            };
-
-            if (page.keyword === 'agb' && page.id_pages === 30) {
-
-            }
-
-            return {
-                id: page.id_pages,
-                keyword: page.keyword,
-                title: page.keyword,
-                type: page.id_page_types || 3,
-                isSystem: page.is_system,
-                isConfiguration: (page.id_page_types || 0) > 3,
-                permissions: pagePermissions,
-            };
-        });
+            },
+        }));
 
         if (!searchTerm) return transformedPages;
 
@@ -150,7 +114,7 @@ export function AclManagement({
         };
     }, [filteredPages]);
 
-    const handlePermissionChange = (pageId: number, permissionType: keyof IAclPage['permissions'], checked: boolean) => {
+    const handleCanSeeChange = (pageId: number, checked: boolean) => {
         if (readonly) return;
 
         const existingPageIndex = selectedPages.findIndex(p => p.id === pageId);
@@ -161,37 +125,24 @@ export function AclManagement({
         let updatedPages = [...selectedPages];
 
         if (existingPageIndex >= 0) {
-            // Update existing page permissions
-            updatedPages[existingPageIndex] = {
-                ...updatedPages[existingPageIndex],
-                permissions: {
-                    ...updatedPages[existingPageIndex].permissions,
-                    [permissionType]: checked,
-                },
-            };
-
-            // Remove page if all permissions are false
-            const hasAnyPermission = Object.values(updatedPages[existingPageIndex].permissions).some(Boolean);
-            if (!hasAnyPermission) {
+            if (!checked) {
                 updatedPages.splice(existingPageIndex, 1);
+            } else {
+                updatedPages[existingPageIndex] = {
+                    ...updatedPages[existingPageIndex],
+                    permissions: { select: true },
+                };
             }
         } else if (checked) {
-            // Add new page with the specific permission
-            const newPage: IAclPage = {
+            updatedPages.push({
                 id: pageId,
                 keyword: pageData.keyword,
                 title: pageData.title,
                 type: pageData.type,
                 isSystem: pageData.isSystem,
                 isConfiguration: pageData.isConfiguration,
-                permissions: {
-                    select: permissionType === 'select',
-                    insert: permissionType === 'insert',
-                    update: permissionType === 'update',
-                    delete: permissionType === 'delete',
-                },
-            };
-            updatedPages.push(newPage);
+                permissions: { select: true },
+            });
         }
 
         onChange(updatedPages);
@@ -221,45 +172,33 @@ export function AclManagement({
                 <Stack gap="xs">
                     {pages.map(page => (
                         <Paper key={page.id} p="xs" style={{ backgroundColor: 'var(--mantine-color-default)' }} withBorder>
-                            <Stack gap="xs">
-                                <Group justify="space-between">
-                                    <Group gap="xs">
-                                        <Text size="sm" fw={500}>
-                                            {page.keyword}
-                                        </Text>
-                                        {page.title && (
-                                            <Text size="xs" c="dimmed">
-                                                ({page.title})
-                                            </Text>
-                                        )}
-                                        {page.isSystem && (
-                                            <Tooltip label="System Page">
-                                                <IconLock size="0.875rem" color="var(--mantine-color-orange-6)" />
-                                            </Tooltip>
-                                        )}
-                                        {page.isConfiguration && (
-                                            <Badge size="xs" color="purple" variant="outline">
-                                                Config
-                                            </Badge>
-                                        )}
-                                    </Group>
+                            <Group justify="space-between" wrap="nowrap">
+                                <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
+                                    <Text size="sm" fw={500} truncate>
+                                        {page.keyword}
+                                    </Text>
+                                    {page.isSystem && (
+                                        <Tooltip label="System Page">
+                                            <IconLock size="0.875rem" color="var(--mantine-color-orange-6)" />
+                                        </Tooltip>
+                                    )}
+                                    {page.isConfiguration && (
+                                        <Badge size="xs" color="purple" variant="outline">
+                                            Config
+                                        </Badge>
+                                    )}
                                 </Group>
-
-                                <Group gap="lg">
-                                    {(['select', 'insert', 'update', 'delete'] as const).map(permission => (
-                                        <Checkbox
-                                            key={permission}
-                                            label={permission.charAt(0).toUpperCase() + permission.slice(1)}
-                                            size="xs"
-                                            checked={page.permissions[permission]}
-                                            onChange={(event) =>
-                                                handlePermissionChange(page.id, permission, event.currentTarget.checked)
-                                            }
-                                            disabled={readonly}
-                                        />
-                                    ))}
-                                </Group>
-                            </Stack>
+                                <Checkbox
+                                    label="Can see"
+                                    size="xs"
+                                    checked={page.permissions.select}
+                                    onChange={(event) =>
+                                        handleCanSeeChange(page.id, event.currentTarget.checked)
+                                    }
+                                    disabled={readonly}
+                                    aria-label={`Can see ${page.keyword}`}
+                                />
+                            </Group>
                         </Paper>
                     ))}
                 </Stack>
@@ -277,7 +216,7 @@ export function AclManagement({
                 <Group justify="space-between">
                     <Group gap="xs">
                         <Text size="sm" fw={500}>
-                            Page-based Access Control
+                            Page access
                         </Text>
                         <Badge variant="light" color="blue">
                             {selectedPages.length} pages selected
@@ -297,12 +236,10 @@ export function AclManagement({
                 <Stack gap="md">
                     <Alert icon={<IconInfoCircle size="1rem" />} color="blue" variant="light">
                         <Text size="sm">
-                            Configure page-based access control. Set different permission levels
-                            (Select, Insert, Update, Delete) for each page category.
+                            Members of this group can see these pages and use their forms.
                         </Text>
                     </Alert>
 
-                    {/* Search */}
                     <TextInput aria-label="Search pages"
                         placeholder="Search pages..."
                         leftSection={<IconSearch size="1rem" />}
@@ -322,14 +259,12 @@ export function AclManagement({
                         onChange={(event) => setSearchTerm(event.currentTarget.value)}
                     />
 
-                    {/* Page Groups */}
                     <Stack gap="md">
                         {renderPageGroup('System', groupedPages.system, 'red')}
                         {renderPageGroup('Configuration', groupedPages.configuration, 'violet')}
                         {renderPageGroup('Experiment', groupedPages.experiment, 'green')}
                     </Stack>
 
-                    {/* Selected Pages Summary */}
                     {selectedPages.length > 0 && (
                         <Paper p="sm" withBorder style={{ backgroundColor: 'var(--mantine-color-default)' }}>
                             <Text size="sm" fw={500} mb="xs">
@@ -411,7 +346,6 @@ export function AdvancedAclModal({
 
     const handleSave = async () => {
         try {
-            // Convert to API format
             const aclsData = convertAclsToApiFormat(selectedPages);
 
             // The mutation hook invalidates the group root on success, which
@@ -421,7 +355,6 @@ export function AdvancedAclModal({
             onClose();
         } catch {
             // Error handling is done in the mutation hook
-
         }
     };
 
@@ -432,14 +365,14 @@ export function AdvancedAclModal({
         <ModalWrapper
             opened={opened}
             onClose={onClose}
-            title={`Advanced ACL Management - ${groupName}`}
+            title={`Page access - ${groupName}`}
             size="xl"
             onCancel={onClose}
             onSave={() => {
                 void handleSave();
             }}
             isLoading={isSubmitting}
-            saveLabel="Save ACL Changes"
+            saveLabel="Save page access"
             cancelLabel="Cancel"
             scrollAreaHeight="calc(100dvh - 14rem)"
         >
@@ -457,4 +390,4 @@ export function AdvancedAclModal({
             </Box>
         </ModalWrapper>
     );
-} 
+}
