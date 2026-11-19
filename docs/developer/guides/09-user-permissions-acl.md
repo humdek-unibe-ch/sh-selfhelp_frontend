@@ -41,21 +41,16 @@ graph TD
 ## ACL Management System
 
 ```typescript
-// ACL structure for groups
-interface IACL {
+// Page access for groups: one right, select (can see the page and use its forms)
+interface IGroupPageAcl {
     page_id: number;
-    acl_select: boolean;    // View permission
-    acl_insert: boolean;    // Create permission
-    acl_update: boolean;    // Edit permission
-    acl_delete: boolean;    // Delete permission
+    acl_select: boolean;
 }
 
-// ACL management component
+// Group page-access editor (one "Can see" checkbox per page)
 <AclManagement
-    groupId={groupId}
-    collapsible={true}
-    showSelectedCount={true}
-    onAclsChange={handleAclsChange}
+    selectedPages={selectedPages}
+    onChange={setSelectedPages}
 />
 ```
 
@@ -143,7 +138,7 @@ sidebar link and a directly typed URL always resolve to the same decision.
 | `/admin/data-access` | `admin.audit.view` |
 | `/admin/cache` | `admin.cache.read` |
 | `/admin/plugins`, `/admin/plugins/[id]` | any of `admin.plugins.manage` / `.execute` / `.purge` |
-| `/admin/plugins-host/*` | `admin.access` (plugin nav entry gates its own declared permission) |
+| `/admin/plugins-host/[pluginId]/[slug]` | `admin.access` plus the permission the plugin declares for that page in its manifest (`adminPages[].permission`), checked on the server by `requirePluginAdminPageAccess` in `src/app/_lib/plugin-admin-page-guard.ts`; the nav entry uses the same permission. An unknown plugin or slug keeps only `admin.access` and the host shows its not-found state |
 
 ### Adding a new admin page
 
