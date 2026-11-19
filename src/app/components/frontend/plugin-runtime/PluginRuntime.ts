@@ -46,6 +46,15 @@ import {
     extendStyleRegistry,
     type IStyleRegistryEntry,
 } from '@selfhelp/shared/registry';
+import { sanitizeHtmlForBlock, sanitizeHtmlForParsing } from '../../../../utils/html-sanitizer.utils';
+
+/** Mirrors `IPluginApi.sanitizeHtml` of the plugin SDK (`@selfhelp/shared` > 1.24.0). */
+type TPluginApiWithSanitizer = IPluginApi & { sanitizeHtml(html: string, mode: 'inline' | 'block'): string };
+
+/** The host's sanitizer lent to plugins: the same DOMPurify rules and link rewrites core pages use. */
+export function sanitizePluginHtml(html: string, mode: 'inline' | 'block'): string {
+    return mode === 'block' ? sanitizeHtmlForBlock(html) : sanitizeHtmlForParsing(html);
+}
 
 /**
  * Plugin entry as it appears on the host manifest.
@@ -791,7 +800,7 @@ export class PluginRuntime {
         return Boolean(flag.defaultEnabled);
     }
 
-    private buildPluginApi(entry: IPluginManifestEntry): IPluginApi {
+    private buildPluginApi(entry: IPluginManifestEntry): TPluginApiWithSanitizer {
         return {
             pluginId: entry.pluginId,
             pluginVersion: entry.version,
@@ -803,6 +812,7 @@ export class PluginRuntime {
             // Rich-text adapter is injected by the host through
             // `IPluginRuntimeOptions.richTextEditor` (or `setRichTextEditor`).
             richTextEditor: this.richTextEditor,
+            sanitizeHtml: sanitizePluginHtml,
             log: this.logger,
         };
     }
