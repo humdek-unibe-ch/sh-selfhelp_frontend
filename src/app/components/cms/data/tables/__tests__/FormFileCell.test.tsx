@@ -29,6 +29,19 @@ describe('getFormFilePaths', () => {
     expect(getFormFilePaths('["a","b"]')).toEqual([]);
     expect(getFormFilePaths(null)).toEqual([]);
   });
+
+  it('reads keys inside a plugin answer object, in the order the backend reads them', () => {
+    const answer = JSON.stringify([
+      { name: 'a.png', key: 'uploads/form-files/guest/table_1/record_2/field_q/1_aaaaaaaa_a.png' },
+      { name: 'b.png', key: 'uploads/form-files/guest/table_1/record_2/field_q/1_bbbbbbbb_b.png' },
+    ]);
+    expect(getFormFilePaths(answer)).toEqual([
+      'uploads/form-files/guest/table_1/record_2/field_q/1_aaaaaaaa_a.png',
+      'uploads/form-files/guest/table_1/record_2/field_q/1_bbbbbbbb_b.png',
+    ]);
+    expect(getFormFilePaths(JSON.stringify({ key: 'uploads/form-files/x.gpx', pointCount: 3 }))).toEqual(['uploads/form-files/x.gpx']);
+    expect(getFormFilePaths(JSON.stringify({ key: 'uploads/form-files/../etc' }))).toEqual([]);
+  });
 });
 
 describe('getRecordIdsWithFiles', () => {

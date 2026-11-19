@@ -14,23 +14,35 @@ const FORM_FILE_PREFIX = 'uploads/form-files/';
 
 /**
  * Reads the stored form-upload keys out of ONE cell of a column the server
- * flagged `isFile`: one path or a JSON array of paths. This only parses the
- * stored shape; whether a column holds files is the server's call (`isFile`),
- * so never call it for a column that is not flagged: a text answer that merely
- * looks like a path must stay text.
+ * flagged `isFile`: one path, or JSON holding paths at any depth (a list of
+ * paths, or a plugin's answer object with its file key next to other data), in
+ * the order the backend reads them. This only parses the stored shape; whether
+ * a column holds files is the server's call (`isFile`), so never call it for a
+ * column that is not flagged: a text answer that merely looks like a path must
+ * stay text.
  */
 export function getFormFilePaths(value: unknown): string[] {
   if (typeof value !== 'string') return [];
   if (value.startsWith(FORM_FILE_PREFIX)) return [value];
-  if (!value.startsWith('[')) return [];
+  if (!value.startsWith('[') && !value.startsWith('{')) return [];
+  let parsed: unknown;
   try {
-    const parsed: unknown = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((p): p is string => typeof p === 'string' && p.startsWith(FORM_FILE_PREFIX))
-      : [];
+    parsed = JSON.parse(value);
   } catch {
     return [];
   }
+  const paths: string[] = [];
+  const walk = (node: unknown): void => {
+    if (typeof node === 'string') {
+      if (node.startsWith(FORM_FILE_PREFIX) && !node.includes('..') && !paths.includes(node)) paths.push(node);
+    } else if (Array.isArray(node)) {
+      node.forEach(walk);
+    } else if (node !== null && typeof node === 'object') {
+      Object.values(node).forEach(walk);
+    }
+  };
+  walk(parsed);
+  return paths;
 }
 
 /**
