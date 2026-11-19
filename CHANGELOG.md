@@ -25,6 +25,24 @@ No engineering diary, no implementation detail — that belongs in
   raising the limit; soft over-limit keeps extras stored. User guide:
   [docs/user/menus.md](docs/user/menus.md).
 
+## v0.1.74 — 2026-11-18
+
+**Access cleanup (groups see, roles edit)**
+
+- Group page access is one right: a single **Can see** checkbox per page.
+  Members who can see a page can use its forms. Requires core **>=0.1.47** and
+  `@selfhelp/shared` **1.26.0** (`package.json` pin; leave `package-lock.json`
+  for the release step after publishing, F151).
+- Roles list recognises full access from `is_superuser` (not the name `admin`);
+  that role can be renamed and cannot be deleted.
+- Plugin admin pages open only for users who hold the permission the plugin
+  declares for the page; the server checks it when the page is opened, not
+  only in the menu.
+- The asset picker finds the full-access role by `is_superuser`, not by the
+  name `admin` (needs core **>=0.1.47**).
+- Public form, validate and profile screens show only the intended API error
+  text — never the HTTP reason phrase (`Bad Request`).
+
 ## v0.1.73 — 2026-11-18
 
 **Admin editor polish**
