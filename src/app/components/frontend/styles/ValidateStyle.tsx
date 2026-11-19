@@ -10,6 +10,7 @@ import { type IValidateStyle } from '../../../../types/common/styles.types';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useRouter } from 'next/navigation';
 import { useValidateTokenMutation, useCompleteValidationMutation, useTokenValidation } from '../../../../hooks/mutations/useValidationMutations';
+import { getApiErrorText } from '../../../../utils/mutation-error-handler';
 
 /**
  * Props interface for IValidateStyle component
@@ -251,17 +252,13 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
 
         } catch (error) {
             // Prefer validation field errors from the backend envelope
-            const err = error as { response?: { data?: { validation?: { errors?: string[] }; error?: string; message?: string } }; message?: string };
+            const err = error as { response?: { data?: { validation?: { errors?: string[] } } } };
             const validationErrors = err?.response?.data?.validation?.errors;
             let errorMessage = 'Failed to complete validation. Please try again.';
             if (validationErrors && validationErrors.length > 0) {
                 errorMessage = validationErrors.join('\n');
-            } else if (err?.response?.data?.error) {
-                errorMessage = err.response.data.error;
-            } else if (err?.response?.data?.message) {
-                errorMessage = err.response.data.message;
-            } else if (err?.message) {
-                errorMessage = err.message;
+            } else {
+                errorMessage = getApiErrorText(error) ?? errorMessage;
             }
 
             setSubmitError(errorMessage);
