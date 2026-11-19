@@ -18,6 +18,7 @@ const page = (emails: string[]): IUsersListResponse => ({
         last_login: null,
         status: 'active',
         blocked: false,
+        is_system: false,
         receives_notifications: false,
         receives_emails: false,
         code: null,

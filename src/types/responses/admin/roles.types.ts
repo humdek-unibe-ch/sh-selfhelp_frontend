@@ -6,6 +6,8 @@ export interface IRoleDetails {
   id: number;
   name: string;
   description: string | null;
+  /** Full-access role; cannot be deleted; flag is not editable through the API. */
+  is_superuser: boolean;
   permissions: IRolePermission[];
   users_count: number;
   permissions_count: number;

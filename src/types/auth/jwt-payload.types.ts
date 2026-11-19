@@ -64,6 +64,8 @@ export interface IUserData {
         id: number;
         name: string;
         description: string | null;
+        /** Full-access role (rule 4.11: the server says so; never found by name). */
+        is_superuser: boolean;
     }>;
     permissions: string[];
     groups: Array<{
@@ -93,6 +95,8 @@ export interface IAuthUser {
         id: number;
         name: string;
         description: string | null;
+        /** Full-access role (rule 4.11: the server says so; never found by name). */
+        is_superuser: boolean;
     }>;
     permissions: string[];
     groups: Array<{

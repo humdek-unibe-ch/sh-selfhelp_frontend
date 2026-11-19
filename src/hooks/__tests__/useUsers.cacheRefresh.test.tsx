@@ -59,6 +59,7 @@ function userDetails(id: number, groupNames: string[]): IUserDetails {
         id_languages: null,
         id_userTypes: null,
         blocked: false,
+        is_system: false,
         receives_notifications: true,
         receives_emails: true,
         status: 'active',

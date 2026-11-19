@@ -75,10 +75,8 @@ export function RolesList({
   onManageDataTablePermissions,
   onManageGroupPermissions,
 }: IRolesListProps) {
-  // Check if role is admin (untouchable)
-  const isAdminRole = (roleName: string) => {
-    return roleName.toLowerCase() === "admin";
-  };
+  /** Full-access role from the API flag (name may be renamed). */
+  const isSuperuserRole = (role: IRoleDetails) => role.is_superuser === true;
   // Filter form state (what user is editing)
   const [filterParams, setFilterParams] = useState<IRolesListParams>({
     page: 1,
@@ -194,7 +192,7 @@ export function RolesList({
         accessorKey: "name",
         header: ({ column }) => <SortHeader label="Name" column={column} />,
         cell: ({ row }) => {
-          const adminRole = isAdminRole(row.original.name);
+          const superuser = isSuperuserRole(row.original);
 
           return (
             <div className={classes.nameText}>
@@ -202,9 +200,9 @@ export function RolesList({
                 <Text size="sm" fw={600} className={classes.roleName}>
                   {row.original.name}
                 </Text>
-                {adminRole && (
+                {superuser && (
                   <Badge size="xs" color="red" variant="light" radius="sm">
-                    Admin
+                    Full access
                   </Badge>
                 )}
               </Group>
@@ -242,23 +240,20 @@ export function RolesList({
         id: "actions",
         header: () => <span className={tableStyles.colHeader}>Actions</span>,
         cell: ({ row }) => {
-          const adminRole = isAdminRole(row.original.name);
+          const superuser = isSuperuserRole(row.original);
 
           return (
             <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
               <Tooltip
                 withArrow
-                label={
-                  adminRole ? "Admin role cannot be modified" : "Edit role"
-                }
+                label={superuser ? "Rename or edit description" : "Edit role"}
               >
                 <ActionIcon
                   variant="subtle"
                   color="gray"
                   size="sm"
                   aria-label="Edit role"
-                  disabled={adminRole}
-                  onClick={() => !adminRole && onEditRole?.(row.original.id)}
+                  onClick={() => onEditRole?.(row.original.id)}
                 >
                   <IconEdit size={16} />
                 </ActionIcon>
@@ -267,20 +262,20 @@ export function RolesList({
               {/* Permission Management Buttons */}
               <Tooltip
                 label={
-                  adminRole
-                    ? "Admin role permissions cannot be modified"
+                  superuser
+                    ? "Full-access role permissions cannot be modified"
                     : "Manage Page Permissions"
                 }
               >
-                <ActionIcon aria-label={adminRole
-                    ? "Admin role permissions cannot be modified"
+                <ActionIcon aria-label={superuser
+                    ? "Full-access role permissions cannot be modified"
                     : "Manage Page Permissions"}
                   variant="subtle"
                   size="sm"
                   color="blue"
-                  disabled={adminRole}
+                  disabled={superuser}
                   onClick={() =>
-                    !adminRole &&
+                    !superuser &&
                     onManagePagePermissions?.(
                       row.original.id,
                       row.original.name,
@@ -293,20 +288,20 @@ export function RolesList({
 
               <Tooltip
                 label={
-                  adminRole
-                    ? "Admin role permissions cannot be modified"
+                  superuser
+                    ? "Full-access role permissions cannot be modified"
                     : "Manage Data Table Permissions"
                 }
               >
-                <ActionIcon aria-label={adminRole
-                    ? "Admin role permissions cannot be modified"
+                <ActionIcon aria-label={superuser
+                    ? "Full-access role permissions cannot be modified"
                     : "Manage Data Table Permissions"}
                   variant="subtle"
                   size="sm"
                   color="green"
-                  disabled={adminRole}
+                  disabled={superuser}
                   onClick={() =>
-                    !adminRole &&
+                    !superuser &&
                     onManageDataTablePermissions?.(
                       row.original.id,
                       row.original.name,
@@ -319,20 +314,20 @@ export function RolesList({
 
               <Tooltip
                 label={
-                  adminRole
-                    ? "Admin role permissions cannot be modified"
+                  superuser
+                    ? "Full-access role permissions cannot be modified"
                     : "Manage Group Permissions"
                 }
               >
-                <ActionIcon aria-label={adminRole
-                    ? "Admin role permissions cannot be modified"
+                <ActionIcon aria-label={superuser
+                    ? "Full-access role permissions cannot be modified"
                     : "Manage Group Permissions"}
                   variant="subtle"
                   size="sm"
                   color="purple"
-                  disabled={adminRole}
+                  disabled={superuser}
                   onClick={() =>
-                    !adminRole &&
+                    !superuser &&
                     onManageGroupPermissions?.(
                       row.original.id,
                       row.original.name,
@@ -364,13 +359,13 @@ export function RolesList({
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
                     color="red"
-                    disabled={adminRole}
+                    disabled={superuser}
                     onClick={() =>
-                      !adminRole &&
+                      !superuser &&
                       onDeleteRole?.(row.original.id, row.original.name)
                     }
                   >
-                    {adminRole ? "Admin role cannot be deleted" : "Delete Role"}
+                    {superuser ? "Full-access role cannot be deleted" : "Delete Role"}
                   </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
