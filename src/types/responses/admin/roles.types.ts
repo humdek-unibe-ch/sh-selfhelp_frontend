@@ -22,6 +22,12 @@ export interface IRoleDetails {
    * no users in it, not the full-access role). Set by the server per caller.
    */
   can_delete: boolean;
+  /**
+   * The signed-in person holds every right in this role (rule 4.6f), or is the
+   * superuser. Set by the server per caller. The asset pickers offer a role
+   * only when it is `true`; a role with `false` is shown disabled with a reason.
+   */
+  fully_held: boolean;
 }
 
 export interface IRolePermission {

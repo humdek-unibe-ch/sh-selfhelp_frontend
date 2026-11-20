@@ -100,6 +100,7 @@ const roleDetails = (overrides: Partial<IRoleDetails> = {}): IRoleDetails => ({
     permissions_count: 1,
     can_update: true,
     can_delete: true,
+    fully_held: true,
     ...overrides,
 });
 

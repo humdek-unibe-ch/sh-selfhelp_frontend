@@ -118,10 +118,10 @@ export function folderOptions(folders: IAssetFolder[]): { value: string; label: 
  * is unavailable (no permission to read it) or lacks it. Mantine's MultiSelect
  * rejects duplicate option values, so a value is listed once.
  */
-export function withCurrentOptions(
-  listed: { value: string; label: string }[],
+export function withCurrentOptions<T extends { value: string; label: string }>(
+  listed: T[],
   current: { id: number; name: string }[],
-): { value: string; label: string }[] {
+): Array<T | { value: string; label: string }> {
   const known = new Set(listed.map((option) => option.value));
   const missing = current
     .filter((item) => !known.has(String(item.id)))

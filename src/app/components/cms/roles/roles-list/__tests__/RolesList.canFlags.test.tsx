@@ -30,6 +30,7 @@ const role = (overrides: Partial<IRoleDetails> & Pick<IRoleDetails, 'id' | 'name
     permissions_count: 0,
     can_update: true,
     can_delete: true,
+    fully_held: true,
     ...overrides,
 });
 

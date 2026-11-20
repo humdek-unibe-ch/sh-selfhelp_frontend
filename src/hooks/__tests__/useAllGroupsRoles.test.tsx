@@ -48,6 +48,7 @@ function role(id: number): IRoleDetails {
         permissions_count: 0,
         can_update: true,
         can_delete: true,
+        fully_held: true,
     };
 }
 
