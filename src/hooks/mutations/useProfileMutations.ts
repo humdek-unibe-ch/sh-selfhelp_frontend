@@ -9,24 +9,6 @@ import { AuthApi } from '../../api/auth.api';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 
 /**
- * Mutation hook for updating user username
- */
-export function useUpdateUsernameMutation() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async ({ newUsername }: { newUsername: string }) => {
-            return AuthApi.updateUsername(newUsername);
-        },
-        onSuccess: () => {
-            // Invalidate and refetch user data
-            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
-        },
-        ...REACT_QUERY_CONFIG.DEFAULT_OPTIONS.mutations
-    });
-}
-
-/**
  * Mutation hook for updating user display name
  */
 export function useUpdateNameMutation() {

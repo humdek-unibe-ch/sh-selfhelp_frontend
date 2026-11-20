@@ -84,12 +84,12 @@ updateMutation.mutate({
 - `src/types/responses/admin/preferences.types.ts` - TypeScript types (if separate from API file)
 
 #### Frontend Components
-- `src/app/components/cms/preferences/preferences-page/PreferencesPage.tsx` - Admin preferences UI
-- `src/hooks/usePreferences.ts` - React Query hooks for preferences management
+- Preferences are edited on the configuration page `sh-cms-preferences` in the page editor (there is no separate preferences screen).
+- `src/hooks/usePreferences.ts` - `useCmsPreferences`, the read hook
 
 #### Permissions
-- `admin.cms_preferences.read` - View preferences
-- `admin.cms_preferences.update` - Modify preferences
+- `admin.cms_preferences.read` - read preferences (`GET /admin/cms-preferences`)
+- Changing them is a page edit: `admin.page.update` and the update grant on `sh-cms-preferences`. `admin.cms_preferences.update` guarded nothing and was removed on 2026-11-19.
 
 ## Timezone Management
 

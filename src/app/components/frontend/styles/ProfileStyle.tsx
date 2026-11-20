@@ -23,7 +23,7 @@ import {
 } from '@mantine/core';
 import { IconUser, IconKey, IconTrash, IconAlertTriangle, IconCheck, IconX, IconClock, IconBell } from '@tabler/icons-react';
 import { useAuthUser } from '../../../../hooks/useUserData';
-import { useUpdateUsernameMutation, useUpdateNameMutation, useUpdatePasswordMutation, useUpdateTimezoneMutation, useUpdateCommunicationPreferencesMutation, useDeleteAccountMutation } from '../../../../hooks/mutations/useProfileMutations';
+import { useUpdateNameMutation, useUpdatePasswordMutation, useUpdateTimezoneMutation, useUpdateCommunicationPreferencesMutation, useDeleteAccountMutation } from '../../../../hooks/mutations/useProfileMutations';
 import { useLookupsByType } from '../../../../hooks/useLookups';
 import { type IProfileStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline } from '../../../../utils/html-sanitizer.utils';
@@ -65,7 +65,6 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
     const timezoneLookups = useLookupsByType('timezones');
 
     // Mutations
-    const _updateUsernameMutation = useUpdateUsernameMutation();
     const updateNameMutation = useUpdateNameMutation();
     const updatePasswordMutation = useUpdatePasswordMutation();
     const updateTimezoneMutation = useUpdateTimezoneMutation();
