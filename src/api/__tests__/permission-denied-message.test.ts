@@ -6,6 +6,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { initializePermissionChecking, permissionManager } from '../permission-wrapper.api';
 import { PERMISSIONS } from '../../types/auth/jwt-payload.types';
+import { API_CONFIG } from '../../config/api.config';
 
 /**
  * A refused call tells the person what is missing in one sentence. It never
@@ -30,5 +31,34 @@ describe('client permission refusal text', () => {
         expect(message).toBe('You do not have permission to do this. It needs admin.page.update.');
         expect(message).not.toContain('admin.asset.read');
         expect(message).not.toContain('User has');
+    });
+    describe('an endpoint that lists more than one right opens for any one of them', () => {
+        const call = async (held: string[]) => {
+            permissionManager.setPermissions(held);
+            const client = axios.create({ baseURL: '/api' });
+            initializePermissionChecking(client);
+            client.defaults.adapter = async (config) => ({ data: null, status: 200, statusText: 'OK', headers: {}, config } as never);
+            const config = { _permissionMetadata: { permissions: API_CONFIG.ENDPOINTS.ADMIN_PERMISSIONS_GET_ALL.permissions } } as unknown as InternalAxiosRequestConfig;
+            return client.get('/admin/permissions', config).then(() => null, (error: unknown) => error as Error);
+        };
+
+        it('lists admin.permission.read and admin.role.update for the permission catalogue', () => {
+            expect(API_CONFIG.ENDPOINTS.ADMIN_PERMISSIONS_GET_ALL.permissions).toEqual([
+                PERMISSIONS.ADMIN_PERMISSION_READ,
+                PERMISSIONS.ADMIN_ROLE_UPDATE,
+            ]);
+        });
+
+        it('lets a caller through with either right', async () => {
+            expect(await call([PERMISSIONS.ADMIN_PERMISSION_READ])).toBeNull();
+            expect(await call([PERMISSIONS.ADMIN_ROLE_UPDATE])).toBeNull();
+        });
+
+        it('refuses a caller with neither and names both rights', async () => {
+            const refusal = await call([PERMISSIONS.ADMIN_ROLE_READ]);
+            expect(refusal?.message).toBe(
+                'You do not have permission to do this. It needs one of admin.permission.read, admin.role.update.',
+            );
+        });
     });
 });

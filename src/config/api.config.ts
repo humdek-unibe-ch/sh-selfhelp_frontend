@@ -617,7 +617,9 @@ export const API_CONFIG = {
         // Admin permissions endpoints
         ADMIN_PERMISSIONS_GET_ALL: {
             route: '/admin/permissions',
-            permissions: [PERMISSIONS.ADMIN_PERMISSION_READ]
+            // The role form needs the names to draw its picker, so a role editor
+            // may read them too: either right opens the route (rule 4.13).
+            permissions: [PERMISSIONS.ADMIN_PERMISSION_READ, PERMISSIONS.ADMIN_ROLE_UPDATE]
         },
 
         // Admin actions endpoints
