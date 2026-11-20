@@ -64,6 +64,8 @@ export interface IUserData {
         id: number;
         name: string;
         description: string | null;
+        /** Full-access role (rule 4.11: the server says so; never found by name). */
+        is_superuser: boolean;
     }>;
     permissions: string[];
     groups: Array<{
@@ -93,6 +95,8 @@ export interface IAuthUser {
         id: number;
         name: string;
         description: string | null;
+        /** Full-access role (rule 4.11: the server says so; never found by name). */
+        is_superuser: boolean;
     }>;
     permissions: string[];
     groups: Array<{
@@ -122,7 +126,6 @@ export const PERMISSIONS = {
     ADMIN_ACCESS: 'admin.access',
 
     // Action translations
-    ADMIN_ACTION_TRANSLATION_READ: 'admin.action_translation.read',
 
     // Actions (CRUD)
     ADMIN_ACTION_DELETE: 'admin.action.delete',
@@ -136,7 +139,7 @@ export const PERMISSIONS = {
     ADMIN_ASSET_UPDATE: 'admin.asset.update',
 
     // Audit
-    ADMIN_AUDIT_VIEW: 'admin.audit.view',
+    ADMIN_AUDIT_READ: 'admin.audit.read',
 
     // Cache management
     ADMIN_CACHE_CLEAR: 'admin.cache.clear',
@@ -154,7 +157,6 @@ export const PERMISSIONS = {
 
     // CMS Preferences
     ADMIN_CMS_PREFERENCES_READ: 'admin.cms_preferences.read',
-    ADMIN_CMS_PREFERENCES_UPDATE: 'admin.cms_preferences.update',
 
     // First-class CMS apps (CMS-in-CMS product unit) — canonical strings in @selfhelp/shared
     ADMIN_CMS_APP_READ: SharedPermissions.ADMIN_CMS_APP_READ,
@@ -178,16 +180,14 @@ export const PERMISSIONS = {
 
     // Page version management
     ADMIN_PAGE_VERSION_COMPARE: 'admin.page_version.compare',
-    ADMIN_PAGE_VERSION_CREATE: 'admin.page_version.create',
+    ADMIN_PAGE_VERSION_DELETE: 'admin.page_version.delete',
     ADMIN_PAGE_VERSION_PUBLISH: 'admin.page_version.publish',
     ADMIN_PAGE_VERSION_READ: 'admin.page_version.read',
-    ADMIN_PAGE_VERSION_UNPUBLISH: 'admin.page_version.unpublish',
 
     // Pages (CRUD)
     ADMIN_PAGE_CREATE: 'admin.page.create',
     ADMIN_PAGE_DELETE: 'admin.page.delete',
     ADMIN_PAGE_EXPORT: 'admin.page.export',
-    ADMIN_PAGE_INSERT: 'admin.page.insert',
     ADMIN_PAGE_READ: 'admin.page.read',
     ADMIN_PAGE_UPDATE: 'admin.page.update',
 
@@ -214,13 +214,15 @@ export const PERMISSIONS = {
 
     // Sections
     ADMIN_SECTION_DELETE: 'admin.section.delete',
+    ADMIN_SECTION_READ: 'admin.section.read',
 
     // Registration codes
     ADMIN_REGISTRATION_CODE_CREATE: 'admin.registration_code.create',
     ADMIN_REGISTRATION_CODE_READ: 'admin.registration_code.read',
 
-    // Settings
-    ADMIN_SETTINGS: 'admin.settings',
+    // Languages
+    ADMIN_LANGUAGE_READ: 'admin.language.read',
+    ADMIN_LANGUAGE_UPDATE: 'admin.language.update',
 
     // System maintenance (instance-scoped update flow)
     ADMIN_SYSTEM_READ: 'admin.system.read',
@@ -230,7 +232,7 @@ export const PERMISSIONS = {
     // Mobile preview (page-editor live preview session mint)
     ADMIN_MOBILE_PREVIEW_CREATE: 'admin.mobile_preview.create',
     // Mobile/web Live Preview (full-screen, new-tab "test the real flow" surface)
-    ADMIN_MOBILE_PREVIEW_VIEW: 'admin.mobile_preview.view',
+    ADMIN_MOBILE_PREVIEW_READ: 'admin.mobile_preview.read',
 
     // User management
     ADMIN_USER_BLOCK: 'admin.user.block',
@@ -238,6 +240,5 @@ export const PERMISSIONS = {
     ADMIN_USER_DELETE: 'admin.user.delete',
     ADMIN_USER_IMPERSONATE: 'admin.user.impersonate',
     ADMIN_USER_READ: 'admin.user.read',
-    ADMIN_USER_UNBLOCK: 'admin.user.unblock',
     ADMIN_USER_UPDATE: 'admin.user.update',
 } as const;

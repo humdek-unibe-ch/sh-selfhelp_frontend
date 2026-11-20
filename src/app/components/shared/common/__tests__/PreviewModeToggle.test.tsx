@@ -9,10 +9,10 @@ import { renderWithProviders } from '../../../../../test-utils/renderWithProvide
 import { PreviewModeProvider } from '../../../contexts/PreviewModeContext';
 import { PreviewModeToggle } from '../PreviewModeToggle';
 
-function renderToggle(initialPreviewMode: boolean) {
+function renderToggle(initialPreviewMode: boolean, variant?: 'card' | 'icon') {
     return renderWithProviders(
         <PreviewModeProvider initialPreviewMode={initialPreviewMode}>
-            <PreviewModeToggle />
+            <PreviewModeToggle variant={variant} />
         </PreviewModeProvider>,
     );
 }
@@ -39,5 +39,21 @@ describe('PreviewModeToggle', () => {
 
         expect(screen.getByText('Showing draft content')).toBeInTheDocument();
         expect(screen.queryByText('Showing published content')).toBeNull();
+    });
+
+    it('icon variant exposes aria-pressed and swaps the label with the mode', async () => {
+        renderToggle(false, 'icon');
+
+        const button = screen.getByRole('button', {
+            name: 'Showing published content, click to show draft',
+        });
+        expect(button).toHaveAttribute('aria-pressed', 'false');
+
+        await userEvent.click(button);
+
+        const draft = screen.getByRole('button', {
+            name: 'Showing draft content, click to show published',
+        });
+        expect(draft).toHaveAttribute('aria-pressed', 'true');
     });
 });

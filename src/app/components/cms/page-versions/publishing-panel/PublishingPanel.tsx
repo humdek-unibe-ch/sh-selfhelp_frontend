@@ -56,6 +56,10 @@ interface IPublishingPanelProps {
     isPublishing: boolean;
     isDeleting?: boolean;
     isRestoring?: boolean;
+    /** Publishing needs the publish right on this page (default: allowed). */
+    canPublish?: boolean;
+    /** Deleting a version needs admin.page_version.delete and the update right on the page (default: allowed). */
+    canDeleteVersions?: boolean;
 }
 
 export function PublishingPanel({
@@ -67,7 +71,9 @@ export function PublishingPanel({
     onRestore,
     isPublishing,
     isDeleting = false,
-    isRestoring = false
+    isRestoring = false,
+    canPublish = true,
+    canDeleteVersions = true
 }: IPublishingPanelProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedVersion, setSelectedVersion] = useState<IPageVersion | null>(null);
@@ -244,7 +250,7 @@ export function PublishingPanel({
                                 </Button>
                             )}
 
-                            <Button
+                            {canPublish && <Button
                                 leftSection={<IconRocket size={16} />}
                                 color="green"
                                 onClick={() => setPublishModalOpened(true)}
@@ -256,7 +262,7 @@ export function PublishingPanel({
                                 }
                             >
                                 Publish Changes
-                            </Button>
+                            </Button>}
                         </Group>
                     </Group>
                 </Stack>
@@ -407,7 +413,7 @@ export function PublishingPanel({
                                                 </ActionIcon>
                                             </Tooltip>
                                         )}
-                                        <Tooltip label="Delete Version">
+                                        {canDeleteVersions && <Tooltip label="Delete Version">
                                             <ActionIcon aria-label="Delete Version"
                                                 variant="light"
                                                 color="red"
@@ -415,7 +421,7 @@ export function PublishingPanel({
                                             >
                                                 <IconTrash size={16} />
                                             </ActionIcon>
-                                        </Tooltip>
+                                        </Tooltip>}
                                     </Group>
                                 </Group>
                             </Card>

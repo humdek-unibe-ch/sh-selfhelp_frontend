@@ -109,22 +109,6 @@ apiClientRaw.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-function isAdminDataOperation(url: string | undefined): boolean {
-    if (!url) return false;
-    const dataOperationPatterns = [
-        '/admin/pages/',
-        '/admin/sections/',
-        '/admin/roles/',
-        '/admin/users/',
-        '/admin/groups/',
-        '/admin/assets/',
-        '/admin/actions/',
-        '/admin/data/',
-        '/admin/scheduled-jobs/',
-    ];
-    return dataOperationPatterns.some((p) => url.includes(p));
-}
-
 /**
  * True for paths where a dead session *must* bounce to the login page
  * (admin UI). Public / login / no-access paths never bounce — the UI on
@@ -187,22 +171,6 @@ apiClientRaw.interceptors.response.use(
             const path = window.location.pathname + window.location.search;
             if (shouldRedirectToLogin(window.location.pathname)) {
                 window.location.href = withRedirectTo(ROUTES.LOGIN, path);
-            }
-        }
-
-        // (c) Permission denied for an admin *non-data* operation. Data
-        //     operations surface the error so the caller can show an
-        //     inline message; navigation / list fetches bounce to
-        //     /no-access so the user isn't stuck on an empty shell.
-        if (
-            status === 403 &&
-            responseData?.logged_in === true &&
-            responseData?.error_type === 'permission_denied' &&
-            originalRequest?.url?.includes('/admin/') &&
-            !isAdminDataOperation(originalRequest.url)
-        ) {
-            if (typeof window !== 'undefined' && !window.location.pathname.startsWith(ROUTES.NO_ACCESS)) {
-                window.location.href = ROUTES.NO_ACCESS;
             }
         }
 

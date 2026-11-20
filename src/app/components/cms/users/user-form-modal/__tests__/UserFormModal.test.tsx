@@ -50,6 +50,7 @@ function detailsWithGroups(groups: Array<{ id: number; name: string }>): IUserDe
         id_languages: null,
         id_userTypes: null,
         blocked: false,
+        is_system: false,
         receives_notifications: true,
         receives_emails: true,
         status: 'active',

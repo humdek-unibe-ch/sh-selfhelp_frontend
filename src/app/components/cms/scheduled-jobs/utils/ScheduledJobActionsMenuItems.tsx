@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 import { Menu } from "@mantine/core";
 import { IconEye, IconPlayerPlay, IconTrash } from "@tabler/icons-react";
 import { isJobActionAllowed } from "./job-status";
+import { useScheduledJobRights } from "./useScheduledJobRights";
 
 interface IScheduledJobActionsMenuItemsProps {
   jobId: number;
@@ -26,6 +27,7 @@ export function ScheduledJobActionsMenuItems({
   onActionComplete,
 }: IScheduledJobActionsMenuItemsProps) {
   const actionsAllowed = isJobActionAllowed(status);
+  const { canExecute, canDelete } = useScheduledJobRights();
 
   return (
     <>
@@ -40,7 +42,7 @@ export function ScheduledJobActionsMenuItems({
           View Details
         </Menu.Item>
       )}
-      <Menu.Item
+      {canExecute && <Menu.Item
         leftSection={<IconPlayerPlay size={14} />}
         onClick={() => {
           onExecuteJob?.(jobId);
@@ -49,9 +51,9 @@ export function ScheduledJobActionsMenuItems({
         disabled={!actionsAllowed}
       >
         Execute Job
-      </Menu.Item>
-      <Menu.Divider />
-      <Menu.Item
+      </Menu.Item>}
+      {canDelete && <Menu.Divider />}
+      {canDelete && <Menu.Item
         leftSection={<IconTrash size={14} />}
         color="red"
         onClick={() => {
@@ -61,7 +63,7 @@ export function ScheduledJobActionsMenuItems({
         disabled={!actionsAllowed}
       >
         Delete Job
-      </Menu.Item>
+      </Menu.Item>}
     </>
   );
 }

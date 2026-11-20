@@ -38,7 +38,18 @@ function group(id: number): IGroupDetails {
 }
 
 function role(id: number): IRoleDetails {
-    return { id, name: `role-${id}`, description: null, permissions: [], users_count: 0, permissions_count: 0 };
+    return {
+        id,
+        name: `role-${id}`,
+        description: null,
+        is_superuser: false,
+        permissions: [],
+        users_count: 0,
+        permissions_count: 0,
+        can_update: true,
+        can_delete: true,
+        fully_held: true,
+    };
 }
 
 /** 230 rows served the way the backend serves them: 100 per page at most. */

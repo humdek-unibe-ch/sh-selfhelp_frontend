@@ -484,6 +484,8 @@ When making changes, mention the relevant impact on:
 
 ## API Rules
 - Add endpoints to `src/config/api.config.ts` as `{ route, permissions }`.
+- `src/config/__tests__/api-route-contract.test.ts` compares every entry with the backend's generated `docs/reference/access/api-routes.json` (read through `SELFHELP_BACKEND_DIR`, default the sibling `../sh-selfhelp_backend`): path, method from the call sites, permissions as a set. A new or changed entry must pass it; known mismatches are listed in the test with their finding and must keep failing until fixed.
+- Static admin screens live in `src/config/admin-screens.ts` (one `read_permission` each); the menu and its search read that list. After adding or changing one, run `npm run access:screens` and commit `docs/reference/admin-screens.json`.
 - Every mutating endpoint (`post`/`put`/`patch`/`delete`) must declare the `permissions` it requires. A write endpoint with `permissions: []` silently passes the client-side permission gate, so an empty array is only acceptable for genuinely public/self-service routes and must carry a comment saying so.
 - For shared public endpoints, align with `@selfhelp/shared` first.
 - Use `permissionAwareApiClient` in domain API clients.
@@ -560,7 +562,7 @@ These are the canonical SelfHelp testing policy, shared verbatim across the back
 - Visual regression (Slice 11): `e2e/visual/visual.spec.ts` screenshots the public home + login pages, the authenticated QA form, and 3 admin pages via `toHaveScreenshot` (targets in `e2e/utils/targets.ts`, env-overridable). The harness seeds only **missing** baselines (create-only `--update-snapshots=missing`) so `npm run test:visual` is green out of the box on any machine. The authoritative baselines are **Linux** (CI) and are refreshed ONLY through the labelled `visual-snapshots` workflow (PR label `update-snapshots`) or `workflow_dispatch mode=update` — never by committing `--update-snapshots` output from a Windows/macOS machine (rule 18).
 - **Coverage gate state (rule 20):** frontend coverage is **advisory / non-blocking** today. `vitest.config.ts` declares an istanbul `coverage` block (reporters `text-summary`/`html`/`lcov`) with **no `thresholds`**, so `npm run test:coverage` never fails on a coverage number. Only `@selfhelp/shared` ships a **blocking** coverage gate; the frontend "≥ 60% on new files / no > 1% regression" target in rule 20 is intentionally **staged** — promote it to a blocking job (add `coverage.thresholds`) only in a dedicated reviewed PR once the baseline clears the target, so it ratchets up rather than blocking every merge. Until then, generate reports on demand and do not let changed-file coverage regress. (Mirrors the backend's staged stance — see the host `docs/developer/15-testing-guidelines.md` "Coverage gates".)
 - Lighthouse (`lighthouserc.json` + `.github/workflows/lighthouse.yml`) is **warning-only**: every assertion is level `warn` and the step is `continue-on-error`. Promote a metric to a hard gate only in a dedicated reviewed PR once the baseline clears target.
-- Standard frontend test commands: `npm test`, `npm run test:watch`, `npm run test:changed` (fast loop), `npm run test:e2e`, `npm run test:golden`, `npm run test:a11y`, `npm run test:visual`, `npm run test:visual:update` (regenerate visual baselines — CI/Linux only). Do not invent new names.
+- Standard frontend test commands: `npm test`, `npm run test:watch`, `npm run test:changed` (fast loop), `npm run test:e2e`, `npm run test:golden`, `npm run test:a11y`, `npm run test:visual`, `npm run test:visual:update` (regenerate visual baselines — CI/Linux only), `npm run test:access` (least-privilege walk), `npm run access:screens` (regenerates `docs/reference/admin-screens.json`). Do not invent new names.
 
 ## Build / Dev Commands
 - `npm install`: install dependencies.
@@ -573,6 +575,7 @@ These are the canonical SelfHelp testing policy, shared verbatim across the back
 - `npm run test:changed`: Vitest on git-changed files (fast loop).
 - `npm run test:e2e`: Playwright E2E (specs under `e2e/`; needs a running stack + `BASE_URL`).
 - `npm run test:golden`: Playwright golden workflow specs (`e2e/golden/`).
+- `npm run test:access`: Playwright least-privilege walk (`e2e/access/`; the harness starts the QA stack, one worker, about 16 minutes): restricted personas sign in, open every screen of `src/config/admin-screens.ts` from the menu, and fail on a write control without its right, a wrong menu or any 400/403. CI job `e2e-access` on PRs touching admin or access files.
 - `npm run test:a11y`: Playwright axe-core accessibility specs (`e2e/a11y/`; needs a running stack).
 - `npm run test:visual`: Playwright visual-regression specs (`e2e/visual/`; diffs against committed Linux baselines).
 - `npm run test:visual:update`: regenerate visual baselines (run in CI/Linux via the `visual-snapshots` workflow, not locally).

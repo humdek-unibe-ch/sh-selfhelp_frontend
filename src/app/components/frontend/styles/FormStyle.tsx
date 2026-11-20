@@ -23,6 +23,7 @@ import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { type IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
 import { type IFormLogStyle, type IFormRecordStyle, type IEntryRecordFormStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline, stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
+import { getApiErrorText } from '../../../../utils/mutation-error-handler';
 import { useFormListForm } from './form-list/FormListFormContext';
 import parse from 'html-react-parser';
 
@@ -610,16 +611,11 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                 return;
             }
 
-            // Extract error message from API response if available
-            let errorMessage = alertError || 'Failed to submit form. Please try again.';
-            const err = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
-            if (err?.response?.data?.error) {
-                errorMessage = err.response.data.error;
-            } else if (err?.response?.data?.message) {
-                errorMessage = err.response.data.message;
-            } else if (err?.message) {
-                errorMessage = err.message;
-            }
+            // Backend envelope `error` only — never HTTP reason phrases in `message`.
+            const errorMessage =
+                getApiErrorText(error) ??
+                alertError ??
+                'Failed to submit form. Please try again.';
 
             setSubmitError(errorMessage);
         } finally {

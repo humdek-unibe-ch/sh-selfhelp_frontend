@@ -6,9 +6,28 @@ export interface IRoleDetails {
   id: number;
   name: string;
   description: string | null;
+  /** Full-access role; cannot be deleted; flag is not editable through the API. */
+  is_superuser: boolean;
   permissions: IRolePermission[];
   users_count: number;
   permissions_count: number;
+  /**
+   * The signed-in person may change this role (rule 4.6f: every right in it is
+   * one they hold, and they hold `admin.role.update`). Set by the server per
+   * caller; the screen draws edit and the grant modals from it.
+   */
+  can_update: boolean;
+  /**
+   * The signed-in person may delete this role (rule 4.6f, `admin.role.delete`,
+   * no users in it, not the full-access role). Set by the server per caller.
+   */
+  can_delete: boolean;
+  /**
+   * The signed-in person holds every right in this role (rule 4.6f), or is the
+   * superuser. Set by the server per caller. The asset pickers offer a role
+   * only when it is `true`; a role with `false` is shown disabled with a reason.
+   */
+  fully_held: boolean;
 }
 
 export interface IRolePermission {
@@ -61,7 +80,7 @@ export interface IRoleDataAccessPermissions {
 export interface IRoleEffectivePermissionDetails {
   id_roles: number;
   role_name: string;
-  id_resourceTypes: number;
+  id_resource_types: number;
   resource_id: number;
   resource_type_name: string;
   unified_permissions: number;

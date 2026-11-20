@@ -51,6 +51,7 @@ import { calculateSiblingBelowPosition } from '../../../../../utils/position-cal
 import { publicPageHref } from '../../../../../utils/public-page-href.utils';
 import { BulkRemoveModal } from './BulkRemoveModal';
 import pageStyles from './PageSections.module.css';
+import { PageReadOnlyBanner, usePageEditRights } from '../page-rights/PageRightsContext';
 
 // Helper function to recursively sort sections and their children by position
 const sortSectionsByPosition = (sections: IPageSectionWithFields[]): IPageSectionWithFields[] => {
@@ -270,6 +271,8 @@ function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSection
 
     const [expandedSectionsOverride, setExpandedSectionsOverride] = useState<Set<number> | null>(null);
     const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
+    // Adding, moving and removing sections needs the update right on this page.
+    const { canUpdate } = usePageEditRights();
     const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
     const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
     const [specificPosition, setSpecificPosition] = useState<number | undefined>(undefined);
@@ -746,17 +749,21 @@ function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSection
              </Text>
            </Box>
 
+           <PageReadOnlyBanner />
+
            <Stack gap="xs">
              {/* Toolbar (wraps instead of overflowing) */}
              <Group gap="xs" wrap="wrap">
-               <Button
-                 leftSection={<IconPlus size={16} />}
-                 size="sm"
-                 variant="filled"
-                 onClick={() => setAddSectionModalOpened(true)}
-               >
-                 Add Section
-               </Button>
+               {canUpdate && (
+                 <Button
+                   leftSection={<IconPlus size={16} />}
+                   size="sm"
+                   variant="filled"
+                   onClick={() => setAddSectionModalOpened(true)}
+                 >
+                   Add Section
+                 </Button>
+               )}
 
                <Button
                  size="sm"
@@ -779,15 +786,17 @@ function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSection
                    : "Expand all"}
                </Button>
 
-               <Button
-                 size="sm"
-                 variant={bulkMode ? "filled" : "default"}
-                 color={bulkMode ? "orange" : undefined}
-                 onClick={handleToggleBulkMode}
-                 leftSection={<IconTrash size={16} />}
-               >
-                 {bulkMode ? "Exit bulk" : "Bulk remove"}
-               </Button>
+               {canUpdate && (
+                 <Button
+                   size="sm"
+                   variant={bulkMode ? "filled" : "default"}
+                   color={bulkMode ? "orange" : undefined}
+                   onClick={handleToggleBulkMode}
+                   leftSection={<IconTrash size={16} />}
+                 >
+                   {bulkMode ? "Exit bulk" : "Bulk remove"}
+                 </Button>
+               )}
 
                <Button
                  size="sm"
@@ -848,7 +857,7 @@ function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSection
              </Group>
 
              {/* Bottom row (selection actions) */}
-             {bulkMode && (
+             {canUpdate && bulkMode && (
                <Group gap="xs" mt="xs">
                  <Button
                    size="sm"
@@ -996,7 +1005,7 @@ function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSection
              onToggleSelect={handleToggleSelect}
              selectionVersion={selectionVersion}
              bulkMode={bulkMode}
-             onAddSection={() => setAddSectionModalOpened(true)}
+             onAddSection={canUpdate ? () => setAddSectionModalOpened(true) : undefined}
            />
          </Box>
 

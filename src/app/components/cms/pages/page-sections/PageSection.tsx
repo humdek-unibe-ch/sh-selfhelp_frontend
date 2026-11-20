@@ -27,6 +27,7 @@ import { RemoveSectionModal } from './RemoveSectionModal';
 import styles from './PageSection.module.css';
 import SectionLink from './SectionLink';
 import { HighlightText } from './HighlightText';
+import { usePageEditRights } from '../page-rights/PageRightsContext';
 
 interface IPageSectionProps {
     section: IPageSectionWithFields;
@@ -93,6 +94,8 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     const [dataConfigModalOpened, setDataConfigModalOpened] = useState(false);
     // Pins the hover-only action buttons visible while the add menu is open.
     const [addMenuOpened, setAddMenuOpened] = useState(false);
+    // Read-only callers get no drag grip and no section actions.
+    const { canUpdate } = usePageEditRights();
     const [isBulkSelected, setIsBulkSelected] = useState(defaultBulkSelected);
     const [trackedSelectionVersion, setTrackedSelectionVersion] = useState(selectionVersion);
 
@@ -246,14 +249,14 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
               >
                 {/* Drag Handle - properly connected */}
                 <div {...dragHandleProps}>
-                  <ActionIcon component="span" aria-hidden="true" tabIndex={-1}
+                  {canUpdate && <ActionIcon component="span" aria-hidden="true" tabIndex={-1}
                     variant="subtle"
                     size="xs"
                     color="gray"
                     className={`${styles.dragHandle} ${isDragActive ? "opacity-100" : "opacity-60"} ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
                   >
                     <IconGripVertical />
-                  </ActionIcon>
+                  </ActionIcon>}
                 </div>
 
                 {/* Expand/Collapse Toggle - only show if has children */}
@@ -344,7 +347,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                 </Box>
 
                 {/* Action Buttons - Ultra compact and hover-based */}
-                <Group
+                {canUpdate && <Group
                   gap={1}
                   className={`${styles.actionButtons} ${addMenuOpened ? styles.actionButtonsPinned : ''}`}
                 >
@@ -436,7 +439,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                       <IconTrash />
                     </ActionIcon>
                   </Tooltip>
-                </Group>
+                </Group>}
 
                 {/* id + position meta - at the very end, after the action buttons */}
                 <Text size="xs" className={styles.sectionMeta}>

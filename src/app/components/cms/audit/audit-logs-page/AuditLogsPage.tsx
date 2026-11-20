@@ -72,7 +72,7 @@ export function AuditLogsPage() {
         title="Access Denied"
         icon={<IconAlertCircle />}
       >
-        You dont have permission to view audit logs. Required permission: admin.audit.view
+        You dont have permission to view audit logs. Required permission: admin.audit.read
       </Alert>
     );
   }

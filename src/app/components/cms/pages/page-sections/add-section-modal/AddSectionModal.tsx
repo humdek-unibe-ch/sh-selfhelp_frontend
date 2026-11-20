@@ -648,13 +648,19 @@ export function AddSectionModal({
           {activeTab === ADD_SECTION_TAB.NEW_SECTION && selectedStyles.length > 0 && (
             <Stack mb="sm">
               {selectedStyles.map((item) => (
-                <Card key={item.style.id} withBorder p="xs" bg="blue.0">
+                <Card
+                  key={item.style.id}
+                  withBorder
+                  p="xs"
+                  bg="var(--mantine-color-blue-light)"
+                  style={{ borderColor: 'var(--mantine-color-blue-filled)' }}
+                >
                   <Group justify="space-between" align="center">
                     <Group gap="xs">
-                      <Text size="sm" fw={500}>
+                      <Text size="sm" fw={500} c="var(--mantine-color-blue-light-color)">
                         {item.style.name}
                       </Text>
-                      <Badge size="xs">{item.style.type}</Badge>
+                      <Badge size="xs" variant="light" color="blue">{item.style.type}</Badge>
                     </Group>
 
                     <Group gap="xs">
@@ -671,7 +677,8 @@ export function AddSectionModal({
 
                       <ActionIcon aria-label={`Remove ${item.style.name}`}
                         size="sm"
-                        variant="filled"
+                        variant="subtle"
+                        color="blue"
                         onClick={() =>
                           setSelectedStyles((prev) =>
                             prev.filter((s) => s.style.id !== item.style.id),

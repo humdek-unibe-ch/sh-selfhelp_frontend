@@ -49,6 +49,7 @@ import {
 } from '../../../../../utils/field-processing.utils';
 import { type IPageField } from '../../../../../types/common/pages.type';
 import { useInterpolationVariables } from '../../../../../hooks/useInterpolationVariables';
+import { PageReadOnlyBanner, ReadOnlyFieldset, usePageEditRights } from '../page-rights/PageRightsContext';
 
 interface ConfigurationPageEditorProps {
     page: IAdminPage;
@@ -184,11 +185,14 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         }
     }, [form.values.fields, pageFieldsData?.fields, languagesData]);
 
+    // Changing a configuration page needs the update right on it (server flags).
+    const { canUpdate } = usePageEditRights();
+
     // Save hotkey (Ctrl+S)
     useHotkeys([
         ['ctrl+S', (e) => {
             e.preventDefault();
-            handleSave();
+            if (canUpdate) handleSave();
         }]
     ]);
 
@@ -389,6 +393,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                         </Text>
                     </Alert>
 
+                    <PageReadOnlyBanner />
+
                     {/* Header Section - made smaller */}
                     <Paper shadow="md" p="md" withBorder radius="md" className={styles.headerSection}>
                         <Group justify="space-between" align="center">
@@ -400,15 +406,17 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                     {page.keyword}
                                 </Title>
                             </Group>
-                            <Button
-                                leftSection={<IconDeviceFloppy size="1rem" />}
-                                onClick={handleSave}
-                                size="sm"
-                                loading={updatePageMutation.isPending}
-                                radius="sm"
-                            >
-                                Save
-                            </Button>
+                            {canUpdate && (
+                                <Button
+                                    leftSection={<IconDeviceFloppy size="1rem" />}
+                                    onClick={handleSave}
+                                    size="sm"
+                                    loading={updatePageMutation.isPending}
+                                    radius="sm"
+                                >
+                                    Save
+                                </Button>
+                            )}
                         </Group>
                         <Group>
                             {descriptionValue && (
@@ -458,13 +466,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                                 const langId = lang.id.toString();
                                                 return (
                                                     <Tabs.Panel key={langId} value={langId}>
-                                                        {renderContentLayout(lang.id)}
+                                                        <ReadOnlyFieldset readOnly={!canUpdate}>{renderContentLayout(lang.id)}</ReadOnlyFieldset>
                                                     </Tabs.Panel>
                                                 );
                                             })}
                                         </Tabs>
                                     ) : (
-                                        renderContentLayout(languagesData[0]?.id || 1)
+                                        <ReadOnlyFieldset readOnly={!canUpdate}>{renderContentLayout(languagesData[0]?.id || 1)}</ReadOnlyFieldset>
                                     )}
                                 </Card.Section>
                             </Collapse>
@@ -493,6 +501,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
                             <Collapse expanded={propertiesExpanded}>
                                 <Card.Section p="lg">
+                                    <ReadOnlyFieldset readOnly={!canUpdate}>
                                     <div className={styles.fieldGrid}>
                                         {propertyFields.map(field => (
                                             <div key={field.id}>
@@ -500,6 +509,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                             </div>
                                         ))}
                                     </div>
+                                    </ReadOnlyFieldset>
                                 </Card.Section>
                             </Collapse>
                         </Card>

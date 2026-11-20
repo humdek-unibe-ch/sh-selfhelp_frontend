@@ -41,9 +41,16 @@ import {
     cmsAppContentPath,
     isCmsSurfaceAdminPage,
 } from '../../cms-apps/cmsAppPages.utils';
-import { SelfHelpLogo, PreviewModeToggle, AuthButton } from '../../../shared';
+import { AuthButton } from '../../../shared';
 import classes from './AdminNavbar.module.css';
 import { NavigationSearch } from './components';
+import { AdminNavbarHeader } from './AdminNavbarHeader';
+import {
+    allowedMenuScreens,
+    getAdminScreen,
+    type TAdminScreenGroup,
+    type TAdminScreenId,
+} from '../../../../../config/admin-screens';
 
 /** True only after the first client commit — keeps SSR and hydration markup aligned. */
 function useAdminNavMounted(): boolean {
@@ -168,9 +175,12 @@ export function AdminNavbar() {
         ) || [];
 
         const groups: TNavbarGroup[] = [];
+        // Gate of a registry screen: its one read permission (rule 4.13).
+        const canOpen = (id: TAdminScreenId): boolean => hasPermission(getAdminScreen(id).read_permission);
+        const canReadPages = canOpen('pages');
 
         // --- CMS Apps: content lists (editors) + App configs (structure) ------
-        if (permissionChecker.canReadCmsApps()) {
+        if (canOpen('cms-apps')) {
             const cmsAppActions: TNavbarGroup['actions'] = [];
             if (permissionChecker.canCreateCmsApps()) {
                 cmsAppActions.push({
@@ -244,7 +254,7 @@ export function AdminNavbar() {
             });
         }
         // Page bundle export / import; backend enforces per-action permissions.
-        if (permissionChecker.canReadPages()) {
+        if (canReadPages) {
             pageActions.push({
                 id: 'pages-export-import',
                 label: 'Import / export pages',
@@ -253,7 +263,7 @@ export function AdminNavbar() {
             });
         }
 
-        if (permissionChecker.canReadPages() && contentPages.length > 0) {
+        if (canReadPages && contentPages.length > 0) {
             // Nest child pages under their parent (when the parent is also a
             // content-only page) so related pages group together; pages whose
             // parent lives elsewhere (menus/system) stay at the root level.
@@ -282,7 +292,7 @@ export function AdminNavbar() {
             });
         }
 
-        if (permissionChecker.canReadPages()) {
+        if (canReadPages) {
             // Deduped by keyword: a system page listed in two categories must
             // appear (and key) only once.
             const seenSystemKeywords = new Set<string>();
@@ -312,7 +322,7 @@ export function AdminNavbar() {
             }
         }
 
-        if (permissionChecker.canReadPages() && configurationPageLinks && configurationPageLinks.length > 0) {
+        if (canReadPages && configurationPageLinks && configurationPageLinks.length > 0) {
             pageItems.push({
                 label: 'Configuration',
                 icon: <IconSettings size={16} />,
@@ -336,7 +346,7 @@ export function AdminNavbar() {
         }
 
         // --- Menus: one sub-group per navigation menu (mirrors the builder) ---
-        if (permissionChecker.canReadNavigation()) {
+        if (canOpen('menus')) {
             groups.push({
                 id: 'menus',
                 label: 'Menus',
@@ -373,48 +383,34 @@ export function AdminNavbar() {
             });
         }
 
-        // --- Users & access ----------------------------------------------------
-        if (permissionChecker.canManageUsers()) {
-            const userItems: TNavbarItem[] = [];
-            if (permissionChecker.canReadUsers()) userItems.push({ label: 'Users', link: '/admin/users', id: 'nav:users' });
-            if (permissionChecker.canReadGroups()) userItems.push({ label: 'Groups', link: '/admin/groups', id: 'nav:groups' });
-            if (permissionChecker.canReadRoles()) userItems.push({ label: 'Roles', link: '/admin/roles', id: 'nav:roles' });
-            if (permissionChecker.canReadRegistrationCodes()) userItems.push({ label: 'Registration Codes', link: '/admin/registration-codes', id: 'nav:registration-codes' });
-            if (userItems.length > 0) {
-                groups.push({ id: 'users', label: 'Users & Access', icon: <IconShieldLock size={17} />, items: userItems });
-            }
+        // --- Users & access, Content, Automation, System --------------------
+        // Static entries come from the screen registry: each entry stands on
+        // its own read permission, a group shows when any entry is allowed
+        // (F223, F241: no outer gate on another area's right).
+        const screenItems = (group: TAdminScreenGroup): TNavbarItem[] =>
+            allowedMenuScreens(group, hasPermission).map((screen) => ({
+                label: screen.label,
+                link: screen.path,
+                id: `nav:${screen.id}`,
+            }));
+
+        const userItems = screenItems('users');
+        if (userItems.length > 0) {
+            groups.push({ id: 'users', label: 'Users & Access', icon: <IconShieldLock size={17} />, items: userItems });
         }
 
-        // --- Content library ----------------------------------------------------
-        if (permissionChecker.canManageAssets()) {
-            const contentItems: TNavbarItem[] = [];
-            if (permissionChecker.canReadAssets()) contentItems.push({ label: 'Assets', link: '/admin/assets', id: 'nav:assets' });
-            if (permissionChecker.canDeleteSections()) contentItems.push({ label: 'Unused Sections', link: '/admin/unused-sections', id: 'nav:unused-sections' });
-            if (contentItems.length > 0) {
-                groups.push({ id: 'content', label: 'Content', icon: <IconPhoto size={17} />, items: contentItems });
-            }
+        const contentItems = screenItems('content');
+        if (contentItems.length > 0) {
+            groups.push({ id: 'content', label: 'Content', icon: <IconPhoto size={17} />, items: contentItems });
         }
 
-        // --- Automation -----------------------------------------------------------
-        if (permissionChecker.canManageActions() || permissionChecker.canManageScheduledJobs()) {
-            const automationItems: TNavbarItem[] = [];
-            if (permissionChecker.canReadActions()) automationItems.push({ label: 'Actions', link: '/admin/actions', id: 'nav:actions' });
-            if (permissionChecker.canReadScheduledJobs()) {
-                automationItems.push({ label: 'Scheduled Jobs', link: '/admin/scheduled-jobs', id: 'nav:scheduled-jobs' });
-                automationItems.push({ label: 'Jobs Calendar', link: '/admin/scheduled-jobs/calendar', id: 'nav:scheduled-jobs-calendar' });
-            }
-            if (automationItems.length > 0) {
-                groups.push({ id: 'automation', label: 'Automation', icon: <IconPlayerPlay size={17} />, items: automationItems });
-            }
+        const automationItems = screenItems('automation');
+        if (automationItems.length > 0) {
+            groups.push({ id: 'automation', label: 'Automation', icon: <IconPlayerPlay size={17} />, items: automationItems });
         }
 
         // --- System -----------------------------------------------------------
-        const systemItems: TNavbarItem[] = [];
-        if (permissionChecker.canManageLanguages()) systemItems.push({ label: 'Languages', link: '/admin/languages', id: 'nav:languages' });
-        if (permissionChecker.canAccessDataBrowser()) systemItems.push({ label: 'Data Browser', link: '/admin/data', id: 'nav:data-browser' });
-        if (permissionChecker.canViewAuditLogs()) systemItems.push({ label: 'Audit Logs', link: '/admin/data-access', id: 'nav:audit-logs' });
-        if (permissionChecker.canReadCache()) systemItems.push({ label: 'Cache Management', link: '/admin/cache', id: 'nav:cache' });
-        if (permissionChecker.canReadSystem()) systemItems.push({ label: 'System Maintenance', link: '/admin/system', id: 'nav:system' });
+        const systemItems: TNavbarItem[] = screenItems('system');
         if (permissionChecker.canManagePlugins()) {
             systemItems.push({ label: 'Plugin Management', link: '/admin/plugins', id: 'nav:plugin-management' });
         }
@@ -478,11 +474,9 @@ export function AdminNavbar() {
 
     return (
         <nav className={classes.navbar}>
-            {/* Header: brand, then the preview-toggle control strip, then search. */}
+            {/* Header: one row [spider + SelfHelp | preview + debug], then search. */}
             <Box className={classes.header}>
-                <SelfHelpLogo variant="compact" />
-
-                <PreviewModeToggle />
+                <AdminNavbarHeader />
 
                 <NavigationSearch
                     adminPagesData={adminPagesData}

@@ -27,8 +27,8 @@ const { createMock, updateMock, saveFolderMock, notify, state } = vi.hoisted(() 
     state: {
         folders: [] as { id: number; name: string; parent_id: number | null; asset_count: number }[],
         groups: {} as { data?: { groups: { id: number; name: string }[] }; isLoading?: boolean; isError?: boolean },
-        roles: {} as { data?: { roles: { id: number; name: string }[] }; isLoading?: boolean; isError?: boolean },
-        callerRoles: [] as { id: number; name: string; description: null }[],
+        roles: {} as { data?: { roles: { id: number; name: string; is_superuser: boolean }[] }; isLoading?: boolean; isError?: boolean },
+        callerRoles: [] as { id: number; name: string; description: null; is_superuser: boolean }[],
     },
 }));
 
@@ -114,10 +114,10 @@ describe('AssetFormModal', () => {
             isLoading: false,
         };
         state.roles = {
-            data: { roles: [{ id: 1, name: 'admin' }, { id: 5, name: 'qa_researcher' }, { id: 6, name: 'qa_editor' }] },
+            data: { roles: [{ id: 1, name: 'admin', is_superuser: true }, { id: 5, name: 'qa_researcher', is_superuser: false }, { id: 6, name: 'qa_editor', is_superuser: false }] },
             isLoading: false,
         };
-        state.callerRoles = [{ id: 5, name: 'qa_researcher', description: null }];
+        state.callerRoles = [{ id: 5, name: 'qa_researcher', description: null, is_superuser: false }];
     });
 
     describe('uploading', () => {
@@ -349,7 +349,7 @@ describe('AssetFormModal', () => {
         });
 
         it('lets an admin save an emptied list (then only admins manage the asset)', async () => {
-            state.callerRoles = [{ id: 1, name: 'admin', description: null }];
+            state.callerRoles = [{ id: 1, name: 'admin', description: null, is_superuser: true }];
             renderWithProviders(<AssetFormModal opened onClose={vi.fn()} asset={existing} />);
             await screen.findByDisplayValue('The team');
 
@@ -449,7 +449,7 @@ describe('AssetFormModal', () => {
         });
 
         it('shows a current role by name even when the list of all roles lacks it', async () => {
-            state.roles = { data: { roles: [{ id: 1, name: 'admin' }] }, isLoading: false };
+            state.roles = { data: { roles: [{ id: 1, name: 'admin', is_superuser: true }] }, isLoading: false };
             renderWithProviders(<AssetFormModal opened onClose={vi.fn()} asset={existing} />);
             await screen.findByDisplayValue('The team');
 
@@ -471,6 +471,42 @@ describe('AssetFormModal', () => {
             expect(updateMock.mock.calls[0][0].assetId).toBe(7);
             expect(updateMock.mock.calls[0][0].data.file).toBe(replacement);
             expect(createMock).not.toHaveBeenCalled();
+        });
+    });
+
+    // Rule 4.6f: a managing role the caller does not fully hold is refused with one of two C4 texts, shown as the server sent them.
+    describe.each([
+        'You can only give a role rights you hold yourself: Asset 41',
+        'You can only change or delete a role whose rights you all hold.',
+    ])('when the server refuses a managing role with "%s"', (text) => {
+        const refusal = { response: { status: 403, data: { error: text } } };
+
+        it('keeps the file in the upload table with the refusal and does not close', async () => {
+            createMock.mockRejectedValue(refusal);
+            const onClose = vi.fn();
+            renderWithProviders(<AssetFormModal opened onClose={onClose} />);
+
+            await userEvent.upload(fileInput(), png('photo.png'));
+            await userEvent.click(picker(/Who can manage it/));
+            await userEvent.click(await option('qa_editor'));
+            fireEvent.click(screen.getByRole('button', { name: 'Upload asset' }));
+
+            expect(await screen.findByText(text)).toBeInTheDocument();
+            expect(onClose).not.toHaveBeenCalled();
+        });
+
+        it('tells the editor on an edit and stays open', async () => {
+            updateMock.mockRejectedValue(refusal);
+            const onClose = vi.fn();
+            renderWithProviders(<AssetFormModal opened onClose={onClose} asset={existing} />);
+            await screen.findByDisplayValue('The team');
+
+            await userEvent.click(picker(/Who can manage it/));
+            await userEvent.click(await option('qa_editor'));
+            fireEvent.click(screen.getByRole('button', { name: 'Save asset' }));
+
+            await waitFor(() => expect(notify).toHaveBeenCalledWith({ title: 'Access Denied', message: text, color: 'red' }));
+            expect(onClose).not.toHaveBeenCalled();
         });
     });
 });

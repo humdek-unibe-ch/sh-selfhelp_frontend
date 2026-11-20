@@ -27,7 +27,6 @@ export {
 
 // Profile mutations
 export {
-    useUpdateUsernameMutation,
     useUpdateNameMutation,
     useUpdatePasswordMutation,
     useDeleteAccountMutation

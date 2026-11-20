@@ -106,6 +106,12 @@ list, and the public pages read its table. A new form always needs the CMS list.
 Over an **existing data table** the CMS list shows and deletes records, but cannot
 add or edit them.
 
+On each form field you can pick the type and, for **Text** and **Text area**,
+turn on **Translatable** so editors enter the value once per language. Select,
+Radio, Image and Files are marked **Needs setup**: after generating, finish their
+options, accepted types or size limits on the CMS list form. The wizard only
+starts the fields with sensible defaults.
+
 ## Roles in two words
 
 - Host Admin **CMS Apps** = structure (pages, form fields, publish, preview).

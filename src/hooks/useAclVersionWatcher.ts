@@ -60,6 +60,13 @@ export function useAclVersionWatcher(): void {
             // the rows and the buttons.
             void invalidateFormList(queryClient);
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FORM_LIST_HISTORY_ALL });
+            // Role items say what the viewer may change or delete (`can_update`,
+            // `can_delete`) and the permission list what they may hand out
+            // (`can_assign`): both depend on who is signed in and what their roles hold.
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ROLES_ALL });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PERMISSIONS_ALL });
+            // The page read says what the viewer may do with the page (`rights`).
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS_ALL });
         }
     }, [user?.id, user?.aclVersion, queryClient]);
 }

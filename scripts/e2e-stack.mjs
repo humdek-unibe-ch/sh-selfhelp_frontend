@@ -29,6 +29,7 @@ SPDX-License-Identifier: MPL-2.0
  *   npm run test:golden  → node scripts/e2e-stack.mjs golden  → e2e/golden
  *   npm run test:a11y    → node scripts/e2e-stack.mjs a11y    → e2e/a11y
  *   npm run test:visual  → node scripts/e2e-stack.mjs visual  → e2e/visual
+ *   npm run test:access  → node scripts/e2e-stack.mjs access  → e2e/access
  *
  * Override knobs (no script edits needed):
  *   SELFHELP_BACKEND_DIR          — backend repo path (default ../sh-selfhelp_backend).
@@ -93,6 +94,12 @@ const PROFILES = {
     visual: { dir: 'e2e/visual', resetDb: true },
     admin: { dir: 'e2e/admin', resetDb: true },
     plugin: { dir: 'e2e/plugins', resetDb: true },
+    // Least-privilege walk: restricted QA personas (backend QaBaselineFixture)
+    // sign in and open every admin screen from the menu (F239).
+    // One worker: every test signs in and walks the whole admin, and the
+    // single-threaded `php -S` backend of a Windows machine fails the sign-ins
+    // of parallel workers.
+    access: { dir: 'e2e/access', resetDb: true, workers: 1 },
 };
 
 const children = [];
@@ -505,7 +512,11 @@ async function main() {
 
         log(`Running Playwright suite "${profileName}" (${profile.dir})…`);
         playwrightCode = await new Promise((resolve) => {
-            const child = spawn('npx', ['playwright', 'test', profile.dir, ...extraPlaywrightArgs], {
+            const workerArgs =
+                profile.workers && !extraPlaywrightArgs.some((arg) => arg.startsWith('--workers'))
+                    ? [`--workers=${profile.workers}`]
+                    : [];
+            const child = spawn('npx', ['playwright', 'test', profile.dir, ...workerArgs, ...extraPlaywrightArgs], {
                 cwd: FRONTEND_ROOT,
                 env: { ...process.env, ...suiteEnv(baseUrl, backendUrl) },
                 stdio: 'inherit',

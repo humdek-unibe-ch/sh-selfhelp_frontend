@@ -14,14 +14,20 @@ const auth = vi.hoisted(() => ({ user: null as { id: number; aclVersion: number 
 
 vi.mock('../useUserData', () => ({ useAuthUser: () => ({ user: auth.user }) }));
 
-const { FORM_LIST_ALL, FORM_LIST_HISTORY_ALL } = REACT_QUERY_CONFIG.QUERY_KEYS;
+const { FORM_LIST_ALL, FORM_LIST_HISTORY_ALL, ROLES_ALL, PERMISSIONS_ALL } = REACT_QUERY_CONFIG.QUERY_KEYS;
 const LIST_KEY = [...FORM_LIST_ALL, 'account-5', 21, 'news.page=2'];
 const HISTORY_KEY = [...FORM_LIST_HISTORY_ALL, 'account-5', 21, 1];
+// What the viewer may do with a role (`can_update`, `can_delete`) and which permissions
+// they may hand out (`can_assign`) are read for one person: both keys belong to them.
+const ROLES_KEY = [...ROLES_ALL, 'list', { page: 1 }];
+const PERMISSIONS_KEY = [...PERMISSIONS_ALL, 'list'];
 
 function mount() {
     const queryClient = new QueryClient();
     queryClient.setQueryData(LIST_KEY, { rows: ['mine'] });
     queryClient.setQueryData(HISTORY_KEY, { versions: [1] });
+    queryClient.setQueryData(ROLES_KEY, { roles: [{ id: 7, can_update: true, can_delete: true }] });
+    queryClient.setQueryData(PERMISSIONS_KEY, { permissions: [{ id: 3, can_assign: true }] });
     queryClient.setQueryData(['unrelated'], 'keep');
     const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     const view = renderHook(() => useAclVersionWatcher(), { wrapper });
@@ -45,6 +51,8 @@ describe('what a change of the signed-in person does to the cached entry lists',
 
         expect(stale(queryClient, LIST_KEY)).toBe(false);
         expect(stale(queryClient, HISTORY_KEY)).toBe(false);
+        expect(stale(queryClient, ROLES_KEY)).toBe(false);
+        expect(stale(queryClient, PERMISSIONS_KEY)).toBe(false);
     });
 
     it('marks every list and history stale when the person\'s roles change, so buttons and rows are read again', () => {
@@ -67,5 +75,26 @@ describe('what a change of the signed-in person does to the cached entry lists',
 
         expect(stale(queryClient, LIST_KEY)).toBe(true);
         expect(stale(queryClient, HISTORY_KEY)).toBe(true);
+    });
+
+    it('reads the roles and the hand-out flags again for another person or after their roles change', () => {
+        const { queryClient, rerender } = mount();
+
+        auth.user = { id: 9, aclVersion: 1 };
+        rerender();
+
+        expect(stale(queryClient, ROLES_KEY)).toBe(true);
+        expect(stale(queryClient, PERMISSIONS_KEY)).toBe(true);
+        // The copy is kept until the new one arrives; only its age is marked.
+        expect(queryClient.getQueryData(ROLES_KEY)).toEqual({ roles: [{ id: 7, can_update: true, can_delete: true }] });
+        expect(stale(queryClient, ['unrelated'])).toBe(false);
+
+        queryClient.setQueryData(ROLES_KEY, { roles: [] });
+        queryClient.setQueryData(PERMISSIONS_KEY, { permissions: [] });
+        auth.user = { id: 9, aclVersion: 2 };
+        rerender();
+
+        expect(stale(queryClient, ROLES_KEY)).toBe(true);
+        expect(stale(queryClient, PERMISSIONS_KEY)).toBe(true);
     });
 });

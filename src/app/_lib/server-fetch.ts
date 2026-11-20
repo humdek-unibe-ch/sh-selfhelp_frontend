@@ -320,6 +320,17 @@ export async function getAdminPagesSSR(): Promise<unknown> {
 }
 
 /**
+ * Fetch the plugin manifest the admin plugin host reads
+ * (`GET /plugins/manifest`). The plugin admin page guard reads each admin
+ * page's declared `permission` from it, so the permission is checked on the
+ * server before the page opens (rule 4.13). `null` when the backend cannot be
+ * reached.
+ */
+export const getPluginManifestSSR = cache(async (): Promise<unknown> => {
+    return fetchJson(`/plugins/manifest`);
+});
+
+/**
  * Fetch the system lookups table (timezones, type codes, weekdays, audit
  * categories). The response rarely changes so it ships at the `LOOKUPS`
  * cache tier (30 m stale / 1 h gc); prefetching on the admin shell boot

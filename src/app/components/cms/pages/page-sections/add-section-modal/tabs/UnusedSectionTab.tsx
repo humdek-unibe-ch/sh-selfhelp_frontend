@@ -103,10 +103,10 @@ export function UnusedSectionTab({
                                             cursor: "pointer",
                                             transition: "all 0.1s ease",
                                             backgroundColor: isSelected
-                                                ? "var(--mantine-color-blue-0)"
+                                                ? "var(--mantine-color-blue-light)"
                                                 : undefined,
                                             borderColor: isSelected
-                                                ? "var(--mantine-color-blue-5)"
+                                                ? "var(--mantine-color-blue-filled)"
                                                 : undefined,
                                         }}
                                         onClick={(e) => {

@@ -86,6 +86,12 @@ export function GroupsList({
 
   const { permissionChecker } = useAuthUser();
   const canManageAcls = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_GROUP_ACL) ?? false;
+  // Write controls only for holders of the right their route needs (rule 4.14). Edit and
+  // Delete also need the server's per-group flag (`can_update`, `can_delete`, rule 4.11):
+  // a view-only grant on one group draws neither. A missing flag counts as "no".
+  const canCreateGroup = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_GROUP_CREATE) ?? false;
+  const mayUpdateGroups = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_GROUP_UPDATE) ?? false;
+  const mayDeleteGroups = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_GROUP_DELETE) ?? false;
   // The members dialog reads the Users list.
   const canViewMembers = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_USER_READ) ?? false;
 
@@ -223,25 +229,27 @@ export function GroupsList({
         header: () => <span className={tableStyles.colHeader}>Actions</span>,
         cell: ({ row }) => (
           <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
-            <Tooltip label="Edit group" withArrow>
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                size="sm"
-                aria-label="Edit group"
-                onClick={() => onEditGroup?.(row.original.id)}
-              >
-                <IconEdit size={16} />
-              </ActionIcon>
-            </Tooltip>
+            {mayUpdateGroups && row.original.can_update === true && (
+              <Tooltip label="Edit group" withArrow>
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="sm"
+                  aria-label="Edit group"
+                  onClick={() => onEditGroup?.(row.original.id)}
+                >
+                  <IconEdit size={16} />
+                </ActionIcon>
+              </Tooltip>
+            )}
 
             {canManageAcls && (
-              <Tooltip label="Manage ACLs" withArrow>
+              <Tooltip label="Page access" withArrow>
                 <ActionIcon
                   variant="subtle"
                   size="sm"
                   color="blue"
-                  aria-label="Manage ACLs"
+                  aria-label="Page access"
                   onClick={() =>
                     onManageAcls?.(row.original.id, row.original.name)
                   }
@@ -268,23 +276,27 @@ export function GroupsList({
                 >
                   View members
                 </Menu.Item>
-                <Menu.Divider />
-                <Menu.Item
-                  leftSection={<IconTrash size={14} />}
-                  color="red"
-                  onClick={() =>
-                    onDeleteGroup?.(row.original.id, row.original.name)
-                  }
-                >
-                  Delete group
-                </Menu.Item>
+                {mayDeleteGroups && row.original.can_delete === true && (
+                  <>
+                    <Menu.Divider />
+                    <Menu.Item
+                      leftSection={<IconTrash size={14} />}
+                      color="red"
+                      onClick={() =>
+                        onDeleteGroup?.(row.original.id, row.original.name)
+                      }
+                    >
+                      Delete group
+                    </Menu.Item>
+                  </>
+                )}
               </Menu.Dropdown>
             </Menu>
           </Group>
         ),
       },
     ],
-    [onEditGroup, onDeleteGroup, onManageAcls, canManageAcls, canViewMembers],
+    [onEditGroup, onDeleteGroup, onManageAcls, canManageAcls, canViewMembers, mayUpdateGroups, mayDeleteGroups],
   );
 
   // Initialize table
@@ -322,12 +334,14 @@ export function GroupsList({
           badge={groupsData?.pagination.totalCount ?? 0}
           badgeAriaLabel="groups"
         >
-          <Button
-            leftSection={<IconPlus size={16} />}
-            onClick={onCreateGroup}
-          >
-            Create Group
-          </Button>
+          {canCreateGroup && (
+            <Button
+              leftSection={<IconPlus size={16} />}
+              onClick={onCreateGroup}
+            >
+              Create Group
+            </Button>
+          )}
         </PageHeader>
 
         {/* Filters Card — search + page size on the same row as the actions. */}

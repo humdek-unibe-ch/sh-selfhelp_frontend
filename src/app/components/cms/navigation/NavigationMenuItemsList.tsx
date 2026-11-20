@@ -76,7 +76,8 @@ interface INavigationMenuItemsListProps {
     onReorder: (order: TReorderRow[]) => void;
     onEdit: (item: IAdminNavigationMenuItem) => void;
     onAddExistingChildPage: (item: IAdminNavigationMenuItem) => void;
-    onCreateChildPage: (item: IAdminNavigationMenuItem) => void;
+    /** Left out for a person without `admin.page.create`: the row then offers no "Create child page". */
+    onCreateChildPage?: (item: IAdminNavigationMenuItem) => void;
     onRemove: (itemId: number) => void;
     isRemovePending: boolean;
 }
@@ -108,7 +109,8 @@ interface IMenuItemRowProps {
     isInvalidDropTarget: boolean;
     onEdit: (item: IAdminNavigationMenuItem) => void;
     onAddExistingChildPage: (item: IAdminNavigationMenuItem) => void;
-    onCreateChildPage: (item: IAdminNavigationMenuItem) => void;
+    /** Left out for a person without `admin.page.create`: the row then offers no "Create child page". */
+    onCreateChildPage?: (item: IAdminNavigationMenuItem) => void;
     onMove: (itemId: number, direction: 'up' | 'down') => void;
     onRemove: (itemId: number) => void;
     isRemovePending: boolean;
@@ -422,7 +424,9 @@ function MenuItemRow({
                                             <Menu.Item onClick={() => onAddExistingChildPage(item)}>
                                                 Add existing child page
                                             </Menu.Item>
-                                            <Menu.Item onClick={() => onCreateChildPage(item)}>Create child page</Menu.Item>
+                                            {onCreateChildPage ? (
+                                                <Menu.Item onClick={() => onCreateChildPage(item)}>Create child page</Menu.Item>
+                                            ) : null}
                                         </>
                                     ) : null}
                                     <Menu.Divider />

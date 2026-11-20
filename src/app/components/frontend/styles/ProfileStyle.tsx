@@ -23,10 +23,11 @@ import {
 } from '@mantine/core';
 import { IconUser, IconKey, IconTrash, IconAlertTriangle, IconCheck, IconX, IconClock, IconBell } from '@tabler/icons-react';
 import { useAuthUser } from '../../../../hooks/useUserData';
-import { useUpdateUsernameMutation, useUpdateNameMutation, useUpdatePasswordMutation, useUpdateTimezoneMutation, useUpdateCommunicationPreferencesMutation, useDeleteAccountMutation } from '../../../../hooks/mutations/useProfileMutations';
+import { useUpdateNameMutation, useUpdatePasswordMutation, useUpdateTimezoneMutation, useUpdateCommunicationPreferencesMutation, useDeleteAccountMutation } from '../../../../hooks/mutations/useProfileMutations';
 import { useLookupsByType } from '../../../../hooks/useLookups';
 import { type IProfileStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline } from '../../../../utils/html-sanitizer.utils';
+import { getApiErrorText } from '../../../../utils/mutation-error-handler';
 
 /**
  * Helper component to render HTML content safely
@@ -55,7 +56,7 @@ interface IProfileStyleProps {
 
 /**
  * ProfileStyle component renders a comprehensive user profile management interface
- * with sections for user information display, username change, password reset, and account deletion
+ * with sections for user information display, name change (the username cannot be changed), password reset, and account deletion
  */
 const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClass }) => {
     const { user, isLoading: userLoading } = useAuthUser();
@@ -64,7 +65,6 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
     const timezoneLookups = useLookupsByType('timezones');
 
     // Mutations
-    const _updateUsernameMutation = useUpdateUsernameMutation();
     const updateNameMutation = useUpdateNameMutation();
     const updatePasswordMutation = useUpdatePasswordMutation();
     const updateTimezoneMutation = useUpdateTimezoneMutation();
@@ -237,13 +237,8 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
         return value; // Mantine handles xs, sm, md, lg, xl
     };
 
-    // Extract backend error message from API response
-    const getBackendErrorMessage = (error: unknown) => {
-        const err = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
-        return err?.response?.data?.error ||
-               err?.response?.data?.message ||
-               err?.message;
-    };
+    // Backend envelope `error` only — never HTTP reason phrases in `message`.
+    const getBackendErrorMessage = (error: unknown) => getApiErrorText(error);
 
     // Format date helper
     const formatDate = (dateString: string | undefined) => {

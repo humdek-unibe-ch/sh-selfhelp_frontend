@@ -19,6 +19,7 @@ import {
   stringifyCrudPermissions,
   type ICrudPermissions,
   DEFAULT_CRUD_PERMISSIONS,
+  setCrudTick,
 } from '../../../../../utils/permissions.utils';
 import { getApiErrorText } from '../../../../../utils/mutation-error-handler';
 
@@ -96,7 +97,7 @@ export function DataTablePermissionsModal({ opened, onClose, roleId, roleName }:
   const updatePermission = (tableName: string, permissionType: keyof ICrudPermissions, value: boolean) => {
     setPermissionRows(prev => prev.map(row => {
       if (row.name === tableName) {
-        const newPermissions = { ...row.permissions, [permissionType]: value };
+        const newPermissions = setCrudTick(row.permissions, permissionType, value);
         const originalPermission = rolePermissions?.effective_permissions.find(p => p.resource_type_name === 'Data Table' && p.resource_id === row.id);
         const originalPermissions = originalPermission && originalPermission.unified_permissions > 0
           ? parseCrudPermissions(originalPermission.unified_permissions)
@@ -165,7 +166,7 @@ export function DataTablePermissionsModal({ opened, onClose, roleId, roleName }:
         if (perm.resource_type_name === 'Data Table') return;
 
         permissions.push({
-          resource_type_id: perm.id_resourceTypes,
+          resource_type_id: perm.id_resource_types,
           resource_id: perm.resource_id,
           crud_permissions: perm.unified_permissions,
         });

@@ -197,6 +197,11 @@ export const stringifyCrudPermissions = (permissions: ICrudPermissions): number 
 };
 ```
 
+In the role permission popups (pages, data tables, groups, plugin resource
+types) a tick goes through `setCrudTick`: ticking create, update or delete
+also ticks view, and unticking view clears every right, because no right
+works on an item the role cannot see (decided 2026-11-18).
+
 ### React Query Integration
 
 ```typescript

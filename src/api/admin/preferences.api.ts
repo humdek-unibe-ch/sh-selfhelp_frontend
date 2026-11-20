@@ -51,31 +51,5 @@ export const PreferencesApi = {
             API_CONFIG.ENDPOINTS.ADMIN_CMS_PREFERENCES_GET
         );
         return response.data.data;
-    },
-
-    /**
-     * Updates CMS preferences with new values
-     *
-     * @param {ICMSPreferences} preferences - New CMS preferences to save
-     * @returns {Promise<ICMSPreferences>} Updated preferences from server
-     * @throws {Error} When update fails or validation errors occur
-     *
-     * @example
-     * ```typescript
-     * const updatedPrefs = await PreferencesApi.updateCmsPreferences({
-     *     anonymous_users: false,
-     *     default_language_id: 1
-     * });
-     * ```
-     *
-     * @note Firebase config is validated as JSON format
-     * @note All preference updates are logged for audit purposes
-     */
-    async updateCmsPreferences(preferences: ICMSPreferences): Promise<ICMSPreferences> {
-        const response = await permissionAwareApiClient.put<IBaseApiResponse<ICMSPreferences>>(
-            API_CONFIG.ENDPOINTS.ADMIN_CMS_PREFERENCES_UPDATE,
-            preferences
-        );
-        return response.data.data;
     }
 }; 

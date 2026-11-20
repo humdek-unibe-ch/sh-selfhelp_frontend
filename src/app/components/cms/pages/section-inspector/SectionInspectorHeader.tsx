@@ -25,9 +25,11 @@ interface ISectionInspectorHeaderProps {
     idLabel: string;
     /** Style descriptor badges shown on their own row. */
     badges: Array<{ label: string; color: string }>;
-    onSave: () => void;
+    /** Left out when the caller may not change the section: no Save button. */
+    onSave?: () => void;
     onExport: () => void;
-    onDelete: () => void;
+    /** Left out when the caller may not delete the section: no Delete button. */
+    onDelete?: () => void;
     saving?: boolean;
     disabled?: boolean;
 }
@@ -68,16 +70,18 @@ export function SectionInspectorHeader({
 
                 {/* Row 3 — actions: wide Save, Export outline, icon-only Delete */}
                 <Group gap="xs" wrap="nowrap" align="stretch">
-                    <Button
-                        flex={1}
-                        leftSection={<IconDeviceFloppy size="1rem" />}
-                        onClick={onSave}
-                        variant="filled"
-                        loading={saving}
-                        disabled={disabled}
-                    >
-                        Save
-                    </Button>
+                    {onSave && (
+                        <Button
+                            flex={1}
+                            leftSection={<IconDeviceFloppy size="1rem" />}
+                            onClick={onSave}
+                            variant="filled"
+                            loading={saving}
+                            disabled={disabled}
+                        >
+                            Save
+                        </Button>
+                    )}
                     <Button
                         leftSection={<IconFileExport size="1rem" />}
                         onClick={onExport}
@@ -86,7 +90,7 @@ export function SectionInspectorHeader({
                     >
                         Export
                     </Button>
-                    <Tooltip label="Delete section" withArrow>
+                    {onDelete && <Tooltip label="Delete section" withArrow>
                         <ActionIcon
                             onClick={onDelete}
                             variant="light"
@@ -97,7 +101,7 @@ export function SectionInspectorHeader({
                         >
                             <IconTrash size="1.1rem" />
                         </ActionIcon>
-                    </Tooltip>
+                    </Tooltip>}
                 </Group>
             </Stack>
         </Box>
