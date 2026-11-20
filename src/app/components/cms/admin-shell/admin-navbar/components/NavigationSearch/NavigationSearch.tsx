@@ -18,7 +18,7 @@ import {
     VisuallyHidden
 } from '@mantine/core';
 import { useClickOutside } from '@mantine/hooks';
-import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, IconPhoto, IconPlayerPlay, IconFileText, IconLanguage, IconPuzzle } from '@tabler/icons-react';
+import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, IconPhoto, IconPlayerPlay, IconFileText, IconLanguage, IconPuzzle, IconCalendar } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './NavigationSearch.module.css';
@@ -98,6 +98,7 @@ const SEARCH_STATIC_SCREENS: ISearchScreenEntry[] = [
     { id: 'unused-sections', screenId: 'unused-sections', icon: <IconDatabase size={16} />, category: 'Content', keywords: ['unused', 'sections', 'cleanup'] },
     { id: 'actions', screenId: 'actions', icon: <IconPlayerPlay size={16} />, category: 'Automation', keywords: ['actions', 'automation', 'triggers'] },
     { id: 'scheduled-jobs', screenId: 'scheduled-jobs', icon: <IconPlayerPlay size={16} />, category: 'Automation', keywords: ['jobs', 'scheduled', 'cron', 'tasks'] },
+    { id: 'scheduled-jobs-calendar', screenId: 'scheduled-jobs-calendar', icon: <IconCalendar size={16} />, category: 'Automation', keywords: ['calendar', 'jobs', 'scheduled', 'schedule'] },
 ];
 
 interface INavigationSearchProps {

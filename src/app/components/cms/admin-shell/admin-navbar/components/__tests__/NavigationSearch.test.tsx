@@ -9,6 +9,7 @@ import { renderWithProviders } from '../../../../../../../test-utils/renderWithP
 import { NavigationSearch } from '../NavigationSearch';
 
 const push = vi.fn();
+const denied = vi.hoisted(() => new Set<string>());
 
 vi.mock('next/navigation', () => ({
     useRouter: () => ({ push }),
@@ -19,7 +20,7 @@ vi.mock('next/navigation', () => ({
 // "Assets" is a stable, predictable row to assert against.
 vi.mock('../../../../../../../hooks/useAuth', () => ({
     useAuth: () => ({
-        hasPermission: () => true,
+        hasPermission: (permission: string) => !denied.has(permission),
         permissionChecker: {
             canManageUsers: () => false,
             canReadUsers: () => false,
@@ -59,6 +60,27 @@ const getInput = () => screen.getByPlaceholderText('Search functions & pages');
 describe('NavigationSearch results panel', () => {
     beforeEach(() => {
         push.mockClear();
+        denied.clear();
+    });
+
+    it('offers Jobs Calendar to a caller with admin.scheduled_job.read', async () => {
+        renderSearch();
+
+        await userEvent.type(getInput(), 'calendar');
+
+        expect(screen.getByRole('link', { name: /Calendar/ })).toHaveAttribute(
+            'href',
+            '/admin/scheduled-jobs/calendar',
+        );
+    });
+
+    it('does not offer Jobs Calendar without admin.scheduled_job.read', async () => {
+        denied.add('admin.scheduled_job.read');
+        renderSearch();
+
+        await userEvent.type(getInput(), 'calendar');
+
+        expect(screen.queryByRole('link', { name: /Calendar/ })).toBeNull();
     });
 
     it('opens the results panel once a query is typed', async () => {
