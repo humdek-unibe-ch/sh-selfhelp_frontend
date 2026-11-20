@@ -56,7 +56,7 @@ interface IProfileStyleProps {
 
 /**
  * ProfileStyle component renders a comprehensive user profile management interface
- * with sections for user information display, username change, password reset, and account deletion
+ * with sections for user information display, name change (the username cannot be changed), password reset, and account deletion
  */
 const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClass }) => {
     const { user, isLoading: userLoading } = useAuthUser();

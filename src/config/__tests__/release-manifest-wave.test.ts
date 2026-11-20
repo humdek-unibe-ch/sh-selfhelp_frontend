@@ -22,9 +22,9 @@ describe('release-manifest wave floors', () => {
         expect(manifest.supports.core).toBe('>=0.1.48 <0.2.0');
     });
 
-    it('pins @selfhelp/shared to 1.26.0 (access-cleanup: ACL select-only + route public)', () => {
+    it('pins @selfhelp/shared to 1.27.0 (role-scope permission names)', () => {
         expect(pkg.dependencies['@selfhelp/shared'] ?? pkg.devDependencies?.['@selfhelp/shared']).toBe(
-            '1.26.0',
+            '1.27.0',
         );
     });
 
