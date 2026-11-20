@@ -1,6 +1,6 @@
 {
     "name": "selfhelp-frontend",
-    "version": "0.1.74",
+    "version": "0.1.75",
     "private": true,
     "license": "MPL-2.0",
     "scripts": {
@@ -21,6 +21,7 @@
         "test:e2e": "playwright test",
         "test:golden": "node scripts/e2e-stack.mjs golden",
         "test:a11y": "node scripts/e2e-stack.mjs a11y",
+        "test:access": "node scripts/e2e-stack.mjs access",
         "test:visual": "node scripts/e2e-stack.mjs visual",
         "test:visual:update": "node scripts/e2e-stack.mjs visual --update-snapshots",
         "pretsc": "node scripts/generate-web-libraries.mjs",
@@ -36,7 +37,8 @@
         "plugins:sync": "node scripts/plugins-sync.mjs",
         "sync:cms-css": "node scripts/sync-cms-css-catalog.mjs",
         "validate:ai-examples": "node scripts/validate-ai-examples.mjs",
-        "audit:cms-css": "node scripts/audit-cms-css-classes.mjs"
+        "audit:cms-css": "node scripts/audit-cms-css-classes.mjs",
+        "access:screens": "node scripts/export-admin-screens.mjs"
     },
     "dependencies": {
         "@atlaskit/pragmatic-drag-and-drop": "^1.8.0",
@@ -59,7 +61,7 @@
         "@refinedev/core": "^5.0.12",
         "@refinedev/nextjs-router": "^7.0.5",
         "@refinedev/simple-rest": "^6.0.1",
-        "@selfhelp/shared": "1.26.0",
+        "@selfhelp/shared": "1.27.0",
         "@tabler/icons-react": "^3.41.1",
         "@tanstack/react-query": "^5.99.2",
         "@tanstack/react-table": "^8.21.3",

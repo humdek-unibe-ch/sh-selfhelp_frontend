@@ -25,6 +25,105 @@ No engineering diary, no implementation detail — that belongs in
   raising the limit; soft over-limit keeps extras stored. User guide:
   [docs/user/menus.md](docs/user/menus.md).
 
+## v0.1.75 — 2026-11-19
+
+**Roles and group access limited by what you hold; one read permission per admin area**
+
+Requires core **>=0.1.48** (the renamed permissions). `@selfhelp/shared` stays
+pinned at 1.26.0 until the release step after publishing.
+
+**Added**
+
+- The admin screens are one list, `src/config/admin-screens.ts` (label, path,
+  menu group, the one read permission that opens each). The menu, the navigation
+  search and the generated `docs/reference/admin-screens.json`
+  (`npm run access:screens`) all draw from it; a test fails when the file is
+  stale.
+- Route contract test (`src/config/__tests__/api-route-contract.test.ts`): every
+  `API_CONFIG.ENDPOINTS` entry is compared with the backend's generated route
+  table (path, HTTP method from the call sites, permissions); CI checks out the
+  backend for it. `docs/reference/permission-quick-reference.md` describes it.
+- Least-privilege walk (`npm run test:access`, CI job `e2e-access` on pull
+  requests that touch admin screens or access files, and on demand): restricted
+  QA users sign in, open every admin screen from the menu, and the run fails on
+  a write control shown without its right, a wrong menu, or any 400 or 403.
+  See `docs/developer/e2e-profiles.md`.
+
+**Changed**
+
+- Roles list: **Edit**, the page / data table / group grant buttons and
+  **Delete** are on or off per role, as the server says. A role whose rights you
+  do not all hold (the full-access role too, unless you are the superuser) cannot
+  be changed or deleted by you, and the disabled button says why.
+- Role form: permissions are a grid, one row per area (Pages, Groups, Roles,
+  Languages, plugin areas …) with the columns Read, Create, Update, Delete and
+  Other. The search stays while you tick; hovering a box shows its description
+  and key.
+  A permission you do not hold yourself is locked. The read permission of an area
+  is ticked and locked while another right of that area is ticked. Without
+  `admin.role.permissions` the list is shown but cannot be changed, and Save
+  waits until the role and the permission list are loaded.
+- Refusals are shown with the server's own text: a role right you do not hold, a
+  role you may not change or delete, a group or page whose access you may not
+  change. The page-access dialog of a group you may not read says so instead of
+  showing an empty list.
+- Languages opens with `admin.language.read` (changes need
+  `admin.language.update`), Unused sections with `admin.section.read`, the
+  data-access audit with `admin.audit.read` and Live Preview with
+  `admin.mobile_preview.read`. The menu and the navigation search show these
+  entries by the same permissions.
+- Admin screens show only what you may do: Languages (Add / edit / delete need
+  `admin.language.update`), Actions, Cache and Scheduled jobs (execute, delete,
+  bulk delete) hide controls whose right you lack; Groups and Roles show in the
+  menu with their own read permission, without a users permission.
+- Page editor: a page you may only read opens read-only with a banner saying
+  why (no `admin.page.update`, or no update grant on that page). Add Section,
+  moving, removing, Save, Publish, Delete Page and Delete Version are hidden and
+  the fields are disabled. Uses the new `rights` of the page read, so it
+  requires core **>=0.1.48**. Delete Version also needs
+  `admin.page_version.delete`, now declared on its route.
+- Delete section (for good) asks for `admin.page.delete`, the right the server
+  checks; it asked for `admin.section.delete`, which only covers the Unused
+  sections cleanup.
+- The role grid's Page row no longer offers **insert**: the permission is gone
+  in core 0.1.48 (it never granted anything).
+- The role grid loses rows and boxes that granted nothing: Action translation
+  (now part of Action read), version create and unpublish, user unblock (Block
+  covers both directions) and CMS preferences update. The users screen shows
+  Block / Unblock to holders of `admin.user.block`.
+- User group/role links and the activation mail declare `admin.user.read` /
+  `admin.user.update`; section reads, styles and page keywords declare their
+  rights instead of none. The unused CMS preferences update call is removed (no
+  such route exists).
+- Importing sections and restoring sections from a version ask for
+  `admin.page.update` (they change the page), no longer `admin.page.export`.
+- A request refused by the app now says "You do not have permission to do this.
+  It needs …" instead of listing every permission you hold.
+
+**Fixed**
+
+- Unused Sections is shown in the menu and the search to a role with only
+  `admin.section.read`; before, it sat behind the asset right (F241). Every
+  static menu entry now stands on its own read permission and a group shows when
+  any of its entries is allowed.
+- Controls shown without their right are hidden: Groups (Create Group, Edit and
+  Delete group; Edit and Delete also need the per-group flag the server now
+  sends, so a view-only group shows none), Roles (Create Role), Unused Sections
+  (Delete and Delete All need `admin.section.delete`) and Menus (Create page
+  here and Create child page need `admin.page.create`).
+- Dead web declarations found by the route contract test are gone: the
+  `/auth/user/username` call (no such route; the profile's name change is
+  unchanged) and two unused endpoint entries.
+- Saving a role's page / group / data-table access failed with
+  "resource_type_id is required" once the role held grants of more than one
+  type; ticking Create, Update or Delete now also ticks View.
+
+**Removed**
+
+- The permissions `admin.settings`, `admin.audit.view` and
+  `admin.mobile_preview.view`; core renames or splits them, with no
+  compatibility.
+
 ## v0.1.74 — 2026-11-18
 
 **Access cleanup (groups see, roles edit)**
