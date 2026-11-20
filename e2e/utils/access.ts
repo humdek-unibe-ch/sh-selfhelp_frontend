@@ -8,7 +8,8 @@ SPDX-License-Identifier: MPL-2.0
  * - Personas come from the screen registry by the persona contract of the
  *   backend fixture (`QaBaselineFixture`): one read-only user per distinct
  *   `admin.<area>.read`, `qa.read.<area-with-dashes>@selfhelp.test`, plus
- *   `qa.readupdate@selfhelp.test`. No list is copied here.
+ *   `qa.readupdate@selfhelp.test` and `qa.roleupdate@selfhelp.test`. No list of
+ *   screens is copied here.
  * - One write-control matcher (verbs below) used for every screen.
  * - A recorder for every `/api/` response of a walk (400 and 403 fail it).
  */
@@ -27,6 +28,20 @@ import { qaEnv } from './env';
 
 /** The user of the read/update persona (view bit only on the QA items). */
 export const READ_UPDATE_EMAIL = 'qa.readupdate@selfhelp.test';
+
+/**
+ * The user of the role-editor persona: `admin.access`, `admin.role.read` and
+ * `admin.role.update` and nothing else, so no `admin.permission.read`. It
+ * proves the role form works for a role editor (fixture `qa_role_update`).
+ */
+export const ROLE_UPDATE_EMAIL = 'qa.roleupdate@selfhelp.test';
+
+/** Permissions the role-editor persona holds (contract of `QaBaselineFixture`). */
+export const ROLE_UPDATE_PERMISSIONS: ReadonlySet<string> = new Set([
+    'admin.access',
+    'admin.role.read',
+    'admin.role.update',
+]);
 
 export interface IReadPersona {
     /** The one read permission it holds besides `admin.access`, e.g. `admin.page_version.read`. */

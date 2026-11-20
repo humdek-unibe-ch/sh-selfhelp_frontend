@@ -16,7 +16,9 @@ SPDX-License-Identifier: MPL-2.0
  * persona contract, see `e2e/utils/access.ts`:
  *   - one read-only persona per distinct `admin.<area>.read`;
  *   - `qa.readupdate`: every read and update right, the view bit only on the QA
- *     items (page `qa-feedback`, group `qa_access_group`).
+ *     items (page `qa-feedback`, group `qa_access_group`);
+ *   - `qa.roleupdate`: `admin.role.read` and `admin.role.update` only (no
+ *     `admin.permission.read`); it opens the role form from the Roles screen.
  *
  * Screens are opened by clicking the menu entry, never by URL: the only
  * `page.goto` of the walk is `/admin` after the sign-in.
@@ -30,6 +32,8 @@ import {
     ApiRecorder,
     MENU_GROUP_LABEL,
     READ_UPDATE_EMAIL,
+    ROLE_UPDATE_EMAIL,
+    ROLE_UPDATE_PERMISSIONS,
     UPDATE_ONLY_ALLOWED_VERBS,
     collectControls,
     collectMenuItems,
@@ -366,6 +370,79 @@ test.describe('least privilege: read and update, view grant only on the QA items
         }
 
         summarise(READ_UPDATE_EMAIL, recorder, result);
+        assertNoProblems(problems, recorder);
+    });
+});
+
+test.describe('least privilege: a role editor without the permission catalogue right', () => {
+    test.setTimeout(240_000);
+
+    test(`${ROLE_UPDATE_EMAIL} opens the role form with permission names and edits only the roles it holds`, async ({ page }) => {
+        const recorder = new ApiRecorder();
+        const problems: string[] = [];
+        const result: IWalkResult = { walked: [], notes: [] };
+        const rolesScreen = SCREENS.find((s) => s.id === 'roles');
+        if (!rolesScreen) throw new Error('registry has no roles screen');
+        const heldReads = new Set<string>(['admin.access', rolesScreen.read_permission]);
+
+        await startWalk(page, ROLE_UPDATE_EMAIL, recorder);
+        await assertMenu(page, heldReads, problems);
+
+        // Roles from the menu, never by URL.
+        const opened = await openFromMenuAndScan(
+            page,
+            recorder,
+            rolesScreen,
+            UPDATE_ONLY_ALLOWED_VERBS,
+            problems,
+            result,
+            ROLE_UPDATE_PERMISSIONS,
+        );
+        expect(opened, 'the Roles screen opens from the menu').toBe(true);
+
+        const search = page.getByRole('textbox', { name: 'Search roles' });
+        const roleRow = async (name: string): Promise<Locator> => {
+            // The list filters when the filter is applied, not while typing.
+            await search.fill(name);
+            await page.getByRole('button', { name: 'Apply Filters' }).click();
+            await recorder.settle(page);
+            const row = page.getByRole('row', { name: new RegExp(`(^|\\s)${name}(\\s|$)`) }).first();
+            await row.waitFor({ state: 'visible', timeout: 15_000 });
+            await recorder.settle(page);
+            return row;
+        };
+
+        // A role it holds in full: the edit dialog opens and names every permission.
+        recorder.screen = 'Roles (edit qa_read_role)';
+        const held = await roleRow('qa_read_role');
+        await held.getByRole('button', { name: 'Edit role' }).click();
+        const dialog = page.getByRole('dialog');
+        await dialog.waitFor({ state: 'visible', timeout: 15_000 });
+        await recorder.settle(page);
+        const boxes = dialog.getByRole('checkbox');
+        await expect(boxes.first()).toBeVisible({ timeout: 15_000 });
+        const names = (await boxes.evaluateAll((els) =>
+            els.map((el) => el.getAttribute('aria-label') ?? (el as HTMLInputElement).labels?.[0]?.textContent ?? ''),
+        )).map((name) => name.trim());
+        if (names.length === 0) problems.push('Roles (edit qa_read_role): the form shows no permission boxes');
+        for (const name of names) {
+            if (name === '' || /^\d+$/.test(name)) problems.push(`Roles (edit qa_read_role): a permission box is named "${name}" (no name, only an id)`);
+        }
+        const ticked = dialog.getByRole('checkbox', { name: /\(admin\.role\.read\)/ });
+        if (!(await ticked.isChecked().catch(() => false))) {
+            problems.push('Roles (edit qa_read_role): admin.role.read is not shown ticked by name');
+        }
+        result.walked.push('Roles (edit qa_read_role)');
+        await dialog.getByRole('button', { name: 'Cancel' }).click();
+        await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
+
+        // A role it does not hold in full (qa_read_update has every read and update right): no enabled edit (can_update).
+        recorder.screen = 'Roles (qa_read_update)';
+        const above = await roleRow('qa_read_update');
+        await expect(above.getByRole('button', { name: 'Edit role' })).toBeDisabled();
+        result.walked.push('Roles (qa_read_update, edit disabled)');
+
+        summarise(ROLE_UPDATE_EMAIL, recorder, result);
         assertNoProblems(problems, recorder);
     });
 });
