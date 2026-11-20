@@ -64,13 +64,15 @@ export function useAllRoles({ enabled = true }: { enabled?: boolean } = {}) {
   });
 }
 
-// Get role details
+// Get role details. The role carries what the signed-in person may do with it
+// (`can_update`, `can_delete`), so a copy read for another person is read again.
 export function useRoleDetails(roleId: number) {
   return useQuery({
     queryKey: ROLES_QUERY_KEYS.detail(roleId),
     queryFn: () => AdminRoleApi.getRoleById(roleId),
     enabled: !!roleId,
     staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+    refetchOnMount: refetchOnMountWhenInvalidated,
   });
 }
 

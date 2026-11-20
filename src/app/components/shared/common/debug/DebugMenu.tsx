@@ -527,10 +527,10 @@ function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
                                         <Badge color={permissionChecker.canReadCmsPreferences() ? 'green' : 'red'} leftSection={permissionChecker.canReadCmsPreferences() ? <IconCheck size={10} /> : <IconX size={10} />}>
                                             CMS Preferences
                                         </Badge>
-                                        <Badge color={permissionChecker.canManageLanguages() ? 'green' : 'red'} leftSection={permissionChecker.canManageLanguages() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                        <Badge color={permissionChecker.canReadLanguages() ? 'green' : 'red'} leftSection={permissionChecker.canReadLanguages() ? <IconCheck size={10} /> : <IconX size={10} />}>
                                             Languages
                                         </Badge>
-                                        <Badge color={permissionChecker.canDeleteSections() ? 'green' : 'red'} leftSection={permissionChecker.canDeleteSections() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                        <Badge color={permissionChecker.canViewUnusedSections() ? 'green' : 'red'} leftSection={permissionChecker.canViewUnusedSections() ? <IconCheck size={10} /> : <IconX size={10} />}>
                                             Unused Sections
                                         </Badge>
                                     </Group>

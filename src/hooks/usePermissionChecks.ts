@@ -53,11 +53,6 @@ export function useCanBlockUsers(): boolean {
   return permissionChecker?.canBlockUsers() ?? false;
 }
 
-export function useCanUnblockUsers(): boolean {
-  const { permissionChecker } = useAuth();
-  return permissionChecker?.canUnblockUsers() ?? false;
-}
-
 export function useCanImpersonateUsers(): boolean {
   const { permissionChecker } = useAuth();
   return permissionChecker?.canImpersonateUsers() ?? false;
@@ -197,11 +192,11 @@ export function useCanReadCmsPreferences(): boolean {
 }
 
 /**
- * Language Management Permission
+ * Language Screen Permission (read right of the language area)
  */
-export function useCanManageLanguages(): boolean {
+export function useCanReadLanguages(): boolean {
   const { permissionChecker } = useAuth();
-  return permissionChecker?.canManageLanguages() ?? false;
+  return permissionChecker?.canReadLanguages() ?? false;
 }
 
 /**
@@ -218,19 +213,11 @@ export function useCanReadPageVersions(): boolean {
 }
 
 /**
- * Section Permissions
+ * Unused Sections Screen Permission (read right of the section area)
  */
-export function useCanDeleteSections(): boolean {
+export function useCanViewUnusedSections(): boolean {
   const { permissionChecker } = useAuth();
-  return permissionChecker?.canDeleteSections() ?? false;
-}
-
-/**
- * Settings Permission
- */
-export function useCanAccessSettings(): boolean {
-  const { permissionChecker } = useAuth();
-  return permissionChecker?.canAccessSettings() ?? false;
+  return permissionChecker?.canViewUnusedSections() ?? false;
 }
 
 /**

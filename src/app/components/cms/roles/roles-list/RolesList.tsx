@@ -58,6 +58,15 @@ import { AdminTableFooter, SortHeader, adminTableClasses as tableStyles, ariaSor
 import { RoleMembersModal } from './RoleMembersModal';
 import classes from './RolesList.module.css';
 
+// Why a button is off. The first two are the server's own refusal texts, so a person
+// reads here what they would be told if they forced the call.
+const REASON_ROLE_NOT_HELD = 'You can only change or delete a role whose rights you all hold.';
+const REASON_ROLE_HAS_USERS = 'Cannot delete role with assigned users';
+const REASON_SUPERUSER_DELETE = 'Full-access role cannot be deleted';
+const REASON_SUPERUSER_GRANTS = 'Full-access role permissions cannot be modified';
+const REASON_NEEDS_UPDATE = 'Changing roles needs admin.role.update.';
+const REASON_NEEDS_DELETE = 'Deleting roles needs admin.role.delete.';
+
 interface IRolesListProps {
   onCreateRole?: () => void;
   onEditRole?: (roleId: number) => void;
@@ -94,6 +103,12 @@ export function RolesList({
   // The members dialog reads the Users list.
   const { permissionChecker } = useAuthUser();
   const canViewMembers = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_USER_READ) ?? false;
+  // Only used to word the reason a button is off: whether a role may be changed or
+  // deleted comes from the role itself (`can_update`, `can_delete`).
+  const mayUpdateRoles = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ROLE_UPDATE) ?? false;
+  const mayDeleteRoles = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ROLE_DELETE) ?? false;
+  // "Create Role" is a write control: shown only to holders of its route right (rule 4.14).
+  const mayCreateRoles = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ROLE_CREATE) ?? false;
 
   // Fetch roles data
   const { data: rolesData, refetch, isFetching, error } = useRoles(params);
@@ -240,105 +255,94 @@ export function RolesList({
         id: "actions",
         header: () => <span className={tableStyles.colHeader}>Actions</span>,
         cell: ({ row }) => {
-          const superuser = isSuperuserRole(row.original);
+          const role = row.original;
+          const superuser = isSuperuserRole(role);
+
+          // What the signed-in person may do with this role is sent with the role
+          // (`can_update`, `can_delete`): the server knows whether they hold every right
+          // the role carries. A missing flag counts as "no", so a button never guesses.
+          const updateBlocked = role.can_update !== true;
+          const deleteBlocked = role.can_delete !== true;
+          const editReason = updateBlocked
+            ? (mayUpdateRoles ? REASON_ROLE_NOT_HELD : REASON_NEEDS_UPDATE)
+            : null;
+          // The page, data table and group grants of a role are a change of the role.
+          const grantsReason = superuser ? REASON_SUPERUSER_GRANTS : editReason;
+          const deleteReason = !deleteBlocked
+            ? null
+            : superuser
+              ? REASON_SUPERUSER_DELETE
+              : role.users_count > 0
+                ? REASON_ROLE_HAS_USERS
+                : !mayDeleteRoles
+                  ? REASON_NEEDS_DELETE
+                  : REASON_ROLE_NOT_HELD;
 
           return (
             <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
               <Tooltip
                 withArrow
-                label={superuser ? "Rename or edit description" : "Edit role"}
+                label={editReason ?? (superuser ? "Rename or edit description" : "Edit role")}
               >
                 <ActionIcon
                   variant="subtle"
                   color="gray"
                   size="sm"
                   aria-label="Edit role"
-                  onClick={() => onEditRole?.(row.original.id)}
+                  disabled={editReason !== null}
+                  onClick={() => editReason === null && onEditRole?.(role.id)}
                 >
                   <IconEdit size={16} />
                 </ActionIcon>
               </Tooltip>
 
               {/* Permission Management Buttons */}
-              <Tooltip
-                label={
-                  superuser
-                    ? "Full-access role permissions cannot be modified"
-                    : "Manage Page Permissions"
-                }
-              >
-                <ActionIcon aria-label={superuser
-                    ? "Full-access role permissions cannot be modified"
-                    : "Manage Page Permissions"}
+              <Tooltip label={grantsReason ?? "Manage Page Permissions"}>
+                <ActionIcon aria-label={grantsReason ?? "Manage Page Permissions"}
                   variant="subtle"
                   size="sm"
                   color="blue"
-                  disabled={superuser}
+                  disabled={grantsReason !== null}
                   onClick={() =>
-                    !superuser &&
-                    onManagePagePermissions?.(
-                      row.original.id,
-                      row.original.name,
-                    )
+                    grantsReason === null &&
+                    onManagePagePermissions?.(role.id, role.name)
                   }
                 >
                   <IconFileText size={16} />
                 </ActionIcon>
               </Tooltip>
 
-              <Tooltip
-                label={
-                  superuser
-                    ? "Full-access role permissions cannot be modified"
-                    : "Manage Data Table Permissions"
-                }
-              >
-                <ActionIcon aria-label={superuser
-                    ? "Full-access role permissions cannot be modified"
-                    : "Manage Data Table Permissions"}
+              <Tooltip label={grantsReason ?? "Manage Data Table Permissions"}>
+                <ActionIcon aria-label={grantsReason ?? "Manage Data Table Permissions"}
                   variant="subtle"
                   size="sm"
                   color="green"
-                  disabled={superuser}
+                  disabled={grantsReason !== null}
                   onClick={() =>
-                    !superuser &&
-                    onManageDataTablePermissions?.(
-                      row.original.id,
-                      row.original.name,
-                    )
+                    grantsReason === null &&
+                    onManageDataTablePermissions?.(role.id, role.name)
                   }
                 >
                   <IconDatabase size={16} />
                 </ActionIcon>
               </Tooltip>
 
-              <Tooltip
-                label={
-                  superuser
-                    ? "Full-access role permissions cannot be modified"
-                    : "Manage Group Permissions"
-                }
-              >
-                <ActionIcon aria-label={superuser
-                    ? "Full-access role permissions cannot be modified"
-                    : "Manage Group Permissions"}
+              <Tooltip label={grantsReason ?? "Manage Group Permissions"}>
+                <ActionIcon aria-label={grantsReason ?? "Manage Group Permissions"}
                   variant="subtle"
                   size="sm"
                   color="purple"
-                  disabled={superuser}
+                  disabled={grantsReason !== null}
                   onClick={() =>
-                    !superuser &&
-                    onManageGroupPermissions?.(
-                      row.original.id,
-                      row.original.name,
-                    )
+                    grantsReason === null &&
+                    onManageGroupPermissions?.(role.id, role.name)
                   }
                 >
                   <IconUserCheck size={16} />
                 </ActionIcon>
               </Tooltip>
 
-              <Menu shadow="md" width={200} position="bottom-end" withArrow>
+              <Menu shadow="md" width={260} position="bottom-end" withArrow>
                 <Menu.Target>
                   <ActionIcon variant="subtle" color="gray" size="sm" aria-label="More actions">
                     <IconDots size={16} />
@@ -350,7 +354,7 @@ export function RolesList({
                     leftSection={<IconUsers size={14} />}
                     disabled={!canViewMembers}
                     onClick={() =>
-                      setMembersOf({ id: row.original.id, name: row.original.name })
+                      setMembersOf({ id: role.id, name: role.name })
                     }
                   >
                     View members
@@ -359,13 +363,13 @@ export function RolesList({
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
                     color="red"
-                    disabled={superuser}
+                    disabled={deleteReason !== null}
                     onClick={() =>
-                      !superuser &&
-                      onDeleteRole?.(row.original.id, row.original.name)
+                      deleteReason === null &&
+                      onDeleteRole?.(role.id, role.name)
                     }
                   >
-                    {superuser ? "Full-access role cannot be deleted" : "Delete Role"}
+                    {deleteReason ?? "Delete Role"}
                   </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
@@ -381,6 +385,8 @@ export function RolesList({
       onManageDataTablePermissions,
       onManageGroupPermissions,
       canViewMembers,
+      mayUpdateRoles,
+      mayDeleteRoles,
     ],
   );
 
@@ -419,9 +425,11 @@ export function RolesList({
           badge={rolesData?.pagination.totalCount ?? 0}
           badgeAriaLabel="roles"
         >
-          <Button leftSection={<IconPlus size={16} />} onClick={onCreateRole}>
-            Create Role
-          </Button>
+          {mayCreateRoles && (
+            <Button leftSection={<IconPlus size={16} />} onClick={onCreateRole}>
+              Create Role
+            </Button>
+          )}
         </PageHeader>
 
         {/* Filters Card — search + page size on the same row as the actions. */}

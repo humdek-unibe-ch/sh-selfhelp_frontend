@@ -22,6 +22,7 @@ import {
 } from '@mantine/core';
 import {
     IconInfoCircle,
+    IconAlertTriangle,
     IconChevronDown,
     IconChevronUp,
     IconSearch,
@@ -34,6 +35,7 @@ import {
     useUpdateGroupAcls,
 } from '../../../../../hooks/useGroups';
 import { convertAclsToApiFormat, convertApiAclsToUiFormat } from '../../../../../utils/acl-conversion.utils';
+import { getApiErrorText } from '../../../../../utils/mutation-error-handler';
 import { ModalWrapper } from '../../../shared';
 
 export interface IAclPage {
@@ -300,7 +302,12 @@ export function AdvancedAclModal({
     const [selectedPages, setSelectedPages] = useState<IAclPage[]>([]);
 
     // Fetch group details (including ACLs) - with fresh data when modal opens
-    const { data: groupDetails, isLoading: isLoadingGroup, refetch: refetchGroupDetails } = useGroupDetails(groupId);
+    const {
+        data: groupDetails,
+        isLoading: isLoadingGroup,
+        error: groupError,
+        refetch: refetchGroupDetails,
+    } = useGroupDetails(groupId);
     const updateAclsMutation = useUpdateGroupAcls();
 
     // Extract ACLs from group details
@@ -361,6 +368,13 @@ export function AdvancedAclModal({
     const isLoading = isLoadingAcls;
     const isSubmitting = updateAclsMutation.isPending;
 
+    // A group the person may not read is refused with the server's own text
+    // (`Access denied: you cannot read group <id>.`): show it. Save stays off,
+    // because saving replaces the whole set and this copy was not read.
+    const loadErrorText = groupError
+        ? getApiErrorText(groupError) || 'The page access of this group could not be loaded.'
+        : null;
+
     return (
         <ModalWrapper
             opened={opened}
@@ -372,6 +386,7 @@ export function AdvancedAclModal({
                 void handleSave();
             }}
             isLoading={isSubmitting}
+            disabled={loadErrorText !== null}
             saveLabel="Save page access"
             cancelLabel="Cancel"
             scrollAreaHeight="calc(100dvh - 14rem)"
@@ -379,14 +394,28 @@ export function AdvancedAclModal({
             <Box pos="relative">
                 <LoadingOverlay visible={isLoading} zIndex={1} overlayProps={{ blur: 1 }} />
 
+                {loadErrorText && (
+                    <Alert
+                        icon={<IconAlertTriangle size="1rem" />}
+                        color="red"
+                        variant="light"
+                        title="Page access could not be loaded"
+                        mb="md"
+                    >
+                        {loadErrorText}
+                    </Alert>
+                )}
+
                 {/* Asset access is set per asset (its groups) on the Assets page. */}
-                <AclManagement
-                    selectedPages={selectedPages}
-                    onChange={setSelectedPages}
-                    showHeader={false}
-                    maxHeight={500}
-                    initiallyExpanded={true}
-                />
+                {loadErrorText === null && (
+                    <AclManagement
+                        selectedPages={selectedPages}
+                        onChange={setSelectedPages}
+                        showHeader={false}
+                        maxHeight={500}
+                        initiallyExpanded={true}
+                    />
+                )}
             </Box>
         </ModalWrapper>
     );

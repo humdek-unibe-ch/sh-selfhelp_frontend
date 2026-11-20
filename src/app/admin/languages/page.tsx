@@ -13,7 +13,7 @@ import { PERMISSIONS } from '../../../types/auth/jwt-payload.types';
 export const metadata = { title: 'Languages' };
 
 export default async function AdminLanguagesPage() {
-    await requireAdminPermission(PERMISSIONS.ADMIN_SETTINGS);
+    await requireAdminPermission(PERMISSIONS.ADMIN_LANGUAGE_READ);
     return (
         <AdminShell>
             <Suspense fallback={<LoadingScreen />}>

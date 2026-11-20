@@ -6,11 +6,15 @@ import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 
-// Removed unused exports - These interfaces are available internally
-interface IPermission {
+/** One permission of the list the role form's picker draws from; the two flags are set per signed-in person. */
+export interface IPermission {
   id: number;
   name: string;
-  description?: string;
+  description: string | null;
+  /** The signed-in person holds this permission (or is the superuser): they may put it into a role. */
+  can_assign: boolean;
+  /** Name of the area's read permission that goes with this one, or `null` (a read right, a plugin permission). */
+  implied_read: string | null;
   resource?: string;
   action?: string;
   created_at?: string;

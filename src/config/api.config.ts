@@ -95,10 +95,6 @@ export const API_CONFIG = {
         },
 
         // User profile management endpoints
-        USER_UPDATE_USERNAME: {
-            route: '/auth/user/username',
-            permissions: []
-        },
         USER_UPDATE_NAME: {
             route: '/auth/user/name',
             permissions: []
@@ -343,29 +339,29 @@ export const API_CONFIG = {
         // Admin languages endpoints
         ADMIN_LANGUAGES_GET_ALL: {
             route: '/admin/languages',
-            permissions: [PERMISSIONS.ADMIN_SETTINGS]
+            permissions: [PERMISSIONS.ADMIN_LANGUAGE_READ]
         },
         ADMIN_LANGUAGES_GET_ONE: {
             route: (id: number) => `/admin/languages/${id}`,
-            permissions: [PERMISSIONS.ADMIN_SETTINGS]
+            permissions: [PERMISSIONS.ADMIN_LANGUAGE_READ]
         },
         ADMIN_LANGUAGES_CREATE: {
             route: '/admin/languages',
-            permissions: [PERMISSIONS.ADMIN_SETTINGS]
+            permissions: [PERMISSIONS.ADMIN_LANGUAGE_UPDATE]
         },
         ADMIN_LANGUAGES_UPDATE: {
             route: (id: number) => `/admin/languages/${id}`,
-            permissions: [PERMISSIONS.ADMIN_SETTINGS]
+            permissions: [PERMISSIONS.ADMIN_LANGUAGE_UPDATE]
         },
         ADMIN_LANGUAGES_DELETE: {
             route: (id: number) => `/admin/languages/${id}`,
-            permissions: [PERMISSIONS.ADMIN_SETTINGS]
+            permissions: [PERMISSIONS.ADMIN_LANGUAGE_UPDATE]
         },
 
         // Admin styles endpoints
         ADMIN_STYLES_GET_ALL: {
             route: '/admin/styles',
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_ACCESS]
         },
         ADMIN_AI_SECTION_PROMPT_TEMPLATE: {
             route: '/admin/ai/section-prompt-template',
@@ -376,10 +372,6 @@ export const API_CONFIG = {
         ADMIN_CMS_PREFERENCES_GET: {
             route: '/admin/cms-preferences',
             permissions: [PERMISSIONS.ADMIN_CMS_PREFERENCES_READ]
-        },
-        ADMIN_CMS_PREFERENCES_UPDATE: {
-            route: '/admin/cms-preferences',
-            permissions: [PERMISSIONS.ADMIN_CMS_PREFERENCES_UPDATE]
         },
 
         // Admin assets endpoints
@@ -506,7 +498,7 @@ export const API_CONFIG = {
         },
         ADMIN_USERS_GROUPS_GET: {
             route: (userId: number) => `/admin/users/${userId}/groups`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
         },
         // NOTE: the user-management mutations below (group/role assignment,
         // activation mail) are enforced by the backend
@@ -516,27 +508,27 @@ export const API_CONFIG = {
         // endpoint must declare permissions" API rule in AGENTS.md).
         ADMIN_USERS_GROUPS_ADD: {
             route: (userId: number) => `/admin/users/${userId}/groups`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
         },
         ADMIN_USERS_GROUPS_REMOVE: {
             route: (userId: number) => `/admin/users/${userId}/groups`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
         },
         ADMIN_USERS_ROLES_GET: {
             route: (userId: number) => `/admin/users/${userId}/roles`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
         },
         ADMIN_USERS_ROLES_ADD: {
             route: (userId: number) => `/admin/users/${userId}/roles`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
         },
         ADMIN_USERS_ROLES_REMOVE: {
             route: (userId: number) => `/admin/users/${userId}/roles`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
         },
         ADMIN_USERS_SEND_ACTIVATION: {
             route: (userId: number) => `/admin/users/${userId}/send-activation-mail`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
         },
         // Destructive, but gated on `admin.user.update` to match the backend
         // route permission for `admin_users_clean_data_v1` — a stricter client
@@ -651,7 +643,7 @@ export const API_CONFIG = {
         },
         ADMIN_ACTIONS_TRANSLATIONS_GET_ALL: {
             route: (actionId: number) => `/admin/actions/${actionId}/translations`,
-            permissions: [PERMISSIONS.ADMIN_ACTION_TRANSLATION_READ]
+            permissions: [PERMISSIONS.ADMIN_ACTION_READ]
         },
 
         // Frontend CSS classes endpoint
@@ -683,10 +675,6 @@ export const API_CONFIG = {
         },
         ADMIN_SCHEDULED_JOBS_TRANSACTIONS: {
             route: (jobId: number) => `/admin/scheduled-jobs/${jobId}/transactions`,
-            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
-        },
-         ADMIN_SCHEDULED_JOBS_CALENDAR: {
-            route: () => `/admin/scheduled-jobs/calendar`,
             permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
         },
         ADMIN_SCHEDULED_JOBS_RUNNER_STATUS: {
@@ -793,7 +781,7 @@ export const API_CONFIG = {
         // Admin page keywords endpoints
         ADMIN_PAGE_KEYWORDS_GET_ALL: {
             route: '/admin/page-keywords',
-            permissions: [PERMISSIONS.ADMIN_PAGE_READ]
+            permissions: [PERMISSIONS.ADMIN_ACCESS]
         },
 
         // Admin page versioning endpoints
@@ -817,12 +805,11 @@ export const API_CONFIG = {
             route: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
             permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_READ]
         },
-        // NOTE: destructive version delete — backend-gated (admin.page.version.*).
-        // Client `permissions` empty pending a backend-confirmed mapping; see the
-        // "every mutating endpoint must declare permissions" API rule in AGENTS.md.
+        // Destructive: the route needs admin.page_version.delete (route row
+        // `admin_page_version_delete`); the server also checks the update grant on the version's page (F235).
         ADMIN_PAGE_VERSIONS_DELETE: {
             route: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_DELETE]
         },
         ADMIN_PAGE_VERSIONS_COMPARE_DRAFT: {
             route: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/compare-draft/${versionId}`,
@@ -836,9 +823,10 @@ export const API_CONFIG = {
             route: (pageId: number, version1Id: number, version2Id: number) => `/admin/pages/${pageId}/versions/compare/${version1Id}/${version2Id}`,
             permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_COMPARE]
         },
+        // Writes to a page: admin.page.update, not export (F237).
         ADMIN_PAGE_VERSIONS_RESTORE_FROM_VERSION: {
             route: (pageId: number, versionId: number) => `/admin/pages/${pageId}/sections/restore-from-version/${versionId}`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
         },
 
         // Admin analytics endpoints (dashboard)
@@ -888,7 +876,7 @@ export const API_CONFIG = {
         },
         ADMIN_SECTIONS_UNUSED_GET: {
             route: '/admin/sections/unused',
-            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+            permissions: [PERMISSIONS.ADMIN_SECTION_READ]
         },
         ADMIN_SECTIONS_UNUSED_DELETE: {
             route: (sectionId: number) => `/admin/sections/unused/${sectionId}`,
@@ -898,9 +886,11 @@ export const API_CONFIG = {
             route: '/admin/sections/unused',
             permissions: [PERMISSIONS.ADMIN_SECTION_DELETE]
         },
+        // Deleting a section for good: the route row `admin_sections_destroy` needs
+        // admin.page.delete (admin.section.delete only covers the Unused sections cleanup).
         ADMIN_SECTIONS_DELETE: {
             route: (sectionId: number) => `/admin/sections/${sectionId}`,
-            permissions: [PERMISSIONS.ADMIN_SECTION_DELETE]
+            permissions: [PERMISSIONS.ADMIN_PAGE_DELETE]
         },
         ADMIN_SECTIONS_PAGES: {
             route: '/admin/sections/pages',
@@ -1096,11 +1086,7 @@ export const API_CONFIG = {
         },
         ADMIN_SECTIONS_GET_ONE: {
             route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
-            permissions: []
-        },
-        ADMIN_SECTIONS_GET_CHILDREN: {
-            route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_PAGE_READ]
         },
         // Unified context-aware interpolation variable picker (issue #56 v2). One
         // endpoint for every editor surface; `context` (section|page|action|global)
@@ -1108,7 +1094,7 @@ export const API_CONFIG = {
         // admin.page.read and only returns tokens that interpolate at runtime.
         ADMIN_INTERPOLATION_VARIABLES: {
             route: '/admin/interpolation/variables',
-            permissions: []
+            permissions: [PERMISSIONS.ADMIN_PAGE_READ]
         },
 
         // Admin section export/import endpoints
@@ -1120,27 +1106,29 @@ export const API_CONFIG = {
             route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}/export`,
             permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
         },
+        // Writes to a page: admin.page.update, not export (F237).
         ADMIN_SECTIONS_IMPORT_TO_PAGE: {
             route: (pageId: number) => `/admin/pages/${pageId}/sections/import`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
         },
+        // Writes to a page: admin.page.update, not export (F237).
         ADMIN_SECTIONS_IMPORT_TO_SECTION: {
             route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/import`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
         },
 
         // Admin data access management endpoints
         ADMIN_DATA_ACCESS_ROLES_LIST: {
             route: '/admin/data-access/roles',
-            permissions: [PERMISSIONS.ADMIN_ROLE_READ, PERMISSIONS.ADMIN_ROLE_UPDATE]
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
         },
         ADMIN_DATA_ACCESS_ROLE_EFFECTIVE_PERMISSIONS: {
             route: (roleId: number) => `/admin/data-access/roles/${roleId}/effective-permissions`,
-            permissions: [PERMISSIONS.ADMIN_ROLE_READ, PERMISSIONS.ADMIN_ROLE_UPDATE]
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
         },
         ADMIN_DATA_ACCESS_ROLE_PERMISSIONS_SET: {
             route: (roleId: number) => `/admin/data-access/roles/${roleId}/permissions`,
-            permissions: [PERMISSIONS.ADMIN_ROLE_READ, PERMISSIONS.ADMIN_ROLE_UPDATE]
+            permissions: [PERMISSIONS.ADMIN_ROLE_UPDATE]
         },
 
         // Admin registration codes endpoints
@@ -1163,15 +1151,15 @@ export const API_CONFIG = {
         // Admin audit management endpoints
         ADMIN_AUDIT_DATA_ACCESS_LIST: {
             route: '/admin/audit/data-access',
-            permissions: [PERMISSIONS.ADMIN_AUDIT_VIEW]
+            permissions: [PERMISSIONS.ADMIN_AUDIT_READ]
         },
         ADMIN_AUDIT_DATA_ACCESS_DETAIL: {
             route: (auditId: number) => `/admin/audit/data-access/${auditId}`,
-            permissions: [PERMISSIONS.ADMIN_AUDIT_VIEW]
+            permissions: [PERMISSIONS.ADMIN_AUDIT_READ]
         },
         ADMIN_AUDIT_DATA_ACCESS_STATS: {
             route: '/admin/audit/data-access/stats',
-            permissions: [PERMISSIONS.ADMIN_AUDIT_VIEW]
+            permissions: [PERMISSIONS.ADMIN_AUDIT_READ]
         },
 
         // Admin plugin manager endpoints

@@ -35,7 +35,7 @@ mobile frame with a fresh language-scoped session. Theme changes remain live in
 both directions.
 
 > Embed contract + the off-menu modal: [`sh-selfhelp_mobile` → developer/mobile-preview.md](../../../sh-selfhelp_mobile/docs/developer/mobile-preview.md).
-> Mint/exchange + the `admin.mobile_preview.view` permission: [`sh-selfhelp_backend` → reference/api/20-admin-system-maintenance.md](../../../sh-selfhelp_backend/docs/reference/api/20-admin-system-maintenance.md) and the migration `Version20260623193630`.
+> Mint/exchange + the `admin.mobile_preview.read` permission: [`sh-selfhelp_backend` → reference/api/20-admin-system-maintenance.md](../../../sh-selfhelp_backend/docs/reference/api/20-admin-system-maintenance.md) and the migration `Version20260623193630`.
 > Version contract: [`sh-selfhelp_backend` → developer/cross-repo-compatibility-matrix.md](../../../sh-selfhelp_backend/docs/developer/cross-repo-compatibility-matrix.md).
 
 ## Design goals
@@ -55,7 +55,7 @@ both directions.
    visibility are **remembered across a reload** of the preview tab
    (`livePreview.store`, the same `persist` pattern as `ui.store`).
 5. **CMS-only, never public.** The surface only exists for admins holding the
-   dedicated `admin.mobile_preview.view` permission; it can never appear on a
+   dedicated `admin.mobile_preview.read` permission; it can never appear on a
    normal public page.
 6. **Off-menu pages are reachable.** A page with no menu entry opens as a modal
    over home in the mobile pane (handled mobile-side — see below).
@@ -65,7 +65,7 @@ both directions.
 | Piece | Where | Notes |
 |-------|-------|-------|
 | Route | `/admin/preview/[[...slug]]` | Server Component. Optional catch-all carries the keyword (`/admin/preview/<keyword>`); no slug → `home`. **No `AdminShell`** — chrome-free. |
-| Gate (server) | `requireAdminPermission(PERMISSIONS.ADMIN_MOBILE_PREVIEW_VIEW)` | Authoritative — an unauthorized user is redirected to no-access before the client renders. |
+| Gate (server) | `requireAdminPermission(PERMISSIONS.ADMIN_MOBILE_PREVIEW_READ)` | Authoritative — an unauthorized user is redirected to no-access before the client renders. |
 | Gate (client) | `useCanViewMobilePreview()` | Hides the editor entry point for users without the permission. |
 | Entry point | `PageInspector` header → **"Live preview"** | `target="_blank"` to `/admin/preview/<keyword>`; shown only for a real (non-configuration) page and only when `useCanViewMobilePreview()` is true. |
 | Component | `LivePreview.tsx` | The client split-view + single top control bar; owns the canonical page, draft (via `PreviewModeContext`), visibility, the mobile viewport + reload key, and the mobile bridge listener. |
@@ -247,13 +247,16 @@ home (`modal=auto`, the default). The builder also accepts an explicit override
 
 ## Permission
 
-`admin.mobile_preview.view` is **separate** from `admin.mobile_preview.create`
-(which gates minting a code): a role can be allowed to **open** the live preview
-(`view`) and to **mint** sessions (`create`) independently. The permission is
-seeded and granted to the `admin` role by the core migration
-`Version20260623193630` (core `>=0.1.21`). On an older core the permission is
-absent, so the route + entry degrade to no-access — the version contract tracks
-this (`release-manifest.json#supports.core >=0.1.21`).
+`admin.mobile_preview.read` is the read right of the mobile-preview area: it
+lets a role **open** the live preview. `admin.mobile_preview.create` gates
+minting a code and **implies** the read right by name (the server adds it to a
+role that gets `create`, rule 4.13), so a role can hold the read right alone but
+never `create` without it. The permission was seeded as
+`admin.mobile_preview.view` by the core migration `Version20260623193630`
+(core `>=0.1.21`) and renamed to `.read` by core migration
+`Version20261119085933` (core `>=0.1.48`); on an older core the permission is
+absent under its new name, so the route + entry degrade to no-access — the
+version contract tracks this (`release-manifest.json#supports.core >=0.1.48`).
 
 ## Tests
 

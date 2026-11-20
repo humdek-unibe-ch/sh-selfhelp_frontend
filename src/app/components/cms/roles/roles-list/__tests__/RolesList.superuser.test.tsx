@@ -17,6 +17,8 @@ const roles: IRoleDetails[] = [
         permissions: [],
         users_count: 1,
         permissions_count: 0,
+        can_update: true,
+        can_delete: false,
     },
     {
         id: 2,
@@ -26,6 +28,8 @@ const roles: IRoleDetails[] = [
         permissions: [],
         users_count: 0,
         permissions_count: 0,
+        can_update: true,
+        can_delete: true,
     },
 ];
 

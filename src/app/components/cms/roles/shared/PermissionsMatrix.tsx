@@ -98,8 +98,8 @@ export function PermissionsMatrix({
                 mb="md"
             />
 
-            <Table striped highlightOnHover style={{ tableLayout: 'auto' }}>
-                <TableThead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
+            <Table striped highlightOnHover stickyHeader style={{ tableLayout: 'auto' }}>
+                <TableThead>
                     <TableTr>
                         <TableTh style={{ minWidth: 200 }}>
                             <Group gap="xs">

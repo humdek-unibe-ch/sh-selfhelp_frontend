@@ -9,6 +9,8 @@ import {
     stringifyCrudPermissions,
     hasAnyCrudPermission,
     hasAllCrudPermissions,
+    setCrudTick,
+    DEFAULT_CRUD_PERMISSIONS,
 } from '../permissions.utils';
 import { PERMISSIONS } from '../../types/auth/jwt-payload.types';
 
@@ -62,5 +64,25 @@ describe('PermissionChecker', () => {
         ]);
         expect(creator.canReadRegistrationCodes()).toBe(true);
         expect(creator.canCreateRegistrationCodes()).toBe(true);
+    });
+});
+
+describe('setCrudTick', () => {
+    const none = { ...DEFAULT_CRUD_PERMISSIONS };
+
+    it('ticks view along with update, delete or create, because none works without it', () => {
+        for (const right of ['update', 'delete', 'create'] as const) {
+            expect(setCrudTick(none, right, true)).toMatchObject({ view: true, [right]: true });
+        }
+    });
+
+    it('clears every right when view is unticked', () => {
+        const full = { ...none, view: true, create: true, update: true, delete: true };
+        expect(stringifyCrudPermissions(setCrudTick(full, 'view', false))).toBe(0);
+    });
+
+    it('keeps view when another right is unticked', () => {
+        const viewUpdate = { ...none, view: true, update: true };
+        expect(setCrudTick(viewUpdate, 'update', false)).toMatchObject({ view: true, update: false });
     });
 });

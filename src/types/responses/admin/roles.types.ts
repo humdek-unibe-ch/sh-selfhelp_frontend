@@ -11,6 +11,17 @@ export interface IRoleDetails {
   permissions: IRolePermission[];
   users_count: number;
   permissions_count: number;
+  /**
+   * The signed-in person may change this role (rule 4.6f: every right in it is
+   * one they hold, and they hold `admin.role.update`). Set by the server per
+   * caller; the screen draws edit and the grant modals from it.
+   */
+  can_update: boolean;
+  /**
+   * The signed-in person may delete this role (rule 4.6f, `admin.role.delete`,
+   * no users in it, not the full-access role). Set by the server per caller.
+   */
+  can_delete: boolean;
 }
 
 export interface IRolePermission {
@@ -63,7 +74,7 @@ export interface IRoleDataAccessPermissions {
 export interface IRoleEffectivePermissionDetails {
   id_roles: number;
   role_name: string;
-  id_resourceTypes: number;
+  id_resource_types: number;
   resource_id: number;
   resource_type_name: string;
   unified_permissions: number;
