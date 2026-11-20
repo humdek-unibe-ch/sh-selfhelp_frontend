@@ -27,6 +27,7 @@ import { useAuth } from '../../../../../../../hooks/useAuth';
 import { usePluginMenuItems } from '../../../../../frontend/plugin-runtime';
 import { pageHasMenuMembership } from '../../../../../../../utils/admin-navigation-membership';
 import type { INavigationMembershipBadge } from '../../../../../../../types/responses/admin/admin.types';
+import { getAdminScreen, type TAdminScreenId } from '../../../../../../../config/admin-screens';
 
 interface ISearchableItem {
     id: string;
@@ -70,6 +71,35 @@ interface IAdminPageData {
     }>;
 }
 
+/** Search-only presentation of a registry screen (label, path, gate come from the registry). */
+interface ISearchScreenEntry {
+    id: string;
+    screenId: TAdminScreenId;
+    icon: React.ReactNode;
+    category: string;
+    keywords: string[];
+}
+
+// System tools are listed first, then the other static screens (search order
+// breaks score ties, so it is kept as it was).
+const SEARCH_SYSTEM_SCREENS: ISearchScreenEntry[] = [
+    { id: 'languages', screenId: 'languages', icon: <IconLanguage size={16} />, category: 'System Tools', keywords: ['languages', 'locale', 'translation', 'i18n'] },
+    { id: 'data', screenId: 'data-browser', icon: <IconDatabase size={16} />, category: 'Data Management', keywords: ['data', 'database', 'tables', 'browse'] },
+    { id: 'audit-logs', screenId: 'audit-logs', icon: <IconDatabase size={16} />, category: 'System Tools', keywords: ['audit', 'logs', 'security', 'access', 'monitoring', 'data access'] },
+    { id: 'cache', screenId: 'cache', icon: <IconDatabase size={16} />, category: 'Configuration', keywords: ['cache', 'performance', 'memory'] },
+];
+
+const SEARCH_STATIC_SCREENS: ISearchScreenEntry[] = [
+    { id: 'dashboard', screenId: 'dashboard', icon: <IconSettings size={16} />, category: 'Admin', keywords: ['dashboard', 'overview', 'home'] },
+    { id: 'users', screenId: 'users', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['users', 'accounts', 'people'] },
+    { id: 'groups', screenId: 'groups', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['groups', 'teams', 'permissions'] },
+    { id: 'roles', screenId: 'roles', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['roles', 'permissions', 'access'] },
+    { id: 'assets', screenId: 'assets', icon: <IconPhoto size={16} />, category: 'Content', keywords: ['assets', 'files', 'media', 'images'] },
+    { id: 'unused-sections', screenId: 'unused-sections', icon: <IconDatabase size={16} />, category: 'Content', keywords: ['unused', 'sections', 'cleanup'] },
+    { id: 'actions', screenId: 'actions', icon: <IconPlayerPlay size={16} />, category: 'Automation', keywords: ['actions', 'automation', 'triggers'] },
+    { id: 'scheduled-jobs', screenId: 'scheduled-jobs', icon: <IconPlayerPlay size={16} />, category: 'Automation', keywords: ['jobs', 'scheduled', 'cron', 'tasks'] },
+];
+
 interface INavigationSearchProps {
     adminPagesData: IAdminPageData;
     onItemSelect: () => void;
@@ -96,59 +126,24 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
     const searchableItems = useMemo<ISearchableItem[]>(() => {
         const items: ISearchableItem[] = [];
 
-        // Static admin functions - only include those the user has permission to access
-        const staticFunctions = [];
-
-        // Always include dashboard for admin users
-        staticFunctions.push({ id: 'dashboard', label: 'Dashboard', href: '/admin', icon: <IconSettings size={16} />, category: 'Admin', keywords: ['dashboard', 'overview', 'home'] });
-
-        // User Management functions - check permissions
-        if (permissionChecker?.canManageUsers()) {
-            if (permissionChecker.canReadUsers()) {
-                staticFunctions.push({ id: 'users', label: 'Users', href: '/admin/users', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['users', 'accounts', 'people'] });
-            }
-            if (permissionChecker.canReadGroups()) {
-                staticFunctions.push({ id: 'groups', label: 'Groups', href: '/admin/groups', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['groups', 'teams', 'permissions'] });
-            }
-            if (permissionChecker.canReadRoles()) {
-                staticFunctions.push({ id: 'roles', label: 'Roles', href: '/admin/roles', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['roles', 'permissions', 'access'] });
-            }
-        }
-
-        // Content functions - check permissions
-        if (permissionChecker?.canManageAssets()) {
-            if (permissionChecker.canReadAssets()) {
-                staticFunctions.push({ id: 'assets', label: 'Assets', href: '/admin/assets', icon: <IconPhoto size={16} />, category: 'Content', keywords: ['assets', 'files', 'media', 'images'] });
-            }
-            if (permissionChecker.canDeleteSections()) {
-                staticFunctions.push({ id: 'unused-sections', label: 'Unused Sections', href: '/admin/unused-sections', icon: <IconDatabase size={16} />, category: 'Content', keywords: ['unused', 'sections', 'cleanup'] });
-            }
-        }
-
-        // Automation functions - check permissions
-        if (permissionChecker?.canManageActions() || permissionChecker?.canManageScheduledJobs()) {
-            if (permissionChecker.canReadActions()) {
-                staticFunctions.push({ id: 'actions', label: 'Actions', href: '/admin/actions', icon: <IconPlayerPlay size={16} />, category: 'Automation', keywords: ['actions', 'automation', 'triggers'] });
-            }
-            if (permissionChecker.canReadScheduledJobs()) {
-                staticFunctions.push({ id: 'scheduled-jobs', label: 'Scheduled Jobs', href: '/admin/scheduled-jobs', icon: <IconPlayerPlay size={16} />, category: 'Automation', keywords: ['jobs', 'scheduled', 'cron', 'tasks'] });
-            }
-        }
-
-        // System Tools functions - check permissions
-        const systemToolFunctions = [];
-        if (permissionChecker?.canManageLanguages()) {
-            systemToolFunctions.push({ id: 'languages', label: 'Languages', href: '/admin/languages', icon: <IconLanguage size={16} />, category: 'System Tools', keywords: ['languages', 'locale', 'translation', 'i18n'] });
-        }
-        if (permissionChecker?.canAccessDataBrowser()) {
-            systemToolFunctions.push({ id: 'data', label: 'Data Browser', href: '/admin/data', icon: <IconDatabase size={16} />, category: 'Data Management', keywords: ['data', 'database', 'tables', 'browse'] });
-        }
-        if (permissionChecker?.canViewAuditLogs()) {
-            systemToolFunctions.push({ id: 'audit-logs', label: 'Audit Logs', href: '/admin/data-access', icon: <IconDatabase size={16} />, category: 'System Tools', keywords: ['audit', 'logs', 'security', 'access', 'monitoring', 'data access'] });
-        }
-        if (permissionChecker?.canReadCache()) {
-            systemToolFunctions.push({ id: 'cache', label: 'Cache Management', href: '/admin/cache', icon: <IconDatabase size={16} />, category: 'Configuration', keywords: ['cache', 'performance', 'memory'] });
-        }
+        // Static admin screens come from the screen registry: label, path and
+        // gate (its one read permission, F223/F241). Search adds only its own
+        // icon, category and keywords.
+        const toSearchItems = (entries: ISearchScreenEntry[]): ISearchableItem[] =>
+            entries.flatMap((entry) => {
+                const screen = getAdminScreen(entry.screenId);
+                if (!hasPermission(screen.read_permission)) return [];
+                return [{
+                    id: entry.id,
+                    label: screen.label,
+                    href: screen.path,
+                    icon: entry.icon,
+                    category: entry.category,
+                    keywords: entry.keywords,
+                }];
+            });
+        const staticFunctions = toSearchItems(SEARCH_STATIC_SCREENS);
+        const systemToolFunctions = toSearchItems(SEARCH_SYSTEM_SCREENS);
         // Plugin Management lives under System Tools — searchable by
         // every word an admin would reach for: plugins, addon, extension,
         // module, marketplace, install, update, uninstall, doctor, safe-mode,
