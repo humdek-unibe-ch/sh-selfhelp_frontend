@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-03.
+Last verified: 2026-11-19.
 Source of truth: Runtime code, configuration, and tests in this repository.
 
 ## Permission Architecture
@@ -129,16 +129,44 @@ sidebar link and a directly typed URL always resolve to the same decision.
 | `/admin/roles` | `admin.role.read` |
 | `/admin/registration-codes` | `admin.registration_code.read` |
 | `/admin/assets` | `admin.asset.read` |
-| `/admin/unused-sections` | `admin.section.delete` |
+| `/admin/unused-sections` | `admin.section.read` (deleting stays `admin.section.delete`) |
 | `/admin/pages/*` | `admin.page.read` (`pages/layout.tsx`) |
 | `/admin/actions` | `admin.action.read` |
 | `/admin/scheduled-jobs`, `/admin/scheduled-jobs/calendar` | `admin.scheduled_job.read` |
-| `/admin/languages` | `admin.settings` |
+| `/admin/languages` | `admin.language.read` (changes need `admin.language.update`) |
 | `/admin/data` | `admin.data.read` |
-| `/admin/data-access` | `admin.audit.view` |
+| `/admin/data-access` | `admin.audit.read` |
 | `/admin/cache` | `admin.cache.read` |
+| `/admin/preview/[[...slug]]` | `admin.mobile_preview.read` |
 | `/admin/plugins`, `/admin/plugins/[id]` | any of `admin.plugins.manage` / `.execute` / `.purge` |
 | `/admin/plugins-host/[pluginId]/[slug]` | `admin.access` plus the permission the plugin declares for that page in its manifest (`adminPages[].permission`), checked on the server by `requirePluginAdminPageAccess` in `src/app/_lib/plugin-admin-page-guard.ts`; the nav entry uses the same permission. An unknown plugin or slug keeps only `admin.access` and the host shows its not-found state |
+
+### Write controls follow the route's right
+
+A screen opens with its area's read right; each button that writes is drawn only
+for a person who holds the right of the route it calls (the same right as in
+`src/config/api.config.ts`). Without any write right the screen is read-only.
+
+| Screen | Control | Right |
+|--------|---------|-------|
+| Languages | Add Language, edit, delete | `admin.language.update` (one right for all three) |
+| Actions | New Action, edit | `admin.action.update` |
+| Actions | delete | `admin.action.delete` |
+| Cache | Clear all / category / user / API routes | `admin.cache.clear` |
+| Cache | Reset Statistics | `admin.cache.manage` (the card is left out without either right) |
+| Scheduled jobs (list, calendar, details) | Execute Job | `admin.scheduled_job.execute` |
+| Scheduled jobs | Delete Job, row selection and bulk delete | `admin.scheduled_job.delete` |
+| Page editor | Add Section, move, section actions, Save, fields, Restore | `rights.can_update` of the page read (`admin.page.update` + update grant on the page) |
+| Page editor | Publish Changes | `rights.can_publish` (`admin.page_version.publish` + update grant) |
+| Page editor | Delete Version | `admin.page_version.delete` + `rights.can_update` |
+| Page editor | Delete Page | `rights.can_delete` (`admin.page.delete` + delete grant); Create Child Page needs `admin.page.create`; Delete section also `admin.section.delete` |
+
+The page editor reads `rights` through `PageRightsProvider` (`src/app/components/cms/pages/page-rights/`).
+Without `can_update` it opens read-only: `PageReadOnlyBanner` says what is
+missing, and `ReadOnlyFieldset` (a disabled `<fieldset>`) disables the fields
+while section toggles, language tabs and the field search keep working.
+`useAclVersionWatcher` marks `PAGE_FIELDS_ALL` stale when the person's roles
+change, so the flags follow.
 
 ### Adding a new admin page
 
@@ -172,6 +200,37 @@ server `layout.tsx` in that route segment instead.
   background refetch) by bouncing to `/login`.
 - **Permission-aware API client** (below) — blocks calls the user can't make.
 - **Backend** — every `/cms-api` route re-validates permissions server-side.
+
+## Roles screen: drawn from what the server says
+
+A person may hand out only what they hold, so the roles screen does not guess
+from permission names: the server sends, per signed-in person, what they may do
+and the screen draws exactly that.
+
+| Where | Field | Drawn as |
+|-------|-------|----------|
+| Role item (`GET /admin/roles`, `GET /admin/roles/{id}`) | `can_update` | **Edit**, the page / data table / group grant buttons, and the role form's Save |
+| Role item | `can_delete` | **Delete** (also off for the full-access role and for a role that still has users) |
+| Permission item (`GET /admin/permissions`) | `can_assign` | The permission's box is disabled in the role form's grid: the person does not hold it |
+| Permission item | `implied_read` | The area's read permission is ticked and locked while another right of that area is ticked |
+
+- A missing flag counts as "no", so a button never guesses.
+- The role form shows the permissions as a grid (`RolePermissionGrid`, since
+  2026-11-19): one row per area (`admin.group` -> "Group", plugin areas too), the
+  columns Read, Create, Update, Delete, and an Other cell for every other action
+  (`acl`, `export`, `impersonate`). The search filters rows by area name,
+  description or key and stays while boxes are ticked. Each box is named by the
+  description and the key (the key alone when there is no description); a locked
+  box says why on hover and in its accessible description.
+- The role form leaves `permission_ids` out of its request when the person lacks
+  `admin.role.permissions`: the server treats any list as a change of the
+  permission list.
+- Both lists are read per person: `useAclVersionWatcher` marks the `roles` and
+  `permissions` roots stale when the signed-in person or their roles change, and
+  the readers refetch when invalidated.
+- A refused change (403) shows the server's own `error` text, read with
+  `getApiErrorText` (`src/utils/mutation-error-handler.ts`); the Page access
+  dialog of a group the person may not read shows that text in place of the list.
 
 ## Permission-Aware API Client Wrapper
 
