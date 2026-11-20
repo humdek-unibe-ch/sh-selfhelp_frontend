@@ -27,6 +27,10 @@ Technical documentation for the Next.js frontend. See [../README.md](../README.m
 - [asset-management.md](asset-management.md) - Admin assets: uuid identity, edit/replace, default alt, and per-asset group access.
 - [form-lists.md](form-lists.md) - The `entry-form-list` and `data-view` styles: server-rendered first paint, URL state, cache identity, writes, unsaved input, history and the visual list editors.
 
+## Testing
+
+- [e2e-profiles.md](e2e-profiles.md) - The Playwright profiles run through `scripts/e2e-stack.mjs` (golden, a11y, visual, admin, plugin, access) and the least-privilege walk.
+
 ## Operations and debugging
 
 - [debug-configuration.md](debug-configuration.md) - Debug configuration.
