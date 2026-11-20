@@ -24,9 +24,10 @@ class PermissionDeniedError extends Error {
         public userPermissions: string[],
         public endpoint: string
     ) {
+        // A sentence for people: what is missing, never the whole list of what
+        // the user holds (that goes only to the debug log at the throw site).
         super(
-            `Permission denied. Required: [${requiredPermissions.join(', ')}]. ` +
-            `User has: [${userPermissions.join(', ')}]`
+            `You do not have permission to do this. It needs ${requiredPermissions.join(' and ')}.`
         );
         this.name = 'PermissionDeniedError';
     }

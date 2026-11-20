@@ -31,6 +31,8 @@ import {
     IconInfoCircle
 } from '@tabler/icons-react';
 import { useUnusedSections } from '../../../../../hooks/useSectionUtility';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import { DeleteUnusedSectionModal } from '../delete-unused-section-modal/DeleteUnusedSectionModal';
 import { DeleteAllUnusedSectionsModal } from '../delete-all-unused-sections-modal/DeleteAllUnusedSectionsModal';
 import type { IUnusedSection } from '../../../../../types/responses/admin/section-utility.types';
@@ -41,6 +43,9 @@ export function UnusedSectionsPage() {
     const [deleteAllModalOpened, setDeleteAllModalOpened] = useState(false);
 
     const { data: unusedSections, isLoading, error, refetch } = useUnusedSections();
+    // Deleting is a write: its controls are shown only to holders of the route right (rule 4.14).
+    const { permissionChecker } = useAuthUser();
+    const canDeleteSections = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_SECTION_DELETE) ?? false;
 
     // Filter sections based on search query
     const filteredSections = useMemo(() => {
@@ -97,7 +102,7 @@ export function UnusedSectionsPage() {
                             </Text>
                         </Box>
 
-                        {filteredSections.length > 0 && (
+                        {canDeleteSections && filteredSections.length > 0 && (
                             <Button
                                 leftSection={<IconTrash size={16} />}
                                 color="red"
@@ -197,15 +202,17 @@ export function UnusedSectionsPage() {
                                                         ID: {section.id}
                                                     </Text>
                                                 </Box>
-                                                <ActionIcon aria-label={`Delete section ${section.id}`}
-                                                    color="red"
-                                                    variant="subtle"
-                                                    size="sm"
-                                                    onClick={() => handleDeleteSection(section)}
-                                                    title="Delete section"
-                                                >
-                                                    <IconTrash size={14} />
-                                                </ActionIcon>
+                                                {canDeleteSections && (
+                                                    <ActionIcon aria-label={`Delete section ${section.id}`}
+                                                        color="red"
+                                                        variant="subtle"
+                                                        size="sm"
+                                                        onClick={() => handleDeleteSection(section)}
+                                                        title="Delete section"
+                                                    >
+                                                        <IconTrash size={14} />
+                                                    </ActionIcon>
+                                                )}
                                             </Group>
 
                                             {/* Section Details */}

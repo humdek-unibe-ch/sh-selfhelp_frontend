@@ -53,6 +53,7 @@ import { type IScheduledJobFilters, type IScheduledJob, type IScheduledJobTransa
 import classes from './ScheduledJobsList.module.css';
 import { getJobStatusColor } from '../utils/job-status';
 import { ScheduledJobActionsMenuItems } from '../utils/ScheduledJobActionsMenuItems';
+import { useScheduledJobRights } from '../utils/useScheduledJobRights';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { PageHeader } from '../../../shared/common/PageHeader';
@@ -165,6 +166,8 @@ export function ScheduledJobsList({
     const [params, setParams] = useState<IScheduledJobFilters>(filterParams);
 
     const [selectedJobs, setSelectedJobs] = useState<Set<number>>(new Set());
+    // Selecting rows only serves the bulk delete, so both need admin.scheduled_job.delete.
+    const { canDelete } = useScheduledJobRights();
     const [expandedJobs, setExpandedJobs] = useState<Set<number>>(new Set());
 
     // Real API calls
@@ -323,7 +326,7 @@ export function ScheduledJobsList({
 
 
     // Define table columns
-    const columns = useMemo<ColumnDef<IScheduledJob>[]>(
+    const allColumns = useMemo<ColumnDef<IScheduledJob>[]>(
       () => [
         {
           id: "expand",
@@ -555,6 +558,11 @@ export function ScheduledJobsList({
         handleToggleExpand,
       ],
     );
+    // Without the delete right the selection column goes with the bulk delete it serves.
+    const columns = useMemo(
+      () => (canDelete ? allColumns : allColumns.filter((column) => column.id !== 'select')),
+      [allColumns, canDelete],
+    );
 
     // Initialize table
     // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by design; React Compiler intentionally skips memoizing here
@@ -591,7 +599,7 @@ export function ScheduledJobsList({
             badge={pagination.totalCount}
             badgeAriaLabel="jobs"
             >
-            {selectedJobs.size > 0 && (
+            {canDelete && selectedJobs.size > 0 && (
                 <Button
                 color="red"
                 leftSection={<IconTrash size={16} />}

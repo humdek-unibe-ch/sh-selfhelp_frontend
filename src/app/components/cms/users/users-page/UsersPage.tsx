@@ -25,7 +25,6 @@ import {
   useCanUpdateUsers,
   useCanDeleteUsers,
   useCanBlockUsers,
-  useCanUnblockUsers,
   useCanImpersonateUsers
 } from '../../../../../hooks/usePermissionChecks';
 import { Alert, Box } from '@mantine/core';
@@ -41,7 +40,6 @@ export function UsersPage() {
   const canUpdateUsers = useCanUpdateUsers();
   const canDeleteUsers = useCanDeleteUsers();
   const canBlockUsers = useCanBlockUsers();
-  const canUnblockUsers = useCanUnblockUsers();
   const canImpersonateUsers = useCanImpersonateUsers();
 
   // Always call hooks at the top, before any conditional returns
@@ -190,7 +188,7 @@ export function UsersPage() {
         onCreateUser={canCreateUsers ? handleCreateUser : undefined}
         onEditUser={canUpdateUsers ? handleEditUser : undefined}
         onDeleteUser={canDeleteUsers ? handleDeleteUser : undefined}
-        onToggleBlock={(canBlockUsers || canUnblockUsers) ? handleToggleBlock : undefined}
+        onToggleBlock={canBlockUsers ? handleToggleBlock : undefined}
         onSendActivationMail={canUpdateUsers ? handleSendActivationMail : undefined}
         onImpersonateUser={canImpersonateUsers ? handleImpersonateUser : undefined}
         onCleanUserData={canUpdateUsers ? handleCleanUserData : undefined}
@@ -199,7 +197,8 @@ export function UsersPage() {
           canUpdate: canUpdateUsers,
           canDelete: canDeleteUsers,
           canBlock: canBlockUsers,
-          canUnblock: canUnblockUsers,
+          // One right for both directions: the block route needs admin.user.block.
+          canUnblock: canBlockUsers,
           canImpersonate: canImpersonateUsers,
         }}
       />

@@ -10,6 +10,10 @@ export interface IGroupDetails {
   add_to_new_pages: boolean;
   requires_2fa: boolean;
   users_count: number;
+  /** The caller may update this group: `admin.group.update` and the update grant on it (rule 4.11). Sent by the list only; missing counts as no. */
+  can_update?: boolean;
+  /** The caller may delete this group: `admin.group.delete` and the delete grant on it (rule 4.11). Sent by the list only; missing counts as no. */
+  can_delete?: boolean;
   acls: IGroupPageAcl[];
 }
 

@@ -15,6 +15,17 @@ import { IconTrash, IconRefresh, IconUser, IconDatabase, IconX, IconRoute } from
 import { useClearAllCachesMutation, useClearCacheCategoryMutation, useClearUserCacheMutation, useResetCacheStatsMutation } from '../../../../../hooks/useCache';
 import { useClearApiRoutesCacheMutation } from '../../../../../hooks/useSectionUtility';
 import { useUsers } from '../../../../../hooks/useUsers';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
+
+/** Which cache controls the signed-in person may use: clearing needs admin.cache.clear, resetting the statistics admin.cache.manage. */
+export function useCacheControlRights(): { canClear: boolean; canManage: boolean } {
+    const { permissionChecker } = useAuthUser();
+    return {
+        canClear: permissionChecker?.hasPermission(PERMISSIONS.ADMIN_CACHE_CLEAR) ?? false,
+        canManage: permissionChecker?.hasPermission(PERMISSIONS.ADMIN_CACHE_MANAGE) ?? false,
+    };
+}
 
 type TSupportedCacheCategory = 'pages' | 'users' | 'sections' | 'languages' | 'groups' | 'roles' | 'permissions' | 'lookups' | 'assets' | 'frontend_user' | 'cms_preferences' | 'scheduled_jobs';
 
@@ -36,6 +47,7 @@ const CACHE_CATEGORIES: { value: TSupportedCacheCategory; label: string }[] = [
 export function CacheManagementCard() {
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [selectedUserId, setSelectedUserId] = useState<string>('');
+    const { canClear, canManage } = useCacheControlRights();
 
     const clearAllCachesMutation = useClearAllCachesMutation();
     const clearCacheCategoryMutation = useClearCacheCategoryMutation();
@@ -107,6 +119,7 @@ export function CacheManagementCard() {
                     Cache operations may temporarily impact application performance.
                 </Alert>
 
+                {canClear && (<>
                 {/* Clear All Caches */}
                 <Stack gap="xs">
                     <Button
@@ -204,9 +217,10 @@ export function CacheManagementCard() {
                 >
                     Clear API Routes Cache
                 </Button>
+                </>)}
 
                 {/* Reset Cache Statistics */}
-                <Button
+                {canManage && <Button
                     variant="outline"
                     color="gray"
                     leftSection={<IconRefresh size={16} />}
@@ -216,7 +230,7 @@ export function CacheManagementCard() {
                     fullWidth
                 >
                     Reset Statistics
-                </Button>
+                </Button>}
             </Stack>
         </Card>
     );

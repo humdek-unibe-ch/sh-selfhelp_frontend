@@ -17,6 +17,8 @@ import { Button, Paper, Stack } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
 import { useAdminLanguages } from '../../../../../hooks/useLanguages';
 import { PageHeader } from '../../../shared/common/PageHeader';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 
 export function LanguagesPage() {
     const [languageFormModal, setLanguageFormModal] = useState<{
@@ -42,6 +44,9 @@ export function LanguagesPage() {
     });
 
     const { languages } = useAdminLanguages();
+    // admin.language.update covers create, update and delete; without it the screen is read-only.
+    const { permissionChecker } = useAuthUser();
+    const canChange = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_LANGUAGE_UPDATE) ?? false;
 
     // Mutations
     const _createLanguageMutation = useCreateLanguageMutation();
@@ -101,17 +106,19 @@ export function LanguagesPage() {
             badge={languages?.length ?? 0}
             badgeAriaLabel="languages"
           >
-            <Button
-              leftSection={<IconPlus size={16} />}
-              onClick={handleCreateLanguage}
-            >
-              Add Language
-            </Button>
+            {canChange && (
+              <Button
+                leftSection={<IconPlus size={16} />}
+                onClick={handleCreateLanguage}
+              >
+                Add Language
+              </Button>
+            )}
           </PageHeader>
           <LanguagesList
-            onCreateLanguage={handleCreateLanguage}
-            onEditLanguage={handleEditLanguage}
-            onDeleteLanguage={handleDeleteLanguage}
+            onCreateLanguage={canChange ? handleCreateLanguage : undefined}
+            onEditLanguage={canChange ? handleEditLanguage : undefined}
+            onDeleteLanguage={canChange ? handleDeleteLanguage : undefined}
           />
 
           <LanguageFormModal

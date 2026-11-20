@@ -17,6 +17,8 @@ import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { AdminTableFooter, adminTableClasses as tableStyles } from '../../shared/admin-table';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 
 export function ActionsPage() {
   const [filterParams, setFilterParams] = useState<IActionsListParams>({
@@ -35,6 +37,11 @@ export function ActionsPage() {
   const deleteMutation = useDeleteAction();
   const triggerTypes = useLookupsByType('actionTriggerTypes');
   const { data: dataTablesData } = useDataTables();
+
+  // Create and edit need admin.action.update, delete admin.action.delete (the routes' rights).
+  const { permissionChecker } = useAuthUser();
+  const canUpdate = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ACTION_UPDATE) ?? false;
+  const canDelete = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_ACTION_DELETE) ?? false;
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editAction, setEditAction] = useState<IActionDetails | null>(null);
@@ -90,17 +97,21 @@ const dataTableOptions = useMemo(() => {
         <Table.Td className={tableStyles.tableCell}>{action.data_table?.displayName || action.data_table?.name || ''}</Table.Td>
         <Table.Td className={tableStyles.tableCell}>
           <Group gap={2} wrap="nowrap" justify="flex-end" className={tableStyles.actionsCell}>
-            <Tooltip label="Edit action" withArrow>
-              <ActionIcon variant="subtle" color="gray" size="sm" aria-label="Edit action" onClick={() => setEditAction(action)}><IconEdit size={16} /></ActionIcon>
-            </Tooltip>
-            <Tooltip label="Delete action" withArrow>
-              <ActionIcon variant="subtle" color="red" size="sm" aria-label="Delete action" onClick={() => setDeleteTarget(action)}><IconTrash size={16} /></ActionIcon>
-            </Tooltip>
+            {canUpdate && (
+              <Tooltip label="Edit action" withArrow>
+                <ActionIcon variant="subtle" color="gray" size="sm" aria-label="Edit action" onClick={() => setEditAction(action)}><IconEdit size={16} /></ActionIcon>
+              </Tooltip>
+            )}
+            {canDelete && (
+              <Tooltip label="Delete action" withArrow>
+                <ActionIcon variant="subtle" color="red" size="sm" aria-label="Delete action" onClick={() => setDeleteTarget(action)}><IconTrash size={16} /></ActionIcon>
+              </Tooltip>
+            )}
           </Group>
         </Table.Td>
       </Table.Tr>
     ));
-  }, [data]);
+  }, [data, canUpdate, canDelete]);
 
   return (
     <Paper p="md" radius="md">
@@ -112,12 +123,14 @@ const dataTableOptions = useMemo(() => {
           badge={data?.pagination?.totalCount ?? 0}
           badgeAriaLabel="actions"
         >
-          <Button
-            leftSection={<IconPlus size={16} />}
-            onClick={() => setCreateOpen(true)}
-          >
-            New Action
-          </Button>
+          {canUpdate && (
+            <Button
+              leftSection={<IconPlus size={16} />}
+              onClick={() => setCreateOpen(true)}
+            >
+              New Action
+            </Button>
+          )}
         </PageHeader>
 
         {/* Filters Card — search + selects on the same row as the actions. */}
