@@ -144,15 +144,6 @@ export const API_CONFIG = {
             route: (keyword: string) => `/pages/by-keyword/${encodeURIComponent(keyword)}`,
             permissions: []
         },
-        /**
-         * DB-driven public path resolution (issue #30). Static route only —
-         * callers must use shared `buildPagesResolvePath({ path, languageId,
-         * preview })` so query encoding matches SSR and mobile.
-         */
-        PAGES_RESOLVE: {
-            route: SHARED_ROUTE_ALIGNMENT.PAGES_RESOLVE_ROUTE,
-            permissions: []
-        },
         NAVIGATION_GET: {
             route: (languageId?: number) =>
                 languageId ? `/navigation?language_id=${languageId}` : '/navigation',
@@ -183,10 +174,6 @@ export const API_CONFIG = {
         // Admin pages endpoints
         ADMIN_PAGES_GET_ALL: {
             route: '/admin/pages',
-            permissions: [PERMISSIONS.ADMIN_PAGE_READ]
-        },
-        ADMIN_PAGES_GET_ALL_WITH_LANGUAGE: {
-            route: (languageId: number) => `/admin/pages/language/${languageId}`,
             permissions: [PERMISSIONS.ADMIN_PAGE_READ]
         },
         ADMIN_PAGES_GET_ONE: {
@@ -1018,12 +1005,6 @@ export const API_CONFIG = {
                 strip(SHARED_ENDPOINTS.LISTS.VERSION_FILE(sectionId, recordId, version, fieldKey)),
             permissions: []
         },
-        FORM_LIST_CURRENT_FILE: {
-            route: (sectionId: number, recordId: number, fieldKey: string) =>
-                strip(SHARED_ENDPOINTS.LISTS.CURRENT_FILE(sectionId, recordId, fieldKey)),
-            permissions: []
-        },
-
         // Admin data-browser record history (contract 6)
         ADMIN_DATA_RECORD_HISTORY: {
             route: (tableName: string, recordId: number) =>
@@ -1035,22 +1016,11 @@ export const API_CONFIG = {
                 strip(SHARED_ENDPOINTS.ADMIN_DATA_HISTORY.VERSION(tableName, recordId, version)),
             permissions: [PERMISSIONS.ADMIN_DATA_READ]
         },
-        ADMIN_DATA_RECORD_COMPARE: {
-            route: (tableName: string, recordId: number) =>
-                strip(SHARED_ENDPOINTS.ADMIN_DATA_HISTORY.COMPARE(tableName, recordId)),
-            permissions: [PERMISSIONS.ADMIN_DATA_READ]
-        },
         ADMIN_DATA_RECORD_RESTORE: {
             route: (tableName: string, recordId: number) =>
                 strip(SHARED_ENDPOINTS.ADMIN_DATA_HISTORY.RESTORE(tableName, recordId)),
             permissions: [PERMISSIONS.ADMIN_DATA_READ]
         },
-        ADMIN_DATA_RECORD_VERSION_FILE: {
-            route: (tableName: string, recordId: number, version: number, fieldKey: string) =>
-                strip(SHARED_ENDPOINTS.ADMIN_DATA_HISTORY.VERSION_FILE(tableName, recordId, version, fieldKey)),
-            permissions: [PERMISSIONS.ADMIN_DATA_READ]
-        },
-
         // Admin section creation endpoints
         ADMIN_PAGES_CREATE_SECTION: {
             route: (pageId: number) => `/admin/pages/${pageId}/sections/create`,
@@ -1276,12 +1246,6 @@ export const API_CONFIG = {
         ADMIN_PLUGINS_SAFE_MODE_DISABLE: {
             route: '/admin/plugins/safe-mode/disable',
             permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
-        },
-
-        // Public plugin manifest endpoint (read-only, frontends sync from here)
-        PLUGINS_MANIFEST: {
-            route: '/plugins/manifest',
-            permissions: []
         },
 
     },
