@@ -24,6 +24,32 @@ No engineering diary, no implementation detail — that belongs in
   bottom tabs); blank clears to unlimited. Badge and blocked-add copy mention
   raising the limit; soft over-limit keeps extras stored. User guide:
   [docs/user/menus.md](docs/user/menus.md).
+- The admin menu search finds **Jobs Calendar** for users who may read
+  scheduled jobs.
+- The asset role pickers (upload, edit, folder access) show a role you do not
+  fully hold disabled, with the text "You do not hold everything this role
+  holds"; a role like that already on the asset stays ticked and cannot be
+  removed. Needs core with `fully_held` on role items.
+- The least-privilege walk opens the role form as `qa.roleupdate` (role
+  editor without `admin.permission.read`).
+
+**Changed**
+
+- The role form shows permission names for a role editor: the permission list
+  endpoint opens for `admin.permission.read` or `admin.role.update`, and the
+  client gate lets a call through when you hold any one of the rights an
+  endpoint lists.
+- The permissions guide now says page access for a group is one right,
+  `select`. The release-manifest test names `@selfhelp/shared` 1.27.0, the
+  version the package pins.
+
+**Removed**
+
+- Six unused API endpoint entries (`PAGES_RESOLVE`,
+  `ADMIN_PAGES_GET_ALL_WITH_LANGUAGE`, `FORM_LIST_CURRENT_FILE`,
+  `ADMIN_DATA_RECORD_COMPARE`, `ADMIN_DATA_RECORD_VERSION_FILE`,
+  `PLUGINS_MANIFEST`) and a 403 branch in the API client that never ran
+  (the backend does not send `error_type`). No behaviour change.
 
 ## v0.1.75 — 2026-11-19
 
