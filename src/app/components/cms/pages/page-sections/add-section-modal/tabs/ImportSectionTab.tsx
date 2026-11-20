@@ -98,11 +98,16 @@ export function ImportSectionTab({
             />
 
             {selectedFile && (
-                <Card withBorder p="sm" bg="green.0">
+                <Card
+                    withBorder
+                    p="sm"
+                    bg="var(--mantine-color-green-light)"
+                    style={{ borderColor: 'var(--mantine-color-green-filled)' }}
+                >
                     <Group gap="xs">
-                        <Text size="sm" fw={500}>Selected file:</Text>
-                        <Text size="sm">{selectedFile.name}</Text>
-                        <Badge size="xs" color="green">
+                        <Text size="sm" fw={500} c="var(--mantine-color-green-light-color)">Selected file:</Text>
+                        <Text size="sm" c="var(--mantine-color-green-light-color)">{selectedFile.name}</Text>
+                        <Badge size="xs" variant="light" color="green">
                             {(selectedFile.size / 1024).toFixed(1)} KB
                         </Badge>
                     </Group>

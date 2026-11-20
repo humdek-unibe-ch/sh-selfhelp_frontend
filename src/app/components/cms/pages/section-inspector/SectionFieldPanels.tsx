@@ -11,6 +11,7 @@ import {
 import { OPTION_STYLE_CONFIGS, FIELDS_MAP_STYLE_CONFIG, type TOptionStyleName } from '@selfhelp/shared';
 
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
+import { ReadOnlyFieldset, usePageEditRights } from '../page-rights/PageRightsContext';
 import {
     InspectorFieldSearch,
     useInspectorFieldFilter,
@@ -213,6 +214,9 @@ export function SectionFieldPanels({
     );
     const searchForceExpand = fieldFilter.isActive;
 
+    // Without the update right on the page every field is shown read-only.
+    const readOnly = !usePageEditRights().canUpdate;
+
     return (
         <Stack gap="md">
             <InspectorFieldSearch
@@ -246,11 +250,13 @@ export function SectionFieldPanels({
                         />
                     ) : null}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <SectionOptionCatalogEditor
                         key={`${sectionId ?? 'new'}-${optionStyleConfig.catalogField}`}
                         catalogField={optionStyleConfig.catalogField}
                         languages={languagesData}
                     />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             ) : null}
 
@@ -270,10 +276,12 @@ export function SectionFieldPanels({
                         />
                     ) : null}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <SectionFieldsMapEditor
                         key={`${sectionId ?? 'new'}-fields-map`}
                         languages={languagesData}
                     />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             ) : null}
 
@@ -286,6 +294,7 @@ export function SectionFieldPanels({
                     defaultExpanded={true}
                     forceExpanded={searchForceExpand}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <Stack gap="md">
                         {panelFields
                             .filter((field) => classifySectionField(field) === 'content')
@@ -307,6 +316,7 @@ export function SectionFieldPanels({
                                 );
                             })}
                     </Stack>
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             )}
 
@@ -319,10 +329,12 @@ export function SectionFieldPanels({
                     defaultExpanded={false}
                     forceExpanded={searchForceExpand}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <SectionGlobalFields
                         globalFieldTypes={filteredGlobalFieldTypes as GlobalFieldType[]}
                         dataVariables={dataVariables}
                     />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             )}
 
@@ -335,6 +347,7 @@ export function SectionFieldPanels({
                     defaultExpanded={true}
                     forceExpanded={searchForceExpand}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <SectionProperties
                         fields={filteredFields}
                         dataVariables={dataVariables}
@@ -343,6 +356,7 @@ export function SectionFieldPanels({
                         ownedDataTable={ownedDataTable}
                         fieldErrors={fieldErrors}
                     />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             )}
 
@@ -355,10 +369,12 @@ export function SectionFieldPanels({
                     defaultExpanded={false}
                     forceExpanded={searchForceExpand}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <SectionWebProperties
                         fields={filteredFields}
                         dataVariables={dataVariables}
                     />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             )}
 
@@ -371,10 +387,12 @@ export function SectionFieldPanels({
                     defaultExpanded={false}
                     forceExpanded={searchForceExpand}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <SectionMobileProperties
                         fields={filteredFields}
                         dataVariables={dataVariables}
                     />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             )}
         </Stack>

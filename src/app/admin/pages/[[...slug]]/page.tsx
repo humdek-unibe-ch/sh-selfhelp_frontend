@@ -28,6 +28,7 @@ import { useSyncDocumentMetadata } from '../../../../hooks/useSyncDocumentMetada
 import { PageInspector } from '../../../components/cms/pages/page-inspector/PageInspector';
 import { SectionInspector } from '../../../components/cms/sections';
 import { PageEditorSplitter } from './PageEditorSplitter';
+import { PageRightsProvider } from '../../../components/cms/pages/page-rights/PageRightsContext';
 
 const ADMIN_TAB_SUFFIX = 'Pages · Admin · SelfHelp';
 
@@ -200,8 +201,10 @@ function AdminPagesContent() {
   };
 
   // Tree + inspector are resizable siblings; sizes live in PageEditorSplitter.
+  // Both read what the caller may do with this page from PageRightsProvider.
   return (
     <AdminShell fullHeightMain>
+      <PageRightsProvider pageId={pageId}>
       {asideContent ? (
         <PageEditorSplitter
           tree={renderMainContent()}
@@ -212,6 +215,7 @@ function AdminPagesContent() {
           {renderMainContent()}
         </Box>
       )}
+      </PageRightsProvider>
     </AdminShell>
   );
 }

@@ -38,6 +38,9 @@ import { SectionInspectorHeader } from './SectionInspectorHeader';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { SectionInfoPanel } from './section-field-groups';
 import { SectionFieldPanels } from './SectionFieldPanels';
+import { usePageEditRights } from '../page-rights/PageRightsContext';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import { validateSerializedOptionConfiguration } from '../../shared/field-components/option-catalog-editor.utils';
 import { FormListSourceProvider } from '../../shared/field-components/form-list/FormListSourceContext';
 import { useLiveFormListSource } from '../../shared/field-components/form-list/useLiveFormListSource';
@@ -64,6 +67,11 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     const router = useRouter();
     const queryClient = useQueryClient();
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+    // Saving needs the update right on the page; deleting a section for good also
+    // admin.page.delete (the right of the route `admin_sections_destroy`).
+    const { canUpdate } = usePageEditRights();
+    const { permissionChecker } = useAuthUser();
+    const canDeleteSection = canUpdate && (permissionChecker?.hasPermission(PERMISSIONS.ADMIN_PAGE_DELETE) ?? false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
     // What the server refused when a list section was saved (nothing was stored).
@@ -445,9 +453,9 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                         title={section.name}
                         idLabel={`ID ${section.id}`}
                         badges={headerBadges}
-                        onSave={handleSave}
+                        onSave={canUpdate ? handleSave : undefined}
                         onExport={handleExportSection}
-                        onDelete={() => setDeleteModalOpened(true)}
+                        onDelete={canDeleteSection ? () => setDeleteModalOpened(true) : undefined}
                         saving={updateSectionMutation.isPending}
                         disabled={actionsDisabled}
                     />

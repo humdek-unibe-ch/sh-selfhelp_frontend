@@ -145,11 +145,26 @@ export interface IApiSection {
     confirmation_message?: IContentField<string>;
 }
 
+/**
+ * What the signed-in person may do with a page in the CMS (`GET /admin/pages/{id}`):
+ * the route permission AND the grant on that page; the superuser may do all.
+ */
+export interface IPageRights {
+    /** admin.page.update + update grant: edit settings and sections. */
+    can_update: boolean;
+    /** admin.page.delete + delete grant. */
+    can_delete: boolean;
+    /** admin.page_version.publish + update grant: publish and unpublish. */
+    can_publish: boolean;
+}
+
 export interface IPageFieldsData {
     page: IPageDetails;
     fields: IPageField[];
     /** DB-driven public routes for this page (issue #30); edited in the Routes panel. */
     routes?: IPageRouteItem[];
+    /** Per caller; missing (older backend) counts as no right. */
+    rights?: IPageRights;
 }
 
 export interface IPageFieldsResponse {

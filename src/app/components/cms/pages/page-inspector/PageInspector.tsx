@@ -84,6 +84,9 @@ import {
     PageNavigationMembership,
 } from './page-field-groups';
 import { PageRoutesPanel } from './PageRoutesPanel';
+import { ReadOnlyFieldset, usePageEditRights } from '../page-rights/PageRightsContext';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import {
     collectPageSearchableFields,
     matchesPagePropertyGroup,
@@ -154,6 +157,13 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
             setActiveLanguageTab(languagesData[0].id.toString());
         }
     }, [languagesData, activeLanguageTab]);
+
+    // What the caller may do with this page (server flags); the fields are read-only without update.
+    const { canUpdate, canDelete, canPublish } = usePageEditRights();
+    const readOnly = !canUpdate;
+    const { permissionChecker } = useAuthUser();
+    const canCreatePages = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_PAGE_CREATE) ?? false;
+    const canDeleteVersions = canUpdate && (permissionChecker?.hasPermission(PERMISSIONS.ADMIN_PAGE_VERSION_DELETE) ?? false);
 
     const updatePageMutation = useUpdatePageMutation({
         onSuccess: (_updatedPage, pageId) => {
@@ -310,7 +320,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
     useHotkeys([
         ['ctrl+S', (e) => {
             e.preventDefault();
-            handleSave();
+            if (canUpdate) handleSave();
         }]
     ]);
 
@@ -383,15 +393,17 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
             <Group gap="xs">
               {/* "Live preview" + "Open web page" now live in the page sections
                   toolbar; the inspector header keeps only Save. */}
-              <Button
-                leftSection={<IconDeviceFloppy size="1rem" />}
-                onClick={handleSave}
-                variant="filled"
-                loading={updatePageMutation.isPending}
-                disabled={!page?.keyword}
-              >
-                Save
-              </Button>
+              {canUpdate && (
+                <Button
+                  leftSection={<IconDeviceFloppy size="1rem" />}
+                  onClick={handleSave}
+                  variant="filled"
+                  loading={updatePageMutation.isPending}
+                  disabled={!page?.keyword}
+                >
+                  Save
+                </Button>
+              )}
             </Group>
           </Group>
         </Box>
@@ -449,6 +461,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                           value={lang.id.toString()}
                           pt="md"
                         >
+                          <ReadOnlyFieldset readOnly={readOnly}>
                           <Stack gap="md">
                             {contentFields.map((field) => {
                               const visible = matchesFieldQuery(
@@ -476,10 +489,12 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                               );
                             })}
                           </Stack>
+                          </ReadOnlyFieldset>
                         </Tabs.Panel>
                       ))}
                     </Tabs>
                   ) : (
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <Stack gap="md">
                       {contentFields.map((field) => {
                         const visible = matchesFieldQuery(
@@ -507,6 +522,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                         );
                       })}
                     </Stack>
+                    </ReadOnlyFieldset>
                   )
                 ) : (
                   <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
@@ -525,6 +541,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                 defaultExpanded={true}
                 forceExpanded={searchForceExpand}
               >
+                <ReadOnlyFieldset readOnly={readOnly}>
                 {showBasic ? <PageBasicInfoFields /> : null}
                 {showAccess ? <PageAccessTypeGroup options={pageAccessTypes} /> : null}
                 {showNavigation ? (
@@ -537,6 +554,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                 {showHints ? (
                   <PageNavigationHints page={page} adminPages={adminPages} />
                 ) : null}
+                </ReadOnlyFieldset>
               </CollapsibleSection>
             ) : null}
 
@@ -551,7 +569,9 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                 defaultExpanded={false}
                 forceExpanded={searchForceExpand}
               >
-                <PageRoutesPanel routes={routes} onChange={setRoutes} />
+                <ReadOnlyFieldset readOnly={readOnly}>
+                  <PageRoutesPanel routes={routes} onChange={setRoutes} />
+                </ReadOnlyFieldset>
               </CollapsibleSection>
             ) : null}
 
@@ -575,7 +595,9 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                       style={visible ? undefined : { display: 'none' }}
                       aria-hidden={!visible}
                     >
-                      <PagePropertyField field={field} />
+                      <ReadOnlyFieldset readOnly={readOnly}>
+                        <PagePropertyField field={field} />
+                      </ReadOnlyFieldset>
                     </Box>
                   );
                 })}
@@ -616,14 +638,16 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                       versionId,
                     });
                   }}
-                  onRestore={(versionId) => {
+                  onRestore={canUpdate ? (versionId) => {
                     if (page?.id_pages) {
                       restoreVersionMutation.mutate({
                         pageId: page.id_pages,
                         versionId,
                       });
                     }
-                  }}
+                  } : undefined}
+                  canPublish={canPublish}
+                  canDeleteVersions={canDeleteVersions}
                   isPublishing={publishVersionMutation.isPending}
                   isDeleting={unpublishPageMutation.isPending}
                   isRestoring={restoreVersionMutation.isPending}
@@ -663,7 +687,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                       Export Sections
                     </Button>
 
-                    {!page?.is_system && (
+                    {!page?.is_system && canCreatePages && (
                       <Button
                         leftSection={<IconPlus size="1rem" />}
                         variant="outline"
@@ -673,7 +697,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                       </Button>
                     )}
 
-                    <Tooltip
+                    {canDelete && <Tooltip
                       label={
                         page?.is_system
                           ? "System pages cannot be deleted"
@@ -690,7 +714,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                       >
                         Delete Page
                       </Button>
-                    </Tooltip>
+                    </Tooltip>}
                   </Group>
                 </Stack>
               </Paper>
