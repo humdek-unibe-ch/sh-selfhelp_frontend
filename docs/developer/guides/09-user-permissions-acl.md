@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 Audience: Developers and technical operators.
 Status: active.
 Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-11-19.
+Last verified: 2026-11-20.
 Source of truth: Runtime code, configuration, and tests in this repository.
 
 ## Permission Architecture
@@ -32,7 +32,10 @@ graph TD
 
 **Groups** have:
 - **ACLs** (Access Control Lists) for specific pages
-- Page-level permissions: Select, Insert, Update, Delete
+- One page-level right: `select`. A group member who has it can see the page
+  and use everything it offers (submit its forms, update and delete their own
+  records). There is no group right to insert, update or delete; editing rights
+  belong to roles (workspace concept "Page ACL", `concepts/concepts.md`).
 
 **Roles** have:
 - System-wide **Permissions**
@@ -211,6 +214,7 @@ and the screen draws exactly that.
 |-------|-------|----------|
 | Role item (`GET /admin/roles`, `GET /admin/roles/{id}`) | `can_update` | **Edit**, the page / data table / group grant buttons, and the role form's Save |
 | Role item | `can_delete` | **Delete** (also off for the full-access role and for a role that still has users) |
+| Role item | `fully_held` | The role is disabled (with a reason) in the asset "Who can manage it" pickers when `false` |
 | Permission item (`GET /admin/permissions`) | `can_assign` | The permission's box is disabled in the role form's grid: the person does not hold it |
 | Permission item | `implied_read` | The area's read permission is ticked and locked while another right of that area is ticked |
 
@@ -231,6 +235,21 @@ and the screen draws exactly that.
 - A refused change (403) shows the server's own `error` text, read with
   `getApiErrorText` (`src/utils/mutation-error-handler.ts`); the Page access
   dialog of a group the person may not read shows that text in place of the list.
+- **The role form's permission names.** `GET /admin/permissions` opens for
+  `admin.permission.read` or `admin.role.update`, so a role editor sees every
+  permission by name in the form without holding the catalogue right. The
+  endpoint entry `ADMIN_PERMISSIONS_GET_ALL` lists both rights, and the client
+  gate (`permission-wrapper.api.ts`) lets a call through when the person holds
+  any one of the rights an endpoint lists, as the server does. `usePermissions`
+  stays the one source of names; the form keeps the `can_assign` locks.
+- **Disabled roles in the asset pickers.** Each role item also carries
+  `fully_held`: the person holds every right in it (rule 4.6f). In "Who can
+  manage it" (upload, edit and folder access, `WhoCanManageField`) a role with
+  `fully_held: false` is shown disabled with the text "You do not hold
+  everything this role holds" beside it, never by colour alone. A role of that
+  kind that is already on the asset stays ticked and cannot be removed (rule
+  4.6e). Nothing else changed: no roles picked still means the uploader's roles,
+  and the full-access role is never offered.
 
 ## Permission-Aware API Client Wrapper
 
