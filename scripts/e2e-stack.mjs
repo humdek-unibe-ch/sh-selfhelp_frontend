@@ -51,11 +51,14 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { spawn, spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
+
+const requireFromHere = createRequire(import.meta.url);
 
 const FRONTEND_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const IS_WIN = process.platform === 'win32';
@@ -124,6 +127,32 @@ function boolEnv(key) {
     return v === '1' || v === 'true' || v === 'yes';
 }
 
+/**
+ * Playwright via `node …/cli.js` (not `npx` + `shell: true`). On Windows, `shell: true`
+ * re-parses the argument list so `--grep "live sync"` splits into two args (F268).
+ */
+function spawnPlaywright(args, opts = {}) {
+    const cli = requireFromHere.resolve('@playwright/test/cli');
+    return spawn(process.execPath, [cli, ...args], {
+        cwd: opts.cwd ?? FRONTEND_ROOT,
+        env: { ...process.env, ...opts.env },
+        stdio: opts.stdio ?? 'inherit',
+        shell: false,
+        windowsHide: true,
+    });
+}
+
+function spawnPlaywrightSync(args, opts = {}) {
+    const cli = requireFromHere.resolve('@playwright/test/cli');
+    return spawnSync(process.execPath, [cli, ...args], {
+        cwd: opts.cwd ?? FRONTEND_ROOT,
+        env: { ...process.env, ...opts.env },
+        encoding: opts.encoding ?? 'utf8',
+        shell: false,
+        windowsHide: true,
+    });
+}
+
 /** Run a command to completion, inheriting stdio. Rejects on non-zero exit. */
 function run(cmd, args, opts = {}) {
     return new Promise((resolve, reject) => {
@@ -131,6 +160,7 @@ function run(cmd, args, opts = {}) {
             cwd: opts.cwd ?? FRONTEND_ROOT,
             env: { ...process.env, ...opts.env },
             stdio: 'inherit',
+            // npm/docker/php need the shell on Windows; Playwright never goes through here (F268).
             shell: IS_WIN,
         });
         child.on('error', reject);
@@ -140,6 +170,19 @@ function run(cmd, args, opts = {}) {
                 : reject(new Error(`${cmd} ${args.join(' ')} exited with code ${code}`)),
         );
     });
+}
+
+/** Put `next-env.d.ts` back after `next build` rewrites the typed-routes import (F274). */
+function restoreNextEnvDts() {
+    const result = spawnSync('git', ['checkout', '--', 'next-env.d.ts'], {
+        cwd: FRONTEND_ROOT,
+        encoding: 'utf8',
+        shell: false,
+        windowsHide: true,
+    });
+    if (result.status !== 0) {
+        warn(`Could not restore next-env.d.ts: ${result.stderr || result.stdout || result.status}`);
+    }
 }
 
 /** Like {@link run} but never rejects — used for best-effort/idempotent steps. */
@@ -347,11 +390,9 @@ async function ensureVisualBaselines(baseUrl, backendUrl, extraArgs) {
     // Cheap, no-browser count of visual test cases (one test == one screenshot
     // == one baseline png per platform) so we can tell a complete baseline set
     // from a fresh or partial one without hard-coding snapshot names.
-    const list = spawnSync('npx', ['playwright', 'test', 'e2e/visual', '--list'], {
+    const list = spawnPlaywrightSync(['test', 'e2e/visual', '--list'], {
         cwd: FRONTEND_ROOT,
-        env: { ...process.env, ...suiteEnv(baseUrl, backendUrl) },
-        encoding: 'utf8',
-        shell: IS_WIN,
+        env: suiteEnv(baseUrl, backendUrl),
     });
     const matched = `${list.stdout ?? ''}${list.stderr ?? ''}`.match(/Total:\s+(\d+)\s+test/);
     const expected = matched ? Number(matched[1]) : 0;
@@ -360,11 +401,9 @@ async function ensureVisualBaselines(baseUrl, backendUrl, extraArgs) {
 
     log('Seeding missing visual baselines (create-only) before the check…');
     await new Promise((resolve) => {
-        const child = spawn('npx', ['playwright', 'test', 'e2e/visual', '--update-snapshots=missing'], {
+        const child = spawnPlaywright(['test', 'e2e/visual', '--update-snapshots=missing'], {
             cwd: FRONTEND_ROOT,
-            env: { ...process.env, ...suiteEnv(baseUrl, backendUrl) },
-            stdio: 'inherit',
-            shell: IS_WIN,
+            env: suiteEnv(baseUrl, backendUrl),
         });
         child.on('error', () => resolve());
         child.on('close', () => resolve());
@@ -490,6 +529,7 @@ async function main() {
                     cwd: FRONTEND_ROOT,
                     env: { NEXT_PUBLIC_API_URL: backendUrl },
                 });
+                restoreNextEnvDts();
             }
 
             log(`Starting Next.js frontend at ${baseUrl} (next start)…`);
@@ -519,12 +559,13 @@ async function main() {
                 profile.workers && !extraPlaywrightArgs.some((arg) => arg.startsWith('--workers'))
                     ? [`--workers=${profile.workers}`]
                     : [];
-            const child = spawn('npx', ['playwright', 'test', profile.dir, ...workerArgs, ...extraPlaywrightArgs], {
-                cwd: FRONTEND_ROOT,
-                env: { ...process.env, ...suiteEnv(baseUrl, backendUrl) },
-                stdio: 'inherit',
-                shell: IS_WIN,
-            });
+            const child = spawnPlaywright(
+                ['test', profile.dir, ...workerArgs, ...extraPlaywrightArgs],
+                {
+                    cwd: FRONTEND_ROOT,
+                    env: suiteEnv(baseUrl, backendUrl),
+                },
+            );
             child.on('error', (err) => {
                 fail(err.message);
                 resolve(1);
