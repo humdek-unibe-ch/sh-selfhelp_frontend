@@ -41,7 +41,8 @@ graph TD
 - **Language Preferences**: Stored in backend profile data and mirrored by cookies for SSR
 - **Real-time ACL push**: `useAclEventStream` opens a Server-Sent Events
   channel to `/api/auth/events` so role / group / async-job permission
-  changes refresh the navigation and admin sidebar **without a click**.
+  changes refresh the navigation and admin sidebar **without a click**. The same
+  stream carries `changed` notices for live sync ([live-sync.md](../live-sync.md)).
 
 ## Auth API Methods
 ```typescript
