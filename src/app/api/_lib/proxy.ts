@@ -496,6 +496,30 @@ export function stripImpersonationFromBody(payload: unknown): {
 }
 
 /**
+ * Reply headers the browser needs that the JSON branch of the proxy would otherwise drop (it
+ * builds a new response with a `Content-Type` only):
+ *
+ * - `X-Acl-Stamp` (C5): the caller's access stamp; the client compares it with `acl_stamp` of
+ *   its user data and invalidates it when they differ.
+ * - `X-Page-Version` (C8): the draft version a page write answered with (the page editor sends
+ *   it back with its next write).
+ *
+ * Both are per caller and are never cached.
+ */
+export const PASS_THROUGH_REPLY_HEADERS = ['x-acl-stamp', 'x-page-version'] as const;
+
+/** Copy {@link PASS_THROUGH_REPLY_HEADERS} from the upstream reply to the response built from it. */
+export function passThroughReplyHeaders(upstream: Response, res: NextResponse): NextResponse {
+    for (const name of PASS_THROUGH_REPLY_HEADERS) {
+        const value = upstream.headers.get(name);
+        if (value !== null) {
+            res.headers.set(name, value);
+        }
+    }
+    return res;
+}
+
+/**
  * Clone an upstream response into a NextResponse, stripping hop-by-hop and
  * sensitive headers. The body is passed through as a stream.
  */

@@ -31,6 +31,7 @@ import {
     validateCsrf,
     SAFE_METHODS,
     forwardBufferedToSymfony,
+    passThroughReplyHeaders,
     type BufferedRequest,
     bufferRequest,
 } from '../_lib/proxy';
@@ -84,10 +85,10 @@ async function buildResponseWithCookieRotation(
     try {
         payload = JSON.parse(text);
     } catch {
-        const res = new NextResponse(text, {
+        const res = passThroughReplyHeaders(upstream, new NextResponse(text, {
             status: upstream.status,
             headers: { 'Content-Type': contentType },
-        });
+        }));
         if (fallbackTokens) setAuthCookies(res, fallbackTokens);
         return res;
     }
@@ -98,7 +99,7 @@ async function buildResponseWithCookieRotation(
             access: Boolean(tokens.access_token),
             refresh: Boolean(tokens.refresh_token),
         });
-        const res = NextResponse.json(cleanBody, { status: upstream.status });
+        const res = passThroughReplyHeaders(upstream, NextResponse.json(cleanBody, { status: upstream.status }));
         // Set the refresh-pair first (if any), then overwrite with the body
         // tokens — those are the newest rotation the caller should keep.
         if (fallbackTokens) setAuthCookies(res, fallbackTokens);
@@ -106,10 +107,10 @@ async function buildResponseWithCookieRotation(
         return res;
     }
 
-    const res = new NextResponse(text, {
+    const res = passThroughReplyHeaders(upstream, new NextResponse(text, {
         status: upstream.status,
         headers: { 'Content-Type': 'application/json' },
-    });
+    }));
     if (fallbackTokens) setAuthCookies(res, fallbackTokens);
     return res;
 }

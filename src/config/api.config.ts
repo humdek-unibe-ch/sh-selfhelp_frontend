@@ -196,6 +196,24 @@ export const API_CONFIG = {
             route: (pageId: number) => `/admin/pages/${pageId}/sections`,
             permissions: [PERMISSIONS.ADMIN_PAGE_READ]
         },
+        // Page edit lock (live sync, C9): the route right plus the update grant on the page. One path, three
+        // methods, so one entry per route row (`admin_pages_lock_get`, `_acquire`, `_release`, `_take_over`).
+        ADMIN_PAGES_LOCK_GET: {
+            route: (pageId: number) => `/admin/pages/${pageId}/lock`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_PAGES_LOCK_ACQUIRE: {
+            route: (pageId: number) => `/admin/pages/${pageId}/lock`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_PAGES_LOCK_RELEASE: {
+            route: (pageId: number) => `/admin/pages/${pageId}/lock`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_PAGES_LOCK_TAKE_OVER: {
+            route: (pageId: number) => `/admin/pages/${pageId}/lock/take-over`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
         // Admin page export/import (issue #30, Phase 5) — portable page bundles
         ADMIN_PAGES_EXPORT: {
             route: '/admin/pages/export',
