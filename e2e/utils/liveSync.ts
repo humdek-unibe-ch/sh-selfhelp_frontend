@@ -23,7 +23,9 @@ const API = `${BACKEND_URL}/cms-api/v1`;
 const RESOURCE_TYPE_PAGES = 85;
 const CRUD_READ = 2;
 const CRUD_UPDATE = 4;
+const CRUD_DELETE = 8;
 export const CRUD_READ_UPDATE = CRUD_READ | CRUD_UPDATE;
+export const CRUD_READ_DELETE = CRUD_READ | CRUD_DELETE;
 
 /** The `text` style and its content field `text` (seeded core data; ids are looked up, not assumed). */
 const TEXT_STYLE_NAME = 'text';
@@ -256,6 +258,25 @@ export async function createEditorRole(admin: BackendPersona, name: string): Pro
         name,
         description: 'qa live-sync run',
         permission_ids: held.permissions.map((permission) => permission.id),
+    });
+    return created.id;
+}
+
+/**
+ * A role with exactly the named permissions (ids looked up from `GET /admin/permissions`).
+ * Used for delete-only / publish-only lock walks that must not use a configuration page.
+ */
+export async function createRoleWithPermissions(admin: BackendPersona, name: string, permissionNames: string[]): Promise<number> {
+    const listed = await admin.ok<{ permissions: Array<{ id: number; name: string }> }>('GET', '/admin/permissions?pageSize=500');
+    const permission_ids = permissionNames.map((permissionName) => {
+        const found = listed.permissions.find((permission) => permission.name === permissionName);
+        expect(found, `permission ${permissionName} exists`).toBeDefined();
+        return (found as { id: number }).id;
+    });
+    const created = await admin.ok<{ id: number }>('POST', '/admin/roles', {
+        name,
+        description: 'qa live-sync run',
+        permission_ids,
     });
     return created.id;
 }

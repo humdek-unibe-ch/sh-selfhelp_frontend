@@ -16,6 +16,12 @@ SPDX-License-Identifier: MPL-2.0
  *   5. Lock:          editor A holds the page, B opens it read-only with A's name and takes over, A's
  *                     editor turns read-only, A's write is refused.
  *   6. Version:       two writes based on one draft version; the second one is refused as stale.
+ *   7. Delete lock:   an editor holds the page; qa.pagedelete sees a banner and a disabled Delete;
+ *                     after the editor releases, Delete turns on without a reload (F259).
+ *   8. Publish lock:  the same with qa.pagepublish and Publish (F259).
+ *   9. Idle resume:   a renewal answered 409 lock_idle_ended puts the editor in idle; Continue
+ *                     editing takes over (F258). No server idle shortener exists; the renew answer
+ *                     is fulfilled by the browser so the UI path runs without a new test hook.
  *
  * Each change must show in the observer within 3 s, without a reload (the brief's bound).
  *
@@ -36,12 +42,14 @@ import { loginAs } from '../utils/loginAs';
 import { qaEnv } from '../utils/env';
 import {
     BackendPersona,
+    CRUD_READ_DELETE,
     CRUD_READ_UPDATE,
     addSection,
     createAccount,
     createEditorRole,
     createGroup,
     createPage,
+    createRoleWithPermissions,
     openSession,
     publishPage,
     setGroupPages,
@@ -50,6 +58,7 @@ import {
     syncTag,
     watchLiveConnection,
     SYNC_PASSWORD,
+    type IMadeAccount,
     type IMadePage,
 } from '../utils/liveSync';
 
@@ -97,6 +106,11 @@ const FEEDBACK_PAGE_ID = Number(process.env.QA_FEEDBACK_PAGE_ID ?? 94);
 const FEEDBACK_FORM_ID = Number(process.env.QA_FEEDBACK_FORM_ID ?? 237);
 const FEEDBACK_INPUT_ID = Number(process.env.QA_FEEDBACK_INPUT_ID ?? 238);
 
+/** POST acquire/renew for a page lock (not take-over). */
+function isLockAcquire(url: string, method: string): boolean {
+    return method === 'POST' && /\/admin\/pages\/\d+\/lock\/?$/.test(new URL(url).pathname);
+}
+
 test.describe.serial('live sync', () => {
     const tag = syncTag();
     const baseURL = qaEnv().baseUrl;
@@ -104,10 +118,15 @@ test.describe.serial('live sync', () => {
     let admin: BackendPersona;
     let groupId: number;
     let roleId: number;
-    let member: { id: number; email: string };
-    let editor: { id: number; email: string };
+    let deleteRoleId: number;
+    let publishRoleId: number;
+    let member: IMadeAccount;
+    let editor: IMadeAccount;
+    let pageDeleter: IMadeAccount;
+    let pagePublisher: IMadeAccount;
     const pages: IMadePage[] = [];
     const sessions: BrowserContext[] = [];
+    const extraRoleIds: number[] = [];
 
     const emailOf = (who: string): string => `${tag}-${who}@selfhelp.test`;
 
@@ -135,8 +154,21 @@ test.describe.serial('live sync', () => {
         admin = await BackendPersona.login(ADMIN_EMAIL);
         groupId = await createGroup(admin, tag);
         roleId = await createEditorRole(admin, `${tag}-editors`);
+        deleteRoleId = await createRoleWithPermissions(admin, `${tag}-pagedelete`, [
+            'admin.access',
+            'admin.page.read',
+            'admin.page.delete',
+        ]);
+        publishRoleId = await createRoleWithPermissions(admin, `${tag}-pagepublish`, [
+            'admin.access',
+            'admin.page.read',
+            'admin.page_version.publish',
+        ]);
+        extraRoleIds.push(deleteRoleId, publishRoleId);
         member = await createAccount(admin, emailOf('member'), { groupIds: [groupId] });
         editor = await createAccount(admin, emailOf('editor'), { roleIds: [roleId] });
+        pageDeleter = await createAccount(admin, emailOf('pagedelete'), { roleIds: [deleteRoleId] });
+        pagePublisher = await createAccount(admin, emailOf('pagepublish'), { roleIds: [publishRoleId] });
     });
 
     test.afterAll(async () => {
@@ -157,14 +189,16 @@ test.describe.serial('live sync', () => {
                 await admin.draftWrite(made.id, 'DELETE', `/admin/pages/${made.id}`);
             });
         }
-        for (const account of [member, editor]) {
+        for (const account of [member, editor, pageDeleter, pagePublisher]) {
             if (account) {
                 await attempt(() => admin.call('POST', `/admin/users/${account.id}/clean-data`, {}));
                 await attempt(() => admin.call('DELETE', `/admin/users/${account.id}`));
             }
         }
-        if (roleId) {
-            await attempt(() => admin.call('DELETE', `/admin/roles/${roleId}`));
+        for (const id of [roleId, ...extraRoleIds]) {
+            if (id) {
+                await attempt(() => admin.call('DELETE', `/admin/roles/${id}`));
+            }
         }
         if (groupId) {
             await attempt(() => admin.call('DELETE', `/admin/groups/${groupId}`));
@@ -303,5 +337,133 @@ test.describe.serial('live sync', () => {
         const missing = await editorApi.call('PUT', `/admin/pages/${page.id}`, body);
         expect(missing.status, 'a draft write without a version').toBe(400);
         expect(missing.json?.error).toBe('page_version_required');
+    });
+
+    test('delete lock: a delete-only caller sees a banner and a disabled Delete while an editor holds the page', async ({ browser }) => {
+        // A content page (not a configuration page): Actions with Delete are only rendered there.
+        const page = await makePage('dellock', { text: 'qa delete lock', publish: true });
+        await setRolePages(admin, deleteRoleId, [{ pageId: page.id, crud: CRUD_READ_DELETE }]);
+
+        await admin.ok('POST', `/admin/pages/${page.id}/lock`);
+        await expect.poll(async () => (await admin.ok<{ held: boolean }>('GET', `/admin/pages/${page.id}/lock`)).held, {
+            timeout: 10_000,
+            message: 'an editor holds the delete-lock page',
+        }).toBe(true);
+
+        const viewer = await openAs(browser, pageDeleter.email, `/admin/pages/${page.keyword}`);
+        const banner = viewer.getByTestId('page-lock-banner');
+        await expect(banner, 'delete caller sees who is editing').toContainText('is editing this page', { timeout: 15_000 });
+        await expect(banner.getByRole('button', { name: 'Take over' })).toHaveCount(0);
+        await expect(banner).toContainText('Publishing and deleting are paused');
+
+        const deleteButton = viewer.getByTestId('page-delete-button');
+        await expect(deleteButton).toBeVisible({ timeout: 15_000 });
+        await expect(deleteButton).toBeDisabled();
+
+        await admin.releaseLock(page.id);
+        const since = Date.now();
+        await expect
+            .poll(async () => deleteButton.isEnabled(), {
+                timeout: HARD_LIVE_MS + 5_000,
+                message: 'delete lock: Delete turns on without a reload',
+            })
+            .toBe(true);
+        test.info().annotations.push({ type: 'latency', description: `delete lock: Delete enabled after ${Date.now() - since} ms` });
+        await expect(viewer.getByTestId('page-lock-banner')).toHaveCount(0);
+    });
+
+    test('publish lock: a publish-only caller sees a banner and a disabled Publish while an editor holds the page', async ({ browser }) => {
+        const page = await makePage('publock', { text: 'qa publish lock', publish: true });
+        await setRolePages(admin, publishRoleId, [{ pageId: page.id, crud: CRUD_READ_UPDATE }]);
+
+        // A draft write so has_unpublished_changes is true when the lock frees.
+        await setSectionText(admin, page, `qa publish-lock ${tag}`);
+
+        await admin.ok('POST', `/admin/pages/${page.id}/lock`);
+        await expect.poll(async () => (await admin.ok<{ held: boolean }>('GET', `/admin/pages/${page.id}/lock`)).held, {
+            timeout: 10_000,
+            message: 'an editor holds the publish-lock page',
+        }).toBe(true);
+
+        const viewer = await openAs(browser, pagePublisher.email, `/admin/pages/${page.keyword}`);
+        const banner = viewer.getByTestId('page-lock-banner');
+        await expect(banner, 'publish caller sees who is editing').toContainText('is editing this page', { timeout: 15_000 });
+        await expect(banner.getByRole('button', { name: 'Take over' })).toHaveCount(0);
+
+        // Publishing panel starts collapsed.
+        const publishing = viewer.getByRole('button', { name: /Publishing/i }).first();
+        if (await publishing.getAttribute('aria-expanded') === 'false') {
+            await publishing.click();
+        }
+
+        const publishButton = viewer.getByTestId('page-publish-button');
+        await expect(publishButton).toBeVisible({ timeout: 15_000 });
+        await expect(publishButton).toBeDisabled();
+
+        await admin.releaseLock(page.id);
+        const since = Date.now();
+        await expect
+            .poll(async () => publishButton.isEnabled(), {
+                timeout: HARD_LIVE_MS + 5_000,
+                message: 'publish lock: Publish turns on without a reload',
+            })
+            .toBe(true);
+        test.info().annotations.push({ type: 'latency', description: `publish lock: Publish enabled after ${Date.now() - since} ms` });
+        await expect(viewer.getByTestId('page-lock-banner')).toHaveCount(0);
+    });
+
+    test('idle resume: lock_idle_ended on renew offers Continue editing and take-over returns to held', async ({ browser }) => {
+        const page = await makePage('idle', { text: 'qa idle resume', publish: true });
+        await setRolePages(admin, roleId, [{ pageId: page.id, crud: CRUD_READ_UPDATE }]);
+
+        const editorPage = await openAs(browser, ADMIN_EMAIL, `/admin/pages/${page.keyword}`);
+        await expect.poll(async () => (await admin.ok<{ mine: boolean }>('GET', `/admin/pages/${page.id}/lock`)).mine, {
+            timeout: 10_000,
+            message: 'admin holds the lock before the idle renew',
+        }).toBe(true);
+        await expect(editorPage.getByTestId('page-lock-banner')).toHaveCount(0);
+
+        // No server idle shortener and no test hook: fulfill acquire/renew with the contract
+        // error (same path as a real renew after idle), then resume through take-over.
+        await editorPage.route('**/admin/pages/*/lock', async (route) => {
+            if (!isLockAcquire(route.request().url(), route.request().method())) {
+                await route.continue();
+                return;
+            }
+            await route.fulfill({
+                status: 409,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    status: 409,
+                    message: 'The edit lock ended after a long idle period.',
+                    error: 'lock_idle_ended',
+                    logged_in: true,
+                    meta: null,
+                    data: {
+                        page_id: page.id,
+                        held: false,
+                        mine: false,
+                        holder: null,
+                        expires_at: null,
+                        idle_expires_at: null,
+                    },
+                }),
+            });
+        });
+        await editorPage.reload();
+        await editorPage.waitForURL(new RegExp(`/admin/pages/${page.keyword}`));
+
+        const banner = editorPage.getByTestId('page-lock-banner');
+        await expect(banner, 'idle end shows a resume prompt').toBeVisible({ timeout: 15_000 });
+        await expect(banner.getByRole('button', { name: 'Continue editing' })).toBeVisible();
+
+        await editorPage.unroute('**/admin/pages/*/lock');
+        const takeOver = editorPage.waitForResponse(
+            (response) => /\/lock\/take-over/.test(response.url()) && response.request().method() === 'POST',
+        );
+        await banner.getByRole('button', { name: 'Continue editing' }).click();
+        await takeOver;
+        await expect(editorPage.getByTestId('page-lock-banner')).toHaveCount(0, { timeout: 10_000 });
+        await expect.poll(async () => (await admin.ok<{ mine: boolean }>('GET', `/admin/pages/${page.id}/lock`)).mine).toBe(true);
     });
 });
