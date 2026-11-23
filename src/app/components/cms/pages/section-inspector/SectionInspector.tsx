@@ -39,6 +39,7 @@ import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { SectionInfoPanel } from './section-field-groups';
 import { SectionFieldPanels } from './SectionFieldPanels';
 import { usePageEditRights } from '../page-rights/PageRightsContext';
+import { isStaleConflictHeld } from '../../../../../utils/page-edit-conflict.utils';
 import { useAuthUser } from '../../../../../hooks/useUserData';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import { validateSerializedOptionConfiguration } from '../../shared/field-components/option-catalog-editor.utils';
@@ -163,6 +164,8 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     // Load section data into store
     useEffect(() => {
         if (!sectionDetailsData || languagesData.length === 0) return;
+        // A write was refused as stale (C8): the draft was reloaded, but the person's unsaved values stay on screen.
+        if (isStaleConflictHeld(pageId)) return;
 
         const { section, fields } = sectionDetailsData;
         const globalFields = section.global_fields || {
@@ -227,7 +230,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
 
         setFormValues(newFormValues);
         originalValuesRef.current = newFormValues; // Update ref
-    }, [sectionDetailsData, languagesData, setFormValues]);
+    }, [sectionDetailsData, languagesData, setFormValues, pageId]);
 
     const hasMultipleLanguages = useMemo(() => languagesData.length > 1, [languagesData.length]);
 

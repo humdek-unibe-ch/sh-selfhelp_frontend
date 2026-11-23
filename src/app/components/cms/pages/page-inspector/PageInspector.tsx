@@ -85,6 +85,7 @@ import {
 } from './page-field-groups';
 import { PageRoutesPanel } from './PageRoutesPanel';
 import { ReadOnlyFieldset, usePageEditRights } from '../page-rights/PageRightsContext';
+import { isStaleConflictHeld } from '../../../../../utils/page-edit-conflict.utils';
 import { useAuthUser } from '../../../../../hooks/useUserData';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import {
@@ -192,6 +193,10 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
 
     // Load page data into Zustand store
     useEffect(() => {
+        // A write was refused as stale (C8): the draft was reloaded, but the person's unsaved values stay on screen.
+        if (page && isStaleConflictHeld(page.id_pages)) {
+            return;
+        }
         if (page && pageFieldsData && languagesData.length > 0) {
             const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languagesData);
             const pageDetails = pageFieldsData.page;

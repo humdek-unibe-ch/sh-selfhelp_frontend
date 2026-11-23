@@ -47,6 +47,38 @@ export function getApiErrorText(error: unknown): string | undefined {
 }
 
 /**
+ * What a person reads for the page draft checks of the live-sync contracts (C8, C9). The server
+ * names them by code (`data.error`); the page editor shows the banner and the toast for them
+ * itself for the first two (`usePageEditLock`), so {@link showErrorNotification} stays silent for them.
+ */
+export const PAGE_CONFLICT_TEXTS: Readonly<Record<string, { title: string; message: string }>> = {
+    stale_page_version: {
+        title: 'This page was changed elsewhere',
+        message: 'The latest version was loaded. Your unsaved changes are still shown; save them again to apply them.',
+    },
+    page_locked: {
+        title: 'Someone else is editing this page',
+        message: 'The page is open read-only until the other person is done or you take over.',
+    },
+    page_version_required: {
+        title: 'The page has to be reloaded',
+        message: 'The editor did not know which version of the page it was changing. Reload the page and try again.',
+    },
+};
+
+function pageConflictTextFor(code: unknown): { title: string; message: string } | undefined {
+    return typeof code === 'string' && Object.prototype.hasOwnProperty.call(PAGE_CONFLICT_TEXTS, code)
+        ? PAGE_CONFLICT_TEXTS[code]
+        : undefined;
+}
+
+/** True when the error is a stale or locked refusal, which the page editor reports itself (banner and toast). */
+export function isPageConflictError(error: unknown): boolean {
+    const code = (error as IApiErrorShape | null | undefined)?.response?.data?.error;
+    return code === 'stale_page_version' || code === 'page_locked';
+}
+
+/**
  * Parses API errors into consistent format for user display
  * @param error - The error object from API call or mutation
  * @returns Parsed error with title and message
@@ -69,6 +101,11 @@ export function parseApiError(error: unknown): IParsedError {
         }
         
         const responseData = err.response.data;
+
+        const pageConflict = pageConflictTextFor(responseData?.error);
+        if (pageConflict) {
+            return { errorMessage: pageConflict.message, errorTitle: pageConflict.title };
+        }
         
         if (responseData?.error || responseData?.message) {
             errorMessage = responseData.error || responseData.message || errorMessage;
@@ -208,6 +245,9 @@ export function showErrorNotification(
     position: 'top-center' | 'top-right' | 'bottom-center' = 'top-center',
     autoClose: number = 8000
 ) {
+    if (isPageConflictError(error)) {
+        return;
+    }
     const { errorMessage, errorTitle } = parseApiError(error);
 
     // Import notifications dynamically to avoid circular dependencies

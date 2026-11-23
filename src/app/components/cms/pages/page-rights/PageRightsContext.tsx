@@ -4,18 +4,25 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { Alert } from '@mantine/core';
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { Alert, Button, Group, Text } from '@mantine/core';
 import { IconLock } from '@tabler/icons-react';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useAuthUser } from '../../../../../hooks/useUserData';
+import { usePageEditLock, type IPageEditLock } from '../../../../../hooks/usePageEditLock';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
+import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 
 /**
  * What the signed-in person may do with the page open in the editor. The server
  * sends it with the page (`rights`: the route permission AND the grant on this
  * page; the superuser all). The editor only draws it; every write is checked on
  * the server again. A missing flag counts as "no".
+ *
+ * The page's edit lock (live-sync contract C9) narrows it: while someone else
+ * holds the lock, or the caller's own lock has ended, the page is read-only for
+ * the caller, so `canUpdate`, `canDelete` and `canPublish` are all false and
+ * every field of the editor follows the same read-only mode. `lock` tells why.
  */
 export interface IPageEditRights {
   canUpdate: boolean;
@@ -23,26 +30,48 @@ export interface IPageEditRights {
   canPublish: boolean;
   /** The page has been read, so the flags are the server's answer. */
   isKnown: boolean;
+  /** The edit lock of the page; `phase` is `off` for callers who only read. */
+  lock: IPageEditLock;
 }
 
-const NO_RIGHTS: IPageEditRights = { canUpdate: false, canDelete: false, canPublish: false, isKnown: false };
+const NO_LOCK: IPageEditLock = {
+  phase: 'off',
+  holder: null,
+  reason: null,
+  isWorking: false,
+  takeOver: async () => undefined,
+  retry: async () => undefined,
+};
+
+const NO_RIGHTS: IPageEditRights = {
+  canUpdate: false,
+  canDelete: false,
+  canPublish: false,
+  isKnown: false,
+  lock: NO_LOCK,
+};
 
 const PageRightsContext = createContext<IPageEditRights>(NO_RIGHTS);
 
 export function PageRightsProvider({ pageId, children }: { pageId: number | null | undefined; children: ReactNode }) {
   const { data } = usePageFields(pageId ?? null, !!pageId);
   const rights = data?.rights;
+  // Only callers who may update take part in the lock; read-only callers see no lock controls.
+  const lock = usePageEditLock(pageId, rights?.can_update === true);
+  const { phase, holder, reason, isWorking, takeOver, retry } = lock;
+  const lockStopsWrites = phase === 'blocked' || phase === 'checking';
   const value = useMemo<IPageEditRights>(
     () =>
       rights
         ? {
-            canUpdate: rights.can_update === true,
-            canDelete: rights.can_delete === true,
-            canPublish: rights.can_publish === true,
+            canUpdate: rights.can_update === true && !lockStopsWrites,
+            canDelete: rights.can_delete === true && !lockStopsWrites,
+            canPublish: rights.can_publish === true && !lockStopsWrites,
             isKnown: true,
+            lock: { phase, holder, reason, isWorking, takeOver, retry },
           }
         : NO_RIGHTS,
-    [rights],
+    [rights, lockStopsWrites, phase, holder, reason, isWorking, takeOver, retry],
   );
   return <PageRightsContext.Provider value={value}>{children}</PageRightsContext.Provider>;
 }
@@ -65,14 +94,91 @@ export function ReadOnlyFieldset({ readOnly, children }: { readOnly: boolean; ch
   );
 }
 
+function holderName(lock: IPageEditLock): string {
+  return lock.holder?.name?.trim() || 'Someone';
+}
+
+/**
+ * Shown while the edit lock keeps the caller out of an editable page: who is editing, or why the
+ * caller's own lock ended, and the button to continue (take over, or ask again).
+ */
+function PageLockBanner({ lock }: { lock: IPageEditLock }) {
+  const [confirming, setConfirming] = useState(false);
+  const name = holderName(lock);
+
+  let title: string;
+  let body: string;
+  let action: 'take-over' | 'retry';
+  switch (lock.reason) {
+    case 'taken_over':
+      title = `${name} took over editing this page`;
+      body = 'Your editing of this page ended. The page is read-only for you now.';
+      action = 'take-over';
+      break;
+    case 'idle':
+      title = 'Your editing session ended';
+      body = 'The page was not changed for a while, so the edit lock was released. The page is read-only until you edit it again.';
+      action = 'retry';
+      break;
+    case 'free':
+      title = 'Nobody is editing this page now';
+      body = 'The page is read-only until you start editing it.';
+      action = 'retry';
+      break;
+    default:
+      title = `${name} is editing this page`;
+      body = 'You can look at the page, but not change it while they are editing.';
+      action = 'take-over';
+  }
+
+  return (
+    <>
+      <Alert color="yellow" variant="light" icon={<IconLock size={16} />} title={title} data-testid="page-lock-banner">
+        <Group justify="space-between" align="center" wrap="nowrap">
+          <Text size="sm">{body}</Text>
+          {action === 'take-over' ? (
+            <Button size="xs" variant="light" color="yellow" onClick={() => setConfirming(true)} loading={lock.isWorking}>
+              Take over
+            </Button>
+          ) : (
+            <Button size="xs" variant="light" color="yellow" onClick={() => void lock.retry()} loading={lock.isWorking}>
+              {lock.reason === 'free' ? 'Start editing' : 'Edit again'}
+            </Button>
+          )}
+        </Group>
+      </Alert>
+      <ModalWrapper
+        opened={confirming}
+        onClose={() => setConfirming(false)}
+        title="Take over editing?"
+        size="sm"
+        saveLabel="Take over"
+        cancelLabel="Cancel"
+        isLoading={lock.isWorking}
+        onCancel={() => setConfirming(false)}
+        onSave={() => {
+          void lock.takeOver().finally(() => setConfirming(false));
+        }}
+      >
+        <Text size="sm">
+          {name} is editing this page. If you take over, they can no longer save their changes to it.
+        </Text>
+      </ModalWrapper>
+    </>
+  );
+}
+
 /**
  * Shown at the top of the editor when the person may read the page but not
  * change it, with what is missing: the permission, or the grant on this page.
+ * When the edit lock is what keeps them out, it says who is editing instead.
  */
 export function PageReadOnlyBanner() {
-  const { canUpdate, isKnown } = usePageEditRights();
+  const { canUpdate, isKnown, lock } = usePageEditRights();
   const { permissionChecker } = useAuthUser();
-  if (!isKnown || canUpdate) return null;
+  if (!isKnown || lock.phase === 'checking') return null;
+  if (lock.phase === 'blocked') return <PageLockBanner lock={lock} />;
+  if (canUpdate) return null;
 
   const holdsUpdate = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_PAGE_UPDATE) ?? false;
   return (

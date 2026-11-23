@@ -3,7 +3,8 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 import { PERMISSIONS } from '../../../../../../types/auth/jwt-payload.types';
 import type { IPageRights } from '../../../../../../types/common/pages.type';
@@ -15,22 +16,39 @@ import type { IPageRights } from '../../../../../../types/common/pages.type';
 const state = vi.hoisted(() => ({
     rights: undefined as IPageRights | undefined,
     held: new Set<string>(),
+    lock: {
+        phase: 'holding',
+        holder: null,
+        reason: null,
+        isWorking: false,
+        takeOver: vi.fn(async () => undefined),
+        retry: vi.fn(async () => undefined),
+    } as IPageEditLock,
+    lockHook: vi.fn(),
 }));
 
 vi.mock('../../../../../../hooks/usePageDetails', () => ({
     usePageFields: () => ({ data: state.rights ? { page: {}, fields: [], rights: state.rights } : undefined }),
 }));
+vi.mock('../../../../../../hooks/usePageEditLock', () => ({
+    usePageEditLock: (pageId: number | null | undefined, enabled: boolean) => {
+        state.lockHook(pageId, enabled);
+        return enabled ? state.lock : { ...state.lock, phase: 'off', holder: null, reason: null };
+    },
+}));
 vi.mock('../../../../../../hooks/useUserData', () => ({
     useAuthUser: () => ({ permissionChecker: { hasPermission: (name: string) => state.held.has(name) } }),
 }));
 
+import type { IPageEditLock } from '../../../../../../hooks/usePageEditLock';
 import { PageReadOnlyBanner, PageRightsProvider, ReadOnlyFieldset, usePageEditRights } from '../PageRightsContext';
 
 function Editor() {
-    const { canUpdate } = usePageEditRights();
+    const { canUpdate, canDelete, canPublish } = usePageEditRights();
     return (
         <>
             <PageReadOnlyBanner />
+            <output aria-label="flags">{JSON.stringify({ canUpdate, canDelete, canPublish })}</output>
             <ReadOnlyFieldset readOnly={!canUpdate}>
                 <input aria-label="Title" />
             </ReadOnlyFieldset>
@@ -45,6 +63,10 @@ describe('page editor rights', () => {
     beforeEach(() => {
         state.rights = undefined;
         state.held = new Set([PERMISSIONS.ADMIN_ACCESS, PERMISSIONS.ADMIN_PAGE_READ]);
+        state.lock = { ...state.lock, phase: 'holding', holder: null, reason: null, isWorking: false };
+        state.lock.takeOver = vi.fn(async () => undefined);
+        state.lock.retry = vi.fn(async () => undefined);
+        state.lockHook.mockReset();
     });
 
     it('without admin.page.update: read-only banner names the permission and the fields are disabled', () => {
@@ -78,5 +100,120 @@ describe('page editor rights', () => {
 
         expect(screen.queryByText('Read only')).not.toBeInTheDocument();
         expect(screen.getByRole('textbox', { name: 'Title' })).toBeDisabled();
+    });
+});
+
+const ALL: IPageRights = { can_update: true, can_delete: true, can_publish: true };
+const flags = () => JSON.parse(screen.getByLabelText('flags').textContent ?? '{}');
+
+describe('page edit lock in the editor (live sync C9)', () => {
+    it('takes part in the lock only when the caller may update', () => {
+        state.rights = ALL;
+        renderEditor();
+        expect(state.lockHook).toHaveBeenLastCalledWith(94, true);
+    });
+
+    it('a caller who only reads sees no lock controls and the lock is not asked for', () => {
+        state.rights = NONE;
+        renderEditor();
+
+        expect(state.lockHook).toHaveBeenLastCalledWith(94, false);
+        expect(screen.queryByTestId('page-lock-banner')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Take over' })).not.toBeInTheDocument();
+    });
+
+    it('holding the lock: everything the rights allow stays allowed', () => {
+        state.rights = ALL;
+        renderEditor();
+
+        expect(flags()).toEqual({ canUpdate: true, canDelete: true, canPublish: true });
+        expect(screen.queryByTestId('page-lock-banner')).not.toBeInTheDocument();
+    });
+
+    it('while the lock is being taken: read-only, without a banner', () => {
+        state.rights = ALL;
+        state.lock = { ...state.lock, phase: 'checking' };
+        renderEditor();
+
+        expect(flags()).toEqual({ canUpdate: false, canDelete: false, canPublish: false });
+        expect(screen.queryByTestId('page-lock-banner')).not.toBeInTheDocument();
+        expect(screen.queryByText('Read only')).not.toBeInTheDocument();
+        expect(screen.getByRole('textbox', { name: 'Title' })).toBeDisabled();
+    });
+
+    it('someone else holds the lock: read-only, banner with the name and a take-over button', () => {
+        state.rights = ALL;
+        state.lock = { ...state.lock, phase: 'blocked', reason: 'held_by_other', holder: { id: 4, name: 'Ada Lovelace' } };
+        renderEditor();
+
+        expect(screen.getByText('Ada Lovelace is editing this page')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Take over' })).toBeInTheDocument();
+        expect(flags()).toEqual({ canUpdate: false, canDelete: false, canPublish: false });
+        expect(screen.getByRole('textbox', { name: 'Title' })).toBeDisabled();
+        expect(screen.queryByText('Read only')).not.toBeInTheDocument();
+    });
+
+    it('take over asks for a confirmation first, and only then takes over', async () => {
+        const user = userEvent.setup();
+        state.rights = ALL;
+        state.lock = { ...state.lock, phase: 'blocked', reason: 'held_by_other', holder: { id: 4, name: 'Ada Lovelace' } };
+        renderEditor();
+
+        await user.click(screen.getByRole('button', { name: 'Take over' }));
+        expect(await screen.findByText(/they can no longer save their changes/)).toBeInTheDocument();
+        expect(state.lock.takeOver).not.toHaveBeenCalled();
+
+        const confirm = within(screen.getByRole('dialog')).getByRole('button', { name: 'Take over' });
+        await user.click(confirm);
+        await waitFor(() => expect(state.lock.takeOver).toHaveBeenCalledTimes(1));
+    });
+
+    it('cancelling the confirmation takes nothing over', async () => {
+        const user = userEvent.setup();
+        state.rights = ALL;
+        state.lock = { ...state.lock, phase: 'blocked', reason: 'held_by_other', holder: { id: 4, name: 'Ada Lovelace' } };
+        renderEditor();
+
+        await user.click(screen.getByRole('button', { name: 'Take over' }));
+        await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+
+        expect(state.lock.takeOver).not.toHaveBeenCalled();
+    });
+
+    it('the lock was taken over: the banner says by whom', () => {
+        state.rights = ALL;
+        state.lock = { ...state.lock, phase: 'blocked', reason: 'taken_over', holder: { id: 4, name: 'Ada Lovelace' } };
+        renderEditor();
+
+        expect(screen.getByText('Ada Lovelace took over editing this page')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Take over' })).toBeInTheDocument();
+    });
+
+    it('the lock ended after being idle: the banner says why and offers to edit again', async () => {
+        const user = userEvent.setup();
+        state.rights = ALL;
+        state.lock = { ...state.lock, phase: 'blocked', reason: 'idle', holder: null };
+        renderEditor();
+
+        expect(screen.getByText('Your editing session ended')).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Edit again' }));
+        expect(state.lock.retry).toHaveBeenCalledTimes(1);
+    });
+
+    it('nobody holds the lock any more: the banner offers to start editing', () => {
+        state.rights = ALL;
+        state.lock = { ...state.lock, phase: 'blocked', reason: 'free', holder: null };
+        renderEditor();
+
+        expect(screen.getByText('Nobody is editing this page now')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Start editing' })).toBeInTheDocument();
+    });
+
+    it('a holder without a name is called someone', () => {
+        state.rights = ALL;
+        state.lock = { ...state.lock, phase: 'blocked', reason: 'held_by_other', holder: null };
+        renderEditor();
+
+        expect(screen.getByText('Someone is editing this page')).toBeInTheDocument();
     });
 });

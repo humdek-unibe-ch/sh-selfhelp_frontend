@@ -113,6 +113,8 @@ describe('page mutation cache keys', () => {
         expect(keys).toContain(JSON.stringify(QK.ADMIN_NAVIGATION_ALL));
         expect(keys).toContain(JSON.stringify(QK.NAVIGATION_ALL));
         expect(keys).toContain(JSON.stringify(QK.FRONTEND_PAGES_ALL));
+        // The section details carry the page picker, read per request (F56).
+        expect(keys).toContain(JSON.stringify(QK.SECTION_DETAILS_ALL));
         expect(keys).not.toContain(JSON.stringify(['adminPages']));
         expect(keys).not.toContain(JSON.stringify(['pages']));
     });
@@ -133,6 +135,7 @@ describe('page mutation cache keys', () => {
         expect(keys).toContain(JSON.stringify(QK.PAGE_FIELDS(4)));
         expect(keys).toContain(JSON.stringify(QK.PAGE_SECTIONS(4)));
         expect(keys).toContain(JSON.stringify(QK.FRONTEND_PAGES_ALL));
+        expect(keys).toContain(JSON.stringify(QK.SECTION_DETAILS_ALL));
         expect(keys).not.toContain(JSON.stringify(['adminPages']));
         expect(keys).not.toContain(JSON.stringify(['pages']));
     });
@@ -172,5 +175,6 @@ describe('page mutation cache keys', () => {
         expect(events).toContain(`remove:${JSON.stringify(QK.PAGE_SECTIONS(9))}`);
         expect(events).toContain(`invalidate:${JSON.stringify(QK.ADMIN_PAGES)}`);
         expect(events).toContain(`invalidate:${JSON.stringify(QK.ADMIN_NAVIGATION_ALL)}`);
+        expect(events).toContain(`invalidate:${JSON.stringify(QK.SECTION_DETAILS_ALL)}`);
     });
 });
