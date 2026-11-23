@@ -57,6 +57,8 @@ import {
     transformNavigationPages,
 } from '../../utils/navigation.utils';
 import { REFERRER_HOST_HEADER, externalReferrerHost } from '../../utils/referrer-host.utils';
+import { PAGE_VIEW_HEADER, PAGE_VIEW_HEADER_VALUE } from '../../utils/page-view.utils';
+import { pageFromPayload } from '../../utils/page-payload.utils';
 import type { IPageItem, IGetPageResponse, IPageContent, ILanguage, INavigationPayload } from '../../shared';
 import { buildPagesResolvePath } from '@selfhelp/shared';
 
@@ -135,25 +137,46 @@ async function fetchJsonWithStatus<T>(
 }
 
 /**
- * Whether this request's referrer has already been given to a page fetch.
+ * Whether this request's visit headers have already been given to a page fetch.
  *
- * Rendering the slug route makes several page-content fetches (metadata, layout
- * prefetch, page body, status check) and Symfony records a page view for each
- * one. The outside referrer belongs to the visit, so only the first fetch
- * carries it. `cache()` gives every server request its own object.
+ * `cache()` gives every server request its own object. The page body asks for the visit
+ * headers once per render; the gate keeps a repeated ask from sending them twice.
  */
 const referrerGate = cache(() => ({ claimed: false }));
 
 /**
- * `X-Referrer-Host` for a page-content fetch: the host of the outside site the
- * visitor came from (the incoming `Referer`), for the first page fetch of the
- * request only. Empty when there is no outside referrer, for every later fetch
- * of the same request, and outside a request (build time).
+ * True for a request the browser made only to warm a cache (C7: never a page view): `Purpose` /
+ * `Sec-Purpose` of a browser prefetch or prerender.
  *
- * The gate is claimed before the first `await`, so concurrent fetches of one
- * request cannot both take the referrer.
+ * The Next.js router prefetch cannot be seen here: Next.js removes its own headers
+ * (`next-router-prefetch`, `next-router-segment-prefetch`, `next-router-state-tree`, `rsc`) before
+ * a Server Component or the proxy runs. Router prefetches are kept out of the count by where the
+ * view is claimed instead (see {@link pageVisitHeaders}).
  */
-async function pageReferrerHeaders(): Promise<Record<string, string>> {
+function isPrefetchRequest(incoming: Awaited<ReturnType<typeof headers>>): boolean {
+    const purpose = `${incoming.get('purpose') ?? ''} ${incoming.get('sec-purpose') ?? ''}`.toLowerCase();
+    return purpose.includes('prefetch') || purpose.includes('prerender');
+}
+
+/**
+ * Visit headers for the page-content fetch of the page BODY (`resolvePageByPathSSRStatus`), once
+ * per server request (empty on a second ask, and outside a request, e.g. at build time):
+ *
+ * - `X-Page-View: 1` (C7, F135): this render is the one fetch that counts the page view. Not
+ *   sent for preview, and not for a browser prefetch.
+ * - `X-Referrer-Host`: the host of the outside site the visitor came from (the incoming
+ *   `Referer`), when there is one. It travels on the same request as the view (F126).
+ *
+ * Only the body fetch asks. The fetches of `generateMetadata` and of the layout carry nothing:
+ * Next.js renders them alone for a link prefetch (a "metadata-only" request), and the page body
+ * is rendered only when someone really opens the page. Found by hand in Part 7: with the view on
+ * "the first fetch of the request", every header-menu link in the viewport counted a view for a
+ * page nobody opened.
+ *
+ * The gate is claimed before the first `await`, so concurrent asks of one
+ * request cannot both take them.
+ */
+async function pageVisitHeaders(preview = false): Promise<Record<string, string>> {
     const gate = referrerGate();
     if (gate.claimed) return {};
     gate.claimed = true;
@@ -164,7 +187,10 @@ async function pageReferrerHeaders(): Promise<Record<string, string>> {
             incoming.get('referer'),
             incoming.get('x-forwarded-host') ?? incoming.get('host'),
         );
-        return host ? { [REFERRER_HOST_HEADER]: host } : {};
+        return {
+            ...(!preview && !isPrefetchRequest(incoming) ? { [PAGE_VIEW_HEADER]: PAGE_VIEW_HEADER_VALUE } : {}),
+            ...(host ? { [REFERRER_HOST_HEADER]: host } : {}),
+        };
     } catch {
         return {};
     }
@@ -184,14 +210,15 @@ export function unwrapSsrList(raw: unknown): unknown[] {
 
 /**
  * Extract the page node from a `/pages/by-keyword` envelope. The payload is
- * `{ data: { page } }`; older shapes returned the page directly under `data`,
+ * `{ data: { page, sync } }`; the live-sync block travels with the page
+ * (`pageFromPayload`). Older shapes returned the page directly under `data`,
  * so we fall back to `data` itself (matching the previous inline
  * `envelope?.data?.page ?? envelope?.data ?? null`).
  */
 export function extractSsrPage(envelope: IGetPageResponse | null): IPageContent | null {
     const data = envelope?.data;
     if (!data) return null;
-    return (data.page ?? (data as unknown as IPageContent)) ?? null;
+    return pageFromPayload(data) ?? (data as unknown as IPageContent) ?? null;
 }
 
 /**
@@ -305,9 +332,7 @@ async function getPageByKeywordSSR(
 ): Promise<IGetPageResponse | null> {
     const params = new URLSearchParams({ language_id: String(languageId) });
     if (preview) params.set('preview', '1');
-    return fetchJson(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`, {
-        headers: await pageReferrerHeaders(),
-    });
+    return fetchJson(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`);
 }
 
 /**
@@ -532,9 +557,7 @@ export const getPageByKeywordSSRStatus = cache(
     ): Promise<{ status: number | null; data: IGetPageResponse | null }> => {
         const params = new URLSearchParams({ language_id: String(languageId) });
         if (preview) params.set('preview', '1');
-        return fetchJsonWithStatus(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`, {
-            headers: await pageReferrerHeaders(),
-        });
+        return fetchJsonWithStatus(`/pages/by-keyword/${encodeURIComponent(keyword)}?${params.toString()}`);
     }
 );
 
@@ -550,9 +573,9 @@ export const getPageByKeywordSSRStatus = cache(
  */
 export const resolvePageByPathSSRCached = cache(
     async (path: string, languageId: number, preview = false): Promise<IGetPageResponse | null> => {
-        return fetchJson(buildPagesResolvePath({ path, languageId, preview }), {
-            headers: await pageReferrerHeaders(),
-        });
+        // No visit headers: this fetch also serves `generateMetadata` and the layout, which
+        // Next.js renders alone for a link prefetch. Only the page body counts the view.
+        return fetchJson(buildPagesResolvePath({ path, languageId, preview }));
     }
 );
 
@@ -572,7 +595,7 @@ export const resolvePageByPathSSRStatus = cache(
         // The server renders every form list of the page for exactly that URL state.
         const resolvePath = buildPagesResolvePath({ path, languageId, preview });
         return fetchJsonWithStatus(listQuery === '' ? resolvePath : `${resolvePath}&${listQuery}`, {
-            headers: await pageReferrerHeaders(),
+            headers: await pageVisitHeaders(preview),
         });
     }
 );

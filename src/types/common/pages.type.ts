@@ -159,6 +159,8 @@ export interface IPageRights {
 }
 
 export interface IPageFieldsData {
+    /** Version of the page's draft (live sync C8); the editor sends it with every draft write. */
+    draft_version?: number;
     page: IPageDetails;
     fields: IPageField[];
     /** DB-driven public routes for this page (issue #30); edited in the Routes panel. */

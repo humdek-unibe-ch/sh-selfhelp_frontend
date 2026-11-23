@@ -21,6 +21,24 @@ import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { type IBaseApiResponse, type IPageContent } from '../shared';
 import { REFERRER_HOST_HEADER, consumeLandingReferrerHost } from '../utils/referrer-host.utils';
+import { PAGE_VIEW_HEADER, PAGE_VIEW_HEADER_VALUE } from '../utils/page-view.utils';
+import { pageFromPayload, type IPagePayload } from '../utils/page-payload.utils';
+
+/** Options of {@link PageApi.resolvePageByPath}. */
+export interface IResolvePageByPathOptions {
+    /**
+     * This fetch is the one that counts the page view (`X-Page-View: 1`, C7). Only the fetch that
+     * loads a page for a navigation sets it. Prefetch, live refetch, `valid_until` refetch and
+     * preview never do, and it is ignored for preview.
+     */
+    countView?: boolean;
+}
+
+/** The page of a response, with the live-sync block that travels next to it. */
+function unwrapPage(payload: IPagePayload): IPageContent {
+    // The callers have always read `data.page` without a guard; a response without a page is a server fault they surface.
+    return pageFromPayload(payload) as IPageContent;
+}
 
 export const PageApi = {
     /**
@@ -34,12 +52,12 @@ export const PageApi = {
         if (languageId) queryParams.language_id = languageId.toString();
         if (preview) queryParams.preview = 'true';
 
-        const response = await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>(
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IPagePayload>>(
             API_CONFIG.ENDPOINTS.PAGES_GET_BY_KEYWORD,
             keyword,
             { params: queryParams }
         );
-        return response.data.data.page;
+        return unwrapPage(response.data.data);
     },
 
     /**
@@ -54,19 +72,31 @@ export const PageApi = {
      * referrer. A normal visit dismisses the snapshot when the SSR-seeded
      * query hydrates (`dismissLandingReferrerHost`), so a later language
      * switch or invalidation refetch of the same path carries none.
+     *
+     * `X-Page-View: 1` is sent only when `options.countView` is set (and never for preview), on
+     * the same request that may carry the referrer.
      */
-    async resolvePageByPath(path: string, languageId?: number, preview?: boolean): Promise<IPageContent> {
+    async resolvePageByPath(
+        path: string,
+        languageId?: number,
+        preview?: boolean,
+        options: IResolvePageByPathOptions = {},
+    ): Promise<IPageContent> {
         const route = {
             route: buildPagesResolvePath({ path, languageId, preview }),
             permissions: [],
         };
         const referrerHost = consumeLandingReferrerHost(path);
+        const requestHeaders: Record<string, string> = {
+            ...(options.countView && !preview ? { [PAGE_VIEW_HEADER]: PAGE_VIEW_HEADER_VALUE } : {}),
+            ...(referrerHost ? { [REFERRER_HOST_HEADER]: referrerHost } : {}),
+        };
 
-        const response = referrerHost
-            ? await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>(route, {
-                  headers: { [REFERRER_HOST_HEADER]: referrerHost },
+        const response = Object.keys(requestHeaders).length > 0
+            ? await permissionAwareApiClient.get<IBaseApiResponse<IPagePayload>>(route, {
+                  headers: requestHeaders,
               })
-            : await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>(route);
-        return response.data.data.page;
+            : await permissionAwareApiClient.get<IBaseApiResponse<IPagePayload>>(route);
+        return unwrapPage(response.data.data);
     },
 };
