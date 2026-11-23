@@ -3,8 +3,10 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 /**
- * Release-manifest floor guard for the role-scope wave (frontend 0.1.75, which
- * needs the renamed permissions of core 0.1.48).
+ * Release-manifest floor guard for the live-sync wave (frontend 0.1.76, which
+ * needs the change notices, the access stamp and the page `sync` block of core 0.1.49).
+ * The same floor is the first core with the role-scope permission names (0.1.48) and with
+ * `fully_held` on role items (0.1.49, F255).
  * Registry pairing uses `supports.core` (not mobile package SemVer).
  */
 import { describe, expect, it } from 'vitest';
@@ -17,15 +19,15 @@ const manifest = JSON.parse(
 const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'));
 
 describe('release-manifest wave floors', () => {
-    it('requires core >=0.1.48 for this frontend', () => {
+    it('requires core >=0.1.49 for this frontend', () => {
         expect(manifest.kind).toBe('frontend');
-        expect(manifest.supports.core).toBe('>=0.1.48 <0.2.0');
+        expect(manifest.supports.core).toBe('>=0.1.49 <0.2.0');
     });
 
-    it('pins @selfhelp/shared to 1.27.0 (role-scope permission names)', () => {
-        expect(pkg.dependencies['@selfhelp/shared'] ?? pkg.devDependencies?.['@selfhelp/shared']).toBe(
-            '1.27.0',
-        );
+    it('pins @selfhelp/shared to one exact published version', () => {
+        // The number is not fixed here: a later bump needs only package.json and the lockfile.
+        const pinned = pkg.dependencies['@selfhelp/shared'] ?? pkg.devDependencies?.['@selfhelp/shared'];
+        expect(pinned).toMatch(/^\d+\.\d+\.\d+$/);
     });
 
     it('names the same shared version in the lockfile as in package.json', () => {
@@ -41,10 +43,10 @@ describe('release-manifest wave floors', () => {
         // Avoid importing `semver` (no @types in this package); mirror the
         // wave's `>=X.Y.Z <0.2.0` range with version_compare-style checks.
         const range = manifest.supports.core as string;
-        expect(range).toBe('>=0.1.48 <0.2.0');
+        expect(range).toBe('>=0.1.49 <0.2.0');
         const floorOk = (v: string) => {
             const [maj, min, pat] = v.split('.').map(Number);
-            const [fMaj, fMin, fPat] = [0, 1, 48];
+            const [fMaj, fMin, fPat] = [0, 1, 49];
             const [cMaj, cMin] = [0, 2];
             const geFloor =
                 maj > fMaj ||
@@ -53,7 +55,7 @@ describe('release-manifest wave floors', () => {
             const ltCap = maj < cMaj || (maj === cMaj && min < cMin);
             return geFloor && ltCap;
         };
-        expect(floorOk('0.1.48')).toBe(true);
-        expect(floorOk('0.1.47')).toBe(false);
+        expect(floorOk('0.1.49')).toBe(true);
+        expect(floorOk('0.1.48')).toBe(false);
     });
 });

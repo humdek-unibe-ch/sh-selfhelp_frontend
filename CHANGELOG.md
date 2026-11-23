@@ -16,10 +16,40 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
-## Unreleased
+## v0.1.76 — 2026-11-20
+
+**Live sync: open pages and lists follow changes made by others**
+
+Requires core **>=0.1.49** (change notices, the access stamp and the page
+`sync` block). This floor is also the first core with `fully_held` on role
+items, which the asset and role pickers already read. The client uses the
+`@selfhelp/shared` 1.28.0 sync module; `package.json` and the lockfile pin the
+published 1.28.0.
 
 **Added**
 
+- Live sync. One stream per browser (one leader tab) now also serves visitors
+  who are not signed in. A change notice (`changed`) names what changed; an open
+  page, the menu, a list, the section inspector or an asset list reads that data
+  again by itself within about a third of a second. A background tab only marks
+  its data stale and reads it when you come back. See
+  [docs/developer/live-sync.md](docs/developer/live-sync.md).
+- Page editor: one person edits a page at a time. Opening a page you may
+  change reserves it for you and keeps it while the editor is open; leaving
+  gives it up. If someone else is editing, the page opens read-only with
+  "<name> is editing this page" and a **Take over** button (with a
+  confirmation). When your editing ends (someone took over, or 15 minutes
+  without a change) the banner says why. User guide:
+  [docs/user/page-editing-lock.md](docs/user/page-editing-lock.md).
+- Page editor: every draft write sends the version of the draft it is based on.
+  A save refused because the page changed elsewhere shows "This page was
+  changed elsewhere", loads the latest draft and keeps what you typed in the
+  open panel.
+- A page whose content depends on the clock (a time-limited block, a scheduled
+  condition) refreshes once at the moment the server names, without polling.
+- When a change removes your access to the page you are on, a notice says so
+  and the page stays until you leave it. When a form you typed into is removed,
+  a notice says what you typed is no longer part of the page.
 - Menus builder: **Max root items** on every menu tab (header, footer, drawer,
   bottom tabs); blank clears to unlimited. Badge and blocked-add copy mention
   raising the limit; soft over-limit keeps extras stored. User guide:
@@ -35,6 +65,19 @@ No engineering diary, no implementation detail — that belongs in
 
 **Changed**
 
+- A page that is refreshed by live sync keeps what you typed: a record form
+  keeps the text of a field you changed while the other fields follow the new
+  stored values.
+- A group or role change that affects you (new page, new right, lost right)
+  updates the menu as well as the pages (F251). The access stamp every reply
+  carries (`X-Acl-Stamp`, passed through the proxy) makes the client read your
+  user data again when a group or role of yours changed.
+- A page view is counted once per visit: the server render of a direct load or
+  of an in-app navigation sends `X-Page-View: 1` together with the referrer.
+  Prefetch, live refresh, language switch and preview never count a view.
+- A group, role or data table that is created, renamed or deleted, and a page
+  that is created, saved or deleted, refreshes the pickers of the section
+  inspector (F56).
 - The role form shows permission names for a role editor: the permission list
   endpoint opens for `admin.permission.read` or `admin.role.update`, and the
   client gate lets a call through when you hold any one of the rights an
@@ -42,6 +85,22 @@ No engineering diary, no implementation detail — that belongs in
 - The permissions guide now says page access for a group is one right,
   `select`. The release-manifest test names `@selfhelp/shared` 1.27.0, the
   version the package pins.
+
+**Fixed**
+
+- A quick action on a list row (Approve) followed at once by another (Delete)
+  no longer fails with a version conflict: the row takes the version the first
+  action wrote (F186).
+- The asset bulk bar no longer offers actions from an outdated copy of a
+  selected asset; a changed asset is read again, a deleted one leaves the
+  selection (F121).
+- A page that is only prefetched (a header-menu link in view, a hover) no
+  longer counts a page view. Before, the view was claimed by the first page
+  fetch of the request, and Next.js sends one such fetch for every link in
+  view; now only the render of the page itself counts it.
+- A page opened in the browser keeps its live-sync information (what it depends
+  on and until when it is valid), so an open page and the page of a link you
+  just followed update by themselves when someone changes them.
 
 **Removed**
 
