@@ -84,7 +84,7 @@ import {
     PageNavigationMembership,
 } from './page-field-groups';
 import { PageRoutesPanel } from './PageRoutesPanel';
-import { ReadOnlyFieldset, usePageEditRights } from '../page-rights/PageRightsContext';
+import { ReadOnlyFieldset, lockPauseLabel, usePageEditRights } from '../page-rights/PageRightsContext';
 import { isStaleConflictHeld } from '../../../../../utils/page-edit-conflict.utils';
 import { useAuthUser } from '../../../../../hooks/useUserData';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
@@ -160,11 +160,18 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
     }, [languagesData, activeLanguageTab]);
 
     // What the caller may do with this page (server flags); the fields are read-only without update.
-    const { canUpdate, canDelete, canPublish } = usePageEditRights();
+    const { canUpdate, canDelete, canPublish, allowDelete, allowPublish, lock } = usePageEditRights();
     const readOnly = !canUpdate;
     const { permissionChecker } = useAuthUser();
     const canCreatePages = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_PAGE_CREATE) ?? false;
-    const canDeleteVersions = canUpdate && (permissionChecker?.hasPermission(PERMISSIONS.ADMIN_PAGE_VERSION_DELETE) ?? false);
+    // Show version-delete when the caller may update (server) and holds the route right; the lock
+    // only disables it (tooltip), so the control stays visible while someone else holds the lock.
+    const allowDeleteVersions =
+        pageFieldsData?.rights?.can_update === true &&
+        (permissionChecker?.hasPermission(PERMISSIONS.ADMIN_PAGE_VERSION_DELETE) ?? false);
+    const canDeleteVersions = allowDeleteVersions && canUpdate;
+    // Tooltip of the paused controls: who is editing, or that the caller's own session ended (null when nothing is paused).
+    const lockPausedLabel = lockPauseLabel(lock);
 
     const updatePageMutation = useUpdatePageMutation({
         onSuccess: (_updatedPage, pageId) => {
@@ -652,7 +659,10 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                     }
                   } : undefined}
                   canPublish={canPublish}
+                  allowPublish={allowPublish}
                   canDeleteVersions={canDeleteVersions}
+                  allowDeleteVersions={allowDeleteVersions}
+                  lockPausedLabel={lockPausedLabel}
                   isPublishing={publishVersionMutation.isPending}
                   isDeleting={unpublishPageMutation.isPending}
                   isRestoring={restoreVersionMutation.isPending}
@@ -702,23 +712,28 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                       </Button>
                     )}
 
-                    {canDelete && <Tooltip
+                    {allowDelete && <Tooltip
                       label={
                         page?.is_system
                           ? "System pages cannot be deleted"
-                          : "Delete this page"
+                          : !canDelete && lockPausedLabel
+                            ? lockPausedLabel
+                            : "Delete this page"
                       }
                       position="top"
                     >
-                      <Button
-                        leftSection={<IconTrash size="1rem" />}
-                        color="red"
-                        variant="outline"
-                        onClick={() => setDeleteModalOpened(true)}
-                        disabled={Boolean(page?.is_system)}
-                      >
-                        Delete Page
-                      </Button>
+                      <span style={{ display: 'inline-flex' }}>
+                        <Button
+                          leftSection={<IconTrash size="1rem" />}
+                          color="red"
+                          variant="outline"
+                          onClick={() => setDeleteModalOpened(true)}
+                          disabled={Boolean(page?.is_system) || !canDelete}
+                          data-testid="page-delete-button"
+                        >
+                          Delete Page
+                        </Button>
+                      </span>
                     </Tooltip>}
                   </Group>
                 </Stack>

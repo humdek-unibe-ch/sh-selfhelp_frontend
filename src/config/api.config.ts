@@ -196,11 +196,16 @@ export const API_CONFIG = {
             route: (pageId: number) => `/admin/pages/${pageId}/sections`,
             permissions: [PERMISSIONS.ADMIN_PAGE_READ]
         },
-        // Page edit lock (live sync, C9): the route right plus the update grant on the page. One path, three
-        // methods, so one entry per route row (`admin_pages_lock_get`, `_acquire`, `_release`, `_take_over`).
+        // Page edit lock (live sync, C9): one path, three methods → one entry per route row.
+        // GET also accepts delete/publish/version-delete (read-only status for those callers, F259).
         ADMIN_PAGES_LOCK_GET: {
             route: (pageId: number) => `/admin/pages/${pageId}/lock`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+            permissions: [
+                PERMISSIONS.ADMIN_PAGE_UPDATE,
+                PERMISSIONS.ADMIN_PAGE_DELETE,
+                PERMISSIONS.ADMIN_PAGE_VERSION_PUBLISH,
+                PERMISSIONS.ADMIN_PAGE_VERSION_DELETE,
+            ]
         },
         ADMIN_PAGES_LOCK_ACQUIRE: {
             route: (pageId: number) => `/admin/pages/${pageId}/lock`,

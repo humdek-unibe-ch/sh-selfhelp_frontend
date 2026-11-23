@@ -66,10 +66,24 @@ export const PAGE_CONFLICT_TEXTS: Readonly<Record<string, { title: string; messa
     },
 };
 
-function pageConflictTextFor(code: unknown): { title: string; message: string } | undefined {
-    return typeof code === 'string' && Object.prototype.hasOwnProperty.call(PAGE_CONFLICT_TEXTS, code)
-        ? PAGE_CONFLICT_TEXTS[code]
-        : undefined;
+function pageConflictTextFor(
+    code: unknown,
+    data?: { holder?: { name?: string | null } | null } | null,
+): { title: string; message: string } | undefined {
+    if (typeof code !== 'string' || !Object.prototype.hasOwnProperty.call(PAGE_CONFLICT_TEXTS, code)) {
+        return undefined;
+    }
+    const base = PAGE_CONFLICT_TEXTS[code];
+    if (code === 'page_locked') {
+        const holder = data?.holder?.name?.trim();
+        if (holder) {
+            return {
+                title: `${holder} is editing this page`,
+                message: `${holder} is editing this page. Publishing and deleting are paused until they are done.`,
+            };
+        }
+    }
+    return base;
 }
 
 /** True when the error is a stale or locked refusal, which the page editor reports itself (banner and toast). */
@@ -102,7 +116,10 @@ export function parseApiError(error: unknown): IParsedError {
         
         const responseData = err.response.data;
 
-        const pageConflict = pageConflictTextFor(responseData?.error);
+        const pageConflict = pageConflictTextFor(
+            responseData?.error,
+            responseData?.data as { holder?: { name?: string | null } | null } | null | undefined,
+        );
         if (pageConflict) {
             return { errorMessage: pageConflict.message, errorTitle: pageConflict.title };
         }

@@ -46,8 +46,14 @@ describe('page edit lock endpoints', () => {
         expect(endpoints.ADMIN_PAGES_LOCK_ACQUIRE.route(12)).toBe('/admin/pages/12/lock');
         expect(endpoints.ADMIN_PAGES_LOCK_RELEASE.route(12)).toBe('/admin/pages/12/lock');
         expect(endpoints.ADMIN_PAGES_LOCK_TAKE_OVER.route(12)).toBe('/admin/pages/12/lock/take-over');
+        // GET is also readable by delete/publish/version-delete callers (F259).
+        expect(endpoints.ADMIN_PAGES_LOCK_GET.permissions).toEqual([
+            PERMISSIONS.ADMIN_PAGE_UPDATE,
+            PERMISSIONS.ADMIN_PAGE_DELETE,
+            PERMISSIONS.ADMIN_PAGE_VERSION_PUBLISH,
+            PERMISSIONS.ADMIN_PAGE_VERSION_DELETE,
+        ]);
         for (const endpoint of [
-            endpoints.ADMIN_PAGES_LOCK_GET,
             endpoints.ADMIN_PAGES_LOCK_ACQUIRE,
             endpoints.ADMIN_PAGES_LOCK_RELEASE,
             endpoints.ADMIN_PAGES_LOCK_TAKE_OVER,

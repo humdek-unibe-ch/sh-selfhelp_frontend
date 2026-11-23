@@ -20,6 +20,7 @@ const state = vi.hoisted(() => ({
         phase: 'holding',
         holder: null,
         reason: null,
+        watchOnly: false,
         isWorking: false,
         takeOver: vi.fn(async () => undefined),
         retry: vi.fn(async () => undefined),
@@ -31,9 +32,16 @@ vi.mock('../../../../../../hooks/usePageDetails', () => ({
     usePageFields: () => ({ data: state.rights ? { page: {}, fields: [], rights: state.rights } : undefined }),
 }));
 vi.mock('../../../../../../hooks/usePageEditLock', () => ({
-    usePageEditLock: (pageId: number | null | undefined, enabled: boolean) => {
-        state.lockHook(pageId, enabled);
-        return enabled ? state.lock : { ...state.lock, phase: 'off', holder: null, reason: null };
+    usePageEditLock: (
+        pageId: number | null | undefined,
+        enabled: boolean,
+        options?: { watchOnly?: boolean },
+    ) => {
+        state.lockHook(pageId, enabled, options);
+        if (!enabled) {
+            return { ...state.lock, phase: 'off', holder: null, reason: null, watchOnly: false };
+        }
+        return { ...state.lock, watchOnly: options?.watchOnly === true };
     },
 }));
 vi.mock('../../../../../../hooks/useUserData', () => ({
@@ -41,14 +49,22 @@ vi.mock('../../../../../../hooks/useUserData', () => ({
 }));
 
 import type { IPageEditLock } from '../../../../../../hooks/usePageEditLock';
-import { PageReadOnlyBanner, PageRightsProvider, ReadOnlyFieldset, usePageEditRights } from '../PageRightsContext';
+import {
+    PageReadOnlyBanner,
+    PageRightsProvider,
+    ReadOnlyFieldset,
+    lockPauseLabel,
+    usePageEditRights,
+} from '../PageRightsContext';
 
 function Editor() {
-    const { canUpdate, canDelete, canPublish } = usePageEditRights();
+    const { canUpdate, canDelete, canPublish, allowDelete, allowPublish, lock } = usePageEditRights();
     return (
         <>
             <PageReadOnlyBanner />
-            <output aria-label="flags">{JSON.stringify({ canUpdate, canDelete, canPublish })}</output>
+            <output aria-label="flags">
+                {JSON.stringify({ canUpdate, canDelete, canPublish, allowDelete, allowPublish, watchOnly: lock.watchOnly })}
+            </output>
             <ReadOnlyFieldset readOnly={!canUpdate}>
                 <input aria-label="Title" />
             </ReadOnlyFieldset>
@@ -63,7 +79,14 @@ describe('page editor rights', () => {
     beforeEach(() => {
         state.rights = undefined;
         state.held = new Set([PERMISSIONS.ADMIN_ACCESS, PERMISSIONS.ADMIN_PAGE_READ]);
-        state.lock = { ...state.lock, phase: 'holding', holder: null, reason: null, isWorking: false };
+        state.lock = {
+            ...state.lock,
+            phase: 'holding',
+            holder: null,
+            reason: null,
+            watchOnly: false,
+            isWorking: false,
+        };
         state.lock.takeOver = vi.fn(async () => undefined);
         state.lock.retry = vi.fn(async () => undefined);
         state.lockHook.mockReset();
@@ -110,14 +133,14 @@ describe('page edit lock in the editor (live sync C9)', () => {
     it('takes part in the lock only when the caller may update', () => {
         state.rights = ALL;
         renderEditor();
-        expect(state.lockHook).toHaveBeenLastCalledWith(94, true);
+        expect(state.lockHook).toHaveBeenLastCalledWith(94, true, { watchOnly: false });
     });
 
     it('a caller who only reads sees no lock controls and the lock is not asked for', () => {
         state.rights = NONE;
         renderEditor();
 
-        expect(state.lockHook).toHaveBeenLastCalledWith(94, false);
+        expect(state.lockHook).toHaveBeenLastCalledWith(94, false, { watchOnly: false });
         expect(screen.queryByTestId('page-lock-banner')).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Take over' })).not.toBeInTheDocument();
     });
@@ -126,7 +149,14 @@ describe('page edit lock in the editor (live sync C9)', () => {
         state.rights = ALL;
         renderEditor();
 
-        expect(flags()).toEqual({ canUpdate: true, canDelete: true, canPublish: true });
+        expect(flags()).toEqual({
+            canUpdate: true,
+            canDelete: true,
+            canPublish: true,
+            allowDelete: true,
+            allowPublish: true,
+            watchOnly: false,
+        });
         expect(screen.queryByTestId('page-lock-banner')).not.toBeInTheDocument();
     });
 
@@ -135,7 +165,7 @@ describe('page edit lock in the editor (live sync C9)', () => {
         state.lock = { ...state.lock, phase: 'checking' };
         renderEditor();
 
-        expect(flags()).toEqual({ canUpdate: false, canDelete: false, canPublish: false });
+        expect(flags()).toMatchObject({ canUpdate: false, canDelete: false, canPublish: false });
         expect(screen.queryByTestId('page-lock-banner')).not.toBeInTheDocument();
         expect(screen.queryByText('Read only')).not.toBeInTheDocument();
         expect(screen.getByRole('textbox', { name: 'Title' })).toBeDisabled();
@@ -148,7 +178,13 @@ describe('page edit lock in the editor (live sync C9)', () => {
 
         expect(screen.getByText('Ada Lovelace is editing this page')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Take over' })).toBeInTheDocument();
-        expect(flags()).toEqual({ canUpdate: false, canDelete: false, canPublish: false });
+        expect(flags()).toMatchObject({
+            canUpdate: false,
+            canDelete: false,
+            canPublish: false,
+            allowDelete: true,
+            allowPublish: true,
+        });
         expect(screen.getByRole('textbox', { name: 'Title' })).toBeDisabled();
         expect(screen.queryByText('Read only')).not.toBeInTheDocument();
     });
@@ -189,15 +225,62 @@ describe('page edit lock in the editor (live sync C9)', () => {
         expect(screen.getByRole('button', { name: 'Take over' })).toBeInTheDocument();
     });
 
-    it('the lock ended after being idle: the banner says why and offers to edit again', async () => {
+    it('the lock ended after being idle: the banner says why and offers Continue editing (take-over)', async () => {
         const user = userEvent.setup();
         state.rights = ALL;
         state.lock = { ...state.lock, phase: 'blocked', reason: 'idle', holder: null };
         renderEditor();
 
         expect(screen.getByText('Your editing session ended')).toBeInTheDocument();
-        await user.click(screen.getByRole('button', { name: 'Edit again' }));
-        expect(state.lock.retry).toHaveBeenCalledTimes(1);
+        await user.click(screen.getByRole('button', { name: 'Continue editing' }));
+        expect(state.lock.takeOver).toHaveBeenCalledTimes(1);
+    });
+
+    it('a delete-only caller watches the lock: banner without Take over, canDelete false while held, true when free', async () => {
+        state.rights = { can_update: false, can_delete: true, can_publish: false };
+        state.lock = {
+            ...state.lock,
+            phase: 'blocked',
+            reason: 'held_by_other',
+            holder: { id: 4, name: 'Ada Lovelace' },
+            watchOnly: true,
+        };
+        const { rerender } = renderWithProviders(
+            <PageRightsProvider pageId={94}><Editor /></PageRightsProvider>,
+        );
+
+        expect(state.lockHook).toHaveBeenLastCalledWith(94, true, { watchOnly: true });
+        expect(screen.getByTestId('page-lock-banner')).toBeInTheDocument();
+        expect(screen.getByText(/Publishing and deleting are paused/)).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Take over' })).not.toBeInTheDocument();
+        expect(flags()).toMatchObject({ canDelete: false, allowDelete: true, watchOnly: true });
+
+        state.lock = { ...state.lock, phase: 'off', holder: null, reason: null, watchOnly: true };
+        rerender(<PageRightsProvider pageId={94}><Editor /></PageRightsProvider>);
+
+        expect(flags()).toMatchObject({ canDelete: true, allowDelete: true, watchOnly: true });
+        expect(screen.queryByTestId('page-lock-banner')).not.toBeInTheDocument();
+    });
+
+    it('a publish-only caller watches the lock: canPublish follows the lock without a reload', () => {
+        state.rights = { can_update: false, can_delete: false, can_publish: true };
+        state.lock = {
+            ...state.lock,
+            phase: 'blocked',
+            reason: 'held_by_other',
+            holder: { id: 4, name: 'Ada Lovelace' },
+            watchOnly: true,
+        };
+        const { rerender } = renderWithProviders(
+            <PageRightsProvider pageId={94}><Editor /></PageRightsProvider>,
+        );
+
+        expect(flags()).toMatchObject({ canPublish: false, allowPublish: true, watchOnly: true });
+
+        state.lock = { ...state.lock, phase: 'off', holder: null, reason: null, watchOnly: true };
+        rerender(<PageRightsProvider pageId={94}><Editor /></PageRightsProvider>);
+
+        expect(flags()).toMatchObject({ canPublish: true, allowPublish: true });
     });
 
     it('nobody holds the lock any more: the banner offers to start editing', () => {
@@ -215,5 +298,33 @@ describe('page edit lock in the editor (live sync C9)', () => {
         renderEditor();
 
         expect(screen.getByText('Someone is editing this page')).toBeInTheDocument();
+    });
+});
+
+describe('tooltip of the controls the lock pauses (lockPauseLabel)', () => {
+    const ADA = { id: 4, name: 'Ada Lovelace' };
+
+    it('names the person who is editing, whether they hold it or took it over', () => {
+        expect(lockPauseLabel({ phase: 'blocked', reason: 'held_by_other', holder: ADA })).toBe('Ada Lovelace is editing this page');
+        expect(lockPauseLabel({ phase: 'blocked', reason: 'taken_over', holder: ADA })).toBe('Ada Lovelace is editing this page');
+        expect(lockPauseLabel({ phase: 'blocked', reason: 'held_by_other', holder: null })).toBe('Someone is editing this page');
+    });
+
+    it('when the caller\'s own session ended, it does not claim that someone is editing', () => {
+        const label = lockPauseLabel({ phase: 'blocked', reason: 'idle', holder: null });
+
+        expect(label).toBe('Your editing session ended. Continue editing to publish or delete.');
+        expect(label).not.toMatch(/Someone/);
+    });
+
+    it('when nobody holds the page, it says so and how to continue', () => {
+        expect(lockPauseLabel({ phase: 'blocked', reason: 'free', holder: null }))
+            .toBe('Nobody is editing this page now. Start editing to publish or delete.');
+    });
+
+    it('is null while nothing is paused (holding, checking, off)', () => {
+        for (const phase of ['holding', 'checking', 'off'] as const) {
+            expect(lockPauseLabel({ phase, reason: null, holder: null })).toBeNull();
+        }
     });
 });

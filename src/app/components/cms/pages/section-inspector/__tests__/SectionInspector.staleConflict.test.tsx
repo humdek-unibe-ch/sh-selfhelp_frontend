@@ -56,7 +56,15 @@ vi.mock('../SectionInspectorHeader', () => ({ SectionInspectorHeader: () => null
 vi.mock('../SectionFieldPanels', () => ({ SectionFieldPanels: () => null }));
 vi.mock('../section-field-groups', () => ({ SectionInfoPanel: () => null }));
 vi.mock('../../page-rights/PageRightsContext', () => ({
-    usePageEditRights: () => ({ canUpdate: true, canDelete: true, canPublish: true, isKnown: true }),
+    usePageEditRights: () => ({
+        canUpdate: true,
+        canDelete: true,
+        canPublish: true,
+        allowDelete: true,
+        allowPublish: true,
+        isKnown: true,
+        lock: { phase: 'holding', holder: null, reason: null, watchOnly: false, isWorking: false, takeOver: async () => undefined, retry: async () => undefined },
+    }),
 }));
 
 import { SectionInspector } from '../SectionInspector';

@@ -56,4 +56,20 @@ describe('parseApiError', () => {
         expect(errorTitle).toBe('Access Denied');
         expect(errorMessage).toBe('You do not have permission to perform this action.');
     });
+
+    it('names the lock holder on 409 page_locked (delete/publish backstop)', () => {
+        const err = {
+            response: {
+                status: 409,
+                data: {
+                    status: 409,
+                    error: 'page_locked',
+                    data: { page_id: 12, held: true, mine: false, holder: { id: 4, name: 'Ada Lovelace' } },
+                },
+            },
+        };
+        const { errorTitle, errorMessage } = parseApiError(err);
+        expect(errorTitle).toBe('Ada Lovelace is editing this page');
+        expect(errorMessage).toContain('Ada Lovelace');
+    });
 });

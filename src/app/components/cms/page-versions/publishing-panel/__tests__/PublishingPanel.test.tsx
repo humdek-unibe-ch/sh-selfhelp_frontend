@@ -62,4 +62,29 @@ describe('PublishingPanel', () => {
         expect(screen.getByRole('button', { name: /Compare Draft vs Published/ })).toBeInTheDocument();
         expect(screen.getByText('Changes detected since last publish')).toBeInTheDocument();
     });
+
+    it('disables Publish with a tooltip naming the lock holder while someone else edits', async () => {
+        const user = (await import('@testing-library/user-event')).default.setup();
+        renderWithProviders(
+            <PublishingPanel
+                pageId={1}
+                versions={[version]}
+                currentPublishedVersionId={9}
+                isLoading={false}
+                error={null}
+                onPublishNew={vi.fn()}
+                onPublishSpecific={vi.fn()}
+                onDelete={vi.fn()}
+                isPublishing={false}
+                canPublish={false}
+                allowPublish
+                lockPausedLabel="Ada Lovelace is editing this page"
+            />,
+        );
+
+        const button = screen.getByTestId('page-publish-button');
+        expect(button).toBeDisabled();
+        await user.hover(button.parentElement!);
+        expect(await screen.findByText('Ada Lovelace is editing this page')).toBeInTheDocument();
+    });
 });
