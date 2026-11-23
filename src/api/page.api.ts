@@ -16,13 +16,12 @@ SPDX-License-Identifier: MPL-2.0
  * @module api/page.api
  */
 
-import { buildPagesResolvePath } from '@selfhelp/shared';
+import { buildPagesResolvePath, pageFromPayload, type IPagePayload } from '@selfhelp/shared';
 import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { type IBaseApiResponse, type IPageContent } from '../shared';
 import { REFERRER_HOST_HEADER, consumeLandingReferrerHost } from '../utils/referrer-host.utils';
 import { PAGE_VIEW_HEADER, PAGE_VIEW_HEADER_VALUE } from '../utils/page-view.utils';
-import { pageFromPayload, type IPagePayload } from '../utils/page-payload.utils';
 
 /** Options of {@link PageApi.resolvePageByPath}. */
 export interface IResolvePageByPathOptions {

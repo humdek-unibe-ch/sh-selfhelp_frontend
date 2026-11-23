@@ -58,9 +58,8 @@ import {
 } from '../../utils/navigation.utils';
 import { REFERRER_HOST_HEADER, externalReferrerHost } from '../../utils/referrer-host.utils';
 import { PAGE_VIEW_HEADER, PAGE_VIEW_HEADER_VALUE } from '../../utils/page-view.utils';
-import { pageFromPayload } from '../../utils/page-payload.utils';
+import { buildPagesResolvePath, pageFromPayload } from '@selfhelp/shared';
 import type { IPageItem, IGetPageResponse, IPageContent, ILanguage, INavigationPayload } from '../../shared';
-import { buildPagesResolvePath } from '@selfhelp/shared';
 
 /** SSR cache lifetime for `/languages` in seconds. */
 const LANGUAGES_REVALIDATE_SECONDS = 300;
