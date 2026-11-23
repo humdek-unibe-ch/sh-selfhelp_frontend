@@ -126,7 +126,7 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
     if (!translatable) {
         const fallbackLang: ILanguage = languages[0] ?? { id: 1, locale: 'en', language: 'English', csvSeparator: ',' };
         return (
-            <Box className={className} {...(styleProps || {})}>
+            <Box className={className} {...(styleProps || {})} data-field-name={name || undefined}>
                 {children(
                     fallbackLang,
                     typeof value === 'string' ? value : '',
@@ -164,7 +164,12 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
     );
 
     return (
-        <Box className={className} {...(styleProps || {})}>
+        <Box
+            className={className}
+            {...(styleProps || {})}
+            data-field-name={name || undefined}
+            data-language-id={activeLanguage?.id}
+        >
             <Group justify="space-between" align="flex-start" gap="xs" mb={description ? 4 : 'xs'} wrap="nowrap">
                 {label ? (
                     <Input.Label required={required} style={{ flex: 1, paddingTop: 2 }}>

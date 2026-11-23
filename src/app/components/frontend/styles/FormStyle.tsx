@@ -733,17 +733,25 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
 
     // The person typed into a field: from now on it keeps the stored value it had at that moment
     // (see `touchedFieldValuesRef`). Only real user events count, not the prefill below.
+    // Translatable inputs have no `name` (the wrapper's hidden input does); freeze by the
+    // wrapper's `data-field-name` so a live refetch keeps the typed text (F264).
     const noteTouchedField = useCallback((event: React.SyntheticEvent) => {
         if (!event.nativeEvent.isTrusted) {
             return;
         }
-        const name = (event.target as { name?: unknown } | null)?.name;
-        if (typeof name !== 'string' || name === '' || touchedFieldValuesRef.current.has(name)) {
+        const target = event.target as (HTMLElement & { name?: unknown }) | null;
+        const named = typeof target?.name === 'string' && target.name !== '' ? target.name : null;
+        const fromWrapper =
+            target instanceof Element
+                ? target.closest('[data-field-name]')?.getAttribute('data-field-name')
+                : null;
+        const fieldKey = named ?? (fromWrapper && fromWrapper !== '' ? fromWrapper : null);
+        if (!fieldKey || touchedFieldValuesRef.current.has(fieldKey)) {
             return;
         }
-        const stored = existingFormDataFromSection?.[name];
+        const stored = existingFormDataFromSection?.[fieldKey];
         touchedFieldValuesRef.current.set(
-            name,
+            fieldKey,
             typeof stored === 'string' || Array.isArray(stored) ? stored : null,
         );
     }, [existingFormDataFromSection]);

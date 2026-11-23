@@ -22,6 +22,15 @@ vi.mock('@mantine/notifications', () => ({
 vi.mock('../../../../../hooks/usePageContentValue', () => ({
     usePageContentValue: () => ({ id: 1 }),
 }));
+vi.mock('../../../../../hooks/useLanguages', () => ({
+    usePublicLanguages: () => ({
+        languages: [
+            { id: 1, locale: 'all', language: 'Independent', csvSeparator: ',' },
+            { id: 2, locale: 'de-CH', language: 'German', csvSeparator: ';' },
+        ],
+        isLoading: false,
+    }),
+}));
 vi.mock('../../../../../api/frontend/form-submission.api', () => ({
     FormSubmissionApi: { submitForm: vi.fn(), updateForm: vi.fn() },
 }));
@@ -46,6 +55,27 @@ function recordForm(row: Record<string, unknown>): TFormStyle {
 
 const field = (container: HTMLElement, name: string) =>
     container.querySelector(`input[name="${name}"]`) as HTMLInputElement;
+
+function translatableRecordForm(
+    row: Record<string, unknown>,
+): TFormStyle {
+    return {
+        id: 10,
+        style_name: 'form-record',
+        btn_save_label: { content: 'Save' },
+        btn_update_label: { content: 'Update' },
+        section_data: [{ record_id: 12, id_languages: 1, _version: 4, ...row }],
+        children: [
+            {
+                id: 11,
+                style_name: 'text-input',
+                name: { content: 'bio' },
+                label: { content: 'Bio' },
+                translatable: { content: '1' },
+            },
+        ],
+    } as unknown as TFormStyle;
+}
 
 describe('a record form when the page refetches after a pushed change (P4-A7)', () => {
     it('keeps the text typed into a field and follows the new value of a field left alone', () => {
@@ -75,5 +105,39 @@ describe('a record form when the page refetches after a pushed change (P4-A7)', 
 
         rerender(<FormStyle style={recordForm({ name: 'Ada L.', city: 'Bern' })} styleProps={{}} cssClass="" />);
         expect(field(container, 'name').value).toBe('Ada L.');
+    });
+
+    it('keeps typed text in a translatable field across a live refetch (F264)', () => {
+        // LanguageTabsWrapper seeds public languages from language id 1 when present.
+        const stored = [
+            { language_id: 1, value: 'Hallo' },
+            { language_id: 2, value: 'Hallo' },
+        ];
+        const newer = [
+            { language_id: 1, value: 'Guten Tag' },
+            { language_id: 2, value: 'Guten Tag' },
+        ];
+        const { container, rerender } = renderWithProviders(
+            <FormStyle style={translatableRecordForm({ bio: stored })} styleProps={{}} cssClass="" />,
+        );
+
+        const wrapper = container.querySelector('[data-field-name="bio"]') as HTMLElement;
+        expect(wrapper).toBeTruthy();
+        const visible = wrapper.querySelector('input.mantine-Input-input, input[data-path], .mantine-TextInput-input') as HTMLInputElement
+            ?? (Array.from(wrapper.querySelectorAll('input')).find(
+                (el) => (el as HTMLInputElement).type !== 'hidden' && !(el as HTMLInputElement).name?.startsWith('section-locale'),
+            ) as HTMLInputElement | undefined);
+        expect(visible).toBeTruthy();
+        // Controlled Mantine input may start empty until the form context value syncs; type anyway.
+        typeLikeAPerson(visible!, 'Meine Bio');
+        expect(visible!.value).toBe('Meine Bio');
+
+        rerender(<FormStyle style={translatableRecordForm({ bio: newer })} styleProps={{}} cssClass="" />);
+
+        const afterWrapper = container.querySelector('[data-field-name="bio"]') as HTMLElement;
+        const after = (Array.from(afterWrapper.querySelectorAll('input')).find(
+            (el) => (el as HTMLInputElement).type !== 'hidden' && !(el as HTMLInputElement).name?.startsWith('section-locale'),
+        ) as HTMLInputElement);
+        expect(after.value).toBe('Meine Bio');
     });
 });
