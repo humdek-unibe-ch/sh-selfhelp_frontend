@@ -142,6 +142,7 @@ export function useUpdateTableDisplayName() {
       // The label + lock live on the tables list; refresh it so the Data
       // browser and the CMS section inspector reflect the new name/lock.
       void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.tables() });
+      void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SECTION_DETAILS_ALL });
     },
   });
 }
@@ -165,6 +166,8 @@ export function useDeleteTable() {
       mutationFn: ({ tableName }) => AdminDataApi.deleteTable(tableName),
       onSuccess: (_, variables) => {
         void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.tables() });
+        // The section details carry the data-table picker, read per request (F56).
+        void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SECTION_DETAILS_ALL });
         // Invalidate any rows queries for this table
         void queryClient.invalidateQueries({
           predicate: (q) => {

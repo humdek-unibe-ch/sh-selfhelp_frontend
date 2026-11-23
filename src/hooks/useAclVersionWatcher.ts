@@ -29,7 +29,9 @@ export function useAclVersionWatcher(): void {
     const previousAclSignatureRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
-        const currentSignature = `${user?.id ?? 'guest'}:${user?.aclVersion ?? 'none'}`;
+        // The stamp (C5) moves when a group or role of the user changes; `aclVersion` only moves
+        // for the user's own changes, so both belong to the signature.
+        const currentSignature = `${user?.id ?? 'guest'}:${user?.aclVersion ?? 'none'}:${user?.aclStamp ?? 'none'}`;
 
         if (previousAclSignatureRef.current === undefined) {
             previousAclSignatureRef.current = currentSignature;
@@ -53,6 +55,8 @@ export function useAclVersionWatcher(): void {
             // content: navigation, admin tree, and the public page content
             // itself (keyed by keyword via PAGE_BY_KEYWORD).
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
+            // The navigation tree is permission-filtered like the page list (F251).
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION_ALL });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
             // Entry lists carry what the viewer may do with each record
@@ -68,5 +72,5 @@ export function useAclVersionWatcher(): void {
             // The page read says what the viewer may do with the page (`rights`).
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS_ALL });
         }
-    }, [user?.id, user?.aclVersion, queryClient]);
+    }, [user?.id, user?.aclVersion, user?.aclStamp, queryClient]);
 }

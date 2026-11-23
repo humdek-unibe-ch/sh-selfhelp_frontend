@@ -10,11 +10,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import { useAclVersionWatcher } from '../useAclVersionWatcher';
 
-const auth = vi.hoisted(() => ({ user: null as { id: number; aclVersion: number } | null }));
+const auth = vi.hoisted(() => ({ user: null as { id: number; aclVersion: number; aclStamp?: string | null } | null }));
 
 vi.mock('../useUserData', () => ({ useAuthUser: () => ({ user: auth.user }) }));
 
-const { FORM_LIST_ALL, FORM_LIST_HISTORY_ALL, ROLES_ALL, PERMISSIONS_ALL } = REACT_QUERY_CONFIG.QUERY_KEYS;
+const { FORM_LIST_ALL, FORM_LIST_HISTORY_ALL, ROLES_ALL, PERMISSIONS_ALL, NAVIGATION_ALL } = REACT_QUERY_CONFIG.QUERY_KEYS;
+const NAVIGATION_KEY = [...NAVIGATION_ALL, 1];
 const LIST_KEY = [...FORM_LIST_ALL, 'account-5', 21, 'news.page=2'];
 const HISTORY_KEY = [...FORM_LIST_HISTORY_ALL, 'account-5', 21, 1];
 // What the viewer may do with a role (`can_update`, `can_delete`) and which permissions
@@ -28,6 +29,7 @@ function mount() {
     queryClient.setQueryData(HISTORY_KEY, { versions: [1] });
     queryClient.setQueryData(ROLES_KEY, { roles: [{ id: 7, can_update: true, can_delete: true }] });
     queryClient.setQueryData(PERMISSIONS_KEY, { permissions: [{ id: 3, can_assign: true }] });
+    queryClient.setQueryData(NAVIGATION_KEY, { items: [] });
     queryClient.setQueryData(['unrelated'], 'keep');
     const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     const view = renderHook(() => useAclVersionWatcher(), { wrapper });
@@ -96,5 +98,38 @@ describe('what a change of the signed-in person does to the cached entry lists',
 
         expect(stale(queryClient, ROLES_KEY)).toBe(true);
         expect(stale(queryClient, PERMISSIONS_KEY)).toBe(true);
+    });
+
+    it("marks the navigation stale when the person's access changes, it is filtered like the page list (F251)", () => {
+        const { queryClient, rerender } = mount();
+        // The first mount already read the navigation again; this one is up to date.
+        queryClient.setQueryData(NAVIGATION_KEY, { items: [] });
+        expect(stale(queryClient, NAVIGATION_KEY)).toBe(false);
+
+        auth.user = { id: 5, aclVersion: 2 };
+        rerender();
+
+        expect(stale(queryClient, NAVIGATION_KEY)).toBe(true);
+        expect(queryClient.getQueryData(NAVIGATION_KEY)).toEqual({ items: [] });
+    });
+
+    it('treats a new access stamp as a change of access although the version stayed (C5)', () => {
+        auth.user = { id: 5, aclVersion: 1, aclStamp: 'aaaaaaaaaaaaaaaa' };
+        const { queryClient, rerender } = mount();
+        queryClient.setQueryData(NAVIGATION_KEY, { items: [] });
+
+        // The same stamp again, as every refetch of the user data brings it: nothing happens.
+        auth.user = { id: 5, aclVersion: 1, aclStamp: 'aaaaaaaaaaaaaaaa' };
+        rerender();
+        expect(stale(queryClient, LIST_KEY)).toBe(false);
+        expect(stale(queryClient, NAVIGATION_KEY)).toBe(false);
+
+        // A group of the person changed: their own version did not move, the stamp did.
+        auth.user = { id: 5, aclVersion: 1, aclStamp: 'bbbbbbbbbbbbbbbb' };
+        rerender();
+
+        expect(stale(queryClient, LIST_KEY)).toBe(true);
+        expect(stale(queryClient, ROLES_KEY)).toBe(true);
+        expect(stale(queryClient, NAVIGATION_KEY)).toBe(true);
     });
 });

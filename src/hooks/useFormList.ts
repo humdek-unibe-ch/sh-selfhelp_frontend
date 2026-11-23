@@ -34,7 +34,7 @@ import { API_CONFIG } from '../config/api.config';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { navigationAuthScopeFromUserId } from '../utils/navigation-query.utils';
 import { ownListQuery } from '../utils/form-list.utils';
-import { invalidateFormList } from '../utils/form-list-cache.utils';
+import { applyRecordVersionToFormLists, invalidateFormList } from '../utils/form-list-cache.utils';
 import { useAuthUser } from './useUserData';
 import { usePreviewMode } from '../app/components/contexts/PreviewModeContext';
 import { withPreview } from '../utils/form-write.utils';
@@ -272,7 +272,12 @@ export function useFormListQuickActionMutation(pageId: number, sectionId: number
     return useMutation<IFormListQuickActionData, unknown, IQuickActionVariables>({
         mutationFn: ({ recordId, actionId, expectedVersion }) =>
             FormListApi.runQuickAction(sectionId, recordId, actionId, withPreview({ page_id: pageId, expected_version: expectedVersion }, isPreviewMode)),
-        onSuccess: () => {
+        onSuccess: (data) => {
+            // F186: the row now has the version the action wrote; the next action on it must send
+            // that one, also when it starts before the list has been read again.
+            if (typeof data?.record_id === 'number' && typeof data.version === 'number') {
+                applyRecordVersionToFormLists(queryClient, sectionId, data.record_id, data.version);
+            }
             void invalidateFormList(queryClient);
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FORM_LIST_HISTORY_ALL });
         },
