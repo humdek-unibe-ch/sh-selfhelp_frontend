@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
-import { useIsFetching } from '@tanstack/react-query';
+import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { PageModal } from './PageModal';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
@@ -21,6 +21,10 @@ import { useAuth } from '../../hooks/useAuth';
 import { shouldOpenPageInWebModal } from './pageModalPolicy';
 import { stripHtmlTags } from '../../utils/html-sanitizer.utils';
 import { dismissLandingReferrerHost } from '../../utils/referrer-host.utils';
+import { markPageViewed } from '../../utils/page-view.utils';
+import { useValidUntilRefetch } from '../../hooks/useValidUntilRefetch';
+import { useVanishedFormNotice } from '../../hooks/useVanishedFormNotice';
+import { LiveSyncNotices } from './LiveSyncNotices';
 import { type TStyle } from '../../types/common/styles.types';
 import { PageContextProvider } from '../components/contexts/PageContext';
 import { PageModalProvider } from '../components/contexts/PageModalContext';
@@ -90,7 +94,10 @@ export default function DynamicPageClient({
         isLoading,
         isFetching,
         isPlaceholderData,
+        error: pageError,
+        dataUpdatedAt,
     } = path ? byPath : byKeyword;
+    const queryClient = useQueryClient();
 
     // React Query is the single source of truth for "language change in
     // flight": a language switch invalidates `page-by-keyword`, which
@@ -119,6 +126,40 @@ export default function DynamicPageClient({
             dismissLandingReferrerHost(path);
         }
     }, [path, pageContent]);
+
+    // The page on screen was counted as a view by the server render (or by the fetch that loaded
+    // it): later fetches of the same path (live refetch, language switch) are not new views (C7).
+    useLayoutEffect(() => {
+        if (path && pageContent && !isPlaceholderData) {
+            markPageViewed(path);
+        }
+    }, [path, pageContent, isPlaceholderData]);
+
+    // Live sync (C6): a page whose content depends on the clock names the moment it can change.
+    // One refetch at that moment (plus up to 2 s of random delay); the payload that comes back
+    // names the next one. `invalidateQueries` on the page's own slot keeps the shown content until
+    // the new one arrives (a hidden tab marks it stale and reads it when it is visible again).
+    const pageQueryKey = path
+        ? REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_PATH(path, currentLanguageId, isPreviewMode)
+        : REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, currentLanguageId, isPreviewMode);
+    useValidUntilRefetch(
+        pageContent?.sync?.valid_until,
+        dataUpdatedAt ?? 0,
+        () => {
+            void queryClient.invalidateQueries({
+                queryKey: pageQueryKey,
+                exact: true,
+                refetchType: document.visibilityState === 'hidden' ? 'none' : 'active',
+            });
+        },
+        Boolean(pageContent) && !isPlaceholderData,
+    );
+
+    // A refetch the server refuses (the person lost the page after an access change) leaves the
+    // last payload on screen: say so, do not kick the person out (decision "Banner, no kick-out").
+    const pageErrorStatus = (pageError as { response?: { status?: number } } | null | undefined)?.response?.status;
+    const pageLost = Boolean(pageContent) && !isPlaceholderData && (pageErrorStatus === 401 || pageErrorStatus === 403 || pageErrorStatus === 404);
+    const vanishedForm = useVanishedFormNotice(pageContent?.sections, path ?? keyword);
 
     // In-page branch navigation from the resolved public menu tree.
     const { navigation: liveNavigation } = useAppNavigation();
@@ -191,7 +232,16 @@ export default function DynamicPageClient({
     // back to the SSR-provided prop for the very first paint before hydration.
     const effectiveRouteParams = pageContent?.route_params ?? routeParams;
 
-    const pageBody = <PageContentRenderer sections={sections as unknown as TStyle[]} />;
+    const pageBody = (
+        <>
+            <LiveSyncNotices
+                lost={pageLost}
+                vanishedForm={vanishedForm.vanished}
+                onDismissVanishedForm={vanishedForm.dismiss}
+            />
+            <PageContentRenderer sections={sections as unknown as TStyle[]} onInputCapture={vanishedForm.onInput} />
+        </>
+    );
 
     const rendered = (
         <PageModalProvider value={{ inModal: isModal, closeModal }}>
