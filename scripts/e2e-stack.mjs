@@ -411,6 +411,9 @@ async function main() {
             const backendEnv = {
                 APP_ENV: 'test',
                 SELFHELP_PUBLIC_DIR: path.join(backendDir, 'public'),
+                // The backend's test container records Mercure updates in memory; this makes it
+                // also send them to the test hub, so open pages receive live-sync notices.
+                SELFHELP_E2E_REAL_HUB: '1',
                 // Let the built-in server handle the login/home page's parallel
                 // API calls concurrently (POSIX fork only — ignored on Windows).
                 ...(IS_WIN ? {} : { PHP_CLI_SERVER_WORKERS: '4' }),
