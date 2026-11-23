@@ -68,21 +68,22 @@ Contracts C8 (draft version) and C9 (edit lock). The server refuses a draft writ
 - Writes of one page leave one after the other, so two quick saves never carry the same number.
 - `409 stale_page_version` → `page-edit-conflict.utils.ts` raises `stale`, takes the server's `current_version` as the held one and **holds** the page: `PageInspector` and `SectionInspector` skip the reload from the server into their form (`isStaleConflictHeld`) until a write goes through, so the person's unsaved values stay visible. `usePageEditLock` shows "This page was changed elsewhere" and reloads the draft.
 
-**Edit lock (C9).** `usePageEditLock(pageId, enabled)` runs inside `PageRightsProvider`; `enabled` is the caller's `can_update` on the page, so a read-only caller sends nothing and sees no lock controls.
+**Edit lock (C9).** `usePageEditLock(pageId, enabled, options?)` runs inside `PageRightsProvider`. Editors (`can_update`) take and renew the lock. Callers with only delete or publish use `watchOnly`: they read `GET …/lock` and follow `page_lock` notices, but never acquire, renew or take over. A pure reader sends nothing.
 
 | Event | Effect |
 | --- | --- |
-| open the page | `POST /admin/pages/<id>/lock`; `409 page_locked` (data = status) opens it read-only, naming the holder |
-| every 30 s, tab visible | the same `POST` renews; a hidden tab does not renew, the tab renews when it is visible again |
-| 15 min without a draft write | the client ends the lock (`idle`), because the server hands a fresh lease to any renewal after its own idle end |
+| open the page (editor) | `POST /admin/pages/<id>/lock`; `409 page_locked` (data = status) opens it read-only, naming the holder |
+| open the page (delete/publish only) | `GET …/lock`; when held by someone else, banner without Take over and Delete/Publish paused |
+| every 30 s, tab visible (editor) | the same `POST` renews; a hidden tab does not renew, the tab renews when it is visible again |
+| `409 lock_idle_ended` on renew | idle banner; **Continue editing** calls take-over (the server refuses a silent renew after the idle end) |
 | leave, other page | `DELETE …/lock` |
 | `pagehide` | `DELETE …/lock` with `keepalive` (fetch adapter) |
-| `page_lock:<id>` | `GET …/lock`; not holding it any more means taken over (someone holds it) or idle (nobody) → read-only with the reason |
+| `page_lock:<id>` | `GET …/lock`; not holding it any more means taken over (someone holds it) or idle (nobody) → read-only with the reason; a read that finds the page free after the caller's own idle end keeps the idle banner (a plain acquire is refused after it, only Continue editing resumes); watchers re-enable Delete/Publish when free |
 | `page_draft:<id>` | holding the lock: dropped by `registerSyncTagIgnore`; otherwise the draft queries are read again (`invalidatePageDraftQueries`) |
-| `409 page_locked` on a write | read-only with the banner |
-| Take over | `POST …/lock/take-over`, then the draft (and its version) is read again |
+| `409 page_locked` on a write | read-only with the banner; delete/publish also get a notification naming the holder |
+| Take over / Continue editing | `POST …/lock/take-over`, then the draft (and its version) is read again |
 
-While the lock is not held (`checking`, `blocked`), `usePageEditRights` reports `canUpdate`, `canDelete` and `canPublish` as false, so every part of the editor follows the existing read-only mode (F234). `PageReadOnlyBanner` draws the lock banner (name, reason, Take over with a confirmation, Edit again). The lock endpoints are `ADMIN_PAGES_LOCK_GET|ACQUIRE|RELEASE|TAKE_OVER` in `api.config.ts` with `admin.page.update`. If the lock call itself fails (network), the editor stays editable and the server still checks every write.
+While the lock is not held (`checking`, `blocked`), `usePageEditRights` reports `canUpdate`, `canDelete` and `canPublish` as false. `allowDelete` / `allowPublish` keep those buttons visible so they can show disabled with the reason in a tooltip (`lockPauseLabel`: who is editing, or that the caller's own session ended). `PageReadOnlyBanner` draws the lock banner (name, reason, Take over with a confirmation, Continue editing after idle, Start editing when free; watchers get no resume button). `ADMIN_PAGES_LOCK_GET` lists update, delete, publish and version-delete; acquire/release/take-over stay update-only. If the lock call itself fails (network), the editor stays editable and the server still checks every write; a delete/publish caller whose first read fails counts the page as free, and the server refuses with `409 page_locked` while someone else holds it.
 
 User view: [page-editing-lock.md](../user/page-editing-lock.md).
 

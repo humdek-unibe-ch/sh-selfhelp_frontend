@@ -16,6 +16,34 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.77 — 2026-11-23
+
+**Live sync follow-ups: idle resume, lock for delete/publish, typed fields**
+
+Requires core **>=0.1.50** (`lock_idle_ended`, wider `GET …/lock`, delete/publish
+respect another person's edit lock).
+
+### Added
+
+- After an idle lock ends, the editor offers **Continue editing** (take-over) instead of silently renewing.
+- Callers who may only delete or publish a page see who is editing, with Delete/Publish/version-delete paused until the lock ends.
+
+### Fixed
+
+- Typed text in a translatable form field survives a live page refresh.
+- After "Your editing session ended" the banner keeps offering **Continue editing** when the lock is read again (tab switch, lock notice) and nobody else holds the page; it no longer turns into "Start editing", which the server refuses once.
+- A delete/publish caller whose first lock read fails is no longer left with disabled controls and no explanation: the page counts as free and the server still refuses with 409 `page_locked` if someone holds it.
+- The tooltip of the paused Delete / Publish / Delete version controls says why (who is editing, or that your own session ended) instead of "Someone is editing this page" in every case.
+- The `PageNavigationMembership` test has a 20 s limit, so a loaded full run no longer times out.
+- `e2e-stack` keeps `--grep "live sync"` as one Playwright argument on Windows.
+- `next build` no longer leaves a dirty `next-env.d.ts` in the working tree.
+
+### Changed
+
+- Page payloads use `@selfhelp/shared` `pageFromPayload` (local copy removed).
+
+---
+
 ## v0.1.76 — 2026-11-20
 
 **Live sync: open pages and lists follow changes made by others**

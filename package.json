@@ -1,6 +1,6 @@
 {
     "name": "selfhelp-frontend",
-    "version": "0.1.76",
+    "version": "0.1.77",
     "private": true,
     "license": "MPL-2.0",
     "scripts": {
@@ -11,6 +11,7 @@
         "dev:fast": "NODE_ENV=development next dev --turbo --port 3000",
         "prebuild": "node scripts/generate-web-libraries.mjs",
         "build": "next build",
+        "postbuild": "node scripts/restore-next-env.mjs",
         "start": "next start",
         "next-lint": "next lint",
         "test": "vitest run",

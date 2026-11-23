@@ -6,8 +6,8 @@ SPDX-License-Identifier: MPL-2.0
 
 Audience: CMS administrators and content editors who edit pages.
 Status: active.
-Applies to: SelfHelp2 admin page editor (frontend 0.1.76 with core 0.1.49 and later).
-Last verified: 2026-11-20.
+Applies to: SelfHelp2 admin page editor (frontend 0.1.77 with core 0.1.50 and later).
+Last verified: 2026-11-23.
 
 Only one person edits a page at a time. This keeps two people from overwriting each other's work in the same draft.
 
@@ -26,7 +26,7 @@ To continue anyway, press **Take over** and confirm. The other person then can n
 The banner also tells you why you were stopped:
 
 - **"<name> took over editing this page."** Someone else pressed Take over. Press Take over again to get the page back.
-- **"Your editing session ended."** You did not change anything on the page for 15 minutes, so it was released for others. Press **Edit again** to carry on.
+- **"Your editing session ended."** You did not change anything on the page for 15 minutes, so it was released for others. Press **Continue editing** to carry on.
 - **"Nobody is editing this page now."** The person who was editing left. Press **Start editing** to take the page.
 
 A page whose tab stays in the background is not renewed. When you come back to the tab, the editor reserves the page again if it is still free.
@@ -35,9 +35,13 @@ A page whose tab stays in the background is not renewed. When you come back to t
 
 Sometimes a save is refused because the page changed since you opened it, for example by a take-over or by an import. You see **"This page was changed elsewhere"**. The editor loads the latest version. What you typed in the open panel stays on screen, so you can look at the new state and save your values again on top of it.
 
+## If you can only delete or publish
+
+You do not reserve the page. If someone else is editing it, a banner names them and Delete, Publish and related actions stay off until they are done. They turn back on by themselves when the lock ends. You never see Take over.
+
 ## If you can only read pages
 
-Without the right to change a page you see the page read-only, as before, and no lock controls. You never reserve a page and you never stop anyone.
+Without the right to change, delete or publish a page you see the page read-only, as before, and no lock controls. You never reserve a page and you never stop anyone.
 
 ## Related
 
