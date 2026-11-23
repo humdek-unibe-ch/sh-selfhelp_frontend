@@ -26,7 +26,7 @@ import { createTestQueryClient } from '../../test-utils/renderWithProviders';
 import { getAuthSseConnected, __resetAuthSseStatusForTests } from '../auth-sse-status';
 
 const { authStatus, router } = vi.hoisted(() => ({
-    authStatus: { isAuthenticated: true },
+    authStatus: { isAuthenticated: true, user: null as { id: number } | null },
     router: { replace: vi.fn() },
 }));
 
@@ -82,6 +82,8 @@ function invalidatedKeys(invalidate: { mock: { calls: unknown[][] } }): string[]
 }
 
 beforeEach(() => {
+    authStatus.isAuthenticated = true;
+    authStatus.user = null;
     FakeEventSource.instances = [];
     vi.stubGlobal('EventSource', FakeEventSource);
     __resetAuthSseStatusForTests();
@@ -159,5 +161,150 @@ describe('useAclEventStream — system-update SSE wiring', () => {
         unmount();
         expect(es.readyState).toBe(FakeEventSource.CLOSED);
         expect(getAuthSseConnected()).toBe(false);
+    });
+});
+
+const PAGE_PATH_KEY = ['page-by-keyword', '__path__', '/news', 1, 'published'];
+
+function seedPage(client: QueryClient, key: readonly unknown[], id: number, dependsOn: string[]): void {
+    // The test client drops unobserved queries at once (`gcTime: 0`); a page on screen is observed.
+    client
+        .getQueryCache()
+        .build(client, { queryKey: key, gcTime: Infinity })
+        .setData({ id, sections: [], sync: { depends_on: dependsOn, valid_until: null } });
+}
+
+describe('useAclEventStream — live sync (changed notices)', () => {
+    it('subscribes the change notices and refetches only the page that depends on the tag (P4-A1)', async () => {
+        vi.useFakeTimers();
+        const client = createTestQueryClient();
+        seedPage(client, PAGE_PATH_KEY, 12, ['page:12']);
+        seedPage(client, ['page-by-keyword', '__path__', '/other', 1, 'published'], 13, ['page:13']);
+        const invalidate = vi.spyOn(client, 'invalidateQueries');
+
+        renderHook(() => useAclEventStream(), { wrapper: makeWrapper(client) });
+        const es = FakeEventSource.instances[0];
+        act(() => es.emit('open'));
+
+        act(() => es.emit('changed', JSON.stringify({ v: 1, tags: ['page:12'] })));
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(400);
+        });
+
+        expect(invalidate).toHaveBeenCalled();
+        expect(client.getQueryState(PAGE_PATH_KEY)?.isInvalidated).toBe(true);
+        expect(client.getQueryState(['page-by-keyword', '__path__', '/other', 1, 'published'])?.isInvalidated).toBe(false);
+    });
+
+    it('ignores a message it cannot read or a version it does not know', async () => {
+        vi.useFakeTimers();
+        const client = createTestQueryClient();
+        const invalidate = vi.spyOn(client, 'invalidateQueries');
+
+        renderHook(() => useAclEventStream(), { wrapper: makeWrapper(client) });
+        const es = FakeEventSource.instances[0];
+        act(() => es.emit('open'));
+
+        act(() => {
+            es.emit('changed', 'not json');
+            es.emit('changed', JSON.stringify({ v: 2, tags: ['navigation'] }));
+            es.emit('changed', JSON.stringify({ v: 1, tags: ['unknown:1'] }));
+        });
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(400);
+        });
+
+        expect(invalidate).not.toHaveBeenCalled();
+        expect(FakeEventSource.instances).toHaveLength(1);
+    });
+
+    it('on an acl notice invalidates user data and the navigation, and opens the stream again (P4-A2, F251)', async () => {
+        vi.useFakeTimers();
+        const client = createTestQueryClient();
+        const invalidate = vi.spyOn(client, 'invalidateQueries');
+
+        renderHook(() => useAclEventStream(), { wrapper: makeWrapper(client) });
+        const first = FakeEventSource.instances[0];
+        act(() => first.emit('open'));
+
+        act(() => first.emit('changed', JSON.stringify({ v: 1, tags: ['acl'] })));
+        // Re-bootstrap: the old socket closes and a new one opens at once (new topic list).
+        expect(first.readyState).toBe(FakeEventSource.CLOSED);
+        expect(FakeEventSource.instances).toHaveLength(2);
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(400);
+        });
+        const keys = invalidatedKeys(invalidate);
+        expect(keys).toContain(JSON.stringify(['user-data']));
+        expect(keys).toContain(JSON.stringify(['navigation']));
+
+        // The new socket's first open does not reconcile: nothing was missed.
+        const before = invalidate.mock.calls.length;
+        act(() => FakeEventSource.instances[1].emit('open'));
+        expect(invalidate.mock.calls.length).toBe(before);
+    });
+
+    it('a visitor without a session listens too, and a closed stream is not an expired session', async () => {
+        vi.useFakeTimers();
+        const fetchMock = vi.fn().mockResolvedValue({ status: 401 });
+        vi.stubGlobal('fetch', fetchMock);
+        authStatus.isAuthenticated = false;
+
+        const client = createTestQueryClient();
+        renderHook(() => useAclEventStream(), { wrapper: makeWrapper(client) });
+        const first = FakeEventSource.instances[0];
+        expect(first).toBeDefined();
+        act(() => first.emit('open'));
+
+        first.readyState = FakeEventSource.CLOSED;
+        await act(async () => {
+            first.emit('error');
+            await vi.runAllTimersAsync();
+        });
+
+        // Guests are never sent through the session check, and the stream is opened again.
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(FakeEventSource.instances.length).toBeGreaterThan(1);
+    });
+
+    it('opens the stream again when the signed-in identity changes', () => {
+        const client = createTestQueryClient();
+        authStatus.user = null;
+        authStatus.isAuthenticated = false;
+        const { rerender } = renderHook(() => useAclEventStream(), { wrapper: makeWrapper(client) });
+        act(() => FakeEventSource.instances[0].emit('open'));
+        expect(FakeEventSource.instances).toHaveLength(1);
+
+        authStatus.user = { id: 7 };
+        authStatus.isAuthenticated = true;
+        rerender();
+
+        // The socket was opened as a guest; now it carries the user's topics.
+        expect(FakeEventSource.instances.length).toBeGreaterThan(1);
+        expect(FakeEventSource.instances[FakeEventSource.instances.length - 1].readyState).not.toBe(FakeEventSource.CLOSED);
+    });
+
+    it('marks queries stale only (no refetch) while the tab is hidden', async () => {
+        vi.useFakeTimers();
+        const client = createTestQueryClient();
+        seedPage(client, PAGE_PATH_KEY, 12, ['page:12']);
+        const invalidate = vi.spyOn(client, 'invalidateQueries');
+
+        renderHook(() => useAclEventStream(), { wrapper: makeWrapper(client) });
+        const es = FakeEventSource.instances[0];
+        // The tab went to the background after the stream was open.
+        const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+
+        act(() => es.emit('changed', JSON.stringify({ v: 1, tags: ['page:12'] })));
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(400);
+        });
+
+        const pageCall = invalidate.mock.calls.find(
+            (call) => JSON.stringify((call[0] as { queryKey?: unknown }).queryKey) === JSON.stringify(['page-by-keyword']),
+        );
+        expect((pageCall?.[0] as { refetchType?: string }).refetchType).toBe('none');
+        visibility.mockRestore();
     });
 });

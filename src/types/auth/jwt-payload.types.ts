@@ -42,6 +42,13 @@ export interface IUserData {
      * to decide when to invalidate the navigation cache.
      */
     acl_version: string | null;
+    /**
+     * Access stamp (C5): the first 16 hex characters of SHA-256 over this user's `acl_version`
+     * and the sorted `id:acl_version` pairs of their groups and roles. Every API reply to a
+     * signed-in caller carries the same value as `X-Acl-Stamp`; a different one means the
+     * access changed and this user data is stale. Absent from an older core.
+     */
+    acl_stamp?: string | null;
     language: {
         id: number | null;
         locale: string | null;
@@ -91,6 +98,8 @@ export interface IAuthUser {
     receivesEmails: boolean;
     /** ACL version mirrored from the user-data response */
     aclVersion: string | null;
+    /** Access stamp mirrored from the user-data response (see `IUserData.acl_stamp`). */
+    aclStamp?: string | null;
     roles: Array<{
         id: number;
         name: string;
