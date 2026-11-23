@@ -24,9 +24,9 @@ const notify = vi.hoisted(() => ({ show: vi.fn() }));
 vi.mock('../../api/admin/page.api', () => ({ AdminPageApi: api }));
 vi.mock('@mantine/notifications', () => ({ notifications: notify }));
 
-import { PAGE_LOCK_IDLE_MS, PAGE_LOCK_RENEW_INTERVAL_MS, usePageEditLock } from '../usePageEditLock';
+import { PAGE_LOCK_RENEW_INTERVAL_MS, usePageEditLock } from '../usePageEditLock';
 import { applySyncTags } from '../../utils/sync-tags.utils';
-import { rememberPageDraftVersion, resetPageDraftVersionsForTests } from '../../utils/page-draft-version.utils';
+import { resetPageDraftVersionsForTests } from '../../utils/page-draft-version.utils';
 import {
     isStaleConflictHeld,
     notifyPageEditConflict,
@@ -57,6 +57,12 @@ function lockedError(lock: IPageLockStatus): Error {
     });
 }
 
+function idleEndedError(lock: IPageLockStatus = FREE): Error {
+    return Object.assign(new Error('idle ended'), {
+        response: { status: 409, data: { status: 409, error: 'lock_idle_ended', data: lock } },
+    });
+}
+
 let queryClient: QueryClient;
 let invalidate: MockInstance<QueryClient['invalidateQueries']>;
 
@@ -64,11 +70,20 @@ function wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
 
-async function mount(enabled = true, pageId: number | null = PAGE) {
-    const rendered = renderHook(({ id, on }) => usePageEditLock(id, on), {
-        wrapper,
-        initialProps: { id: pageId, on: enabled },
-    });
+type TMountProps = { id: number | null; on: boolean; watchOnly?: boolean };
+
+async function mount(enabled = true, pageId: number | null = PAGE, options: { watchOnly?: boolean } = {}) {
+    const rendered = renderHook(
+        ({ id, on, watchOnly }: TMountProps) => usePageEditLock(id, on, { watchOnly: watchOnly === true }),
+        {
+            wrapper,
+            initialProps: {
+                id: pageId,
+                on: enabled,
+                ...(options.watchOnly ? { watchOnly: true } : {}),
+            } satisfies TMountProps,
+        },
+    );
     await act(async () => {
         await vi.advanceTimersByTimeAsync(0);
     });
@@ -223,40 +238,76 @@ describe('renewing and giving up the lock', () => {
         expect(api.releasePageLock).not.toHaveBeenCalled();
     });
 
-    it('ends the lock after 15 minutes without a draft write and stops renewing', async () => {
+    it('a renewal answered 409 lock_idle_ended puts the hook in idle', async () => {
         const { result } = await mount();
+        expect(result.current.phase).toBe('holding');
 
-        await advance(PAGE_LOCK_IDLE_MS + PAGE_LOCK_RENEW_INTERVAL_MS);
+        api.acquirePageLock.mockRejectedValueOnce(idleEndedError());
+        await advance(PAGE_LOCK_RENEW_INTERVAL_MS);
 
         expect(result.current.phase).toBe('blocked');
         expect(result.current.reason).toBe('idle');
-        expect(api.releasePageLock).toHaveBeenCalledWith(PAGE);
         const renewals = api.acquirePageLock.mock.calls.length;
         await advance(PAGE_LOCK_RENEW_INTERVAL_MS * 4);
         expect(api.acquirePageLock).toHaveBeenCalledTimes(renewals);
     });
 
-    it('counts a draft write as activity', async () => {
+    it('Continue editing after lock_idle_ended calls take-over and returns to held', async () => {
         const { result } = await mount();
-
-        await advance(PAGE_LOCK_IDLE_MS - 60_000);
-        rememberPageDraftVersion(PAGE, 5);
-        await advance(PAGE_LOCK_IDLE_MS - 60_000);
-
-        expect(result.current.phase).toBe('holding');
-    });
-
-    it('asks again after the idle end (Edit again)', async () => {
-        const { result } = await mount();
-        await advance(PAGE_LOCK_IDLE_MS + PAGE_LOCK_RENEW_INTERVAL_MS);
+        api.acquirePageLock.mockRejectedValueOnce(idleEndedError());
+        await advance(PAGE_LOCK_RENEW_INTERVAL_MS);
         expect(result.current.reason).toBe('idle');
+        invalidate.mockClear();
 
         await act(async () => {
-            await result.current.retry();
+            await result.current.takeOver();
         });
 
+        expect(api.takeOverPageLock).toHaveBeenCalledWith(PAGE);
         expect(result.current.phase).toBe('holding');
         expect(draftQueriesInvalidated()).toBe(true);
+    });
+
+    it('after lock_idle_ended, a status read that finds the page free keeps the "session ended" state (not "free")', async () => {
+        const { result } = await mount();
+        api.acquirePageLock.mockRejectedValueOnce(idleEndedError());
+        await advance(PAGE_LOCK_RENEW_INTERVAL_MS);
+        expect(result.current.reason).toBe('idle');
+
+        // The lock notice the server sends at the idle end, and a switch back to the tab, read the status:
+        // nobody holds the page, but a plain acquire would be refused again, so the banner must stay on "Continue editing".
+        api.getPageLock.mockResolvedValue(FREE);
+        await act(async () => {
+            applySyncTags(queryClient, [`page_lock:${PAGE}`]);
+            await vi.advanceTimersByTimeAsync(0);
+        });
+        expect(result.current.phase).toBe('blocked');
+        expect(result.current.reason).toBe('idle');
+
+        setVisibility('hidden');
+        setVisibility('visible');
+        await advance(0);
+        expect(api.getPageLock.mock.calls.length).toBeGreaterThanOrEqual(2);
+        expect(result.current.phase).toBe('blocked');
+        expect(result.current.reason).toBe('idle');
+        expect(api.acquirePageLock).toHaveBeenCalledTimes(2);
+    });
+
+    it('after lock_idle_ended, someone else taking the page replaces the idle state with the new holder', async () => {
+        const { result } = await mount();
+        api.acquirePageLock.mockRejectedValueOnce(idleEndedError());
+        await advance(PAGE_LOCK_RENEW_INTERVAL_MS);
+        expect(result.current.reason).toBe('idle');
+
+        api.getPageLock.mockResolvedValue(HELD_BY_ADA);
+        await act(async () => {
+            applySyncTags(queryClient, [`page_lock:${PAGE}`]);
+            await vi.advanceTimersByTimeAsync(0);
+        });
+
+        expect(result.current.phase).toBe('blocked');
+        expect(result.current.reason).toBe('held_by_other');
+        expect(result.current.holder).toEqual(ADA);
     });
 });
 
@@ -379,6 +430,111 @@ describe('messages the server pushes (C3)', () => {
         });
 
         expect(draftQueriesInvalidated()).toBe(true);
+    });
+});
+
+describe('watch-only lock (delete/publish callers)', () => {
+    it('on mount only reads the lock; never acquires, releases or takes over (renew, visibility, pagehide, unmount)', async () => {
+        api.getPageLock.mockResolvedValue(FREE);
+        const { result, unmount } = await mount(true, PAGE, { watchOnly: true });
+
+        expect(api.getPageLock).toHaveBeenCalledTimes(1);
+        expect(api.getPageLock).toHaveBeenCalledWith(PAGE);
+        expect(api.acquirePageLock).not.toHaveBeenCalled();
+        expect(api.releasePageLock).not.toHaveBeenCalled();
+        expect(api.takeOverPageLock).not.toHaveBeenCalled();
+        expect(result.current.phase).toBe('off');
+        expect(result.current.watchOnly).toBe(true);
+
+        await advance(PAGE_LOCK_RENEW_INTERVAL_MS * 3);
+        setVisibility('hidden');
+        setVisibility('visible');
+        await advance(0);
+        window.dispatchEvent(new Event('pagehide'));
+        await act(async () => {
+            await result.current.takeOver();
+            await result.current.retry();
+        });
+        unmount();
+
+        expect(api.getPageLock.mock.calls.length).toBeGreaterThanOrEqual(1);
+        expect(api.acquirePageLock).not.toHaveBeenCalled();
+        expect(api.releasePageLock).not.toHaveBeenCalled();
+        expect(api.takeOverPageLock).not.toHaveBeenCalled();
+    });
+
+    it('held by another → blocked; a page_lock notice that the lock is free → off', async () => {
+        api.getPageLock.mockResolvedValue(HELD_BY_ADA);
+        const { result } = await mount(true, PAGE, { watchOnly: true });
+
+        expect(result.current.phase).toBe('blocked');
+        expect(result.current.reason).toBe('held_by_other');
+        expect(result.current.holder).toEqual(ADA);
+        expect(api.acquirePageLock).not.toHaveBeenCalled();
+
+        api.getPageLock.mockResolvedValue(FREE);
+        await act(async () => {
+            applySyncTags(queryClient, [`page_lock:${PAGE}`]);
+            await vi.advanceTimersByTimeAsync(0);
+        });
+
+        expect(result.current.phase).toBe('off');
+        expect(result.current.reason).toBeNull();
+        expect(result.current.holder).toBeNull();
+        expect(api.acquirePageLock).not.toHaveBeenCalled();
+    });
+
+    it('a failed first read does not leave the actions disabled with no reason: the page counts as free and the server decides', async () => {
+        api.getPageLock.mockRejectedValue(new Error('network'));
+        const { result } = await mount(true, PAGE, { watchOnly: true });
+
+        expect(api.getPageLock).toHaveBeenCalledTimes(1);
+        expect(result.current.phase).toBe('off');
+        expect(result.current.reason).toBeNull();
+        expect(api.acquirePageLock).not.toHaveBeenCalled();
+
+        // The next notice that does read the status still pauses the actions.
+        api.getPageLock.mockResolvedValue(HELD_BY_ADA);
+        await act(async () => {
+            applySyncTags(queryClient, [`page_lock:${PAGE}`]);
+            await vi.advanceTimersByTimeAsync(0);
+        });
+        expect(result.current.phase).toBe('blocked');
+        expect(result.current.holder).toEqual(ADA);
+    });
+
+    it('a later failed read keeps what the caller already saw (blocked stays blocked)', async () => {
+        api.getPageLock.mockResolvedValue(HELD_BY_ADA);
+        const { result } = await mount(true, PAGE, { watchOnly: true });
+        expect(result.current.phase).toBe('blocked');
+
+        api.getPageLock.mockRejectedValue(new Error('network'));
+        await act(async () => {
+            applySyncTags(queryClient, [`page_lock:${PAGE}`]);
+            await vi.advanceTimersByTimeAsync(0);
+        });
+
+        expect(result.current.phase).toBe('blocked');
+        expect(result.current.reason).toBe('held_by_other');
+        expect(result.current.holder).toEqual(ADA);
+    });
+});
+
+describe('editor enabled after rights load', () => {
+    it('when enabled turns from false to true, the first render reports checking, not off', async () => {
+        const { result, rerender } = renderHook(
+            ({ id, on }: TMountProps) => usePageEditLock(id, on),
+            { wrapper, initialProps: { id: PAGE, on: false } },
+        );
+        expect(result.current.phase).toBe('off');
+
+        rerender({ id: PAGE, on: true });
+        expect(result.current.phase).toBe('checking');
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(0);
+        });
+        expect(result.current.phase).toBe('holding');
     });
 });
 

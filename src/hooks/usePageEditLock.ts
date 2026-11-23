@@ -19,28 +19,37 @@ SPDX-License-Identifier: MPL-2.0
  * - `409 stale_page_version`: "This page was changed elsewhere", the draft is read again; the
  *   inspectors keep what the person typed (`page-edit-conflict.utils`).
  * - `409 page_locked` on any write: read-only with the banner.
+ * - `409 lock_idle_ended` on a renewal: the server ended the idle lease; read-only until take-over
+ *   ("Continue editing"). The idle end is decided on the server (F258); this client does not keep
+ *   its own idle timer.
  *
- * The server renews the lock for whoever asks while it is free, so the idle end (15 minutes after
- * the last draft write) is also enforced here: a renewal after it would otherwise take the lock
- * again silently.
+ * Callers with only delete or publish (no update) use `watchOnly`: they read `GET …/lock` and follow
+ * `page_lock` notices, but never acquire, renew or take over (F259). If their first read fails the
+ * page counts as free; the server still refuses with `409 page_locked` while someone else holds it.
  *
  * Callers with only read never take part: `enabled` is false for them and nothing is sent.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { PAGE_LOCKED_ERROR, type IPageLockHolder, type IPageLockStatus } from '@selfhelp/shared';
+import {
+    LOCK_IDLE_ENDED_ERROR,
+    PAGE_LOCKED_ERROR,
+    type IPageLockHolder,
+    type IPageLockStatus,
+} from '@selfhelp/shared';
 import { AdminPageApi } from '../api/admin/page.api';
 import { registerSyncTagIgnore, subscribeSyncTags } from '../utils/sync-tags.utils';
-import { subscribePageDraftVersion } from '../utils/page-draft-version.utils';
 import { clearStaleConflict, subscribePageEditConflict } from '../utils/page-edit-conflict.utils';
 import { invalidatePageDraftQueries } from '../utils/page-draft-queries.utils';
 import { PAGE_CONFLICT_TEXTS } from '../utils/mutation-error-handler';
 
-/** The lock is renewed this often while the editor is open and visible. */
+/**
+ * The lock is renewed this often while the editor is open and visible. The client keeps no idle
+ * timer: the server ends the lock 15 minutes after the last draft write and answers
+ * `lock_idle_ended` on the next renewal (F258).
+ */
 export const PAGE_LOCK_RENEW_INTERVAL_MS = 30_000;
-/** No draft write for this long ends the lock (server: 900 s). */
-export const PAGE_LOCK_IDLE_MS = 900_000;
 
 export type TPageLockPhase = 'off' | 'checking' | 'holding' | 'blocked';
 
@@ -53,15 +62,24 @@ export type TPageLockPhase = 'off' | 'checking' | 'holding' | 'blocked';
  */
 export type TPageLockReason = 'held_by_other' | 'taken_over' | 'idle' | 'free';
 
+export interface IPageEditLockOptions {
+    /**
+     * Read the lock status only (delete/publish callers). Never acquire, renew, release or take over.
+     */
+    watchOnly?: boolean;
+}
+
 export interface IPageEditLock {
     phase: TPageLockPhase;
     holder: IPageLockHolder | null;
     reason: TPageLockReason | null;
+    /** True when this instance only watches the lock (no Take over / Edit again). */
+    watchOnly: boolean;
     /** A take-over or a new attempt is on its way. */
     isWorking: boolean;
-    /** Become the holder, whoever held the lock; the draft is read again. */
+    /** Become the holder, whoever held the lock; the draft is read again. Also resumes after idle. */
     takeOver: () => Promise<void>;
-    /** Ask for the lock again (it is free, or the idle end passed). Someone else holding it keeps the editor read-only. */
+    /** Ask for the lock again (it is free). Someone else holding it keeps the editor read-only. */
     retry: () => Promise<void>;
 }
 
@@ -82,18 +100,35 @@ function isHidden(): boolean {
     return typeof document !== 'undefined' && document.visibilityState === 'hidden';
 }
 
-/** The lock status inside a `409 page_locked`, or `null` for any other error. */
-function lockedStatusOf(error: unknown): IPageLockStatus | null {
+function conflictCodeOf(error: unknown): string | null {
     const response = (error as { response?: { status?: number; data?: { error?: unknown; data?: unknown } } } | null)
         ?.response;
-    if (response?.status === 409 && response.data?.error === PAGE_LOCKED_ERROR) {
-        return (response.data.data as IPageLockStatus | null) ?? ({ holder: null } as IPageLockStatus);
+    if (response?.status !== 409 || typeof response.data?.error !== 'string') {
+        return null;
     }
-    return null;
+    return response.data.error;
 }
 
-export function usePageEditLock(pageId: number | null | undefined, enabled: boolean): IPageEditLock {
+/** The lock status inside a `409 page_locked`, or `null` for any other error. */
+function lockedStatusOf(error: unknown): IPageLockStatus | null {
+    if (conflictCodeOf(error) !== PAGE_LOCKED_ERROR) {
+        return null;
+    }
+    const response = (error as { response?: { data?: { data?: unknown } } }).response;
+    return (response?.data?.data as IPageLockStatus | null) ?? ({ holder: null } as IPageLockStatus);
+}
+
+function isLockIdleEnded(error: unknown): boolean {
+    return conflictCodeOf(error) === LOCK_IDLE_ENDED_ERROR;
+}
+
+export function usePageEditLock(
+    pageId: number | null | undefined,
+    enabled: boolean,
+    options: IPageEditLockOptions = {},
+): IPageEditLock {
     const queryClient = useQueryClient();
+    const watchOnly = options.watchOnly === true;
     const active = enabled && !!pageId;
     const [state, setState] = useState<TOwnedLockState>({ ...(active ? CHECKING : OFF), pageId: pageId ?? null });
     const [isWorking, setIsWorking] = useState(false);
@@ -108,7 +143,6 @@ export function usePageEditLock(pageId: number | null | undefined, enabled: bool
         const id = pageId;
         let cancelled = false;
         let holding = false;
-        let lastActivity = Date.now();
 
         const put = (next: ILockState): void => setState({ ...next, pageId: id });
 
@@ -116,14 +150,25 @@ export function usePageEditLock(pageId: number | null | undefined, enabled: bool
 
         const hold = (): void => {
             holding = true;
-            lastActivity = Date.now();
             put(HOLDING);
         };
         const lose = (reason: TPageLockReason, holder: IPageLockHolder | null): void => {
             holding = false;
             put({ phase: 'blocked', holder, reason });
         };
+        const clearWatch = (): void => {
+            holding = false;
+            put(OFF);
+        };
         const reloadDraft = (): Promise<unknown> => invalidatePageDraftQueries(queryClient, id);
+
+        const applyWatchStatus = (status: IPageLockStatus): void => {
+            if (status.held && !status.mine) {
+                lose('held_by_other', status.holder);
+            } else {
+                clearWatch();
+            }
+        };
 
         /** Ask for the lock. A refusal names the holder. Any other failure leaves the server to check every write. */
         const acquire = async (reload: boolean): Promise<void> => {
@@ -138,6 +183,11 @@ export function usePageEditLock(pageId: number | null | undefined, enabled: bool
                 }
             } catch (error) {
                 if (cancelled) return;
+                if (isLockIdleEnded(error)) {
+                    lose('idle', null);
+                    if (reload) await reloadDraft();
+                    return;
+                }
                 const locked = lockedStatusOf(error);
                 if (locked) {
                     lose('held_by_other', locked.holder ?? null);
@@ -152,6 +202,10 @@ export function usePageEditLock(pageId: number | null | undefined, enabled: bool
             try {
                 const status = await AdminPageApi.getPageLock(id);
                 if (cancelled) return;
+                if (watchOnly) {
+                    applyWatchStatus(status);
+                    return;
+                }
                 if (status.mine) {
                     if (!holding) hold();
                 } else if (holding) {
@@ -164,24 +218,32 @@ export function usePageEditLock(pageId: number | null | undefined, enabled: bool
                                   pageId: id,
                                   phase: 'blocked',
                                   holder: status.holder,
-                                  reason: status.held ? 'held_by_other' : 'free',
+                                  // The caller's own idle end stays "session ended" while nobody else holds the page:
+                                  // the server refuses a plain acquire after it, only "Continue editing" resumes (F258).
+                                  reason: status.held
+                                      ? 'held_by_other'
+                                      : previous.reason === 'idle'
+                                        ? 'idle'
+                                        : 'free',
                               }
                             : previous,
                     );
                 }
             } catch {
-                /* the next message or renewal tries again */
+                // The next message or renewal tries again. A delete/publish caller whose very first read
+                // failed would stay disabled with no banner and no reason: count the page as free and let the
+                // server's 409 `page_locked` decide, as the editor path does when its acquire fails.
+                if (watchOnly) {
+                    setState((previous) =>
+                        previous.pageId === id && previous.phase === 'checking' ? { ...OFF, pageId: id } : previous,
+                    );
+                }
             }
         };
 
-        /** Renew while visible; the idle end is decided here (see the hook comment). */
+        /** Renew while visible; the idle end is refused by the server as `lock_idle_ended`. */
         const renew = async (): Promise<void> => {
-            if (!holding || isHidden()) return;
-            if (Date.now() - lastActivity >= PAGE_LOCK_IDLE_MS) {
-                lose('idle', null);
-                void AdminPageApi.releasePageLock(id).catch(() => undefined);
-                return;
-            }
+            if (!holding || isHidden() || watchOnly) return;
             try {
                 const status = await AdminPageApi.acquirePageLock(id);
                 if (cancelled || !holding) return;
@@ -191,6 +253,10 @@ export function usePageEditLock(pageId: number | null | undefined, enabled: bool
                 }
             } catch (error) {
                 if (cancelled || !holding) return;
+                if (isLockIdleEnded(error)) {
+                    lose('idle', null);
+                    return;
+                }
                 const locked = lockedStatusOf(error);
                 if (locked) {
                     lose('taken_over', locked.holder ?? null);
@@ -200,6 +266,7 @@ export function usePageEditLock(pageId: number | null | undefined, enabled: bool
         };
 
         const takeOver = async (): Promise<void> => {
+            if (watchOnly) return;
             setIsWorking(true);
             try {
                 await AdminPageApi.takeOverPageLock(id);
@@ -215,6 +282,7 @@ export function usePageEditLock(pageId: number | null | undefined, enabled: bool
         };
 
         const retry = async (): Promise<void> => {
+            if (watchOnly) return;
             setIsWorking(true);
             try {
                 await acquire(true);
@@ -226,35 +294,34 @@ export function usePageEditLock(pageId: number | null | undefined, enabled: bool
 
         const onVisible = (): void => {
             if (isHidden()) return;
-            if (holding) {
+            if (watchOnly) {
+                void refresh();
+            } else if (holding) {
                 void renew();
             } else {
                 void refresh();
             }
         };
         const onPageHide = (): void => {
-            if (holding) {
+            if (holding && !watchOnly) {
                 void AdminPageApi.releasePageLock(id, { keepalive: true }).catch(() => undefined);
             }
         };
         const onPageShow = (event: PageTransitionEvent): void => {
             // Restored from the back/forward cache: the lock was given up on `pagehide`.
-            if (event.persisted) void renew();
+            if (event.persisted && !watchOnly) void renew();
         };
 
         const unsubscribers = [
-            subscribePageDraftVersion((changedPageId) => {
-                // The version moves with every draft write of this page: that is the activity the idle end counts.
-                if (changedPageId === id) lastActivity = Date.now();
-            }),
-            registerSyncTagIgnore((tag) => holding && tag === `page_draft:${id}`),
+            ...(watchOnly ? [] : [registerSyncTagIgnore((tag) => holding && tag === `page_draft:${id}`)]),
             subscribeSyncTags((tags) => {
                 if (tags.includes(`page_lock:${id}`)) void refresh();
-                if (tags.includes(`page_draft:${id}`)) void reloadDraft();
+                if (!watchOnly && tags.includes(`page_draft:${id}`)) void reloadDraft();
             }),
             subscribePageEditConflict((conflict) => {
                 if (conflict.pageId !== id) return;
                 if (conflict.kind === 'stale') {
+                    if (watchOnly) return;
                     notifications.show({
                         id: `page-conflict-${id}`,
                         color: 'orange',
@@ -265,33 +332,43 @@ export function usePageEditLock(pageId: number | null | undefined, enabled: bool
                     void reloadDraft();
                     return;
                 }
+                if (watchOnly) {
+                    lose('held_by_other', conflict.status?.holder ?? null);
+                    return;
+                }
                 lose(holding ? 'taken_over' : 'held_by_other', conflict.status?.holder ?? null);
                 void reloadDraft();
             }),
         ];
 
-        const interval = setInterval(() => void renew(), PAGE_LOCK_RENEW_INTERVAL_MS);
+        const interval = watchOnly
+            ? null
+            : setInterval(() => void renew(), PAGE_LOCK_RENEW_INTERVAL_MS);
         document.addEventListener('visibilitychange', onVisible);
         window.addEventListener('pagehide', onPageHide);
         window.addEventListener('pageshow', onPageShow);
 
-        void acquire(false);
+        if (watchOnly) {
+            void refresh();
+        } else {
+            void acquire(false);
+        }
 
         return () => {
             cancelled = true;
             actionsRef.current = null;
-            clearInterval(interval);
+            if (interval !== null) clearInterval(interval);
             document.removeEventListener('visibilitychange', onVisible);
             window.removeEventListener('pagehide', onPageHide);
             window.removeEventListener('pageshow', onPageShow);
             for (const unsubscribe of unsubscribers) unsubscribe();
             clearStaleConflict(id);
-            if (holding) {
+            if (holding && !watchOnly) {
                 holding = false;
                 void AdminPageApi.releasePageLock(id).catch(() => undefined);
             }
         };
-    }, [active, pageId, queryClient]);
+    }, [active, pageId, queryClient, watchOnly]);
 
     const takeOver = useCallback(async () => {
         await actionsRef.current?.takeOver();
@@ -301,15 +378,22 @@ export function usePageEditLock(pageId: number | null | undefined, enabled: bool
     }, []);
 
     // State of another page, or the first render before the effect ran: still checking.
-    const effective: ILockState = active
-        ? state.pageId === pageId && state.phase !== 'off'
-            ? state
-            : CHECKING
-        : OFF;
+    // An editor's leftover `off` from when the hook was inactive must not look like "lock free"
+    // (that would make canUpdate true for one paint). Watch-only may sit in `off` while enabled
+    // (lock free); that is the real state, not a miss.
+    const forThisPage = active && state.pageId === pageId;
+    const staleEditorOff = forThisPage && state.phase === 'off' && !watchOnly;
+    const effective: ILockState = !active
+        ? OFF
+        : forThisPage && !staleEditorOff
+          ? state
+          : CHECKING;
+
     return {
         phase: effective.phase,
         holder: effective.holder,
         reason: effective.reason,
+        watchOnly,
         isWorking,
         takeOver,
         retry,
