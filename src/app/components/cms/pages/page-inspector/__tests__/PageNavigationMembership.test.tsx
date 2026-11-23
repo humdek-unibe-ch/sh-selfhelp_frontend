@@ -36,6 +36,10 @@ vi.mock('../../../../../../hooks/useAdminPages', () => ({
 
 import { PageNavigationMembership } from '../page-field-groups';
 
+// The waits below are 5 s each, which equals vitest's default test limit; under a loaded full run
+// (many files in parallel) the first menu render can take that long, so each async test gets 20 s.
+const ASYNC_TEST_TIMEOUT_MS = 20_000;
+
 describe('PageNavigationMembership "Add to menu"', () => {
     beforeEach(() => {
         pageState.menuEligible = true;
@@ -52,7 +56,7 @@ describe('PageNavigationMembership "Add to menu"', () => {
             expect(createMenuItem).toHaveBeenCalledWith('web_footer', { item_type: 'page', page_id: 5, parent_item_id: null }),
         { timeout: 5000 });
         await waitFor(() => expect(showNotification).toHaveBeenCalledWith(expect.objectContaining({ color: 'green' })));
-    });
+    }, ASYNC_TEST_TIMEOUT_MS);
 
     it('disables menus the page is already in', async () => {
         renderWithProviders(<PageNavigationMembership pageId={5} />);
@@ -60,7 +64,7 @@ describe('PageNavigationMembership "Add to menu"', () => {
         await userEvent.click(screen.getByRole('button', { name: 'Add to menu' }));
 
         expect(await screen.findByRole('menuitem', { name: /Web header/ }, { timeout: 5000 })).toBeDisabled();
-    });
+    }, ASYNC_TEST_TIMEOUT_MS);
 
     // The menu builder never offers pages whose type can't be in a public menu.
     it('cannot add a page that is not eligible for menus', () => {
