@@ -91,6 +91,7 @@ export function useAdminPluginsRealtime(): void {
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.STYLE_GROUPS });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LOOKUPS });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PLUGIN_RESOURCE_TYPES });
 
             // Plugin lifecycle changes can remove styles/admin pages that
             // are already part of the current App Router payload. A route

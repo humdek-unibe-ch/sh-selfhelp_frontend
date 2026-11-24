@@ -28,7 +28,7 @@ interface IPluginHostRouteContainerProps {
 
 export function PluginHostRouteContainer({ pluginId, slug }: IPluginHostRouteContainerProps) {
     const { snapshot, isLoading } = usePluginRuntime();
-    const { hasPermission } = useAuth();
+    const { hasPermission, user, isLoading: isUserLoading } = useAuth();
 
     if (isLoading && snapshot.plugins.length === 0) {
         return (
@@ -48,6 +48,15 @@ export function PluginHostRouteContainer({ pluginId, slug }: IPluginHostRouteCon
                 <Alert color="yellow" title="Page not found">
                     The plugin <code>{pluginId}</code> does not register a page at <code>/{slug}</code>, or the plugin is currently disabled.
                 </Alert>
+            </Stack>
+        );
+    }
+
+    // Wait for the user before deciding: without it every permission reads as missing.
+    if (page.permission && user === null && isUserLoading) {
+        return (
+            <Stack align="center" mt="xl">
+                <Loader />
             </Stack>
         );
     }
