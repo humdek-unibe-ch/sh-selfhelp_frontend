@@ -81,6 +81,13 @@ describe('setCrudTick', () => {
         expect(stringifyCrudPermissions(setCrudTick(full, 'view', false))).toBe(0);
     });
 
+    it('gives back the stored row unchanged after unticking and reticking, so it no longer shows as changed', () => {
+        const stored = parseCrudPermissions(6); // view + update, in the order the modals parse it
+        const cleared = setCrudTick(stored, 'view', false);
+        const back = setCrudTick(setCrudTick(cleared, 'view', true), 'update', true);
+        expect(JSON.stringify(back)).toBe(JSON.stringify(stored));
+    });
+
     it('keeps view when another right is unticked', () => {
         const viewUpdate = { ...none, view: true, update: true };
         expect(setCrudTick(viewUpdate, 'update', false)).toMatchObject({ view: true, update: false });

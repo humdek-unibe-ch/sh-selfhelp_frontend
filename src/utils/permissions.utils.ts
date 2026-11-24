@@ -54,7 +54,8 @@ export function parseCrudPermissions(permissionsNumber: number): ICrudPermission
  */
 export function setCrudTick(permissions: ICrudPermissions, key: keyof ICrudPermissions, value: boolean): ICrudPermissions {
   if (key === 'view' && !value) {
-    return { ...DEFAULT_CRUD_PERMISSIONS };
+    // Same keys in the same order as the input: the modals compare rows with JSON.stringify.
+    return { ...permissions, view: false, create: false, update: false, delete: false };
   }
   return { ...permissions, [key]: value, ...(value ? { view: true } : {}) };
 }
