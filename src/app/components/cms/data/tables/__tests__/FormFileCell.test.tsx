@@ -45,6 +45,11 @@ describe('getFormFilePaths', () => {
 });
 
 describe('getRecordIdsWithFiles', () => {
+  it('ignores a path that climbs out of the upload folder, plain or inside JSON', () => {
+    expect(getFormFilePaths('uploads/form-files/../../secret')).toEqual([]);
+    expect(getFormFilePaths('["uploads/form-files/../x"]')).toEqual([]);
+  });
+
   it('keeps only the shown rows that hold uploads in a file column, for the table zip', () => {
     const rows = [
       { record_id: 165, section_4115: MULTI },

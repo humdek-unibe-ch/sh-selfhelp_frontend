@@ -23,7 +23,8 @@ const FORM_FILE_PREFIX = 'uploads/form-files/';
  */
 export function getFormFilePaths(value: unknown): string[] {
   if (typeof value !== 'string') return [];
-  if (value.startsWith(FORM_FILE_PREFIX)) return [value];
+  // The same rule as for a path inside JSON (and the server's `keysIn`): no `..`.
+  if (value.startsWith(FORM_FILE_PREFIX)) return value.includes('..') ? [] : [value];
   if (!value.startsWith('[') && !value.startsWith('{')) return [];
   let parsed: unknown;
   try {
