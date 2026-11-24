@@ -14,6 +14,14 @@ No engineering diary, no implementation detail — that belongs in
 
 ## Unreleased
 
+### Fixed
+- **Plugin admin pages wait for the user** before checking their permission,
+  instead of flashing "No access".
+- **The role screen's plugin resource types** refresh when a plugin is enabled
+  or disabled (registry key `ADMIN_PLUGIN_RESOURCE_TYPES`).
+- **A permission row put back as it was** no longer shows "Unsaved".
+- **A plain file path with `..`** in a data cell is not linked (as inside JSON).
+
 ### Added
 - **Excel export of data tables.** The data screen's export menu and the bulk
   export offer Excel next to CSV and JSON (needs a backend with `format=xlsx`).
