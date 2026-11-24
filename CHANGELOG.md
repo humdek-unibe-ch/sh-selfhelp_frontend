@@ -21,6 +21,9 @@ No engineering diary, no implementation detail — that belongs in
   or disabled (registry key `ADMIN_PLUGIN_RESOURCE_TYPES`).
 - **A permission row put back as it was** no longer shows "Unsaved".
 - **A plain file path with `..`** in a data cell is not linked (as inside JSON).
+- **The impersonation banner no longer hides the bottom right corner.** While
+  it shows, the page gets room at the bottom of the banner's height, so an
+  editor's buttons or a table footer can be scrolled clear of it.
 
 ### Added
 - **Excel export of data tables.** The data screen's export menu and the bulk
