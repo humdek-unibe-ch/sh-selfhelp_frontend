@@ -2,8 +2,8 @@
 
 Audience: frontend developers.
 Status: active.
-Applies to: frontend 0.1.76 with core 0.1.49 and later, `@selfhelp/shared` 1.28.0.
-Last verified: 2026-11-20.
+Applies to: frontend 0.1.77 with core 0.1.50 and later, `@selfhelp/shared` 1.29.0.
+Last verified: 2026-11-24.
 Source of truth: `src/app/api/auth/events/route.ts`, `src/utils/shared-sse.ts`, `src/hooks/useAclEventStream.ts`, `src/utils/sync-tags.utils.ts`, `src/utils/acl-stamp.utils.ts`, `src/utils/page-view.utils.ts`, `src/hooks/useValidUntilRefetch.ts`, `src/hooks/useVanishedFormNotice.ts`, `src/app/[[...slug]]/DynamicPageClient.tsx`, and the backend contract in `sh-selfhelp_backend/docs/developer/` (realtime and ACL).
 
 An open page, the menu, a list or an inspector follows a change made by someone else without a click and without polling. The server decides who hears about a change and what it names; this code matches the names against what is on screen and reads that data again.

@@ -41,6 +41,7 @@ respect another person's edit lock).
 ### Changed
 
 - Page payloads use `@selfhelp/shared` `pageFromPayload` (local copy removed).
+- Pins the published `@selfhelp/shared` 1.29.0 (`package.json` and the lockfile).
 
 ---
 
