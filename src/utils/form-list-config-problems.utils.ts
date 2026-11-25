@@ -60,7 +60,12 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
     list_fixed_filter: 'Fixed filter',
     quick_actions: 'Quick actions',
     own_entries_only: 'Own entries only',
+    allow_create: 'Allow add',
+    allow_update: 'Allow edit',
+    allow_delete: 'Allow delete',
+    show_history: 'Show history',
     detail_url: 'Detail URL',
+    children: 'Children',
 };
 
 export function formListFieldLabel(field: string): string {

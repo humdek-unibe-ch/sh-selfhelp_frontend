@@ -223,6 +223,10 @@ SPDX-License-Identifier: MPL-2.0
     max-width: 300px;
 }
 
+.emptyStateAction {
+    margin-top: 20px;
+}
+
 /* Processing state */
 .processingState {
     display: flex;

@@ -2,8 +2,8 @@
 
 Audience: frontend developers.
 Status: active.
-Applies to: frontend 0.1.71 with core 0.1.44 and later, `@selfhelp/shared` 1.24.0.
-Last verified: 2026-11-14.
+Applies to: frontend 0.1.72 with core 0.1.45 and later, `@selfhelp/shared` 1.25.0.
+Last verified: 2026-11-17.
 Source of truth: `src/app/components/frontend/styles/form-list/`, `src/hooks/useFormList.ts`, `src/hooks/useFormListUrlState.ts`, `src/hooks/useUnsavedChangesGuard.ts`, `src/utils/form-list*.ts`, the list editors under `src/app/components/cms/shared/field-components/form-list/`, and the backend contract in `sh-selfhelp_backend/docs/reference/api/22-form-lists.md`.
 
 The styles `entry-form-list` (create, view, edit, delete over the generic data store) and `data-view` (the same list, read only) are drawn by one component, `FormListStyle`. The server decides everything a person may see and do (rows, columns, buttons, history); this code draws what the server sent and never evaluates access. Backend concepts: `sh-selfhelp_backend/docs/developer/form-lists.md`, `data-query-engine.md` and `record-history.md`; the person-facing description is `sh-selfhelp_backend/docs/user/entry-lists.md`.
@@ -56,7 +56,7 @@ A list's state is cached under `formListCacheKey` (shared): API base, account or
 
 ## Writes
 
-The list does not have a write API. The one inline form is a normal child of the list section (`entry-record-form`, `form-record` or `form-log`) and keeps its inputs, validation and submit pipeline (`FormStyle`). Inside a list `FormStyle` reads `FormListFormContext`:
+The list does not have a separate write API. An `entry-form-list` **is** the form: its own input children are the form body, and `list.form_section_id` equals the list's section id. `FormListStyle` synthesizes a `form-record`-shaped section from the list and hands it to `FormStyle` (same submit pipeline). A form-style section under a list is refused by the backend and hidden in the add-section dialog (`FORM_SECTION_STYLE_NAMES`). A list with a foreign `data_table` has `form_section_id: null` and no create/edit form. Inside a list `FormStyle` reads `FormListFormContext`:
 
 - it edits the record the list opened (or creates a new one) and prefills it from `selected.form_values`;
 - it sends `expected_version` with an update; the server answers `409 stale_version` when somebody else changed the record meanwhile (`getFormStaleVersion`), nothing is written and the draft stays (the list shows reload, compare, or save over theirs);

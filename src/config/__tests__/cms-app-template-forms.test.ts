@@ -7,11 +7,11 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
- * Each CMS-app template defines its inputs once: the CMS list (`entry-form-list`) owns one inline
- * form, and nothing else in the bundle is a form. There is no separate form page (the old model
- * kept one "Add new" page shown in a modal, which is why its title had to name neither mode); the
- * list draws the dialog and names the mode itself ("Add ..." / "Edit ..."). Public pages only read
- * the same table (`data-view`, `entry-record`), so the inputs are never defined twice.
+ * Each CMS-app template defines its inputs once: the CMS list (`entry-form-list`) is the form —
+ * its direct input children are the form body (list-as-form). No nested `form-record` / `form-log`,
+ * and no separate form page (the old model kept one "Add new" page shown in a modal). The list
+ * draws the dialog and names the mode itself ("Add ..." / "Edit ..."). Public pages only read the
+ * same table (`data-view`, `entry-record`), so the inputs are never defined twice.
  */
 interface IBundleSection {
     section_name?: string;
@@ -30,12 +30,20 @@ interface IBundlePage {
 const DIR = join(process.cwd(), 'examples', 'cms-in-cms');
 const bundles = readdirSync(DIR).filter((f) => f.endsWith('.bundle.json'));
 
+/** Direct form body styles that sit under an entry-form-list (list-as-form). */
+const LIST_INPUT_STYLE =
+    /^(text-input|textarea|select|file-input|radio|checkbox|slider|datepicker|markdown-input)/;
+
 function flatten(sections: IBundleSection[] | undefined): IBundleSection[] {
     return (sections ?? []).flatMap((section) => [section, ...flatten(section.children)]);
 }
 
 function stylesOf(page: IBundlePage): string[] {
     return flatten(page.sections).map((section) => section.style_name);
+}
+
+function entryFormListOf(page: IBundlePage): IBundleSection | undefined {
+    return flatten(page.sections).find((section) => section.style_name === 'entry-form-list');
 }
 
 describe('CMS app template forms', () => {
@@ -50,8 +58,16 @@ describe('CMS app template forms', () => {
         const lists = pages.filter((page) => stylesOf(page).includes('entry-form-list'));
         expect(lists.map((page) => page.cms_app_role), 'one CMS list').toEqual(['cms_list']);
 
-        const forms = stylesOf(lists[0]).filter((style) => style === 'form-record' || style === 'form-log');
-        expect(forms, 'the list holds its form inline, once').toHaveLength(1);
+        const list = entryFormListOf(lists[0]);
+        expect(list, 'CMS list page has an entry-form-list').toBeDefined();
+
+        const nestedForms = flatten(list!.children).filter((section) =>
+            /^(form-record|form-log|entry-form-list)$/.test(section.style_name),
+        );
+        expect(nestedForms, 'no nested form under the list').toEqual([]);
+
+        const directInputs = (list!.children ?? []).filter((section) => LIST_INPUT_STYLE.test(section.style_name));
+        expect(directInputs.length, 'the list holds its inputs directly').toBeGreaterThan(0);
     });
 
     it.each(bundles)('%s: public pages read the table and define no input', (file) => {

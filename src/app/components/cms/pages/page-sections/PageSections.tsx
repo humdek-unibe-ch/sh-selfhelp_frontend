@@ -996,6 +996,7 @@ function PageSections({ pageId, pageName, pageUrl = null, initialSelectedSection
              onToggleSelect={handleToggleSelect}
              selectionVersion={selectionVersion}
              bulkMode={bulkMode}
+             onAddSection={() => setAddSectionModalOpened(true)}
            />
          </Box>
 

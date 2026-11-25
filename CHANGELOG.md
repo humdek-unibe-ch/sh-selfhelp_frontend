@@ -66,6 +66,20 @@ No engineering diary, no implementation detail — that belongs in
   raising the limit; soft over-limit keeps extras stored. User guide:
   [docs/user/menus.md](docs/user/menus.md).
 
+## v0.1.72 — 2026-11-17
+
+**Entry List with Form is its own form:** `entry-form-list` carries the form
+fields; its input children are the form body and submits use
+`section_id = <list id>`. The add-section dialog and drag-and-drop refuse
+form-style sections under a list (`FORM_SECTION_STYLE_NAMES` from
+`@selfhelp/shared` 1.25.0). List column/filter/quick-action editors still
+offer the list's own inputs (or a foreign table's columns) by name.
+
+Requires core **>=0.1.45**. Pairs with `@selfhelp/shared` 1.25.0: `package.json`
+pins it; leave `package-lock.json` for the release step after publishing (F151).
+Until 1.25.0 is on npm, verify with the local packed artifact
+(`_artifacts/shared-1.25.0/`).
+
 ## v0.1.71 — 2026-11-13
 
 **CMS app media and publish (F165–F166):** `FileInputStyle` shows stored files
