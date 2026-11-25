@@ -25,6 +25,7 @@ import {
     IconFiles,
     IconShieldLock,
     IconApps,
+    IconLayoutSidebarLeftCollapse,
 } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
@@ -44,6 +45,7 @@ import {
 import { SelfHelpLogo, PreviewModeToggle, AuthButton } from '../../../shared';
 import classes from './AdminNavbar.module.css';
 import { NavigationSearch } from './components';
+import { AdminNavbarRail } from './components/AdminNavbarRail';
 
 /** True only after the first client commit — keeps SSR and hydration markup aligned. */
 function useAdminNavMounted(): boolean {
@@ -56,7 +58,7 @@ function useAdminNavMounted(): boolean {
 }
 
 /** One item inside an accordion group panel. */
-type TNavbarItem = {
+export type TNavbarItem = {
     label: string;
     icon?: React.ReactNode;
     link?: string;
@@ -67,7 +69,7 @@ type TNavbarItem = {
 };
 
 /** One accordion group with optional quick actions rendered in the control row. */
-type TNavbarGroup = {
+export type TNavbarGroup = {
     id: string;
     label: string;
     icon: React.ReactNode;
@@ -111,7 +113,12 @@ function usePersistedAccordion(): readonly [string[], (value: string[]) => void]
     return [value, update] as const;
 }
 
-export function AdminNavbar() {
+interface IAdminNavbarProps {
+    collapsed?: boolean;
+    onToggleCollapsed?: () => void;
+}
+
+export function AdminNavbar({ collapsed = false, onToggleCollapsed }: IAdminNavbarProps = {}) {
     const {
         pages,
         configurationPageLinks,
@@ -133,6 +140,7 @@ export function AdminNavbar() {
     const [cmsAppsImportTab, setCmsAppsImportTab] = useState<'export' | 'import' | 'examples'>('examples');
     const [openGroups, setOpenGroups] = usePersistedAccordion();
     const navMounted = useAdminNavMounted();
+    const [focusSearch, setFocusSearch] = useState(false);
 
     // Search index: pages searchable by keyword AND by their titles in every
     // language (the menu shows titles, so search must match them too).
@@ -476,17 +484,75 @@ export function AdminNavbar() {
         </Accordion.Item>
     ));
 
+    const toggleCollapsed = () => {
+        setFocusSearch(false);
+        onToggleCollapsed?.();
+    };
+
+    const modals = (
+        <>
+            <CreatePageModal
+                opened={isCreatePageModalOpen}
+                onClose={() => setIsCreatePageModalOpen(false)}
+            />
+
+            <CreateCmsAppModal
+                opened={isCreateCmsAppOpen}
+                onClose={() => setIsCreateCmsAppOpen(false)}
+            />
+
+            <PageExportImportModal
+                opened={isExportImportOpen}
+                onClose={() => setIsExportImportOpen(false)}
+                pages={pages ?? []}
+            />
+
+            <PageExportImportModal
+                opened={isCmsAppsImportOpen}
+                onClose={() => setIsCmsAppsImportOpen(false)}
+                pages={pages ?? []}
+                initialTab={cmsAppsImportTab}
+            />
+        </>
+    );
+
+    if (collapsed) {
+        return (
+            <nav className={classes.navbar} aria-label="Admin navigation">
+                <AdminNavbarRail
+                    groups={navbarGroups}
+                    onExpand={toggleCollapsed}
+                    onSearch={() => {
+                        onToggleCollapsed?.();
+                        setFocusSearch(true);
+                    }}
+                />
+                {modals}
+            </nav>
+        );
+    }
+
     return (
-        <nav className={classes.navbar}>
-            {/* Header: brand, then the preview-toggle control strip, then search. */}
+        <nav className={classes.navbar} aria-label="Admin navigation">
+            {/* Header: brand + collapse, then the preview-toggle control strip, then search. */}
             <Box className={classes.header}>
-                <SelfHelpLogo variant="compact" />
+                <Group justify="space-between" wrap="nowrap" gap="xs">
+                    <SelfHelpLogo variant="compact" />
+                    {onToggleCollapsed && (
+                        <Tooltip label="Collapse sidebar (Ctrl+B)" position="bottom" withArrow>
+                            <ActionIcon variant="subtle" color="gray" size="lg" aria-label="Collapse sidebar" onClick={toggleCollapsed}>
+                                <IconLayoutSidebarLeftCollapse size={20} stroke={1.6} />
+                            </ActionIcon>
+                        </Tooltip>
+                    )}
+                </Group>
 
                 <PreviewModeToggle />
 
                 <NavigationSearch
                     adminPagesData={adminPagesData}
                     onItemSelect={() => {}} // Navigation search handles routing internally
+                    autoFocus={focusSearch}
                 />
             </Box>
 
@@ -526,28 +592,7 @@ export function AdminNavbar() {
                 <AuthButton variant="navbar" />
             </div>
 
-            <CreatePageModal
-                opened={isCreatePageModalOpen}
-                onClose={() => setIsCreatePageModalOpen(false)}
-            />
-
-            <CreateCmsAppModal
-                opened={isCreateCmsAppOpen}
-                onClose={() => setIsCreateCmsAppOpen(false)}
-            />
-
-            <PageExportImportModal
-                opened={isExportImportOpen}
-                onClose={() => setIsExportImportOpen(false)}
-                pages={pages ?? []}
-            />
-
-            <PageExportImportModal
-                opened={isCmsAppsImportOpen}
-                onClose={() => setIsCmsAppsImportOpen(false)}
-                pages={pages ?? []}
-                initialTab={cmsAppsImportTab}
-            />
+            {modals}
         </nav>
     );
 }

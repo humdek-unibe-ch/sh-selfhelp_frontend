@@ -26,6 +26,10 @@ No engineering diary, no implementation detail — that belongs in
   editor's buttons or a table footer can be scrolled clear of it.
 
 ### Added
+- **Collapsible admin sidebar.** The collapse button next to the logo (or
+  Ctrl/Cmd+B) turns the sidebar into an icon rail; each section opens its
+  pages and quick actions in a flyout on hover, click or keyboard. The choice
+  is remembered.
 - **Excel export of data tables.** The data screen's export menu and the bulk
   export offer Excel next to CSV and JSON (needs a backend with `format=xlsx`).
 - **Plugin styles know their page.** `BasicStyle` draws plugin styles through

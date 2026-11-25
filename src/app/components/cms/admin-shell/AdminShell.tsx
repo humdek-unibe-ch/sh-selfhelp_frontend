@@ -6,13 +6,18 @@ SPDX-License-Identifier: MPL-2.0
 
 import { AppShell } from "@mantine/core";
 import { AdminNavbar } from "./admin-navbar/AdminNavbar";
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ROUTES } from "../../../../config/routes.config";
 import { DebugMenu } from "../../shared/common/debug";
-import { useIsSidebarCollapsed } from "../../../store/ui.store";
+import { useIsSidebarCollapsed, useToggleSidebarCollapsed } from "../../../store/ui.store";
 import { useAuthStatus } from "../../../../hooks/useUserData";
+import { useIsClient } from "../../../../hooks/useIsClient";
+import classes from './AdminShell.module.css';
+
+const NAVBAR_WIDTH = 340;
+const NAVBAR_RAIL_WIDTH = 72;
 
 interface AdminShellProps {
     children: React.ReactNode;
@@ -25,6 +30,18 @@ interface AdminShellProps {
 export function AdminShell({ children, aside, asideWidth = 400, fullHeightMain = false }: AdminShellProps) {
     const [opened, { toggle: _toggle }] = useDisclosure();
     const isSidebarCollapsed = useIsSidebarCollapsed();
+    const toggleSidebarCollapsed = useToggleSidebarCollapsed();
+    // The persisted choice is applied only after hydration, so the server
+    // markup and the first client render agree (the store reads
+    // localStorage synchronously on the client).
+    const isClient = useIsClient();
+    const collapsed = isClient && isSidebarCollapsed;
+    const [hasToggled, setHasToggled] = useState(false);
+    const toggleSidebar = () => {
+        setHasToggled(true);
+        toggleSidebarCollapsed();
+    };
+    useHotkeys([['mod+B', toggleSidebar]]);
     // Derive auth from our SSR-hydrated `['user-data']` cache rather than
     // Refine's separate `useIsAuthenticated` query, which starts every
     // render with `isLoading: true` and caused the admin shell to flash
@@ -59,13 +76,12 @@ export function AdminShell({ children, aside, asideWidth = 400, fullHeightMain =
         <>
             <AppShell
                 navbar={{
-                    width: 340,
+                    width: collapsed ? NAVBAR_RAIL_WIDTH : NAVBAR_WIDTH,
                     breakpoint: 'sm',
                     // `mobile`: burger toggle (transient, useDisclosure).
-                    // `desktop`: persisted user pref in the UI store so the
-                    //            chosen layout survives navigation + reloads.
-                    collapsed: { mobile: !opened, desktop: isSidebarCollapsed },
+                    collapsed: { mobile: !opened, desktop: false },
                 }}
+                transitionDuration={hasToggled ? 200 : 0}
                 aside={aside ? {
                     width: asideWidth,
                     breakpoint: 'md',
@@ -73,8 +89,8 @@ export function AdminShell({ children, aside, asideWidth = 400, fullHeightMain =
                 } : undefined}
                 padding={0}
             >
-                <AppShell.Navbar>
-                    <AdminNavbar />
+                <AppShell.Navbar className={classes.navbar}>
+                    <AdminNavbar collapsed={collapsed} onToggleCollapsed={toggleSidebar} />
                 </AppShell.Navbar>
                 {/* `100dvh` (not `h-screen`) — Mantine pads Main by the
                     navbar/header offsets, which `h-screen` would overflow. */}
