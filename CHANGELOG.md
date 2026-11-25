@@ -30,6 +30,9 @@ No engineering diary, no implementation detail — that belongs in
   Ctrl/Cmd+B) turns the sidebar into an icon rail; each section opens its
   pages and quick actions in a flyout on hover, click or keyboard. The choice
   is remembered.
+- **Admin menu on narrow screens.** Below 768px a top bar with a menu button
+  opens the admin sidebar, which closes again after picking a page. Before,
+  the sidebar was hidden there with no way to open it.
 - **Excel export of data tables.** The data screen's export menu and the bulk
   export offer Excel next to CSV and JSON (needs a backend with `format=xlsx`).
 - **Plugin styles know their page.** `BasicStyle` draws plugin styles through

@@ -536,7 +536,7 @@ export function AdminNavbar({ collapsed = false, onToggleCollapsed }: IAdminNavb
         <nav className={classes.navbar} aria-label="Admin navigation">
             {/* Header: brand + collapse, then the preview-toggle control strip, then search. */}
             <Box className={classes.header}>
-                <Group justify="space-between" wrap="nowrap" gap="xs">
+                <Group justify="space-between" wrap="nowrap" gap="xs" visibleFrom="sm">
                     <SelfHelpLogo variant="compact" />
                     {onToggleCollapsed && (
                         <Tooltip label="Collapse sidebar (Ctrl+B)" position="bottom" withArrow>

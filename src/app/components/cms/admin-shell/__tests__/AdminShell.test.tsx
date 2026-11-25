@@ -11,15 +11,17 @@ import { renderWithProviders } from '../../../../../test-utils/renderWithProvide
  * area only for an authenticated session and otherwise render nothing while
  * redirecting to login. Hooks/children are mocked so the test isolates the gate.
  */
-const { authState, replaceMock, sidebarState, toggleSidebarMock } = vi.hoisted(() => ({
+const { authState, replaceMock, sidebarState, toggleSidebarMock, routeState } = vi.hoisted(() => ({
     authState: { value: { isAuthenticated: true, isLoading: false, isBackendUnavailable: false } },
     replaceMock: vi.fn(),
     sidebarState: { collapsed: false },
     toggleSidebarMock: vi.fn(),
+    routeState: { pathname: '/admin/users' },
 }));
 
 vi.mock('next/navigation', () => ({
     useRouter: () => ({ replace: replaceMock, push: vi.fn(), prefetch: vi.fn() }),
+    usePathname: () => routeState.pathname,
 }));
 vi.mock('../../../../../hooks/useUserData', () => ({
     useAuthStatus: () => authState.value,
@@ -44,6 +46,7 @@ describe('AdminShell gate', () => {
         replaceMock.mockClear();
         toggleSidebarMock.mockClear();
         sidebarState.collapsed = false;
+        routeState.pathname = '/admin/users';
         authState.value = { isAuthenticated: true, isLoading: false, isBackendUnavailable: false };
     });
 
@@ -115,7 +118,27 @@ describe('AdminShell gate', () => {
         expect(replaceMock).not.toHaveBeenCalled();
     });
 
-    it('shows the navbar as a narrow rail when the sidebar is collapsed', () => {
+    it('shows the navbar as a narrow rail when the sidebar is collapsed on a wide screen', () => {
+        sidebarState.collapsed = true;
+        const narrowMatchMedia = window.matchMedia;
+        window.matchMedia = (query: string) => ({ ...narrowMatchMedia(query), matches: true });
+
+        try {
+            renderWithProviders(
+                <AdminShell>
+                    <div>admin-content</div>
+                </AdminShell>,
+            );
+
+            const navbar = screen.getByTestId('admin-navbar');
+            expect(navbar).toHaveAttribute('data-collapsed', 'true');
+            expect(navbar.closest('nav')).toBeVisible();
+        } finally {
+            window.matchMedia = narrowMatchMedia;
+        }
+    });
+
+    it('keeps the full navbar on a narrow screen even when the sidebar is collapsed', () => {
         sidebarState.collapsed = true;
 
         renderWithProviders(
@@ -124,9 +147,7 @@ describe('AdminShell gate', () => {
             </AdminShell>,
         );
 
-        const navbar = screen.getByTestId('admin-navbar');
-        expect(navbar).toHaveAttribute('data-collapsed', 'true');
-        expect(navbar.closest('nav')).toBeVisible();
+        expect(screen.getByTestId('admin-navbar')).toHaveAttribute('data-collapsed', 'false');
     });
 
     it('toggles the sidebar with Ctrl+B', () => {
@@ -139,5 +160,26 @@ describe('AdminShell gate', () => {
         fireEvent.keyDown(document.documentElement, { key: 'b', code: 'KeyB', ctrlKey: true });
 
         expect(toggleSidebarMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens the navbar from the menu button on a narrow screen and closes it after navigating', () => {
+        const { rerender } = renderWithProviders(
+            <AdminShell>
+                <div>admin-content</div>
+            </AdminShell>,
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
+
+        expect(screen.getByRole('button', { name: 'Close navigation' })).toHaveAttribute('aria-expanded', 'true');
+
+        routeState.pathname = '/admin/groups';
+        rerender(
+            <AdminShell>
+                <div>admin-content</div>
+            </AdminShell>,
+        );
+
+        expect(screen.getByRole('button', { name: 'Open navigation' })).toHaveAttribute('aria-expanded', 'false');
     });
 });
