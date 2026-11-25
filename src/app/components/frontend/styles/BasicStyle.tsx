@@ -63,7 +63,8 @@ import {
 } from '../../../../types/common/styles.types';
 import { type INoAccessStyle, type IMissingStyle, type INotFoundStyle } from '../../../../shared';
 import { usePluginRuntime, usePluginStyleComponent } from '../plugin-runtime';
-import PluginStyleHost, { type IPluginStyleProps } from './PluginStyleHost';
+import PluginStyleHost from './PluginStyleHost';
+import type { IPluginStyleProps } from '@selfhelp/shared/plugin-sdk';
 import { isStyleSupportedOnPlatform, type TStylePlatform } from '@selfhelp/shared/registry';
 
 /**

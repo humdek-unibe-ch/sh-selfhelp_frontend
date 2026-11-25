@@ -48,9 +48,6 @@ import {
 } from '@selfhelp/shared/registry';
 import { sanitizeHtmlForBlock, sanitizeHtmlForParsing } from '../../../../utils/html-sanitizer.utils';
 
-/** Mirrors `IPluginApi.sanitizeHtml` of the plugin SDK (`@selfhelp/shared` > 1.24.0). */
-type TPluginApiWithSanitizer = IPluginApi & { sanitizeHtml(html: string, mode: 'inline' | 'block'): string };
-
 /** The host's sanitizer lent to plugins: the same DOMPurify rules and link rewrites core pages use. */
 export function sanitizePluginHtml(html: string, mode: 'inline' | 'block'): string {
     return mode === 'block' ? sanitizeHtmlForBlock(html) : sanitizeHtmlForParsing(html);
@@ -800,7 +797,7 @@ export class PluginRuntime {
         return Boolean(flag.defaultEnabled);
     }
 
-    private buildPluginApi(entry: IPluginManifestEntry): TPluginApiWithSanitizer {
+    private buildPluginApi(entry: IPluginManifestEntry): IPluginApi {
         return {
             pluginId: entry.pluginId,
             pluginVersion: entry.version,

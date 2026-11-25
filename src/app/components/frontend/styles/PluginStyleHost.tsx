@@ -5,30 +5,11 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import React from 'react';
+import type { IPluginStylePage, IPluginStyleProps } from '@selfhelp/shared/plugin-sdk';
 import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useLanguageContext } from '../../contexts/LanguageContext';
 import { usePageModal } from '../../contexts/PageModalContext';
 import { usePreviewMode } from '../../contexts/PreviewModeContext';
-
-/** Mirrors `IPluginStylePage` of the plugin SDK (`@selfhelp/shared` > 1.24.0). */
-interface IPluginStylePage {
-    id: number | null;
-    languageId: number | null;
-    preview: boolean;
-    routeParams: Record<string, string>;
-}
-
-/** Mirrors `IPluginStyleProps` of the plugin SDK. */
-export interface IPluginStyleProps {
-    style: Record<string, unknown>;
-    styleProps: Record<string, string>;
-    cssClass: string;
-    parentActive?: number;
-    childIndex?: number;
-    parentColor?: string;
-    pageModal: { inModal: boolean; closeModal: () => void };
-    page: IPluginStylePage;
-}
 
 type TPluginStyleHostProps = Omit<IPluginStyleProps, 'pageModal' | 'page'> & {
     component: React.ComponentType<IPluginStyleProps>;
