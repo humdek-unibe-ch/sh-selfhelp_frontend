@@ -12,6 +12,7 @@ import {
     asFilesCell,
     getFormInvalidData,
     getFormStaleVersion,
+    LANGUAGE_INDEPENDENT_ID,
     parseFormRecordPrefill,
     type IFormFileFieldOp,
     type TFormRecordPrefillFieldValue,
@@ -153,7 +154,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             const sectionData = Array.isArray(listPrefill)
                 ? listPrefill
                 : listPrefill && typeof listPrefill === 'object'
-                  ? [{ record_id: listRecordId, id_languages: 1, ...(listPrefill as Record<string, unknown>) }]
+                  ? [{ record_id: listRecordId, id_languages: LANGUAGE_INDEPENDENT_ID, ...(listPrefill as Record<string, unknown>) }]
                   : [];
             const prefill = parseFormRecordPrefill({
                 section_data: sectionData,

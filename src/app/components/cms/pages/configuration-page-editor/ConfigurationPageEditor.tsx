@@ -37,6 +37,7 @@ import { type IAdminPage } from '../../../../../types/responses/admin/admin.type
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
+import { LANGUAGE_INDEPENDENT_ID } from '@selfhelp/shared';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { type IUpdatePageData, type IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import styles from './ConfigurationPageEditor.module.css';
@@ -330,8 +331,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
     // Render property field
     const renderPropertyField = (field: IPageField) => {
-        // Property fields use language_id = 1 (property language)
-        const langId = 1;
+        // Property fields use the language-independent sentinel
+        const langId = LANGUAGE_INDEPENDENT_ID;
         const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
         
         // Convert IPageField to IFieldData

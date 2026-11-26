@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { Anchor, Badge, Group, Image, Stack, Text } from '@mantine/core';
+import { isLanguageIndependent } from '@selfhelp/shared';
 import type {
     IFormListHistoricalFile,
     TFormListChange,
@@ -12,9 +13,11 @@ import type {
 import { FORM_LIST_TEXT } from './form-list.constants';
 import styles from './FormList.module.css';
 
-/** The language of a cell is worth naming only when it is a real language (1 = all languages). */
+/** The language of a cell is worth naming only when it is a real language. */
 function languageBadge(languageId: number) {
-    return languageId > 1 ? <Badge size="xs" variant="outline">language {languageId}</Badge> : null;
+    return !isLanguageIndependent(languageId)
+        ? <Badge size="xs" variant="outline">language {languageId}</Badge>
+        : null;
 }
 
 const CHANGE_WORDS: Record<TFormListChange['change'], string> = {

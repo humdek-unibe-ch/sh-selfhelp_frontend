@@ -31,7 +31,7 @@ import { validateName, getNameValidationError } from '../../../../../utils/name-
 import { formListFieldLabel, getFormListConfigProblems, type IFormListConfigProblem } from '../../../../../utils/form-list-config-problems.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
-import { OPTION_STYLE_CONFIGS, type TOptionStyleName } from '@selfhelp/shared';
+import { isLanguageIndependent, OPTION_STYLE_CONFIGS, type TOptionStyleName } from '@selfhelp/shared';
 import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
 import { SectionInspectorHeader } from './SectionInspectorHeader';
@@ -202,7 +202,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         propertyFields.forEach(field => {
             let value = field.default_value || '';
             if (field.translations && field.translations.length > 0) {
-                const propertyTranslation = field.translations.find(t => t.language_id === 1);
+                const propertyTranslation = field.translations.find(t => isLanguageIndependent(t.language_id));
                 if (propertyTranslation?.content !== undefined && propertyTranslation?.content !== null) {
                     value = propertyTranslation.content;
                 }

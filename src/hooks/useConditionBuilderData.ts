@@ -11,6 +11,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { isLanguageIndependent, LANGUAGE_INDEPENDENT_LOCALE } from '@selfhelp/shared';
 import { AdminGroupApi } from '../api/admin/group.api';
 import { permissionAwareApiClient } from '../api/base.api';
 import { API_CONFIG } from '../config/api.config';
@@ -107,8 +108,11 @@ export function useConditionBuilderData() {
         // Convert to key-value format expected by React Query Builder
         const languagesMap: Record<string, string> = {};
         languages.forEach((language: ILanguage) => {
-            // Skip the "all languages" option if it exists
-            if (language.id !== 1 || language.locale !== 'all') {
+            // Skip the language-independent sentinel if it exists
+            if (
+                !isLanguageIndependent(language.id)
+                || language.locale !== LANGUAGE_INDEPENDENT_LOCALE
+            ) {
                 languagesMap[language.id.toString()] = `${language.language} (${language.locale})`;
             }
         });

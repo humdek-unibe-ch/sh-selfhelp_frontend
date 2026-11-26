@@ -8,6 +8,7 @@ SPDX-License-Identifier: MPL-2.0
  * from the API response structure with translations array
  */
 
+import { isLanguageIndependent } from '@selfhelp/shared';
 import { type ILanguage } from '../types/responses/admin/languages.types';
 
 interface IFieldTranslation {
@@ -57,18 +58,19 @@ export function getContentFieldValue(field: IFieldWithTranslations, languageId: 
 
 /**
  * Extracts property field value 
- * Property fields are non-translatable (display = false) and always use language ID 1
- * 
+ * Property fields are non-translatable (display = false) and always use the
+ * language-independent sentinel.
+ *
  * @param field - Field object with translations array
- * @returns The field content from language ID 1 or empty string
+ * @returns The field content from the language-independent row or empty string
  */
 export function getPropertyFieldValue(field: IFieldWithTranslations): string {
     if (!field.translations || !Array.isArray(field.translations)) {
         return field.default_value || '';
     }
 
-    // Property fields are always stored with language_id = 1
-    const translation = field.translations.find(t => t.language_id === 1);
+    // Property fields are always stored under the language-independent row
+    const translation = field.translations.find(t => isLanguageIndependent(t.language_id));
     
     if (translation && translation.content !== null && translation.content !== undefined) {
         return translation.content;

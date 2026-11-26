@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { Alert, Badge, Group, Stack, Text } from '@mantine/core';
+import { isLanguageIndependent } from '@selfhelp/shared';
 import type {
     IFormListHistoricalFile,
     IFormListRestoreBlocker,
@@ -14,7 +15,9 @@ import { RESTORE_BLOCKER_WORDS, RESTORE_TEXT, restoreBlockerKey } from './restor
 import styles from './RestorePreview.module.css';
 
 function languageBadge(languageId: number) {
-    return languageId > 1 ? <Badge size="xs" variant="outline">language {languageId}</Badge> : null;
+    return !isLanguageIndependent(languageId)
+        ? <Badge size="xs" variant="outline">language {languageId}</Badge>
+        : null;
 }
 
 const ACTION_WORDS: Record<IFormListRestoreChange['action'], string> = {

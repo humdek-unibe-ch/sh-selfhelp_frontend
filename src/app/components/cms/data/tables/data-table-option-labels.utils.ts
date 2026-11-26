@@ -3,7 +3,12 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 
-import { OPTION_STYLE_CONFIGS, resolveOptions, type TOptionStyleName } from '@selfhelp/shared';
+import {
+  isLanguageIndependent,
+  OPTION_STYLE_CONFIGS,
+  resolveOptions,
+  type TOptionStyleName,
+} from '@selfhelp/shared';
 import type { ISectionExportData } from '../../../../../api/admin/section.api';
 import type { ILanguage } from '../../../../../types/responses/admin/languages.types';
 
@@ -32,7 +37,7 @@ function exportFieldContent(
     return field.all.content;
   }
 
-  const fallbackLocale = languages.find((language) => language.id === 1)?.locale;
+  const fallbackLocale = languages.find((language) => isLanguageIndependent(language.id))?.locale;
   if (fallbackLocale && field[fallbackLocale]?.content?.trim()) {
     return field[fallbackLocale].content;
   }
