@@ -4,6 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import React, { useMemo, useState } from 'react';
 import { Box, Group, Input, SegmentedControl, Text, type BoxProps } from '@mantine/core';
+import { isLanguageIndependent } from '@selfhelp/shared';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { type ILanguage } from '../../../../../types/responses/admin/languages.types';
 
@@ -67,7 +68,7 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
     const { languages, isLoading } = usePublicLanguages();
 
     const publicLanguages = useMemo(
-        () => languages.filter((lang) => lang.id !== 1),
+        () => languages.filter((lang) => !isLanguageIndependent(lang.id)),
         [languages]
     );
 
@@ -91,7 +92,7 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
         }
 
         const entries = Array.isArray(value) ? value : [];
-        const seedFromAll = entries.find((entry) => entry.language_id === 1)?.value ?? '';
+        const seedFromAll = entries.find((entry) => isLanguageIndependent(entry.language_id))?.value ?? '';
 
         return publicLanguages.map((lang) => {
             const explicit = entries.find((entry) => entry.language_id === lang.id);
@@ -124,7 +125,13 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
     };
 
     if (!translatable) {
-        const fallbackLang: ILanguage = languages[0] ?? { id: 1, locale: 'en', language: 'English', csvSeparator: ',' };
+        // Prefer a real language for the child context. Never invent the
+        // language-independent id labelled as English; an empty list gets a
+        // neutral placeholder so the field still draws (forms, a11y).
+        const fallbackLang: ILanguage =
+            languages.find((lang) => !isLanguageIndependent(lang.id))
+            ?? languages[0]
+            ?? { id: 0, locale: '', language: '', csvSeparator: ',' };
         return (
             <Box className={className} {...(styleProps || {})} data-field-name={name || undefined}>
                 {children(
