@@ -20,10 +20,11 @@ No engineering diary, no implementation detail — that belongs in
 
 **Language-independent sentinel via `@selfhelp/shared` 1.30.0**
 
-Pairs with shared **1.30.0** (local overlay until publish) and core **0.1.51**.
+Pairs with shared **1.30.0** and core **0.1.51**.
 
 ### Changed
 
+- Pins the published `@selfhelp/shared` 1.30.0 (`package.json` and the lockfile).
 - Property and “all languages” checks use `LANGUAGE_INDEPENDENT_ID` /
   `isLanguageIndependent` / `LANGUAGE_INDEPENDENT_LOCALE` instead of a bare `1`.
 - Content-field defaults no longer invent language id 1 as English when the
