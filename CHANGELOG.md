@@ -16,6 +16,23 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## v0.1.78 — 2026-11-24
+
+**Language-independent sentinel via `@selfhelp/shared` 1.30.0**
+
+Pairs with shared **1.30.0** (local overlay until publish) and core **0.1.51**.
+
+### Changed
+
+- Property and “all languages” checks use `LANGUAGE_INDEPENDENT_ID` /
+  `isLanguageIndependent` / `LANGUAGE_INDEPENDENT_LOCALE` instead of a bare `1`.
+- Content-field defaults no longer invent language id 1 as English when the
+  language list is empty.
+- The column-labels editor (`FieldsMapField`) edits header labels per real
+  language only; without a language it maps columns and writes no label.
+- Version file links default `file_language` to `LANGUAGE_INDEPENDENT_ID`.
+- An inline list form builds its prefill row on `LANGUAGE_INDEPENDENT_ID`.
+
 ## v0.1.77 — 2026-11-23
 
 **Live sync follow-ups: idle resume, lock for delete/publish, typed fields**
