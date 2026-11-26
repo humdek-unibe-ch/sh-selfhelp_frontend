@@ -104,9 +104,10 @@ const SEARCH_STATIC_SCREENS: ISearchScreenEntry[] = [
 interface INavigationSearchProps {
     adminPagesData: IAdminPageData;
     onItemSelect: () => void;
+    autoFocus?: boolean;
 }
 
-export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSearchProps) {
+export function NavigationSearch({ adminPagesData, onItemSelect, autoFocus = false }: INavigationSearchProps) {
     const [searchQuery, setSearchQuery] = useState('');
     // Dismissal is tracked separately from the query so clicking away or
     // pressing Escape closes the panel without wiping what was typed —
@@ -474,6 +475,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
             </VisuallyHidden>
             <TextInput aria-label="Search functions and pages"
                 ref={inputRef}
+                autoFocus={autoFocus}
                 placeholder="Search functions & pages"
                 value={searchQuery}
                 onChange={(event) => {

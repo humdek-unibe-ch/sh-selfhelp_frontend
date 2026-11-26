@@ -46,6 +46,12 @@ import {
     extendStyleRegistry,
     type IStyleRegistryEntry,
 } from '@selfhelp/shared/registry';
+import { sanitizeHtmlForBlock, sanitizeHtmlForParsing } from '../../../../utils/html-sanitizer.utils';
+
+/** The host's sanitizer lent to plugins: the same DOMPurify rules and link rewrites core pages use. */
+export function sanitizePluginHtml(html: string, mode: 'inline' | 'block'): string {
+    return mode === 'block' ? sanitizeHtmlForBlock(html) : sanitizeHtmlForParsing(html);
+}
 
 /**
  * Plugin entry as it appears on the host manifest.
@@ -803,6 +809,7 @@ export class PluginRuntime {
             // Rich-text adapter is injected by the host through
             // `IPluginRuntimeOptions.richTextEditor` (or `setRichTextEditor`).
             richTextEditor: this.richTextEditor,
+            sanitizeHtml: sanitizePluginHtml,
             log: this.logger,
         };
     }

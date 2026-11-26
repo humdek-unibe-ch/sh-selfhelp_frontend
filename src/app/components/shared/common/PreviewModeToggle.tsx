@@ -19,6 +19,8 @@ interface IPreviewModeToggleProps {
      * header row.
      */
     variant?: 'card' | 'icon';
+    /** Rail button for the collapsed admin sidebar. */
+    compact?: boolean;
 }
 
 function previewAriaLabel(isPreviewMode: boolean): string {
@@ -42,6 +44,7 @@ function previewTooltip(isPreviewMode: boolean): string {
 export function PreviewModeToggle({
     label = 'Preview Mode',
     variant = 'card',
+    compact = false,
 }: Readonly<IPreviewModeToggleProps>) {
     const { isPreviewMode, togglePreviewMode } = usePreviewMode();
     const mounted = useIsClient();
@@ -68,6 +71,24 @@ export function PreviewModeToggle({
     // The status line replaces the label rather than appearing below it, so
     // enabling preview mode never reflows the surrounding layout.
     const statusText = mounted && isPreviewMode ? 'Showing draft content' : 'Showing published content';
+
+    if (compact) {
+        const active = mounted && isPreviewMode;
+        return (
+            <Tooltip label={`${label}: ${statusText.toLowerCase()}`} position="right" withArrow>
+                <ActionIcon
+                    variant={active ? 'light' : 'subtle'}
+                    color={active ? 'orange' : 'gray'}
+                    size="lg"
+                    aria-label={label}
+                    aria-pressed={active}
+                    onClick={togglePreviewMode}
+                >
+                    {active ? <IconEye size={19} stroke={1.6} /> : <IconEyeOff size={19} stroke={1.6} />}
+                </ActionIcon>
+            </Tooltip>
+        );
+    }
 
     return (
         <Group gap="sm" wrap="nowrap" className={classes.root} data-active={mounted && isPreviewMode}>

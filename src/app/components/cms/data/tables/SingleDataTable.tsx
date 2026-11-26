@@ -36,7 +36,7 @@ import {
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { SortHeader, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
-import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconRefresh, IconDownload, IconFileTypeCsv, IconJson, IconFileZip, IconHistory } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconRefresh, IconDownload, IconFileTypeCsv, IconFileTypeXls, IconJson, IconFileZip, IconHistory } from '@tabler/icons-react';
 import { AdminDataHistoryModal } from '../modals/AdminDataHistoryModal';
 import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable, useTableColumns } from '../../../../../hooks/useData';
 import { useDataTableOptionLabelMaps } from '../../../../../hooks/useDataTableOptionLabelMaps';
@@ -241,6 +241,9 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
               <Menu.Label>Export as</Menu.Label>
               <Menu.Item leftSection={<IconFileTypeCsv size={16} />} onClick={() => handleExport('csv')}>
                 CSV
+              </Menu.Item>
+              <Menu.Item leftSection={<IconFileTypeXls size={16} />} onClick={() => handleExport('xlsx')}>
+                Excel
               </Menu.Item>
               <Menu.Item leftSection={<IconJson size={16} />} onClick={() => handleExport('json')}>
                 JSON

@@ -6,6 +6,8 @@ import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import type {
+  IPluginResource,
+  IPluginResourceType,
   IRoleDataAccessPermissions,
   IRoleEffectivePermissions,
   ISetRolePermissionsRequest,
@@ -71,6 +73,22 @@ export const AdminDataAccessApi = {
   async getAvailableGroups(): Promise<IGroupDetails[]> {
     const response = await permissionAwareApiClient.get<IBaseApiResponse<IGroupsListResponse>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_GET_ALL);
     return response.data.data.groups;
+  },
+
+  /**
+   * Data-access resource types that enabled plugins add (e.g. surveys)
+   */
+  async getPluginResourceTypes(): Promise<IPluginResourceType[]> {
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IPluginResourceType[]>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_ACCESS_PLUGIN_RESOURCE_TYPES);
+    return response.data.data;
+  },
+
+  /**
+   * The resources of one plugin resource type, listed by the plugin
+   */
+  async getPluginResources(typeCode: string): Promise<IPluginResource[]> {
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IPluginResource[]>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_ACCESS_PLUGIN_RESOURCES, typeCode);
+    return response.data.data;
   },
 
   // Audit Management Methods

@@ -7,7 +7,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
-const { getGroups, getAllGroups, getRoles, getAllRoles, getScheduledJobs, getScheduledJobsStats, getDataRows, getSectionDetails, plainReader } =
+const { getGroups, getAllGroups, getRoles, getAllRoles, getScheduledJobs, getScheduledJobsStats, getDataRows, getSectionDetails, getPluginResourceTypes, plainReader } =
     vi.hoisted(() => ({
         getGroups: vi.fn(),
         getAllGroups: vi.fn(),
@@ -17,6 +17,7 @@ const { getGroups, getAllGroups, getRoles, getAllRoles, getScheduledJobs, getSch
         getScheduledJobsStats: vi.fn(),
         getDataRows: vi.fn(),
         getSectionDetails: vi.fn(),
+        getPluginResourceTypes: vi.fn(),
         plainReader: vi.fn(),
     }));
 
@@ -25,12 +26,14 @@ vi.mock('../../api/admin/role.api', () => ({ AdminRoleApi: { getRoles, getAllRol
 vi.mock('../../api/admin/scheduled-jobs.api', () => ({ AdminScheduledJobsApi: { getScheduledJobs, getScheduledJobsStats } }));
 vi.mock('../../api/admin/data.api', () => ({ AdminDataApi: { getDataRows } }));
 vi.mock('../../api/admin/section.api', () => ({ AdminSectionApi: { getSectionDetails } }));
+vi.mock('../../api/admin', () => ({ AdminDataAccessApi: { getPluginResourceTypes } }));
 
 import { useGroups, useAllGroups } from '../useGroups';
 import { useRoles, useAllRoles } from '../useRoles';
 import { useScheduledJobs, useScheduledJobsAll, useScheduledJobsStats } from '../useScheduledJobs';
 import { useDataRows } from '../useData';
 import { useSectionDetails } from '../useSectionDetails';
+import { usePluginResourceTypes } from '../usePluginResourceTypes';
 import { REACT_QUERY_CONFIG, refetchOnMountWhenInvalidated } from '../../config/react-query.config';
 
 /**
@@ -69,6 +72,8 @@ const READERS: IReader[] = [
     { name: 'useScheduledJobsStats', api: getScheduledJobsStats, value: { total: 0, queued: 0, done: 0, failed: 0, deleted: 0 }, invalidatedBy: QK.SCHEDULED_JOBS_STATS, useReader: () => useScheduledJobsStats() },
     { name: 'useDataRows', api: getDataRows, value: { rows: [] }, invalidatedBy: QK.ADMIN_DATA_ROWS_ALL, useReader: () => useDataRows({ table_name: '218' }) },
     { name: 'useSectionDetails', api: getSectionDetails, value: { section: { id: 2 }, fields: [] }, invalidatedBy: QK.SECTION_DETAILS_ALL, useReader: () => useSectionDetails(1, 2) },
+    // Enabling or disabling a plugin (plugin admin) changes the types the roles screen offers.
+    { name: 'usePluginResourceTypes', api: getPluginResourceTypes, value: [], invalidatedBy: QK.ADMIN_PLUGIN_RESOURCE_TYPES, useReader: () => usePluginResourceTypes() },
 ];
 
 /** The client exactly as the app builds it (`src/providers/query-client.ts`). */

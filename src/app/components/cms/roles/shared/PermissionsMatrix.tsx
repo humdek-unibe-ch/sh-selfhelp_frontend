@@ -128,6 +128,7 @@ export function PermissionsMatrix({
                             {permissionColumns.map(permission => (
                                 <TableTd key={permission}>
                                     <Checkbox
+                                        aria-label={`${permission} ${row.displayName || row.name}`}
                                         style={{ justifySelf: 'center' }}
                                         checked={row.permissions[permission] || false}
                                         onChange={(event) => onPermissionChange(row.id, permission, event.currentTarget.checked)}

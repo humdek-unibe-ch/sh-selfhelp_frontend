@@ -93,6 +93,22 @@ export interface IRoleEffectivePermissions {
   effective_permissions: IRoleEffectivePermissionDetails[];
 }
 
+/** A data-access resource type an enabled plugin adds (e.g. surveys). */
+export interface IPluginResourceType {
+  /** Id of the resourceTypes lookup row, sent as resource_type_id. */
+  id: number;
+  code: string;
+  label: string;
+  plugin_id: string;
+}
+
+/** One resource of a plugin resource type, listed by the plugin. */
+export interface IPluginResource {
+  id: number;
+  name: string;
+  description: string | null;
+}
+
 export interface ICreateDataAccessPermissionRequest {
   resource_type_id: number;
   resource_id: number;

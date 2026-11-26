@@ -12,6 +12,47 @@ No engineering diary, no implementation detail — that belongs in
 `dev_log.md`. Architectural rationale belongs in
 `docs/architecture/ssr-bff-architecture.md`.
 
+## Unreleased
+
+### Fixed
+- **Plugin admin pages wait for the user** before checking their permission,
+  instead of flashing "No access".
+- **The role screen's plugin resource types** refresh when a plugin is enabled
+  or disabled (registry key `ADMIN_PLUGIN_RESOURCE_TYPES`).
+- **A permission row put back as it was** no longer shows "Unsaved".
+- **A plain file path with `..`** in a data cell is not linked (as inside JSON).
+- **The impersonation banner no longer hides the bottom right corner.** While
+  it shows, the page gets room at the bottom of the banner's height, so an
+  editor's buttons or a table footer can be scrolled clear of it.
+
+### Added
+- **Collapsible admin sidebar.** The collapse button next to the logo (or
+  Ctrl/Cmd+B) turns the sidebar into an icon rail; each section opens its
+  pages and quick actions in a flyout on hover, click or keyboard. The choice
+  is remembered.
+- **Admin menu on narrow screens.** Below 768px a top bar with a menu button
+  opens the admin sidebar, which closes again after picking a page. Before,
+  the sidebar was hidden there with no way to open it.
+- **Excel export of data tables.** The data screen's export menu and the bulk
+  export offer Excel next to CSV and JSON (needs a backend with `format=xlsx`).
+- **Plugin styles know their page.** `BasicStyle` draws plugin styles through
+  `PluginStyleHost`, which passes `page` (`id`, `languageId`, `preview`,
+  `routeParams`) next to `pageModal`. A plugin names page and section in its
+  calls so the server checks access and reads the section's settings (rule
+  7.7). Only plugin sections run these hooks.
+- **Plugin styles can close their popup.** `BasicStyle` passes `pageModal`
+  (`inModal`, `closeModal`) to plugin style components, the way the core form
+  closes its popup with `close_modal_on_save`.
+- **Plugin resource types on the role screen.** When an enabled plugin adds a
+  data-access resource type (for example surveys), each role's menu offers
+  "<Type> permissions": the plugin's resources in the same view / create /
+  update / delete matrix as pages and data tables. Needs the backend routes
+  `/admin/data-access/plugin-resource-types` (raise `supports.core` at release).
+
+### Changed
+- The checkboxes of every role permission matrix have an accessible name
+  ("update <resource>").
+
 ---
 
 ---

@@ -111,7 +111,7 @@ export interface IDeleteTableResponse {
   deleted: boolean;
 }
 
-export type TDataExportFormat = 'csv' | 'json';
+export type TDataExportFormat = 'csv' | 'json' | 'xlsx';
 
 export interface IDataExportFilters {
   user_id?: number;

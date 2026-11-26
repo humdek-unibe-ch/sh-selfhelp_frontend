@@ -75,4 +75,18 @@ describe('BulkExportModal', () => {
 
         await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ table_names: ['219'], format: 'json' }));
     });
+
+    it('exports as Excel when that format is chosen', async () => {
+        const user = userEvent.setup();
+        setup();
+
+        await user.click(screen.getByPlaceholderText('Pick tables to export'));
+        await user.click(await screen.findByText('Survey B'));
+        await user.click(screen.getByRole('radio', { name: 'Excel' }));
+        expect(screen.getByText(/one Excel file per table/)).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: /Export ZIP/i }));
+
+        await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ table_names: ['219'], format: 'xlsx' }));
+    });
 });

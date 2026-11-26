@@ -46,11 +46,13 @@ import {
   IconFileText,
   IconDatabase,
   IconUserCheck,
+  IconPuzzle,
 } from '@tabler/icons-react';
 import { useRoles } from '../../../../../hooks/useRoles';
 import { useAuthUser } from '../../../../../hooks/useUserData';
+import { usePluginResourceTypes } from '../../../../../hooks/usePluginResourceTypes';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
-import type { IRoleDetails, IRolesListParams } from '../../../../../types/responses/admin/roles.types';
+import type { IPluginResourceType, IRoleDetails, IRolesListParams } from '../../../../../types/responses/admin/roles.types';
 import { PageHeader } from '../../../shared/common/PageHeader';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
@@ -74,6 +76,8 @@ interface IRolesListProps {
   onManagePagePermissions?: (roleId: number, roleName: string) => void;
   onManageDataTablePermissions?: (roleId: number, roleName: string) => void;
   onManageGroupPermissions?: (roleId: number, roleName: string) => void;
+  /** Grants on the resources of a plugin's data-access resource type (e.g. surveys). */
+  onManagePluginPermissions?: (roleId: number, roleName: string, resourceType: IPluginResourceType) => void;
 }
 
 export function RolesList({
@@ -83,9 +87,11 @@ export function RolesList({
   onManagePagePermissions,
   onManageDataTablePermissions,
   onManageGroupPermissions,
+  onManagePluginPermissions,
 }: IRolesListProps) {
   /** Full-access role from the API flag (name may be renamed). */
   const isSuperuserRole = (role: IRoleDetails) => role.is_superuser === true;
+  const { data: pluginResourceTypes = [] } = usePluginResourceTypes(onManagePluginPermissions !== undefined);
   // Filter form state (what user is editing)
   const [filterParams, setFilterParams] = useState<IRolesListParams>({
     page: 1,
@@ -359,6 +365,19 @@ export function RolesList({
                   >
                     View members
                   </Menu.Item>
+                  {pluginResourceTypes.map(resourceType => (
+                    <Menu.Item
+                      key={resourceType.code}
+                      leftSection={<IconPuzzle size={14} />}
+                      disabled={grantsReason !== null}
+                      onClick={() =>
+                        grantsReason === null &&
+                        onManagePluginPermissions?.(role.id, role.name, resourceType)
+                      }
+                    >
+                      {resourceType.label} permissions
+                    </Menu.Item>
+                  ))}
                   <Menu.Divider />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
@@ -384,6 +403,8 @@ export function RolesList({
       onManagePagePermissions,
       onManageDataTablePermissions,
       onManageGroupPermissions,
+      onManagePluginPermissions,
+      pluginResourceTypes,
       canViewMembers,
       mayUpdateRoles,
       mayDeleteRoles,

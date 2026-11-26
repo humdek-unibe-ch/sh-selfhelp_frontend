@@ -294,6 +294,9 @@ export const REACT_QUERY_CONFIG = {
         PUBLIC_LANGUAGES: ['public-languages'],
         LOOKUPS: ['lookups'],
         STYLE_GROUPS: ['style-groups'],
+        // Data-access resource types plugins add (read by the roles screen,
+        // invalidated when a plugin is installed, enabled, disabled or removed).
+        ADMIN_PLUGIN_RESOURCE_TYPES: ['admin-plugin-resource-types'],
         USER_DATA: ['user-data'],
         ADMIN_DATA_QUERY_PREVIEW: ['admin', 'data', 'query-preview'],
     },
