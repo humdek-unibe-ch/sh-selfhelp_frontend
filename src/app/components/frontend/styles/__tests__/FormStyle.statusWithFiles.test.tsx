@@ -11,6 +11,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
+import type * as SharedModule from '@selfhelp/shared';
 import { renderWithProviders } from '../../../../../test-utils/renderWithProviders';
 
 const { submitFormMock, updateFormMock } = vi.hoisted(() => ({
@@ -30,7 +31,13 @@ vi.mock('../../../../../hooks/usePageContentValue', () => ({
 vi.mock('../../../../../api/frontend/form-submission.api', () => ({
     FormSubmissionApi: { submitForm: submitFormMock, updateForm: updateFormMock },
 }));
+// Pass-through spy: the list prefill row the form builds is observable.
+vi.mock('@selfhelp/shared', async (importOriginal) => {
+    const actual = await importOriginal<typeof SharedModule>();
+    return { ...actual, parseFormRecordPrefill: vi.fn(actual.parseFormRecordPrefill) };
+});
 
+import { LANGUAGE_INDEPENDENT_ID, parseFormRecordPrefill } from '@selfhelp/shared';
 import FormStyle from '../FormStyle';
 import { FormListFormProvider, type IFormListFormContext } from '../form-list/FormListFormContext';
 
@@ -161,6 +168,14 @@ describe('FormStyle status with file inputs (F173)', () => {
             <FormListFormProvider value={listForm}>
                 <FormStyle style={newsLikeForm} styleProps={{}} cssClass="" />
             </FormListFormProvider>,
+        );
+
+        // The list's single row object becomes one prefill row on the
+        // language-independent row, named by the shared constant (fix-2).
+        expect(vi.mocked(parseFormRecordPrefill)).toHaveBeenCalledWith(
+            expect.objectContaining({
+                section_data: [{ record_id: 7, id_languages: LANGUAGE_INDEPENDENT_ID, title: 'Hello', status: 'draft' }],
+            }),
         );
 
         const fileInputs = container.querySelectorAll('input[type="file"]');
