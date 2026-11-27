@@ -18,7 +18,9 @@ SPDX-License-Identifier: MPL-2.0
  *   6. `next build` + `next start` the frontend on 127.0.0.1:3000.
  *   7. Run Playwright for the chosen SUITE PROFILE.
  *   8. Tear down ONLY the processes this script started (Docker stays up for
- *      fast reruns unless SELFHELP_E2E_STOP_DOCKER=1).
+ *      fast reruns unless SELFHELP_E2E_STOP_DOCKER=1), and take the fixture
+ *      plugins it installed (golden, plugin) out of the backend tree again, so
+ *      a backend suite that runs afterwards sees a core-only tree.
  *
  * Stack orchestration is intentionally separate from suite selection: this
  * file owns startup; a "profile" only chooses the Playwright target (and
@@ -39,6 +41,10 @@ SPDX-License-Identifier: MPL-2.0
  *   SELFHELP_E2E_SKIP_BUILD=1     — reuse the existing Next build (.next).
  *   SELFHELP_E2E_SKIP_PW_INSTALL=1— don't run `playwright install chromium`.
  *   SELFHELP_E2E_STOP_DOCKER=1    — `docker compose ... down` on exit.
+ *   SELFHELP_E2E_SKIP_FIXTURE_PLUGINS=1 — don't install the test fixture plugins
+ *                                   (backend tests/Fixtures/plugins/*; golden, plugin).
+ *   SELFHELP_E2E_KEEP_FIXTURE_PLUGINS=1 — leave the installed fixture plugins in the
+ *                                   backend tree at exit (default: uninstall them).
  *   SELFHELP_E2E_BACKEND_HOST/PORT, SELFHELP_E2E_FRONTEND_HOST/PORT — ports.
  *   QA_USER_EMAIL / QA_USER_PASSWORD / QA_FORM_PAGE_KEYWORD / QA_FORM_FIELDS /
  *   QA_FORM_SUBMIT_LABEL / QA_LOGIN_KEYWORD — override individual QA values
@@ -106,6 +112,8 @@ const PROFILES = {
 };
 
 const children = [];
+/** Fixture plugins this run installed into the backend tree: `{ script, backendDir, env }`. */
+const installedFixtures = [];
 let cleanedUp = false;
 
 function log(msg) {
@@ -238,11 +246,43 @@ function killTree(pid) {
     }
 }
 
+/**
+ * A fixture plugin is installed into the real backend tree (generated bundle list, lock file,
+ * plugin-composer packages, built artifacts) and into the test database. Resetting the database
+ * does not touch those generated files, so a plugin left behind makes the next backend run
+ * (PHPUnit, the migration round trips: `doctrine:schema:validate`) see a mapping whose table the
+ * fresh database lacks. Take every fixture this run installed out again (the fixture script also
+ * rebuilds the `test` container and pools). Keep them with SELFHELP_E2E_KEEP_FIXTURE_PLUGINS=1.
+ */
+async function removeFixturePlugins() {
+    if (installedFixtures.length === 0) return;
+    if (boolEnv('SELFHELP_E2E_KEEP_FIXTURE_PLUGINS')) {
+        warn('SELFHELP_E2E_KEEP_FIXTURE_PLUGINS=1 — fixture plugins stay installed in the backend tree.');
+        return;
+    }
+    for (const { script, backendDir, env } of installedFixtures.splice(0).reverse()) {
+        log(`Removing fixture plugin (${path.basename(path.dirname(path.dirname(script)))}) from the backend tree…`);
+        await runSoft('node', [script, '--backend', backendDir, '--uninstall'], {
+            cwd: path.dirname(script),
+            env,
+        });
+    }
+}
+
 async function cleanup(stopDocker, backendDir) {
     if (cleanedUp) return;
     cleanedUp = true;
+    if (backendDir) {
+        try {
+            fs.rmSync(path.join(backendDir, 'var', 'e2e-real-hub.flag'), { force: true });
+        } catch {
+            /* best-effort */
+        }
+    }
     if (children.length) log('Stopping processes started by this run…');
     for (const child of children.reverse()) killTree(child.pid);
+    // The servers are down: nothing uses the plugin any more.
+    await removeFixturePlugins();
     if (stopDocker && backendDir) {
         await runSoft('docker', ['compose', '-f', 'docker-compose.test.yml', 'down'], {
             cwd: backendDir,
@@ -477,11 +517,63 @@ async function main() {
                 await run('composer', ['test:reset-db'], { cwd: backendDir, env: backendEnv });
             }
 
+            // Optional: install test-only fixture plugins from
+            // tests/Fixtures/plugins/*/scripts/install-qa-fixture.mjs before
+            // php -S boots (so selfhelp_plugin_bundles.php is loaded). Skip with
+            // SELFHELP_E2E_SKIP_FIXTURE_PLUGINS=1.
+            const fixturePluginsRoot = path.join(backendDir, 'tests', 'Fixtures', 'plugins');
+            if (
+                (profileName === 'golden' || profileName === 'plugin')
+                && !boolEnv('SELFHELP_E2E_SKIP_FIXTURE_PLUGINS')
+                && fs.existsSync(fixturePluginsRoot)
+            ) {
+                for (const entry of fs.readdirSync(fixturePluginsRoot, { withFileTypes: true })) {
+                    if (!entry.isDirectory()) {
+                        continue;
+                    }
+                    const installScript = path.join(
+                        fixturePluginsRoot,
+                        entry.name,
+                        'scripts',
+                        'install-qa-fixture.mjs',
+                    );
+                    if (!fs.existsSync(installScript)) {
+                        continue;
+                    }
+                    log(`Installing fixture plugin from tests/Fixtures/plugins/${entry.name}…`);
+                    // Recorded before the install: a half-finished install is removed at teardown too.
+                    installedFixtures.push({ script: installScript, backendDir, env: backendEnv });
+                    await run('node', [installScript, '--backend', backendDir], {
+                        cwd: path.dirname(installScript),
+                        env: backendEnv,
+                    });
+                }
+                // Fixture installers typically use APP_ENV=dev (unsigned reviewed
+                // plugins). Ensure the APP_ENV=test Redis pool and filesystem
+                // cache are rebuilt so ApiRouteLoader + plugin bundles are in
+                // the dumped matcher/container before php -S boots.
+                log('Clearing Symfony test cache after fixture plugin install…');
+                await runSoft('php', ['bin/console', 'cache:pool:clear', 'cache.app', '--no-debug'], {
+                    cwd: backendDir,
+                    env: backendEnv,
+                });
+                await runSoft('php', ['bin/console', 'cache:clear', '--no-warmup', '--no-debug'], {
+                    cwd: backendDir,
+                    env: backendEnv,
+                });
+            }
+
             // Precompile the Symfony test container so the FIRST HTTP request
             // does not pay the one-time container-compile cost (which would
             // blow the login perf budget on the very first golden login).
             log('Warming the Symfony test container (cache:warmup)…');
             await runSoft('php', ['bin/console', 'cache:warmup'], { cwd: backendDir, env: backendEnv });
+
+            // Windows `php -S` often drops SELFHELP_E2E_REAL_HUB from the request
+            // environment; MercureTestRecorder also watches this flag file.
+            const realHubFlag = path.join(backendDir, 'var', 'e2e-real-hub.flag');
+            fs.mkdirSync(path.dirname(realHubFlag), { recursive: true });
+            fs.writeFileSync(realHubFlag, '1\n');
 
             log(`Starting Symfony backend at ${backendUrl} (php -S + harness router, APP_ENV=test)…`);
             spawnServer(
