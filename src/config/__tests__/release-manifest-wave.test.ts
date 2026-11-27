@@ -3,8 +3,8 @@ SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
 /**
- * Release-manifest floor guard for the live-sync follow-ups wave (frontend 0.1.77, which
- * needs `lock_idle_ended` and the wider lock GET of core 0.1.50).
+ * Release-manifest floor guard for the plugin host hooks wave (frontend 0.1.79,
+ * which needs the routes and contracts of core 0.1.52).
  * Registry pairing uses `supports.core` (not mobile package SemVer).
  */
 import { describe, expect, it } from 'vitest';
@@ -17,9 +17,10 @@ const manifest = JSON.parse(
 const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'));
 
 describe('release-manifest wave floors', () => {
-    it('requires core >=0.1.50 for this frontend', () => {
+    it('requires core >=0.1.52 for this frontend', () => {
         expect(manifest.kind).toBe('frontend');
-        expect(manifest.supports.core).toBe('>=0.1.50 <0.2.0');
+        expect(manifest.supports.core).toBe('>=0.1.52 <0.2.0');
+        expect(manifest.requiredApiVersion).toBe('0.2.0');
     });
 
     it('pins @selfhelp/shared to one exact published version', () => {
@@ -41,10 +42,10 @@ describe('release-manifest wave floors', () => {
         // Avoid importing `semver` (no @types in this package); mirror the
         // wave's `>=X.Y.Z <0.2.0` range with version_compare-style checks.
         const range = manifest.supports.core as string;
-        expect(range).toBe('>=0.1.50 <0.2.0');
+        expect(range).toBe('>=0.1.52 <0.2.0');
         const floorOk = (v: string) => {
             const [maj, min, pat] = v.split('.').map(Number);
-            const [fMaj, fMin, fPat] = [0, 1, 50];
+            const [fMaj, fMin, fPat] = [0, 1, 52];
             const [cMaj, cMin] = [0, 2];
             const geFloor =
                 maj > fMaj ||
@@ -53,7 +54,7 @@ describe('release-manifest wave floors', () => {
             const ltCap = maj < cMaj || (maj === cMaj && min < cMin);
             return geFloor && ltCap;
         };
-        expect(floorOk('0.1.50')).toBe(true);
-        expect(floorOk('0.1.49')).toBe(false);
+        expect(floorOk('0.1.52')).toBe(true);
+        expect(floorOk('0.1.51')).toBe(false);
     });
 });
