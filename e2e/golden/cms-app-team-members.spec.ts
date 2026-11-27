@@ -117,10 +117,12 @@ test.describe('golden: CMS Apps Team Members operator workflow', () => {
             ['cms-team-members', 'team-members', 'team-members-record'].map((keyword) => `${env.keywordPrefix}${keyword}`),
         );
 
-        // A successful import closes the dialog and shows the CMS Apps list with the new app.
+        // A successful import closes the dialog; a CMS-in-CMS template then lands on the content list of
+        // the new app (`PageExportImportModal`), and the CMS Apps list shows the app.
         await expect(page.getByText(/pages imported/i)).toBeVisible({ timeout: 20_000 });
         await expect(dialog).toBeHidden({ timeout: 20_000 });
-        await expect(page).toHaveURL(/\/admin\/cms-apps$/);
+        await expect(page).toHaveURL(new RegExp(`${contentPath}$`), { timeout: 20_000 });
+        await page.goto('/admin/cms-apps');
         await expect(page.getByRole('row').filter({ hasText: env.appSlug })).toBeVisible({ timeout: 20_000 });
     });
 
