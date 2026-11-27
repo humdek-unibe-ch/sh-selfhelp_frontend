@@ -21,9 +21,11 @@ No engineering diary, no implementation detail — that belongs in
 ### Fixed
 - **Full-stack CI workflows create the backend `.env`.** `e2e-access`,
   `e2e-golden`, `lighthouse` and `visual-snapshots` copy the backend's
-  `.env.default` to `.env` before `composer install`, as the backend's own
-  workflows do; without it the post-install `cache:clear` failed and the
-  `e2e-access` PR check could not start.
+  `.env.default` to `.env` and run `composer install --no-scripts`, as the
+  backend's own workflows do. The post-install `cache:clear` needs `.env` and
+  reads API routes from the test database (`selfhelp_test_test`), which only
+  exists after `test:reset-db`; it failed, and the `e2e-access` PR check
+  could not start.
 
 ### Added
 - **Record history shows plugin writes.** A version a plugin wrote reads

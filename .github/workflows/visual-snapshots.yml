@@ -137,7 +137,9 @@ jobs:
         run: |
           # Fresh checkout has no .env (gitignored); .env.default is the template.
           cp .env.default .env
-          composer install --no-interaction --no-progress
+          # --no-scripts as in the backend CI: the post-install cache:clear reads
+          # API routes from the database that test:reset-db creates next.
+          composer install --no-interaction --no-progress --no-scripts
           composer test:reset-db
 
       - name: Start backend (Symfony built-in server)

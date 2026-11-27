@@ -136,7 +136,9 @@ jobs:
 
       - name: Backend install
         working-directory: sh-selfhelp_backend
-        run: composer install --no-interaction --no-progress
+        # --no-scripts as in the backend CI: the post-install cache:clear reads API
+        # routes from a database the harness creates later (test:reset-db).
+        run: composer install --no-interaction --no-progress --no-scripts
 
       - name: Frontend install + Chromium (with system deps)
         working-directory: sh-selfhelp_frontend
