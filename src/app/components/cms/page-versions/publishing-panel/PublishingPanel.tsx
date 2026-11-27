@@ -56,6 +56,16 @@ interface IPublishingPanelProps {
     isPublishing: boolean;
     isDeleting?: boolean;
     isRestoring?: boolean;
+    /** Publishing may run now (server right and lock free). */
+    canPublish?: boolean;
+    /** Server allows publish; keep the button visible while the lock pauses it. */
+    allowPublish?: boolean;
+    /** Deleting a version may run now. */
+    canDeleteVersions?: boolean;
+    /** Server allows version delete; keep the control visible while the lock pauses it. */
+    allowDeleteVersions?: boolean;
+    /** When set, publish/delete controls are paused by the edit lock; shown in the tooltip. */
+    lockPausedLabel?: string | null;
 }
 
 export function PublishingPanel({
@@ -67,8 +77,15 @@ export function PublishingPanel({
     onRestore,
     isPublishing,
     isDeleting = false,
-    isRestoring = false
+    isRestoring = false,
+    canPublish = true,
+    allowPublish,
+    canDeleteVersions = true,
+    allowDeleteVersions,
+    lockPausedLabel = null,
 }: IPublishingPanelProps) {
+    const showPublish = allowPublish ?? canPublish;
+    const showDeleteVersions = allowDeleteVersions ?? canDeleteVersions;
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedVersion, setSelectedVersion] = useState<IPageVersion | null>(null);
     const [detailsModalOpened, setDetailsModalOpened] = useState(false);
@@ -244,19 +261,28 @@ export function PublishingPanel({
                                 </Button>
                             )}
 
-                            <Button
-                                leftSection={<IconRocket size={16} />}
-                                color="green"
-                                onClick={() => setPublishModalOpened(true)}
-                                loading={isPublishing}
-                                disabled={shouldDisablePublish}
-                                title={shouldDisablePublish
-                                    ? (changesLoading ? 'Checking for changes...' : 'No unpublished changes to publish')
-                                    : 'Publish current changes'
+                            {showPublish && <Tooltip
+                                label={
+                                    lockPausedLabel && !canPublish
+                                        ? lockPausedLabel
+                                        : shouldDisablePublish
+                                          ? (changesLoading ? 'Checking for changes...' : 'No unpublished changes to publish')
+                                          : 'Publish current changes'
                                 }
                             >
-                                Publish Changes
-                            </Button>
+                                <span style={{ display: 'inline-flex' }}>
+                                    <Button
+                                        leftSection={<IconRocket size={16} />}
+                                        color="green"
+                                        onClick={() => setPublishModalOpened(true)}
+                                        loading={isPublishing}
+                                        disabled={shouldDisablePublish || !canPublish}
+                                        data-testid="page-publish-button"
+                                    >
+                                        Publish Changes
+                                    </Button>
+                                </span>
+                            </Tooltip>}
                         </Group>
                     </Group>
                 </Stack>
@@ -407,15 +433,20 @@ export function PublishingPanel({
                                                 </ActionIcon>
                                             </Tooltip>
                                         )}
-                                        <Tooltip label="Delete Version">
-                                            <ActionIcon aria-label="Delete Version"
+                                        {showDeleteVersions && <Tooltip
+                                            label={lockPausedLabel && !canDeleteVersions ? lockPausedLabel : 'Delete Version'}
+                                        >
+                                            <ActionIcon
+                                                aria-label="Delete Version"
                                                 variant="light"
                                                 color="red"
                                                 onClick={() => handleDeleteVersion(version.id)}
+                                                disabled={!canDeleteVersions}
+                                                data-testid="page-version-delete-button"
                                             >
                                                 <IconTrash size={16} />
                                             </ActionIcon>
-                                        </Tooltip>
+                                        </Tooltip>}
                                     </Group>
                                 </Group>
                             </Card>

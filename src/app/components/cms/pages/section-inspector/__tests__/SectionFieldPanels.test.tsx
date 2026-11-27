@@ -42,6 +42,7 @@ function makeField(
     name: string,
     display = false,
     scope: ISectionField['scope'] = 'content',
+    extras: Partial<ISectionField> = {},
 ): ISectionField {
     return {
         id: Math.floor(Math.random() * 1e6),
@@ -55,6 +56,7 @@ function makeField(
         hidden: 0,
         display,
         translations: [],
+        ...extras,
     };
 }
 
@@ -148,12 +150,34 @@ describe('SectionFieldPanels — platform-aware cards', () => {
 
         // ...but searching for the removed global field types matches nothing,
         // which hides the whole card.
-        const search = screen.getByPlaceholderText('Search fields by name...');
+        const search = screen.getByRole('textbox', { name: 'Search fields' });
         await user.type(search, 'condition');
         expect(screen.queryByText('Global Fields')).not.toBeInTheDocument();
 
         await user.clear(search);
         await user.type(search, 'data_config');
         expect(screen.queryByText('Global Fields')).not.toBeInTheDocument();
+    });
+
+    it('matches fields by label and help text, not only by name', async () => {
+        const user = userEvent.setup();
+        const fieldsWithLabel: ISectionField[] = [
+            makeField('label_submit', true, 'content', {
+                title: 'Submit label',
+                help: 'Shown on the save button',
+            }),
+            makeField('size', false, 'common'),
+        ];
+
+        renderWithProviders(
+            <SectionFieldPanels {...panelProps} fields={fieldsWithLabel} styleName="button" />,
+        );
+
+        const search = screen.getByRole('textbox', { name: 'Search fields' });
+        await user.type(search, 'submit');
+
+        expect(screen.getByText('content:label_submit')).toBeInTheDocument();
+        expect(screen.queryByText('field:size')).not.toBeInTheDocument();
+        expect(screen.getByText(/1 field/)).toBeInTheDocument();
     });
 });

@@ -12,6 +12,7 @@ import {
     asFilesCell,
     getFormInvalidData,
     getFormStaleVersion,
+    LANGUAGE_INDEPENDENT_ID,
     parseFormRecordPrefill,
     type IFormFileFieldOp,
     type TFormRecordPrefillFieldValue,
@@ -23,6 +24,7 @@ import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { type IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
 import { type IFormLogStyle, type IFormRecordStyle, type IEntryRecordFormStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline, stripHtmlTags } from '../../../../utils/html-sanitizer.utils';
+import { getApiErrorText } from '../../../../utils/mutation-error-handler';
 import { useFormListForm } from './form-list/FormListFormContext';
 import parse from 'html-react-parser';
 
@@ -81,6 +83,10 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     // Unsaved-input tracking for a form inside a list (see `isDirty`).
     const dirtyBaselineRef = useRef<string | null>(null);
     const userTouchedRef = useRef<boolean>(false);
+    // Live sync keeps typed input: a field the person changed keeps the server value it had when
+    // they first touched it, so a page refetch (a pushed change) that brings a newer stored value
+    // never overwrites what they typed. Fields they did not touch follow the new value.
+    const touchedFieldValuesRef = useRef<Map<string, string | Array<{ language_id: number; value: string }> | null>>(new Map());
 
     // Extract form configuration from style
     const _name = style.name?.content || 'default_form';
@@ -148,7 +154,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             const sectionData = Array.isArray(listPrefill)
                 ? listPrefill
                 : listPrefill && typeof listPrefill === 'object'
-                  ? [{ record_id: listRecordId, id_languages: 1, ...(listPrefill as Record<string, unknown>) }]
+                  ? [{ record_id: listRecordId, id_languages: LANGUAGE_INDEPENDENT_ID, ...(listPrefill as Record<string, unknown>) }]
                   : [];
             const prefill = parseFormRecordPrefill({
                 section_data: sectionData,
@@ -268,6 +274,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     useEffect(() => {
         dirtyBaselineRef.current = null;
         userTouchedRef.current = false;
+        touchedFieldValuesRef.current.clear();
     }, [existingRecordId, formKey]);
 
     // Function to collect files from all FileInput components
@@ -545,6 +552,8 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
             if (isUpdate && existingRecordId !== null && typeof savedResult?.version === 'number') {
                 savedVersionRef.current = { recordId: existingRecordId, version: savedResult.version };
             }
+            // What was typed is saved now: the fields follow the stored values again.
+            touchedFieldValuesRef.current.clear();
 
             // Inside a list the list owns what happens next: it closes the dialog,
             // refreshes its rows and says the entry was saved. No alert, reset,
@@ -610,16 +619,11 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                 return;
             }
 
-            // Extract error message from API response if available
-            let errorMessage = alertError || 'Failed to submit form. Please try again.';
-            const err = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
-            if (err?.response?.data?.error) {
-                errorMessage = err.response.data.error;
-            } else if (err?.response?.data?.message) {
-                errorMessage = err.response.data.message;
-            } else if (err?.message) {
-                errorMessage = err.message;
-            }
+            // Backend envelope `error` only — never HTTP reason phrases in `message`.
+            const errorMessage =
+                getApiErrorText(error) ??
+                alertError ??
+                'Failed to submit form. Please try again.';
 
             setSubmitError(errorMessage);
         } finally {
@@ -713,6 +717,9 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
     // Function to get field value from existing form data
     const getFieldValue = useCallback((fieldName: string): string | Array<{ language_id: number; value: string }> | null => {
         if ((!isRecord && !insideList) || !existingFormDataFromSection) return null;
+        if (touchedFieldValuesRef.current.has(fieldName)) {
+            return touchedFieldValuesRef.current.get(fieldName) ?? null;
+        }
         const value = existingFormDataFromSection[fieldName];
         if (value === null || value === undefined) return null;
         if (typeof value === 'string' || Array.isArray(value)) return value;
@@ -724,6 +731,38 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
         const value = existingFormDataFromSection[fieldName];
         return value !== null && value !== undefined ? value : null;
     }, [isRecord, insideList, existingFormDataFromSection]);
+
+    // The person typed into a field: from now on it keeps the stored value it had at that moment
+    // (see `touchedFieldValuesRef`). Only real user events count, not the prefill below.
+    // Translatable inputs have no `name` (the wrapper's hidden input does); freeze by the
+    // wrapper's `data-field-name` so a live refetch keeps the typed text (F264).
+    const noteTouchedField = useCallback((event: React.SyntheticEvent) => {
+        if (!event.nativeEvent.isTrusted) {
+            return;
+        }
+        const target = event.target as (HTMLElement & { name?: unknown }) | null;
+        const named = typeof target?.name === 'string' && target.name !== '' ? target.name : null;
+        const fromWrapper =
+            target instanceof Element
+                ? target.closest('[data-field-name]')?.getAttribute('data-field-name')
+                : null;
+        const fieldKey = named ?? (fromWrapper && fromWrapper !== '' ? fromWrapper : null);
+        if (!fieldKey || touchedFieldValuesRef.current.has(fieldKey)) {
+            return;
+        }
+        const stored = existingFormDataFromSection?.[fieldKey];
+        touchedFieldValuesRef.current.set(
+            fieldKey,
+            typeof stored === 'string' || Array.isArray(stored) ? stored : null,
+        );
+    }, [existingFormDataFromSection]);
+
+    const handleFieldInput = useCallback((event: React.SyntheticEvent) => {
+        noteTouchedField(event);
+        if (insideList) {
+            markUserTouched(event);
+        }
+    }, [noteTouchedField, insideList, markUserTouched]);
 
     useEffect(() => {
         hasInitializedForm.current = false;
@@ -858,8 +897,8 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, cssClass }) => {
                 onFocusCapture={insideList ? captureDirtyBaseline : undefined}
                 onPointerDownCapture={insideList ? captureDirtyBaseline : undefined}
                 onKeyDownCapture={insideList ? captureDirtyBaseline : undefined}
-                onInputCapture={insideList ? markUserTouched : undefined}
-                onChangeCapture={insideList ? markUserTouched : undefined}
+                onInputCapture={handleFieldInput}
+                onChangeCapture={handleFieldInput}
                 suppressHydrationWarning
             >
                 <input type="hidden" name="__id_sections" value={style.id} />

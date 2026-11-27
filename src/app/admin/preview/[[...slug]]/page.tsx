@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
  * Full-screen CMS **Live Preview** route — Server Component.
  *
  * Opened in a NEW TAB from the page editor. Authoritatively gated by the
- * `admin.mobile_preview.view` permission server-side (mirrored by the
+ * `admin.mobile_preview.read` permission server-side (mirrored by the
  * client-side `useCanViewMobilePreview()` on the editor entry point), so a user
  * without it is bounced to the no-access page before the client renders. This
  * route deliberately does NOT use `AdminShell` — it is a dedicated, chrome-free
@@ -47,7 +47,7 @@ export default async function AdminLivePreviewPage({
     params: Promise<{ slug?: string[] }>;
     searchParams: Promise<{ modal?: string | string[]; path?: string | string[] }>;
 }) {
-    await requireAdminPermission(PERMISSIONS.ADMIN_MOBILE_PREVIEW_VIEW);
+    await requireAdminPermission(PERMISSIONS.ADMIN_MOBILE_PREVIEW_READ);
 
     const { slug } = await params;
     const { modal, path } = await searchParams;

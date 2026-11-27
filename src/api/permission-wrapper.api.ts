@@ -24,9 +24,12 @@ class PermissionDeniedError extends Error {
         public userPermissions: string[],
         public endpoint: string
     ) {
+        // A sentence for people: what is missing, never the whole list of what
+        // the user holds (that goes only to the debug log at the throw site).
         super(
-            `Permission denied. Required: [${requiredPermissions.join(', ')}]. ` +
-            `User has: [${userPermissions.join(', ')}]`
+            requiredPermissions.length > 1
+                ? `You do not have permission to do this. It needs one of ${requiredPermissions.join(', ')}.`
+                : `You do not have permission to do this. It needs ${requiredPermissions[0]}.`
         );
         this.name = 'PermissionDeniedError';
     }
@@ -81,18 +84,13 @@ class PermissionManager {
     }
 
     /**
-     * Check if user has required permissions
+     * Check if user has the permissions an endpoint declares. The server lets a
+     * call through when the caller holds ANY ONE of the rights a route lists,
+     * so the client gate does the same; an endpoint with a single right is
+     * unchanged.
      */
     hasPermissions(requiredPermissions: string[]): boolean {
-        // If no permissions required, allow access
-        if (!requiredPermissions || requiredPermissions.length === 0) {
-            return true;
-        }
-
-        // User must have ALL required permissions
-        return requiredPermissions.every(permission =>
-            this.userPermissions.includes(permission)
-        );
+        return this.hasAnyPermission(requiredPermissions);
     }
 
     /**

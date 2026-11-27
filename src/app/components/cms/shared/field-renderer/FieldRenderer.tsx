@@ -6,6 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useId, useState } from 'react';
 import { Box, Text, Stack, Group, Select } from '@mantine/core';
+import { isLanguageIndependent, LANGUAGE_INDEPENDENT_LOCALE } from '@selfhelp/shared';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import {
     GlobalCreatableSelectField,
@@ -243,9 +244,9 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             return translation?.content ? String(translation.content) : '';
         }
 
-        // For property fields (display = false), use language_id = 1 or language_code = "all"
+        // For property fields (display = false), use the language-independent row
         const propertyTranslation = field.translations.find(t =>
-            t.language_id === 1 || t.language_code === 'all'
+            isLanguageIndependent(t.language_id) || t.language_code === LANGUAGE_INDEPENDENT_LOCALE
         );
         if (propertyTranslation?.content) {
             return String(propertyTranslation.content);

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useState } from 'react';
-import { Button, Menu, Avatar, Group, Text, Box, UnstyledButton, Skeleton } from '@mantine/core';
+import { ActionIcon, Button, Menu, Avatar, Group, Text, Box, UnstyledButton, Skeleton, Stack, Tooltip } from '@mantine/core';
 import { IconLogin, IconLogout, IconUser, IconSettings, IconChevronDown } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useLogout } from '@refinedev/core';
@@ -36,7 +36,7 @@ interface IAuthButtonProps {
      */
     initialProfilePages?: IPageItem[];
     /** `'navbar'` renders inside the admin sidebar footer with ThemeToggle pinned to the right. */
-    variant?: 'navbar';
+    variant?: 'navbar' | 'navbar-rail';
 }
 
 export function AuthButton({ initialProfilePages = [], variant }: IAuthButtonProps = {}) {
@@ -94,6 +94,14 @@ export function AuthButton({ initialProfilePages = [], variant }: IAuthButtonPro
     };
 
     if (isAuthLoading || isLoggingOut) {
+        if (variant === 'navbar-rail') {
+            return (
+                <Stack gap={6} align="center">
+                    <ThemeToggle />
+                    <Skeleton height={28} circle />
+                </Stack>
+            );
+        }
         if (variant === 'navbar') {
             // Match the skeleton width to the flex-1 trigger so there's no layout jump.
             return (
@@ -111,6 +119,18 @@ export function AuthButton({ initialProfilePages = [], variant }: IAuthButtonPro
     }
 
     if (!isAuthenticated) {
+        if (variant === 'navbar-rail') {
+            return (
+                <Stack gap={6} align="center">
+                    <ThemeToggle />
+                    <Tooltip label="Login" position="right" withArrow>
+                        <ActionIcon variant="subtle" size="lg" aria-label="Login" onClick={handleLogin}>
+                            <IconLogin size={18} />
+                        </ActionIcon>
+                    </Tooltip>
+                </Stack>
+            );
+        }
         if (variant === 'navbar') {
             return (
                 <Box p="sm">
@@ -202,6 +222,26 @@ export function AuthButton({ initialProfilePages = [], variant }: IAuthButtonPro
             )}
         </Menu.Dropdown>
     );
+
+    if (variant === 'navbar-rail') {
+        return (
+            <Stack gap={6} align="center">
+                <ThemeToggle />
+                <Menu position="right-end" withArrow>
+                    <Tooltip label={user?.email ? `${triggerLabel} (${user.email})` : triggerLabel} position="right" withArrow>
+                        <Menu.Target>
+                            <UnstyledButton aria-label={triggerLabel}>
+                                <Avatar radius="xl" size="md" color="blue" aria-hidden="true">
+                                    {user?.name?.charAt(0)?.toUpperCase() || <IconUser size={16} />}
+                                </Avatar>
+                            </UnstyledButton>
+                        </Menu.Target>
+                    </Tooltip>
+                    {dropdown}
+                </Menu>
+            </Stack>
+        );
+    }
 
     if (variant === 'navbar') {
         return (

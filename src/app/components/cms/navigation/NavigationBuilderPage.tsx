@@ -31,7 +31,7 @@ import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { patchNavigationOverview, schedulePublicNavigationRefresh } from '../../../../utils/admin-navigation-cache.utils';
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { useLanguageContext } from '../../contexts/LanguageContext';
-import { useCanExportNavigation, useCanImportNavigation, useCanUpdateNavigation } from '../../../../hooks/usePermissionChecks';
+import { useCanCreatePages, useCanExportNavigation, useCanImportNavigation, useCanUpdateNavigation } from '../../../../hooks/usePermissionChecks';
 import { CreatePageModal } from '../pages/create-page/CreatePage';
 import { type IAdminPage } from '../../../../types/responses/admin/admin.types';
 import {
@@ -179,6 +179,8 @@ export function NavigationBuilderPage(): React.ReactElement {
     const searchParams = useSearchParams();
     const { currentLanguageId } = useLanguageContext();
     const canUpdateNavigation = useCanUpdateNavigation();
+    // Creating a page is its own right (`admin.page.create`), not part of changing a menu.
+    const canCreatePages = useCanCreatePages();
     const canExportNavigation = useCanExportNavigation();
     const canImportNavigation = useCanImportNavigation();
     const showExportImportTab = canExportNavigation || canImportNavigation;
@@ -421,20 +423,22 @@ export function NavigationBuilderPage(): React.ReactElement {
                             >
                                 Add existing page
                             </Button>
-                            <Button
-                                variant="light"
-                                data-disabled={atRootItemLimit || undefined}
-                                aria-disabled={atRootItemLimit}
-                                onClick={(event) => {
-                                    if (atRootItemLimit) {
-                                        event.preventDefault();
-                                        return;
-                                    }
-                                    openCreatePageHere();
-                                }}
-                            >
-                                Create page here
-                            </Button>
+                            {canCreatePages ? (
+                                <Button
+                                    variant="light"
+                                    data-disabled={atRootItemLimit || undefined}
+                                    aria-disabled={atRootItemLimit}
+                                    onClick={(event) => {
+                                        if (atRootItemLimit) {
+                                            event.preventDefault();
+                                            return;
+                                        }
+                                        openCreatePageHere();
+                                    }}
+                                >
+                                    Create page here
+                                </Button>
+                            ) : null}
                         </Group>
                     </Tooltip>
                 ) : (
@@ -640,7 +644,7 @@ export function NavigationBuilderPage(): React.ReactElement {
                                         onReorder={(order) => reorderMutation.mutate(order)}
                                         onEdit={setManualEditItem}
                                         onAddExistingChildPage={isActiveMenuTab ? openAddExistingChild : () => {}}
-                                        onCreateChildPage={openCreatePageHere}
+                                        onCreateChildPage={canCreatePages ? openCreatePageHere : undefined}
                                         onRemove={(itemId) => deleteMutation.mutate(itemId)}
                                         isRemovePending={deleteMutation.isPending}
                                     />

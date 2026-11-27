@@ -27,6 +27,7 @@ import { useScheduledJob, useScheduledJobTransactions } from '../../../../../hoo
 import { type IScheduledJobConfig } from '../../../../../types/responses/admin/scheduled-jobs.types';
 import { getStatusColor } from '../../../../../utils/status-color.utils';
 import { isJobActionAllowed } from '../utils/job-status';
+import { useScheduledJobRights } from '../utils/useScheduledJobRights';
 import DOMPurify from 'isomorphic-dompurify';
 import { ModalWrapper } from '../../../shared';
 
@@ -310,6 +311,7 @@ export function ScheduledJobDetailsModal({
 }: IScheduledJobDetailsModalProps) {
     const { data: jobDetailsData, isLoading: loading } = useScheduledJob(jobId || 0, opened && !!jobId);
     const { data: transactionsData, isLoading: transactionsLoading } = useScheduledJobTransactions(jobId || 0, opened && !!jobId);
+    const { canExecute, canDelete } = useScheduledJobRights();
 
     const jobDetails = jobDetailsData?.data;
     const transactions = transactionsData?.data || [];
@@ -548,13 +550,13 @@ export function ScheduledJobDetailsModal({
                     </Paper>
 
                     {/* Action Buttons */}
-                    <Group justify="flex-end" >
+                    {(canExecute || canDelete) && <Group justify="flex-end" >
                         {( !isJobActionAllowed(jobDetails.status.value) && (
                             <Text size="xs" c="dimmed">
                                 Actions available only for queued jobs
                             </Text>
                         ))}
-                        <Button
+                        {canExecute && <Button
                             variant="light"
                             color="gray"
                             leftSection={<IconPlayerPlay size={16} />}
@@ -562,16 +564,16 @@ export function ScheduledJobDetailsModal({
                             disabled={!isJobActionAllowed(jobDetails.status.value)}
                         >
                             Execute Job
-                        </Button>
-                        <Button
+                        </Button>}
+                        {canDelete && <Button
                             variant="light"
                             color="red"
                             leftSection={<IconTrash size={16} />}
                             onClick={handleDelete}
                             disabled={!isJobActionAllowed(jobDetails.status.value)}>
                             Delete Job
-                        </Button>
-                    </Group>
+                        </Button>}
+                    </Group>}
                 </Stack>
                             ) : (
                     <Text ta="center" p="md" c="red">Failed to load job details</Text>

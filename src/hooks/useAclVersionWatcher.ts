@@ -19,9 +19,11 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { matchPluginSyncEntries } from '@selfhelp/shared/plugin-sdk';
 import { useAuthUser } from './useUserData';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { invalidateFormList } from '../utils/form-list-cache.utils';
+import { getPluginSyncEntries } from '../utils/plugin-sync-entries';
 
 export function useAclVersionWatcher(): void {
     const queryClient = useQueryClient();
@@ -29,7 +31,9 @@ export function useAclVersionWatcher(): void {
     const previousAclSignatureRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
-        const currentSignature = `${user?.id ?? 'guest'}:${user?.aclVersion ?? 'none'}`;
+        // The stamp (C5) moves when a group or role of the user changes; `aclVersion` only moves
+        // for the user's own changes, so both belong to the signature.
+        const currentSignature = `${user?.id ?? 'guest'}:${user?.aclVersion ?? 'none'}:${user?.aclStamp ?? 'none'}`;
 
         if (previousAclSignatureRef.current === undefined) {
             previousAclSignatureRef.current = currentSignature;
@@ -53,6 +57,8 @@ export function useAclVersionWatcher(): void {
             // content: navigation, admin tree, and the public page content
             // itself (keyed by keyword via PAGE_BY_KEYWORD).
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL });
+            // The navigation tree is permission-filtered like the page list (F251).
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.NAVIGATION_ALL });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL });
             // Entry lists carry what the viewer may do with each record
@@ -60,6 +66,17 @@ export function useAclVersionWatcher(): void {
             // the rows and the buttons.
             void invalidateFormList(queryClient);
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FORM_LIST_HISTORY_ALL });
+            // Role items say what the viewer may change or delete (`can_update`,
+            // `can_delete`) and the permission list what they may hand out
+            // (`can_assign`): both depend on who is signed in and what their roles hold.
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ROLES_ALL });
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PERMISSIONS_ALL });
+            // The page read says what the viewer may do with the page (`rights`).
+            void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS_ALL });
+            // Plugin sync maps that list `acl` (C10): same cascade as a pushed acl tag.
+            for (const queryKey of matchPluginSyncEntries(getPluginSyncEntries(), ['acl'])) {
+                void queryClient.invalidateQueries({ queryKey });
+            }
         }
-    }, [user?.id, user?.aclVersion, queryClient]);
+    }, [user?.id, user?.aclVersion, user?.aclStamp, queryClient]);
 }

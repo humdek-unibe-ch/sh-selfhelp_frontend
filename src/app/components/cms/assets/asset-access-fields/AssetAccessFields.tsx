@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 "use client";
 
-import { Alert, MultiSelect, Text } from '@mantine/core';
+import { Alert, CheckIcon, Group, MultiSelect, Text } from '@mantine/core';
 import { IconWorld } from '@tabler/icons-react';
 import { useAllGroups } from '../../../../../hooks/useGroups';
 import { useAllRoles } from '../../../../../hooks/useRoles';
@@ -16,10 +16,23 @@ type TNamed = { id: number; name: string };
 /** Always shown with the roles picker: the admin role is not in the list because it needs no grant. */
 export const ADMINS_ALWAYS = 'Admins can always manage every asset.';
 
+/**
+ * Said next to a role the caller does not fully hold (rule 4.6f): such a role
+ * is shown but cannot be picked, and one already on the asset cannot be removed.
+ */
+export const ROLE_NOT_HELD = 'You do not hold everything this role holds';
+
+/** A role the caller may not hand out is `disabled`; the picker says why in text. */
+export interface IRoleOption {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
+
 /** The groups and roles a picker can offer, and whether each list could be read. */
 export interface IAccessLists {
   groupOptions: { value: string; label: string }[];
-  roleOptions: { value: string; label: string }[];
+  roleOptions: IRoleOption[];
   /** A picker can only change what it can list. */
   groupsLocked: boolean;
   rolesLocked: boolean;
@@ -46,7 +59,11 @@ export function useAccessLists(enabled: boolean, current: { groups?: TNamed[]; r
       current.groups ?? [],
     ),
     roleOptions: withCurrentOptions(
-      (rolesData?.roles ?? []).filter((role) => !isAdminRole(role)).map((role) => ({ value: String(role.id), label: role.name })),
+      (rolesData?.roles ?? [])
+        .filter((role) => !isAdminRole(role))
+        // The server says per caller whether they hold everything in the role;
+        // only an explicit `false` locks it (rule 4.6f).
+        .map((role): IRoleOption => ({ value: String(role.id), label: role.name, disabled: role.fully_held === false })),
       current.roles ?? [],
     ),
     groupsLocked: groupsLoading || groupsFailed,
@@ -122,6 +139,13 @@ interface IWhoCanManageProps {
 
 /** Roles that may see, edit and delete the asset in the CMS (the admin role always can). */
 export function WhoCanManageField({ lists, value, onChange, disabled, description, placeholder, emptyError, failureNote }: IWhoCanManageProps) {
+  const notHeld = new Set(lists.roleOptions.filter((option) => option.disabled).map((option) => option.value));
+  // A role the caller does not fully hold stays on the asset: the server refuses
+  // to remove it (rule 4.6f), so the picker keeps it ticked and locked.
+  const keepLocked = (next: string[]) => {
+    const locked = value.filter((id) => notHeld.has(id) && !next.includes(id));
+    onChange(locked.length === 0 ? next : [...next, ...locked]);
+  };
   return (
     <>
       <MultiSelect
@@ -130,12 +154,26 @@ export function WhoCanManageField({ lists, value, onChange, disabled, descriptio
         placeholder={placeholder}
         data={lists.roleOptions}
         value={value}
-        onChange={onChange}
+        onChange={keepLocked}
         searchable
         clearable
         disabled={disabled || lists.rolesLocked}
         error={emptyError ? 'Pick at least one role.' : undefined}
+        renderOption={({ option, checked }) => (
+          <Group gap="xs" wrap="nowrap" align="flex-start">
+            {checked && <CheckIcon size={12} style={{ marginTop: 4, flexShrink: 0 }} />}
+            <div>
+              <Text size="sm" inherit>{option.label}</Text>
+              {option.disabled && <Text size="xs" c="dimmed">{ROLE_NOT_HELD}</Text>}
+            </div>
+          </Group>
+        )}
       />
+      {notHeld.size > 0 && (
+        <Text size="xs" c="dimmed">
+          Roles marked “{ROLE_NOT_HELD}” cannot be added or removed here.
+        </Text>
+      )}
       {lists.rolesFailed && (
         <Text size="xs" c="dimmed">
           {failureNote ?? 'You are not allowed to list the roles, so who can manage this asset cannot be chosen here.'}

@@ -26,12 +26,35 @@ SPDX-License-Identifier: MPL-2.0
  *   APP_ENV=test php -S 127.0.0.1:8000 -t public scripts/php-server-router.php
  */
 
-foreach (['APP_ENV', 'APP_DEBUG', 'APP_SECRET', 'DATABASE_URL', 'REDIS_URL'] as $key) {
-    $value = getenv($key);
-    if ($value !== false) {
-        $_SERVER[$key] = $value;
-        $_ENV[$key] = $value;
+foreach ([
+    'APP_ENV',
+    'APP_DEBUG',
+    'APP_SECRET',
+    'DATABASE_URL',
+    'REDIS_URL',
+    // Browser e2e: MercureTestRecorder forwards when this is "1".
+    'SELFHELP_E2E_REAL_HUB',
+] as $key) {
+    // On Windows, php -S often leaves process env out of getenv() while
+    // still exposing it on $_SERVER (from the Node spawn env). Prefer
+    // $_SERVER / $_ENV, then getenv; always putenv so getenv() callers work.
+    $value = null;
+    if (isset($_SERVER[$key]) && is_string($_SERVER[$key]) && $_SERVER[$key] !== '') {
+        $value = $_SERVER[$key];
+    } elseif (isset($_ENV[$key]) && is_string($_ENV[$key]) && $_ENV[$key] !== '') {
+        $value = $_ENV[$key];
+    } else {
+        $fromGetenv = getenv($key);
+        if ($fromGetenv !== false && $fromGetenv !== '') {
+            $value = $fromGetenv;
+        }
     }
+    if ($value === null) {
+        continue;
+    }
+    $_SERVER[$key] = $value;
+    $_ENV[$key] = $value;
+    putenv($key . '=' . $value);
 }
 
 $docRoot = getenv('SELFHELP_PUBLIC_DIR') ?: ($_SERVER['DOCUMENT_ROOT'] ?? '');

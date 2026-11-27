@@ -26,7 +26,7 @@ Source of truth: Controllers, JSON schemas, route definitions, and exported type
 | POST   | `/auth/refresh-token`     | `/api/auth/refresh` (proxy-only)        | Silent refresh — invoked by `src/proxy.ts` and the BFF retry loop, never by the browser directly. |
 | POST   | `/auth/set-language`      | `/api/auth/set-language`                | Update language preference. New tokens (if returned in body) are converted to cookies by `rotateCookiesFromBodyIfPresent()`. |
 | POST   | `/auth/logout`            | `/api/auth/logout`                      | User logout (clears `sh_auth` + `sh_refresh`).         |
-| GET    | _(Mercure hub, dynamic)_  | `/api/auth/events` _(SSE)_              | Browser opens an `EventSource` to this BFF route. It reads `sh_auth`, asks Symfony for the Mercure discovery payload (`hubUrl`, `topic`, `token`), and pipes the upstream `text/event-stream` straight to the client. `useAclEventStream` invalidates `['user-data']` on `acl-changed` events, which cascades into the navigation / page-content caches. |
+| GET    | _(Mercure hub, dynamic)_  | `/api/auth/events` _(SSE)_              | Browser opens an `EventSource` to this BFF route. It reads `sh_auth` (none: a visitor, served the public topic only), asks Symfony for the Mercure discovery payload (`hubUrl`, `topic`, `syncTopics`, `token`), and pipes the upstream `text/event-stream` straight to the client. `useAclEventStream` invalidates `['user-data']` on `acl-changed` events, which cascades into the navigation / page-content caches, and maps the tags of `changed` notices to query invalidations ([live-sync.md](../developer/live-sync.md)). |
 
 ## Page Management
 

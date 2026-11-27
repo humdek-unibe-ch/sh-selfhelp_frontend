@@ -1,0 +1,138 @@
+{
+  "generated_by": "npm run access:screens",
+  "screens": [
+    {
+      "id": "actions",
+      "label": "Actions",
+      "path": "/admin/actions",
+      "group": "automation",
+      "read_permission": "admin.action.read"
+    },
+    {
+      "id": "assets",
+      "label": "Assets",
+      "path": "/admin/assets",
+      "group": "content",
+      "read_permission": "admin.asset.read"
+    },
+    {
+      "id": "audit-logs",
+      "label": "Audit Logs",
+      "path": "/admin/data-access",
+      "group": "system",
+      "read_permission": "admin.audit.read"
+    },
+    {
+      "id": "cache",
+      "label": "Cache Management",
+      "path": "/admin/cache",
+      "group": "system",
+      "read_permission": "admin.cache.read"
+    },
+    {
+      "id": "cms-apps",
+      "label": "CMS Apps",
+      "path": "/admin/cms-apps",
+      "group": "cms-apps",
+      "read_permission": "admin.cms_app.read"
+    },
+    {
+      "id": "dashboard",
+      "label": "Dashboard",
+      "path": "/admin",
+      "group": "dashboard",
+      "read_permission": "admin.access"
+    },
+    {
+      "id": "data-browser",
+      "label": "Data Browser",
+      "path": "/admin/data",
+      "group": "system",
+      "read_permission": "admin.data.read"
+    },
+    {
+      "id": "groups",
+      "label": "Groups",
+      "path": "/admin/groups",
+      "group": "users",
+      "read_permission": "admin.group.read"
+    },
+    {
+      "id": "languages",
+      "label": "Languages",
+      "path": "/admin/languages",
+      "group": "system",
+      "read_permission": "admin.language.read"
+    },
+    {
+      "id": "menus",
+      "label": "Menus",
+      "path": "/admin/navigation",
+      "group": "menus",
+      "read_permission": "admin.navigation.read"
+    },
+    {
+      "id": "pages",
+      "label": "Pages",
+      "path": "/admin/pages",
+      "group": "pages",
+      "read_permission": "admin.page.read"
+    },
+    {
+      "id": "preview",
+      "label": "Live Preview",
+      "path": "/admin/preview",
+      "group": "pages",
+      "read_permission": "admin.mobile_preview.read"
+    },
+    {
+      "id": "registration-codes",
+      "label": "Registration Codes",
+      "path": "/admin/registration-codes",
+      "group": "users",
+      "read_permission": "admin.registration_code.read"
+    },
+    {
+      "id": "roles",
+      "label": "Roles",
+      "path": "/admin/roles",
+      "group": "users",
+      "read_permission": "admin.role.read"
+    },
+    {
+      "id": "scheduled-jobs",
+      "label": "Scheduled Jobs",
+      "path": "/admin/scheduled-jobs",
+      "group": "automation",
+      "read_permission": "admin.scheduled_job.read"
+    },
+    {
+      "id": "scheduled-jobs-calendar",
+      "label": "Jobs Calendar",
+      "path": "/admin/scheduled-jobs/calendar",
+      "group": "automation",
+      "read_permission": "admin.scheduled_job.read"
+    },
+    {
+      "id": "system",
+      "label": "System Maintenance",
+      "path": "/admin/system",
+      "group": "system",
+      "read_permission": "admin.system.read"
+    },
+    {
+      "id": "unused-sections",
+      "label": "Unused Sections",
+      "path": "/admin/unused-sections",
+      "group": "content",
+      "read_permission": "admin.section.read"
+    },
+    {
+      "id": "users",
+      "label": "Users",
+      "path": "/admin/users",
+      "group": "users",
+      "read_permission": "admin.user.read"
+    }
+  ]
+}

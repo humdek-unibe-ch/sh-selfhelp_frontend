@@ -8,7 +8,7 @@ import { useMemo, useState } from 'react';
 import { MultiSelect, SegmentedControl, Stack, Text } from '@mantine/core';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { useExportTablesZip } from '../../../../../hooks/useData';
-import type { IDataTableSummary } from '../../../../../types/responses/admin/data.types';
+import type { IDataTableSummary, TDataExportFormat } from '../../../../../types/responses/admin/data.types';
 
 interface IBulkExportModalProps {
   open: boolean;
@@ -19,7 +19,7 @@ interface IBulkExportModalProps {
 export function BulkExportModal({ open, onClose, tables }: IBulkExportModalProps) {
   const exportZip = useExportTablesZip();
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
-  const [format, setFormat] = useState<'csv' | 'json'>('csv');
+  const [format, setFormat] = useState<TDataExportFormat>('csv');
 
   const tableOptions = useMemo(
     () => tables.map((t) => ({ value: t.name, label: t.displayName || t.name })),
@@ -47,7 +47,7 @@ export function BulkExportModal({ open, onClose, tables }: IBulkExportModalProps
       <Stack>
         <Text size="sm" c="dimmed">
           Select one or more data tables to export. The result is a single ZIP archive
-          containing one {format.toUpperCase()} file per table.
+          containing one {format === 'xlsx' ? 'Excel' : format.toUpperCase()} file per table.
         </Text>
         <MultiSelect
           label="Data tables"
@@ -60,9 +60,10 @@ export function BulkExportModal({ open, onClose, tables }: IBulkExportModalProps
         />
         <SegmentedControl
           value={format}
-          onChange={(v) => setFormat(v as 'csv' | 'json')}
+          onChange={(v) => setFormat(v as TDataExportFormat)}
           data={[
             { label: 'CSV', value: 'csv' },
+            { label: 'Excel', value: 'xlsx' },
             { label: 'JSON', value: 'json' },
           ]}
         />

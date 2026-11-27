@@ -13,7 +13,7 @@ import { PERMISSIONS } from '../../../types/auth/jwt-payload.types';
 export const metadata = { title: 'Unused sections' };
 
 export default async function AdminUnusedSectionsPage() {
-  await requireAdminPermission(PERMISSIONS.ADMIN_SECTION_DELETE);
+  await requireAdminPermission(PERMISSIONS.ADMIN_SECTION_READ);
   return (
     <AdminShell>
       <Suspense fallback={<LoadingScreen />}>

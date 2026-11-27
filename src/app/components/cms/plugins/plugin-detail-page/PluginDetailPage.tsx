@@ -88,6 +88,7 @@ import {
 } from '@tabler/icons-react';
 import {
     useAdminPlugin,
+    useAdminPlugins,
     useAdminPluginDisable,
     useAdminPluginEnable,
     useAdminPluginFeatureFlagSet,
@@ -104,6 +105,10 @@ import type {
     IAdminPluginFeatureFlag,
     IAdminPluginOperation,
 } from '../../../../../types/responses/admin/plugins.types';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { pluginAdminRights } from '../hooks/pluginAdminRights';
+import { formatPluginLifecycleError } from '../hooks/pluginLifecycleError';
+import { PluginSettingsForm } from '../plugin-settings-form/PluginSettingsForm';
 
 interface IPluginDetailPageProps {
     pluginId: string;
@@ -143,7 +148,10 @@ function EmptyTab({ message }: { message: string }) {
 }
 
 export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
+    const { permissionChecker } = useAuthUser();
+    const { canExecute, canManage, canPurge } = pluginAdminRights(permissionChecker);
     const detail = useAdminPlugin(pluginId);
+    const installedPlugins = useAdminPlugins();
     const health = useAdminPluginHealth(pluginId);
     const operations = useAdminPluginOperations(pluginId);
     const enableMutation = useAdminPluginEnable();
@@ -165,10 +173,71 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
         [detail.data?.manifest]
     );
 
+    const installedById = useMemo(() => {
+        const map = new Map<string, { enabled: boolean; version: string }>();
+        for (const row of installedPlugins.data?.plugins ?? []) {
+            map.set(row.pluginId, { enabled: row.enabled, version: row.version });
+        }
+        return map;
+    }, [installedPlugins.data?.plugins]);
+
     const dependencies = useMemo(() => {
-        const deps = (manifest.dependencies as Record<string, string> | undefined) ?? {};
-        return Object.entries(deps);
+        const raw = manifest.dependencies;
+        if (Array.isArray(raw)) {
+            return raw
+                .map((entry) => {
+                    if (!entry || typeof entry !== 'object') return null;
+                    const row = entry as { pluginId?: unknown; version?: unknown; required?: unknown };
+                    if (typeof row.pluginId !== 'string') return null;
+                    return {
+                        pluginId: row.pluginId,
+                        version: typeof row.version === 'string' ? row.version : '*',
+                        required: row.required !== false,
+                    };
+                })
+                .filter((row): row is { pluginId: string; version: string; required: boolean } => row !== null);
+        }
+        if (raw && typeof raw === 'object') {
+            return Object.entries(raw as Record<string, string>).map(([id, version]) => ({
+                pluginId: id,
+                version: String(version),
+                required: true,
+            }));
+        }
+        return [] as Array<{ pluginId: string; version: string; required: boolean }>;
     }, [manifest]);
+
+    const listens = useMemo(() => {
+        const list = manifest.listens;
+        return Array.isArray(list) ? list.filter((item): item is string => typeof item === 'string') : [];
+    }, [manifest]);
+
+    const recurringJobs = useMemo(() => {
+        const list = manifest.recurringJobs;
+        if (!Array.isArray(list)) return [] as Array<{ name: string; type: string; cron: string; description: string }>;
+        return list
+            .map((entry) => {
+                if (!entry || typeof entry !== 'object') return null;
+                const row = entry as Record<string, unknown>;
+                if (typeof row.name !== 'string' || typeof row.type !== 'string' || typeof row.cron !== 'string') {
+                    return null;
+                }
+                return {
+                    name: row.name,
+                    type: row.type,
+                    cron: row.cron,
+                    description: typeof row.description === 'string' ? row.description : '',
+                };
+            })
+            .filter((row): row is { name: string; type: string; cron: string; description: string } => row !== null);
+    }, [manifest]);
+
+    const dependencyState = (pluginDepId: string): string => {
+        const installed = installedById.get(pluginDepId);
+        if (!installed) return 'missing';
+        if (!installed.enabled) return `installed (disabled, v${installed.version})`;
+        return `enabled (v${installed.version})`;
+    };
 
     const conflicts = useMemo(() => {
         const list = (manifest.conflicts as Array<{ pluginId?: string; version?: string; reason?: string }> | undefined) ?? [];
@@ -201,8 +270,41 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
     }, [manifest]);
 
     const lookups = useMemo(() => {
-        const list = (manifest.lookups as Array<{ typeCode?: string; lookupCode?: string; lookupValue?: string }> | undefined) ?? [];
-        return list;
+        const raw = manifest.lookups;
+        // Flat row list (older fixtures / tests).
+        if (Array.isArray(raw)) {
+            return raw as Array<{ typeCode?: string; lookupCode?: string; lookupValue?: string }>;
+        }
+        // Documented manifest shape: { extends: [{ typeCode, entries: [{ code, value }] }] }.
+        // Treating a non-array as a list used to crash the whole detail page (Mantine keeps panels mounted).
+        if (raw && typeof raw === 'object') {
+            const extendsList = (raw as { extends?: unknown }).extends;
+            if (!Array.isArray(extendsList)) {
+                return [] as Array<{ typeCode?: string; lookupCode?: string; lookupValue?: string }>;
+            }
+            const rows: Array<{ typeCode?: string; lookupCode?: string; lookupValue?: string }> = [];
+            for (const block of extendsList) {
+                if (!block || typeof block !== 'object') continue;
+                const typed = block as { typeCode?: unknown; entries?: unknown };
+                const typeCode = typeof typed.typeCode === 'string' ? typed.typeCode : undefined;
+                const entries = typed.entries;
+                if (!Array.isArray(entries) || entries.length === 0) {
+                    rows.push({ typeCode });
+                    continue;
+                }
+                for (const entry of entries) {
+                    if (!entry || typeof entry !== 'object') continue;
+                    const row = entry as { code?: unknown; value?: unknown };
+                    rows.push({
+                        typeCode,
+                        lookupCode: typeof row.code === 'string' ? row.code : undefined,
+                        lookupValue: typeof row.value === 'string' ? row.value : undefined,
+                    });
+                }
+            }
+            return rows;
+        }
+        return [] as Array<{ typeCode?: string; lookupCode?: string; lookupValue?: string }>;
     }, [manifest]);
 
     const dataAccess = (manifest.dataAccess as { ownedTables?: string[]; ownedDataTablePrefix?: string; readOnlyTables?: string[]; writeTables?: string[] } | undefined) ?? {};
@@ -238,7 +340,7 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
             await enableMutation.mutateAsync(pluginId);
             notifications.show({ color: 'green', title: 'Plugin enabled', message: pluginId });
         } catch (err) {
-            notifications.show({ color: 'red', title: 'Enable failed', message: err instanceof Error ? err.message : String(err) });
+            notifications.show({ color: 'red', title: 'Enable failed', message: formatPluginLifecycleError(err) });
         }
     };
 
@@ -247,7 +349,7 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
             await disableMutation.mutateAsync(pluginId);
             notifications.show({ color: 'yellow', title: 'Plugin disabled', message: pluginId });
         } catch (err) {
-            notifications.show({ color: 'red', title: 'Disable failed', message: err instanceof Error ? err.message : String(err) });
+            notifications.show({ color: 'red', title: 'Disable failed', message: formatPluginLifecycleError(err) });
         }
     };
 
@@ -256,7 +358,7 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
             await uninstallMutation.mutateAsync(pluginId);
             notifications.show({ color: 'green', title: 'Plugin uninstalled', message: pluginId });
         } catch (err) {
-            notifications.show({ color: 'red', title: 'Uninstall failed', message: err instanceof Error ? err.message : String(err) });
+            notifications.show({ color: 'red', title: 'Uninstall failed', message: formatPluginLifecycleError(err) });
         }
     };
 
@@ -364,28 +466,34 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                 </Stack>
 
                 <Group gap="xs" wrap="nowrap">
-                    {p.enabled ? (
-                        <Button variant="default" loading={disableMutation.isPending} onClick={onDisable}>
+                    {canExecute && (p.enabled ? (
+                        <Button variant="default" loading={disableMutation.isPending} onClick={onDisable} data-testid="plugin-execute-disable">
                             Disable
                         </Button>
                     ) : (
-                        <Button loading={enableMutation.isPending} onClick={onEnable}>
+                        <Button loading={enableMutation.isPending} onClick={onEnable} data-testid="plugin-execute-enable">
                             Enable
                         </Button>
+                    ))}
+                    {canExecute && (
+                        <Button variant="light" leftSection={<IconUpload size={14} />} onClick={() => setUpdateOpen(true)} data-testid="plugin-execute-update">
+                            Update…
+                        </Button>
                     )}
-                    <Button variant="light" leftSection={<IconUpload size={14} />} onClick={() => setUpdateOpen(true)}>
-                        Update…
-                    </Button>
-                    <Tooltip label="Removes packages; preserves data">
-                        <Button variant="light" color="yellow" loading={uninstallMutation.isPending} onClick={onUninstall}>
-                            Uninstall
-                        </Button>
-                    </Tooltip>
-                    <Tooltip label="Destructive: drops plugin-owned tables and tagged rows">
-                        <Button variant="light" color="red" leftSection={<IconTrash size={14} />} onClick={() => setPurgeOpen(true)}>
-                            Purge…
-                        </Button>
-                    </Tooltip>
+                    {canExecute && (
+                        <Tooltip label="Removes packages; preserves data">
+                            <Button variant="light" color="yellow" loading={uninstallMutation.isPending} onClick={onUninstall} data-testid="plugin-execute-uninstall">
+                                Uninstall
+                            </Button>
+                        </Tooltip>
+                    )}
+                    {canPurge && (
+                        <Tooltip label="Destructive: drops plugin-owned tables and tagged rows">
+                            <Button variant="light" color="red" leftSection={<IconTrash size={14} />} onClick={() => setPurgeOpen(true)} data-testid="plugin-purge">
+                                Purge…
+                            </Button>
+                        </Tooltip>
+                    )}
                 </Group>
             </Group>
 
@@ -396,6 +504,11 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                     <Tabs.Tab value="changelog" leftSection={<IconHistory size={14} />}>Changelog</Tabs.Tab>
                     <Tabs.Tab value="files" leftSection={<IconFile size={14} />}>Files</Tabs.Tab>
                     <Tabs.Tab value="dependencies" leftSection={<IconPackage size={14} />}>Dependencies</Tabs.Tab>
+                    <Tabs.Tab value="events" leftSection={<IconLink size={14} />}>Events</Tabs.Tab>
+                    <Tabs.Tab value="recurring-jobs" leftSection={<IconClock size={14} />}>Recurring jobs</Tabs.Tab>
+                    {canManage && (
+                        <Tabs.Tab value="settings" leftSection={<IconKey size={14} />} data-testid="plugin-settings-tab">Settings</Tabs.Tab>
+                    )}
                     <Tabs.Tab value="conflicts" leftSection={<IconAlertTriangle size={14} />}>Conflicts</Tabs.Tab>
                     <Tabs.Tab value="permissions" leftSection={<IconShield size={14} />}>Permissions</Tabs.Tab>
                     <Tabs.Tab value="capabilities" leftSection={<IconShieldLock size={14} />}>Capabilities</Tabs.Tab>
@@ -489,20 +602,24 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                     {dependencies.length === 0 ? (
                         <EmptyTab message="Plugin does not declare any dependencies." />
                     ) : (
-                        <div className={tableStyles.tableWrapper}>
+                        <div className={tableStyles.tableWrapper} data-testid="plugin-dependencies">
                           <Box className={tableStyles.tableScrollContainer}>
                             <Table verticalSpacing="sm" horizontalSpacing="md">
                                 <Table.Thead>
                                     <Table.Tr>
-                                        <Table.Th className={tableStyles.tableHeader}>Plugin / Package</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Plugin</Table.Th>
                                         <Table.Th className={tableStyles.tableHeader}>Version range</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Required</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>State</Table.Th>
                                     </Table.Tr>
                                 </Table.Thead>
                                 <Table.Tbody>
-                                    {dependencies.map(([name, range]) => (
-                                        <Table.Tr key={name}>
-                                            <Table.Td className={tableStyles.tableCell}><Code>{name}</Code></Table.Td>
-                                            <Table.Td className={tableStyles.tableCell}>{range}</Table.Td>
+                                    {dependencies.map((dep) => (
+                                        <Table.Tr key={dep.pluginId}>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{dep.pluginId}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{dep.version}</Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{dep.required ? 'yes' : 'optional'}</Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{dependencyState(dep.pluginId)}</Table.Td>
                                         </Table.Tr>
                                     ))}
                                 </Table.Tbody>
@@ -511,6 +628,60 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
                         </div>
                     )}
                 </Tabs.Panel>
+
+                <Tabs.Panel value="events" pt="md">
+                    {listens.length === 0 ? (
+                        <EmptyTab message="Plugin does not listen to domain events." />
+                    ) : (
+                        <Stack gap="xs" data-testid="plugin-listens">
+                            {listens.map((name) => (
+                                <Badge key={name} variant="light">{name}</Badge>
+                            ))}
+                        </Stack>
+                    )}
+                </Tabs.Panel>
+
+                <Tabs.Panel value="recurring-jobs" pt="md">
+                    {recurringJobs.length === 0 ? (
+                        <EmptyTab message="Plugin has no recurring jobs." />
+                    ) : (
+                        <div className={tableStyles.tableWrapper} data-testid="plugin-recurring-jobs">
+                          <Box className={tableStyles.tableScrollContainer}>
+                            <Table verticalSpacing="sm" horizontalSpacing="md">
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th className={tableStyles.tableHeader}>Name</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Type</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Cron (UTC)</Table.Th>
+                                        <Table.Th className={tableStyles.tableHeader}>Description</Table.Th>
+                                    </Table.Tr>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                    {recurringJobs.map((job) => (
+                                        <Table.Tr key={job.name}>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{job.name}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{job.type}</Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}><Code>{job.cron}</Code></Table.Td>
+                                            <Table.Td className={tableStyles.tableCell}>{job.description || '—'}</Table.Td>
+                                        </Table.Tr>
+                                    ))}
+                                </Table.Tbody>
+                            </Table>
+                          </Box>
+                        </div>
+                    )}
+                </Tabs.Panel>
+
+                {canManage && (
+                    <Tabs.Panel value="settings" pt="md">
+                        <Card withBorder>
+                            <Stack gap="sm">
+                                <Title order={5}>Settings</Title>
+                                <PluginSettingsForm pluginId={pluginId} />
+                            </Stack>
+                        </Card>
+                    </Tabs.Panel>
+                )}
 
                 {/* 6) Conflicts */}
                 <Tabs.Panel value="conflicts" pt="md">

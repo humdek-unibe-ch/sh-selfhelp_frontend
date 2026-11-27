@@ -356,11 +356,15 @@ always wrong and it will defeat the tiered caches.
 
 Live admin views are **event-driven**, not poll-driven. The browser holds **one**
 authenticated Server-Sent-Events stream at `GET /api/auth/events`
-(`useAclEventStream`). The BFF route opens **one** upstream Mercure connection
-and multiplexes the per-user topics onto that single stream:
+(`useAclEventStream`; a visitor without a session gets the public topic only). The
+BFF route opens **one** upstream Mercure connection and multiplexes the per-user
+and audience topics onto that single stream:
 
-- `acl-changed` → invalidate `['frontend-pages']` + `['page-by-keyword']`.
+- `acl-changed` → invalidate `['frontend-pages']` + `['page-by-keyword']` + `['navigation']`.
 - `impersonation` → impersonation start/stop for this user.
+- `changed` → a change notice (`{ v: 1, tags }`) on the audience topics; visitors
+  are served too (public topic). `src/utils/sync-tags.utils.ts` maps the tags to
+  query invalidations; see [live-sync.md](live-sync.md).
 - `system-update` → invalidate `['systemUpdateStatus']` + `['systemVersion']` +
   `['systemHealth']` so the System Maintenance step tracker repaints the instant
   the manager advances an update (CMS request or manager write-back). The topic

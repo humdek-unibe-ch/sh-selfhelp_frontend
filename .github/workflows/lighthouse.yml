@@ -106,7 +106,11 @@ jobs:
           DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
           REDIS_URL: redis://127.0.0.1:6379
         run: |
-          composer install --no-interaction --no-progress
+          # Fresh checkout has no .env (gitignored); .env.default is the template.
+          cp .env.default .env
+          # --no-scripts as in the backend CI: the post-install cache:clear reads
+          # API routes from the database that test:reset-db creates next.
+          composer install --no-interaction --no-progress --no-scripts
           composer test:reset-db
 
       - name: Start backend (Symfony built-in server)

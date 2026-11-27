@@ -29,6 +29,11 @@ interface ICollapsibleSectionProps {
     className?: string;
     /** Optional control rendered beside the title (e.g. field help icon). */
     headerAction?: ReactNode;
+    /**
+     * When true, the section is shown expanded without writing to the store.
+     * Used while an inspector search is active so matches are visible.
+     */
+    forceExpanded?: boolean;
 }
 
 export function CollapsibleSection({
@@ -39,14 +44,19 @@ export function CollapsibleSection({
     defaultExpanded = true,
     className,
     headerAction,
+    forceExpanded = false,
 }: ICollapsibleSectionProps) {
     const { isCollapsed, setCollapsed } = useInspectorStore();
 
     // Check if this section is collapsed, default to not collapsed if not found
-    const collapsed = isCollapsed(inspectorType, sectionName) ?? !defaultExpanded;
+    const storedCollapsed = isCollapsed(inspectorType, sectionName) ?? !defaultExpanded;
+    const collapsed = forceExpanded ? false : storedCollapsed;
 
     const handleToggle = () => {
-        setCollapsed(inspectorType, sectionName, !collapsed);
+        if (forceExpanded) {
+            return;
+        }
+        setCollapsed(inspectorType, sectionName, !storedCollapsed);
     };
 
     return (

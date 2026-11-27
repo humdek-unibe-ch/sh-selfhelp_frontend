@@ -1,0 +1,17 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+/* Mantine animates Main's padding but not the navbar's width; slide both
+   together so collapsing and expanding reads as one motion. */
+.navbar {
+  transition: width var(--app-shell-transition-duration, 200ms) ease;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar {
+    transition: none;
+  }
+}

@@ -25,7 +25,12 @@ Technical documentation for the Next.js frontend. See [../README.md](../README.m
 - [mobile-preview-panel.md](mobile-preview-panel.md) - The page-editor Mobile preview panel, its protected mint route, the iframe URL builder, and live-reload dev.
 - [system-maintenance-admin.md](system-maintenance-admin.md) - The `/admin/system` maintenance, health, and connected-update screen.
 - [asset-management.md](asset-management.md) - Admin assets: uuid identity, edit/replace, default alt, and per-asset group access.
+- [live-sync.md](live-sync.md) - Live sync: one stream per browser (visitors too), the tag map to query invalidations, the access stamp, `valid_until`, keep-typed-input notices and page views.
 - [form-lists.md](form-lists.md) - The `entry-form-list` and `data-view` styles: server-rendered first paint, URL state, cache identity, writes, unsaved input, history and the visual list editors.
+
+## Testing
+
+- [e2e-profiles.md](e2e-profiles.md) - The Playwright profiles run through `scripts/e2e-stack.mjs` (golden, a11y, visual, admin, plugin, access) and the least-privilege walk.
 
 ## Operations and debugging
 

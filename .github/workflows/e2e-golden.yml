@@ -60,7 +60,9 @@ jobs:
 
   golden:
     name: Golden form→action→job (full stack)
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest is Ubuntu 26.04 since Nov 2026, and Playwright 1.60.0 (lockfile)
+    # cannot install Chromium there. Move when Playwright is raised (>= 1.65 knows 26.04).
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     if: github.event_name == 'workflow_dispatch'
 
@@ -142,9 +144,18 @@ jobs:
           cache: npm
           cache-dependency-path: sh-selfhelp_frontend/package-lock.json
 
+      - name: Prepare backend environment (.env)
+        working-directory: sh-selfhelp_backend
+        # A fresh checkout has no .env (gitignored); the tracked .env.default
+        # is the template. Without it composer's post-install cache:clear
+        # fails. The job env above still wins (Dotenv never overrides set vars).
+        run: cp .env.default .env
+
       - name: Backend install
         working-directory: sh-selfhelp_backend
-        run: composer install --no-interaction --no-progress
+        # --no-scripts as in the backend CI: the post-install cache:clear reads API
+        # routes from a database the harness creates later (test:reset-db).
+        run: composer install --no-interaction --no-progress --no-scripts
 
       - name: Frontend install + Chromium (with system deps)
         working-directory: sh-selfhelp_frontend

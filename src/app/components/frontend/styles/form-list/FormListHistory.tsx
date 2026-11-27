@@ -39,6 +39,7 @@ import {
     useFormListVersion,
 } from '../../../../../hooks/useFormList';
 import { formatEntryDate } from '../../../../../utils/form-list.utils';
+import { formatContentRef } from '../../../../../utils/content-ref.utils';
 import { FormListChanges } from './FormListChanges';
 import { FormListConfirmDialog } from './FormListConfirmDialog';
 import { FORM_LIST_TEXT } from './form-list.constants';
@@ -60,6 +61,7 @@ const SOURCE_WORDS: Record<IFormListRevision['source'], string> = {
     job: 'scheduled job',
     import: 'import',
     system: 'system',
+    plugin: 'plugin',
 };
 
 
@@ -164,6 +166,9 @@ export function FormListHistory({ pageId, sectionId, recordId, canRestore, onRes
                                                 {revision.is_checkpoint && <Badge size="xs" variant="outline">checkpoint</Badge>}
                                             </Group>
                                             <Text size="sm" className={styles.changeValue}>{describe(revision)}</Text>
+                                            <Text size="xs" c="dimmed" data-testid="content-ref-revision">
+                                                Content version: {formatContentRef(revision.content_ref)}
+                                            </Text>
                                             <Text size="xs" c="dimmed">
                                                 {formatEntryDate(revision.created_at)} UTC
                                                 {revision.changed_fields > 0 ? `, ${revision.changed_fields} field${revision.changed_fields === 1 ? '' : 's'} changed` : ''}

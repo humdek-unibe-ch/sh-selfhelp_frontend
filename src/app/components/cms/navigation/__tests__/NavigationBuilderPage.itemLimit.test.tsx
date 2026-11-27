@@ -34,6 +34,7 @@ vi.mock('../../../../../api/admin/navigation.api', () => ({
 
 vi.mock('../../../../../hooks/usePermissionChecks', () => ({
     useCanUpdateNavigation: () => true,
+    useCanCreatePages: () => true,
     useCanExportNavigation: () => false,
     useCanImportNavigation: () => false,
 }));

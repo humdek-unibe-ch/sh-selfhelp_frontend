@@ -4,6 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { LANGUAGE_INDEPENDENT_ID } from '@selfhelp/shared';
 import { AdminDataApi } from '../api/admin/data.api';
 import { REACT_QUERY_CONFIG, refetchOnMountWhenInvalidated } from '../config/react-query.config';
 import type {
@@ -31,7 +32,7 @@ export const DATA_QUERY_KEYS = {
   tables: () => [...DATA_QUERY_KEYS.all, 'tables'] as const,
   rows: (tableName: string, userId?: number, excludeDeleted: boolean = true, languageId?: number) => [
     ...REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_DATA_ROWS_ALL,
-    { tableName, userId: userId ?? -1, excludeDeleted, languageId: languageId ?? 1 },
+    { tableName, userId: userId ?? -1, excludeDeleted, languageId: languageId ?? LANGUAGE_INDEPENDENT_ID },
   ] as const,
   columns: (tableName: string) => [...DATA_QUERY_KEYS.all, 'columns', tableName] as const,
   columnNames: (tableName: string) => [...DATA_QUERY_KEYS.all, 'column-names', tableName] as const,
@@ -142,6 +143,7 @@ export function useUpdateTableDisplayName() {
       // The label + lock live on the tables list; refresh it so the Data
       // browser and the CMS section inspector reflect the new name/lock.
       void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.tables() });
+      void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SECTION_DETAILS_ALL });
     },
   });
 }
@@ -165,6 +167,8 @@ export function useDeleteTable() {
       mutationFn: ({ tableName }) => AdminDataApi.deleteTable(tableName),
       onSuccess: (_, variables) => {
         void queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.tables() });
+        // The section details carry the data-table picker, read per request (F56).
+        void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SECTION_DETAILS_ALL });
         // Invalidate any rows queries for this table
         void queryClient.invalidateQueries({
           predicate: (q) => {

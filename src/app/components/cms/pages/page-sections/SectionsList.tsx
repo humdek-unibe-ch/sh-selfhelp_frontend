@@ -39,6 +39,7 @@ import { type IStyleGroup } from '../../../../../types/responses/admin/styles.ty
 import { isStyleRelationshipValid, findStyleById } from '../../../../../utils/style-relationship.utils';
 import { getStyleVisual } from '../../../../../utils/style-visuals';
 import styles from './SectionsList.module.css';
+import { usePageEditRights } from '../page-rights/PageRightsContext';
 
 // Pure recursive lookup (no component scope) — kept at module level so it has a
 // stable identity and does not need to be a hook dependency.
@@ -176,6 +177,8 @@ const SectionItem = memo(function SectionItem({
 }: ISectionItemProps) {
     const dragContext = useContext(DragContext);
     const hoverPreviewContext = useContext(HoverPreviewContext);
+    // Moving a section changes the page: only with the update right on it.
+    const { canUpdate } = usePageEditRights();
     const elementRef = useRef<HTMLDivElement>(null);
     const dragHandleRef = useRef<HTMLDivElement>(null);
     const dropZoneRef = useRef<HTMLDivElement>(null);
@@ -381,6 +384,7 @@ const SectionItem = memo(function SectionItem({
 
         return draggable({
             element: dragHandle,
+            canDrag: () => canUpdate,
             getInitialData: () => ({
                 type: 'section-item',
                 sectionId: section.id,
@@ -414,7 +418,7 @@ const SectionItem = memo(function SectionItem({
                 setIsDragging(false);
             }
         });
-    }, [section, level, parentId, index, canHaveChildren]);
+    }, [section, level, parentId, index, canHaveChildren, canUpdate]);
 
     // Setup drop targets with improved logic based on requirements
     useEffect(() => {

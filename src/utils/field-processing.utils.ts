@@ -2,6 +2,7 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+import { LANGUAGE_INDEPENDENT_ID, isLanguageIndependent } from '@selfhelp/shared';
 import { type IPageField, type IPageFieldTranslation } from '../types/common/pages.type';
 import { type IUpdatePageField } from '../types/requests/admin/update-page.types';
 import { type ILanguage } from '../types/responses/admin/languages.types';
@@ -22,7 +23,7 @@ export interface IProcessedFieldResult {
  * Gets the appropriate language IDs for a field based on its translation type
  *
  * Content fields (language-specific translations): All available languages
- * Property fields ("all" language translations): Language ID 1 only
+ * Property fields (language-independent translations): LANGUAGE_INDEPENDENT_ID only
  *
  * @param field - The field to process
  * @param languages - Available languages
@@ -33,8 +34,8 @@ export function getFieldLanguageIds(field: IPageField, languages: ILanguage[]): 
         // Content fields: all languages
         return languages.map(lang => lang.id);
     } else {
-        // Property fields: language ID 1 only
-        return [1];
+        // Property fields: language-independent row only
+        return [LANGUAGE_INDEPENDENT_ID];
     }
 }
 
@@ -54,13 +55,16 @@ export function processField(
   const fieldEntries: IUpdatePageField[] = [];
 
   if (!field.display) {
-    // Property fields always stored at language ID 1
+    // Property fields always stored at the language-independent row
+    const fieldValues = formValues[field.name] as Record<string | number, string> | undefined;
     const content =
-      formValues[field.name]?.["1"] ?? formValues[field.name]?.[1] ?? "";
+      fieldValues?.[LANGUAGE_INDEPENDENT_ID]
+      ?? fieldValues?.[String(LANGUAGE_INDEPENDENT_ID)]
+      ?? "";
 
     fieldEntries.push({
       fieldId: field.id,
-      languageId: 1,
+      languageId: LANGUAGE_INDEPENDENT_ID,
       content: content,
     });
   } else {
@@ -162,7 +166,7 @@ export function validateFieldProcessing(field: IPageField): {
 /**
  * Initializes form values for fields, handling content vs property field loading correctly
  * Content fields populate based on language-specific translations
- * Property fields use "all" language translations or language_id = 1
+ * Property fields use language-independent translations
  *
  * @param fields - Page fields from API
  * @param languages - Available languages
@@ -193,14 +197,14 @@ export function initializeFieldFormValues(
                 }
             });
         } else {
-            // Property fields: find content from language_id = 1 and replicate across all languages
-            const propertyTranslation = field.translations.find((t: IPageFieldTranslation) => t.language_id === 1);
+            // Property fields: language-independent cell, replicated across languages for editing
+            const propertyTranslation = field.translations.find((t: IPageFieldTranslation) =>
+                isLanguageIndependent(t.language_id),
+            );
             const propertyContent = propertyTranslation?.content || '';
 
-            // Set the value for language_id = 1 (property language) for consistency
-            fieldsObject[field.name][1] = propertyContent;
+            fieldsObject[field.name][LANGUAGE_INDEPENDENT_ID] = propertyContent;
 
-            // Also replicate to all available languages for editing convenience
             languages.forEach(language => {
                 fieldsObject[field.name][language.id] = propertyContent;
             });

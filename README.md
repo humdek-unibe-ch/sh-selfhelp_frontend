@@ -81,6 +81,7 @@ makes each suite a **one-command, zero-manual-export** workflow:
 npm run test:golden     # → e2e/golden   (the form → action → job golden flow)
 npm run test:a11y       # → e2e/a11y     (axe-core accessibility)
 npm run test:visual     # → e2e/visual   (visual regression)
+npm run test:access     # → e2e/access   (least-privilege walk: restricted QA personas)
 ```
 
 Each command runs the **same** harness against a different suite. The harness:

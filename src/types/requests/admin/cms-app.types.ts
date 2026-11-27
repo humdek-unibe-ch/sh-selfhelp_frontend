@@ -58,6 +58,8 @@ export interface ICmsAppFormField {
     name: string;
     style: TCmsAppFormFieldStyle;
     label?: string;
+    /** Only for text-input / textarea: store one value per language. Omit or false = default. */
+    translatable?: boolean;
 }
 
 export interface IScaffoldCmsAppRequest {

@@ -1,0 +1,57 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+
+.rail {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--mantine-color-body);
+}
+
+.header {
+  padding: var(--mantine-spacing-md) 0 var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.links {
+  flex: 1;
+  min-height: 0;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding-inline: 0;
+}
+
+.groupButton[data-expanded] {
+  background-color: var(--mantine-color-default-hover);
+}
+
+.footer {
+  padding: var(--mantine-spacing-sm) 0;
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+.dropdown {
+  padding: 4px;
+}
+
+.groupLabel {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.subLabel {
+  padding-top: var(--mantine-spacing-xs);
+  font-weight: 600;
+}
+
+.menuItem[data-active] {
+  background-color: var(--mantine-color-blue-light);
+  color: var(--mantine-color-blue-light-color);
+}

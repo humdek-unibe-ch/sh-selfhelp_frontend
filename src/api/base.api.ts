@@ -46,18 +46,32 @@ SPDX-License-Identifier: MPL-2.0
  * @module api/base.api
  */
 
-import axios from 'axios';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { API_CONFIG } from '../config/api.config';
 import { ROUTES } from '../config/routes.config';
 import { readCookieValue } from '../utils/auth.utils';
 import { CSRF_COOKIE } from '../config/cookie-names';
 import { isTransientApiError, transientRetryDelay } from '../utils/transient-error.utils';
 import { withRedirectTo } from '../utils/login-redirect.utils';
+import { observeAclStampHeader } from '../utils/acl-stamp.utils';
+import {
+    HEADER_PAGE_VERSION,
+    adminPageIdOfUrl,
+    draftWritePageId,
+    enterPageDraftWrite,
+    rememberPageDraftVersion,
+    rememberPageDraftVersionFromHeaders,
+    resolvePageDraftVersion,
+} from '../utils/page-draft-version.utils';
+import { clearStaleConflict, notifyPageEditConflict } from '../utils/page-edit-conflict.utils';
+import { PAGE_LOCKED_ERROR, STALE_PAGE_VERSION_ERROR, type IPageLockStatus } from '@selfhelp/shared';
 
 declare module 'axios' {
     export interface InternalAxiosRequestConfig {
         _retry?: boolean;
         _transientRetryCount?: number;
+        /** Lets the next draft write of the same page leave (page draft version, C8). */
+        _releasePageWrite?: () => void;
     }
 }
 
@@ -89,12 +103,22 @@ export const apiClient = apiClientRaw;
 const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete']);
 
 apiClientRaw.interceptors.request.use(
-    (config) => {
+    async (config) => {
         const method = (config.method || 'get').toLowerCase();
         if (UNSAFE_METHODS.has(method)) {
             const csrf = readCookieValue(CSRF_COOKIE);
             if (csrf) {
                 config.headers.set('X-CSRF-Token', csrf);
+            }
+        }
+        // Draft write of a page (C8): wait for the page's earlier write, then name the version
+        // the draft has now. The release function runs in the response interceptors.
+        const draftPageId = draftWritePageId(method, config.url);
+        if (draftPageId !== null) {
+            config._releasePageWrite = await enterPageDraftWrite(draftPageId);
+            const version = await resolvePageDraftVersion(draftPageId);
+            if (version !== undefined) {
+                config.headers.set(HEADER_PAGE_VERSION, String(version));
             }
         }
         // FormData must carry its own multipart boundary. The default
@@ -109,22 +133,6 @@ apiClientRaw.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-function isAdminDataOperation(url: string | undefined): boolean {
-    if (!url) return false;
-    const dataOperationPatterns = [
-        '/admin/pages/',
-        '/admin/sections/',
-        '/admin/roles/',
-        '/admin/users/',
-        '/admin/groups/',
-        '/admin/assets/',
-        '/admin/actions/',
-        '/admin/data/',
-        '/admin/scheduled-jobs/',
-    ];
-    return dataOperationPatterns.some((p) => url.includes(p));
-}
-
 /**
  * True for paths where a dead session *must* bounce to the login page
  * (admin UI). Public / login / no-access paths never bounce — the UI on
@@ -138,9 +146,64 @@ function shouldRedirectToLogin(pathname: string): boolean {
     return true;
 }
 
+/**
+ * What a reply under `/admin/pages/<id>` tells the page editor (C8, C9): the new draft version, a
+ * stale or locked refusal, and the end of this write's place in the page's line.
+ */
+function observePageDraftReply(
+    config: InternalAxiosRequestConfig | undefined,
+    headers: unknown,
+    succeeded: boolean,
+    status?: number,
+    body?: unknown,
+): void {
+    if (!config) {
+        return;
+    }
+    config._releasePageWrite?.();
+    config._releasePageWrite = undefined;
+
+    const pageId = adminPageIdOfUrl(config.url);
+    if (pageId === null) {
+        return;
+    }
+    rememberPageDraftVersionFromHeaders(pageId, headers);
+    const isDraftWrite = draftWritePageId(config.method, config.url) !== null;
+
+    if (succeeded) {
+        if (isDraftWrite) {
+            // The write went through: the inspectors follow the server again.
+            clearStaleConflict(pageId);
+        }
+        return;
+    }
+    if (!isDraftWrite || status !== 409 || !body || typeof body !== 'object') {
+        return;
+    }
+    const envelope = body as { error?: unknown; data?: unknown };
+    if (envelope.error === STALE_PAGE_VERSION_ERROR) {
+        const data = envelope.data as { current_version?: unknown } | null | undefined;
+        const current = typeof data?.current_version === 'number' ? data.current_version : null;
+        if (current !== null) {
+            rememberPageDraftVersion(pageId, current, true);
+        }
+        notifyPageEditConflict({ kind: 'stale', pageId, currentVersion: current });
+    } else if (envelope.error === PAGE_LOCKED_ERROR) {
+        notifyPageEditConflict({ kind: 'locked', pageId, status: (envelope.data as IPageLockStatus | null) ?? null });
+    }
+}
+
 apiClientRaw.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Lost-push backstop (C5): a reply whose access stamp differs from the user data's means
+        // the access changed behind this tab's back.
+        observeAclStampHeader(response.headers);
+        observePageDraftReply(response.config, response.headers, true);
+        return response;
+    },
     async (error) => {
+        observeAclStampHeader(error.response?.headers);
+        observePageDraftReply(error.config, error.response?.headers, false, error.response?.status, error.response?.data);
         const originalRequest = error.config;
         const status = error.response?.status;
         const responseData = error.response?.data;
@@ -187,22 +250,6 @@ apiClientRaw.interceptors.response.use(
             const path = window.location.pathname + window.location.search;
             if (shouldRedirectToLogin(window.location.pathname)) {
                 window.location.href = withRedirectTo(ROUTES.LOGIN, path);
-            }
-        }
-
-        // (c) Permission denied for an admin *non-data* operation. Data
-        //     operations surface the error so the caller can show an
-        //     inline message; navigation / list fetches bounce to
-        //     /no-access so the user isn't stuck on an empty shell.
-        if (
-            status === 403 &&
-            responseData?.logged_in === true &&
-            responseData?.error_type === 'permission_denied' &&
-            originalRequest?.url?.includes('/admin/') &&
-            !isAdminDataOperation(originalRequest.url)
-        ) {
-            if (typeof window !== 'undefined' && !window.location.pathname.startsWith(ROUTES.NO_ACCESS)) {
-                window.location.href = ROUTES.NO_ACCESS;
             }
         }
 

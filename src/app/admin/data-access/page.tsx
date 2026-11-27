@@ -13,7 +13,7 @@ import { PERMISSIONS } from '../../../types/auth/jwt-payload.types';
 export const metadata = { title: 'Data access · Audit logs' };
 
 export default async function AdminAuditLogsPage() {
-  await requireAdminPermission(PERMISSIONS.ADMIN_AUDIT_VIEW);
+  await requireAdminPermission(PERMISSIONS.ADMIN_AUDIT_READ);
   return (
     <AdminShell>
       <Suspense fallback={<LoadingScreen />}>

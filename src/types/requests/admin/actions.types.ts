@@ -53,6 +53,8 @@ export interface IActionJobConfig {
   reminders?: IActionReminderConfig[];
   job_add_remove_groups?: string[];
   reminder_form_id?: string;
+  /** Config for a plugin job type (C12). Validated against the plugin's `config_schema`. */
+  plugin_config?: Record<string, unknown>;
 }
 
 export interface IActionBlockConfig {

@@ -91,6 +91,8 @@ export function useCreateGroup() {
     mutationFn: (data: ICreateGroupRequest) => AdminGroupApi.createGroup(data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
+      // The section details carry the group / table / page pickers, read per request (F56).
+      void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SECTION_DETAILS_ALL });
       notifications.show({
         title: 'Success',
         message: 'Group created successfully',
@@ -117,6 +119,8 @@ export function useUpdateGroup() {
     onSuccess: (_, { groupId }) => {
       void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
       void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.detail(groupId) });
+      // The section details carry the group / table / page pickers, read per request (F56).
+      void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SECTION_DETAILS_ALL });
       notifications.show({
         title: 'Success',
         message: 'Group updated successfully',
@@ -141,6 +145,8 @@ export function useDeleteGroup() {
     mutationFn: (groupId: number) => AdminGroupApi.deleteGroup(groupId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
+      // The section details carry the group / table / page pickers, read per request (F56).
+      void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SECTION_DETAILS_ALL });
       notifications.show({
         title: 'Success',
         message: 'Group deleted successfully',

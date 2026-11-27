@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { PageApi } from '../api/page.api';
-import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { REACT_QUERY_CONFIG, refetchOnMountWhenInvalidated } from '../config/react-query.config';
 import { useLanguageContext } from '../app/components/contexts/LanguageContext';
 import { type IPageContent } from '../shared';
 
@@ -55,7 +55,9 @@ export function usePageContentByKeyword(keyword: string, options: IUsePageConten
         gcTime: preview ? 0 : REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.gcTime,
         placeholderData: keepPreviousData,
         refetchOnWindowFocus: preview,
-        refetchOnMount: preview,
+        // A page a live-sync message marked stale while it was not on screen is read again when
+        // it is shown; a page the server just delivered (hydrated) is not.
+        refetchOnMount: preview ? true : refetchOnMountWhenInvalidated,
         retry: 1,
     });
 
@@ -65,5 +67,7 @@ export function usePageContentByKeyword(keyword: string, options: IUsePageConten
         isFetching: query.isFetching,
         isPlaceholderData: query.isPlaceholderData,
         error: query.error,
+        /** When the shown payload arrived; the `valid_until` timer starts again with every one. */
+        dataUpdatedAt: query.dataUpdatedAt,
     };
 }

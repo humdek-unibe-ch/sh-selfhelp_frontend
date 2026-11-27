@@ -18,6 +18,7 @@ SPDX-License-Identifier: MPL-2.0
  *     refresh interval.
  */
 
+import type { IPluginSettingsView, IResourceUsage } from '@selfhelp/shared/plugin-sdk';
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
@@ -294,5 +295,45 @@ export const AdminPluginApi = {
     async disableSafeMode(): Promise<IBaseApiResponse<{ safeMode: boolean }>> {
         const response = await permissionAwareApiClient.post<IBaseApiResponse<{ safeMode: boolean }>>(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_SAFE_MODE_DISABLE);
         return response.data;
+    },
+
+    /** Where a plugin item is used (C7). */
+    async getResourceUsage(type: string, id: number): Promise<IResourceUsage> {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IResourceUsage>>(
+            API_CONFIG.ENDPOINTS.ADMIN_RESOURCE_USAGE,
+            type,
+            id,
+        );
+        return response.data.data;
+    },
+
+    /** Action-plannable plugin job types (C12). */
+    async listPluginJobTypes(): Promise<unknown[]> {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<unknown[]>>(
+            API_CONFIG.ENDPOINTS.ADMIN_ACTIONS_PLUGIN_JOB_TYPES,
+        );
+        return response.data.data;
+    },
+
+    /** Plugin settings as the host stores them (C14 GET). */
+    async getSettings(pluginId: string): Promise<IPluginSettingsView> {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IPluginSettingsView>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_SETTINGS_GET,
+            pluginId,
+        );
+        return response.data.data;
+    },
+
+    /** Save plugin settings (C14 PUT). Secrets left out of `values` are kept. */
+    async putSettings(
+        pluginId: string,
+        values: Record<string, string | number | boolean | null>,
+    ): Promise<IPluginSettingsView> {
+        const response = await permissionAwareApiClient.put<IBaseApiResponse<IPluginSettingsView>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_SETTINGS_PUT,
+            { values },
+            pluginId,
+        );
+        return response.data.data;
     },
 };

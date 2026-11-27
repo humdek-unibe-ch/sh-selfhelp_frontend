@@ -10,6 +10,10 @@ export interface IGroupDetails {
   add_to_new_pages: boolean;
   requires_2fa: boolean;
   users_count: number;
+  /** The caller may update this group: `admin.group.update` and the update grant on it (rule 4.11). Sent by the list only; missing counts as no. */
+  can_update?: boolean;
+  /** The caller may delete this group: `admin.group.delete` and the delete grant on it (rule 4.11). Sent by the list only; missing counts as no. */
+  can_delete?: boolean;
   acls: IGroupPageAcl[];
 }
 
@@ -20,10 +24,8 @@ export interface IGroupPageAcl {
   page_type: number;
   is_system: boolean;
   is_configuration: boolean;
+  /** Members of this group can see the page and use its forms. */
   acl_select: boolean;
-  acl_insert: boolean;
-  acl_update: boolean;
-  acl_delete: boolean;
 }
 
 export interface IGroupsPagination {

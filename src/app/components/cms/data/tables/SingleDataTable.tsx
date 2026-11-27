@@ -13,12 +13,14 @@ import {
   useReactTable,
   type ColumnDef,
   type SortingState,
+  type VisibilityState,
 } from '@tanstack/react-table';
 import {
   ActionIcon,
   Badge,
   Box,
   Card,
+  Checkbox,
   Group,
   LoadingOverlay,
   Menu,
@@ -36,7 +38,7 @@ import {
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { SortHeader, adminTableClasses as tableStyles, ariaSort } from '../../shared/admin-table';
-import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconRefresh, IconDownload, IconFileTypeCsv, IconJson, IconFileZip, IconHistory } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconRefresh, IconDownload, IconFileTypeCsv, IconFileTypeXls, IconJson, IconFileZip, IconHistory } from '@tabler/icons-react';
 import { AdminDataHistoryModal } from '../modals/AdminDataHistoryModal';
 import { useDataRows, useDeleteRecord, useDeleteTable, useExportTable, useTableColumns } from '../../../../../hooks/useData';
 import { useDataTableOptionLabelMaps } from '../../../../../hooks/useDataTableOptionLabelMaps';
@@ -52,6 +54,7 @@ import {
 import { alignOptionLabelMapsToFieldKeys } from './data-table-option-labels.utils';
 import { FormFileCell, getFormFilePaths, getRecordIdsWithFiles } from './FormFileCell';
 import { API_CONFIG } from '../../../../../config/api.config';
+import { formatContentRef } from '../../../../../utils/content-ref.utils';
 
 interface ISingleDataTableProps {
   formId: number;
@@ -70,10 +73,13 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
   const [isDeleteTableOpen, setIsDeleteTableOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
+  // Meta columns (C19 content_ref) stay hidden until the admin asks for them.
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({ content_ref: false });
 
   useEffect(() => {
     setSorting([]);
     setGlobalFilter('');
+    setColumnVisibility({ content_ref: false });
   }, [tableName, selectedUserId, showDeleted, selectedLanguageId]);
   const deleteRecord = useDeleteRecord();
   const deleteTable = useDeleteTable();
@@ -134,30 +140,45 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
     const allKeys = Array.from(new Set([...declaredKeys, ...rowKeys]))
       .filter((key) => !isRuntimeOptionLabelKey(key));
     if (allKeys.length === 0) return [];
-    const baseCols = allKeys.map((key): ColumnDef<Record<string, unknown>> => ({
-      // `id` + `accessorFn` (not `accessorKey`): a field_key may contain dots
-      // and must be read as an opaque literal, never as a nested path.
-      id: key,
-      accessorFn: (row) => getDataCellDisplayValue(key, row, optionLabelMaps),
-      header: ({ column }) => <SortHeader label={labelByKey[key] ?? key} column={column} />,
-      cell: ({ row }) => {
-        const filePaths = fileColumnKeys.has(key) ? getFormFilePaths(row.original[key]) : [];
-        if (filePaths.length > 0) {
-          return <FormFileCell recordId={Number(row.original.record_id)} fieldKey={key} paths={filePaths} />;
-        }
-        const display = getDataCellDisplayValue(key, row.original, optionLabelMaps);
-        const storedCode = getDataCellStoredCode(key, row.original);
-        if (display !== storedCode && storedCode !== '') {
-          return (
-            <Tooltip label={`Stored code: ${storedCode}`}>
-              <Text size="sm">{display}</Text>
-            </Tooltip>
-          );
-        }
-        return <Text size="sm">{display}</Text>;
-      },
-      enableSorting: true,
-    }));
+    const baseCols = allKeys.map((key): ColumnDef<Record<string, unknown>> => {
+      if (key === 'content_ref') {
+        return {
+          id: 'content_ref',
+          accessorFn: (row) => formatContentRef(row.content_ref),
+          header: ({ column }) => <SortHeader label="Content version" column={column} />,
+          cell: ({ row }) => (
+            <Text size="sm" data-testid="content-ref-cell">
+              {formatContentRef(row.original.content_ref)}
+            </Text>
+          ),
+          enableSorting: true,
+        };
+      }
+      return {
+        // `id` + `accessorFn` (not `accessorKey`): a field_key may contain dots
+        // and must be read as an opaque literal, never as a nested path.
+        id: key,
+        accessorFn: (row) => getDataCellDisplayValue(key, row, optionLabelMaps),
+        header: ({ column }) => <SortHeader label={labelByKey[key] ?? key} column={column} />,
+        cell: ({ row }) => {
+          const filePaths = fileColumnKeys.has(key) ? getFormFilePaths(row.original[key]) : [];
+          if (filePaths.length > 0) {
+            return <FormFileCell recordId={Number(row.original.record_id)} fieldKey={key} paths={filePaths} />;
+          }
+          const display = getDataCellDisplayValue(key, row.original, optionLabelMaps);
+          const storedCode = getDataCellStoredCode(key, row.original);
+          if (display !== storedCode && storedCode !== '') {
+            return (
+              <Tooltip label={`Stored code: ${storedCode}`}>
+                <Text size="sm">{display}</Text>
+              </Tooltip>
+            );
+          }
+          return <Text size="sm">{display}</Text>;
+        },
+        enableSorting: true,
+      };
+    });
     return [
       ...baseCols,
       {
@@ -203,11 +224,14 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onColumnVisibilityChange: setColumnVisibility,
     state: {
       sorting,
       globalFilter,
+      columnVisibility,
     },
   });
+  const hasContentRefColumn = columns.some((column) => column.id === 'content_ref');
   // Rows the admin currently sees (after search) that hold uploads.
   const shownRecordIdsWithFiles = getRecordIdsWithFiles(table.getFilteredRowModel().rows.map((row) => row.original), fileColumnKeys);
 
@@ -241,6 +265,9 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
               <Menu.Label>Export as</Menu.Label>
               <Menu.Item leftSection={<IconFileTypeCsv size={16} />} onClick={() => handleExport('csv')}>
                 CSV
+              </Menu.Item>
+              <Menu.Item leftSection={<IconFileTypeXls size={16} />} onClick={() => handleExport('xlsx')}>
+                Excel
               </Menu.Item>
               <Menu.Item leftSection={<IconJson size={16} />} onClick={() => handleExport('json')}>
                 JSON
@@ -277,15 +304,28 @@ export default function SingleDataTable({ formId, tableName, displayName, locked
         </Group>
       </Group>
 
-      <TextInput aria-label="Search table data"
-        placeholder="Search table data..."
-        leftSection={<IconSearch size={16} />}
-        value={globalFilter}
-        onChange={(event) => setGlobalFilter(event.currentTarget.value)}
-        w={300}
-        size="sm"
-        mb="sm"
-      />
+      <Group mb="sm" gap="md" align="center">
+        <TextInput aria-label="Search table data"
+          placeholder="Search table data..."
+          leftSection={<IconSearch size={16} />}
+          value={globalFilter}
+          onChange={(event) => setGlobalFilter(event.currentTarget.value)}
+          w={300}
+          size="sm"
+        />
+        {hasContentRefColumn && (
+          <Checkbox
+            label="Show content version"
+            checked={columnVisibility.content_ref !== false}
+            onChange={(event) =>
+              setColumnVisibility((previous) => ({
+                ...previous,
+                content_ref: event.currentTarget.checked,
+              }))
+            }
+          />
+        )}
+      </Group>
 
       <div className={tableStyles.tableWrapper}>
         <Box className={tableStyles.tableScrollContainer}>

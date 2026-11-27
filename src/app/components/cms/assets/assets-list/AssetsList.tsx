@@ -56,6 +56,7 @@ import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import { parseApiError } from '../../../../../utils/mutation-error-handler';
 import { assetLabel, childFolders, folderDescendantIds, folderPathLabel, folderTrail } from '../assets.utils';
 import { AssetRow } from './AssetRow';
+import { useSyncedAssetSelection } from './useSyncedAssetSelection';
 import { FolderNode } from './FolderTree';
 import { NewFolderRow } from './FolderNameField';
 import { MoveToFolderModal, TOP_LEVEL } from './MoveToFolderModal';
@@ -105,6 +106,8 @@ export function AssetsList({ onAssetSelect, onExportSelected, headerActions, onU
   useEffect(() => {
     selectedRef.current = selected;
   });
+  // F121: an asset changed elsewhere replaces (or drops) its copy in the selection.
+  useSyncedAssetSelection(selectedRef, setSelected);
   const [expanded, setExpanded] = useState<ReadonlySet<number>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<IAsset | null>(null);
   const [editTarget, setEditTarget] = useState<IAsset | null>(null);

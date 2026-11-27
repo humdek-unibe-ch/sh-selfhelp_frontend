@@ -214,6 +214,8 @@ export const REACT_QUERY_CONFIG = {
         PAGE_SECTIONS: (pageId?: number | string | null) => ['pageSections', pageId],
         PAGE_SECTIONS_ALL: ['pageSections'],
         PAGE_FIELDS: (pageId?: number | string | null) => ['pageFields', pageId],
+        /** Root of every PAGE_FIELDS key: the page read carries the caller's `rights`. */
+        PAGE_FIELDS_ALL: ['pageFields'],
         // Invalidated by the version mutations. No read hook currently
         // subscribes to this key; kept so the writers reference the registry
         // instead of a literal (forward-compatible invalidation target).
@@ -268,6 +270,11 @@ export const REACT_QUERY_CONFIG = {
         // root its readers subscribe to.
         GROUPS_ALL: ['groups'],
         ROLES_ALL: ['roles'],
+        // The permission list says which ones the signed-in person may hand out
+        // (`can_assign`), so it is per person like the role items (`can_update`,
+        // `can_delete`): `useAclVersionWatcher` marks both roots stale when the
+        // person or their roles change.
+        PERMISSIONS_ALL: ['permissions'],
         ASSETS_ALL: ['assets'],
         SCHEDULED_JOBS_ALL: ['scheduledJobs'],
         // The calendar view reads its own all-pages list under this root.
@@ -287,6 +294,9 @@ export const REACT_QUERY_CONFIG = {
         PUBLIC_LANGUAGES: ['public-languages'],
         LOOKUPS: ['lookups'],
         STYLE_GROUPS: ['style-groups'],
+        // Data-access resource types plugins add (read by the roles screen,
+        // invalidated when a plugin is installed, enabled, disabled or removed).
+        ADMIN_PLUGIN_RESOURCE_TYPES: ['admin-plugin-resource-types'],
         USER_DATA: ['user-data'],
         ADMIN_DATA_QUERY_PREVIEW: ['admin', 'data', 'query-preview'],
     },

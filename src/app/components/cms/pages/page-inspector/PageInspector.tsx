@@ -40,6 +40,12 @@ import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdateP
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { type IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
+import {
+    InspectorFieldSearch,
+    useInspectorFieldFilter,
+    matchesFieldQuery,
+    countMatchingFields,
+} from '../../shared/inspector-search';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
 import styles from './PageInspector.module.css';
@@ -78,6 +84,16 @@ import {
     PageNavigationMembership,
 } from './page-field-groups';
 import { PageRoutesPanel } from './PageRoutesPanel';
+import { ReadOnlyFieldset, lockPauseLabel, usePageEditRights } from '../page-rights/PageRightsContext';
+import { isStaleConflictHeld } from '../../../../../utils/page-edit-conflict.utils';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
+import {
+    collectPageSearchableFields,
+    matchesPagePropertyGroup,
+    pageFieldToSearchable,
+    PAGE_ROUTES_META,
+} from './pageInspectorSearch';
 
 export enum MenuType {
     HEADER = 'header',
@@ -143,6 +159,20 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
         }
     }, [languagesData, activeLanguageTab]);
 
+    // What the caller may do with this page (server flags); the fields are read-only without update.
+    const { canUpdate, canDelete, canPublish, allowDelete, allowPublish, lock } = usePageEditRights();
+    const readOnly = !canUpdate;
+    const { permissionChecker } = useAuthUser();
+    const canCreatePages = permissionChecker?.hasPermission(PERMISSIONS.ADMIN_PAGE_CREATE) ?? false;
+    // Show version-delete when the caller may update (server) and holds the route right; the lock
+    // only disables it (tooltip), so the control stays visible while someone else holds the lock.
+    const allowDeleteVersions =
+        pageFieldsData?.rights?.can_update === true &&
+        (permissionChecker?.hasPermission(PERMISSIONS.ADMIN_PAGE_VERSION_DELETE) ?? false);
+    const canDeleteVersions = allowDeleteVersions && canUpdate;
+    // Tooltip of the paused controls: who is editing, or that the caller's own session ended (null when nothing is paused).
+    const lockPausedLabel = lockPauseLabel(lock);
+
     const updatePageMutation = useUpdatePageMutation({
         onSuccess: (_updatedPage, pageId) => {
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES });
@@ -170,6 +200,10 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
 
     // Load page data into Zustand store
     useEffect(() => {
+        // A write was refused as stale (C8): the draft was reloaded, but the person's unsaved values stay on screen.
+        if (page && isStaleConflictHeld(page.id_pages)) {
+            return;
+        }
         if (page && pageFieldsData && languagesData.length > 0) {
             const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languagesData);
             const pageDetails = pageFieldsData.page;
@@ -194,6 +228,73 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
     const propertyFields = useMemo(() => fields.filter(field => !field.display), [fields]);
     const hasMultipleLanguages = useMemo(() => languagesData.length > 1, [languagesData.length]);
     const defaultLanguageId = useMemo(() => languagesData[0]?.id || 1, [languagesData]);
+
+    const fieldFilter = useInspectorFieldFilter({ resetKey: page?.id_pages ?? null });
+    const searchQuery = fieldFilter.query;
+
+    const searchableCatalog = useMemo(
+        () =>
+            collectPageSearchableFields({
+                contentFields,
+                propertyFields,
+                includeProperties: !isConfigurationPage,
+                includeRoutes: !isConfigurationPage,
+                includeConfiguration: isConfigurationPage,
+            }),
+        [contentFields, propertyFields, isConfigurationPage],
+    );
+
+    const matchCount = useMemo(
+        () => countMatchingFields(searchableCatalog, searchQuery),
+        [searchableCatalog, searchQuery],
+    );
+
+    const filteredContentFields = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return contentFields;
+        }
+        return contentFields.filter((field) =>
+            matchesFieldQuery(pageFieldToSearchable(field), searchQuery),
+        );
+    }, [contentFields, searchQuery]);
+
+    const filteredPropertyFields = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return propertyFields;
+        }
+        return propertyFields.filter((field) =>
+            matchesFieldQuery(pageFieldToSearchable(field), searchQuery),
+        );
+    }, [propertyFields, searchQuery]);
+
+    const showBasic = matchesPagePropertyGroup('basic', searchQuery);
+    const showAccess = matchesPagePropertyGroup('access', searchQuery);
+    const showNavigation = matchesPagePropertyGroup('navigation', searchQuery);
+    const showSettings = matchesPagePropertyGroup('settings', searchQuery);
+    const showAdditional = matchesPagePropertyGroup(
+        'additional',
+        searchQuery,
+        propertyFields,
+    );
+    const showHints = matchesPagePropertyGroup('hints', searchQuery);
+    const showRoutes = matchesFieldQuery(PAGE_ROUTES_META, searchQuery);
+    const showContentSection =
+        !searchQuery.trim() || filteredContentFields.length > 0;
+    const showPropertiesSection =
+        !isConfigurationPage &&
+        (!searchQuery.trim() ||
+            showBasic ||
+            showAccess ||
+            showNavigation ||
+            showSettings ||
+            showAdditional ||
+            showHints);
+    const showRoutesSection = !isConfigurationPage && showRoutes;
+    const showConfigSection =
+        isConfigurationPage &&
+        propertyFields.length > 0 &&
+        (!searchQuery.trim() || filteredPropertyFields.length > 0);
+    const searchForceExpand = fieldFilter.isActive;
 
     const handleSave = useCallback(() => {
         const storeState = usePageFormStore.getState();
@@ -231,7 +332,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
     useHotkeys([
         ['ctrl+S', (e) => {
             e.preventDefault();
-            handleSave();
+            if (canUpdate) handleSave();
         }]
     ]);
 
@@ -304,15 +405,17 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
             <Group gap="xs">
               {/* "Live preview" + "Open web page" now live in the page sections
                   toolbar; the inspector header keeps only Save. */}
-              <Button
-                leftSection={<IconDeviceFloppy size="1rem" />}
-                onClick={handleSave}
-                variant="filled"
-                loading={updatePageMutation.isPending}
-                disabled={!page?.keyword}
-              >
-                Save
-              </Button>
+              {canUpdate && (
+                <Button
+                  leftSection={<IconDeviceFloppy size="1rem" />}
+                  onClick={handleSave}
+                  variant="filled"
+                  loading={updatePageMutation.isPending}
+                  disabled={!page?.keyword}
+                >
+                  Save
+                </Button>
+              )}
             </Group>
           </Group>
         </Box>
@@ -320,7 +423,17 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
         {/* Scrollable Content */}
         <ScrollArea flex={1}>
           <Stack gap="lg" p="md">
-            {/* Page Information Section */}
+            <InspectorFieldSearch
+              query={fieldFilter.query}
+              onQueryChange={fieldFilter.setQuery}
+              onClear={fieldFilter.clear}
+              onInputKeyDown={fieldFilter.handleInputKeyDown}
+              inputRef={fieldFilter.inputRef}
+              matchCount={matchCount}
+              totalCount={searchableCatalog.length}
+            />
+
+            {/* Page Information Section — always visible (identity, not a field). */}
             <PageInfoPanel
               page={page}
               pageId={pageDetails?.id}
@@ -328,43 +441,88 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
             />
 
             {/* Content Section */}
-            <CollapsibleSection
-              title="Content"
-              inspectorType={INSPECTOR_TYPES.PAGE}
-              sectionName="content"
-              defaultExpanded={true}
-            >
-              {contentFields.length > 0 ? (
-                hasMultipleLanguages ? (
-                  <Tabs
-                    value={activeLanguageTab}
-                    onChange={(value) =>
-                      setActiveLanguageTab(
-                        value || languagesData[0]?.id.toString() || "",
-                      )
-                    }
-                  >
-                    <Tabs.List>
-                      {languagesData.map((lang) => (
-                        <Tabs.Tab key={lang.id} value={lang.id.toString()}>
-                          {lang.language}
-                        </Tabs.Tab>
-                      ))}
-                    </Tabs.List>
+            {showContentSection ? (
+              <CollapsibleSection
+                title="Content"
+                inspectorType={INSPECTOR_TYPES.PAGE}
+                sectionName="content"
+                defaultExpanded={true}
+                forceExpanded={searchForceExpand}
+              >
+                {filteredContentFields.length > 0 ? (
+                  hasMultipleLanguages ? (
+                    <Tabs
+                      value={activeLanguageTab}
+                      onChange={(value) =>
+                        setActiveLanguageTab(
+                          value || languagesData[0]?.id.toString() || "",
+                        )
+                      }
+                    >
+                      <Tabs.List>
+                        {languagesData.map((lang) => (
+                          <Tabs.Tab key={lang.id} value={lang.id.toString()}>
+                            {lang.language}
+                          </Tabs.Tab>
+                        ))}
+                      </Tabs.List>
 
-                    {languagesData.map((lang) => (
-                      <Tabs.Panel
-                        key={lang.id}
-                        value={lang.id.toString()}
-                        pt="md"
-                      >
-                        <Stack gap="md">
-                          {contentFields.map((field) => (
+                      {languagesData.map((lang) => (
+                        <Tabs.Panel
+                          key={lang.id}
+                          value={lang.id.toString()}
+                          pt="md"
+                        >
+                          <ReadOnlyFieldset readOnly={readOnly}>
+                          <Stack gap="md">
+                            {contentFields.map((field) => {
+                              const visible = matchesFieldQuery(
+                                pageFieldToSearchable(field),
+                                searchQuery,
+                              );
+                              return (
+                                <Box
+                                  key={`${field.id}-${lang.id}`}
+                                  style={visible ? undefined : { display: 'none' }}
+                                  aria-hidden={!visible}
+                                >
+                                  <PageContentField
+                                    field={field}
+                                    languageId={lang.id}
+                                    locale={lang.locale}
+                                    className={styles.fullWidthLabel}
+                                    dataVariables={pageDataVariables}
+                                    disabled={
+                                      isConfigurationPage &&
+                                      field.name.toLowerCase() === "title"
+                                    }
+                                  />
+                                </Box>
+                              );
+                            })}
+                          </Stack>
+                          </ReadOnlyFieldset>
+                        </Tabs.Panel>
+                      ))}
+                    </Tabs>
+                  ) : (
+                    <ReadOnlyFieldset readOnly={readOnly}>
+                    <Stack gap="md">
+                      {contentFields.map((field) => {
+                        const visible = matchesFieldQuery(
+                          pageFieldToSearchable(field),
+                          searchQuery,
+                        );
+                        return (
+                          <Box
+                            key={`${field.id}-${defaultLanguageId}`}
+                            style={visible ? undefined : { display: 'none' }}
+                            aria-hidden={!visible}
+                          >
                             <PageContentField
-                              key={`${field.id}-${lang.id}`}
                               field={field}
-                              languageId={lang.id}
-                              locale={lang.locale}
+                              languageId={defaultLanguageId}
+                              locale={languagesData[0]?.locale}
                               className={styles.fullWidthLabel}
                               dataVariables={pageDataVariables}
                               disabled={
@@ -372,86 +530,91 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                                 field.name.toLowerCase() === "title"
                               }
                             />
-                          ))}
-                        </Stack>
-                      </Tabs.Panel>
-                    ))}
-                  </Tabs>
+                          </Box>
+                        );
+                      })}
+                    </Stack>
+                    </ReadOnlyFieldset>
+                  )
                 ) : (
-                  <Stack gap="md">
-                    {contentFields.map((field) => (
-                      <PageContentField
-                        key={`${field.id}-${defaultLanguageId}`}
-                        field={field}
-                        languageId={defaultLanguageId}
-                        locale={languagesData[0]?.locale}
-                        className={styles.fullWidthLabel}
-                        dataVariables={pageDataVariables}
-                        disabled={
-                          isConfigurationPage &&
-                          field.name.toLowerCase() === "title"
-                        }
-                      />
-                    ))}
-                  </Stack>
-                )
-              ) : (
-                <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
-                  No content fields available for this page.
-                </Alert>
-              )}
-            </CollapsibleSection>
+                  <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
+                    No content fields available for this page.
+                  </Alert>
+                )}
+              </CollapsibleSection>
+            ) : null}
 
             {/* Properties Section */}
-            {!isConfigurationPage && (
+            {showPropertiesSection ? (
               <CollapsibleSection
                 title="Properties"
                 inspectorType={INSPECTOR_TYPES.PAGE}
                 sectionName="properties"
                 defaultExpanded={true}
+                forceExpanded={searchForceExpand}
               >
-                <PageBasicInfoFields />
-                <PageAccessTypeGroup options={pageAccessTypes} />
-                <PageNavigationMembership pageId={page.id_pages} />
-                <PageSettings />
-                <PageAdditionalProperties
-                  fields={propertyFields}
-                />
-                <PageNavigationHints page={page} adminPages={adminPages} />
+                <ReadOnlyFieldset readOnly={readOnly}>
+                {showBasic ? <PageBasicInfoFields /> : null}
+                {showAccess ? <PageAccessTypeGroup options={pageAccessTypes} /> : null}
+                {showNavigation ? (
+                  <PageNavigationMembership pageId={page.id_pages} />
+                ) : null}
+                {showSettings ? <PageSettings /> : null}
+                {showAdditional ? (
+                  <PageAdditionalProperties fields={filteredPropertyFields} />
+                ) : null}
+                {showHints ? (
+                  <PageNavigationHints page={page} adminPages={adminPages} />
+                ) : null}
+                </ReadOnlyFieldset>
               </CollapsibleSection>
-            )}
+            ) : null}
 
             {/* Public Routes Section (issue #30) — DB-driven, parameterized
                 public URLs for this page. Configuration pages have no public
                 URL, so the panel is hidden for them. */}
-            {!isConfigurationPage && (
+            {showRoutesSection ? (
               <CollapsibleSection
                 title="Routes"
                 inspectorType={INSPECTOR_TYPES.PAGE}
                 sectionName="routes"
                 defaultExpanded={false}
+                forceExpanded={searchForceExpand}
               >
-                <PageRoutesPanel routes={routes} onChange={setRoutes} />
+                <ReadOnlyFieldset readOnly={readOnly}>
+                  <PageRoutesPanel routes={routes} onChange={setRoutes} />
+                </ReadOnlyFieldset>
               </CollapsibleSection>
-            )}
+            ) : null}
 
             {/* Property Fields for Configuration Pages */}
-            {isConfigurationPage && propertyFields.length > 0 && (
+            {showConfigSection ? (
               <CollapsibleSection
                 title="Configuration Properties"
                 inspectorType={INSPECTOR_TYPES.PAGE}
                 sectionName="configuration-properties"
                 defaultExpanded={true}
+                forceExpanded={searchForceExpand}
               >
-                {propertyFields.map((field) => (
-                  <Box key={field.id}>
-                    <PagePropertyField
-                      field={field}
-                    />
-                  </Box>
-                ))}
+                {propertyFields.map((field) => {
+                  const visible = matchesFieldQuery(
+                    pageFieldToSearchable(field),
+                    searchQuery,
+                  );
+                  return (
+                    <Box
+                      key={field.id}
+                      style={visible ? undefined : { display: 'none' }}
+                      aria-hidden={!visible}
+                    >
+                      <ReadOnlyFieldset readOnly={readOnly}>
+                        <PagePropertyField field={field} />
+                      </ReadOnlyFieldset>
+                    </Box>
+                  );
+                })}
               </CollapsibleSection>
-            )}
+            ) : null}
 
             {/* Version Management Section */}
             {page?.id_pages && (
@@ -487,14 +650,19 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                       versionId,
                     });
                   }}
-                  onRestore={(versionId) => {
+                  onRestore={canUpdate ? (versionId) => {
                     if (page?.id_pages) {
                       restoreVersionMutation.mutate({
                         pageId: page.id_pages,
                         versionId,
                       });
                     }
-                  }}
+                  } : undefined}
+                  canPublish={canPublish}
+                  allowPublish={allowPublish}
+                  canDeleteVersions={canDeleteVersions}
+                  allowDeleteVersions={allowDeleteVersions}
+                  lockPausedLabel={lockPausedLabel}
                   isPublishing={publishVersionMutation.isPending}
                   isDeleting={unpublishPageMutation.isPending}
                   isRestoring={restoreVersionMutation.isPending}
@@ -534,7 +702,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                       Export Sections
                     </Button>
 
-                    {!page?.is_system && (
+                    {!page?.is_system && canCreatePages && (
                       <Button
                         leftSection={<IconPlus size="1rem" />}
                         variant="outline"
@@ -544,24 +712,29 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
                       </Button>
                     )}
 
-                    <Tooltip
+                    {allowDelete && <Tooltip
                       label={
                         page?.is_system
                           ? "System pages cannot be deleted"
-                          : "Delete this page"
+                          : !canDelete && lockPausedLabel
+                            ? lockPausedLabel
+                            : "Delete this page"
                       }
                       position="top"
                     >
-                      <Button
-                        leftSection={<IconTrash size="1rem" />}
-                        color="red"
-                        variant="outline"
-                        onClick={() => setDeleteModalOpened(true)}
-                        disabled={Boolean(page?.is_system)}
-                      >
-                        Delete Page
-                      </Button>
-                    </Tooltip>
+                      <span style={{ display: 'inline-flex' }}>
+                        <Button
+                          leftSection={<IconTrash size="1rem" />}
+                          color="red"
+                          variant="outline"
+                          onClick={() => setDeleteModalOpened(true)}
+                          disabled={Boolean(page?.is_system) || !canDelete}
+                          data-testid="page-delete-button"
+                        >
+                          Delete Page
+                        </Button>
+                      </span>
+                    </Tooltip>}
                   </Group>
                 </Stack>
               </Paper>

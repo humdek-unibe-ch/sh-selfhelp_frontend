@@ -46,7 +46,7 @@ SPDX-License-Identifier: MPL-2.0
  * visibility changes; intentional fresh-code remounts are owned by
  * `useMobilePreviewSession`.
  *
- * Gated by the `admin.mobile_preview.view` permission (server-checked in the
+ * Gated by the `admin.mobile_preview.read` permission (server-checked in the
  * route, client-checked for the editor entry point). The admin JWT never
  * reaches the mobile iframe — only the opaque one-time code does.
  *

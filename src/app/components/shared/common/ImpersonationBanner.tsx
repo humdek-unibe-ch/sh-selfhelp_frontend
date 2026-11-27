@@ -4,10 +4,14 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
+import { useEffect } from 'react';
 import { Affix, Alert, Button, Group, Loader, Text } from '@mantine/core';
+import { useElementSize } from '@mantine/hooks';
 import { IconUserOff } from '@tabler/icons-react';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useStopImpersonate } from '../../../../hooks/useUsers';
+
+const BANNER_OFFSET = 20;
 
 /**
  * Floating banner that lets an admin see — and end — an active
@@ -27,6 +31,11 @@ import { useStopImpersonate } from '../../../../hooks/useUsers';
  * which user they are pretending to be — exactly when the visual cue
  * is most needed.
  *
+ * The banner floats over the page, so while it shows the page gets
+ * room at the bottom of the same height: whatever sits in the bottom
+ * right corner (an editor's buttons, a table footer) can be scrolled
+ * clear of it.
+ *
  * State source of truth: `useImpersonationStore` (via `useAuth`),
  * which is driven by Mercure `impersonation-status` events on the
  * per-user topic plus a local `setTimeout(expires_in)` safety-net.
@@ -39,14 +48,25 @@ import { useStopImpersonate } from '../../../../hooks/useUsers';
 export function ImpersonationBanner() {
     const { isImpersonating, targetUser } = useAuth();
     const stopMutation = useStopImpersonate();
+    const { ref, height } = useElementSize();
+
+    useEffect(() => {
+        if (!isImpersonating || height === 0) return undefined;
+        const previous = document.body.style.paddingBottom;
+        document.body.style.paddingBottom = `${height + BANNER_OFFSET * 2}px`;
+        return () => {
+            document.body.style.paddingBottom = previous;
+        };
+    }, [isImpersonating, height]);
 
     if (!isImpersonating) return null;
 
     const handleStop = () => stopMutation.mutate();
 
     return (
-        <Affix position={{ bottom: 20, right: 20 }}>
+        <Affix position={{ bottom: BANNER_OFFSET, right: BANNER_OFFSET }}>
             <Alert
+                ref={ref}
                 color="orange"
                 variant="filled"
                 w={320}

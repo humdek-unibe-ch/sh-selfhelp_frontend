@@ -37,6 +37,7 @@ import { type IAdminPage } from '../../../../../types/responses/admin/admin.type
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
+import { LANGUAGE_INDEPENDENT_ID } from '@selfhelp/shared';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { type IUpdatePageData, type IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import styles from './ConfigurationPageEditor.module.css';
@@ -49,6 +50,7 @@ import {
 } from '../../../../../utils/field-processing.utils';
 import { type IPageField } from '../../../../../types/common/pages.type';
 import { useInterpolationVariables } from '../../../../../hooks/useInterpolationVariables';
+import { PageReadOnlyBanner, ReadOnlyFieldset, usePageEditRights } from '../page-rights/PageRightsContext';
 
 interface ConfigurationPageEditorProps {
     page: IAdminPage;
@@ -184,11 +186,14 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         }
     }, [form.values.fields, pageFieldsData?.fields, languagesData]);
 
+    // Changing a configuration page needs the update right on it (server flags).
+    const { canUpdate } = usePageEditRights();
+
     // Save hotkey (Ctrl+S)
     useHotkeys([
         ['ctrl+S', (e) => {
             e.preventDefault();
-            handleSave();
+            if (canUpdate) handleSave();
         }]
     ]);
 
@@ -326,8 +331,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
     // Render property field
     const renderPropertyField = (field: IPageField) => {
-        // Property fields use language_id = 1 (property language)
-        const langId = 1;
+        // Property fields use the language-independent sentinel
+        const langId = LANGUAGE_INDEPENDENT_ID;
         const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
         
         // Convert IPageField to IFieldData
@@ -389,6 +394,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                         </Text>
                     </Alert>
 
+                    <PageReadOnlyBanner />
+
                     {/* Header Section - made smaller */}
                     <Paper shadow="md" p="md" withBorder radius="md" className={styles.headerSection}>
                         <Group justify="space-between" align="center">
@@ -400,15 +407,17 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                     {page.keyword}
                                 </Title>
                             </Group>
-                            <Button
-                                leftSection={<IconDeviceFloppy size="1rem" />}
-                                onClick={handleSave}
-                                size="sm"
-                                loading={updatePageMutation.isPending}
-                                radius="sm"
-                            >
-                                Save
-                            </Button>
+                            {canUpdate && (
+                                <Button
+                                    leftSection={<IconDeviceFloppy size="1rem" />}
+                                    onClick={handleSave}
+                                    size="sm"
+                                    loading={updatePageMutation.isPending}
+                                    radius="sm"
+                                >
+                                    Save
+                                </Button>
+                            )}
                         </Group>
                         <Group>
                             {descriptionValue && (
@@ -458,13 +467,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                                 const langId = lang.id.toString();
                                                 return (
                                                     <Tabs.Panel key={langId} value={langId}>
-                                                        {renderContentLayout(lang.id)}
+                                                        <ReadOnlyFieldset readOnly={!canUpdate}>{renderContentLayout(lang.id)}</ReadOnlyFieldset>
                                                     </Tabs.Panel>
                                                 );
                                             })}
                                         </Tabs>
                                     ) : (
-                                        renderContentLayout(languagesData[0]?.id || 1)
+                                        <ReadOnlyFieldset readOnly={!canUpdate}>{renderContentLayout(languagesData[0]?.id || 1)}</ReadOnlyFieldset>
                                     )}
                                 </Card.Section>
                             </Collapse>
@@ -493,6 +502,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
                             <Collapse expanded={propertiesExpanded}>
                                 <Card.Section p="lg">
+                                    <ReadOnlyFieldset readOnly={!canUpdate}>
                                     <div className={styles.fieldGrid}>
                                         {propertyFields.map(field => (
                                             <div key={field.id}>
@@ -500,6 +510,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                             </div>
                                         ))}
                                     </div>
+                                    </ReadOnlyFieldset>
                                 </Card.Section>
                             </Collapse>
                         </Card>

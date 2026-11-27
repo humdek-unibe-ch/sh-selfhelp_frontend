@@ -12,18 +12,351 @@ No engineering diary, no implementation detail — that belongs in
 `dev_log.md`. Architectural rationale belongs in
 `docs/architecture/ssr-bff-architecture.md`.
 
----
+## v0.1.79 — 2026-11-26
+
+### Changed
+- Pins the published `@selfhelp/shared` **1.31.0** (`package.json` and the
+  lockfile).
+
+### Fixed
+- **Full-stack CI workflows create the backend `.env`.** `e2e-access`,
+  `e2e-golden`, `lighthouse` and `visual-snapshots` copy the backend's
+  `.env.default` to `.env` and run `composer install --no-scripts`, as the
+  backend's own workflows do. The post-install `cache:clear` needs `.env` and
+  reads API routes from the test database (`selfhelp_test_test`), which only
+  exists after `test:reset-db`; it failed, and the `e2e-access` PR check
+  could not start.
+- **Playwright jobs run on `ubuntu-24.04`.** GitHub's `ubuntu-latest` became
+  Ubuntu 26.04 in November 2026, where Playwright 1.60.0 cannot install
+  Chromium. `e2e-access`, the golden full-stack job and `visual-snapshots` are
+  pinned until Playwright is raised (1.65 supports 26.04); the Linux visual
+  baselines stay comparable.
+
+### Added
+- **Record history shows plugin writes.** A version a plugin wrote reads
+  "via plugin" instead of failing to name its source.
+- **Plugin host hooks UI (pairs with core 0.1.52).** Live sync applies each
+  plugin's declarative `sync` map and `res:` page tags; the ACL watcher
+  invalidates plugin `acl` entries. `PluginRuntime` exposes `sectionAnchor`,
+  `resources.usage`, `settings.get` and `ui.ResourceUsageList`. The shared
+  where-used list shows pages, actions, a hidden count and a delete warning.
+  The roles plugin popup disables rows without `can_assign`. `content_ref`
+  shows as "Content version" (or "unknown") in the data browser and history.
+- **Action builder plugin jobs.** After the core job types, the builder loads
+  action-plannable plugin types and draws a generated `SchemaConfigForm`
+  (including viewable resource pickers) into `plugin_config`.
+- **Plugin settings form** on the plugin detail page (secrets hint, omit
+  untouched secrets, clear with `null`, env-overridden disabled).
+- **Plugin JSON Logic operations** appear in the condition builder function
+  list from enabled plugins' public manifest.
+- **Plugin detail** shows dependencies and their state, `listens`, recurring
+  jobs, and surfaces 409 dependency/conflict names.
+- **F238 plugin-host rights:** execute vs manage vs purge gate the Plugins
+  screen controls.
+- **Collapsible admin sidebar.** The collapse button next to the logo (or
+  Ctrl/Cmd+B) turns the sidebar into an icon rail; each section opens its
+  pages and quick actions in a flyout on hover, click or keyboard. The choice
+  is remembered.
+- **Admin menu on narrow screens.** Below 768px a top bar with a menu button
+  opens the admin sidebar, which closes again after picking a page.
+- **Excel export of data tables.** The data screen's export menu and the bulk
+  export offer Excel next to CSV and JSON (needs a backend with `format=xlsx`).
+- **Plugin styles know their page.** `BasicStyle` draws plugin styles through
+  `PluginStyleHost`, which passes `page` (`id`, `languageId`, `preview`,
+  `routeParams`) next to `pageModal`.
+- **Plugin styles can close their popup.** `BasicStyle` passes `pageModal`
+  (`inModal`, `closeModal`) to plugin style components.
+- **Plugin resource types on the role screen.** When an enabled plugin adds a
+  data-access resource type, each role's menu offers "<Type> permissions".
+
+### Fixed
+- **Plugin admin pages wait for the user** before checking their permission,
+  instead of flashing "No access".
+- **The role screen's plugin resource types** refresh when a plugin is enabled
+  or disabled (registry key `ADMIN_PLUGIN_RESOURCE_TYPES`).
+- **A permission row put back as it was** no longer shows "Unsaved".
+- **A plain file path with `..`** in a data cell is not linked (as inside JSON).
+- **The impersonation banner no longer hides the bottom right corner.** While
+  it shows, the page gets room at the bottom of the banner's height.
+
+### Changed
+- The checkboxes of every role permission matrix have an accessible name
+  ("update <resource>").
+- `supports.core` raised to `>=0.1.52 <0.2.0`; `requiredApiVersion` is `0.2.0`.
 
 ---
 
-## Unreleased
+## v0.1.78 — 2026-11-24
+
+**Language-independent sentinel via `@selfhelp/shared` 1.30.0**
+
+Pairs with shared **1.30.0** and core **0.1.51**.
+
+### Changed
+
+- Pins the published `@selfhelp/shared` 1.30.0 (`package.json` and the lockfile).
+- Property and “all languages” checks use `LANGUAGE_INDEPENDENT_ID` /
+  `isLanguageIndependent` / `LANGUAGE_INDEPENDENT_LOCALE` instead of a bare `1`.
+- Content-field defaults no longer invent language id 1 as English when the
+  language list is empty.
+- The column-labels editor (`FieldsMapField`) edits header labels per real
+  language only; without a language it maps columns and writes no label.
+- Version file links default `file_language` to `LANGUAGE_INDEPENDENT_ID`.
+- An inline list form builds its prefill row on `LANGUAGE_INDEPENDENT_ID`.
+
+## v0.1.77 — 2026-11-23
+
+**Live sync follow-ups: idle resume, lock for delete/publish, typed fields**
+
+Requires core **>=0.1.50** (`lock_idle_ended`, wider `GET …/lock`, delete/publish
+respect another person's edit lock).
+
+### Added
+
+- After an idle lock ends, the editor offers **Continue editing** (take-over) instead of silently renewing.
+- Callers who may only delete or publish a page see who is editing, with Delete/Publish/version-delete paused until the lock ends.
+
+### Fixed
+
+- Typed text in a translatable form field survives a live page refresh.
+- After "Your editing session ended" the banner keeps offering **Continue editing** when the lock is read again (tab switch, lock notice) and nobody else holds the page; it no longer turns into "Start editing", which the server refuses once.
+- A delete/publish caller whose first lock read fails is no longer left with disabled controls and no explanation: the page counts as free and the server still refuses with 409 `page_locked` if someone holds it.
+- The tooltip of the paused Delete / Publish / Delete version controls says why (who is editing, or that your own session ended) instead of "Someone is editing this page" in every case.
+- The `PageNavigationMembership` test has a 20 s limit, so a loaded full run no longer times out.
+- `e2e-stack` keeps `--grep "live sync"` as one Playwright argument on Windows.
+- `next build` no longer leaves a dirty `next-env.d.ts` in the working tree.
+
+### Changed
+
+- Page payloads use `@selfhelp/shared` `pageFromPayload` (local copy removed).
+- Pins the published `@selfhelp/shared` 1.29.0 (`package.json` and the lockfile).
+
+---
+
+## v0.1.76 — 2026-11-20
+
+**Live sync: open pages and lists follow changes made by others**
+
+Requires core **>=0.1.49** (change notices, the access stamp and the page
+`sync` block). This floor is also the first core with `fully_held` on role
+items, which the asset and role pickers already read. The client uses the
+`@selfhelp/shared` 1.28.0 sync module; `package.json` and the lockfile pin the
+published 1.28.0.
 
 **Added**
 
+- Live sync. One stream per browser (one leader tab) now also serves visitors
+  who are not signed in. A change notice (`changed`) names what changed; an open
+  page, the menu, a list, the section inspector or an asset list reads that data
+  again by itself within about a third of a second. A background tab only marks
+  its data stale and reads it when you come back. See
+  [docs/developer/live-sync.md](docs/developer/live-sync.md).
+- Page editor: one person edits a page at a time. Opening a page you may
+  change reserves it for you and keeps it while the editor is open; leaving
+  gives it up. If someone else is editing, the page opens read-only with
+  "<name> is editing this page" and a **Take over** button (with a
+  confirmation). When your editing ends (someone took over, or 15 minutes
+  without a change) the banner says why. User guide:
+  [docs/user/page-editing-lock.md](docs/user/page-editing-lock.md).
+- Page editor: every draft write sends the version of the draft it is based on.
+  A save refused because the page changed elsewhere shows "This page was
+  changed elsewhere", loads the latest draft and keeps what you typed in the
+  open panel.
+- A page whose content depends on the clock (a time-limited block, a scheduled
+  condition) refreshes once at the moment the server names, without polling.
+- When a change removes your access to the page you are on, a notice says so
+  and the page stays until you leave it. When a form you typed into is removed,
+  a notice says what you typed is no longer part of the page.
 - Menus builder: **Max root items** on every menu tab (header, footer, drawer,
   bottom tabs); blank clears to unlimited. Badge and blocked-add copy mention
   raising the limit; soft over-limit keeps extras stored. User guide:
   [docs/user/menus.md](docs/user/menus.md).
+- The admin menu search finds **Jobs Calendar** for users who may read
+  scheduled jobs.
+- The asset role pickers (upload, edit, folder access) show a role you do not
+  fully hold disabled, with the text "You do not hold everything this role
+  holds"; a role like that already on the asset stays ticked and cannot be
+  removed. Needs core with `fully_held` on role items.
+- The least-privilege walk opens the role form as `qa.roleupdate` (role
+  editor without `admin.permission.read`).
+
+**Changed**
+
+- A page that is refreshed by live sync keeps what you typed: a record form
+  keeps the text of a field you changed while the other fields follow the new
+  stored values.
+- A group or role change that affects you (new page, new right, lost right)
+  updates the menu as well as the pages (F251). The access stamp every reply
+  carries (`X-Acl-Stamp`, passed through the proxy) makes the client read your
+  user data again when a group or role of yours changed.
+- A page view is counted once per visit: the server render of a direct load or
+  of an in-app navigation sends `X-Page-View: 1` together with the referrer.
+  Prefetch, live refresh, language switch and preview never count a view.
+- A group, role or data table that is created, renamed or deleted, and a page
+  that is created, saved or deleted, refreshes the pickers of the section
+  inspector (F56).
+- The role form shows permission names for a role editor: the permission list
+  endpoint opens for `admin.permission.read` or `admin.role.update`, and the
+  client gate lets a call through when you hold any one of the rights an
+  endpoint lists.
+- The permissions guide now says page access for a group is one right,
+  `select`. The release-manifest test names `@selfhelp/shared` 1.27.0, the
+  version the package pins.
+
+**Fixed**
+
+- A quick action on a list row (Approve) followed at once by another (Delete)
+  no longer fails with a version conflict: the row takes the version the first
+  action wrote (F186).
+- The asset bulk bar no longer offers actions from an outdated copy of a
+  selected asset; a changed asset is read again, a deleted one leaves the
+  selection (F121).
+- A page that is only prefetched (a header-menu link in view, a hover) no
+  longer counts a page view. Before, the view was claimed by the first page
+  fetch of the request, and Next.js sends one such fetch for every link in
+  view; now only the render of the page itself counts it.
+- A page opened in the browser keeps its live-sync information (what it depends
+  on and until when it is valid), so an open page and the page of a link you
+  just followed update by themselves when someone changes them.
+
+**Removed**
+
+- Six unused API endpoint entries (`PAGES_RESOLVE`,
+  `ADMIN_PAGES_GET_ALL_WITH_LANGUAGE`, `FORM_LIST_CURRENT_FILE`,
+  `ADMIN_DATA_RECORD_COMPARE`, `ADMIN_DATA_RECORD_VERSION_FILE`,
+  `PLUGINS_MANIFEST`) and a 403 branch in the API client that never ran
+  (the backend does not send `error_type`). No behaviour change.
+
+## v0.1.75 — 2026-11-19
+
+**Roles and group access limited by what you hold; one read permission per admin area**
+
+Requires core **>=0.1.48** (the renamed permissions). `@selfhelp/shared` stays
+pinned at 1.26.0 until the release step after publishing.
+
+**Added**
+
+- The admin screens are one list, `src/config/admin-screens.ts` (label, path,
+  menu group, the one read permission that opens each). The menu, the navigation
+  search and the generated `docs/reference/admin-screens.json`
+  (`npm run access:screens`) all draw from it; a test fails when the file is
+  stale.
+- Route contract test (`src/config/__tests__/api-route-contract.test.ts`): every
+  `API_CONFIG.ENDPOINTS` entry is compared with the backend's generated route
+  table (path, HTTP method from the call sites, permissions); CI checks out the
+  backend for it. `docs/reference/permission-quick-reference.md` describes it.
+- Least-privilege walk (`npm run test:access`, CI job `e2e-access` on pull
+  requests that touch admin screens or access files, and on demand): restricted
+  QA users sign in, open every admin screen from the menu, and the run fails on
+  a write control shown without its right, a wrong menu, or any 400 or 403.
+  See `docs/developer/e2e-profiles.md`.
+
+**Changed**
+
+- Roles list: **Edit**, the page / data table / group grant buttons and
+  **Delete** are on or off per role, as the server says. A role whose rights you
+  do not all hold (the full-access role too, unless you are the superuser) cannot
+  be changed or deleted by you, and the disabled button says why.
+- Role form: permissions are a grid, one row per area (Pages, Groups, Roles,
+  Languages, plugin areas …) with the columns Read, Create, Update, Delete and
+  Other. The search stays while you tick; hovering a box shows its description
+  and key.
+  A permission you do not hold yourself is locked. The read permission of an area
+  is ticked and locked while another right of that area is ticked. Without
+  `admin.role.permissions` the list is shown but cannot be changed, and Save
+  waits until the role and the permission list are loaded.
+- Refusals are shown with the server's own text: a role right you do not hold, a
+  role you may not change or delete, a group or page whose access you may not
+  change. The page-access dialog of a group you may not read says so instead of
+  showing an empty list.
+- Languages opens with `admin.language.read` (changes need
+  `admin.language.update`), Unused sections with `admin.section.read`, the
+  data-access audit with `admin.audit.read` and Live Preview with
+  `admin.mobile_preview.read`. The menu and the navigation search show these
+  entries by the same permissions.
+- Admin screens show only what you may do: Languages (Add / edit / delete need
+  `admin.language.update`), Actions, Cache and Scheduled jobs (execute, delete,
+  bulk delete) hide controls whose right you lack; Groups and Roles show in the
+  menu with their own read permission, without a users permission.
+- Page editor: a page you may only read opens read-only with a banner saying
+  why (no `admin.page.update`, or no update grant on that page). Add Section,
+  moving, removing, Save, Publish, Delete Page and Delete Version are hidden and
+  the fields are disabled. Uses the new `rights` of the page read, so it
+  requires core **>=0.1.48**. Delete Version also needs
+  `admin.page_version.delete`, now declared on its route.
+- Delete section (for good) asks for `admin.page.delete`, the right the server
+  checks; it asked for `admin.section.delete`, which only covers the Unused
+  sections cleanup.
+- The role grid's Page row no longer offers **insert**: the permission is gone
+  in core 0.1.48 (it never granted anything).
+- The role grid loses rows and boxes that granted nothing: Action translation
+  (now part of Action read), version create and unpublish, user unblock (Block
+  covers both directions) and CMS preferences update. The users screen shows
+  Block / Unblock to holders of `admin.user.block`.
+- User group/role links and the activation mail declare `admin.user.read` /
+  `admin.user.update`; section reads, styles and page keywords declare their
+  rights instead of none. The unused CMS preferences update call is removed (no
+  such route exists).
+- Importing sections and restoring sections from a version ask for
+  `admin.page.update` (they change the page), no longer `admin.page.export`.
+- A request refused by the app now says "You do not have permission to do this.
+  It needs …" instead of listing every permission you hold.
+
+**Fixed**
+
+- Unused Sections is shown in the menu and the search to a role with only
+  `admin.section.read`; before, it sat behind the asset right (F241). Every
+  static menu entry now stands on its own read permission and a group shows when
+  any of its entries is allowed.
+- Controls shown without their right are hidden: Groups (Create Group, Edit and
+  Delete group; Edit and Delete also need the per-group flag the server now
+  sends, so a view-only group shows none), Roles (Create Role), Unused Sections
+  (Delete and Delete All need `admin.section.delete`) and Menus (Create page
+  here and Create child page need `admin.page.create`).
+- Dead web declarations found by the route contract test are gone: the
+  `/auth/user/username` call (no such route; the profile's name change is
+  unchanged) and two unused endpoint entries.
+- Saving a role's page / group / data-table access failed with
+  "resource_type_id is required" once the role held grants of more than one
+  type; ticking Create, Update or Delete now also ticks View.
+
+**Removed**
+
+- The permissions `admin.settings`, `admin.audit.view` and
+  `admin.mobile_preview.view`; core renames or splits them, with no
+  compatibility.
+
+## v0.1.74 — 2026-11-18
+
+**Access cleanup (groups see, roles edit)**
+
+- Group page access is one right: a single **Can see** checkbox per page.
+  Members who can see a page can use its forms. Requires core **>=0.1.47** and
+  `@selfhelp/shared` **1.26.0** (`package.json` pin; leave `package-lock.json`
+  for the release step after publishing, F151).
+- Roles list recognises full access from `is_superuser` (not the name `admin`);
+  that role can be renamed and cannot be deleted.
+- Plugin admin pages open only for users who hold the permission the plugin
+  declares for the page; the server checks it when the page is opened, not
+  only in the menu.
+- The asset picker finds the full-access role by `is_superuser`, not by the
+  name `admin` (needs core **>=0.1.47**).
+- Public form, validate and profile screens show only the intended API error
+  text — never the HTTP reason phrase (`Bad Request`).
+
+## v0.1.73 — 2026-11-18
+
+**Admin editor polish**
+
+- Page editor remembers the tree/inspector splitter width per device
+  (localStorage).
+- Shared field search at the top of the page and section inspectors (label,
+  name and help text; Esc clears; `/` and Ctrl/Cmd+K focus).
+- Admin sidebar header: SelfHelp logo on the left, compact preview and debug
+  icon buttons on the right (no floating bug over the logo).
+- CMS app scaffold wizard: mark Text / Text area fields as translatable, per-type
+  help, and a *Needs setup* hint for Select, Radio, Image and Files. Requires
+  core **>=0.1.46**.
 
 ## v0.1.72 — 2026-11-17
 

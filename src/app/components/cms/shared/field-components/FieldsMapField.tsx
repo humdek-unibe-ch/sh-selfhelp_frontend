@@ -73,10 +73,14 @@ export function FieldsMapField({
     }, [columnsResp?.columns, fieldKeys]);
 
     const activeLanguage = languages.find((language) => String(language.id) === activeLanguageId) ?? languages[0];
-    const activeLanguageIdNumber = activeLanguage?.id ?? languages[0]?.id ?? 1;
+    // Header labels are per real language from the list; never invent the
+    // language-independent id. Without a language only the columns are mapped.
+    const activeLanguageIdNumber: number | undefined = activeLanguage?.id ?? languages[0]?.id;
 
     const labelMap = useMemo(
-        () => parseFieldsMapLabels(labelValues[activeLanguageIdNumber] ?? ''),
+        () => (activeLanguageIdNumber === undefined
+            ? {}
+            : parseFieldsMapLabels(labelValues[activeLanguageIdNumber] ?? '')),
         [labelValues, activeLanguageIdNumber],
     );
 
@@ -85,6 +89,9 @@ export function FieldsMapField({
     }, [onCatalogChange]);
 
     const updateLabelForKey = useCallback((fieldKey: string, label: string, baseMap: Record<string, string>) => {
+        if (activeLanguageIdNumber === undefined) {
+            return;
+        }
         const next = { ...baseMap, [fieldKey]: label };
         if (label.trim() === '') {
             delete next[fieldKey];
@@ -160,14 +167,16 @@ export function FieldsMapField({
                                 disabled={disabled}
                                 style={{ flex: 1 }}
                             />
-                            <TextInput
-                                label="Header label"
-                                value={labelMap[fieldKey] ?? ''}
-                                onChange={(event) => updateLabelForKey(fieldKey, event.currentTarget.value, labelMap)}
-                                placeholder="Display name"
-                                disabled={disabled}
-                                style={{ flex: 1 }}
-                            />
+                            {activeLanguageIdNumber !== undefined && (
+                                <TextInput
+                                    label="Header label"
+                                    value={labelMap[fieldKey] ?? ''}
+                                    onChange={(event) => updateLabelForKey(fieldKey, event.currentTarget.value, labelMap)}
+                                    placeholder="Display name"
+                                    disabled={disabled}
+                                    style={{ flex: 1 }}
+                                />
+                            )}
                             <Group gap={4} mb={4}>
                                 <ActionIcon
                                     variant="subtle"

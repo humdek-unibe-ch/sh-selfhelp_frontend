@@ -107,4 +107,18 @@ describe('LanguageTabsWrapper', () => {
         expect(keys.some((key) => key.startsWith('mantine-'))).toBe(false);
         expect(keys).toContain('section-locale-answer');
     });
+
+    it('uses the first real language for a non-translatable field, never id 1 labelled English', () => {
+        renderWithProviders(
+            <LanguageTabsWrapper
+                translatable={false}
+                name="color"
+                value="#fff"
+                onChange={vi.fn()}
+            >
+                {(lang) => <div data-testid="lang-context">{`${lang.id}:${lang.locale}`}</div>}
+            </LanguageTabsWrapper>,
+        );
+        expect(screen.getByTestId('lang-context')).toHaveTextContent('2:de-CH');
+    });
 });

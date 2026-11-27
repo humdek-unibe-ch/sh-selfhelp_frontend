@@ -4,6 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 */
 import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
+import { LANGUAGE_INDEPENDENT_ID } from '@selfhelp/shared';
 import {
     formListRouteQuery,
     type IFormListCompareData,
@@ -175,7 +176,7 @@ export class FormListApi {
     ): string {
         const params = new URLSearchParams({
             page_id: String(pageId),
-            file_language: String(options.fileLanguage ?? 1),
+            file_language: String(options.fileLanguage ?? LANGUAGE_INDEPENDENT_ID),
             index: String(options.index ?? 0),
         });
         if (options.preview) {

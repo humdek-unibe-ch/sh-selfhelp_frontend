@@ -2,192 +2,67 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-# Plugin System Overview
+# Plugin system (web)
 
-Audience: Developers and technical operators.
+Audience: Developers writing or reviewing the web part of a SelfHelp plugin.
 Status: active.
-Applies to: SelfHelp2 Next.js frontend.
-Last verified: 2026-06-03.
-Source of truth: Runtime code, configuration, and tests in this repository.
+Applies to: SelfHelp2 frontend >= 0.1.79, `@selfhelp/shared` plugin SDK `PLUGIN_API_VERSION` 0.2.0.
+Last verified: 2026-11-26.
+Source of truth: `src/app/components/frontend/plugin-runtime/PluginRuntime.ts`, `@selfhelp/shared/plugin-sdk`, backend `docs/plugins/`.
 
-## 1. Backend API Returns Installed Plugins
-Your Symfony backend returns something like:
+The host loads each enabled plugin's ESM file from `/plugin-artifacts/<id>-<version>/` (URL from `GET /cms-api/v1/plugins/manifest`), then calls the package's exported `register(api)`. Plugins are not loaded as webpack remotes or `remoteEntry.js` bundles.
 
-```json
-[
-  {
-    "name": "chat",
-    "remoteEntryUrl": "https://plugins.example.com/chat/remoteEntry.js",
-    "exposedModule": "./PluginEntry" // The module to load
-  },
-  {
-    "name": "foo",
-    "remoteEntryUrl": "https://plugins.example.com/foo/remoteEntry.js",
-    "exposedModule": "./PluginEntry"
-  }
-]
+## How a plugin registers
+
+```ts
+import { definePlugin } from '@selfhelp/shared/plugin-sdk';
+
+export const register = definePlugin({
+  pluginApiVersion: '0.2.0',
+  styles: { 'survey-js': SurveyJsStyle },
+  adminPages: { surveys: SurveysAdminPage },
+  sync: [
+    { tags: ['res:surveyjs_survey:*'], queryKey: ['surveyjs', 'survey'] },
+    { tags: ['acl'], queryKey: ['surveyjs', 'admin'] },
+  ],
+});
 ```
 
-## 2. Frontend Fetches Plugins on Startup
-In your React app, on app load or user login, fetch this list.
+`PluginRuntime` imports the ESM, checks `pluginApiVersion` against the host SDK (`PLUGIN_API_VERSION`), records mismatches in `versionWarnings`, and keeps each plugin's `sync` map for live invalidation.
 
-## 3. Dynamic Remote Loader Utility
-Here's a refined utility (fixes race-conditions, avoids duplicate loads, supports multiple plugins):
-```javascript
-// pluginLoader.js
-const loadedRemotes = {};
+## Host API the web plugin may use
 
-export async function loadRemotePlugin(remoteUrl, scope, module) {
-  if (!window[scope]) {
-    if (!loadedRemotes[scope]) {
-      loadedRemotes[scope] = new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = remoteUrl;
-        script.type = 'text/javascript';
-        script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error(`Failed to load remote: ${remoteUrl}`));
-        document.head.appendChild(script);
-      });
-    }
-    await loadedRemotes[scope];
-    await __webpack_init_sharing__('default');
-    await window[scope].init(__webpack_share_scopes__.default);
-  }
-  const factory = await window[scope].get(module);
-  return factory();
-}
-```
+From `IPluginApi` (see shared plugin-sdk):
 
-## 4. How Plugins Work
-Each plugin is built completely independently.
+| Member | Purpose |
+| --- | --- |
+| `request` / admin helpers | Call plugin and core endpoints through the BFF |
+| `resources.usage(type, id)` | Where-used list (`GET /admin/resources/{type}/{id}/usage`) |
+| `ui.ResourceUsageList` | Shared React list (pages, actions, hidden count, delete warning) |
+| `settings.get()` | This plugin's non-secret settings (`has_value` for secrets) |
+| `sectionAnchor(sectionId)` | CSS selector `.section-<id>` for guided tours |
+| `sanitizeHtml` | DOMPurify rules used by core pages |
 
-In its `webpack.config.js`, it exposes a standard entry, e.g. `./PluginEntry` (the "contract" is up to you).
+Do not import host internals. Do not bundle React, Mantine, React Query or `@selfhelp/shared` — they come from the host.
 
-The entry exports a default React component or a function returning components/metadata.
+## Live sync
 
-**Example plugin:**
+On a Mercure `changed` notice the host maps tags to React Query keys:
 
-```js
-// src/PluginEntry.jsx
-import React from "react";
-import ChatIcon from "./ChatIcon";
-import ChatPage from "./ChatPage";
+- core tags (`page:`, `table:`, `acl`, …) as before;
+- plugin `sync` entries via `matchPluginSyncEntries`;
+- `res:<type>:<id>` also invalidates pages whose `depends_on` lists that tag.
 
-// "contract" can be a default object, or a function
-export default {
-  slot: 'profile-icons',
-  render: (props) => <ChatIcon {...props} />,
-  routes: [
-    { path: "/chat", component: ChatPage }
-  ]
-};
-```
+When content refreshes under a plugin style: **keep typed answers that still apply** and show a short "content was updated" notice (never wipe the form).
 
-## 5. Core App Discovers and Loads Plugins
-### A. On App Load:
-- Fetch enabled plugins from API.
-- For each, call `loadRemotePlugin(remoteEntryUrl, scope, module)` (e.g. `scope='chat'`, `module='./PluginEntry'`).
+## Admin screens
 
-### B. Plugin Registration Pattern
-- After loading the plugin, store its exports in a runtime registry.
-- You can then render plugins for each slot.
+- Plugins menu and detail: gated by `admin.plugins.execute` / `admin.plugins.manage` / purge rights (F238).
+- Settings form: host stores values (C14); secrets show a hint only.
+- Action builder: plugin job types from `GET /admin/actions/plugin-job-types` with a generated config form.
+- Condition builder: plugin JSON Logic operations from the public plugin manifest.
+- Roles: plugin resource types use the same grant matrix; rows without `can_assign` are disabled.
 
-**Minimal registry:**
+## Backend contracts
 
-```js
-// pluginRegistry.js
-const registry = {};
-
-export function registerPlugin(plugin) {
-  if (!registry[plugin.slot]) registry[plugin.slot] = [];
-  registry[plugin.slot].push(plugin);
-}
-
-export function getPlugins(slot) {
-  return registry[slot] || [];
-}
-```
-
-## 6. Rendering Plugin Content in UI Slots
-In your React components, you inject plugin UI where you want:
-
-```jsx
-import { getPlugins } from "./pluginRegistry";
-
-function PluginHook({ slot, ...props }) {
-  const plugins = getPlugins(slot);
-  return (
-    <>
-      {plugins.map((plugin, i) => plugin.render ? plugin.render(props) : null)}
-    </>
-  );
-}
-```
-
-**Example in Profile:**
-
-```jsx
-function UserProfile(props) {
-  return (
-    <div>
-      {/* Profile info ... */}
-      <PluginHook slot="profile-icons" user={props.user} />
-    </div>
-  );
-}
-```
-
-## 7. Routing
-If plugins want to register routes:
-- Collect routes from each plugin object.
-- Dynamically inject them into your React Router setup.
-
-## 8. No Core Knowledge Needed
-- Plugins can be added or removed anytime: just update the backend’s list.
-- Core app does not import or even know plugin names or details.
-- Slots are just named extension points.
-
-## 9. Example Full Flow (Pseudo-code)
-
-```js
-// On app start
-const pluginsFromAPI = await fetch('/api/plugins/enabled').then(r => r.json());
-
-for (const pluginMeta of pluginsFromAPI) {
-  const plugin = await loadRemotePlugin(pluginMeta.remoteEntryUrl, pluginMeta.name, pluginMeta.exposedModule);
-  registerPlugin(plugin.default || plugin);
-}
-```
-
-## 10. Advantages
-- Completely decoupled: Plugins have their own lifecycle.
-- Core can be upgraded, plugins can be added/removed, no need to rebuild/redeploy the whole system.
-- You can even support plugin hot reloading in future.
-
-## 11. Contract Flexibility
-- Your only "contract" is what you expect plugins to export: usually, an object with slot names and render functions, or similar.
-- Can support icons, menu items, pages, widgets, whatever you need.
-
-## 12. Security & Safety
-- Only load trusted plugins—validate URLs from backend.
-- If plugins are untrusted, consider running them in an iframe or web worker, but that’s more advanced.
-
----
-
-## Summary
-With dynamic Module Federation + runtime registry + named slots:
-- Plugins are 100% decoupled.
-- Core never needs to know about them until they’re installed and activated.
-- No static imports, no rebuilds.
-
----
-
-Do you want:
-- A simple working repo template?
-- Sample Webpack config for plugins and host?
-- More detail on routing/pages injection?
-
-Or advice on advanced patterns (plugin dependencies, versioning, sandboxing)?
-
-Let me know your next focus!
+Full recipes (C2–C26): backend `docs/plugins/host-hooks.md`. Manifest schema: `docs/plugins/plugin-manifest.schema.json` in the backend repository.

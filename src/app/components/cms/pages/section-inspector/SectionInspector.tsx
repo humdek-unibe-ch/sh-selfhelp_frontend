@@ -31,13 +31,17 @@ import { validateName, getNameValidationError } from '../../../../../utils/name-
 import { formListFieldLabel, getFormListConfigProblems, type IFormListConfigProblem } from '../../../../../utils/form-list-config-problems.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
-import { OPTION_STYLE_CONFIGS, type TOptionStyleName } from '@selfhelp/shared';
+import { isLanguageIndependent, OPTION_STYLE_CONFIGS, type TOptionStyleName } from '@selfhelp/shared';
 import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
 import { SectionInspectorHeader } from './SectionInspectorHeader';
 import { useSectionFormStore } from '../../../../store/sectionFormStore';
 import { SectionInfoPanel } from './section-field-groups';
 import { SectionFieldPanels } from './SectionFieldPanels';
+import { usePageEditRights } from '../page-rights/PageRightsContext';
+import { isStaleConflictHeld } from '../../../../../utils/page-edit-conflict.utils';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import { validateSerializedOptionConfiguration } from '../../shared/field-components/option-catalog-editor.utils';
 import { FormListSourceProvider } from '../../shared/field-components/form-list/FormListSourceContext';
 import { useLiveFormListSource } from '../../shared/field-components/form-list/useLiveFormListSource';
@@ -64,6 +68,11 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     const router = useRouter();
     const queryClient = useQueryClient();
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+    // Saving needs the update right on the page; deleting a section for good also
+    // admin.page.delete (the right of the route `admin_sections_destroy`).
+    const { canUpdate } = usePageEditRights();
+    const { permissionChecker } = useAuthUser();
+    const canDeleteSection = canUpdate && (permissionChecker?.hasPermission(PERMISSIONS.ADMIN_PAGE_DELETE) ?? false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
     // What the server refused when a list section was saved (nothing was stored).
@@ -155,6 +164,8 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     // Load section data into store
     useEffect(() => {
         if (!sectionDetailsData || languagesData.length === 0) return;
+        // A write was refused as stale (C8): the draft was reloaded, but the person's unsaved values stay on screen.
+        if (isStaleConflictHeld(pageId)) return;
 
         const { section, fields } = sectionDetailsData;
         const globalFields = section.global_fields || {
@@ -191,7 +202,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         propertyFields.forEach(field => {
             let value = field.default_value || '';
             if (field.translations && field.translations.length > 0) {
-                const propertyTranslation = field.translations.find(t => t.language_id === 1);
+                const propertyTranslation = field.translations.find(t => isLanguageIndependent(t.language_id));
                 if (propertyTranslation?.content !== undefined && propertyTranslation?.content !== null) {
                     value = propertyTranslation.content;
                 }
@@ -219,7 +230,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
 
         setFormValues(newFormValues);
         originalValuesRef.current = newFormValues; // Update ref
-    }, [sectionDetailsData, languagesData, setFormValues]);
+    }, [sectionDetailsData, languagesData, setFormValues, pageId]);
 
     const hasMultipleLanguages = useMemo(() => languagesData.length > 1, [languagesData.length]);
 
@@ -445,9 +456,9 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                         title={section.name}
                         idLabel={`ID ${section.id}`}
                         badges={headerBadges}
-                        onSave={handleSave}
+                        onSave={canUpdate ? handleSave : undefined}
                         onExport={handleExportSection}
-                        onDelete={() => setDeleteModalOpened(true)}
+                        onDelete={canDeleteSection ? () => setDeleteModalOpened(true) : undefined}
                         saving={updateSectionMutation.isPending}
                         disabled={actionsDisabled}
                     />

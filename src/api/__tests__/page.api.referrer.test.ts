@@ -109,4 +109,37 @@ describe('PageApi.resolvePageByPath and the outside referrer', () => {
         expect(configOf(1)).toBeUndefined();
     });
 
+    describe('X-Page-View (C7, P4-A6)', () => {
+        it('sends it only for the fetch that asks to count the view', async () => {
+            await PageApi.resolvePageByPath('/impressum', 1, false, { countView: true });
+            await PageApi.resolvePageByPath('/impressum', 1, false);
+
+            expect(configOf(0)).toEqual({ headers: { 'X-Page-View': '1' } });
+            expect(configOf(1)).toBeUndefined();
+        });
+
+        it('never sends it for preview, even when asked', async () => {
+            await PageApi.resolvePageByPath('/impressum', 1, true, { countView: true });
+
+            expect(configOf(0)).toBeUndefined();
+        });
+
+        it('sends it on the same request as the landing referrer', async () => {
+            landOn('/impressum', 'https://news.example.org/story');
+
+            await PageApi.resolvePageByPath('/impressum', 1, false, { countView: true });
+
+            expect(getMock).toHaveBeenCalledTimes(1);
+            expect(configOf(0)).toEqual({
+                headers: { 'X-Page-View': '1', 'X-Referrer-Host': 'news.example.org' },
+            });
+        });
+
+        it('the keyword route never counts a view', async () => {
+            await PageApi.getPageByKeyword('impressum', 1, false);
+
+            const config = getMock.mock.calls[0][2] as { headers?: Record<string, string> };
+            expect(config.headers).toBeUndefined();
+        });
+    });
 });

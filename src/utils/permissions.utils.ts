@@ -49,6 +49,18 @@ export function parseCrudPermissions(permissionsNumber: number): ICrudPermission
 }
 
 /**
+ * Sets one tick of a grant. Any other right needs view, so ticking it also
+ * ticks view, and unticking view clears the rest.
+ */
+export function setCrudTick(permissions: ICrudPermissions, key: keyof ICrudPermissions, value: boolean): ICrudPermissions {
+  if (key === 'view' && !value) {
+    // Same keys in the same order as the input: the modals compare rows with JSON.stringify.
+    return { ...permissions, view: false, create: false, update: false, delete: false };
+  }
+  return { ...permissions, [key]: value, ...(value ? { view: true } : {}) };
+}
+
+/**
  * Convert CRUD permissions to bitwise number format
  */
 export function stringifyCrudPermissions(permissions: ICrudPermissions): number {
@@ -149,7 +161,6 @@ export class PermissionChecker {
       PERMISSIONS.ADMIN_USER_UPDATE,
       PERMISSIONS.ADMIN_USER_DELETE,
       PERMISSIONS.ADMIN_USER_BLOCK,
-      PERMISSIONS.ADMIN_USER_UNBLOCK,
       PERMISSIONS.ADMIN_USER_IMPERSONATE,
     );
   }
@@ -187,13 +198,6 @@ export class PermissionChecker {
    */
   canBlockUsers(): boolean {
     return this.hasPermission(PERMISSIONS.ADMIN_USER_BLOCK);
-  }
-
-  /**
-   * Check if user can unblock users
-   */
-  canUnblockUsers(): boolean {
-    return this.hasPermission(PERMISSIONS.ADMIN_USER_UNBLOCK);
   }
 
   /**
@@ -253,7 +257,6 @@ export class PermissionChecker {
       PERMISSIONS.ADMIN_PAGE_UPDATE,
       PERMISSIONS.ADMIN_PAGE_DELETE,
       PERMISSIONS.ADMIN_PAGE_EXPORT,
-      PERMISSIONS.ADMIN_PAGE_INSERT,
     );
   }
 
@@ -405,19 +408,19 @@ export class PermissionChecker {
 
   /**
    * Check if user can open the full-screen mobile/web Live Preview surface
-   * (the new-tab, free-navigation "test the real flow" preview). Distinct from
-   * `admin.mobile_preview.create` (the one-time-code mint) so the two can be
-   * granted independently.
+   * (the new-tab, free-navigation "test the real flow" preview): the read
+   * right of the mobile-preview area. `admin.mobile_preview.create` (the
+   * one-time-code mint) implies it, but the read right can be held alone.
    */
   canViewMobilePreview(): boolean {
-    return this.hasPermission(PERMISSIONS.ADMIN_MOBILE_PREVIEW_VIEW);
+    return this.hasPermission(PERMISSIONS.ADMIN_MOBILE_PREVIEW_READ);
   }
 
   /**
-   * Check if user can view audit logs
+   * Check if user can view audit logs (the read right of the audit area).
    */
   canViewAuditLogs(): boolean {
-    return this.hasPermission(PERMISSIONS.ADMIN_AUDIT_VIEW);
+    return this.hasPermission(PERMISSIONS.ADMIN_AUDIT_READ);
   }
 
   /**
@@ -433,7 +436,6 @@ export class PermissionChecker {
   canManageCmsPreferences(): boolean {
     return this.hasAnyPermission(
       PERMISSIONS.ADMIN_CMS_PREFERENCES_READ,
-      PERMISSIONS.ADMIN_CMS_PREFERENCES_UPDATE,
     );
   }
 
@@ -445,11 +447,11 @@ export class PermissionChecker {
   }
 
   /**
-   * Check if user can manage languages
+   * Check if user can open the Languages screen (the read right of the
+   * language area; `admin.language.update` implies it).
    */
-  canManageLanguages(): boolean {
-    // Languages require admin settings permissions
-    return this.hasPermission(PERMISSIONS.ADMIN_SETTINGS);
+  canReadLanguages(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_LANGUAGE_READ);
   }
 
   /**
@@ -458,9 +460,7 @@ export class PermissionChecker {
   canManagePageVersions(): boolean {
     return this.hasAnyPermission(
       PERMISSIONS.ADMIN_PAGE_VERSION_READ,
-      PERMISSIONS.ADMIN_PAGE_VERSION_CREATE,
       PERMISSIONS.ADMIN_PAGE_VERSION_PUBLISH,
-      PERMISSIONS.ADMIN_PAGE_VERSION_UNPUBLISH,
       PERMISSIONS.ADMIN_PAGE_VERSION_COMPARE,
     );
   }
@@ -473,17 +473,11 @@ export class PermissionChecker {
   }
 
   /**
-   * Check if user can delete sections
+   * Check if user can open the Unused sections screen (the read right of the
+   * section area; `admin.section.delete` implies it).
    */
-  canDeleteSections(): boolean {
-    return this.hasPermission(PERMISSIONS.ADMIN_SECTION_DELETE);
-  }
-
-  /**
-   * Check if user has access to settings
-   */
-  canAccessSettings(): boolean {
-    return this.hasPermission(PERMISSIONS.ADMIN_SETTINGS);
+  canViewUnusedSections(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_SECTION_READ);
   }
 
   /**

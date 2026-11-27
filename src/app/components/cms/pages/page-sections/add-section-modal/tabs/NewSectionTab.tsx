@@ -101,12 +101,12 @@ export function NewSectionTab({
                                             withBorder
                                             p="xs"
                                             style={{
-                                                transition: "box-shadow 0.1s ease",
-                                                backgroundColor: selectedItem
-                                                    ? "var(--mantine-color-blue-0)"
+                                                transition: "box-shadow 0.1s ease, background-color 0.1s ease, border-color 0.1s ease",
+                                                backgroundColor: isSelected
+                                                    ? "var(--mantine-color-blue-light)"
                                                     : undefined,
-                                                borderColor: selectedItem
-                                                    ? "var(--mantine-color-blue-4)"
+                                                borderColor: isSelected
+                                                    ? "var(--mantine-color-blue-filled)"
                                                     : undefined,
                                                 cursor: "pointer",
                                             }}

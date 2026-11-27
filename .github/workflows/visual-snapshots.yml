@@ -48,7 +48,9 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && github.event.label.name == 'update-snapshots')
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest is Ubuntu 26.04 since Nov 2026, and Playwright 1.60.0 (lockfile)
+    # cannot install Chromium there. Move when Playwright is raised (>= 1.65 knows 26.04).
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
 
     services:
@@ -135,7 +137,11 @@ jobs:
           DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
           REDIS_URL: redis://127.0.0.1:6379
         run: |
-          composer install --no-interaction --no-progress
+          # Fresh checkout has no .env (gitignored); .env.default is the template.
+          cp .env.default .env
+          # --no-scripts as in the backend CI: the post-install cache:clear reads
+          # API routes from the database that test:reset-db creates next.
+          composer install --no-interaction --no-progress --no-scripts
           composer test:reset-db
 
       - name: Start backend (Symfony built-in server)

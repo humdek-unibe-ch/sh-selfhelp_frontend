@@ -63,6 +63,8 @@ import {
 } from '../../../../types/common/styles.types';
 import { type INoAccessStyle, type IMissingStyle, type INotFoundStyle } from '../../../../shared';
 import { usePluginRuntime, usePluginStyleComponent } from '../plugin-runtime';
+import PluginStyleHost from './PluginStyleHost';
+import type { IPluginStyleProps } from '@selfhelp/shared/plugin-sdk';
 import { isStyleSupportedOnPlatform, type TStylePlatform } from '@selfhelp/shared/registry';
 
 /**
@@ -490,17 +492,12 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
     }
 
     if (pluginRenderer) {
-        const PluginComponent = pluginRenderer as unknown as React.ComponentType<{
-            style: TStyle;
-            styleProps: Record<string, string>;
-            cssClass: string;
-            parentActive?: number;
-            childIndex?: number;
-            parentColor?: string;
-        }>;
+        // The host wrapper adds the popup and the page the section is on
+        // (`IPluginStyleProps.pageModal` / `page` in the plugin SDK).
         return wrapWithDebug(
-            <PluginComponent
-                style={style}
+            <PluginStyleHost
+                component={pluginRenderer as unknown as React.ComponentType<IPluginStyleProps>}
+                style={style as unknown as Record<string, unknown>}
                 styleProps={styleProps}
                 cssClass={cssClass}
                 parentActive={parentActive}

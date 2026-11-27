@@ -89,9 +89,27 @@ interface IApiResult {
 /** `fetch` from inside the page: same origin, the browser's cookies, JSON in and out. */
 type THttpVerb = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
+/**
+ * A draft write of a page (live-sync contract C8): `/api/admin/pages/<id>` and everything below it,
+ * except the lock routes. The server refuses it (`400 page_version_required`) without `X-Page-Version`,
+ * the draft version the write is based on.
+ */
+const DRAFT_WRITE_PATH = /^\/api\/admin\/pages\/(\d+)(\/(?!lock(?:\/|$))[^?]*)?(\?.*)?$/;
+
+/** The draft version a write to `path` is based on (`data.draft_version` of the page), or `null` when it is no draft write. */
+async function draftVersionFor(page: Page, path: string): Promise<number | null> {
+    const match = DRAFT_WRITE_PATH.exec(path);
+    if (!match) {
+        return null;
+    }
+    const version = dataOf(await browserFetch(page, 'GET', `/api/admin/pages/${match[1]}`)).draft_version;
+    return typeof version === 'number' ? version : null;
+}
+
 async function browserFetch(page: Page, method: THttpVerb, path: string, data?: unknown): Promise<IApiResult> {
+    const draftVersion = method === 'GET' ? null : await draftVersionFor(page, path);
     return page.evaluate(
-        async ({ method: verb, path: url, data: body }) => {
+        async ({ method: verb, path: url, data: body, draftVersion: version }) => {
             const headers: Record<string, string> = {};
             const readToken = () => document.cookie.split('; ').find((cookie) => cookie.startsWith('sh_csrf='))?.slice('sh_csrf='.length);
             if (verb !== 'GET') {
@@ -104,6 +122,9 @@ async function browserFetch(page: Page, method: THttpVerb, path: string, data?: 
                     headers['X-CSRF-Token'] = token;
                 }
                 headers['Content-Type'] = 'application/json';
+                if (version !== null) {
+                    headers['X-Page-Version'] = String(version);
+                }
             }
             const response = await fetch(url, {
                 method: verb,
@@ -119,7 +140,7 @@ async function browserFetch(page: Page, method: THttpVerb, path: string, data?: 
             }
             return { status: response.status, json };
         },
-        { method, path, data },
+        { method, path, data, draftVersion },
     );
 }
 

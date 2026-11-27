@@ -68,6 +68,14 @@ export interface SharedSseSubscriber {
     onSessionExpired?: () => void;
     /** This tab became visible again after being hidden — light reconcile. */
     onResume?: () => void;
+    /**
+     * Leader-only, asked for every event the real socket delivers: return `true` to close the
+     * socket and open a new one at once. The BFF route builds the topic list from a fresh
+     * bootstrap on every open, so a reconnect is how the subscription follows a changed set
+     * of groups and roles (the `acl` change notice). The reconnect is silent: it does not
+     * report `onReopen`, because no event was missed.
+     */
+    reconnectWhen?: (type: string, data: string) => boolean;
 }
 
 /** Configuration for a shared subscription. */
@@ -84,10 +92,16 @@ type SharedSseMessage =
     | { k: 'status'; connected: boolean }
     | { k: 'reopen' }
     | { k: 'expired' }
-    | { k: 'ping' };
+    | { k: 'ping' }
+    | { k: 'reconnect' };
 
 const MAX_RECONNECT_DELAY_MS = 30_000;
 const INITIAL_RECONNECT_DELAY_MS = 1_000;
+/**
+ * Several tabs may ask for the same reconnect (each sees the same `acl` message or the same
+ * sign-in); the leader restarts at most once per this window.
+ */
+const RESTART_DEDUPE_MS = 1_000;
 /**
  * Defer coordinator teardown so React 18 StrictMode's dev-only
  * unmount→remount (and fast route transitions) reuse the SAME connection
@@ -109,11 +123,16 @@ interface Coordinator {
     reconnectTimer: number | null;
     reconnectDelay: number;
     hasConnectedBefore: boolean;
+    /** The next `open` follows a deliberate restart, so no event was missed. */
+    silentReopen: boolean;
+    lastRestartAt: number;
     stopped: boolean;
     teardownTimer: number | null;
 }
 
 const coordinators = new Map<string, Coordinator>();
+/** Fallback path: the restart function of every per-tab EventSource, by endpoint. */
+const ownRestarters = new Map<string, Set<() => void>>();
 
 function lockName(endpoint: string): string {
     return `selfhelp-sse-leader:${endpoint}`;
@@ -155,11 +174,33 @@ export function subscribeSharedSse(config: SharedSseConfig): () => void {
         onLeaderClosed: config.onLeaderClosed,
         onSessionExpired: config.onSessionExpired,
         onResume: config.onResume,
+        reconnectWhen: config.reconnectWhen,
     };
     if (supportsSharedSse()) {
         return joinSharedCoordinator(config, sub);
     }
     return startOwnEventSource(config, sub);
+}
+
+/**
+ * Ask for a new connection to this stream, in every tab: the leader closes its socket and opens
+ * a new one (the BFF route reads a fresh bootstrap), a follower asks the leader over the channel.
+ * Used when who the subscriber is has changed (sign-in, sign-out, impersonation), because the
+ * topic list belongs to the identity the socket was opened with. No-op where nothing runs.
+ */
+export function reconnectSharedSse(endpoint: string): void {
+    const coord = coordinators.get(endpoint);
+    if (coord) {
+        if (coord.isLeader) {
+            restartLeaderEventSource(coord);
+        } else {
+            postChannel(coord, { k: 'reconnect' });
+        }
+        return;
+    }
+    for (const restart of ownRestarters.get(endpoint) ?? []) {
+        restart();
+    }
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -213,6 +254,8 @@ function createCoordinator(config: SharedSseConfig): Coordinator {
         reconnectTimer: null,
         reconnectDelay: INITIAL_RECONNECT_DELAY_MS,
         hasConnectedBefore: false,
+        silentReopen: false,
+        lastRestartAt: 0,
         stopped: false,
         teardownTimer: null,
     };
@@ -272,12 +315,13 @@ function openLeaderEventSource(coord: Coordinator): void {
         coord.reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
         dispatchStatus(coord, true);
         postChannel(coord, { k: 'status', connected: true });
-        if (coord.hasConnectedBefore) {
+        if (coord.hasConnectedBefore && !coord.silentReopen) {
             // Reconnected after a drop: every tab missed events while the
             // single shared socket was down, so reconcile everywhere.
             dispatchReopen(coord);
             postChannel(coord, { k: 'reopen' });
         }
+        coord.silentReopen = false;
         coord.hasConnectedBefore = true;
     });
 
@@ -286,6 +330,9 @@ function openLeaderEventSource(coord: Coordinator): void {
             const data = (evt as MessageEvent<string>).data ?? '';
             dispatchEvent(coord, name, data);
             postChannel(coord, { k: 'evt', type: name, data });
+            if (wantsReconnect(coord.subscribers, name, data)) {
+                restartLeaderEventSource(coord);
+            }
         });
     }
 
@@ -313,6 +360,42 @@ function openLeaderEventSource(coord: Coordinator): void {
             }
         })();
     });
+}
+
+/** Whether any subscriber asks for a reconnect after this event. */
+function wantsReconnect(subscribers: Iterable<SharedSseSubscriber>, type: string, data: string): boolean {
+    let want = false;
+    for (const s of subscribers) {
+        try {
+            if (s.reconnectWhen?.(type, data)) want = true;
+        } catch {
+            /* best-effort */
+        }
+    }
+    return want;
+}
+
+/**
+ * Leader: close the socket and open a new one now (a new bootstrap, a new topic list). A tab
+ * that is not the leader does nothing here; the leader runs its own restart.
+ */
+function restartLeaderEventSource(coord: Coordinator): void {
+    if (coord.stopped || !coord.isLeader) return;
+    const now = Date.now();
+    if (now - coord.lastRestartAt < RESTART_DEDUPE_MS) return;
+    coord.lastRestartAt = now;
+    if (coord.reconnectTimer !== null) {
+        window.clearTimeout(coord.reconnectTimer);
+        coord.reconnectTimer = null;
+    }
+    if (coord.es) {
+        coord.es.close();
+        previewDiagTrackSse(-1);
+        coord.es = null;
+    }
+    coord.silentReopen = true;
+    coord.reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
+    openLeaderEventSource(coord);
 }
 
 async function runLeaderClosed(coord: Coordinator): Promise<boolean> {
@@ -348,6 +431,9 @@ function handleChannelMessage(coord: Coordinator, msg: SharedSseMessage | undefi
                     /* best-effort */
                 }
             }
+            break;
+        case 'reconnect':
+            restartLeaderEventSource(coord);
             break;
         case 'ping':
             // Only a connected leader answers, so a late joiner learns the feed
@@ -444,6 +530,8 @@ function startOwnEventSource(config: SharedSseConfig, sub: SharedSseSubscriber):
     let cancelled = false;
     let hidden = typeof document !== 'undefined' && document.visibilityState === 'hidden';
     let hasConnectedBefore = false;
+    let silentReopen = false;
+    let lastRestartAt = 0;
 
     const open = (): void => {
         if (cancelled || hidden || es) return;
@@ -465,22 +553,27 @@ function startOwnEventSource(config: SharedSseConfig, sub: SharedSseSubscriber):
             } catch {
                 /* best-effort */
             }
-            if (hasConnectedBefore) {
+            if (hasConnectedBefore && !silentReopen) {
                 try {
                     sub.onReopen?.();
                 } catch {
                     /* best-effort */
                 }
             }
+            silentReopen = false;
             hasConnectedBefore = true;
         });
 
         for (const name of config.events) {
             current.addEventListener(name, (evt) => {
+                const data = (evt as MessageEvent<string>).data ?? '';
                 try {
-                    sub.onEvent(name, (evt as MessageEvent<string>).data ?? '');
+                    sub.onEvent(name, data);
                 } catch {
                     /* best-effort */
+                }
+                if (wantsReconnect([sub], name, data)) {
+                    restart();
                 }
             });
         }
@@ -525,6 +618,20 @@ function startOwnEventSource(config: SharedSseConfig, sub: SharedSseSubscriber):
         }
     };
 
+    const restart = (): void => {
+        if (cancelled || hidden) return;
+        const now = Date.now();
+        if (now - lastRestartAt < RESTART_DEDUPE_MS) return;
+        lastRestartAt = now;
+        closeEs();
+        silentReopen = true;
+        reconnectDelay = INITIAL_RECONNECT_DELAY_MS;
+        open();
+    };
+    const restarters = ownRestarters.get(config.endpoint) ?? new Set<() => void>();
+    restarters.add(restart);
+    ownRestarters.set(config.endpoint, restarters);
+
     const onVisibility = (): void => {
         if (document.visibilityState === 'hidden') {
             hidden = true;
@@ -550,6 +657,7 @@ function startOwnEventSource(config: SharedSseConfig, sub: SharedSseSubscriber):
 
     return () => {
         cancelled = true;
+        ownRestarters.get(config.endpoint)?.delete(restart);
         document.removeEventListener('visibilitychange', onVisibility);
         closeEs();
         try {

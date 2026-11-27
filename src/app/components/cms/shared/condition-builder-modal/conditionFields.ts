@@ -21,11 +21,17 @@ const validator = (rule: RuleType) => !!rule.value;
 /**
  * Creates field definitions with dynamic data using only built-in operators
  */
+export interface IPluginConditionOperation {
+    name: string;
+    description: string;
+}
+
 export function createConditionFields(
     groups: Record<string, string>,
     languages: Record<string, string>,
     platforms: Record<string, string>,
-    pages: Record<string, string>
+    pages: Record<string, string>,
+    pluginOperations: IPluginConditionOperation[] = [],
 ): Field[] {
     const fields: Field[] = [
         {
@@ -104,6 +110,16 @@ export function createConditionFields(
             validator,
         },
     ];
+
+    for (const op of pluginOperations) {
+        fields.push({
+            name: op.name,
+            label: `Plugin: ${op.name}`,
+            operators: defaultOperators.filter(opName => ['=', '!='].includes(opName.name)),
+            validator,
+            valueSources: ['value'],
+        });
+    }
 
     // Convert all fields to full option format
     return fields.map(field => toFullOption(field));

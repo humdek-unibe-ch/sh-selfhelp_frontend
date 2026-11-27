@@ -12,15 +12,23 @@ SPDX-License-Identifier: MPL-2.0
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import {
+    clampPageEditorSplit,
+    PAGE_EDITOR_SPLIT_DEFAULT,
+} from './pageEditorSplit';
 
 interface IInspectorState {
     // Store collapse state by inspector type and section name
     // Key format: "pageInspector:content" or "sectionInspector:properties"
     collapsedSections: Record<string, boolean>;
-    
+    /** Tree / inspector pane sizes (percent). Per-device via localStorage. */
+    pageEditorSplit: [number, number];
+
     // Actions
     setCollapsed: (inspectorType: string, sectionName: string, collapsed: boolean) => void;
     isCollapsed: (inspectorType: string, sectionName: string) => boolean;
+    setPageEditorSplit: (sizes: [number, number]) => void;
+    resetPageEditorSplit: () => void;
     clearInspectorState: () => void;
 }
 
@@ -28,7 +36,8 @@ export const useInspectorStore = create<IInspectorState>()(
     persist(
         (set, get) => ({
             collapsedSections: {},
-            
+            pageEditorSplit: [...PAGE_EDITOR_SPLIT_DEFAULT] as [number, number],
+
             setCollapsed: (inspectorType: string, sectionName: string, collapsed: boolean) => {
                 const key = `${inspectorType}:${sectionName}`;
                 set((state) => ({
@@ -38,22 +47,45 @@ export const useInspectorStore = create<IInspectorState>()(
                     }
                 }));
             },
-            
+
             isCollapsed: (inspectorType: string, sectionName: string) => {
                 const key = `${inspectorType}:${sectionName}`;
                 const state = get();
                 return state.collapsedSections[key] ?? false; // Default to expanded
             },
-            
+
+            setPageEditorSplit: (sizes: [number, number]) => {
+                set({ pageEditorSplit: clampPageEditorSplit(sizes) });
+            },
+
+            resetPageEditorSplit: () => {
+                set({ pageEditorSplit: [...PAGE_EDITOR_SPLIT_DEFAULT] as [number, number] });
+            },
+
             clearInspectorState: () => {
-                set({ collapsedSections: {} });
+                set({
+                    collapsedSections: {},
+                    pageEditorSplit: [...PAGE_EDITOR_SPLIT_DEFAULT] as [number, number],
+                });
             }
         }),
         {
             name: 'inspector-state', // localStorage key
-            partialize: (state) => ({ 
-                collapsedSections: state.collapsedSections
+            partialize: (state) => ({
+                collapsedSections: state.collapsedSections,
+                pageEditorSplit: state.pageEditorSplit,
             }),
+            merge: (persisted, current) => {
+                const raw = (persisted ?? {}) as Partial<IInspectorState>;
+                return {
+                    ...current,
+                    ...raw,
+                    pageEditorSplit: clampPageEditorSplit(
+                        raw.pageEditorSplit ?? current.pageEditorSplit,
+                    ),
+                    collapsedSections: raw.collapsedSections ?? current.collapsedSections,
+                };
+            },
         }
     )
 );

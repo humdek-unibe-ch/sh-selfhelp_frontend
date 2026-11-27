@@ -29,6 +29,11 @@ export interface IPermissionRow {
     permissions: ICrudPermissions;
     hasChanges: boolean;
     existingPermissionId?: number;
+    /**
+     * When false, every checkbox on the row is disabled (C9 `can_assign`).
+     * Default / undefined means the caller may change the grants.
+     */
+    can_assign?: boolean;
     // Additional metadata for rendering
     badges?: Array<{ label: string; color: string; variant?: 'light' | 'filled' | 'outline' | 'subtle' }>;
     extraInfo?: React.ReactNode;
@@ -98,8 +103,8 @@ export function PermissionsMatrix({
                 mb="md"
             />
 
-            <Table striped highlightOnHover style={{ tableLayout: 'auto' }}>
-                <TableThead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
+            <Table striped highlightOnHover stickyHeader style={{ tableLayout: 'auto' }}>
+                <TableThead>
                     <TableTr>
                         <TableTh style={{ minWidth: 200 }}>
                             <Group gap="xs">
@@ -128,8 +133,10 @@ export function PermissionsMatrix({
                             {permissionColumns.map(permission => (
                                 <TableTd key={permission}>
                                     <Checkbox
+                                        aria-label={`${permission} ${row.displayName || row.name}`}
                                         style={{ justifySelf: 'center' }}
                                         checked={row.permissions[permission] || false}
+                                        disabled={row.can_assign === false}
                                         onChange={(event) => onPermissionChange(row.id, permission, event.currentTarget.checked)}
                                         size="sm"
                                     />

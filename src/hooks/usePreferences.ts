@@ -14,10 +14,9 @@ SPDX-License-Identifier: MPL-2.0
  * @module hooks/usePreferences
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { PreferencesApi, type ICMSPreferences } from '../api/admin/preferences.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { notifications } from '@mantine/notifications';
 
 /**
  * Hook for fetching CMS preferences from the backend
@@ -46,53 +45,3 @@ export function useCmsPreferences() {
         retry: 2,
     });
 }
-
-/**
- * Hook for updating CMS preferences with optimistic updates
- *
- * Provides mutation functionality with automatic cache updates and user notifications.
- * Validates Firebase config format before sending to server.
- *
- * @returns Mutation hook with loading states and error handling
- *
- * @example
- * ```typescript
- * const updatePreferences = useUpdateCmsPreferences();
- *
- * const handleSave = (newPrefs: ICMSPreferences) => {
- *     updatePreferences.mutate(newPrefs, {
- *         onSuccess: () => console.log('Preferences updated'),
- *         onError: (error) => console.error('Update failed', error)
- *     });
- * };
- * ```
- *
- * @note Automatically updates React Query cache on success
- * @note Shows success/error notifications to user
- * @note Validates Firebase config as JSON format
- */
-export function useUpdateCmsPreferences() {
-    const queryClient = useQueryClient();
-
-    return useMutation<ICMSPreferences, Error, ICMSPreferences>({
-        mutationFn: PreferencesApi.updateCmsPreferences,
-        onSuccess: (data) => {
-            // Update the cache with server response
-            queryClient.setQueryData(['admin', 'cms-preferences'], data);
-
-            // Show success notification
-            notifications.show({
-                title: 'Settings Updated',
-                message: 'CMS preferences have been saved successfully.',
-                color: 'green'
-            });
-        },
-        onError: (error) => {
-            notifications.show({
-                title: 'Update Failed',
-                message: error.message || 'Failed to update CMS preferences.',
-                color: 'red'
-            });
-        }
-    });
-} 

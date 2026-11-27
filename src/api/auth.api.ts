@@ -125,15 +125,6 @@ export const AuthApi = {
         return response.data;
     },
 
-    async updateUsername(newUsername: string): Promise<IUserDataResponse> {
-        const response = await permissionAwareApiClient.put<IUserDataResponse>(
-            API_CONFIG.ENDPOINTS.USER_UPDATE_USERNAME,
-            { user_name: newUsername }
-        );
-        if (response.data.error) throw new Error(response.data.error);
-        return response.data;
-    },
-
     async updateName(newName: string): Promise<IUserDataResponse> {
         const response = await permissionAwareApiClient.put<IUserDataResponse>(
             API_CONFIG.ENDPOINTS.USER_UPDATE_NAME,

@@ -67,6 +67,8 @@ export function LanguagesList({
     }
 
     const hasLanguages = languages && languages.length > 0;
+    // Edit and delete are drawn only when the page passes them (it does for admin.language.update).
+    const hasActions = onEditLanguage !== undefined || onDeleteLanguage !== undefined;
 
     return (
         <div className={tableStyles.tableWrapper}>
@@ -77,7 +79,7 @@ export function LanguagesList({
                                 <Table.Th className={tableStyles.tableHeader}>ID</Table.Th>
                                 <Table.Th className={tableStyles.tableHeader}>Language</Table.Th>
                                 <Table.Th className={tableStyles.tableHeader}>CSV Separator</Table.Th>
-                                <Table.Th className={tableStyles.tableHeader} w={120}>Actions</Table.Th>
+                                {hasActions && <Table.Th className={tableStyles.tableHeader} w={120}>Actions</Table.Th>}
                             </Table.Tr>
                         </Table.Thead>
                         <Table.Tbody>
@@ -95,32 +97,32 @@ export function LanguagesList({
                                     <Table.Td className={tableStyles.tableCell}>
                                         <Text size="sm" fw={500}>{language.csvSeparator}</Text>
                                     </Table.Td>
-                                    <Table.Td className={tableStyles.tableCell}>
+                                    {hasActions && <Table.Td className={tableStyles.tableCell}>
                                         <Group gap={2} wrap="nowrap" className={tableStyles.actionsCell}>
-                                            <Tooltip label="Edit language" withArrow>
+                                            {onEditLanguage && <Tooltip label="Edit language" withArrow>
                                                 <ActionIcon
                                                     size="sm"
                                                     variant="subtle"
                                                     color="gray"
                                                     aria-label="Edit language"
-                                                    onClick={() => onEditLanguage?.(language.id)}
+                                                    onClick={() => onEditLanguage(language.id)}
                                                 >
                                                     <IconEdit size={16} />
                                                 </ActionIcon>
-                                            </Tooltip>
-                                            <Tooltip label="Delete language" withArrow>
+                                            </Tooltip>}
+                                            {onDeleteLanguage && <Tooltip label="Delete language" withArrow>
                                                 <ActionIcon
                                                     size="sm"
                                                     variant="subtle"
                                                     color="red"
                                                     aria-label="Delete language"
-                                                    onClick={() => onDeleteLanguage?.(language.id, language.language, language.locale)}
+                                                    onClick={() => onDeleteLanguage(language.id, language.language, language.locale)}
                                                 >
                                                     <IconTrash size={16} />
                                                 </ActionIcon>
-                                            </Tooltip>
+                                            </Tooltip>}
                                         </Group>
-                                    </Table.Td>
+                                    </Table.Td>}
                                 </Table.Tr>
                             ))}
                         </Table.Tbody>
@@ -131,7 +133,7 @@ export function LanguagesList({
                 {!hasLanguages && (
                     <EmptyState
                         title="No languages found"
-                        description="Get started by creating your first language"
+                        description={hasActions ? 'Get started by creating your first language' : 'No languages have been added yet.'}
                     />
                 )}
             </div>

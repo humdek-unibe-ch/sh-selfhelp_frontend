@@ -48,6 +48,8 @@ export function useCreatePageMutation(options: ICreatePageMutationOptions = {}) 
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES }),
                 invalidateAdminNavigationQueries(queryClient),
+                // The section details carry the page-keyword picker, read per request (F56).
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SECTION_DETAILS_ALL }),
             ]);
 
             if (showNotifications) {

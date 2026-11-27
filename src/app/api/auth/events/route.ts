@@ -21,7 +21,7 @@ SPDX-License-Identifier: MPL-2.0
  *
  * ## Flow
  *
- * 1. Read the session JWT from the httpOnly cookies.
+ * 1. Read the session JWT from the httpOnly cookies (none: a guest, see below).
  *    - When impersonation is active, prefer `sh_impersonate` so the
  *      upstream Mercure subscription is scoped to the *effective* user
  *      (the impersonation target).
@@ -73,6 +73,18 @@ SPDX-License-Identifier: MPL-2.0
  *                                Maintenance page track progress without
  *                                polling.
  *
+ *     - `changed`               data: { v: 1, tags: string[] }
+ *                                a change notice (contract C1): names and ids
+ *                                only, never content. Sent to the audience
+ *                                topics (`syncTopics`: the user, each group, each
+ *                                role, and `public`); the client matches the tags
+ *                                to what is on screen (`src/utils/sync-tags.utils.ts`).
+ *
+ *   A visitor without a session is served too (C4): the bootstrap then answers with the
+ *   public sync topic only, so an open public page updates live as well. When the client
+ *   receives an `acl` notice it closes the stream and opens it again, so the topic list
+ *   follows its groups and roles.
+ *
  *   Mercure protocol-level frames (`Last-Event-ID`, `:` heartbeats,
  *   reconnect time hints) flow through unchanged and are handled by the
  *   browser's EventSource transparently.
@@ -104,11 +116,18 @@ export const runtime = 'nodejs';
 
 interface MercureBootstrap {
     hubUrl: string;
+    /** Per-user ACL topic. `''` for a guest (the backend sends `null`). */
     topic: string;
+    /** Per-user impersonation topic. `''` for a guest. */
     impersonationTopic: string;
     /** Per-user system-update topic. Optional so an older backend that does
-     *  not yet emit it still streams ACL + impersonation. */
+     *  not yet emit it still streams ACL + impersonation. `''` when absent. */
     systemUpdateTopic: string;
+    /**
+     * Change-notice topics (C2, C4): `[user, each group, each role, public]` for a signed-in
+     * user, `[public]` for a guest. `[]` when the backend predates live sync.
+     */
+    syncTopics: string[];
     token: string;
     expiresIn: number;
 }
@@ -133,43 +152,47 @@ function extractBootstrap(payload: unknown): MercureBootstrap | null {
                   | undefined);
 
     if (!candidate || typeof candidate !== 'object') return null;
-    const { hubUrl, topic, impersonationTopic, systemUpdateTopic, token, expiresIn } =
+    const { hubUrl, topic, impersonationTopic, systemUpdateTopic, syncTopics, token, expiresIn } =
         candidate as Record<string, unknown>;
-    if (
-        typeof hubUrl !== 'string' ||
-        typeof topic !== 'string' ||
-        typeof impersonationTopic !== 'string' ||
-        typeof token !== 'string'
-    ) {
+    if (typeof hubUrl !== 'string' || typeof token !== 'string') {
         return null;
     }
-    return {
+    const mercure: MercureBootstrap = {
         hubUrl,
-        topic,
-        impersonationTopic,
+        // A guest has no personal topics: the backend sends `null` for each (C4).
+        topic: typeof topic === 'string' ? topic : '',
+        impersonationTopic: typeof impersonationTopic === 'string' ? impersonationTopic : '',
         // Tolerate an older backend that does not advertise it yet.
         systemUpdateTopic: typeof systemUpdateTopic === 'string' ? systemUpdateTopic : '',
+        syncTopics: Array.isArray(syncTopics)
+            ? syncTopics.filter((entry): entry is string => typeof entry === 'string' && entry !== '')
+            : [],
         token,
         expiresIn: typeof expiresIn === 'number' ? expiresIn : 3600,
     };
+    // Nothing to subscribe to: the payload is not a usable bootstrap.
+    return subscriptionTopics(mercure).length > 0 ? mercure : null;
+}
+
+/** Every topic the one upstream connection subscribes to: personal first, then the sync topics, once each. */
+function subscriptionTopics(bootstrap: MercureBootstrap): string[] {
+    return [
+        ...new Set(
+            [
+                bootstrap.topic,
+                bootstrap.impersonationTopic,
+                bootstrap.systemUpdateTopic,
+                ...bootstrap.syncTopics,
+            ].filter((topic) => topic !== ''),
+        ),
+    ];
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
     const jar = await cookies();
+    // No session cookie is a guest, not an error (C4): the bootstrap answers with the public
+    // sync topic only, so a visitor's open page updates live too.
     const jwt = jar.get(IMPERSONATE_COOKIE)?.value ?? jar.get(AUTH_COOKIE)?.value;
-    if (!jwt) {
-        return NextResponse.json(
-            {
-                error: 'Unauthorized',
-                logged_in: false,
-                status: 401,
-                message: 'Authentication required',
-                meta: {},
-                data: null,
-            },
-            { status: 401 }
-        );
-    }
 
     // Step 1: get hub URL + per-user topic + subscriber JWT from Symfony.
     // Prefer the impersonation token when present so the stream follows
@@ -185,7 +208,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
             {
                 method: 'GET',
                 headers: {
-                    Authorization: `Bearer ${jwt}`,
+                    ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
                     Accept: 'application/json',
                     'X-Client-Type': 'web',
                 },
@@ -219,14 +242,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // Step 2: subscribe to the Mercure hub. The hub holds the long-lived
     // SSE socket; we just pipe its body to the browser. Mercure accepts
     // multiple `topic=` query params per connection, so one upstream
-    // socket multiplexes both ACL and impersonation events.
+    // socket multiplexes the ACL, impersonation, system-update and change-notice
+    // (`changed`) events. The token covers exactly these topics.
     const subscribeUrl =
-        `${bootstrap.hubUrl}` +
-        `?topic=${encodeURIComponent(bootstrap.topic)}` +
-        `&topic=${encodeURIComponent(bootstrap.impersonationTopic)}` +
-        (bootstrap.systemUpdateTopic !== ''
-            ? `&topic=${encodeURIComponent(bootstrap.systemUpdateTopic)}`
-            : '');
+        `${bootstrap.hubUrl}?` +
+        subscriptionTopics(bootstrap)
+            .map((topic) => `topic=${encodeURIComponent(topic)}`)
+            .join('&');
 
     let hubResponse: Response;
     const hubStart = Date.now();

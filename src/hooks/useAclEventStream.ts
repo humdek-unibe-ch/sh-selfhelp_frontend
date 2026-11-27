@@ -44,16 +44,23 @@ SPDX-License-Identifier: MPL-2.0
  * mutation — even when the trigger was an async background job or a
  * stop click in a different browser tab.
  *
+ *   - **`changed`** — `data: { v: 1, tags: string[] }` (contract C1, live
+ *     sync). Names and ids only. `src/utils/sync-tags.utils.ts` maps the tags
+ *     to query invalidations after a 0 to 300 ms random delay. A message with
+ *     the `acl` tag also closes the stream and opens it again, so the
+ *     subscription follows the user's groups and roles (C4).
+ *
+ * Visitors without a session subscribe too: the stream then carries the public
+ * notices only (navigation, global values, open pages, public lists).
+ *
  * Mount once at the root of the client tree (`ClientProviders`).
  *
- * The hook is a no-op on the server (`EventSource` is a browser API)
- * and for anonymous visitors (no `sh_auth` cookie → no events to
- * listen for).
+ * The hook is a no-op on the server (`EventSource` is a browser API).
  */
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStatus } from './useUserData';
@@ -61,7 +68,13 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useImpersonationStore } from '../app/store/impersonation.store';
 import { ROUTES } from '../config/routes.config';
 import { setAuthSseConnected } from './auth-sse-status';
-import { subscribeSharedSse } from '../utils/shared-sse';
+import { reconnectSharedSse, subscribeSharedSse } from '../utils/shared-sse';
+import { parseSyncMessageJson, SYNC_EVENT_NAME } from '@selfhelp/shared';
+import {
+    handleSyncMessage,
+    reconcileAfterReopen,
+    refetchInvalidatedQueries,
+} from '../utils/sync-tags.utils';
 import { withRedirectTo } from '../utils/login-redirect.utils';
 
 /** React Query keys for the system-update views fed by the `system-update` SSE event. */
@@ -93,7 +106,12 @@ function parseImpersonationStatus(raw: string): ImpersonationStatusPayload | nul
 const SSE_ENDPOINT = '/api/auth/events';
 
 /** Named events this stream forwards (must match the BFF / Mercure `event:` names). */
-const ACL_STREAM_EVENTS = ['acl-changed', 'impersonation-status', 'system-update'] as const;
+const ACL_STREAM_EVENTS = ['acl-changed', 'impersonation-status', 'system-update', SYNC_EVENT_NAME] as const;
+
+/** The `acl` notice means the topic list of this subscription is out of date: reconnect to renew it (C4). */
+function isAclNotice(type: string, data: string): boolean {
+    return type === SYNC_EVENT_NAME && (parseSyncMessageJson(data)?.tags.includes('acl') ?? false);
+}
 
 function shouldRedirectToLogin(pathname: string): boolean {
     if (!pathname.startsWith('/admin')) return false;
@@ -104,13 +122,16 @@ function shouldRedirectToLogin(pathname: string): boolean {
 
 export function useAclEventStream(): void {
     const queryClient = useQueryClient();
-    const { isAuthenticated } = useAuthStatus();
+    const { isAuthenticated, user } = useAuthStatus();
     const router = useRouter();
+    const identity = user?.id ?? null;
+    const previousIdentity = useRef(identity);
 
     useEffect(() => {
-        if (!isAuthenticated) return undefined;
-
+        // Guests listen too (C4): the stream then carries the public notices only. What a guest
+        // must not do is treat a closed stream as an expired session (`isAuthenticated` below).
         let checkingAuth = false;
+        const pendingNotices = new Set<() => void>();
 
         const invalidateSystemUpdate = () => {
             void queryClient.invalidateQueries({ queryKey: SYSTEM_UPDATE_STATUS_KEY });
@@ -178,8 +199,19 @@ export function useAclEventStream(): void {
         const unsubscribe = subscribeSharedSse({
             endpoint: SSE_ENDPOINT,
             events: ACL_STREAM_EVENTS,
+            reconnectWhen: isAclNotice,
             onEvent: (type, data) => {
-                if (type === 'acl-changed') {
+                if (type === SYNC_EVENT_NAME) {
+                    // A change notice (C1): match its tags to what is on screen after a short
+                    // random delay that spreads many clients over a moment.
+                    const message = parseSyncMessageJson(data);
+                    if (message !== null) {
+                        const cancel = handleSyncMessage(queryClient, message.tags, () => {
+                            pendingNotices.delete(cancel);
+                        });
+                        pendingNotices.add(cancel);
+                    }
+                } else if (type === 'acl-changed') {
                     // Invalidating user-data is enough: `useAclVersionWatcher`
                     // will detect the bumped `aclVersion` after the refetch and
                     // cascade the navigation / admin / page caches.
@@ -193,19 +225,41 @@ export function useAclEventStream(): void {
                 }
             },
             onStatus: (connected) => setAuthSseConnected(connected),
-            // Reconnected after a drop / tab became visible again: reconcile the
-            // system-update view that may have moved while we weren't listening.
-            onReopen: invalidateSystemUpdate,
-            onResume: invalidateSystemUpdate,
-            onLeaderClosed: handleExpiredSession,
+            // Reconnected after a drop / tab became visible again: reconcile what may have moved
+            // while we weren't listening (system update, pages, navigation, lists, access).
+            onReopen: () => {
+                invalidateSystemUpdate();
+                reconcileAfterReopen(queryClient);
+                if (isAuthenticated) {
+                    void queryClient.invalidateQueries({
+                        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
+                    });
+                }
+            },
+            // A hidden tab only marked queries stale; read the ones on screen now.
+            onResume: () => {
+                invalidateSystemUpdate();
+                refetchInvalidatedQueries(queryClient);
+            },
+            onLeaderClosed: isAuthenticated ? handleExpiredSession : () => false,
             onSessionExpired: () => {
-                void handleExpiredSession();
+                if (isAuthenticated) void handleExpiredSession();
             },
         });
 
         return () => {
+            for (const cancel of pendingNotices) cancel();
+            pendingNotices.clear();
             setAuthSseConnected(false);
             unsubscribe();
         };
     }, [isAuthenticated, queryClient, router]);
+
+    // The topic list belongs to who the subscriber is (C4): after a sign-in, sign-out or an
+    // impersonation change, the stream is opened again so it carries the new identity's topics.
+    useEffect(() => {
+        if (previousIdentity.current === identity) return;
+        previousIdentity.current = identity;
+        reconnectSharedSse(SSE_ENDPOINT);
+    }, [identity]);
 }

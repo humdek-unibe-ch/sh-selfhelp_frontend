@@ -7,9 +7,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 /**
  * The admin "Referrers" card needs the outside site a visitor came from.
  * A visitor is rendered on the server, and one render makes several page-content
- * fetches (metadata, layout prefetch, page body, status check), each of which
- * Symfony records as a page view. The referrer belongs to the visit, so exactly
- * one of those fetches may carry `X-Referrer-Host`.
+ * fetches (metadata, layout prefetch, page body, status check). The referrer and the
+ * page view belong to the visit, so exactly one of those fetches carries them: the
+ * fetch of the page BODY. Next.js renders the metadata and the layout alone for a link
+ * prefetch, and a prefetch must never count a view (Part 7, found by hand).
  *
  * React's `cache()` memoises per server request. The stand-in below does the
  * same, and `request.next()` starts a new request, so "once per request" is
@@ -118,15 +119,15 @@ describe('page-content SSR fetches and the outside referrer', () => {
         expect(carrying[0].headers['X-Referrer-Host']).toBe('news.example.org');
     });
 
-    it('lets the first fetch of the request take it, not a later one', async () => {
+    it('puts it on the page body fetch, not on the metadata or layout fetch', async () => {
         request.incoming.values = { referer: 'https://news.example.org/', host: 'site.test' };
 
         await resolvePageByPathSSRCached('/impressum', 1);
         await resolvePageByPathSSRStatus('/impressum', 1);
 
-        const [first, second] = sentRequests();
-        expect(first.headers['X-Referrer-Host']).toBe('news.example.org');
-        expect(second.headers['X-Referrer-Host']).toBeUndefined();
+        const [metadataAndLayout, body] = sentRequests();
+        expect(metadataAndLayout.headers['X-Referrer-Host']).toBeUndefined();
+        expect(body.headers['X-Referrer-Host']).toBe('news.example.org');
     });
 
     it('starts again with the next request', async () => {
@@ -145,8 +146,8 @@ describe('page-content SSR fetches and the outside referrer', () => {
     it('does not repeat the referrer when a fetch of the same request is asked for again', async () => {
         request.incoming.values = { referer: 'https://news.example.org/', host: 'site.test' };
 
-        await resolvePageByPathSSRCached('/impressum', 1);
-        await resolvePageByPathSSRCached('/impressum', 1);
+        await resolvePageByPathSSRStatus('/impressum', 1);
+        await resolvePageByPathSSRStatus('/impressum', 1);
 
         // The second call is the per-request cache hit: no second fetch at all.
         expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -178,7 +179,7 @@ describe('page-content SSR fetches and the outside referrer', () => {
     it('keeps the client type and accept headers next to the referrer', async () => {
         request.incoming.values = { referer: 'https://news.example.org/', host: 'site.test' };
 
-        await resolvePageByPathSSRCached('/impressum', 1);
+        await resolvePageByPathSSRStatus('/impressum', 1);
 
         expect(sentRequests()[0].headers).toMatchObject({
             Accept: 'application/json',
@@ -195,5 +196,77 @@ describe('page-content SSR fetches and the outside referrer', () => {
         expect(page).not.toBeNull();
         expect(fetchMock).toHaveBeenCalledTimes(1);
         expect(fetchesCarryingReferrer()).toHaveLength(0);
+    });
+
+    describe('X-Page-View (C7, F135, P4-A6)', () => {
+        const fetchesCountingTheView = (): ISentRequest[] =>
+            sentRequests().filter((sent) => sent.headers['X-Page-View'] !== undefined);
+
+        it('marks exactly one of the four fetches of a navigation as the view', async () => {
+            request.incoming.values = { host: 'site.test' };
+
+            await renderTheSlugRoute();
+
+            expect(fetchMock).toHaveBeenCalledTimes(4);
+            const counting = fetchesCountingTheView();
+            expect(counting).toHaveLength(1);
+            expect(counting[0].headers['X-Page-View']).toBe('1');
+        });
+
+        it('sends the view and the referrer on the same request', async () => {
+            request.incoming.values = { referer: 'https://news.example.org/', host: 'site.test' };
+
+            await renderTheSlugRoute();
+
+            const counting = fetchesCountingTheView();
+            expect(counting).toHaveLength(1);
+            expect(counting[0].headers['X-Referrer-Host']).toBe('news.example.org');
+            expect(fetchesCarryingReferrer()).toEqual(counting);
+        });
+
+        it('counts the next request again', async () => {
+            await renderTheSlugRoute();
+            request.next();
+            fetchMock.mockClear();
+
+            await renderTheSlugRoute();
+
+            expect(fetchesCountingTheView()).toHaveLength(1);
+        });
+
+        it('never marks a preview render', async () => {
+            await Promise.all([
+                resolvePageByPathSSRCached('/impressum', 1, true),
+                resolvePageByPathSSRStatus('/impressum', 1, true),
+                getPageByKeywordSSRCached('impressum', 1, true),
+            ]);
+
+            expect(fetchMock).toHaveBeenCalledTimes(3);
+            expect(fetchesCountingTheView()).toHaveLength(0);
+        });
+
+        it('never marks the metadata or layout fetch, which Next.js renders alone for a link prefetch', async () => {
+            request.incoming.values = { host: 'site.test', referer: 'https://news.example.org/' };
+
+            // A "metadata-only" request runs generateMetadata and nothing else.
+            await resolvePageByPathSSRCached('/impressum', 1);
+            await getPageByKeywordSSRCached('impressum', 1);
+
+            expect(fetchMock).toHaveBeenCalledTimes(2);
+            expect(fetchesCountingTheView()).toHaveLength(0);
+            expect(fetchesCarryingReferrer()).toHaveLength(0);
+        });
+
+        it.each([
+            ['a browser prefetch', { purpose: 'prefetch' }],
+            ['a browser prerender', { 'sec-purpose': 'prefetch;prerender' }],
+        ])('never marks %s', async (_label, incoming) => {
+            request.incoming.values = { host: 'site.test', ...incoming };
+
+            await renderTheSlugRoute();
+
+            expect(fetchMock).toHaveBeenCalledTimes(4);
+            expect(fetchesCountingTheView()).toHaveLength(0);
+        });
     });
 });

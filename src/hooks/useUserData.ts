@@ -107,6 +107,7 @@ function transformUserData(userData: IUserData): IAuthUser {
         receivesNotifications: userData.receives_notifications,
         receivesEmails: userData.receives_emails,
         aclVersion: userData.acl_version ?? null,
+        aclStamp: userData.acl_stamp ?? null,
         roles: userData.roles,
         permissions: userData.permissions,
         groups: userData.groups,

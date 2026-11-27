@@ -18,7 +18,9 @@ SPDX-License-Identifier: MPL-2.0
  *   6. `next build` + `next start` the frontend on 127.0.0.1:3000.
  *   7. Run Playwright for the chosen SUITE PROFILE.
  *   8. Tear down ONLY the processes this script started (Docker stays up for
- *      fast reruns unless SELFHELP_E2E_STOP_DOCKER=1).
+ *      fast reruns unless SELFHELP_E2E_STOP_DOCKER=1), and take the fixture
+ *      plugins it installed (golden, plugin) out of the backend tree again, so
+ *      a backend suite that runs afterwards sees a core-only tree.
  *
  * Stack orchestration is intentionally separate from suite selection: this
  * file owns startup; a "profile" only chooses the Playwright target (and
@@ -29,6 +31,7 @@ SPDX-License-Identifier: MPL-2.0
  *   npm run test:golden  → node scripts/e2e-stack.mjs golden  → e2e/golden
  *   npm run test:a11y    → node scripts/e2e-stack.mjs a11y    → e2e/a11y
  *   npm run test:visual  → node scripts/e2e-stack.mjs visual  → e2e/visual
+ *   npm run test:access  → node scripts/e2e-stack.mjs access  → e2e/access
  *
  * Override knobs (no script edits needed):
  *   SELFHELP_BACKEND_DIR          — backend repo path (default ../sh-selfhelp_backend).
@@ -38,6 +41,10 @@ SPDX-License-Identifier: MPL-2.0
  *   SELFHELP_E2E_SKIP_BUILD=1     — reuse the existing Next build (.next).
  *   SELFHELP_E2E_SKIP_PW_INSTALL=1— don't run `playwright install chromium`.
  *   SELFHELP_E2E_STOP_DOCKER=1    — `docker compose ... down` on exit.
+ *   SELFHELP_E2E_SKIP_FIXTURE_PLUGINS=1 — don't install the test fixture plugins
+ *                                   (backend tests/Fixtures/plugins/*; golden, plugin).
+ *   SELFHELP_E2E_KEEP_FIXTURE_PLUGINS=1 — leave the installed fixture plugins in the
+ *                                   backend tree at exit (default: uninstall them).
  *   SELFHELP_E2E_BACKEND_HOST/PORT, SELFHELP_E2E_FRONTEND_HOST/PORT — ports.
  *   QA_USER_EMAIL / QA_USER_PASSWORD / QA_FORM_PAGE_KEYWORD / QA_FORM_FIELDS /
  *   QA_FORM_SUBMIT_LABEL / QA_LOGIN_KEYWORD — override individual QA values
@@ -50,11 +57,14 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { spawn, spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
+
+const requireFromHere = createRequire(import.meta.url);
 
 const FRONTEND_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const IS_WIN = process.platform === 'win32';
@@ -93,9 +103,17 @@ const PROFILES = {
     visual: { dir: 'e2e/visual', resetDb: true },
     admin: { dir: 'e2e/admin', resetDb: true },
     plugin: { dir: 'e2e/plugins', resetDb: true },
+    // Least-privilege walk: restricted QA personas (backend QaBaselineFixture)
+    // sign in and open every admin screen from the menu (F239).
+    // One worker: every test signs in and walks the whole admin, and the
+    // single-threaded `php -S` backend of a Windows machine fails the sign-ins
+    // of parallel workers.
+    access: { dir: 'e2e/access', resetDb: true, workers: 1 },
 };
 
 const children = [];
+/** Fixture plugins this run installed into the backend tree: `{ script, backendDir, env }`. */
+const installedFixtures = [];
 let cleanedUp = false;
 
 function log(msg) {
@@ -117,6 +135,32 @@ function boolEnv(key) {
     return v === '1' || v === 'true' || v === 'yes';
 }
 
+/**
+ * Playwright via `node …/cli.js` (not `npx` + `shell: true`). On Windows, `shell: true`
+ * re-parses the argument list so `--grep "live sync"` splits into two args (F268).
+ */
+function spawnPlaywright(args, opts = {}) {
+    const cli = requireFromHere.resolve('@playwright/test/cli');
+    return spawn(process.execPath, [cli, ...args], {
+        cwd: opts.cwd ?? FRONTEND_ROOT,
+        env: { ...process.env, ...opts.env },
+        stdio: opts.stdio ?? 'inherit',
+        shell: false,
+        windowsHide: true,
+    });
+}
+
+function spawnPlaywrightSync(args, opts = {}) {
+    const cli = requireFromHere.resolve('@playwright/test/cli');
+    return spawnSync(process.execPath, [cli, ...args], {
+        cwd: opts.cwd ?? FRONTEND_ROOT,
+        env: { ...process.env, ...opts.env },
+        encoding: opts.encoding ?? 'utf8',
+        shell: false,
+        windowsHide: true,
+    });
+}
+
 /** Run a command to completion, inheriting stdio. Rejects on non-zero exit. */
 function run(cmd, args, opts = {}) {
     return new Promise((resolve, reject) => {
@@ -124,6 +168,7 @@ function run(cmd, args, opts = {}) {
             cwd: opts.cwd ?? FRONTEND_ROOT,
             env: { ...process.env, ...opts.env },
             stdio: 'inherit',
+            // npm/docker/php need the shell on Windows; Playwright never goes through here (F268).
             shell: IS_WIN,
         });
         child.on('error', reject);
@@ -133,6 +178,19 @@ function run(cmd, args, opts = {}) {
                 : reject(new Error(`${cmd} ${args.join(' ')} exited with code ${code}`)),
         );
     });
+}
+
+/** Put `next-env.d.ts` back after `next build` rewrites the typed-routes import (F274). */
+function restoreNextEnvDts() {
+    const result = spawnSync('git', ['checkout', '--', 'next-env.d.ts'], {
+        cwd: FRONTEND_ROOT,
+        encoding: 'utf8',
+        shell: false,
+        windowsHide: true,
+    });
+    if (result.status !== 0) {
+        warn(`Could not restore next-env.d.ts: ${result.stderr || result.stdout || result.status}`);
+    }
 }
 
 /** Like {@link run} but never rejects — used for best-effort/idempotent steps. */
@@ -188,11 +246,43 @@ function killTree(pid) {
     }
 }
 
+/**
+ * A fixture plugin is installed into the real backend tree (generated bundle list, lock file,
+ * plugin-composer packages, built artifacts) and into the test database. Resetting the database
+ * does not touch those generated files, so a plugin left behind makes the next backend run
+ * (PHPUnit, the migration round trips: `doctrine:schema:validate`) see a mapping whose table the
+ * fresh database lacks. Take every fixture this run installed out again (the fixture script also
+ * rebuilds the `test` container and pools). Keep them with SELFHELP_E2E_KEEP_FIXTURE_PLUGINS=1.
+ */
+async function removeFixturePlugins() {
+    if (installedFixtures.length === 0) return;
+    if (boolEnv('SELFHELP_E2E_KEEP_FIXTURE_PLUGINS')) {
+        warn('SELFHELP_E2E_KEEP_FIXTURE_PLUGINS=1 — fixture plugins stay installed in the backend tree.');
+        return;
+    }
+    for (const { script, backendDir, env } of installedFixtures.splice(0).reverse()) {
+        log(`Removing fixture plugin (${path.basename(path.dirname(path.dirname(script)))}) from the backend tree…`);
+        await runSoft('node', [script, '--backend', backendDir, '--uninstall'], {
+            cwd: path.dirname(script),
+            env,
+        });
+    }
+}
+
 async function cleanup(stopDocker, backendDir) {
     if (cleanedUp) return;
     cleanedUp = true;
+    if (backendDir) {
+        try {
+            fs.rmSync(path.join(backendDir, 'var', 'e2e-real-hub.flag'), { force: true });
+        } catch {
+            /* best-effort */
+        }
+    }
     if (children.length) log('Stopping processes started by this run…');
     for (const child of children.reverse()) killTree(child.pid);
+    // The servers are down: nothing uses the plugin any more.
+    await removeFixturePlugins();
     if (stopDocker && backendDir) {
         await runSoft('docker', ['compose', '-f', 'docker-compose.test.yml', 'down'], {
             cwd: backendDir,
@@ -340,11 +430,9 @@ async function ensureVisualBaselines(baseUrl, backendUrl, extraArgs) {
     // Cheap, no-browser count of visual test cases (one test == one screenshot
     // == one baseline png per platform) so we can tell a complete baseline set
     // from a fresh or partial one without hard-coding snapshot names.
-    const list = spawnSync('npx', ['playwright', 'test', 'e2e/visual', '--list'], {
+    const list = spawnPlaywrightSync(['test', 'e2e/visual', '--list'], {
         cwd: FRONTEND_ROOT,
-        env: { ...process.env, ...suiteEnv(baseUrl, backendUrl) },
-        encoding: 'utf8',
-        shell: IS_WIN,
+        env: suiteEnv(baseUrl, backendUrl),
     });
     const matched = `${list.stdout ?? ''}${list.stderr ?? ''}`.match(/Total:\s+(\d+)\s+test/);
     const expected = matched ? Number(matched[1]) : 0;
@@ -353,11 +441,9 @@ async function ensureVisualBaselines(baseUrl, backendUrl, extraArgs) {
 
     log('Seeding missing visual baselines (create-only) before the check…');
     await new Promise((resolve) => {
-        const child = spawn('npx', ['playwright', 'test', 'e2e/visual', '--update-snapshots=missing'], {
+        const child = spawnPlaywright(['test', 'e2e/visual', '--update-snapshots=missing'], {
             cwd: FRONTEND_ROOT,
-            env: { ...process.env, ...suiteEnv(baseUrl, backendUrl) },
-            stdio: 'inherit',
-            shell: IS_WIN,
+            env: suiteEnv(baseUrl, backendUrl),
         });
         child.on('error', () => resolve());
         child.on('close', () => resolve());
@@ -404,6 +490,9 @@ async function main() {
             const backendEnv = {
                 APP_ENV: 'test',
                 SELFHELP_PUBLIC_DIR: path.join(backendDir, 'public'),
+                // The backend's test container records Mercure updates in memory; this makes it
+                // also send them to the test hub, so open pages receive live-sync notices.
+                SELFHELP_E2E_REAL_HUB: '1',
                 // Let the built-in server handle the login/home page's parallel
                 // API calls concurrently (POSIX fork only — ignored on Windows).
                 ...(IS_WIN ? {} : { PHP_CLI_SERVER_WORKERS: '4' }),
@@ -428,11 +517,63 @@ async function main() {
                 await run('composer', ['test:reset-db'], { cwd: backendDir, env: backendEnv });
             }
 
+            // Optional: install test-only fixture plugins from
+            // tests/Fixtures/plugins/*/scripts/install-qa-fixture.mjs before
+            // php -S boots (so selfhelp_plugin_bundles.php is loaded). Skip with
+            // SELFHELP_E2E_SKIP_FIXTURE_PLUGINS=1.
+            const fixturePluginsRoot = path.join(backendDir, 'tests', 'Fixtures', 'plugins');
+            if (
+                (profileName === 'golden' || profileName === 'plugin')
+                && !boolEnv('SELFHELP_E2E_SKIP_FIXTURE_PLUGINS')
+                && fs.existsSync(fixturePluginsRoot)
+            ) {
+                for (const entry of fs.readdirSync(fixturePluginsRoot, { withFileTypes: true })) {
+                    if (!entry.isDirectory()) {
+                        continue;
+                    }
+                    const installScript = path.join(
+                        fixturePluginsRoot,
+                        entry.name,
+                        'scripts',
+                        'install-qa-fixture.mjs',
+                    );
+                    if (!fs.existsSync(installScript)) {
+                        continue;
+                    }
+                    log(`Installing fixture plugin from tests/Fixtures/plugins/${entry.name}…`);
+                    // Recorded before the install: a half-finished install is removed at teardown too.
+                    installedFixtures.push({ script: installScript, backendDir, env: backendEnv });
+                    await run('node', [installScript, '--backend', backendDir], {
+                        cwd: path.dirname(installScript),
+                        env: backendEnv,
+                    });
+                }
+                // Fixture installers typically use APP_ENV=dev (unsigned reviewed
+                // plugins). Ensure the APP_ENV=test Redis pool and filesystem
+                // cache are rebuilt so ApiRouteLoader + plugin bundles are in
+                // the dumped matcher/container before php -S boots.
+                log('Clearing Symfony test cache after fixture plugin install…');
+                await runSoft('php', ['bin/console', 'cache:pool:clear', 'cache.app', '--no-debug'], {
+                    cwd: backendDir,
+                    env: backendEnv,
+                });
+                await runSoft('php', ['bin/console', 'cache:clear', '--no-warmup', '--no-debug'], {
+                    cwd: backendDir,
+                    env: backendEnv,
+                });
+            }
+
             // Precompile the Symfony test container so the FIRST HTTP request
             // does not pay the one-time container-compile cost (which would
             // blow the login perf budget on the very first golden login).
             log('Warming the Symfony test container (cache:warmup)…');
             await runSoft('php', ['bin/console', 'cache:warmup'], { cwd: backendDir, env: backendEnv });
+
+            // Windows `php -S` often drops SELFHELP_E2E_REAL_HUB from the request
+            // environment; MercureTestRecorder also watches this flag file.
+            const realHubFlag = path.join(backendDir, 'var', 'e2e-real-hub.flag');
+            fs.mkdirSync(path.dirname(realHubFlag), { recursive: true });
+            fs.writeFileSync(realHubFlag, '1\n');
 
             log(`Starting Symfony backend at ${backendUrl} (php -S + harness router, APP_ENV=test)…`);
             spawnServer(
@@ -480,6 +621,7 @@ async function main() {
                     cwd: FRONTEND_ROOT,
                     env: { NEXT_PUBLIC_API_URL: backendUrl },
                 });
+                restoreNextEnvDts();
             }
 
             log(`Starting Next.js frontend at ${baseUrl} (next start)…`);
@@ -505,12 +647,17 @@ async function main() {
 
         log(`Running Playwright suite "${profileName}" (${profile.dir})…`);
         playwrightCode = await new Promise((resolve) => {
-            const child = spawn('npx', ['playwright', 'test', profile.dir, ...extraPlaywrightArgs], {
-                cwd: FRONTEND_ROOT,
-                env: { ...process.env, ...suiteEnv(baseUrl, backendUrl) },
-                stdio: 'inherit',
-                shell: IS_WIN,
-            });
+            const workerArgs =
+                profile.workers && !extraPlaywrightArgs.some((arg) => arg.startsWith('--workers'))
+                    ? [`--workers=${profile.workers}`]
+                    : [];
+            const child = spawnPlaywright(
+                ['test', profile.dir, ...workerArgs, ...extraPlaywrightArgs],
+                {
+                    cwd: FRONTEND_ROOT,
+                    env: suiteEnv(baseUrl, backendUrl),
+                },
+            );
             child.on('error', (err) => {
                 fail(err.message);
                 resolve(1);

@@ -10,6 +10,8 @@ export interface IUserBasic {
   last_login: string | null;
   status: string;
   blocked: boolean;
+  /** Built-in system account; protected from delete / system-flag changes. */
+  is_system: boolean;
   receives_notifications: boolean;
   receives_emails: boolean;
   code: string | null;
@@ -31,6 +33,7 @@ export interface IUserRole {
   id: number;
   name: string;
   description: string | null;
+  is_superuser: boolean;
 }
 
 export interface IUserDetails {
@@ -43,6 +46,8 @@ export interface IUserDetails {
   id_languages: number | null;
   id_userTypes: number | null;
   blocked: boolean;
+  /** Built-in system account; protected from delete / system-flag changes. */
+  is_system: boolean;
   receives_notifications: boolean;
   receives_emails: boolean;
   status: string;

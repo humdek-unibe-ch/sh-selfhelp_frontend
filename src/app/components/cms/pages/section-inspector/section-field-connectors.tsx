@@ -57,15 +57,23 @@ export const SectionContentField = React.memo(function SectionContentField({
 
     const activeLanguage = languages.find((language) => String(language.id) === activeLanguageId)
         ?? languages[0];
-    const languageId = activeLanguage?.id ?? languages[0]?.id ?? 1;
-
-    const value = fieldValues[languageId] ?? '';
+    // Content fields need a real language from the list — never invent language-independent id 1.
+    const languageId = activeLanguage?.id ?? languages[0]?.id;
 
     const setContentField = useSectionFormStore((state) => state.setContentField);
 
     const handleChange = useCallback((newValue: string | boolean) => {
+        if (languageId === undefined) {
+            return;
+        }
         setContentField(field.name, languageId, String(newValue));
     }, [field.name, languageId, setContentField]);
+
+    if (languageId === undefined) {
+        return null;
+    }
+
+    const value = fieldValues[languageId] ?? '';
 
     const localeLanguages: ILocaleTabLanguage[] = languages.map((language) => ({
         id: language.id,

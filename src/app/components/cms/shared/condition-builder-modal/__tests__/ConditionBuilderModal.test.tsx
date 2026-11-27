@@ -41,6 +41,10 @@ vi.mock('../../../../../../hooks/useConditionBuilderData', () => ({
     },
 }));
 
+vi.mock('../../../plugins/hooks/usePluginJsonLogicOperations', () => ({
+    usePluginJsonLogicOperations: () => ({ data: [], isLoading: false }),
+}));
+
 import { ConditionBuilderModal } from '../ConditionBuilderModal';
 
 beforeEach(() => {

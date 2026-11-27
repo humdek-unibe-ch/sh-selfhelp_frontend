@@ -7,17 +7,18 @@ SPDX-License-Identifier: MPL-2.0
 import {
     Box,
     Stack,
-    TextInput,
-    ActionIcon,
 } from '@mantine/core';
-import {
-    IconSearch,
-    IconX,
-} from '@tabler/icons-react';
-import { useState } from 'react';
 import { OPTION_STYLE_CONFIGS, FIELDS_MAP_STYLE_CONFIG, type TOptionStyleName } from '@selfhelp/shared';
 
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
+import { ReadOnlyFieldset, usePageEditRights } from '../page-rights/PageRightsContext';
+import {
+    InspectorFieldSearch,
+    useInspectorFieldFilter,
+    matchesFieldQuery,
+    countMatchingFields,
+    type ISearchableField,
+} from '../../shared/inspector-search';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
 import { SectionContentField, SectionOptionCatalogEditor, SectionFieldsMapEditor } from './section-field-connectors';
@@ -58,6 +59,31 @@ interface ISectionFieldPanelsProps {
     fieldErrors?: Record<string, string>;
 }
 
+function sectionFieldToSearchable(field: ISectionField): ISearchableField {
+    return {
+        id: `section-field-${field.id}`,
+        label: field.title,
+        name: field.name,
+        help: field.help,
+    };
+}
+
+const GLOBAL_FIELD_META: Record<'css' | 'css_mobile' | 'debug', ISearchableField> = {
+    css: { id: 'global-css', label: 'CSS', name: 'css', keywords: ['Global Fields'] },
+    css_mobile: {
+        id: 'global-css-mobile',
+        label: 'CSS (mobile)',
+        name: 'css_mobile',
+        keywords: ['Global Fields'],
+    },
+    debug: {
+        id: 'global-debug',
+        label: 'Debug',
+        name: 'debug',
+        keywords: ['Global Fields'],
+    },
+};
+
 export function SectionFieldPanels({
     sectionId,
     fields,
@@ -71,13 +97,13 @@ export function SectionFieldPanels({
     fieldErrors,
 }: ISectionFieldPanelsProps) {
     // condition and data_config are now edited inline, not in the inspector.
-    const globalFieldTypes: GlobalFieldType[] = ['css', 'css_mobile', 'debug'];
-    const [fieldSearch, setFieldSearch] = useState('');
+    type TInspectorGlobalField = keyof typeof GLOBAL_FIELD_META;
+    const globalFieldTypes: TInspectorGlobalField[] = ['css', 'css_mobile', 'debug'];
+    const fieldFilter = useInspectorFieldFilter({ resetKey: sectionId });
+    const query = fieldFilter.query;
 
     const stylePlatform = getStylePlatformByName(styleName ?? '');
 
-    const query = fieldSearch.trim().toLowerCase();
-    const matches = (text: string | null | undefined) => (text ?? '').toLowerCase().includes(query);
     const optionStyleConfig = styleName && styleName in OPTION_STYLE_CONFIGS
         ? OPTION_STYLE_CONFIGS[styleName as TOptionStyleName]
         : null;
@@ -97,26 +123,7 @@ export function SectionFieldPanels({
             ? [FIELDS_MAP_STYLE_CONFIG.catalogField, FIELDS_MAP_STYLE_CONFIG.labelsField]
             : [],
     );
-    // Content fields have empty title in the API response — match on name instead.
-    const filteredFields = query
-        ? fields.filter(f => matches(f.name) && !combinedOptionFieldNames.has(f.name) && !combinedFieldsMapNames.has(f.name))
-        : fields.filter((field) => !combinedOptionFieldNames.has(field.name) && !combinedFieldsMapNames.has(field.name));
-    const filteredGlobalFieldTypes = query
-        ? globalFieldTypes.filter(t => matches(t))
-        : globalFieldTypes;
 
-    const inBucket = (bucket: ReturnType<typeof classifySectionField>) =>
-        filteredFields.filter(f => classifySectionField(f) === bucket);
-
-    const contentFields = inBucket('content');
-    const propertyFields = inBucket('property');
-    const webFields = inBucket('web');
-    const mobileFields = inBucket('mobile');
-
-    const showWebCard = webFields.length > 0 && isPlatformCardVisible('web', stylePlatform);
-    const showMobileCard = mobileFields.length > 0 && isPlatformCardVisible('mobile', stylePlatform);
-    const showOptionEditor = hasOptionEditorFields
-        && (!query || matches(optionStyleConfig.catalogField) || matches('option_labels'));
     const catalogFieldMeta = hasOptionEditorFields
         ? fields.find((field) => field.name === optionStyleConfig.catalogField)
         : undefined;
@@ -141,41 +148,97 @@ export function SectionFieldPanels({
     const fieldsMapHelpTooltip = [fieldsMapCatalogMeta?.help, fieldsMapLabelsMeta?.help]
         .filter((text): text is string => Boolean(text && text.trim()))
         .join('\n\n');
-    const showFieldsMapEditor = hasFieldsMapEditor
-        && (!query || matches(FIELDS_MAP_STYLE_CONFIG.catalogField) || matches(FIELDS_MAP_STYLE_CONFIG.labelsField));
+
+    const optionSearchable: ISearchableField | null = hasOptionEditorFields
+        ? {
+            id: 'options-editor',
+            label: 'Options',
+            name: optionStyleConfig.catalogField,
+            help: optionHelpTooltip,
+            keywords: ['option_labels', 'Options'],
+        }
+        : null;
+
+    const fieldsMapSearchable: ISearchableField | null = hasFieldsMapEditor
+        ? {
+            id: 'fields-map-editor',
+            label: 'Column mapping',
+            name: FIELDS_MAP_STYLE_CONFIG.catalogField,
+            help: fieldsMapHelpTooltip,
+            keywords: [FIELDS_MAP_STYLE_CONFIG.labelsField, 'Column mapping'],
+        }
+        : null;
+
+    const panelFields = fields.filter(
+        (field) =>
+            !combinedOptionFieldNames.has(field.name) &&
+            !combinedFieldsMapNames.has(field.name),
+    );
+
+    const searchableCatalog: ISearchableField[] = [
+        ...panelFields.map(sectionFieldToSearchable),
+        ...globalFieldTypes.map((type) => GLOBAL_FIELD_META[type]),
+        ...(optionSearchable ? [optionSearchable] : []),
+        ...(fieldsMapSearchable ? [fieldsMapSearchable] : []),
+    ];
+
+    const matchCount = countMatchingFields(searchableCatalog, query);
+
+    const fieldMatches = (field: ISectionField) =>
+        matchesFieldQuery(sectionFieldToSearchable(field), query);
+
+    const filteredFields = query.trim()
+        ? panelFields.filter(fieldMatches)
+        : panelFields;
+    const filteredGlobalFieldTypes = query.trim()
+        ? globalFieldTypes.filter((type) =>
+            matchesFieldQuery(GLOBAL_FIELD_META[type], query),
+        )
+        : globalFieldTypes;
+
+    const inBucket = (bucket: ReturnType<typeof classifySectionField>) =>
+        filteredFields.filter((f) => classifySectionField(f) === bucket);
+
+    const contentFields = inBucket('content');
+    const propertyFields = inBucket('property');
+    const webFields = inBucket('web');
+    const mobileFields = inBucket('mobile');
+
+    const showWebCard = webFields.length > 0 && isPlatformCardVisible('web', stylePlatform);
+    const showMobileCard = mobileFields.length > 0 && isPlatformCardVisible('mobile', stylePlatform);
+    const showOptionEditor = Boolean(
+        optionSearchable && matchesFieldQuery(optionSearchable, query),
+    );
+    const showFieldsMapEditor = Boolean(
+        fieldsMapSearchable && matchesFieldQuery(fieldsMapSearchable, query),
+    );
+    const searchForceExpand = fieldFilter.isActive;
+
+    // Without the update right on the page every field is shown read-only.
+    const readOnly = !usePageEditRights().canUpdate;
 
     return (
         <Stack gap="md">
-            <Box>
-                <TextInput aria-label="Search fields"
-                    placeholder="Search fields by name..."
-                    value={fieldSearch}
-                    onChange={(e) => setFieldSearch(e.currentTarget.value)}
-                    leftSection={<IconSearch size={14} />}
-                    rightSection={fieldSearch ? (
-                        <ActionIcon
-                            size="sm"
-                            variant="subtle"
-                            color="gray"
-                            onClick={() => setFieldSearch('')}
-                            aria-label="Clear search"
-                        >
-                            <IconX size={12} />
-                        </ActionIcon>
-                    ) : undefined}
-                    size="sm"
-                />
-            </Box>
+            <InspectorFieldSearch
+                query={fieldFilter.query}
+                onQueryChange={fieldFilter.setQuery}
+                onClear={fieldFilter.clear}
+                onInputKeyDown={fieldFilter.handleInputKeyDown}
+                inputRef={fieldFilter.inputRef}
+                matchCount={matchCount}
+                totalCount={searchableCatalog.length}
+            />
 
             {/* Cross-platform validation: warn on drifted off-platform values. */}
             <CrossPlatformFieldWarning fields={fields} stylePlatform={stylePlatform} />
 
-            {showOptionEditor ? (
+            {showOptionEditor && optionStyleConfig ? (
                 <CollapsibleSection
                     title="Options"
                     inspectorType={INSPECTOR_TYPES.SECTION}
                     sectionName="options"
                     defaultExpanded={true}
+                    forceExpanded={searchForceExpand}
                     headerAction={optionHelpTooltip ? (
                         <FieldLabelWithTooltip
                             label="Options"
@@ -187,11 +250,13 @@ export function SectionFieldPanels({
                         />
                     ) : null}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <SectionOptionCatalogEditor
                         key={`${sectionId ?? 'new'}-${optionStyleConfig.catalogField}`}
                         catalogField={optionStyleConfig.catalogField}
                         languages={languagesData}
                     />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             ) : null}
 
@@ -201,6 +266,7 @@ export function SectionFieldPanels({
                     inspectorType={INSPECTOR_TYPES.SECTION}
                     sectionName="fields-map"
                     defaultExpanded={true}
+                    forceExpanded={searchForceExpand}
                     headerAction={fieldsMapHelpTooltip ? (
                         <FieldLabelWithTooltip
                             label="Column mapping"
@@ -210,10 +276,12 @@ export function SectionFieldPanels({
                         />
                     ) : null}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <SectionFieldsMapEditor
                         key={`${sectionId ?? 'new'}-fields-map`}
                         languages={languagesData}
                     />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             ) : null}
 
@@ -224,33 +292,49 @@ export function SectionFieldPanels({
                     inspectorType={INSPECTOR_TYPES.SECTION}
                     sectionName="content"
                     defaultExpanded={true}
+                    forceExpanded={searchForceExpand}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <Stack gap="md">
-                        {contentFields.map((field) => (
-                            <SectionContentField
-                                key={field.id}
-                                field={field}
-                                languages={languagesData}
-                                className={styles.fullWidthLabel}
-                                dataVariables={dataVariables}
-                            />
-                        ))}
+                        {panelFields
+                            .filter((field) => classifySectionField(field) === 'content')
+                            .map((field) => {
+                                const visible = fieldMatches(field);
+                                return (
+                                    <Box
+                                        key={field.id}
+                                        style={visible ? undefined : { display: 'none' }}
+                                        aria-hidden={!visible}
+                                    >
+                                        <SectionContentField
+                                            field={field}
+                                            languages={languagesData}
+                                            className={styles.fullWidthLabel}
+                                            dataVariables={dataVariables}
+                                        />
+                                    </Box>
+                                );
+                            })}
                     </Stack>
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             )}
 
-            {/* Global fields: shared across all sections — condition, css, data_config, etc. */}
+            {/* Global fields: shared across all sections — css, css_mobile, debug */}
             {filteredGlobalFieldTypes.length > 0 && (
                 <CollapsibleSection
                     title="Global Fields"
                     inspectorType={INSPECTOR_TYPES.SECTION}
                     sectionName="global-fields"
                     defaultExpanded={false}
+                    forceExpanded={searchForceExpand}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <SectionGlobalFields
-                        globalFieldTypes={filteredGlobalFieldTypes}
+                        globalFieldTypes={filteredGlobalFieldTypes as GlobalFieldType[]}
                         dataVariables={dataVariables}
                     />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             )}
 
@@ -261,7 +345,9 @@ export function SectionFieldPanels({
                     inspectorType={INSPECTOR_TYPES.SECTION}
                     sectionName="properties"
                     defaultExpanded={true}
+                    forceExpanded={searchForceExpand}
                 >
+                    <ReadOnlyFieldset readOnly={readOnly}>
                     <SectionProperties
                         fields={filteredFields}
                         dataVariables={dataVariables}
@@ -270,6 +356,7 @@ export function SectionFieldPanels({
                         ownedDataTable={ownedDataTable}
                         fieldErrors={fieldErrors}
                     />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             )}
 
@@ -280,8 +367,14 @@ export function SectionFieldPanels({
                     inspectorType={INSPECTOR_TYPES.SECTION}
                     sectionName="web-properties"
                     defaultExpanded={false}
+                    forceExpanded={searchForceExpand}
                 >
-                    <SectionWebProperties fields={filteredFields} dataVariables={dataVariables} />
+                    <ReadOnlyFieldset readOnly={readOnly}>
+                    <SectionWebProperties
+                        fields={filteredFields}
+                        dataVariables={dataVariables}
+                    />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             )}
 
@@ -292,8 +385,14 @@ export function SectionFieldPanels({
                     inspectorType={INSPECTOR_TYPES.SECTION}
                     sectionName="mobile-properties"
                     defaultExpanded={false}
+                    forceExpanded={searchForceExpand}
                 >
-                    <SectionMobileProperties fields={filteredFields} dataVariables={dataVariables} />
+                    <ReadOnlyFieldset readOnly={readOnly}>
+                    <SectionMobileProperties
+                        fields={filteredFields}
+                        dataVariables={dataVariables}
+                    />
+                    </ReadOnlyFieldset>
                 </CollapsibleSection>
             )}
         </Stack>

@@ -1,0 +1,165 @@
+# SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+# SPDX-License-Identifier: MPL-2.0
+#
+# Least-privilege walk (F239, task 2026-11-19-access-check-tooling).
+#
+# Restricted QA personas (backend QaBaselineFixture: one read-only user per
+# `admin.<area>.read`, plus one read/update user with the view grant only on the
+# QA items) sign in through the real login form and open every admin screen from
+# the menu. The run fails on a write control shown without its right, a screen
+# missing from (or wrongly shown in) the menu, and any 400 or 403 from normal
+# use. See e2e/access/least-privilege.spec.ts.
+#
+# Runs on pull requests that touch admin screens or the access declarations
+# (the paths below) and on demand. It is a full-stack run, so it is not part of
+# every PR. The spec still compiles on every e2e change through the `compile`
+# job of e2e-golden.yml (`playwright test --list`).
+#
+# The stack setup is the one of the `golden` job in e2e-golden.yml: GitHub
+# services for MySQL and Redis, the backend checked out on the same-named
+# branch (else main), and the harness (`npm run test:access`) owning seed,
+# servers and Playwright. On failure the Playwright report, traces and the
+# harness server logs are uploaded.
+
+name: e2e-access
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/app/admin/**'
+      - 'src/app/components/cms/**'
+      - 'src/config/api.config.ts'
+      - 'src/config/admin-screens.ts'
+      - 'src/utils/permissions.utils.ts'
+      - 'e2e/access/**'
+      - 'e2e/utils/access.ts'
+      - '.github/workflows/e2e-access.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-access-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  access:
+    name: Least-privilege walk (full stack)
+    # Pinned: ubuntu-latest is Ubuntu 26.04 since Nov 2026, and Playwright 1.60.0 (lockfile)
+    # cannot install Chromium there. Move when Playwright is raised (>= 1.65 knows 26.04).
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: selfhelp_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd="redis-cli ping" --health-interval=5s --health-timeout=5s --health-retries=20
+
+    env:
+      # The harness inherits these; real env vars take precedence over the
+      # backend `.env.test`, so they point Symfony at the GitHub services.
+      APP_ENV: test
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
+      REDIS_URL: redis://127.0.0.1:6379
+      BASE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8000
+      SYMFONY_INTERNAL_URL: http://127.0.0.1:8000
+      # GitHub `services` already provide DB/Redis, and Chromium is installed
+      # with system deps below, so the harness skips those steps.
+      SELFHELP_BACKEND_DIR: ${{ github.workspace }}/sh-selfhelp_backend
+      SELFHELP_E2E_SKIP_DOCKER: '1'
+      SELFHELP_E2E_SKIP_PW_INSTALL: '1'
+
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+        with:
+          path: sh-selfhelp_frontend
+
+      # Same-branch-or-main, as in e2e-golden.yml: coordinated cross-repo work
+      # happens on equally named branches; run the stack against the backend
+      # branch matching this build's branch name when it exists, else main.
+      - name: Resolve backend ref (same branch as this build, else main)
+        id: backend-ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          BRANCH="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          REF="main"
+          if [ -n "$BRANCH" ] && [ "$BRANCH" != "main" ] && \
+             git ls-remote --exit-code --heads \
+               "https://x-access-token:${GH_TOKEN}@github.com/humdek-unibe-ch/sh-selfhelp_backend.git" \
+               "refs/heads/${BRANCH}" > /dev/null 2>&1; then
+            REF="$BRANCH"
+          fi
+          echo "ref=${REF}" >> "$GITHUB_OUTPUT"
+          echo "Resolved sh-selfhelp_backend ref: ${REF} (build branch: ${BRANCH})"
+
+      - name: Checkout backend
+        uses: actions/checkout@v4
+        with:
+          repository: humdek-unibe-ch/sh-selfhelp_backend
+          ref: ${{ steps.backend-ref.outputs.ref }}
+          path: sh-selfhelp_backend
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, redis, intl, mbstring
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: sh-selfhelp_frontend/package-lock.json
+
+      - name: Prepare backend environment (.env)
+        working-directory: sh-selfhelp_backend
+        # A fresh checkout has no .env (gitignored); the tracked .env.default
+        # is the template. Without it composer's post-install cache:clear
+        # fails. The job env above still wins (Dotenv never overrides set vars).
+        run: cp .env.default .env
+
+      - name: Backend install
+        working-directory: sh-selfhelp_backend
+        # --no-scripts as in the backend CI: the post-install cache:clear reads API
+        # routes from a database the harness creates later (test:reset-db).
+        run: composer install --no-interaction --no-progress --no-scripts
+
+      - name: Frontend install + Chromium (with system deps)
+        working-directory: sh-selfhelp_frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run the least-privilege walk (harness owns seed + servers)
+        working-directory: sh-selfhelp_frontend
+        run: npm run test:access
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-access-report
+          path: |
+            sh-selfhelp_frontend/playwright-report/
+            sh-selfhelp_frontend/test-results/
+            sh-selfhelp_frontend/e2e-stack.backend.log
+            sh-selfhelp_frontend/e2e-stack.frontend.log
+          retention-days: 7

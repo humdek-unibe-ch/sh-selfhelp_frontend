@@ -14,7 +14,7 @@ import { IconInfoCircle } from '@tabler/icons-react';
 import { useCacheStats, useCacheHealth } from '../../../../../hooks/useCache';
 import { CacheStatisticsCard } from '../cache-statistics-card/CacheStatisticsCard';
 import { CacheHealthCard } from '../cache-health-card/CacheHealthCard';
-import { CacheManagementCard } from '../cache-management-card/CacheManagementCard';
+import { CacheManagementCard, useCacheControlRights } from '../cache-management-card/CacheManagementCard';
 import { CacheCategoriesCard } from '../cache-categories-card/CacheCategoriesCard';
 import { CachePerformanceCard } from '../cache-performance-card/CachePerformanceCard';
 import { PageHeader } from '../../../shared/common/PageHeader';
@@ -22,6 +22,8 @@ import { PageHeader } from '../../../shared/common/PageHeader';
 export function CachePage() {
     const { data: cacheStats, isLoading: isLoadingStats, error: statsError } = useCacheStats();
     const { data: cacheHealth, isLoading: isLoadingHealth, error: healthError } = useCacheHealth();
+    // The management card holds only write controls: shown when any of them is allowed.
+    const { canClear, canManage } = useCacheControlRights();
 
     const isLoading = isLoadingStats || isLoadingHealth;
     const hasError = statsError || healthError;
@@ -74,9 +76,11 @@ export function CachePage() {
                 isLoading={isLoadingStats}
               />
             </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <CacheManagementCard />
-            </Grid.Col>
+            {(canClear || canManage) && (
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <CacheManagementCard />
+              </Grid.Col>
+            )}
 
             {/* Row 3: Categories (full width for better display) */}
             <Grid.Col span={12}>

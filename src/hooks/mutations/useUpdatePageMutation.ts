@@ -54,6 +54,8 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_SECTIONS(pageId) }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD_ALL }),
                 queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES_ALL }),
+                // The section details carry the page-keyword picker, read per request (F56).
+                queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.SECTION_DETAILS_ALL }),
             ]);
 
             if (showNotifications) {

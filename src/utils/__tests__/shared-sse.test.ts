@@ -24,7 +24,7 @@ SPDX-License-Identifier: MPL-2.0
  * controllable fakes so the leader/follower split and timing are deterministic.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { subscribeSharedSse, __resetSharedSseForTests } from '../shared-sse';
+import { subscribeSharedSse, reconnectSharedSse, __resetSharedSseForTests } from '../shared-sse';
 
 // ── Fakes ──────────────────────────────────────────────────────────────────
 
@@ -407,5 +407,84 @@ describe('shared-sse · fallback visibility release', () => {
 
         unsubscribe();
         expect(MockEventSource.instances[1].closed).toBe(true);
+    });
+});
+
+// ── 5. Reconnect on request (live sync: the `acl` notice renews the topic list) ──
+
+describe('shared-sse · reconnect', () => {
+    it('the leader opens a new socket when a subscriber asks for it after an event, without a reopen', () => {
+        const onReopen = vi.fn();
+        const reconnectWhen = vi.fn((type: string) => type === 'changed');
+
+        subscribeSharedSse({
+            endpoint: ACL_ENDPOINT,
+            events: ['changed', 'acl-changed'],
+            onEvent: vi.fn(),
+            onReopen,
+            reconnectWhen,
+        });
+        const first = MockEventSource.instances[0];
+        first.emitOpen();
+
+        first.emit('acl-changed', '{}');
+        expect(MockEventSource.instances).toHaveLength(1);
+
+        first.emit('changed', '{"v":1,"tags":["acl"]}');
+        expect(first.closed).toBe(true);
+        expect(MockEventSource.instances).toHaveLength(2);
+
+        // The new socket's first open is silent: nothing was missed.
+        MockEventSource.instances[1].emitOpen();
+        expect(onReopen).not.toHaveBeenCalled();
+    });
+
+    it('restarts at most once per second however many tabs ask', () => {
+        subscribeSharedSse({ endpoint: ACL_ENDPOINT, events: ['changed'], onEvent: vi.fn() });
+        MockEventSource.instances[0].emitOpen();
+
+        reconnectSharedSse(ACL_ENDPOINT);
+        reconnectSharedSse(ACL_ENDPOINT);
+        reconnectSharedSse(ACL_ENDPOINT);
+
+        expect(MockEventSource.instances).toHaveLength(2);
+    });
+
+    it('a follower asks the leader over the channel and opens no socket itself', () => {
+        lockMode.grant = false;
+        const observer = new MockBroadcastChannel(ACL_CHANNEL);
+        const broadcasts: unknown[] = [];
+        observer.addEventListener('message', (e) => broadcasts.push(e.data));
+
+        subscribeSharedSse({ endpoint: ACL_ENDPOINT, events: ['changed'], onEvent: vi.fn() });
+        reconnectSharedSse(ACL_ENDPOINT);
+
+        expect(MockEventSource.instances).toHaveLength(0);
+        expect(broadcasts).toContainEqual({ k: 'reconnect' });
+        observer.close();
+    });
+
+    it('a leader restarts when a follower asks', () => {
+        subscribeSharedSse({ endpoint: ACL_ENDPOINT, events: ['changed'], onEvent: vi.fn() });
+        MockEventSource.instances[0].emitOpen();
+
+        const follower = new MockBroadcastChannel(ACL_CHANNEL);
+        follower.postMessage({ k: 'reconnect' });
+
+        expect(MockEventSource.instances).toHaveLength(2);
+        follower.close();
+    });
+
+    it('the per-tab fallback reconnects too', () => {
+        delete (navigator as { locks?: unknown }).locks;
+        const reconnectWhen = vi.fn((type: string) => type === 'changed');
+
+        subscribeSharedSse({ endpoint: ACL_ENDPOINT, events: ['changed'], onEvent: vi.fn(), reconnectWhen });
+        const first = MockEventSource.instances[0];
+        first.emitOpen();
+        first.emit('changed', '{"v":1,"tags":["acl"]}');
+
+        expect(first.closed).toBe(true);
+        expect(MockEventSource.instances).toHaveLength(2);
     });
 });

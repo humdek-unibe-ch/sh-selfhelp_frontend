@@ -16,7 +16,7 @@ mobile image `>=0.1.11`).
 > single page being edited (collapsed by default). To **test the real flow** —
 > a full-screen device frame, free navigation, draft toggle, opened in a new tab —
 > use the [full-screen **Live Preview**](./live-preview.md) (the **"Live preview"**
-> button in the editor header, gated by `admin.mobile_preview.view`). Its controls
+> button in the editor header, gated by `admin.mobile_preview.read`). Its controls
 > sit in a clean bordered toolbar; behaviour is otherwise as described below.
 
 > Embed contract + image internals:

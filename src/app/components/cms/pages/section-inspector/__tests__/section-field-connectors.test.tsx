@@ -70,10 +70,18 @@ describe('SectionPropertyField — overrides are always clearable', () => {
     it('leaves a content field config untouched (no forced clearable)', () => {
         const field = selectField('label');
         renderWithProviders(
-            <SectionContentField field={field} languages={[{ id: 1, language: 'English', locale: 'en' }]} />,
+            <SectionContentField field={field} languages={[{ id: 2, language: 'English', locale: 'en' }]} />,
         );
         // Content path passes config straight through → stays clearable:false.
         expect(screen.getByTestId('fr-label').getAttribute('data-clearable')).toBe('false');
+    });
+
+    it('renders nothing for a content field when no languages are available', () => {
+        const field = selectField('label');
+        const { container } = renderWithProviders(
+            <SectionContentField field={field} languages={[]} />,
+        );
+        expect(container.querySelector('[data-testid^="fr-"]')).toBeNull();
     });
 
     it('does not crash when a property field has no config', () => {
