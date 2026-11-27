@@ -26,6 +26,11 @@ No engineering diary, no implementation detail — that belongs in
   reads API routes from the test database (`selfhelp_test_test`), which only
   exists after `test:reset-db`; it failed, and the `e2e-access` PR check
   could not start.
+- **Release workflows give Vitest the backend route table.** `frontend-release`
+  and `publish-verify` check out the backend's
+  `docs/reference/access/api-routes.json` (backend `main` for a tag) and set
+  `SELFHELP_BACKEND_DIR`, as `frontend-tests` does; without it the route
+  contract test failed and no image was published for the tag.
 - **Playwright jobs run on `ubuntu-24.04`.** GitHub's `ubuntu-latest` became
   Ubuntu 26.04 in November 2026, where Playwright 1.60.0 cannot install
   Chromium. `e2e-access`, the golden full-stack job and `visual-snapshots` are
