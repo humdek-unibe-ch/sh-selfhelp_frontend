@@ -135,6 +135,8 @@ jobs:
           DATABASE_URL: mysql://root:root@127.0.0.1:3306/selfhelp_test?serverVersion=8.0
           REDIS_URL: redis://127.0.0.1:6379
         run: |
+          # Fresh checkout has no .env (gitignored); .env.default is the template.
+          cp .env.default .env
           composer install --no-interaction --no-progress
           composer test:reset-db
 

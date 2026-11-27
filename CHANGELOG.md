@@ -18,6 +18,13 @@ No engineering diary, no implementation detail — that belongs in
 - Pins the published `@selfhelp/shared` **1.31.0** (`package.json` and the
   lockfile).
 
+### Fixed
+- **Full-stack CI workflows create the backend `.env`.** `e2e-access`,
+  `e2e-golden`, `lighthouse` and `visual-snapshots` copy the backend's
+  `.env.default` to `.env` before `composer install`, as the backend's own
+  workflows do; without it the post-install `cache:clear` failed and the
+  `e2e-access` PR check could not start.
+
 ### Added
 - **Record history shows plugin writes.** A version a plugin wrote reads
   "via plugin" instead of failing to name its source.
