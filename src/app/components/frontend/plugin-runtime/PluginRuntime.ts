@@ -38,15 +38,23 @@ import {
     type IPluginHealthCheck,
     type IPluginRealtimeTopic,
     type IPluginRegistration,
+    type IPluginSettingsView,
+    type IPluginSyncEntry,
+    type IResourceUsage,
     type IRichTextEditorAdapter,
     type IStyleDefinition,
- PLUGIN_API_VERSION, isPluginApiCompatible } from '@selfhelp/shared/plugin-sdk';
+    PLUGIN_API_VERSION,
+    isPluginApiCompatible,
+} from '@selfhelp/shared/plugin-sdk';
 
 import {
     extendStyleRegistry,
     type IStyleRegistryEntry,
 } from '@selfhelp/shared/registry';
+import { AdminPluginApi } from '../../../../api/admin/plugins.api';
 import { sanitizeHtmlForBlock, sanitizeHtmlForParsing } from '../../../../utils/html-sanitizer.utils';
+import { setPluginSyncEntriesProvider } from '../../../../utils/plugin-sync-entries';
+import { ResourceUsageList } from '../../cms/plugins/ResourceUsageList';
 
 /** The host's sanitizer lent to plugins: the same DOMPurify rules and link rewrites core pages use. */
 export function sanitizePluginHtml(html: string, mode: 'inline' | 'block'): string {
@@ -117,6 +125,8 @@ interface IRegisteredPlugin {
     featureFlags: IPluginFeatureFlag[];
     /** Realtime topics the plugin publishes / subscribes to. */
     realtimeTopics: IPluginRealtimeTopic[];
+    /** Declarative sync map (C10): tags → query keys the host invalidates. */
+    sync: IPluginSyncEntry[];
     /** Last-known runtime feature-flag values, supplied by the host. */
     featureFlagValues: Record<string, boolean>;
     /** DOM <link> node injected for this plugin's stylesheet (if any). */
@@ -433,6 +443,18 @@ export class PluginRuntime {
             (Function('p', 'return import(/* webpackIgnore: true */ p)') as (p: string) => Promise<unknown>)(runtimeUrl));
         this.injectStylesheet = options.injectStylesheet ?? defaultInjectStylesheet;
         this.richTextEditor = options.richTextEditor ?? createStubRichTextAdapter(this.logger);
+        setPluginSyncEntriesProvider(() => this.getSyncEntries());
+    }
+
+    /** Sync entries of every enabled, registered plugin (C10). */
+    getSyncEntries(): readonly IPluginSyncEntry[] {
+        const entries: IPluginSyncEntry[] = [];
+        for (const plugin of this.snapshot.plugins) {
+            for (const entry of plugin.sync) {
+                entries.push(entry);
+            }
+        }
+        return entries;
     }
 
     /**
@@ -750,6 +772,7 @@ export class PluginRuntime {
             healthChecks: registration.healthChecks ?? [],
             featureFlags: registration.featureFlags ?? [],
             realtimeTopics: registration.realtimeTopics ?? [],
+            sync: registration.sync ?? [],
             featureFlagValues: entry.featureFlags ?? {},
             stylesheetNode,
         };
@@ -810,6 +833,18 @@ export class PluginRuntime {
             // `IPluginRuntimeOptions.richTextEditor` (or `setRichTextEditor`).
             richTextEditor: this.richTextEditor,
             sanitizeHtml: sanitizePluginHtml,
+            sectionAnchor: (sectionId: number) => `.section-${sectionId}`,
+            resources: {
+                usage: (type: string, id: number): Promise<IResourceUsage> =>
+                    AdminPluginApi.getResourceUsage(type, id),
+            },
+            ui: {
+                // Host component; SDK types it without React bindings.
+                ResourceUsageList: ResourceUsageList as unknown as NonNullable<IPluginApi['ui']>['ResourceUsageList'],
+            },
+            settings: {
+                get: (): Promise<IPluginSettingsView> => AdminPluginApi.getSettings(entry.pluginId),
+            },
             log: this.logger,
         };
     }
@@ -921,6 +956,7 @@ export function getPluginRuntime(options?: IPluginRuntimeOptions): PluginRuntime
  */
 export function _resetPluginRuntime(): void {
     SINGLETON = null;
+    setPluginSyncEntriesProvider(() => []);
 }
 
 export type { IStyleDefinition };

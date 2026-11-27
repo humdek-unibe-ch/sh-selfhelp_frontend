@@ -1185,7 +1185,7 @@ export const API_CONFIG = {
         },
         ADMIN_PLUGIN_INSPECT_ARCHIVE: {
             route: '/admin/plugins/inspect-archive',
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
         },
         ADMIN_PLUGIN_UPDATE: {
             route: (pluginId: string) => `/admin/plugins/${pluginId}/update`,
@@ -1193,15 +1193,15 @@ export const API_CONFIG = {
         },
         ADMIN_PLUGIN_ENABLE: {
             route: (pluginId: string) => `/admin/plugins/${pluginId}/enable`,
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
         ADMIN_PLUGIN_DISABLE: {
             route: (pluginId: string) => `/admin/plugins/${pluginId}/disable`,
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
         ADMIN_PLUGIN_UNINSTALL: {
             route: (pluginId: string) => `/admin/plugins/${pluginId}/uninstall`,
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
         ADMIN_PLUGIN_PURGE: {
             route: (pluginId: string) => `/admin/plugins/${pluginId}/purge`,
@@ -1209,11 +1209,11 @@ export const API_CONFIG = {
         },
         ADMIN_PLUGIN_REPAIR: {
             route: (pluginId: string) => `/admin/plugins/${pluginId}/repair`,
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
         ADMIN_PLUGIN_REPAIR_ALL: {
             route: '/admin/plugins/repair',
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
 
         // Admin plugin sources
@@ -1223,15 +1223,15 @@ export const API_CONFIG = {
         },
         ADMIN_PLUGIN_SOURCES_CREATE: {
             route: '/admin/plugins/sources',
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
         ADMIN_PLUGIN_SOURCE_UPDATE: {
             route: (sourceId: number) => `/admin/plugins/sources/${sourceId}`,
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
         ADMIN_PLUGIN_SOURCE_DELETE: {
             route: (sourceId: number) => `/admin/plugins/sources/${sourceId}`,
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
 
         // Admin plugin operations
@@ -1259,7 +1259,7 @@ export const API_CONFIG = {
         },
         ADMIN_PLUGIN_FEATURE_FLAGS_SET: {
             route: (pluginId: string) => `/admin/plugins/${pluginId}/feature-flags`,
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
 
         // Admin plugin health + doctor + safe-mode
@@ -1273,11 +1273,30 @@ export const API_CONFIG = {
         },
         ADMIN_PLUGINS_SAFE_MODE_ENABLE: {
             route: '/admin/plugins/safe-mode/enable',
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
         ADMIN_PLUGINS_SAFE_MODE_DISABLE: {
             route: '/admin/plugins/safe-mode/disable',
-            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
+        },
+
+        // Plugin resource hooks (C7, C12, C14): P8 uses these keys; P6 regenerates api-routes.json
+        ADMIN_RESOURCE_USAGE: {
+            route: (type: string, id: number) =>
+                `/admin/resources/${encodeURIComponent(type)}/${id}/usage`,
+            permissions: [PERMISSIONS.ADMIN_ACCESS],
+        },
+        ADMIN_ACTIONS_PLUGIN_JOB_TYPES: {
+            route: '/admin/actions/plugin-job-types',
+            permissions: [PERMISSIONS.ADMIN_ACTION_READ],
+        },
+        ADMIN_PLUGIN_SETTINGS_GET: {
+            route: (pluginId: string) => `/admin/plugins/${encodeURIComponent(pluginId)}/settings`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE],
+        },
+        ADMIN_PLUGIN_SETTINGS_PUT: {
+            route: (pluginId: string) => `/admin/plugins/${encodeURIComponent(pluginId)}/settings`,
+            permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE],
         },
 
     },

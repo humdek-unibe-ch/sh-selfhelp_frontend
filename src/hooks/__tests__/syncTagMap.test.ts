@@ -17,6 +17,7 @@ import {
     registerSyncTagIgnore,
     subscribeSyncTags,
 } from '../../utils/sync-tags.utils';
+import { setPluginSyncEntriesProvider } from '../../utils/plugin-sync-entries';
 
 let client: QueryClient;
 let unsubscribes: Array<() => void> = [];
@@ -24,11 +25,13 @@ let unsubscribes: Array<() => void> = [];
 beforeEach(() => {
     client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
     unsubscribes = [];
+    setPluginSyncEntriesProvider(() => []);
 });
 
 afterEach(() => {
     unsubscribes.forEach((unsubscribe) => unsubscribe());
     client.clear();
+    setPluginSyncEntriesProvider(() => []);
     vi.useRealTimers();
 });
 
@@ -219,5 +222,73 @@ describe('sync tag map', () => {
         expect(pageQuery).toHaveBeenCalledTimes(1);
         expect(list).toHaveBeenCalledTimes(1);
         expect(admin).not.toHaveBeenCalled();
+    });
+
+    it('res:surveyjs_survey:12 invalidates a plugin res:* key and a page that lists it; res:other:1 touches nothing (P4-A1)', async () => {
+        setPluginSyncEntriesProvider(() => [
+            { tags: ['res:surveyjs_survey:*'], queryKey: ['plugin', 'surveys'] },
+            { tags: ['table:*'], queryKey: ['plugin', 'table-rows'] },
+            { tags: ['acl'], queryKey: ['plugin', 'bootstrap'] },
+        ]);
+        onScreen(['page-by-keyword', '__path__', '/survey', 1, 'published'], page(12, ['page:12', 'res:surveyjs_survey:12']));
+        onScreen(['page-by-keyword', '__path__', '/other', 1, 'published'], page(13, ['page:13']));
+        const surveyPage = onScreen(['page-by-keyword', 'survey', 1, 'published'], page(12, ['res:surveyjs_survey:12']));
+        const otherPage = onScreen(['page-by-keyword', 'other', 1, 'published'], page(13, ['page:13']));
+        const surveys = onScreen(['plugin', 'surveys'], { items: [] });
+        const tableRows = onScreen(['plugin', 'table-rows'], { items: [] });
+        const bootstrap = onScreen(['plugin', 'bootstrap'], { ok: true });
+
+        applySyncTags(client, ['res:surveyjs_survey:12']);
+        await settle();
+
+        expect(surveyPage).toHaveBeenCalledTimes(1);
+        expect(surveys).toHaveBeenCalledTimes(1);
+        expect(otherPage).not.toHaveBeenCalled();
+        expect(tableRows).not.toHaveBeenCalled();
+        expect(bootstrap).not.toHaveBeenCalled();
+
+        applySyncTags(client, ['table:7']);
+        await settle();
+        expect(tableRows).toHaveBeenCalledTimes(1);
+
+        applySyncTags(client, ['res:other:1']);
+        await settle();
+        expect(surveys).toHaveBeenCalledTimes(1);
+        expect(tableRows).toHaveBeenCalledTimes(1);
+        expect(bootstrap).not.toHaveBeenCalled();
+    });
+
+    it('acl invalidates a plugin key declared with acl (P4-A1)', async () => {
+        setPluginSyncEntriesProvider(() => [
+            { tags: ['acl'], queryKey: ['plugin', 'bootstrap'] },
+            { tags: ['res:surveyjs_survey:*'], queryKey: ['plugin', 'surveys'] },
+        ]);
+        const bootstrap = onScreen(['plugin', 'bootstrap'], { ok: true });
+        const surveys = onScreen(['plugin', 'surveys'], { items: [] });
+
+        applySyncTags(client, ['acl']);
+        await settle();
+
+        expect(bootstrap).toHaveBeenCalledTimes(1);
+        expect(surveys).not.toHaveBeenCalled();
+    });
+
+    it('a hidden tab only marks plugin sync keys stale (P4-A1 refetchType)', async () => {
+        setPluginSyncEntriesProvider(() => [
+            { tags: ['res:surveyjs_survey:*'], queryKey: ['plugin', 'surveys'] },
+        ]);
+        const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+        const surveys = onScreen(['plugin', 'surveys'], { items: [] });
+
+        applySyncTags(client, ['res:surveyjs_survey:12']);
+        await settle();
+        expect(surveys).not.toHaveBeenCalled();
+        expect(client.getQueryState(['plugin', 'surveys'])?.isInvalidated).toBe(true);
+
+        visibility.mockReturnValue('visible');
+        refetchInvalidatedQueries(client);
+        await settle();
+        expect(surveys).toHaveBeenCalledTimes(1);
+        visibility.mockRestore();
     });
 });

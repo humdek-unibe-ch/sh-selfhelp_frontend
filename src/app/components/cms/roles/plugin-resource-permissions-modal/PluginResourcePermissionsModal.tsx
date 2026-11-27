@@ -72,6 +72,8 @@ export function PluginResourcePermissionsModal({ opened, onClose, roleId, roleNa
         description: resource.description ?? undefined,
         permissions: storedPermissionsOf(permissions, resource.id),
         hasChanges: false,
+        // Older backends omit can_assign; keep the F231 field fix and allow edits then.
+        can_assign: resource.can_assign !== false,
       })));
     } catch (error) {
       notifications.show({
@@ -93,7 +95,7 @@ export function PluginResourcePermissionsModal({ opened, onClose, roleId, roleNa
 
   const updatePermission = (rowId: number | string, permission: keyof ICrudPermissions, value: boolean) => {
     setRows(previous => previous.map(row => {
-      if (row.id !== rowId) {
+      if (row.id !== rowId || row.can_assign === false) {
         return row;
       }
       const permissions = setCrudTick(row.permissions, permission, value);

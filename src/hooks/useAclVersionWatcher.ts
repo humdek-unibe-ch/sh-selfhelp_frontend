@@ -19,9 +19,11 @@ SPDX-License-Identifier: MPL-2.0
 
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { matchPluginSyncEntries } from '@selfhelp/shared/plugin-sdk';
 import { useAuthUser } from './useUserData';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { invalidateFormList } from '../utils/form-list-cache.utils';
+import { getPluginSyncEntries } from '../utils/plugin-sync-entries';
 
 export function useAclVersionWatcher(): void {
     const queryClient = useQueryClient();
@@ -71,6 +73,10 @@ export function useAclVersionWatcher(): void {
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PERMISSIONS_ALL });
             // The page read says what the viewer may do with the page (`rights`).
             void queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_FIELDS_ALL });
+            // Plugin sync maps that list `acl` (C10): same cascade as a pushed acl tag.
+            for (const queryKey of matchPluginSyncEntries(getPluginSyncEntries(), ['acl'])) {
+                void queryClient.invalidateQueries({ queryKey });
+            }
         }
     }, [user?.id, user?.aclVersion, user?.aclStamp, queryClient]);
 }

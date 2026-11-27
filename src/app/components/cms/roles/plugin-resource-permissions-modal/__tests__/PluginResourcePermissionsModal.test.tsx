@@ -45,6 +45,18 @@ describe('PluginResourcePermissionsModal', () => {
         expect(screen.getByRole('checkbox', { name: 'update qa_mood_check' })).not.toBeChecked();
     });
 
+    it('disables items without can_assign (P4-A4)', async () => {
+        vi.spyOn(AdminDataAccessApi, 'getPluginResources').mockResolvedValue([
+            { id: 1, name: 'qa_sleep_study', description: 'SV_QA1', can_assign: true },
+            { id: 2, name: 'qa_mood_check', description: null, can_assign: false },
+        ]);
+        renderWithProviders(<PluginResourcePermissionsModal opened onClose={vi.fn()} roleId={7} roleName="qa_role" resourceType={SURVEYS} />);
+
+        expect(await screen.findByRole('checkbox', { name: 'view qa_sleep_study' })).toBeEnabled();
+        expect(screen.getByRole('checkbox', { name: 'view qa_mood_check' })).toBeDisabled();
+        expect(screen.getByRole('checkbox', { name: 'update qa_mood_check' })).toBeDisabled();
+    });
+
     it('saves this type\'s grants and keeps the grants of other types', async () => {
         const setRolePermissions = vi.spyOn(AdminDataAccessApi, 'setRolePermissions').mockResolvedValue({
             role_id: 7,

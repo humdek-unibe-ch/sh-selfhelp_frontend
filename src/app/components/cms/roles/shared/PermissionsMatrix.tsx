@@ -29,6 +29,11 @@ export interface IPermissionRow {
     permissions: ICrudPermissions;
     hasChanges: boolean;
     existingPermissionId?: number;
+    /**
+     * When false, every checkbox on the row is disabled (C9 `can_assign`).
+     * Default / undefined means the caller may change the grants.
+     */
+    can_assign?: boolean;
     // Additional metadata for rendering
     badges?: Array<{ label: string; color: string; variant?: 'light' | 'filled' | 'outline' | 'subtle' }>;
     extraInfo?: React.ReactNode;
@@ -131,6 +136,7 @@ export function PermissionsMatrix({
                                         aria-label={`${permission} ${row.displayName || row.name}`}
                                         style={{ justifySelf: 'center' }}
                                         checked={row.permissions[permission] || false}
+                                        disabled={row.can_assign === false}
                                         onChange={(event) => onPermissionChange(row.id, permission, event.currentTarget.checked)}
                                         size="sm"
                                     />

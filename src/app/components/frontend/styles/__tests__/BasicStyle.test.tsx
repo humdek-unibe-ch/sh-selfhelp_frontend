@@ -91,6 +91,13 @@ describe('BasicStyle dispatcher map', () => {
 });
 
 describe('BasicStyle getCssClass', () => {
+    it('pins section-<id> as the first class on every rendered section (C23 / sectionAnchor)', () => {
+        // `IPluginApi.sectionAnchor(id)` returns `.section-<id>`; the host keeps
+        // the same class token on the section element through getCssClass.
+        const style = { id: 42 } as unknown as CssArg;
+        expect(getCssClass(style).split(/\s+/)[0]).toBe('section-42');
+    });
+
     it('composes section id, css, and a max-md-prefixed mobile class', () => {
         const style = { id: 5, css: 'p-2', css_mobile: 'p-1' } as unknown as CssArg;
         expect(getCssClass(style)).toBe('section-5 p-2 max-md:p-1');

@@ -18,6 +18,7 @@ import {
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import { AdminDataHistoryApi } from '../../../../../api/admin/data-history.api';
 import { getApiErrorText } from '../../../../../utils/mutation-error-handler';
+import { formatContentRef } from '../../../../../utils/content-ref.utils';
 import {
     RESTORE_TEXT,
     RestoreBlockers,
@@ -188,6 +189,9 @@ export function AdminDataHistoryModal({
                                             <Text size="sm" c="dimmed">
                                                 {revision.operation} · {revision.source} · {revision.changed_fields} field
                                                 {revision.changed_fields === 1 ? '' : 's'}
+                                            </Text>
+                                            <Text size="sm" c="dimmed" data-testid="content-ref-revision">
+                                                Content version: {formatContentRef(revision.content_ref)}
                                             </Text>
                                         </Group>
                                         <Button

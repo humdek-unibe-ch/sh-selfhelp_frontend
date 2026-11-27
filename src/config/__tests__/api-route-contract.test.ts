@@ -30,28 +30,6 @@ import {
 
 const SRC_DIR = join(process.cwd(), 'src');
 
-/**
- * Plugin host routes (`/admin/plugins*`) whose web right differs from the backend route row: F238. The user
- * deferred them (2026-11-19, "All except plugins") to the plugin work, so they are known failures, not skipped:
- * each is still compared, and the entry must be removed here once the web declares the backend's right.
- * The other plugin host entries already match and are checked normally.
- */
-const F238 = 'F238: plugin host right differs from the backend route row; fixed with the plugin work (D9)';
-const PLUGIN_HOST_KNOWN_FAILURES = [
-    'ADMIN_PLUGIN_INSPECT_ARCHIVE',
-    'ADMIN_PLUGIN_ENABLE',
-    'ADMIN_PLUGIN_DISABLE',
-    'ADMIN_PLUGIN_UNINSTALL',
-    'ADMIN_PLUGIN_REPAIR',
-    'ADMIN_PLUGIN_REPAIR_ALL',
-    'ADMIN_PLUGIN_SOURCES_CREATE',
-    'ADMIN_PLUGIN_SOURCE_UPDATE',
-    'ADMIN_PLUGIN_SOURCE_DELETE',
-    'ADMIN_PLUGIN_FEATURE_FLAGS_SET',
-    'ADMIN_PLUGINS_SAFE_MODE_ENABLE',
-    'ADMIN_PLUGINS_SAFE_MODE_DISABLE',
-];
-
 const OPTIONS: IContractOptions = {
     bffOnly: {
         // `POST /api/mobile-preview/session` is a dedicated BFF route that keeps the admin token on the server
@@ -63,7 +41,7 @@ const OPTIONS: IContractOptions = {
     },
     unbuildable: {},
     methodOverrides: {},
-    knownFailures: Object.fromEntries(PLUGIN_HOST_KNOWN_FAILURES.map((key) => [key, F238])),
+    knownFailures: {},
 };
 
 describe('web route declarations match the backend route table', () => {

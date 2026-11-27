@@ -10,9 +10,10 @@ SPDX-License-Identifier: MPL-2.0
  *
  * | Tag | Effect |
  * | --- | --- |
- * | `acl` | user data (the existing `useAclVersionWatcher` cascade follows), navigation |
+ * | `acl` | user data (the existing `useAclVersionWatcher` cascade follows), navigation; plugin `sync` entries that list `acl` |
  * | `navigation` | navigation and the frontend page list |
- * | `page:<id>`, `page_draft:<id>`, `table:<id>`, `global_values` | the cached page payloads whose `sync.depends_on` names the tag; for `table:` also the form lists and data views of those pages |
+ * | `page:<id>`, `page_draft:<id>`, `table:<id>`, `res:<type>:<id>`, `global_values` | the cached page payloads whose `sync.depends_on` names the tag; for `table:` also the form lists and data views of those pages |
+ * | `res:<type>:<id>` / `table:<id>` / exact tags | also any plugin `sync` entry whose pattern matches (prefix ending in `*`, or exact); each matched key is invalidated as a prefix |
  * | `section:<id>` | the section details (F56) |
  * | `asset:<id>` | the asset lists; the asset selection is told through {@link subscribeSyncTags} (F121) |
  * | `page_lock:<id>` | nothing here; the page editor listens through {@link subscribeSyncTags} |
@@ -26,13 +27,16 @@ SPDX-License-Identifier: MPL-2.0
  */
 import type { QueryClient, Query } from '@tanstack/react-query';
 import { pageDependsOn, syncRefetchDelayMs } from '@selfhelp/shared';
+import { matchPluginSyncEntries } from '@selfhelp/shared/plugin-sdk';
 import type { IPageContent } from '../types/common/pages.type';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { getPluginSyncEntries } from './plugin-sync-entries';
 
 const QUERY_KEYS = REACT_QUERY_CONFIG.QUERY_KEYS;
 
 /** Tags a page payload can list in `sync.depends_on` (everything else is handled on its own). */
-const PAGE_DEPENDENCY_TAG = /^(page:\d+|page_draft:\d+|table:\d+|global_values)$/;
+const PAGE_DEPENDENCY_TAG =
+    /^(page:\d+|page_draft:\d+|table:\d+|global_values|res:[a-z][a-z0-9_]{1,63}:\d+)$/;
 
 /** Position of the page id in a form-list key (`formListCacheKey`). */
 const FORM_LIST_PAGE_ID_INDEX = 5;
@@ -163,6 +167,10 @@ export function applySyncTags(queryClient: QueryClient, rawTags: readonly string
 
     if (tags.some((tag) => tag.startsWith('asset:'))) {
         void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ASSETS_ALL, refetchType });
+    }
+
+    for (const queryKey of matchPluginSyncEntries(getPluginSyncEntries(), tags)) {
+        void queryClient.invalidateQueries({ queryKey, refetchType });
     }
 
     for (const listener of [...listeners]) {

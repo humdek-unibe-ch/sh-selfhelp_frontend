@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
+import { setPluginSyncEntriesProvider } from '../../utils/plugin-sync-entries';
 import { useAclVersionWatcher } from '../useAclVersionWatcher';
 
 const auth = vi.hoisted(() => ({ user: null as { id: number; aclVersion: number; aclStamp?: string | null } | null }));
@@ -43,6 +44,7 @@ function stale(queryClient: QueryClient, key: readonly unknown[]): boolean | und
 
 beforeEach(() => {
     auth.user = { id: 5, aclVersion: 1 };
+    setPluginSyncEntriesProvider(() => []);
 });
 
 describe('what a change of the signed-in person does to the cached entry lists', () => {
@@ -131,5 +133,23 @@ describe('what a change of the signed-in person does to the cached entry lists',
         expect(stale(queryClient, LIST_KEY)).toBe(true);
         expect(stale(queryClient, ROLES_KEY)).toBe(true);
         expect(stale(queryClient, NAVIGATION_KEY)).toBe(true);
+    });
+
+    it('invalidates plugin sync entries that list acl when access changes (P4-A2)', () => {
+        setPluginSyncEntriesProvider(() => [
+            { tags: ['acl'], queryKey: ['plugin', 'bootstrap'] },
+            { tags: ['res:surveyjs_survey:*'], queryKey: ['plugin', 'surveys'] },
+        ]);
+        const { queryClient, rerender } = mount();
+        const bootstrapKey = ['plugin', 'bootstrap'] as const;
+        const surveysKey = ['plugin', 'surveys'] as const;
+        queryClient.setQueryData(bootstrapKey, { ok: true });
+        queryClient.setQueryData(surveysKey, { items: [] });
+
+        auth.user = { id: 5, aclVersion: 2 };
+        rerender();
+
+        expect(stale(queryClient, bootstrapKey)).toBe(true);
+        expect(stale(queryClient, surveysKey)).toBe(false);
     });
 });

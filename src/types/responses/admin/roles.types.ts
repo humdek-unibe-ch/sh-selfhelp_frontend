@@ -107,6 +107,11 @@ export interface IPluginResource {
   id: number;
   name: string;
   description: string | null;
+  /**
+   * Whether the caller fully holds this item and may hand its grants out
+   * (rule 4.6f / C9). Absent on older backends; treat as true then.
+   */
+  can_assign?: boolean;
 }
 
 export interface ICreateDataAccessPermissionRequest {
