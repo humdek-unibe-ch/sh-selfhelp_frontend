@@ -26,6 +26,11 @@ No engineering diary, no implementation detail — that belongs in
   reads API routes from the test database (`selfhelp_test_test`), which only
   exists after `test:reset-db`; it failed, and the `e2e-access` PR check
   could not start.
+- **Playwright jobs run on `ubuntu-24.04`.** GitHub's `ubuntu-latest` became
+  Ubuntu 26.04 in November 2026, where Playwright 1.60.0 cannot install
+  Chromium. `e2e-access`, the golden full-stack job and `visual-snapshots` are
+  pinned until Playwright is raised (1.65 supports 26.04); the Linux visual
+  baselines stay comparable.
 
 ### Added
 - **Record history shows plugin writes.** A version a plugin wrote reads

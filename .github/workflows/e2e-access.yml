@@ -47,7 +47,9 @@ concurrency:
 jobs:
   access:
     name: Least-privilege walk (full stack)
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest is Ubuntu 26.04 since Nov 2026, and Playwright 1.60.0 (lockfile)
+    # cannot install Chromium there. Move when Playwright is raised (>= 1.65 knows 26.04).
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
 
     services:
