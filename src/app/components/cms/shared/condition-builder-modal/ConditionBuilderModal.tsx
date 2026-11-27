@@ -19,10 +19,11 @@ import 'react-querybuilder/dist/query-builder.css';
 import { ModalWrapper } from '../../../shared/common/CustomModal';
 import { useConditionBuilderData } from '../../../../../hooks/useConditionBuilderData';
 import { rulesToJsonLogic, jsonLogicToRules, isValidJsonLogic } from '../../../../../utils/json-logic-conversion.utils';
-import { createConditionFields } from './conditionFields';
+import { createConditionFields, type IPluginConditionOperation } from './conditionFields';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
 import { CreatableSelectField, createSelectable } from '../field-components/CreatableSelectField/CreatableSelectField';
 import { QUERY_BUILDER_CONTROL_CLASSNAMES } from '../../../../../constants/querybuilder.constants';
+import { usePluginJsonLogicOperations } from '../../plugins/hooks/usePluginJsonLogicOperations';
 
 interface IConditionBuilderModalProps {
     opened: boolean;
@@ -31,6 +32,8 @@ interface IConditionBuilderModalProps {
     initialValue?: string;
     title?: string;
     dataVariables?: Record<string, string>;
+    /** Test / override hook: declared plugin JSON Logic operations (C16). */
+    pluginOperations?: IPluginConditionOperation[];
 }
 
 const initialQuery: RuleGroupType = {
@@ -201,9 +204,12 @@ export function ConditionBuilderModal({
     onSave,
     initialValue,
     title = "Condition Builder",
-    dataVariables
+    dataVariables,
+    pluginOperations: pluginOperationsProp,
 }: IConditionBuilderModalProps) {
     const { groups, languages, platforms, pages, isLoading, isError } = useConditionBuilderData();
+    const { data: fetchedPluginOperations = [] } = usePluginJsonLogicOperations(pluginOperationsProp === undefined);
+    const pluginOperations = pluginOperationsProp ?? fetchedPluginOperations;
     // Lazily seed the query so a modal that mounts already-open (data ready) is
     // initialized on the first render; the render-phase sync below handles every
     // later open/value/loaded transition (the common case: mounts closed, opens).
@@ -213,7 +219,7 @@ export function ConditionBuilderModal({
     const [isSaving, setIsSaving] = useState(false);
 
     // Create fields with dynamic data
-    const fields = createConditionFields(groups, languages, platforms, pages);
+    const fields = createConditionFields(groups, languages, platforms, pages, pluginOperations);
 
     // Initialize the query from the initial value once the modal is open and the
     // builder data has finished loading. This is React's recommended "adjust
@@ -328,6 +334,17 @@ export function ConditionBuilderModal({
                 <Text size="sm" c="dimmed">
                     Build conditions using the query builder below. Use AND/OR for groups.
                 </Text>
+                {pluginOperations.length > 0 && (
+                    <Stack gap={4} data-testid="plugin-condition-functions">
+                        <Text size="sm" fw={600}>Plugin functions</Text>
+                        {pluginOperations.map((op) => (
+                            <Text key={op.name} size="xs" c="dimmed">
+                                <Text span fw={500} c="dark">{op.name}</Text>
+                                {op.description ? ` — ${op.description}` : ''}
+                            </Text>
+                        ))}
+                    </Stack>
+                )}
                 <div className="validateQuery">
                     <QueryBuilderMantine>
                         <QueryBuilder

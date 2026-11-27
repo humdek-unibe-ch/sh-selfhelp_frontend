@@ -20,6 +20,9 @@ import { useActionTranslations } from '../../../../../hooks/useActionTranslation
 import { GroupedTranslationInput } from '../grouped-translation-input/GroupedTranslationInput';
 import { usePageKeywords } from '../../../../../hooks/usePageKeywords';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
+import { SchemaConfigForm } from '../../shared/schema-config-form';
+import { usePluginJobTypes } from '../../plugins/hooks/usePluginJobTypes';
+import type { IPluginJobType } from '../../plugins/hooks/pluginJobTypes.types';
 import type {
     IActionConfig,
     IActionBlockConfig,
@@ -29,6 +32,33 @@ import type {
     IActionNotificationConfig,
 } from '../../../../../types/requests/admin/actions.types';
 // Removed custom CSS import - using Mantine and Tailwind instead
+
+const CORE_JOB_TYPE_OPTIONS = [
+    { value: 'add_group', label: 'Add group' },
+    { value: 'remove_group', label: 'Remove group' },
+    { value: 'notification', label: 'Schedule notification' },
+    { value: 'notification_with_reminder', label: 'Schedule notification with reminders' },
+    { value: 'notification_with_reminder_for_diary', label: 'Schedule notification with reminders for a diary' },
+];
+
+function isCoreJobType(jobType: string | undefined): boolean {
+    return Boolean(jobType && CORE_JOB_TYPE_OPTIONS.some((opt) => opt.value === jobType));
+}
+
+function defaultsFromSchema(jobType: IPluginJobType): Record<string, unknown> {
+    const schema = jobType.config_schema;
+    const properties =
+        schema && typeof schema === 'object' && 'properties' in schema && schema.properties
+            ? schema.properties
+            : {};
+    const next: Record<string, unknown> = {};
+    for (const [key, prop] of Object.entries(properties)) {
+        if (prop && typeof prop === 'object' && 'default' in prop && (prop as { default?: unknown }).default !== undefined) {
+            next[key] = (prop as { default: unknown }).default;
+        }
+    }
+    return next;
+}
 
 /**
  * Default notification subject/body placeholder templates for new actions.
@@ -156,6 +186,24 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     const scheduleTypes = useLookupsByType(ACTION_SCHEDULE_TYPES);
     const timePeriod = useLookupsByType(TIME_PERIOD);
     const weekdays = useLookupsByType(WEEKDAYS);
+    const { data: pluginJobTypes = [] } = usePluginJobTypes();
+    const pluginJobTypeByName = useMemo(() => {
+        const map = new Map<string, IPluginJobType>();
+        for (const jobType of pluginJobTypes) {
+            map.set(jobType.type, jobType);
+        }
+        return map;
+    }, [pluginJobTypes]);
+    const jobTypeSelectData = useMemo(
+        () => [
+            ...CORE_JOB_TYPE_OPTIONS,
+            ...pluginJobTypes.map((jobType) => ({
+                value: jobType.type,
+                label: `${jobType.label} (${jobType.plugin_id})`,
+            })),
+        ],
+        [pluginJobTypes],
+    );
 
     const [groupsOptions, setGroupsOptions] = useState<{ value: string; label: string }[]>([]);
     const [formOptions, setFormOptions] = useState<{ value: string; label: string }[]>([]);
@@ -1128,23 +1176,33 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                     />
                                                                     <Select
                                                                         label="Job type"
-                                                                        data={[
-                                                                            { value: 'add_group', label: 'Add group' },
-                                                                            { value: 'remove_group', label: 'Remove group' },
-                                                                            { value: 'notification', label: 'Schedule notification' },
-                                                                            { value: 'notification_with_reminder', label: 'Schedule notification with reminders' },
-                                                                            { value: 'notification_with_reminder_for_diary', label: 'Schedule notification with reminders for a diary' },
-                                                                        ]}
+                                                                        data={jobTypeSelectData}
                                                                         value={job.job_type || null}
                                                                         onChange={(v) => {
                                                                             const newJobType = v || undefined;
-                                                                            const isNotificationType = newJobType && newJobType.includes('notification');
-                                                                            const wasNotificationType = job.job_type && job.job_type.includes('notification');
+                                                                            const pluginType = newJobType
+                                                                                ? pluginJobTypeByName.get(newJobType)
+                                                                                : undefined;
+                                                                            const isNotificationType = newJobType && newJobType.includes('notification') && isCoreJobType(newJobType);
+                                                                            const wasNotificationType = job.job_type && job.job_type.includes('notification') && isCoreJobType(job.job_type);
+
+                                                                            if (pluginType) {
+                                                                                setJob(bIndex, jIndex, {
+                                                                                    job_type: newJobType,
+                                                                                    plugin_config: defaultsFromSchema(pluginType),
+                                                                                    notification: undefined,
+                                                                                    reminders: undefined,
+                                                                                    reminder_form_id: undefined,
+                                                                                    job_add_remove_groups: undefined,
+                                                                                });
+                                                                                return;
+                                                                            }
 
                                                                             // Initialize notification object when switching to notification type
                                                                             if (isNotificationType && !wasNotificationType) {
                                                                                 setJob(bIndex, jIndex, {
                                                                                     job_type: newJobType,
+                                                                                    plugin_config: undefined,
                                                                                     notification: {
                                                                                         notification_types: 'email',
                                                                                         recipient: '{{recipient.email}}',
@@ -1153,7 +1211,10 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                                     }
                                                                                 });
                                                                             } else {
-                                                                                setJob(bIndex, jIndex, { job_type: newJobType });
+                                                                                setJob(bIndex, jIndex, {
+                                                                                    job_type: newJobType,
+                                                                                    plugin_config: undefined,
+                                                                                });
                                                                             }
                                                                         }}
                                                                         size="sm"
@@ -1185,6 +1246,24 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                         searchable
                                                                         size="sm"
                                                                     />
+                                                                )}
+
+                                                                {/* Plugin job config (C12) */}
+                                                                {job.job_type && pluginJobTypeByName.has(job.job_type) && (
+                                                                    <Card withBorder data-testid="plugin-job-config">
+                                                                        <Stack gap="sm">
+                                                                            <Text fw={600} size="sm">
+                                                                                {pluginJobTypeByName.get(job.job_type)?.label ?? 'Plugin job'}
+                                                                            </Text>
+                                                                            <SchemaConfigForm
+                                                                                schema={pluginJobTypeByName.get(job.job_type)?.config_schema}
+                                                                                resourceFields={pluginJobTypeByName.get(job.job_type)?.resource_fields}
+                                                                                value={job.plugin_config ?? {}}
+                                                                                onChange={(plugin_config) => setJob(bIndex, jIndex, { plugin_config })}
+                                                                                dataVariables={dataVariables}
+                                                                            />
+                                                                        </Stack>
+                                                                    </Card>
                                                                 )}
 
                                                                 {/* Notification */}

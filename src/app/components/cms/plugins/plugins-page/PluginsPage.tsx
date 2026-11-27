@@ -77,6 +77,9 @@ import { isTransientApiError } from '../../../../../utils/transient-error.utils'
 import { EmptyState } from '../../../shared/common/EmptyState';
 import { AdminTableFooter, adminTableClasses as tableStyles } from '../../shared/admin-table';
 import type { IAdminPluginAvailableUpdate } from '../../../../../types/responses/admin/plugins.types';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { pluginAdminRights } from '../hooks/pluginAdminRights';
+import { formatPluginLifecycleError } from '../hooks/pluginLifecycleError';
 
 type TPluginsTab = 'installed' | 'available' | 'sources';
 const PLUGINS_TABS: readonly TPluginsTab[] = ['installed', 'available', 'sources'];
@@ -94,6 +97,8 @@ export function PluginsPage() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const { permissionChecker } = useAuthUser();
+    const { canExecute, canManage, canPurge } = pluginAdminRights(permissionChecker);
     const { data: pluginList, isLoading, error } = useAdminPlugins();
     const { data: sources } = useAdminPluginSources();
     const { data: operations } = useAdminPluginOperations();
@@ -330,7 +335,7 @@ export function PluginsPage() {
             await enableMutation.mutateAsync(pluginId);
             notifications.show({ color: 'green', title: 'Plugin enabled', message: pluginId });
         } catch (err) {
-            notifications.show({ color: 'red', title: 'Enable failed', message: err instanceof Error ? err.message : String(err) });
+            notifications.show({ color: 'red', title: 'Enable failed', message: formatPluginLifecycleError(err) });
         } finally {
             setBusyPluginId(null);
         }
@@ -341,7 +346,7 @@ export function PluginsPage() {
             await disableMutation.mutateAsync(pluginId);
             notifications.show({ color: 'yellow', title: 'Plugin disabled', message: pluginId });
         } catch (err) {
-            notifications.show({ color: 'red', title: 'Disable failed', message: err instanceof Error ? err.message : String(err) });
+            notifications.show({ color: 'red', title: 'Disable failed', message: formatPluginLifecycleError(err) });
         } finally {
             setBusyPluginId(null);
         }
@@ -352,7 +357,7 @@ export function PluginsPage() {
             await uninstallMutation.mutateAsync(pluginId);
             notifications.show({ color: 'green', title: 'Plugin uninstalled', message: pluginId });
         } catch (err) {
-            notifications.show({ color: 'red', title: 'Uninstall failed', message: err instanceof Error ? err.message : String(err) });
+            notifications.show({ color: 'red', title: 'Uninstall failed', message: formatPluginLifecycleError(err) });
         } finally {
             setBusyPluginId(null);
         }
@@ -475,9 +480,11 @@ export function PluginsPage() {
                     <Badge variant="light" color="gray">
                         {rows.length} installed / {sources?.length ?? 0} sources
                     </Badge>
-                    <Button leftSection={<IconDownload size={14} />} onClick={() => setInstallOpen(true)}>
-                        Install plugin
-                    </Button>
+                    {canExecute && (
+                        <Button leftSection={<IconDownload size={14} />} onClick={() => setInstallOpen(true)} data-testid="plugins-install-button">
+                            Install plugin
+                        </Button>
+                    )}
                 </Group>
             </Group>
 
@@ -593,7 +600,7 @@ export function PluginsPage() {
                                                     }
                                                     return (
                                                         <Group gap="xs" wrap="nowrap" onClick={(e) => e.stopPropagation()} className={tableStyles.actionsCell}>
-                                                            {p.availableUpdate && (
+                                                            {canExecute && p.availableUpdate && (
                                                                 <Tooltip
                                                                     label={
                                                                         p.availableUpdate.diffKind === 'major'
@@ -606,30 +613,35 @@ export function PluginsPage() {
                                                                         color={p.availableUpdate.diffKind === 'major' ? 'red' : 'blue'}
                                                                         leftSection={<IconArrowUp size={12} />}
                                                                         onClick={() => setUpdateFor(p.availableUpdate ?? null)}
+                                                                        data-testid="plugin-execute-update"
                                                                     >
                                                                         Update
                                                                     </Button>
                                                                 </Tooltip>
                                                             )}
-                                                            {p.enabled ? (
-                                                                <Button size="xs" variant="default" onClick={() => onDisable(p.pluginId)}>
+                                                            {canExecute && (p.enabled ? (
+                                                                <Button size="xs" variant="default" onClick={() => onDisable(p.pluginId)} data-testid="plugin-execute-disable">
                                                                     Disable
                                                                 </Button>
                                                             ) : (
-                                                                <Button size="xs" onClick={() => onEnable(p.pluginId)}>
+                                                                <Button size="xs" onClick={() => onEnable(p.pluginId)} data-testid="plugin-execute-enable">
                                                                     Enable
                                                                 </Button>
+                                                            ))}
+                                                            {canExecute && (
+                                                                <Tooltip label="Removes packages; preserves data">
+                                                                    <Button size="xs" variant="light" color="yellow" onClick={() => onUninstall(p.pluginId)} data-testid="plugin-execute-uninstall">
+                                                                        Uninstall
+                                                                    </Button>
+                                                                </Tooltip>
                                                             )}
-                                                            <Tooltip label="Removes packages; preserves data">
-                                                                <Button size="xs" variant="light" color="yellow" onClick={() => onUninstall(p.pluginId)}>
-                                                                    Uninstall
-                                                                </Button>
-                                                            </Tooltip>
-                                                            <Tooltip label="Destructive: drops tables and tagged rows">
-                                                                <Button size="xs" variant="light" color="red" onClick={() => setPurgeFor(p.pluginId)}>
-                                                                    Purge…
-                                                                </Button>
-                                                            </Tooltip>
+                                                            {canPurge && (
+                                                                <Tooltip label="Destructive: drops tables and tagged rows">
+                                                                    <Button size="xs" variant="light" color="red" onClick={() => setPurgeFor(p.pluginId)} data-testid="plugin-purge">
+                                                                        Purge…
+                                                                    </Button>
+                                                                </Tooltip>
+                                                            )}
                                                         </Group>
                                                     );
                                                 })()}
@@ -784,7 +796,9 @@ export function PluginsPage() {
                         <Tabs.List>
                             <Tabs.Tab value="registry">From registry</Tabs.Tab>
                             <Tabs.Tab value="url">From URL</Tabs.Tab>
-                            <Tabs.Tab value="archive">Upload .shplugin</Tabs.Tab>
+                            {canManage && (
+                                <Tabs.Tab value="archive" data-testid="plugins-inspect-archive-tab">Upload .shplugin</Tabs.Tab>
+                            )}
                             <Tabs.Tab value="paste" color="gray">Paste JSON (developer)</Tabs.Tab>
                         </Tabs.List>
 

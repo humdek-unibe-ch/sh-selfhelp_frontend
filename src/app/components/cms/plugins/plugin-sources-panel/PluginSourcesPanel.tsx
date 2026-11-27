@@ -43,6 +43,8 @@ import {
     useAdminPluginSources,
 } from '../hooks/useAdminPlugins';
 import type { IAdminPluginSource } from '../../../../../types/responses/admin/plugins.types';
+import { useAuthUser } from '../../../../../hooks/useUserData';
+import { pluginAdminRights } from '../hooks/pluginAdminRights';
 
 type TKind = NonNullable<IAdminPluginSource['kind']>;
 
@@ -77,6 +79,8 @@ const EMPTY_FORM: ISourceFormState = {
 };
 
 export function PluginSourcesPanel() {
+    const { permissionChecker } = useAuthUser();
+    const { canExecute } = pluginAdminRights(permissionChecker);
     const { data: sources, isLoading } = useAdminPluginSources();
     const createMutation = useAdminPluginSourceCreate();
     const updateMutation = useAdminPluginSourceUpdate();
@@ -184,7 +188,7 @@ export function PluginSourcesPanel() {
     return (
         <Stack gap="md">
             <Group justify="flex-end">
-                <Button onClick={openCreate}>Add source</Button>
+                {canExecute && <Button onClick={openCreate} data-testid="plugin-source-add">Add source</Button>}
             </Group>
 
             <div className={tableStyles.tableWrapper}>
@@ -240,25 +244,27 @@ export function PluginSourcesPanel() {
                                     </Badge>
                                 </Table.Td>
                                 <Table.Td className={tableStyles.tableCell}>
-                                    <Group gap={2} wrap="nowrap" justify="flex-end" className={tableStyles.actionsCell}>
-                                        <Tooltip label={source.isSystem ? 'Edit (toggle enabled only)' : 'Edit source'}>
-                                            <ActionIcon variant="subtle" color="gray" size="sm" aria-label="Edit source" onClick={() => openEdit(source)}>
-                                                <IconEdit size={16} />
-                                            </ActionIcon>
-                                        </Tooltip>
-                                        <Tooltip label={source.isSystem ? 'System source cannot be deleted' : 'Delete source'}>
-                                            <ActionIcon
-                                                variant="subtle"
-                                                color="red"
-                                                size="sm"
-                                                aria-label="Delete source"
-                                                disabled={source.isSystem}
-                                                onClick={() => onDelete(source)}
-                                            >
-                                                <IconTrash size={16} />
-                                            </ActionIcon>
-                                        </Tooltip>
-                                    </Group>
+                                    {canExecute ? (
+                                        <Group gap={2} wrap="nowrap" justify="flex-end" className={tableStyles.actionsCell}>
+                                            <Tooltip label={source.isSystem ? 'Edit (toggle enabled only)' : 'Edit source'}>
+                                                <ActionIcon variant="subtle" color="gray" size="sm" aria-label="Edit source" onClick={() => openEdit(source)}>
+                                                    <IconEdit size={16} />
+                                                </ActionIcon>
+                                            </Tooltip>
+                                            <Tooltip label={source.isSystem ? 'System source cannot be deleted' : 'Delete source'}>
+                                                <ActionIcon
+                                                    variant="subtle"
+                                                    color="red"
+                                                    size="sm"
+                                                    aria-label="Delete source"
+                                                    disabled={source.isSystem}
+                                                    onClick={() => onDelete(source)}
+                                                >
+                                                    <IconTrash size={16} />
+                                                </ActionIcon>
+                                            </Tooltip>
+                                        </Group>
+                                    ) : null}
                                 </Table.Td>
                             </Table.Tr>
                         ))}
