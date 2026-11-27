@@ -12,7 +12,44 @@ No engineering diary, no implementation detail — that belongs in
 `dev_log.md`. Architectural rationale belongs in
 `docs/architecture/ssr-bff-architecture.md`.
 
-## Unreleased
+## v0.1.79 — 2026-11-26
+
+### Added
+- **Record history shows plugin writes.** A version a plugin wrote reads
+  "via plugin" instead of failing to name its source.
+- **Plugin host hooks UI (pairs with core 0.1.52).** Live sync applies each
+  plugin's declarative `sync` map and `res:` page tags; the ACL watcher
+  invalidates plugin `acl` entries. `PluginRuntime` exposes `sectionAnchor`,
+  `resources.usage`, `settings.get` and `ui.ResourceUsageList`. The shared
+  where-used list shows pages, actions, a hidden count and a delete warning.
+  The roles plugin popup disables rows without `can_assign`. `content_ref`
+  shows as "Content version" (or "unknown") in the data browser and history.
+- **Action builder plugin jobs.** After the core job types, the builder loads
+  action-plannable plugin types and draws a generated `SchemaConfigForm`
+  (including viewable resource pickers) into `plugin_config`.
+- **Plugin settings form** on the plugin detail page (secrets hint, omit
+  untouched secrets, clear with `null`, env-overridden disabled).
+- **Plugin JSON Logic operations** appear in the condition builder function
+  list from enabled plugins' public manifest.
+- **Plugin detail** shows dependencies and their state, `listens`, recurring
+  jobs, and surfaces 409 dependency/conflict names.
+- **F238 plugin-host rights:** execute vs manage vs purge gate the Plugins
+  screen controls.
+- **Collapsible admin sidebar.** The collapse button next to the logo (or
+  Ctrl/Cmd+B) turns the sidebar into an icon rail; each section opens its
+  pages and quick actions in a flyout on hover, click or keyboard. The choice
+  is remembered.
+- **Admin menu on narrow screens.** Below 768px a top bar with a menu button
+  opens the admin sidebar, which closes again after picking a page.
+- **Excel export of data tables.** The data screen's export menu and the bulk
+  export offer Excel next to CSV and JSON (needs a backend with `format=xlsx`).
+- **Plugin styles know their page.** `BasicStyle` draws plugin styles through
+  `PluginStyleHost`, which passes `page` (`id`, `languageId`, `preview`,
+  `routeParams`) next to `pageModal`.
+- **Plugin styles can close their popup.** `BasicStyle` passes `pageModal`
+  (`inModal`, `closeModal`) to plugin style components.
+- **Plugin resource types on the role screen.** When an enabled plugin adds a
+  data-access resource type, each role's menu offers "<Type> permissions".
 
 ### Fixed
 - **Plugin admin pages wait for the user** before checking their permission,
@@ -22,38 +59,12 @@ No engineering diary, no implementation detail — that belongs in
 - **A permission row put back as it was** no longer shows "Unsaved".
 - **A plain file path with `..`** in a data cell is not linked (as inside JSON).
 - **The impersonation banner no longer hides the bottom right corner.** While
-  it shows, the page gets room at the bottom of the banner's height, so an
-  editor's buttons or a table footer can be scrolled clear of it.
-
-### Added
-- **Collapsible admin sidebar.** The collapse button next to the logo (or
-  Ctrl/Cmd+B) turns the sidebar into an icon rail; each section opens its
-  pages and quick actions in a flyout on hover, click or keyboard. The choice
-  is remembered.
-- **Admin menu on narrow screens.** Below 768px a top bar with a menu button
-  opens the admin sidebar, which closes again after picking a page. Before,
-  the sidebar was hidden there with no way to open it.
-- **Excel export of data tables.** The data screen's export menu and the bulk
-  export offer Excel next to CSV and JSON (needs a backend with `format=xlsx`).
-- **Plugin styles know their page.** `BasicStyle` draws plugin styles through
-  `PluginStyleHost`, which passes `page` (`id`, `languageId`, `preview`,
-  `routeParams`) next to `pageModal`. A plugin names page and section in its
-  calls so the server checks access and reads the section's settings (rule
-  7.7). Only plugin sections run these hooks.
-- **Plugin styles can close their popup.** `BasicStyle` passes `pageModal`
-  (`inModal`, `closeModal`) to plugin style components, the way the core form
-  closes its popup with `close_modal_on_save`.
-- **Plugin resource types on the role screen.** When an enabled plugin adds a
-  data-access resource type (for example surveys), each role's menu offers
-  "<Type> permissions": the plugin's resources in the same view / create /
-  update / delete matrix as pages and data tables. Needs the backend routes
-  `/admin/data-access/plugin-resource-types` (raise `supports.core` at release).
+  it shows, the page gets room at the bottom of the banner's height.
 
 ### Changed
 - The checkboxes of every role permission matrix have an accessible name
   ("update <resource>").
-
----
+- `supports.core` raised to `>=0.1.52 <0.2.0`; `requiredApiVersion` is `0.2.0`.
 
 ---
 
