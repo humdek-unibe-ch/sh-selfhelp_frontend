@@ -14,6 +14,10 @@ No engineering diary, no implementation detail — that belongs in
 
 ## v0.1.79 — 2026-11-26
 
+### Changed
+- Pins the published `@selfhelp/shared` **1.31.0** (`package.json` and the
+  lockfile).
+
 ### Added
 - **Record history shows plugin writes.** A version a plugin wrote reads
   "via plugin" instead of failing to name its source.
